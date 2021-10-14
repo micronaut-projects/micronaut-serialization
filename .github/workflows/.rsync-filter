@@ -1,0 +1,4 @@
+- files-sync.yml
+- test-files-sync.yml
+- update-gradle-wrapper.yml
+- .rsync-filter
