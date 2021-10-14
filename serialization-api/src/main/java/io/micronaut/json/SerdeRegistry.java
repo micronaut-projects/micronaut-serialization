@@ -92,11 +92,7 @@ public final class SerdeRegistry {
     private static Type normalizePrimitiveType(Type t) {
         if (t instanceof Argument) {
             final Class<?> type = ((Argument<?>) t).getType();
-            if (ReflectionUtils.isPrimitiveWrapper(type)) {
-                return ReflectionUtils.getPrimitiveType(type);
-            } else {
-                return t;
-            }
+            return ReflectionUtils.getWrapperType(type);
         }
         if (t instanceof Class<?>) {
             return ReflectionUtils.getPrimitiveType((Class<?>) t);

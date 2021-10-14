@@ -10,7 +10,7 @@ dependencies {
     api 'io.micronaut:micronaut-jackson-core'
     api project(":serialization-api")
 
-    // compileOnly libs.managed.netty.codec.http
+    compileOnly 'io.netty:netty-codec-http'
     compileOnly 'io.micronaut:micronaut-management'
 
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"

@@ -5,12 +5,13 @@ plugins {
 dependencies {
     annotationProcessor "io.micronaut:micronaut-inject-java"
 
-    api project(":json-generated-api")
+    api project(":serialization-api")
     api "io.micronaut:micronaut-inject"
+    api "io.micronaut:micronaut-inject-java"
     compileOnly "io.micronaut:micronaut-inject-groovy"
 
     api "com.squareup:javapoet:$javapoetVersion"
-    api libs.managed.jackson.annotations
+    api "com.fasterxml.jackson.core:jackson-annotations"
 
     testAnnotationProcessor "io.micronaut:micronaut-inject-java"
     

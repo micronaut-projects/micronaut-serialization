@@ -20,7 +20,8 @@ bin/
 *.iws
 .kotlintest
 */.kotlintest/
-
+# ignore generated
+*/src/main/generated/
 # ignore resources, are downloaded via a gradle task from micronaut_docs
 src/main/docs/resources/css/highlight/*.css
 src/main/docs/resources/css/highlight/*.png
