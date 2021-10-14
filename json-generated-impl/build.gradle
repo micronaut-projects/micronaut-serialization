@@ -1,0 +1,32 @@
+plugins {
+    id("io.micronaut.build.internal.module")
+}
+dependencies {
+    annotationProcessor "io.micronaut:micronaut-inject-java"
+    annotationProcessor project(":serialization-generator")
+
+    api 'io.micronaut:micronaut-context'
+    api 'io.micronaut:micronaut-http'
+    api 'io.micronaut:micronaut-jackson-core'
+    api project(":json-generated-api")
+
+    // compileOnly libs.managed.netty.codec.http
+    compileOnly 'io.micronaut:micronaut-management'
+
+    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    testAnnotationProcessor "io.micronaut:micronaut-inject-groovy"
+    testAnnotationProcessor project(":serialization-generator")
+
+    testImplementation "io.micronaut:micronaut-inject-java-test"
+    testImplementation "io.micronaut:micronaut-inject-groovy"
+    testImplementation "io.micronaut:micronaut-inject-groovy-test"
+    testImplementation project(":serialization-generator")
+
+    if (!JavaVersion.current().isJava9Compatible()) {
+        testImplementation files(org.gradle.internal.jvm.Jvm.current().toolsJar)
+    }
+}
+
+test {
+    systemProperty 'micronaut.databind', 'generated'
+}

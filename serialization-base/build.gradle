@@ -1,0 +1,9 @@
+plugins {
+    id("io.micronaut.build.internal.module")
+}
+
+dependencies {
+    annotationProcessor "io.micronaut:micronaut-inject-java"
+    api "io.micronaut:micronaut-inject"
+    api("com.fasterxml.jackson.core:jackson-core")
+}

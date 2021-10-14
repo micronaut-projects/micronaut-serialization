@@ -1,0 +1,23 @@
+plugins {
+    id("io.micronaut.build.internal.module")
+}
+
+dependencies {
+    annotationProcessor "io.micronaut:micronaut-inject-java"
+
+    api project(":json-generated-api")
+    api "io.micronaut:micronaut-inject"
+    compileOnly "io.micronaut:micronaut-inject-groovy"
+
+    api "com.squareup:javapoet:$javapoetVersion"
+    api libs.managed.jackson.annotations
+
+    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    
+    testImplementation "io.micronaut:micronaut-inject-java-test"
+    testImplementation "io.micronaut:micronaut-inject-groovy"
+    testImplementation "io.micronaut:micronaut-inject-groovy-test"
+    if (!JavaVersion.current().isJava9Compatible()) {
+        testImplementation files(org.gradle.internal.jvm.Jvm.current().toolsJar)
+    }
+}

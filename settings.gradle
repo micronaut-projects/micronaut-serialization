@@ -9,6 +9,9 @@ plugins {
     id 'io.micronaut.build.shared.settings' version '4.2.0'
 }
 
-rootProject.name = 'xxx-parent'
+rootProject.name = 'serialization-parent'
 
-include 'xxx'
+include 'serialization-base'
+include 'serialization-generator'
+include 'serialization-api'
+include 'json-generated-impl'
