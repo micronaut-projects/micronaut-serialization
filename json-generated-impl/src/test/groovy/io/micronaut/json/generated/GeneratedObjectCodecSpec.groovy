@@ -89,6 +89,9 @@ class Subclass extends Base {
 
         //then:"to avoid confusion because of missing subclass properties, don't allow serialization"
         //thrown Exception
+
+        cleanup:
+        ctx.close()
     }
 
     def "generic bean deser"() {

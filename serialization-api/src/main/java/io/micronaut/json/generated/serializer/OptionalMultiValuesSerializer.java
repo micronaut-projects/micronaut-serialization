@@ -16,7 +16,7 @@
 package io.micronaut.json.generated.serializer;
 
 import io.micronaut.core.type.Argument;
-import io.micronaut.json.GenericTypeFactory;
+import io.micronaut.json.ArgumentResolver;
 import io.micronaut.core.value.OptionalMultiValues;
 import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.json.Encoder;
@@ -27,10 +27,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues<V>> {
     private final boolean alwaysSerializeErrorsAsList;
@@ -87,11 +85,14 @@ class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
-        public Serializer<? super OptionalMultiValues<?>> newInstance(SerdeRegistry locator, Function<String, Type> getTypeParameter) {
+        public Serializer<? super OptionalMultiValues<?>> newInstance(SerdeRegistry locator, ArgumentResolver getTypeParameter) {
             return new OptionalMultiValuesSerializer(
                     jacksonConfiguration,
-                    locator.findContravariantSerializer(getTypeParameter.apply("V")),
-                    locator.findContravariantSerializer(GenericTypeFactory.makeParameterizedTypeWithOwner(null, List.class, getTypeParameter.apply("V"))));
+                    locator.findSerializer(getTypeParameter.apply("V")),
+                    locator.findSerializer(
+                            Argument.listOf(getTypeParameter.apply("V"))
+                    )
+            );
         }
     }
 }

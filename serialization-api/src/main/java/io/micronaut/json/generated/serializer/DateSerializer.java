@@ -31,8 +31,8 @@ class DateSerializer implements Serializer<Date>, Deserializer<Date> {
     private final Deserializer<? extends Long> longDeserializer;
 
     DateSerializer(SerdeRegistry locator) {
-        this.longSerializer = locator.findContravariantSerializer(long.class);
-        this.longDeserializer = locator.findInvariantDeserializer(long.class);
+        this.longSerializer = locator.findSerializer(long.class);
+        this.longDeserializer = locator.findDeserializer(long.class);
     }
 
     @Override

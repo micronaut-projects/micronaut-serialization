@@ -22,6 +22,7 @@ import java.util.function.Function;
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
 
 /**
  * Interface that represents a build-time generated deserializer.
@@ -30,6 +31,7 @@ import io.micronaut.core.annotation.Nullable;
  * @author Jonas Konrad
  * @author graemerocher
  */
+@Indexed(Deserializer.class)
 public interface Deserializer<T> {
     /**
      * Deserializes from the current state of the {@link io.micronaut.json.Decoder} an object of type {@link T}.
@@ -55,10 +57,10 @@ public interface Deserializer<T> {
     interface Factory extends BaseCodecFactory {
         @NonNull
         @Override
-        Type getGenericType();
+        Argument<?> getGenericType();
 
         @NonNull
         @Override
-        Deserializer<?> newInstance(@NonNull SerdeRegistry registry, @Nullable Function<String, Type> getTypeParameter);
+        Deserializer<?> newInstance(@NonNull SerdeRegistry registry, @NonNull ArgumentResolver getTypeParameter);
     }
 }

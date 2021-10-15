@@ -46,7 +46,6 @@ import org.reactivestreams.Subscriber;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
@@ -85,7 +84,7 @@ public final class GeneratedObjectMapper implements JsonMapper {
     // type-safe helper method
     private <T> void writeValue0(JsonGenerator gen, T value, Class<T> type) throws IOException {
         gen.setCodec(objectCodecImpl);
-        Serializer<? super T> serializer = locator.findContravariantSerializer(type);
+        Serializer<? super T> serializer = locator.findSerializer(type);
         if (serializer instanceof ObjectSerializer) {
             throw new ObjectMappingException("No serializer for type " + type.getName());
         }
@@ -97,9 +96,9 @@ public final class GeneratedObjectMapper implements JsonMapper {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <T> T readValue0(JsonParser parser, Type type) throws IOException {
+    private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
         parser.setCodec(objectCodecImpl);
-        Deserializer deserializer = locator.findInvariantDeserializer(type);
+        Deserializer deserializer = locator.findDeserializer(type);
         if (!parser.hasCurrentToken()) {
             parser.nextToken();
         }
@@ -185,12 +184,12 @@ public final class GeneratedObjectMapper implements JsonMapper {
 
         @Override
         public <T> T readValue(JsonParser p, Class<T> valueType) throws IOException {
-            return readValue0(p, valueType);
+            return readValue0(p, Argument.of(valueType));
         }
 
         @Override
         public <T> T readValue(JsonParser p, TypeReference<T> valueTypeRef) throws IOException {
-            return readValue0(p, valueTypeRef.getType());
+            return readValue0(p, Argument.of(valueTypeRef.getType()));
         }
 
         @Override

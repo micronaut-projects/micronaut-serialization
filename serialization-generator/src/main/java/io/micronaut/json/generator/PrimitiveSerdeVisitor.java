@@ -44,6 +44,8 @@ public class PrimitiveSerdeVisitor extends AbstractGeneratorVisitor<Object> impl
             return;
         }
 
+        context.info("Generating Primitive Serializers");
+
         SerializerLinker linker = new SerializerLinker(context);
         for (ClassElement prim : Arrays.asList(
                 PrimitiveElement.BOOLEAN,
@@ -63,6 +65,7 @@ public class PrimitiveSerdeVisitor extends AbstractGeneratorVisitor<Object> impl
                     .linker(linker)
                     .generateMulti());
         }
+
 
         for (Class<?> t : Arrays.asList(
                 String.class,

@@ -493,7 +493,7 @@ class C {
 ''', true)
 
         expect:
-        ctx.getBeansOfType(Serializer.Factory).any { it.genericType == ctx.classLoader.loadClass('example.C') }
+        ctx.getBeansOfType(Serializer.Factory).any { it.genericType.type == ctx.classLoader.loadClass('example.C') }
     }
 
     void "disabled mode isn't generated"() {
@@ -509,8 +509,8 @@ class A {
 ''', true)
 
         expect:
-        ctx.getBeansOfType(Serializer.Factory).any { it.genericType == ctx.classLoader.loadClass('example.A') }
-        !ctx.getBeansOfType(Deserializer.Factory).any { it.genericType == ctx.classLoader.loadClass('example.A') }
+        ctx.getBeansOfType(Serializer.Factory).any { it.genericType.type == ctx.classLoader.loadClass('example.A') }
+        !ctx.getBeansOfType(Deserializer.Factory).any { it.genericType.type == ctx.classLoader.loadClass('example.A') }
     }
 
     void "enum generated"() {
@@ -527,7 +527,7 @@ enum Foo {
 ''', true)
 
         def serializer = ctx.getBeansOfType(Serializer.Factory)
-                .find { it.genericType == ctx.classLoader.loadClass('example.Foo') }
+                .find { it.genericType.type == ctx.classLoader.loadClass('example.Foo') }
                 .newInstance(null, null)
 
         expect:
@@ -604,7 +604,7 @@ class A {
 ''', true)
 
         expect:
-        ctx.getBeansOfType(Serializer.Factory).any { it.genericType == ctx.classLoader.loadClass('example.A') }
+        ctx.getBeansOfType(Serializer.Factory).any { it.genericType.type == ctx.classLoader.loadClass('example.A') }
     }
 
     def 'simple views'() {

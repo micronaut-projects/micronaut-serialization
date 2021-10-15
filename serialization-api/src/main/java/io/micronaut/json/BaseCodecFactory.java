@@ -18,11 +18,13 @@ package io.micronaut.json;
 import java.lang.reflect.Type;
 import java.util.function.Function;
 
+import io.micronaut.core.type.Argument;
+
 interface BaseCodecFactory {
-    Type getGenericType();
+    Argument<?> getGenericType();
 
     Object newInstance(
             SerdeRegistry locator,
-            Function<String, Type> getTypeParameter
+            ArgumentResolver getTypeParameter
     );
 }

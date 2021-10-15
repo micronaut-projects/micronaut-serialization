@@ -1,15 +1,14 @@
 package io.micronaut.json.generated.serializer;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.ArgumentResolver;
 import io.micronaut.json.Encoder;
 import io.micronaut.json.Serializer;
 import io.micronaut.json.SerdeRegistry;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.Iterator;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 final class StreamSerializer<T> implements Serializer<Stream<T>> {
@@ -37,8 +36,8 @@ final class StreamSerializer<T> implements Serializer<Stream<T>> {
         }
 
         @Override
-        public Serializer<?> newInstance(SerdeRegistry locator, Function<String, Type> getTypeParameter) {
-            Serializer<?> valueSerializer = locator.findContravariantSerializer(getTypeParameter.apply("T"));
+        public Serializer<?> newInstance(SerdeRegistry locator, ArgumentResolver getTypeParameter) {
+            Serializer<?> valueSerializer = locator.findSerializer(getTypeParameter.apply("T"));
             return new StreamSerializer<>(valueSerializer);
         }
     }
@@ -52,8 +51,8 @@ final class StreamSerializer<T> implements Serializer<Stream<T>> {
         }
 
         @Override
-        public Serializer<?> newInstance(SerdeRegistry locator, Function<String, Type> getTypeParameter) {
-            Serializer<?> valueSerializer = locator.findContravariantSerializer(Object.class);
+        public Serializer<?> newInstance(SerdeRegistry locator, ArgumentResolver getTypeParameter) {
+            Serializer<?> valueSerializer = locator.findSerializer(Object.class);
             return new StreamSerializer<>(valueSerializer);
         }
     }

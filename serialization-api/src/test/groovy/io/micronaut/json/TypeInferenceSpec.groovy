@@ -1,11 +1,14 @@
 package io.micronaut.json
 
-
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
+@Ignore
+// delete once we have build examples
+// that cover the different cases
 class TypeInferenceSpec extends Specification {
     void "test findParameterization base case"() {
         expect:

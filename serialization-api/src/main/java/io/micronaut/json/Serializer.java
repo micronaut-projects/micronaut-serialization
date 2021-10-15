@@ -32,6 +32,7 @@ import io.micronaut.core.type.Argument;
  * @author Jonas Konrad
  * @author graemerocher
  */
+@Indexed(Serializer.class)
 public interface Serializer<T> {
 
     /**
@@ -67,14 +68,14 @@ public interface Serializer<T> {
         /**
          * Constructs a new serializer instance.
          * @param locator The serializer locator, never {@code null}
-         * @param getTypeParameter Any additional type parameters that can be filled.
+         * @param argumentResolver Any additional type parameters that can be filled.
          * @return The serializer
          */
         @NonNull
         @Override
         Serializer<?> newInstance(
                 @NonNull SerdeRegistry locator,
-                @Nullable Function<String, Type> getTypeParameter
+                @NonNull ArgumentResolver argumentResolver
         );
     }
 }

@@ -25,6 +25,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.GenericPlaceholderElement;
+import io.micronaut.json.ArgumentResolver;
 import io.micronaut.json.Decoder;
 import io.micronaut.json.Deserializer;
 import io.micronaut.json.Encoder;
@@ -255,7 +256,7 @@ public final class SingletonSerializerGenerator {
             // for deserialization, we stick to invariant serializers, because we don't want to deserialize an arbitrary
             // subtype from the classpath for security. Contravariant lookup only exposes the supertypes (few), while
             // covariant lookup would expose all subtypes (potentially unlimited).
-            String methodName = injectable.forSerialization ? "findContravariantSerializer" : "findInvariantDeserializer";
+            String methodName = injectable.forSerialization ? "findSerializer" : "findDeserializer";
             if (injectable.provider) {
                 methodName += "Provider";
             }
@@ -299,7 +300,7 @@ public final class SingletonSerializerGenerator {
                         .addAnnotation(Override.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addParameter(SerdeRegistry.class, "locator")
-                        .addParameter(ParameterizedTypeName.get(Function.class, String.class, Type.class), "getTypeParameter")
+                        .addParameter(ArgumentResolver.class, "getTypeParameter")
                         .returns(generatedName)
                         .addCode(CodeBlock.of("return $L;\n", constructorCallCode.build()))
                         .build());
@@ -331,7 +332,7 @@ public final class SingletonSerializerGenerator {
                         .addMember("beans", "$T.class", SerdeRegistry.class)
                         .build())
                 .addField(FieldSpec.builder(Argument.class, "TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer(valueType.toRuntimeFactory(v -> CodeBlock.of("$T.of($T.class, $S)",
+                        .initializer(valueType.toRuntimeFactory(v -> CodeBlock.of("$T.ofTypeVariable($T.class, $S)",
                                                                                   Argument.class,
                                                                                   PoetUtil.toTypeName(placeholderElementMap.get(v).getRawClassElement()),
                                                                                   v))

@@ -15,8 +15,19 @@
  */
 package io.micronaut.json;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
@@ -25,15 +36,9 @@ import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 import jakarta.inject.Singleton;
 
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 @BootstrapContextCompatible
 @Singleton
+@Internal
 public final class SerdeRegistry {
     private final BeanContext context;
 
@@ -49,60 +54,46 @@ public final class SerdeRegistry {
     }
 
     //region API methods
-
-    public <T> Deserializer<T> findInvariantDeserializer(Type forType) {
-        return this.<T>findInvariantDeserializerProvider(forType).get();
+    public Deserializer findDeserializer(Argument<?> forType) {
+        return deserializers.findInvariant(forType).get();
     }
 
-    public <T> Deserializer<T> findInvariantDeserializer(Class<T> forType) {
-        return findInvariantDeserializer((Type) forType);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T> Provider<Deserializer<T>> findInvariantDeserializerProvider(Type forType) {
+    public <T> Provider<Deserializer<T>> findDeserializerProvider(Argument<?> forType) {
         return (Provider) deserializers.findInvariant(forType);
     }
 
-    public <T> Serializer<? super T> findContravariantSerializer(Type forType) {
-        return findContravariantSerializerProvider(forType).get();
+    public <T> Deserializer<T> findDeserializer(Class<T> forType) {
+        return (Deserializer<T>) findDeserializer(Argument.of(forType));
     }
 
-    public <T> Serializer<? super T> findContravariantSerializer(Class<T> forType) {
-        return findContravariantSerializer((Type) forType);
+    public <T> Serializer<? super T> findSerializer(Argument<T> forType) {
+        return findSerializerProvider(forType).get();
+    }
+
+    public <T> Serializer<? super T> findSerializer(Class<T> forType) {
+        return findSerializerProvider(Argument.of(forType)).get();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T> Provider<Serializer<? super T>> findContravariantSerializerProvider(Type forType) {
+    public <T> Provider<Serializer<? super T>> findSerializerProvider(Argument<?> forType) {
         return (Provider) serializers.findContravariant(forType);
     }
 
     //endregion
 
-    private static Type foldInferred(Type into, Map<String, Type> inferredTypes) {
-        TypeInference.VariableFold fold = var -> {
-            Type inferredType = inferredTypes.get(var);
-            if (inferredType == null) {
-                throw new IllegalArgumentException("Missing inferred variable " + var);
+    private static Argument normalizePrimitiveType(Argument t) {
+        if (t != null) {
+            final Argument<?> a = (Argument<?>) t;
+            if (a.isPrimitive()) {
+                return Argument.of(ReflectionUtils.getWrapperType(a.getType()));
             }
-            return inferredType;
-        };
-        return TypeInference.foldTypeVariables(into, fold);
-    }
-
-    private static Type normalizePrimitiveType(Type t) {
-        if (t instanceof Argument) {
-            final Class<?> type = ((Argument<?>) t).getType();
-            return ReflectionUtils.getWrapperType(type);
+            return a;
         }
-        if (t instanceof Class<?>) {
-            return ReflectionUtils.getPrimitiveType((Class<?>) t);
-        } else {
-            return t;
-        }
+        return t;
     }
 
     private class Registry<S> {
-        private final Collection<FactoryWrapper<S>> factories;
+        private final Map<TypeEntry, FactoryWrapper<S>> factories;
 
         Registry(Class<S> baseClass, Class<? extends BaseCodecFactory> factoryClass) {
             Collection<BaseCodecFactory> factories = new ArrayList<>(context.getBeansOfType(factoryClass));
@@ -112,48 +103,87 @@ public final class SerdeRegistry {
             //noinspection Convert2MethodRef
             this.factories = factories.stream()
                     .map(factory -> new FactoryWrapper<S>(factory))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toConcurrentMap(f -> new TypeEntry(f.genericType), f -> f));
         }
 
-        public Provider<S> findContravariant(Type forType) {
+        public Provider<S> findContravariant(Argument<?> forType) {
             forType = normalizePrimitiveType(forType);
 
             Provider<S> found = null;
-            Type foundType = null;
-            for (FactoryWrapper<S> factory : factories) {
-                Map<String, Type> inferred = TypeInference.inferContravariant(factory.genericType, forType);
-                 if (inferred != null) {
-                    Type hereType;
-                    if (inferred.isEmpty()) {
-                        hereType = factory.genericType;
-                    } else {
-                        hereType = foldInferred(factory.genericType, inferred);
-                    }
-                    if (found != null && foundType != null && hereType != null && TypeInference.isAssignableFrom(hereType, foundType, true)) {
-                        // hereType :> foundType :> type, foundType is the better choice
-                        continue;
-                    }
+            Argument<?> foundType = null;
+            final FactoryWrapper<S> wrapper = factories.get(new TypeEntry(forType));
+            if (wrapper != null) {
+                Map<String, Argument<?>> inferred = TypeInference.inferContravariant(wrapper.genericType, forType);
+                if (inferred != null) {
+                    return () -> wrapper.createFromInference(inferred);
+                }
+            } else {
 
-                    foundType = hereType;
-                    found = () -> factory.createFromInference(inferred);
+                for (FactoryWrapper<S> factory : factories.values()) {
+                    Map<String, Argument<?>> inferred = TypeInference.inferContravariant(factory.genericType, forType);
+                    if (inferred != null) {
+                        Argument<?> hereType;
+                        if (inferred.isEmpty()) {
+                            hereType = factory.genericType;
+                        } else {
+                            hereType = TypeInference.foldInferred(factory.genericType, inferred);
+                        }
+                        if (found != null && hereType.isAssignableFrom(foundType)) {
+                            // hereType :> foundType :> type, foundType is the better choice
+                            continue;
+                        }
+
+                        foundType = hereType;
+                        found = () -> factory.createFromInference(inferred);
+                        final TypeEntry key = new TypeEntry(forType);
+                        factories.put(key, factory);
+                    }
                 }
             }
             if (found != null) {
                 return found;
             }
-            throw new AssertionError("Shouldn't happen, ObjectSerializer should always match. Maybe the classpath is broken?");
+            throw new IllegalStateException("Shouldn't happen, ObjectSerializer should always match. Maybe the classpath is broken?");
         }
 
-        public Provider<S> findInvariant(Type forType) {
-            forType = normalizePrimitiveType(forType);
-
-            for (FactoryWrapper<S> factory : factories) {
-                Map<String, Type> inferred = TypeInference.inferExact(factory.genericType, forType);
+        public Provider<S> findInvariant(Argument<?> forType) {
+            for (FactoryWrapper<S> factory : factories.values()) {
+                Map<String, Argument<?>> inferred = TypeInference.inferExact(factory.genericType, forType);
                 if (inferred != null) {
                     return () -> factory.createFromInference(inferred);
                 }
             }
             throw new NoSuchDeserializerException("No deserializer found for type " + forType.getTypeName());
+        }
+
+        final class TypeEntry {
+            private final Argument<?> argument;
+
+            TypeEntry(Argument<?> argument) {
+                this.argument = argument;
+            }
+
+            @Override
+            public String toString() {
+                return argument.toString();
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+                TypeEntry typeEntry = (TypeEntry) o;
+                return argument.equalsType(typeEntry.argument);
+            }
+
+            @Override
+            public int hashCode() {
+                return argument.typeHashCode();
+            }
         }
     }
 
@@ -170,23 +200,27 @@ public final class SerdeRegistry {
         private final ConcurrentMap<TypeVariableAssignment, S> instances;
         private volatile S singleton = null;
 
-        final Type genericType;
+        final Argument<?> genericType;
 
         FactoryWrapper(BaseCodecFactory factory) {
             this.factory = factory;
             this.genericType = factory.getGenericType();
-            if (TypeInference.hasFreeVariables(genericType)) {
+            if (hasGenericPlaceholders(genericType)) {
                 instances = new ConcurrentHashMap<>();
             } else {
                 instances = null;
             }
         }
 
-        S createFromInference(Map<String, Type> assignment) {
+        private boolean hasGenericPlaceholders(Argument<?> genericType) {
+            return genericType.isTypeVariable() || Arrays.stream(genericType.getTypeParameters()).anyMatch(Argument::isTypeVariable);
+        }
+
+        S createFromInference(Map<String, Argument<?>> assignment) {
             return create(assignment.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         }
 
-        S create(Map<String, Type> assignment) {
+        S create(Map<String, Argument<?>> assignment) {
             if (assignment.isEmpty()) {
                 S res = singleton;
                 if (res == null) {
@@ -217,7 +251,7 @@ public final class SerdeRegistry {
      */
     private class ContainerSyntheticFactory<S> implements BaseCodecFactory {
         private final BeanDefinition<? extends S> definition;
-        private final Type genericType;
+        private final Argument<?> genericType;
 
         ContainerSyntheticFactory(BeanDefinition<? extends S> definition, Class<S> baseClass) {
             this.definition = definition;
@@ -229,27 +263,27 @@ public final class SerdeRegistry {
         }
 
         @Override
-        public Type getGenericType() {
+        public Argument<?> getGenericType() {
             return genericType;
         }
 
         @Override
-        public S newInstance(SerdeRegistry locator, Function<String, Type> getTypeParameter) {
+        public S newInstance(SerdeRegistry locator, ArgumentResolver getTypeParameter) {
             return context.getBean(definition);
         }
     }
 
-    private static class TypeVariableAssignment implements Function<String, Type> {
+    private static class TypeVariableAssignment implements ArgumentResolver {
         static final TypeVariableAssignment EMPTY = new TypeVariableAssignment(Collections.emptyMap());
 
-        private final Map<String, Type> assignment;
+        private final Map<String, Argument<?>> assignment;
         private final int hash;
 
-        TypeVariableAssignment(Map<String, Type> assignment) {
+        TypeVariableAssignment(Map<String, Argument<?>> assignment) {
             this.assignment = assignment;
             int hash = 1;
-            for (Map.Entry<String, Type> entry : assignment.entrySet()) {
-                hash = 31 * 31 * hash + 31 * entry.getKey().hashCode() + TypeInference.typeHashCode(entry.getValue());
+            for (Map.Entry<String, Argument<?>> entry : assignment.entrySet()) {
+                hash = 31 * 31 * hash + 31 * entry.getKey().hashCode() + entry.getValue().typeHashCode();
             }
             this.hash = hash;
         }
@@ -263,7 +297,7 @@ public final class SerdeRegistry {
             return o instanceof TypeVariableAssignment &&
                     ((TypeVariableAssignment) o).hash == this.hash &&
                     this.assignment.keySet().equals(((TypeVariableAssignment) o).assignment.keySet()) &&
-                    this.assignment.entrySet().stream().allMatch(entry -> TypeInference.typesEqual(entry.getValue(), ((TypeVariableAssignment) o).assignment.get(entry.getKey())));
+                    this.assignment.entrySet().stream().allMatch(entry -> entry.getValue().equalsType(((TypeVariableAssignment) o).assignment.get(entry.getKey())));
         }
 
         @Override
@@ -272,8 +306,8 @@ public final class SerdeRegistry {
         }
 
         @Override
-        public Type apply(String s) {
-            Type type = assignment.get(s);
+        public Argument<?> apply(String s) {
+            Argument<?> type = assignment.get(s);
             if (type == null) {
                 throw new IllegalStateException("Unexpected type variable " + s);
             }

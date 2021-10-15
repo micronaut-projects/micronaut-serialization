@@ -1,7 +1,7 @@
 package io.micronaut.json.generator
 
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
-import io.micronaut.json.GenericTypeFactory
+import io.micronaut.core.type.Argument
 import io.micronaut.json.SerdeRegistry
 
 class PrimitiveVisitorSpec extends AbstractTypeElementSpec {
@@ -25,27 +25,15 @@ class PrimitiveGenerators {
 @interface GeneratePrimitiveSerializers {
 }
 
-@jakarta.inject.Singleton
-class MockObjectSerializer implements Serializer<Object>, Deserializer<Object> {
-    @Override
-    public Object deserialize(Decoder decoder) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void serialize(Encoder encoder, Object value) {
-        throw new UnsupportedOperationException();
-    }
-}
 ''', true)
         def locator = ctx.getBean(SerdeRegistry)
 
         expect:
-        locator.findInvariantDeserializer(Integer) != null
-        locator.findInvariantDeserializer(String) != null
-        locator.findInvariantDeserializer(GenericTypeFactory.makeParameterizedTypeWithOwner(null, List, Object)) != null
-        locator.findInvariantDeserializer(GenericTypeFactory.makeParameterizedTypeWithOwner(null, Map, String, Object)) != null
-        locator.findInvariantDeserializer(GenericTypeFactory.makeParameterizedTypeWithOwner(null, Optional, Object)) != null
-        locator.findInvariantDeserializer(String[].class) != null
+        locator.findDeserializer(Integer) != null
+        locator.findDeserializer(String) != null
+        locator.findDeserializer(Argument.listOf(Object)) != null
+        locator.findDeserializer(Argument.mapOf(String, Object)) != null
+        locator.findDeserializer(Argument.of(Optional, Object)) != null
+        locator.findDeserializer(String[].class) != null
     }
 }

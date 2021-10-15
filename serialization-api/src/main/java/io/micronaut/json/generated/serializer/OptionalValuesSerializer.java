@@ -17,15 +17,14 @@ package io.micronaut.json.generated.serializer;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.value.OptionalValues;
+import io.micronaut.json.ArgumentResolver;
 import io.micronaut.json.Encoder;
 import io.micronaut.json.Serializer;
 import io.micronaut.json.SerdeRegistry;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.Optional;
-import java.util.function.Function;
 
 class OptionalValuesSerializer<V> implements Serializer<OptionalValues<V>> {
     private final Serializer<? super V> valueSerializer;
@@ -65,8 +64,8 @@ class OptionalValuesSerializer<V> implements Serializer<OptionalValues<V>> {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
-        public Serializer<? super OptionalValues<?>> newInstance(SerdeRegistry locator, Function<String, Type> getTypeParameter) {
-            return new OptionalValuesSerializer(locator.findContravariantSerializer(getTypeParameter.apply("V")));
+        public Serializer<? super OptionalValues<?>> newInstance(SerdeRegistry locator, ArgumentResolver getTypeParameter) {
+            return new OptionalValuesSerializer(locator.findSerializer(getTypeParameter.apply("V")));
         }
     }
 }

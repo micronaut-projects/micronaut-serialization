@@ -38,8 +38,8 @@ class NettyHttpMethodSerializer implements Serializer<HttpMethod>, Deserializer<
 
     @Inject
     NettyHttpMethodSerializer(SerdeRegistry locator) {
-        this.stringSerializer = locator.findContravariantSerializer(String.class);
-        this.stringDeserializer = locator.findInvariantDeserializer(String.class);
+        this.stringSerializer = locator.findSerializer(String.class);
+        this.stringDeserializer = locator.findDeserializer(String.class);
     }
 
     @Override

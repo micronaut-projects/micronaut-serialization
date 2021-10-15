@@ -20,7 +20,7 @@ class HealthResultMixin {
         private final Deserializer<DefaultHealthResult> delegate;
 
         DelegatingDeserializer(SerdeRegistry locator) {
-            this.delegate = locator.findInvariantDeserializer(DefaultHealthResult.class);
+            this.delegate = locator.findDeserializer(DefaultHealthResult.class);
         }
 
         @Override

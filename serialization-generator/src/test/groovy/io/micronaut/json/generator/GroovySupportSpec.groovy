@@ -37,7 +37,7 @@ class Bean {
 ''', true)
 
         then:
-        context.getBeansOfType(Serializer.Factory).any { it.genericType == context.classLoader.loadClass("example.Bean") }
+        context.getBeansOfType(Serializer.Factory).any { it.genericType.type == context.classLoader.loadClass("example.Bean") }
     }
 
     def nested() {
@@ -81,7 +81,7 @@ class Bean {
 ''', true)
 
         then:
-        context.getBeansOfType(Serializer.Factory).any { it.genericType == context.classLoader.loadClass("example.Bean") }
+        context.getBeansOfType(Serializer.Factory).any { it.genericType.type == context.classLoader.loadClass("example.Bean") }
     }
 
     def 'unmarked field is considered'() {
