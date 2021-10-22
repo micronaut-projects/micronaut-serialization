@@ -1,6 +1,8 @@
 package io.micronaut.serde.deserializers;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -33,6 +35,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
             // no constructors so no need to buffer
             final Object obj = introspection.instantiate();
             final Decoder objectDecoder = decoder.decodeObject();
+            Set<BeanProperty<?, ?>> processed = new HashSet<>(introspection.getBeanProperties());
             while (true) {
                 final String prop = objectDecoder.decodeKey();
                 if (prop == null) {
@@ -54,6 +57,10 @@ public class ObjectDeserializer implements Deserializer<Object> {
                             propertyType.getTypeParameters()
                     );
                     beanProperty.set(obj, val);
+                    processed.remove(beanProperty);
+                    if (processed.isEmpty()) {
+                        break;
+                    }
                 } else {
                     objectDecoder.skipValue();
                 }

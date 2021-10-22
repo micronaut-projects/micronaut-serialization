@@ -1,5 +1,8 @@
 package io.micronaut.serde;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,8 +40,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             Serializer<Object> objectSerializer,
             Deserializer<Object> objectDeserializer,
             SerdeIntrospections introspections) {
-        final Collection<BeanDefinition<Serializer>> serializers = beanContext.getBeanDefinitions(Serializer.class);
-        final Collection<BeanDefinition<Deserializer>> deserializers = beanContext.getBeanDefinitions(Deserializer.class);
+        final Collection<BeanDefinition<Serializer>> serializers =
+                beanContext.getBeanDefinitions(Serializer.class);
+        final Collection<BeanDefinition<Deserializer>> deserializers =
+                beanContext.getBeanDefinitions(Deserializer.class);
         this.introspections = introspections;
         this.serializerDefMap = new HashMap<>(serializers.size());
         this.deserializerDefMap = new HashMap<>(deserializers.size());
@@ -83,6 +88,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
             }
         }
+        this.deserializerMap.put(new TypeEntry(Argument.STRING),
+                                 (Deserializer<String>) (decoder, decoderContext, type, generics) -> decoder.decodeString());
+        this.deserializerMap.put(new TypeEntry(Argument.of(BigDecimal.class)),
+                                 (Deserializer<BigDecimal>) (decoder, decoderContext, type, generics) -> decoder.decodeBigDecimal());
+        this.deserializerMap.put(new TypeEntry(Argument.of(BigInteger.class)),
+                                 (Deserializer<BigInteger>) (decoder, decoderContext, type, generics) -> decoder.decodeBigInteger());
         final Deserializer<Boolean> booleanDeserializer =
                 (decoder, decoderContext, type, generics) -> decoder.decodeBoolean();
         this.deserializerMap.put(
