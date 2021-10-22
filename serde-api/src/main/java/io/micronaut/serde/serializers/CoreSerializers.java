@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
+import java.util.Map;
 
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -389,9 +391,9 @@ public class CoreSerializers {
     }
 
     /**
-     * A serializer for all instances of {@link java.math.BigDecimal}.
+     * A serializer for all instances of {@link java.lang.Iterable}.
      *
-     * @return A bit decimal serializer
+     * @return An iterable serializer
      */
     @Singleton protected <T> Serializer<Iterable<T>> iterableSerializer() {
         return (encoder, context, value, type, generics) -> {
@@ -410,7 +412,51 @@ public class CoreSerializers {
                         generic.getTypeParameters()
                 );
             }
-            encoder.finishStructure();
+            childEncoder.finishStructure();
+        };
+    }
+
+    /**
+     * A serializer for maps.
+     *
+     * @return A bit decimal serializer
+     */
+    @Singleton protected <K extends CharSequence, V> Serializer<Map<K, V>> mapSerializer() {
+        return new Serializer<Map<K, V>>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  Map<K, V> value,
+                                  Argument<? extends Map<K, V>> type,
+                                  Argument<?>... generics) throws IOException {
+                final Encoder childEncoder = encoder.encodeObject();
+                if (ArrayUtils.isEmpty(generics) || generics.length != 2) {
+                    throw new SerdeException("Serializing raw maps is not supported for value: " + value);
+                }
+                final Argument<V> valueGeneric = (Argument<V>) generics[1];
+                final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
+                for (K k : value.keySet()) {
+                    childEncoder.encodeKey(k.toString());
+                    final V v = value.get(k);
+                    if (v == null) {
+                        childEncoder.encodeNull();
+                    } else {
+                        valSerializer.serialize(
+                                encoder,
+                                context,
+                                v,
+                                valueGeneric,
+                                valueGeneric.getTypeParameters()
+                        );
+                    }
+                }
+                childEncoder.finishStructure();
+            }
+
+            @Override
+            public boolean isEmpty(Map<K, V> value) {
+                return CollectionUtils.isEmpty(value);
+            }
         };
     }
 }

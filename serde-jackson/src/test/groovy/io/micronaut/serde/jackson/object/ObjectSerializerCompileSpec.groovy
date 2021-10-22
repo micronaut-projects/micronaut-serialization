@@ -99,4 +99,45 @@ class Test {
         Float[]     | [value: [10.1] as Float[]]    | '{"value":[10.1]}'
         Character[] | [value: ['a'] as Character[]] | '{"value":[97]}'
     }
+
+    @Unroll
+    void "test basic collection type #type"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.*;
+
+@Serdeable
+class Test {
+    private $type value;
+    public void setValue($type value) {
+        this.value = value;
+    } 
+    public $type getValue() {
+        return value;
+    }
+}
+""", data)
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == result
+
+        cleanup:
+        context.close()
+
+        where:
+        type                           | data                 | result
+        "List<String>"                 | [value: ["Test"]]    | '{"value":["Test"]}'
+        "List<? extends CharSequence>" | [value: ["Test"]]    | '{"value":["Test"]}'
+        "List<Boolean>"                | [value: [true]]      | '{"value":[true]}'
+        "Iterable<String>"             | [value: ["Test"]]    | '{"value":["Test"]}'
+        "Iterable<Boolean>"            | [value: [true]]      | '{"value":[true]}'
+        "Set<String>"                  | [value: ["Test"]]    | '{"value":["Test"]}'
+        "Set<Boolean>"                 | [value: [true]]      | '{"value":[true]}'
+        "Collection<String>"           | [value: ["Test"]]    | '{"value":["Test"]}'
+        "Collection<Boolean>"          | [value: [true]]      | '{"value":[true]}'
+        "Map<String, Boolean>"         | [value: [foo: true]] | '{"value":{"foo":true}}'
+
+    }
 }

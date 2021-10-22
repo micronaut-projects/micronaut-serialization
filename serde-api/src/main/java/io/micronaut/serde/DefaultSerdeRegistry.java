@@ -3,6 +3,7 @@ package io.micronaut.serde;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -85,23 +85,43 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     final Class<?> targetType = entry.getKey();
                     if (targetType.isAssignableFrom(type.getType())) {
                         possibles = entry.getValue();
+                        final Argument<?>[] params = type.getTypeParameters();
+                        if (ArrayUtils.isNotEmpty(params)) {
+                            // narrow for generics
+                            possibles = new ArrayList<>(possibles);
+                            final Iterator<BeanDefinition<Serializer>> i = possibles.iterator();
+                            while (i.hasNext()) {
+                                final BeanDefinition<Serializer> bd = i.next();
+                                final Argument<?>[] candidateParams = bd.getTypeArguments(Serializer.class).get(0)
+                                        .getTypeParameters();
+                                if (candidateParams.length == params.length) {
+                                    for (int j = 0; j < params.length; j++) {
+                                        Argument<?> param = params[j];
+                                        final Argument<?> candidateParam = candidateParams[j];
+                                        if (!((param.getType() == candidateParam.getType()) ||
+                                                      (candidateParam.isTypeVariable() && candidateParam.getType().isAssignableFrom(param.getType())))) {
+                                            i.remove();
+                                        }
+                                    }
+                                } else {
+                                    i.remove();
+                                }
+                            }
+                        }
                         break;
                     }
                 }
             }
             if (possibles != null) {
-                final Argument[] params = type.getTypeParameters();
-                if (ArrayUtils.isEmpty(params)) {
-                    if (possibles.size() == 1) {
-                        final BeanDefinition<Serializer> definition = possibles.iterator().next();
-                        final Serializer locatedSerializer = beanContext.getBean(definition);
-                        serializerMap.put(key, locatedSerializer);
-                        return locatedSerializer;
-                    } else {
-                        throw new SerdeException("Multiple possible serializers found: " + possibles);
-                    }
+                if (possibles.size() == 1) {
+                    final BeanDefinition<Serializer> definition = possibles.iterator().next();
+                    final Serializer locatedSerializer = beanContext.getBean(definition);
+                    serializerMap.put(key, locatedSerializer);
+                    return locatedSerializer;
+                } else if (possibles.isEmpty()) {
+                    throw new SerdeException("No serializers found for type: " + type);
                 } else {
-                    // TODO: narrow by generics
+                    throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + possibles);
                 }
             } else {
                 serializerMap.put(key, objectSerializer);
@@ -109,6 +129,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
         return objectSerializer;
     }
+
+
 
     @Override
     public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
