@@ -100,6 +100,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     } else {
                         throw new SerdeException("Multiple possible serializers found: " + possibles);
                     }
+                } else {
+                    // TODO: narrow by generics
                 }
             } else {
                 serializerMap.put(key, objectSerializer);
