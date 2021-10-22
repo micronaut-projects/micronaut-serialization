@@ -48,14 +48,7 @@ import java.util.Map;
 @Internal
 @Singleton
 @Primary
-public final class ObjectSerializer implements Serializer<Object>, Deserializer<Object> {
-    @Override
-    public Object deserialize(Decoder decoder,
-                              DecoderContext decoderContext,
-                              Argument<? super Object> type,
-                              Argument<?>... generics) throws IOException {
-        return null;
-    }
+public final class ObjectSerializer implements Serializer<Object> {
 
     @Override
     public void serialize(

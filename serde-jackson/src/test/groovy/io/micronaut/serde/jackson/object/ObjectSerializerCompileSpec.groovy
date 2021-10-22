@@ -27,6 +27,9 @@ class Test {
 """, data)
         expect:
         writeJson(jsonMapper, beanUnderTest) == result
+        def read = jsonMapper.readValue(result, typeUnderTest)
+        typeUnderTest.type.isInstance(read)
+        read.value == data.value
 
         cleanup:
         context.close()
@@ -39,8 +42,8 @@ class Test {
         short     | [value: 10]          | '{"value":10}'
         int       | [value: 10]          | '{"value":10}'
         long      | [value: 10]          | '{"value":10}'
-        double    | [value: 10.1]        | '{"value":10.1}'
-        float     | [value: 10.1]        | '{"value":10.1}'
+        double    | [value: 10.1d]        | '{"value":10.1}'
+        float     | [value: 10.1f]        | '{"value":10.1}'
         char      | [value: 'a' as char] | '{"value":97}'
         //wrappers
         Boolean   | [value: true]        | '{"value":true}'
@@ -48,8 +51,8 @@ class Test {
         Short     | [value: 10]          | '{"value":10}'
         Integer   | [value: 10]          | '{"value":10}'
         Long      | [value: 10]          | '{"value":10}'
-        Double    | [value: 10.1]        | '{"value":10.1}'
-        Float     | [value: 10.1]        | '{"value":10.1}'
+        Double    | [value: 10.1d]        | '{"value":10.1}'
+        Float     | [value: 10.1f]        | '{"value":10.1}'
         Character | [value: 'a' as char] | '{"value":97}'
     }
 

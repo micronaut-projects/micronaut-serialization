@@ -25,17 +25,23 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private final Serializer<Object> objectSerializer;
     private final Map<Class<?>, List<BeanDefinition<Serializer>>> serializerDefMap;
-    private final Map<SerializerEntry, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
+    private final Map<Class<?>, List<BeanDefinition<Deserializer>>> deserializerDefMap;
+    private final Map<TypeEntry, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeEntry, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
+    private final Deserializer<Object> objectDeserializer;
 
     public DefaultSerdeRegistry(
             BeanContext beanContext,
             Serializer<Object> objectSerializer,
+            Deserializer<Object> objectDeserializer,
             SerdeIntrospections introspections) {
         final Collection<BeanDefinition<Serializer>> serializers = beanContext.getBeanDefinitions(Serializer.class);
+        final Collection<BeanDefinition<Deserializer>> deserializers = beanContext.getBeanDefinitions(Deserializer.class);
         this.introspections = introspections;
         this.serializerDefMap = new HashMap<>(serializers.size());
+        this.deserializerDefMap = new HashMap<>(deserializers.size());
         this.beanContext = beanContext;
         for (BeanDefinition<Serializer> serializer : serializers) {
             final List<Argument<?>> typeArguments = serializer.getTypeArguments(Serializer.class);
@@ -57,12 +63,131 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throw new  ConfigurationException("Serializer without generic types defined: " + serializer.getBeanType());
             }
         }
+        for (BeanDefinition<Deserializer> deserializer : deserializers) {
+            final List<Argument<?>> typeArguments = deserializer.getTypeArguments(Deserializer.class);
+            if (CollectionUtils.isNotEmpty(typeArguments)) {
+                final Argument<?> argument = typeArguments.iterator().next();
+                if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
+                    final Class<?> t = argument.getType();
+                    deserializerDefMap
+                            .computeIfAbsent(t, aClass -> new ArrayList<>(5))
+                            .add(deserializer);
+                    final Class<?> primitiveType = ReflectionUtils.getPrimitiveType(t);
+                    if (primitiveType != t) {
+                        deserializerDefMap
+                                .computeIfAbsent(primitiveType, aClass -> new ArrayList<>(5))
+                                .add(deserializer);
+                    }
+                }
+            } else {
+                throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
+            }
+        }
+        final Deserializer<Boolean> booleanDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeBoolean();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.BOOLEAN),
+                booleanDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Boolean.class)),
+                booleanDeserializer
+        );
+        final Deserializer<Integer> integerDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeInt();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.INT),
+                integerDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Integer.class)),
+                integerDeserializer
+        );
+        final Deserializer<Byte> byteDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeByte();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.BYTE),
+                byteDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Byte.class)),
+                byteDeserializer
+        );
+        final Deserializer<Short> shortDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeShort();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.SHORT),
+                shortDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Short.class)),
+                shortDeserializer
+        );
+        final Deserializer<Long> longDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeLong();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.LONG),
+                longDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Long.class)),
+                longDeserializer
+        );
+        final Deserializer<Float> floatDeserializer = (decoder, decoderContext, type, generics) -> decoder.decodeFloat();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.FLOAT),
+                floatDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Float.class)),
+                floatDeserializer
+        );
+        final Deserializer<Double> doubleDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeDouble();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.DOUBLE),
+                doubleDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Double.class)),
+                doubleDeserializer
+        );
+        final Deserializer<Character> characterDeserializer =
+                (decoder, decoderContext, type, generics) -> decoder.decodeChar();
+        this.deserializerMap.put(
+                new TypeEntry(Argument.CHAR),
+                characterDeserializer
+        );
+        this.deserializerMap.put(
+                new TypeEntry(Argument.of(Character.class)),
+                characterDeserializer
+        );
         this.objectSerializer = objectSerializer;
+        this.objectDeserializer = objectDeserializer;
     }
 
     @Override
     public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
-        throw new SerdeException("No deserializer found");
+        Objects.requireNonNull(type, "Type cannot be null");
+        final TypeEntry key = new TypeEntry(type);
+        final Deserializer<?> deserializer = deserializerMap.get(key);
+        if (deserializer != null) {
+            return (Deserializer<? extends T>) deserializer;
+        } else {
+            final List<BeanDefinition<Deserializer>> possibles = deserializerDefMap.get(type.getType());
+            if (possibles != null) {
+                if (type.hasTypeVariables()) {
+                    // narrow by generics
+                } else if (possibles.size() == 1) {
+                    final Deserializer deser = beanContext.getBean(possibles.iterator().next());
+                    deserializerMap.put(key, deser);
+                    return deser;
+                } else {
+                    throw new SerdeException("Multiple possible deserializers for type [" + type + "]: " + possibles);
+                }
+            }
+        }
+        return (Deserializer<? extends T>) objectDeserializer;
     }
 
     @Override
@@ -73,7 +198,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
-        final SerializerEntry key = new SerializerEntry(type);
+        final TypeEntry key = new TypeEntry(type);
         final Serializer<?> serializer = serializerMap.get(key);
         if (serializer != null) {
             //noinspection unchecked
@@ -137,9 +262,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return introspections.getSerializableIntrospection(type);
     }
 
-    private final static class SerializerEntry {
+    private final static class TypeEntry {
         final Argument<?> type;
-        public SerializerEntry(Argument<?> type) {
+        public TypeEntry(Argument<?> type) {
             this.type = type;
         }
 
@@ -151,7 +276,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            SerializerEntry that = (SerializerEntry) o;
+            TypeEntry that = (TypeEntry) o;
             return type.equalsType(that.type);
         }
 

@@ -15,6 +15,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
     JsonMapper jsonMapper
     Object beanUnderTest
+    Argument<?> typeUnderTest
 
     ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties) {
         ApplicationContext context =
@@ -35,13 +36,19 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
             @Override
             def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
+                if (type.type.name == className) {
+                    return classLoader.loadClass(NameUtils.getPackageName(className) + ".\$" + NameUtils.getSimpleName(className) + '$Introspection')
+                            .newInstance()
+                }
                 throw new IntrospectionException("No introspection")
             }
         })
         jsonMapper = context.getBean(JsonMapper)
-        beanUnderTest = context.classLoader
-                                    .loadClass(className)
-                                    .newInstance(properties)
+
+        def t = context.classLoader
+                .loadClass(className)
+        typeUnderTest = Argument.of(t)
+        beanUnderTest = t.newInstance(properties)
         return context
     }
 }
