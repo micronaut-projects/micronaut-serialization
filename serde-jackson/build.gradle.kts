@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
+    annotationProcessor(project(":serde-processor"))
 
     api(mn.micronaut.jackson.core)
     api(mn.jackson.annotations)
@@ -11,6 +12,7 @@ dependencies {
     api(project(":serde-api"))
 
     testAnnotationProcessor(mn.micronaut.inject.java)
+    testImplementation(project(":serde-processor"))
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)

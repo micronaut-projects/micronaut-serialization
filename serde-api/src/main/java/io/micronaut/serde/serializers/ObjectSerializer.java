@@ -25,6 +25,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
@@ -71,7 +72,7 @@ public final class ObjectSerializer implements Serializer<Object>, Deserializer<
             final Encoder childEncoder = encoder.encodeObject();
             final Collection<BeanProperty<Object, Object>> properties = introspection.getBeanProperties();
             for (BeanProperty<Object, Object> property : properties) {
-                if (!property.isWriteOnly()) {
+                if (!property.isWriteOnly() && !property.isAnnotationPresent(SerdeConfig.Ignored.class)) {
                     final Argument<Object> argument = property.asArgument();
                     final Serializer<? super Object> serializer = context.findSerializer(argument);
                     final Object v = property.get(value);
