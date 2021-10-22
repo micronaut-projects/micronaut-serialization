@@ -11,12 +11,12 @@ plugins {
 
 enableFeaturePreview("VERSION_CATALOGS")
 
-rootProject.name = "serialization-parent"
+rootProject.name = "serde-parent"
 
-include("serialization-base")
-include("serialization-generator")
-include("serialization-api")
-include("json-generated-impl")
+include("serde-processor")
+include("serde-api")
+include("serde-jackson")
+include("serde-support")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
