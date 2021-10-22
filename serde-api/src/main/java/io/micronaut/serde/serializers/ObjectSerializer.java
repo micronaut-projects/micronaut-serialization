@@ -72,11 +72,15 @@ public final class ObjectSerializer implements Serializer<Object>, Deserializer<
             final Encoder childEncoder = encoder.encodeObject();
             final Collection<BeanProperty<Object, Object>> properties = introspection.getBeanProperties();
             for (BeanProperty<Object, Object> property : properties) {
-                if (!property.isWriteOnly() && !property.isAnnotationPresent(SerdeConfig.Ignored.class)) {
+                // TODO Move to cache
+                if (!property.isWriteOnly() &&
+                        !property.booleanValue(SerdeConfig.class, "ignored").orElse(false) &&
+                        !property.booleanValue(SerdeConfig.class, "readOnly").orElse(false)) {
                     final Argument<Object> argument = property.asArgument();
                     final Serializer<? super Object> serializer = context.findSerializer(argument);
                     final Object v = property.get(value);
-                    childEncoder.encodeKey(argument.getName());
+                    final String n = property.stringValue(SerdeConfig.class, "property").orElse(argument.getName());
+                    childEncoder.encodeKey(n);
                     if (v == null) {
                         childEncoder.encodeNull();
                     } else {

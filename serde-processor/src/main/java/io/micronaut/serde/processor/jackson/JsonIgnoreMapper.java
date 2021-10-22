@@ -18,7 +18,8 @@ public class JsonIgnoreMapper implements TypedAnnotationMapper<JsonIgnore> {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<JsonIgnore> annotation, VisitorContext visitorContext) {
         return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.Ignored.class)
+                AnnotationValue.builder(SerdeConfig.class)
+                        .member(SerdeConfig.IGNORED, true)
                         .build()
         );
     }

@@ -1,1 +1,2 @@
 io.micronaut.serde.processor.jackson.JsonIgnoreMapper
+io.micronaut.serde.processor.jackson.JsonPropertyMapper
