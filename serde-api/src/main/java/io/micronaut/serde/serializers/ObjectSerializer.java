@@ -36,8 +36,7 @@ import java.util.Map;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to standard types
- * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}. For serialization, serializes
- * using {@link io.micronaut.serde.Encoder#encodeArbitrary}.
+ * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}. 
  * <p>
  * This class is used in multiple scenarios:
  * <ul>
@@ -55,8 +54,7 @@ public final class ObjectSerializer implements Serializer<Object> {
             Encoder encoder,
             EncoderContext context,
             Object value,
-            Argument<?> type,
-            Argument<?>... generics)
+            Argument<?> type)
             throws IOException {
         try {
             @SuppressWarnings("unchecked")
@@ -81,8 +79,7 @@ public final class ObjectSerializer implements Serializer<Object> {
                                 childEncoder,
                                 context,
                                 v,
-                                argument,
-                                argument.getTypeParameters()
+                                argument
                         );
                     }
                 }

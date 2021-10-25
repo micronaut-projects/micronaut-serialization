@@ -31,8 +31,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   Object[] value,
-                                  Argument<? extends Object[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends Object[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 // TODO: need better generics handling in core for arrays
                 final Argument<?> componentType = Argument.of(type.getType().getComponentType());
@@ -62,11 +61,12 @@ public class CoreSerializers {
      * @return A date serializer
      */
     @Singleton protected Serializer<Date> dateSerializer() {
-        return (encoder, context, value, type, generics) -> {
+        return (encoder, context, value, type) -> {
             context.findSerializer(Argument.LONG)
                     .serialize(
                             encoder,
-                            context, value.getTime(), Argument.LONG
+                            context, value.getTime(),
+                            Argument.LONG
                     );
         };
     }
@@ -77,9 +77,7 @@ public class CoreSerializers {
      * @return A char sequence serializer
      */
     @Singleton protected Serializer<CharSequence> charSequenceSerializer() {
-        return (encoder, context, value, type, generics) -> {
-            encoder.encodeString(value.toString());
-        };
+        return (encoder, context, value, type) -> encoder.encodeString(value.toString());
     }
 
     /**
@@ -88,9 +86,7 @@ public class CoreSerializers {
      * @return A long serializer
      */
     @Singleton protected Serializer<Long> longSerializer() {
-        return (encoder, context, value, type, generics) -> {
-            encoder.encodeLong(value);
-        };
+        return (encoder, context, value, type) -> encoder.encodeLong(value);
     }
 
     /**
@@ -99,7 +95,7 @@ public class CoreSerializers {
      * @return A double serializer
      */
     @Singleton protected Serializer<Double> doubleSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeDouble(value);
+        return (encoder, context, value, type) -> encoder.encodeDouble(value);
     }
 
     /**
@@ -108,7 +104,7 @@ public class CoreSerializers {
      * @return A float serializer
      */
     @Singleton protected Serializer<Float> floatSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeFloat(value);
+        return (encoder, context, value, type) -> encoder.encodeFloat(value);
     }
 
     /**
@@ -117,7 +113,7 @@ public class CoreSerializers {
      * @return A short serializer
      */
     @Singleton protected Serializer<Short> shortSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeShort(value);
+        return (encoder, context, value, type) -> encoder.encodeShort(value);
     }
 
     /**
@@ -126,7 +122,7 @@ public class CoreSerializers {
      * @return A Character serializer
      */
     @Singleton protected Serializer<Character> charSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeChar(value);
+        return (encoder, context, value, type) -> encoder.encodeChar(value);
     }
 
     /**
@@ -140,8 +136,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   char[] value,
-                                  Argument<? extends char[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends char[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (char i : value) {
                     arrayEncoder.encodeChar(i);
@@ -162,7 +157,7 @@ public class CoreSerializers {
      * @return A byte serializer
      */
     @Singleton protected Serializer<Byte> byteSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeByte(value);
+        return (encoder, context, value, type) -> encoder.encodeByte(value);
     }
 
     /**
@@ -176,8 +171,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   byte[] value,
-                                  Argument<? extends byte[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends byte[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (byte i : value) {
                     arrayEncoder.encodeByte(i);
@@ -198,7 +192,7 @@ public class CoreSerializers {
      * @return A integer serializer
      */
     @Singleton protected Serializer<Integer> intSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeInt(value);
+        return (encoder, context, value, type) -> encoder.encodeInt(value);
     }
 
     /**
@@ -212,8 +206,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   int[] value,
-                                  Argument<? extends int[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends int[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (int i : value) {
                     arrayEncoder.encodeInt(i);
@@ -239,8 +232,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   short[] value,
-                                  Argument<? extends short[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends short[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (short i : value) {
                     arrayEncoder.encodeShort(i);
@@ -266,8 +258,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   boolean[] value,
-                                  Argument<? extends boolean[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends boolean[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (boolean i : value) {
                     arrayEncoder.encodeBoolean(i);
@@ -293,8 +284,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   long[] value,
-                                  Argument<? extends long[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends long[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (long i : value) {
                     arrayEncoder.encodeLong(i);
@@ -320,8 +310,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   float[] value,
-                                  Argument<? extends float[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends float[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (float i : value) {
                     arrayEncoder.encodeFloat(i);
@@ -347,8 +336,7 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   double[] value,
-                                  Argument<? extends double[]> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends double[]> type) throws IOException {
                 final Encoder arrayEncoder = encoder.encodeArray();
                 for (double i : value) {
                     arrayEncoder.encodeDouble(i);
@@ -369,25 +357,25 @@ public class CoreSerializers {
      * @return A boolean serializer
      */
     @Singleton protected Serializer<Boolean> booleanSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeBoolean(value);
+        return (encoder, context, value, type) -> encoder.encodeBoolean(value);
     }
 
     /**
      * A serializer for all instances of {@link java.math.BigInteger}.
      *
-     * @return A bit integer serializer
+     * @return A big integer serializer
      */
-    @Singleton protected Serializer<BigInteger> bitIntSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeBigInteger(value);
+    @Singleton protected Serializer<BigInteger> bigIntSerializer() {
+        return (encoder, context, value, type) -> encoder.encodeBigInteger(value);
     }
 
     /**
      * A serializer for all instances of {@link java.math.BigDecimal}.
      *
-     * @return A bit decimal serializer
+     * @return A big decimal serializer
      */
     @Singleton protected Serializer<BigDecimal> bigDecimalSerializer() {
-        return (encoder, context, value, type, generics) -> encoder.encodeBigDecimal(value);
+        return (encoder, context, value, type) -> encoder.encodeBigDecimal(value);
     }
 
     /**
@@ -396,8 +384,9 @@ public class CoreSerializers {
      * @return An iterable serializer
      */
     @Singleton protected <T> Serializer<Iterable<T>> iterableSerializer() {
-        return (encoder, context, value, type, generics) -> {
+        return (encoder, context, value, type) -> {
             final Encoder childEncoder = encoder.encodeArray();
+            final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Serializing raw iterables is not supported for value: " + value);
             }
@@ -408,8 +397,7 @@ public class CoreSerializers {
                         childEncoder,
                         context,
                         t,
-                        generic,
-                        generic.getTypeParameters()
+                        generic
                 );
             }
             childEncoder.finishStructure();
@@ -427,9 +415,9 @@ public class CoreSerializers {
             public void serialize(Encoder encoder,
                                   EncoderContext context,
                                   Map<K, V> value,
-                                  Argument<? extends Map<K, V>> type,
-                                  Argument<?>... generics) throws IOException {
+                                  Argument<? extends Map<K, V>> type) throws IOException {
                 final Encoder childEncoder = encoder.encodeObject();
+                final Argument[] generics = type.getTypeParameters();
                 if (ArrayUtils.isEmpty(generics) || generics.length != 2) {
                     throw new SerdeException("Serializing raw maps is not supported for value: " + value);
                 }
@@ -445,8 +433,7 @@ public class CoreSerializers {
                                 encoder,
                                 context,
                                 v,
-                                valueGeneric,
-                                valueGeneric.getTypeParameters()
+                                valueGeneric
                         );
                     }
                 }

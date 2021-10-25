@@ -45,8 +45,7 @@ class DateSerializer implements Serializer<Date>, Deserializer<Date> {
     @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          Date value, Argument<? extends Date> type,
-                          Argument<?>... generics)
+                          Date value, Argument<? extends Date> type)
             throws IOException {
         Objects.requireNonNull(value, "Date cannot be null");
         context.findSerializer(Argument.LONG)

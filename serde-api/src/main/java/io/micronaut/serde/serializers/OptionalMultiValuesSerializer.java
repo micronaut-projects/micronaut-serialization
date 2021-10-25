@@ -40,9 +40,11 @@ class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues
 
     @Override
     public void serialize(Encoder encoder,
-                          EncoderContext context, OptionalMultiValues<V> value, Argument<? extends OptionalMultiValues<V>> type,
-                          Argument<?>... generics) throws IOException {
+                          EncoderContext context,
+                          OptionalMultiValues<V> value,
+                          Argument<? extends OptionalMultiValues<V>> type) throws IOException {
         Objects.requireNonNull(value, "Values can't be null");
+        final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw OptionalMultiValues");
         }
@@ -60,13 +62,14 @@ class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues
                 if (list.size() == 1 && (list.get(0).getClass() != JsonError.class || !alwaysSerializeErrorsAsList)) {
                     valueSerializer.serialize(
                             encoder,
-                            context, list.get(0), listGeneric,
-                            generic.getTypeParameters()
+                            context, list.get(0),
+                            listGeneric
                     );
                 } else {
                     listSerializer.serialize(
                             encoder,
-                            context, list, generic,
+                            context,
+                            list,
                             generic
                     );
                 }
@@ -77,7 +80,7 @@ class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues
 
     @Override
     public boolean isEmpty(OptionalMultiValues<V> value) {
-        return value.isEmpty();
+        return value == null || value.isEmpty();
     }
 
 }

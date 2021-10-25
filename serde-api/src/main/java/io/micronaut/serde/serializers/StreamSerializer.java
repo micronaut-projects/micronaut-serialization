@@ -15,11 +15,11 @@ import java.util.stream.Stream;
 final class StreamSerializer<T> implements Serializer<Stream<T>> {
     @Override
     public void serialize(Encoder encoder,
-                          EncoderContext context, Stream<T> value, Argument<? extends Stream<T>> type,
-                          Argument<?>... generics) throws IOException {
+                          EncoderContext context, Stream<T> value, Argument<? extends Stream<T>> type) throws IOException {
         if (value == null) {
             throw new SerdeException("Stream is required");
         }
+        final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw stream");
         }
@@ -32,8 +32,8 @@ final class StreamSerializer<T> implements Serializer<Stream<T>> {
             componentSerializer
                     .serialize(
                             encoder,
-                            context, itr.next(), generic,
-                            generic.getTypeParameters()
+                            context, itr.next(),
+                            generic
                     );
         }
         arrayEncoder.finishStructure();

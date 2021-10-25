@@ -23,8 +23,8 @@ final class UrlSerializer implements Serializer<URL>, Deserializer<URL> {
 
     @Override
     public void serialize(Encoder encoder,
-                          EncoderContext context, URL value, Argument<? extends URL> type,
-                          Argument<?>... generics) throws IOException {
+                          EncoderContext context, URL value,
+                          Argument<? extends URL> type) throws IOException {
         encoder.encodeString(value.toString());
     }
 }

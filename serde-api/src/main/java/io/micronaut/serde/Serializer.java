@@ -40,15 +40,13 @@ public interface Serializer<T> {
      * @param encoder The encoder to use
      * @param context The encoder context, never {@code null}
      * @param value The value, can be {@code null}
-     * @param generics The generic arguments for this type, if any
      * @throws IOException If an error occurs during serialization
      */
     void serialize(
             @NonNull Encoder encoder,
             @NonNull EncoderContext context,
             @NonNull T value,
-            @NonNull Argument<? extends T> type,
-            Argument<?>... generics) throws IOException;
+            @NonNull Argument<? extends T> type) throws IOException;
 
     /**
      * Used for {@code JsonInclude.Include#NON_EMPTY} checking.
@@ -58,7 +56,7 @@ public interface Serializer<T> {
     }
 
     /**
-     * Context object passes to the {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument, io.micronaut.core.type.Argument[])}  method.
+     * Context object passes to the {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
     interface EncoderContext {
         /**

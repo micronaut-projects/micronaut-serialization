@@ -96,8 +96,7 @@ public final class JacksonJsonMapper implements JsonMapper {
                 encoder,
                 registry,
                 value,
-                argument,
-                argument.getTypeParameters()
+                argument
         );
     }
 
