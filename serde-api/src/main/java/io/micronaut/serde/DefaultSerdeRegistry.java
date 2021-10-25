@@ -1,6 +1,5 @@
 package io.micronaut.serde;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -15,11 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
+import io.micronaut.serde.beans.DeserIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
@@ -196,8 +197,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     @Override
-    public <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
-        return introspections.getDeserializableIntrospection(type);
+    public <T> DeserIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
+        // TODO: cache these
+        try {
+            return new DeserIntrospection<>(introspections.getDeserializableIntrospection(type), this);
+        } catch (SerdeException e) {
+            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
+        }
     }
 
     @Override
