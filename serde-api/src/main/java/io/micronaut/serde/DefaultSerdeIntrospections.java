@@ -23,7 +23,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections{
     @Override
     public <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
         final BeanIntrospection<T> introspection = BeanIntrospector.SHARED.getIntrospection(type.getType());
-        if (introspection.hasAnnotation(Serdeable.Deserializable.class)) {
+        if (introspection.hasStereotype(Serdeable.Deserializable.class)) {
             return introspection;
         } else {
             throw new IntrospectionException("No deserializable introspection present for type. Consider adding Serdeable.Deserializable annotate to type " + type);

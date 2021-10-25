@@ -292,6 +292,7 @@ public class JacksonDecoder implements Decoder {
             case VALUE_TRUE:
             case VALUE_FALSE:
                 // todo: better coercion rules
+
                 long value = parser.getValueAsLong();
                 parser.nextToken();
                 return value;

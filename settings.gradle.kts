@@ -16,6 +16,7 @@ rootProject.name = "serde-parent"
 include("serde-processor")
 include("serde-api")
 include("serde-jackson")
+include ("serde-jsonp")
 include("serde-support")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")

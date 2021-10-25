@@ -158,11 +158,6 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public void encodeArbitrary(Object object) throws IOException {
-        generator.writeObject(object);
-    }
-
-    @Override
     public boolean hasView(Class<?>... views) {
         for (Class<?> candidate : views) {
             if (candidate.isAssignableFrom(view)) {
