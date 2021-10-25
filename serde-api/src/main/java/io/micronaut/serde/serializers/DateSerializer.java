@@ -32,8 +32,7 @@ class DateSerializer implements Serializer<Date>, Deserializer<Date> {
     @Override
     public Date deserialize(Decoder decoder,
                             DecoderContext decoderContext,
-                            Argument<? super Date> type,
-                            Argument<?>... generics)
+                            Argument<? super Date> type)
             throws IOException {
         return new Date(
                 decoderContext

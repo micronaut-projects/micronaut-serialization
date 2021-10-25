@@ -21,8 +21,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
     @Override
     public Object deserialize(Decoder decoder,
                               DecoderContext decoderContext,
-                              Argument<? super Object> type,
-                              Argument<?>... generics) throws IOException {
+                              Argument<? super Object> type) throws IOException {
         final DeserIntrospection<? super Object> introspection;
         try {
             introspection = decoderContext.getDeserializableIntrospection(type);
@@ -53,8 +52,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
                     final Object val = sp.deserializer.deserialize(
                             objectDecoder,
                             decoderContext,
-                            propertyType,
-                            propertyType.getTypeParameters()
+                            propertyType
                     );
                     params[sp.index] = val;
                     if (--creatorSize == 0) {
@@ -68,8 +66,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
                         final Object val = rp.deserializer.deserialize(
                                 objectDecoder,
                                 decoderContext,
-                                argument,
-                                argument.getTypeParameters()
+                                argument
                         );
                         if (buffer == null) {
                             buffer = new PropertyBuffer(rp.writer, val, null);
@@ -139,8 +136,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
                 final Object val = property.deserializer.deserialize(
                         objectDecoder,
                         decoderContext,
-                        propertyType,
-                        propertyType.getTypeParameters()
+                        propertyType
                 );
                 // writer is never null for properties
                 //noinspection ConstantConditions

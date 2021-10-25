@@ -50,8 +50,7 @@ public class JsonStreamMapper implements JsonMapper {
             return deserializer.deserialize(
                     new JsonParserDecoder(parser),
                     registry,
-                    type,
-                    type.getTypeParameters()
+                    type
             );
         } finally {
             parser.close();

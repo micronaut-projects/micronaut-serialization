@@ -119,8 +119,7 @@ public final class JacksonJsonMapper implements JsonMapper {
         return (T) deserializer.deserialize(
                 decoder,
                 registry,
-                type,
-                type.getTypeParameters()
+                type
         );
     }
 

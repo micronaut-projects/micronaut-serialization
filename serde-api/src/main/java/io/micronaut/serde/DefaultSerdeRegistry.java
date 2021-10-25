@@ -90,13 +90,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             }
         }
         this.deserializerMap.put(new TypeEntry(Argument.STRING),
-                                 (Deserializer<String>) (decoder, decoderContext, type, generics) -> decoder.decodeString());
+                                 (Deserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
         this.deserializerMap.put(new TypeEntry(Argument.of(BigDecimal.class)),
-                                 (Deserializer<BigDecimal>) (decoder, decoderContext, type, generics) -> decoder.decodeBigDecimal());
+                                 (Deserializer<BigDecimal>) (decoder, decoderContext, type) -> decoder.decodeBigDecimal());
         this.deserializerMap.put(new TypeEntry(Argument.of(BigInteger.class)),
-                                 (Deserializer<BigInteger>) (decoder, decoderContext, type, generics) -> decoder.decodeBigInteger());
+                                 (Deserializer<BigInteger>) (decoder, decoderContext, type) -> decoder.decodeBigInteger());
         final Deserializer<Boolean> booleanDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeBoolean();
+                (decoder, decoderContext, type) -> decoder.decodeBoolean();
         this.deserializerMap.put(
                 new TypeEntry(Argument.BOOLEAN),
                 booleanDeserializer
@@ -106,7 +106,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 booleanDeserializer
         );
         final Deserializer<Integer> integerDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeInt();
+                (decoder, decoderContext, type) -> decoder.decodeInt();
         this.deserializerMap.put(
                 new TypeEntry(Argument.INT),
                 integerDeserializer
@@ -116,7 +116,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 integerDeserializer
         );
         final Deserializer<Byte> byteDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeByte();
+                (decoder, decoderContext, type) -> decoder.decodeByte();
         this.deserializerMap.put(
                 new TypeEntry(Argument.BYTE),
                 byteDeserializer
@@ -126,7 +126,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 byteDeserializer
         );
         final Deserializer<Short> shortDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeShort();
+                (decoder, decoderContext, type) -> decoder.decodeShort();
         this.deserializerMap.put(
                 new TypeEntry(Argument.SHORT),
                 shortDeserializer
@@ -136,7 +136,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 shortDeserializer
         );
         final Deserializer<Long> longDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeLong();
+                (decoder, decoderContext, type) -> decoder.decodeLong();
         this.deserializerMap.put(
                 new TypeEntry(Argument.LONG),
                 longDeserializer
@@ -145,7 +145,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 new TypeEntry(Argument.of(Long.class)),
                 longDeserializer
         );
-        final Deserializer<Float> floatDeserializer = (decoder, decoderContext, type, generics) -> decoder.decodeFloat();
+        final Deserializer<Float> floatDeserializer = (decoder, decoderContext, type) -> decoder.decodeFloat();
         this.deserializerMap.put(
                 new TypeEntry(Argument.FLOAT),
                 floatDeserializer
@@ -155,7 +155,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 floatDeserializer
         );
         final Deserializer<Double> doubleDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeDouble();
+                (decoder, decoderContext, type) -> decoder.decodeDouble();
         this.deserializerMap.put(
                 new TypeEntry(Argument.DOUBLE),
                 doubleDeserializer
@@ -165,7 +165,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 doubleDeserializer
         );
         final Deserializer<Character> characterDeserializer =
-                (decoder, decoderContext, type, generics) -> decoder.decodeChar();
+                (decoder, decoderContext, type) -> decoder.decodeChar();
         this.deserializerMap.put(
                 new TypeEntry(Argument.CHAR),
                 characterDeserializer

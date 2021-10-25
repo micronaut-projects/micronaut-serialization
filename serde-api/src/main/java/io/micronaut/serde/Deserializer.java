@@ -38,7 +38,6 @@ public interface Deserializer<T> {
      *
      * @param decoder The decoder, never {@code null}
      * @param decoderContext The decoder context, never {@code null}
-     * @param generics The generic type arguments for this type if any
      * @return The deserialized object or {@code null} only if {@link #allowNull()} returns {@code true}
      * @throws IOException If an error occurs during deserialization of the object
      */
@@ -46,8 +45,7 @@ public interface Deserializer<T> {
     T deserialize(
             @NonNull Decoder decoder,
             @NonNull DecoderContext decoderContext,
-            Argument<? super T> type,
-            Argument<?>... generics) throws IOException;
+            Argument<? super T> type) throws IOException;
 
     /**
      * @return Whether the deserializer is allowed to emit {@code null}

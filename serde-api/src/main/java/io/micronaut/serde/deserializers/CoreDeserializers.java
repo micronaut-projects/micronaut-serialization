@@ -18,13 +18,14 @@ public class CoreDeserializers {
 
     @Singleton
     protected Deserializer<String> stringDeserializer() {
-        return (decoder, decoderContext, type, generics) -> decoder.decodeString();
+        return (decoder, decoderContext, type) -> decoder.decodeString();
     }
 
     @Singleton
     @Order(-100) // prioritize over hashset
     protected <E> Deserializer<ArrayList<E>> arrayListDeserializer() {
-        return (decoder, decoderContext, type, generics) -> {
+        return (decoder, decoderContext, type) -> {
+            final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");
             }
@@ -37,8 +38,7 @@ public class CoreDeserializers {
                         valueDeser.deserialize(
                                 arrayDecoder,
                                 decoderContext,
-                                generic,
-                                generic.getTypeParameters()
+                                generic
                         )
                 );
             }
@@ -49,7 +49,8 @@ public class CoreDeserializers {
 
     @Singleton
     protected <E> Deserializer<HashSet<E>> hashSetDeserializer() {
-        return (decoder, decoderContext, type, generics) -> {
+        return (decoder, decoderContext, type) -> {
+            final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");
             }
@@ -62,8 +63,7 @@ public class CoreDeserializers {
                         valueDeser.deserialize(
                                 arrayDecoder,
                                 decoderContext,
-                                generic,
-                                generic.getTypeParameters()
+                                generic
                         )
                 );
             }
@@ -74,7 +74,8 @@ public class CoreDeserializers {
 
     @Singleton
     protected <V> Deserializer<LinkedHashMap<String, V>> linkedHashMapDeserializer() {
-        return (decoder, decoderContext, type, generics) -> {
+        return (decoder, decoderContext, type) -> {
+            final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics) && generics.length != 2) {
                 throw new SerdeException("Cannot deserialize raw map");
             }
@@ -87,8 +88,7 @@ public class CoreDeserializers {
                 map.put(key, valueDeser.deserialize(
                                 objectDecoder,
                                 decoderContext,
-                                generic,
-                                generic.getTypeParameters()
+                                generic
                         )
                 );
                 key = objectDecoder.decodeKey();

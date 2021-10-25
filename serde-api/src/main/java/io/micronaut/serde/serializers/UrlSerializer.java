@@ -15,8 +15,7 @@ final class UrlSerializer implements Serializer<URL>, Deserializer<URL> {
     @Override
     public URL deserialize(Decoder decoder,
                            DecoderContext decoderContext,
-                           Argument<? super URL> type,
-                           Argument<?>... generics)
+                           Argument<? super URL> type)
             throws IOException {
         return new URL(decoder.decodeString());
     }
