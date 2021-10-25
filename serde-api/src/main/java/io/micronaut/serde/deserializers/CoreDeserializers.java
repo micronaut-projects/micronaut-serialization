@@ -105,7 +105,9 @@ public class CoreDeserializers {
         return (decoder, decoderContext, type) -> {
             @SuppressWarnings("unchecked") final Argument<V> generic =
                     (Argument<V>) type.getFirstTypeVariable().orElse(null);
-
+            if (generic == null) {
+                throw new SerdeException("Cannot deserialize raw optional");
+            }
             final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
 
             return Optional.ofNullable(
