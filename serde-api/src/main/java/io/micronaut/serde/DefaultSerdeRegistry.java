@@ -185,17 +185,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (deserializer != null) {
             return (Deserializer<? extends T>) deserializer;
         } else {
-            final List<BeanDefinition<Deserializer>> possibles = deserializerDefMap.get(type.getType());
-            if (possibles != null) {
-                if (type.hasTypeVariables()) {
-                    // narrow by generics
-                } else if (possibles.size() == 1) {
-                    final Deserializer deser = beanContext.getBean(possibles.iterator().next());
-                    deserializerMap.put(key, deser);
-                    return deser;
-                } else {
-                    throw new SerdeException("Multiple possible deserializers for type [" + type + "]: " + possibles);
-                }
+            final Deserializer<?> deser = beanContext.findBean(Argument.of(Deserializer.class, type))
+                    .orElse(null);
+            if (deser != null) {
+                deserializerMap.put(key, deser);
+                return (Deserializer<? extends T>) deser;
             }
         }
         return (Deserializer<? extends T>) objectDeserializer;
