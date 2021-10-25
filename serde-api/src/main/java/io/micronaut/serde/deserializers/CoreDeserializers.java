@@ -110,13 +110,17 @@ public class CoreDeserializers {
             }
             final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
 
-            return Optional.ofNullable(
-                    deserializer.deserialize(
-                            decoder,
-                            decoderContext,
-                            generic
-                    )
-            );
+            if (decoder.decodeNull()) {
+                return Optional.empty();
+            } else {
+                return Optional.ofNullable(
+                        deserializer.deserialize(
+                                decoder,
+                                decoderContext,
+                                generic
+                        )
+                );
+            }
         };
     }
 }
