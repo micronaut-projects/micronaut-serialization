@@ -19,7 +19,7 @@ import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 
 @Internal
-public class DeserIntrospection<T> {
+public final class DeserIntrospection<T> {
     @NonNull
     public final BeanIntrospection<T> introspection;
     @Nullable

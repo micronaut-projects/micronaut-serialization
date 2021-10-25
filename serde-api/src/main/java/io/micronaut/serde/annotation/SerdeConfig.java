@@ -1,9 +1,7 @@
 package io.micronaut.serde.annotation;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 import io.micronaut.core.annotation.Internal;
 
@@ -27,8 +25,50 @@ public @interface SerdeConfig {
      */
     String IGNORED = "ignored";
 
+
+    /**
+     * Include strategy.
+     */
+    String INCLUDE = "include";
+
     /**
      * Is this property to be used only for reading.
      */
     String READ_ONLY = "readOnly";
+
+    /**
+     * Include strategies.
+     */
+    enum Include {
+
+        /**
+         * Value that indicates that property is to be always included,
+         * independent of value of the property.
+         */
+        ALWAYS,
+
+        /**
+         * Value that indicates that only properties with non-null
+         * values are to be included.
+         */
+        NON_NULL,
+
+        /**
+         * Value that indicates that properties are included unless their value
+         * is:
+         *<ul>
+         *  <li>null</li>
+         *  <li>"absent" value of a referential type (like Java 8 `Optional`, or
+         *     {link java.util.concurrent.atomic.AtomicReference}); that is, something
+         *     that would not deference to a non-null value.
+         * </ul>
+         */
+        NON_ABSENT,
+
+        /**
+         * Value that indicates that only properties with null value,
+         * or what is considered empty, are not to be included.
+         */
+        NON_EMPTY
+    }
 }

@@ -135,17 +135,19 @@ class Test {
         context.close()
 
         where:
-        type                           | data                     | result
-        "List<String>"                 | [value: ["Test"]]        | '{"value":["Test"]}'
-        "List<? extends CharSequence>" | [value: ["Test"]]        | '{"value":["Test"]}'
-        "List<Boolean>"                | [value: [true]]          | '{"value":[true]}'
-        "Iterable<String>"             | [value: ["Test"]]        | '{"value":["Test"]}'
-        "Iterable<Boolean>"            | [value: [true]]          | '{"value":[true]}'
-        "Set<String>"                  | [value: ["Test"] as Set] | '{"value":["Test"]}'
-        "Set<Boolean>"                 | [value: [true] as Set]   | '{"value":[true]}'
-        "Collection<String>"           | [value: ["Test"]]        | '{"value":["Test"]}'
-        "Collection<Boolean>"          | [value: [true]]          | '{"value":[true]}'
-        "Map<String, Boolean>"         | [value: [foo: true]]     | '{"value":{"foo":true}}'
+        type                           | data                         | result
+        "List<String>"                 | [value: ["Test"]]            | '{"value":["Test"]}'
+        "Optional<String>"             | [value: Optional.of("Test")] | '{"value":"Test"}'
+        "Optional<String>"             | [value: Optional.empty()]    | '{"value":null}'
+        "List<? extends CharSequence>" | [value: ["Test"]]            | '{"value":["Test"]}'
+        "List<Boolean>"                | [value: [true]]              | '{"value":[true]}'
+        "Iterable<String>"             | [value: ["Test"]]            | '{"value":["Test"]}'
+        "Iterable<Boolean>"            | [value: [true]]              | '{"value":[true]}'
+        "Set<String>"                  | [value: ["Test"] as Set]     | '{"value":["Test"]}'
+        "Set<Boolean>"                 | [value: [true] as Set]       | '{"value":[true]}'
+        "Collection<String>"           | [value: ["Test"]]            | '{"value":["Test"]}'
+        "Collection<Boolean>"          | [value: [true]]              | '{"value":[true]}'
+        "Map<String, Boolean>"         | [value: [foo: true]]         | '{"value":{"foo":true}}'
 
     }
 }

@@ -1,8 +1,10 @@
 package io.micronaut.serde.deserializers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.Order;
@@ -95,6 +97,24 @@ public class CoreDeserializers {
             }
             objectDecoder.finishStructure();
             return map;
+        };
+    }
+
+    @Singleton
+    protected <V> Deserializer<Optional<V>> optionalDeserializer() {
+        return (decoder, decoderContext, type) -> {
+            @SuppressWarnings("unchecked") final Argument<V> generic =
+                    (Argument<V>) type.getFirstTypeVariable().orElse(null);
+
+            final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
+
+            return Optional.ofNullable(
+                    deserializer.deserialize(
+                            decoder,
+                            decoderContext,
+                            generic
+                    )
+            );
         };
     }
 }
