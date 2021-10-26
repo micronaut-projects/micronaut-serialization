@@ -36,7 +36,7 @@ import java.util.Map;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to standard types
- * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}. 
+ * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}.
  * <p>
  * This class is used in multiple scenarios:
  * <ul>
@@ -71,6 +71,27 @@ public final class ObjectSerializer implements Serializer<Object> {
                     final Serializer<? super Object> serializer = context.findSerializer(argument);
                     final Object v = property.get(value);
                     final String n = property.stringValue(SerdeConfig.class, "property").orElse(argument.getName());
+                    final SerdeConfig.Include include = property.enumValue(SerdeConfig.class, "include", SerdeConfig.Include.class)
+                                                                    .orElse(SerdeConfig.Include.ALWAYS);
+                    switch (include) {
+                        case NON_NULL:
+                            if (v == null) {
+                                continue;
+                            }
+                        break;
+                        case NON_ABSENT:
+                            if (serializer.isAbsent(v)) {
+                                continue;
+                            }
+                        break;
+                        case NON_EMPTY:
+                            if (serializer.isEmpty(v)) {
+                                continue;
+                            }
+                        break;
+                        default:
+                            // fall through
+                    }
                     childEncoder.encodeKey(n);
                     if (v == null) {
                         childEncoder.encodeNull();

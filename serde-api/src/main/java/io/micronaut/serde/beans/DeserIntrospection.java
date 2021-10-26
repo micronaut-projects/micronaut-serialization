@@ -12,6 +12,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanProperty;
+import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Deserializer;
@@ -98,14 +99,16 @@ public final class DeserIntrospection<T> {
         public SerdeProperty(int index,
                              Argument<P> argument,
                              @Nullable BeanProperty<B, P> writer,
-                             Deserializer<? super P> deserializer) {
+                             Deserializer<P> deserializer) {
             this.index = index;
             this.argument = argument;
             this.required = argument.isNonNull();
             this.writer = writer;
             this.deserializer = deserializer;
             // compute default
-            this.defaultValue = null;
+            this.defaultValue = argument.getAnnotationMetadata()
+                    .getValue(Bindable.class, "defaultValue", argument)
+                    .orElse(deserializer.getDefaultValue());
         }
 
 

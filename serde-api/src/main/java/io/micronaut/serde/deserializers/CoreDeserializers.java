@@ -102,24 +102,33 @@ public class CoreDeserializers {
 
     @Singleton
     protected <V> Deserializer<Optional<V>> optionalDeserializer() {
-        return (decoder, decoderContext, type) -> {
-            @SuppressWarnings("unchecked") final Argument<V> generic =
-                    (Argument<V>) type.getFirstTypeVariable().orElse(null);
-            if (generic == null) {
-                throw new SerdeException("Cannot deserialize raw optional");
-            }
-            final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
+        return new Deserializer<Optional<V>>() {
+            @Override
+            public Optional<V> deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Optional<V>> type)
+                    throws IOException {
+                @SuppressWarnings("unchecked") final Argument<V> generic =
+                        (Argument<V>) type.getFirstTypeVariable().orElse(null);
+                if (generic == null) {
+                    throw new SerdeException("Cannot deserialize raw optional");
+                }
+                final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
 
-            if (decoder.decodeNull()) {
+                if (decoder.decodeNull()) {
+                    return Optional.empty();
+                } else {
+                    return Optional.ofNullable(
+                            deserializer.deserialize(
+                                    decoder,
+                                    decoderContext,
+                                    generic
+                            )
+                    );
+                }
+            }
+
+            @Override
+            public Optional<V> getDefaultValue() {
                 return Optional.empty();
-            } else {
-                return Optional.ofNullable(
-                        deserializer.deserialize(
-                                decoder,
-                                decoderContext,
-                                generic
-                        )
-                );
             }
         };
     }

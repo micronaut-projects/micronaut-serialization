@@ -440,6 +440,11 @@ public class CoreSerializers {
             public boolean isEmpty(Optional<T> value) {
                 return value == null || !value.isPresent();
             }
+
+            @Override
+            public boolean isAbsent(Optional<T> value) {
+                return value == null || !value.isPresent();
+            }
         };
     }
 

@@ -56,6 +56,13 @@ public interface Serializer<T> {
     }
 
     /**
+     * Used for {@code JsonInclude.Include#NON_ABSENT} checking.
+     */
+    default boolean isAbsent(T value) {
+        return false;
+    }
+
+    /**
      * Context object passes to the {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
     interface EncoderContext {

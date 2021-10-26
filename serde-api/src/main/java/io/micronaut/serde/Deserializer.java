@@ -45,7 +45,7 @@ public interface Deserializer<T> {
     T deserialize(
             @NonNull Decoder decoder,
             @NonNull DecoderContext decoderContext,
-            Argument<? super T> type) throws IOException;
+            @NonNull Argument<? super T> type) throws IOException;
 
     /**
      * @return Whether the deserializer is allowed to emit {@code null}
@@ -55,7 +55,15 @@ public interface Deserializer<T> {
     }
 
     /**
-     * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument, io.micronaut.core.type.Argument[])} method along with the decoder.
+     * Obtains a default value that can be returned from this deserializer in the case where a value is absent.
+     * @return The default value
+     */
+    default @Nullable T getDefaultValue() {
+        return null;
+    }
+
+    /**
+     * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)} method along with the decoder.
      */
     interface DecoderContext {
         /**
@@ -65,7 +73,7 @@ public interface Deserializer<T> {
          * @return The deserializer
          * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
          */
-        <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type)
+        @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type)
             throws SerdeException;
 
         /**
@@ -75,7 +83,7 @@ public interface Deserializer<T> {
          * @return The deserializer
          * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
          */
-        default <T> Deserializer<? extends T> findDeserializer(@NonNull Class<? extends T> type)
+        default @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Class<? extends T> type)
                 throws SerdeException {
             return findDeserializer(Argument.of(type));
         }

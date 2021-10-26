@@ -1,5 +1,6 @@
 package io.micronaut.serde;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -9,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.micronaut.context.BeanContext;
@@ -89,6 +93,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
             }
         }
+        registerPrimitiveOptionalSerdes();
         this.deserializerMap.put(new TypeEntry(Argument.STRING),
                                  (Deserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
         this.deserializerMap.put(new TypeEntry(Argument.of(BigDecimal.class)),
@@ -176,6 +181,137 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         );
         this.objectSerializer = objectSerializer;
         this.objectDeserializer = objectDeserializer;
+    }
+
+    private void registerPrimitiveOptionalSerdes() {
+        final TypeEntry optionalIntKey = new TypeEntry(Argument.of(OptionalInt.class));
+        this.deserializerMap.put(optionalIntKey, new Deserializer<OptionalInt>() {
+            @Override
+            public OptionalInt deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalInt> type)
+                    throws IOException {
+                if (decoder.decodeNull()) {
+                    return OptionalInt.empty();
+                } else {
+                    return OptionalInt.of(
+                        decoder.decodeInt()
+                    );
+                }
+            }
+
+            @Override
+            public OptionalInt getDefaultValue() {
+                return OptionalInt.empty();
+            }
+        });
+        this.serializerMap.put(optionalIntKey, new Serializer<OptionalInt>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  OptionalInt value,
+                                  Argument<? extends OptionalInt> type) throws IOException {
+                 if (value.isPresent()) {
+                     encoder.encodeInt(value.getAsInt());
+                 } else {
+                     encoder.encodeNull();
+                 }
+            }
+
+            @Override
+            public boolean isEmpty(OptionalInt value) {
+                return value == null || !value.isPresent();
+            }
+
+            @Override
+            public boolean isAbsent(OptionalInt value) {
+                return value == null || !value.isPresent();
+            }
+        });
+        
+        final TypeEntry optionalDoubleKey = new TypeEntry(Argument.of(OptionalDouble.class));
+        this.deserializerMap.put(optionalDoubleKey, new Deserializer<OptionalDouble>() {
+            @Override
+            public OptionalDouble deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalDouble> type)
+                    throws IOException {
+                if (decoder.decodeNull()) {
+                    return OptionalDouble.empty();
+                } else {
+                    return OptionalDouble.of(
+                            decoder.decodeDouble()
+                    );
+                }
+            }
+
+            @Override
+            public OptionalDouble getDefaultValue() {
+                return OptionalDouble.empty();
+            }
+        });
+        this.serializerMap.put(optionalDoubleKey, new Serializer<OptionalDouble>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  OptionalDouble value,
+                                  Argument<? extends OptionalDouble> type) throws IOException {
+                if (value.isPresent()) {
+                    encoder.encodeDouble(value.getAsDouble());
+                } else {
+                    encoder.encodeNull();
+                }
+            }
+
+            @Override
+            public boolean isEmpty(OptionalDouble value) {
+                return value == null || !value.isPresent();
+            }
+
+            @Override
+            public boolean isAbsent(OptionalDouble value) {
+                return value == null || !value.isPresent();
+            }
+        });
+
+        final TypeEntry optionalLongKey = new TypeEntry(Argument.of(OptionalLong.class));
+        this.deserializerMap.put(optionalLongKey, new Deserializer<OptionalLong>() {
+            @Override
+            public OptionalLong deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalLong> type)
+                    throws IOException {
+                if (decoder.decodeNull()) {
+                    return OptionalLong.empty();
+                } else {
+                    return OptionalLong.of(
+                            decoder.decodeLong()
+                    );
+                }
+            }
+
+            @Override
+            public OptionalLong getDefaultValue() {
+                return OptionalLong.empty();
+            }
+        });
+        this.serializerMap.put(optionalLongKey, new Serializer<OptionalLong>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  OptionalLong value,
+                                  Argument<? extends OptionalLong> type) throws IOException {
+                if (value.isPresent()) {
+                    encoder.encodeLong(value.getAsLong());
+                } else {
+                    encoder.encodeNull();
+                }
+            }
+
+            @Override
+            public boolean isEmpty(OptionalLong value) {
+                return value == null || !value.isPresent();
+            }
+
+            @Override
+            public boolean isAbsent(OptionalLong value) {
+                return value == null || !value.isPresent();
+            }
+        });
     }
 
     @Override

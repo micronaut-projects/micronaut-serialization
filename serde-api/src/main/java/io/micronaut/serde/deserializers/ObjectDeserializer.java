@@ -1,6 +1,7 @@
 package io.micronaut.serde.deserializers;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -22,31 +23,34 @@ public class ObjectDeserializer implements Deserializer<Object> {
     public Object deserialize(Decoder decoder,
                               DecoderContext decoderContext,
                               Argument<? super Object> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+
         final DeserIntrospection<? super Object> introspection;
         try {
             introspection = decoderContext.getDeserializableIntrospection(type);
         } catch (IntrospectionException e) {
             throw new SerdeException("Unable to deserialize object of type: " + type, e);
         }
+        final Map<String, ? extends DeserIntrospection.SerdeProperty<? super Object, ?>> readProperties =
+                introspection.readProperties != null ? new HashMap<>(introspection.readProperties) : null;
+        final boolean hasProperties = readProperties != null;
+
         if (introspection.creatorParams != null) {
 
             final Decoder objectDecoder = decoder.decodeObject();
             final Map<String, ? extends DeserIntrospection.SerdeProperty<? super Object, ?>> creatorParameters =
-                    introspection.creatorParams;
-            final Map<String, ? extends DeserIntrospection.SerdeProperty<? super Object, ?>> readProperties =
-                    introspection.readProperties;
-            int creatorSize = creatorParameters.size();
-            Object[] params = new Object[creatorSize];
+                    new HashMap<>(introspection.creatorParams);
+            Object[] params = new Object[creatorParameters.size()];
             PropertyBuffer buffer = null;
-            final boolean hasProperties = readProperties != null;
-            int propSize = hasProperties ? readProperties.size() : 0;
             while (true) {
                 final String prop = objectDecoder.decodeKey();
                 if (prop == null) {
                     break;
                 }
                 final DeserIntrospection.SerdeProperty<? super Object, ?> sp =
-                        creatorParameters.get(prop);
+                        creatorParameters.remove(prop);
                 if (sp != null) {
                     @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
                     final Object val = sp.deserializer.deserialize(
@@ -55,7 +59,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
                             propertyType
                     );
                     params[sp.index] = val;
-                    if (--creatorSize == 0) {
+                    if (creatorParameters.isEmpty()) {
                         break;
                     }
                 } else if (hasProperties) {
@@ -69,13 +73,25 @@ public class ObjectDeserializer implements Deserializer<Object> {
                                 argument
                         );
                         if (buffer == null) {
-                            buffer = new PropertyBuffer(rp.writer, val, null);
+                            buffer = new PropertyBuffer(rp.writer, prop, val, null);
                         } else {
-                            buffer = buffer.next(rp.writer, val);
+                            buffer = buffer.next(rp.writer, prop, val);
                         }
                     }
                 } else {
                     objectDecoder.skipValue();
+                }
+            }
+
+            if (!creatorParameters.isEmpty()) {
+                for (DeserIntrospection.SerdeProperty<? super Object, ?> sp : creatorParameters.values()) {
+                    if (sp.defaultValue != null) {
+                        params[sp.index] = sp.defaultValue;
+                    } else if(sp.argument.isNullable()) {
+                        params[sp.index] = null;
+                    } else {
+                        throw new SerdeException("Unable to deserialize type [" + type + "]. Required constructor parameter [" + sp.argument + "] at index [" + sp.index + "] is not present in supplied data");
+                    }
                 }
             }
 
@@ -85,52 +101,52 @@ public class ObjectDeserializer implements Deserializer<Object> {
                 if (buffer != null) {
                     for (PropertyBuffer propertyBuffer : buffer) {
                         propertyBuffer.set(obj);
-                        propSize--;
+                        readProperties.remove(propertyBuffer.property);
                     }
                 }
-            }
-            if (propSize != 0) {
-                // more properties still to be read
-                decodeProperties(
-                        decoderContext,
-                        obj,
-                        objectDecoder,
-                        readProperties,
-                        propSize
-                );
+                if (!readProperties.isEmpty()) {
+                    // more properties still to be read
+                    decodeProperties(
+                            type,
+                            decoderContext,
+                            obj,
+                            objectDecoder,
+                            readProperties
+                    );
+                }
             }
             objectDecoder.finishStructure();
             return obj;
         } else {
-            // no constructors so no need to buffer
             final Object obj = introspection.introspection.instantiate();
-            if (introspection.readProperties != null) {
-
-                final Decoder objectDecoder = decoder.decodeObject();
-                final Map<String, ? extends DeserIntrospection.SerdeProperty<? super Object, ?>> readProperties =
-                        introspection.readProperties;
-                int total = readProperties.size();
-                decodeProperties(decoderContext, obj, objectDecoder, readProperties, total);
-                objectDecoder.finishStructure();
+            final Decoder objectDecoder = decoder.decodeObject();
+            if (hasProperties) {
+                decodeProperties(type, decoderContext, obj, objectDecoder, readProperties);
             }
+            objectDecoder.finishStructure();
 
             return obj;
         }
 
     }
 
-    private void decodeProperties(DecoderContext decoderContext,
-                           Object obj,
-                           Decoder objectDecoder,
-                           Map<String, ? extends DeserIntrospection.SerdeProperty<? super Object, ?>> readProperties,
-                           int total) throws IOException {
+    @Override
+    public boolean allowNull() {
+        return true;
+    }
+
+    private void decodeProperties(Argument<?> type,
+                                  DecoderContext decoderContext,
+                                  Object obj,
+                                  Decoder objectDecoder,
+                                  Map<String, ? extends DeserIntrospection.SerdeProperty<? super Object, ?>> readProperties) throws IOException {
         while (true) {
             final String prop = objectDecoder.decodeKey();
             if (prop == null) {
                 break;
             }
             @SuppressWarnings("unchecked") final DeserIntrospection.SerdeProperty<Object, Object> property =
-                    (DeserIntrospection.SerdeProperty<Object, Object>) readProperties.get(prop);
+                    (DeserIntrospection.SerdeProperty<Object, Object>) readProperties.remove(prop);
             if (property != null) {
                 final Argument<Object> propertyType = property.argument;
                 final Object val = property.deserializer.deserialize(
@@ -141,31 +157,47 @@ public class ObjectDeserializer implements Deserializer<Object> {
                 // writer is never null for properties
                 //noinspection ConstantConditions
                 property.writer.set(obj, val);
-                if (--total == 0) {
+                if (readProperties.isEmpty()) {
                     break;
                 }
             } else {
                 objectDecoder.skipValue();
             }
+        }
 
+        if (!readProperties.isEmpty()) {
+            for (DeserIntrospection.SerdeProperty<? super Object, ?> sp : readProperties.values()) {
+                if (sp.defaultValue != null) {
+                    @SuppressWarnings("unchecked") final BeanProperty<? super Object, Object> writer =
+                            (BeanProperty<? super Object, Object>) sp.writer;
+                    writer.set(obj, sp.defaultValue);
+                } else if (sp.argument.isNonNull()) {
+                    throw new SerdeException("Unable to deserialize type [" + type + "]. Required property [" + sp.argument + "] is not present in supplied data");
+                }
+            }
         }
     }
 
     private static final class PropertyBuffer implements Iterable<PropertyBuffer> {
 
-        final BeanProperty<? super Object, Object> property;
+        final BeanProperty<? super Object, Object> bp;
+        final String property;
         final Object value;
         private final PropertyBuffer next;
 
-        public PropertyBuffer(BeanProperty<? super Object, ?> rp, Object val, @Nullable PropertyBuffer next) {
+        public PropertyBuffer(BeanProperty<? super Object, ?> bp,
+                              String property,
+                              Object val,
+                              @Nullable PropertyBuffer next) {
             //noinspection unchecked
-            this.property = (BeanProperty<? super Object, Object>) rp;
+            this.bp = (BeanProperty<? super Object, Object>) bp;
+            this.property = property;
             this.value = val;
             this.next = next;
         }
 
-        PropertyBuffer next(BeanProperty<? super Object, ?> rp, Object val) {
-            return new PropertyBuffer(rp, val, this);
+        PropertyBuffer next(BeanProperty<? super Object, ?> rp, String property, Object val) {
+            return new PropertyBuffer(rp, property, val, this);
         }
 
         @Override
@@ -191,7 +223,7 @@ public class ObjectDeserializer implements Deserializer<Object> {
         }
 
         public void set(Object obj) {
-            property.set(obj, value);
+            bp.set(obj, value);
         }
     }
 
