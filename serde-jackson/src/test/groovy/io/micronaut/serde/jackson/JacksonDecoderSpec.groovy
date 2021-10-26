@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson
 
 import com.fasterxml.jackson.core.JsonFactoryBuilder
+import io.micronaut.serde.exceptions.SerdeException
 import spock.lang.Specification
 
 class JacksonDecoderSpec extends Specification {
@@ -25,7 +26,7 @@ class JacksonDecoderSpec extends Specification {
         JacksonDecoder.create(factory.createParser('[["a"]]')).decodeString()
 
         then:
-        thrown DeserializationException
+        thrown SerdeException
     }
 
     def "unwrapping places the cursor correctly"() {
