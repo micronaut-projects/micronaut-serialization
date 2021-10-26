@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.io.NumberInput;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.jackson.core.tree.JsonNodeTreeCodec;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -473,6 +475,15 @@ public class JacksonDecoder implements Decoder {
             default:
                 throw ((Decoder) this).createDeserializationException("Unexpected token " + parser.currentToken() + ", expected value");
         }
+    }
+
+    @Override
+    public Decoder decodeBuffer() throws IOException {
+        preDecodeValue();
+        JsonNodeTreeCodec treeCodec = JsonNodeTreeCodec.getInstance();
+        JsonNode tree = treeCodec.readTree(parser);
+        parser.nextToken();
+        return JacksonDecoder.create(treeCodec.treeAsTokens(tree), view);
     }
 
     private static Map<String, Object> decodeArbitraryMap(Decoder elementDecoder) throws IOException {

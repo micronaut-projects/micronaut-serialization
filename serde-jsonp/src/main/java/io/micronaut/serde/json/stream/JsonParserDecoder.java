@@ -205,6 +205,11 @@ public class JsonParserDecoder implements Decoder {
     }
 
     @Override
+    public Decoder decodeBuffer() throws IOException {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
     public void skipValue() throws IOException {
         jsonParser.skipObject();
     }

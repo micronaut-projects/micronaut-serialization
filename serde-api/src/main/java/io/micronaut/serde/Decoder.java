@@ -69,6 +69,17 @@ public interface Decoder {
     @Nullable
     Object decodeArbitrary() throws IOException;
 
+    /**
+     * Buffer the whole subtree of this value and return it as a new {@link Decoder}. The returned {@link Decoder} can
+     * be used independently to this {@link Decoder}. This means actual parsing of the subtree can be delayed.
+     * <p>
+     * The returned {@link Decoder} should behave identically to this {@link Decoder}. This means that for example
+     * {@code decoder.decodeDouble()} should be equivalent to {@code decoder.decodeBuffer().decodeDouble()}.
+     *
+     * @return An independent decoder that visits this subtree.
+     */
+    Decoder decodeBuffer() throws IOException;
+
     void skipValue() throws IOException;
 
     void finishStructure() throws IOException;
