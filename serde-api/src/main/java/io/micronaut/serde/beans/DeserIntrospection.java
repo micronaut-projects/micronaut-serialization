@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.beans;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,82 +40,189 @@ public final class DeserIntrospection<T> {
     @NonNull
     public final BeanIntrospection<T> introspection;
     @Nullable
-    public final Map<String, SerdeProperty<T, ?>> creatorParams;
+    public final Map<String, DerProperty<T, ?>> creatorParams;
     @Nullable
-    public final Map<String, SerdeProperty<T, ?>> readProperties;
+    public final DerProperty<T, ?>[] creatorUnwrapped;
+    @Nullable
+    public final Map<String, DerProperty<T, Object>> readProperties;
+    @Nullable
+    public final DerProperty<T, Object>[] unwrappedProperties;
+    public final int creatorSize;
 
     public DeserIntrospection(BeanIntrospection<T> introspection, Deserializer.DecoderContext decoderContext)
             throws SerdeException {
         this.introspection = introspection;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
-        final HashMap<String, SerdeProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
+        creatorSize = constructorArguments.length;
+        final HashMap<String, DerProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
+        List<DerProperty<T, ?>> creatorUnwrapped = null;
+        List<DerProperty<T, ?>> unwrappedProperties = null;
         for (int i = 0; i < constructorArguments.length; i++) {
-            Argument<?> constructorArgument = constructorArguments[i];
-            final String jsonProperty = constructorArgument.getAnnotationMetadata()
+            Argument<Object> constructorArgument = (Argument<Object>) constructorArguments[i];
+            final AnnotationMetadata annotationMetadata = constructorArgument.getAnnotationMetadata();
+            final String jsonProperty = annotationMetadata
                     .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                     .orElse(constructorArgument.getName());
             final Deserializer<?> deserializer = decoderContext.findDeserializer(constructorArgument);
-            creatorParams.put(
-                    jsonProperty,
-                    new SerdeProperty<>(
-                            i,
-                            constructorArgument,
-                            null,
-                            (Deserializer) deserializer
-                    )
-            );
+            final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+            if (isUnwrapped) {
+                if (creatorUnwrapped == null) {
+                    creatorUnwrapped = new ArrayList<>();
+                }
+
+                final DeserIntrospection<Object> unwrapped = decoderContext.getDeserializableIntrospection(constructorArgument);
+                creatorUnwrapped.add(new DerProperty(
+                        introspection.getBeanType(),
+                        i,
+                        constructorArgument,
+                        null,
+                        deserializer,
+                        unwrapped
+                ));
+                String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
+                String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
+
+                final Map<String, DerProperty<Object, ?>> unwrappedCreatorParams = unwrapped.creatorParams;
+                if (unwrappedCreatorParams != null) {
+                    for (String n : unwrappedCreatorParams.keySet()) {
+                        String resolved = prefix + n + suffix;
+                        //noinspection unchecked
+                        creatorParams.put(resolved, (DerProperty<T, ?>) unwrappedCreatorParams.get(n));
+                    }
+                }
+
+                creatorParams.put(
+                        jsonProperty,
+                        new DerProperty<>(
+                                introspection.getBeanType(),
+                                i,
+                                constructorArgument,
+                                null,
+                                (Deserializer) deserializer,
+                                unwrapped
+                        )
+                );
+            } else {
+                creatorParams.put(
+                        jsonProperty,
+                        new DerProperty<>(
+                                introspection.getBeanType(),
+                                i,
+                                constructorArgument,
+                                null,
+                                (Deserializer) deserializer,
+                                null
+                        )
+                );
+            }
         }
-        if (creatorParams.isEmpty()) {
-            this.creatorParams = null;
-        } else {
-            this.creatorParams = Collections.unmodifiableMap(creatorParams);
-        }
+
 
         final List<BeanProperty<T, Object>> beanProperties = introspection.getBeanProperties()
                 .stream().filter(bp -> {
                     final AnnotationMetadata annotationMetadata = bp.getAnnotationMetadata();
                     return !bp.isReadOnly() &&
-                            !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false) &&
+                            !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false) &&
                             !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false);
                 }).collect(Collectors.toList());
 
         if (CollectionUtils.isNotEmpty(beanProperties)) {
-            final HashMap<String, SerdeProperty<T, ?>> readProps = new HashMap<>(beanProperties.size());
+            final HashMap<String, DerProperty<T, Object>> readProps = new HashMap<>(beanProperties.size());
             for (int i = 0; i < beanProperties.size(); i++) {
                 BeanProperty<T, Object> beanProperty = beanProperties.get(i);
-                final String jsonProperty = beanProperty.getAnnotationMetadata()
-                        .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                        .orElse(beanProperty.getName());
+                final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
+                final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
                 final Argument<Object> t = beanProperty.asArgument();
-                final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
-                readProps.put(jsonProperty, new SerdeProperty<>(
-                        i,
-                        t,
-                        beanProperty,
-                        (Deserializer) deserializer)
-                );
+
+                if (isUnwrapped) {
+                    if (unwrappedProperties == null) {
+                        unwrappedProperties = new ArrayList<>();
+                    }
+                    final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
+
+                    final DeserIntrospection<Object> unwrapped = decoderContext.getDeserializableIntrospection(t);
+                    unwrappedProperties.add(new DerProperty(
+                            beanProperty.getDeclaringType(),
+                            i,
+                            t,
+                            beanProperty,
+                            deserializer,
+                            unwrapped
+                    ));
+                    String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
+                    String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
+
+                    final Map<String, DerProperty<Object, Object>> unwrappedProps = unwrapped.readProperties;
+                    if (unwrappedProps != null) {
+                        for (String n : unwrappedProps.keySet()) {
+                            String resolved = prefix + n + suffix;
+                            //noinspection unchecked
+                            readProps.put(resolved, (DerProperty<T, Object>) unwrappedProps.get(n));
+                        }
+                    }
+                    final Map<String, DerProperty<Object, ?>> unwrappedCreatorParams = unwrapped.creatorParams;
+                    if (unwrappedCreatorParams != null) {
+                        for (String n : unwrappedCreatorParams.keySet()) {
+                            String resolved = prefix + n + suffix;
+                            //noinspection unchecked
+                            creatorParams.put(resolved, (DerProperty<T, ?>) unwrappedCreatorParams.get(n));
+                        }
+                    }
+                } else {
+
+                    final String jsonProperty = annotationMetadata
+                            .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                            .orElse(beanProperty.getName());
+
+                    final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
+                    readProps.put(jsonProperty, new DerProperty<>(
+                            beanProperty.getDeclaringType(),
+                            i,
+                            t,
+                            beanProperty,
+                            (Deserializer) deserializer,
+                            null
+                      )
+                    );
+                }
 
             }
+
             this.readProperties = Collections.unmodifiableMap(readProps);
         } else {
             readProperties = null;
         }
+
+        if (creatorParams.isEmpty()) {
+            this.creatorParams = null;
+        } else {
+            this.creatorParams = Collections.unmodifiableMap(creatorParams);
+        }
+        //noinspection unchecked
+        this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
+        //noinspection unchecked
+        this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
     }
 
     @Internal
-    public static class SerdeProperty<B, P> {
+    public static class DerProperty<B, P> {
+        public final Class<B> declaringType;
         public final int index;
         public final Argument<P> argument;
         @Nullable
         public final P defaultValue;
         public final boolean required;
         public final @Nullable BeanProperty<B, P> writer;
-        public final Deserializer<? super P> deserializer;
+        public final @NonNull Deserializer<? super P> deserializer;
+        public final DeserIntrospection<P> unwrapped;
 
-        public SerdeProperty(int index,
-                             Argument<P> argument,
-                             @Nullable BeanProperty<B, P> writer,
-                             Deserializer<P> deserializer) {
+        public DerProperty(Class<B> declaringType,
+                           int index,
+                           Argument<P> argument,
+                           @Nullable BeanProperty<B, P> writer,
+                           @NonNull Deserializer<P> deserializer,
+                           @Nullable DeserIntrospection<P> unwrapped) {
+            this.declaringType = declaringType;
             this.index = index;
             this.argument = argument;
             this.required = argument.isNonNull();
@@ -124,8 +232,39 @@ public final class DeserIntrospection<T> {
             this.defaultValue = argument.getAnnotationMetadata()
                     .getValue(Bindable.class, "defaultValue", argument)
                     .orElse(deserializer.getDefaultValue());
+            this.unwrapped = unwrapped;
         }
 
+        public void setDefault(@NonNull B bean) throws SerdeException {
+            if (defaultValue != null && writer != null) {
+                writer.set(bean, defaultValue);
+            } else if (isNonNull()) {
+                throw new SerdeException("Unable to deserialize type [" + declaringType.getName() + "]. Required property [" + argument +
+                                                 "] is not present in supplied data");
+            }
+        }
 
+        public void setDefault(@NonNull Object[] params) throws SerdeException {
+            if (defaultValue != null) {
+                params[index] = defaultValue;
+            } else if (isNonNull()) {
+                throw new SerdeException("Unable to deserialize type [" + declaringType.getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
+            }
+        }
+
+        public boolean isNonNull() {
+            return argument.isPrimitive() || !argument.isNullable();
+        }
+
+        public void set(@NonNull B obj, @Nullable P v) throws SerdeException {
+            if (v == null && argument.isNonNull()) {
+                throw new SerdeException("Unable to deserialize type [" + declaringType.getName() + "]. Required property [" + argument +
+                                                 "] is not present in supplied data");
+
+            }
+            if (writer != null) {
+                writer.set(obj, v);
+            }
+        }
     }
 }

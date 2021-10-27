@@ -26,6 +26,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.beans.SerIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
@@ -35,13 +36,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to standard types
+ * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
+ * standard types
  * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}.
  * <p>
  * This class is used in multiple scenarios:
  * <ul>
  *     <li>When the user has an {@link Object} property in a serializable bean.</li>
- *     <li>When the user explicitly calls {@link io.micronaut.json.JsonMapper#writeValue}{@code (gen, }{@link Object}{@code .class)}</li>
+ *     <li>When the user explicitly calls {@link io.micronaut.json.JsonMapper#writeValue}{@code (gen, }{@link Object}{@code
+ *     .class)}</li>
  * </ul>
  */
 @Internal
@@ -57,55 +60,53 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            @SuppressWarnings("unchecked")
-            final BeanIntrospection<Object> introspection = context
+            final boolean isUnwrapped = type.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.Unwrapped.class);
+            @SuppressWarnings("unchecked") final SerIntrospection<Object> introspection = context
                     .getSerializableIntrospection((Argument<Object>) type);
-            final Encoder childEncoder = encoder.encodeObject();
-            final Collection<BeanProperty<Object, Object>> properties = introspection.getBeanProperties();
-            for (BeanProperty<Object, Object> property : properties) {
-                // TODO Move to cache
-                if (!property.isWriteOnly() &&
-                        !property.booleanValue(SerdeConfig.class, "ignored").orElse(false) &&
-                        !property.booleanValue(SerdeConfig.class, "readOnly").orElse(false)) {
-                    final Argument<Object> argument = property.asArgument();
-                    final Serializer<? super Object> serializer = context.findSerializer(argument);
-                    final Object v = property.get(value);
-                    final String n = property.stringValue(SerdeConfig.class, "property").orElse(argument.getName());
-                    final SerdeConfig.Include include = property.enumValue(SerdeConfig.class, "include", SerdeConfig.Include.class)
-                                                                    .orElse(SerdeConfig.Include.ALWAYS);
-                    switch (include) {
-                        case NON_NULL:
-                            if (v == null) {
-                                continue;
-                            }
+            final Encoder childEncoder = isUnwrapped ? encoder : encoder.encodeObject();
+            final Map<String, SerIntrospection.SerProperty<Object, Object>> writeProperties =
+                    introspection.writeProperties;
+            for (String propertyName : writeProperties.keySet()) {
+                final SerIntrospection.SerProperty<Object, Object> property =
+                            writeProperties.get(propertyName);
+                final Object v = property.get(value);
+                final Serializer<Object> serializer = property.serializer;
+                switch (property.include) {
+                    case NON_NULL:
+                        if (v == null) {
+                            continue;
+                        }
                         break;
-                        case NON_ABSENT:
-                            if (serializer.isAbsent(v)) {
-                                continue;
-                            }
+                    case NON_ABSENT:
+                        if (serializer.isAbsent(v)) {
+                            continue;
+                        }
                         break;
-                        case NON_EMPTY:
-                            if (serializer.isEmpty(v)) {
-                                continue;
-                            }
+                    case NON_EMPTY:
+                        if (serializer.isEmpty(v)) {
+                            continue;
+                        }
                         break;
-                        default:
-                            // fall through
-                    }
-                    childEncoder.encodeKey(n);
-                    if (v == null) {
-                        childEncoder.encodeNull();
-                    } else {
-                        serializer.serialize(
-                                childEncoder,
-                                context,
-                                v,
-                                argument
-                        );
-                    }
+                    default:
+                    // fall through
+                }
+                if (!property.unwrapped) {
+                    childEncoder.encodeKey(propertyName);
+                }
+                if (v == null) {
+                    childEncoder.encodeNull();
+                } else {
+                    serializer.serialize(
+                            childEncoder,
+                            context,
+                            v,
+                            property.argument
+                    );
                 }
             }
-            childEncoder.finishStructure();
+            if (!isUnwrapped) {
+                childEncoder.finishStructure();
+            }
         } catch (IntrospectionException e) {
             throw new SerdeException("Error serializing value at path: " + encoder.toString() + ". No serializer found for type: " + type, e);
         }

@@ -21,28 +21,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         ApplicationContext context =
                 buildContext(className, source, true)
 
-
-        def classLoader = context.classLoader
-        context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {
-
-            @Override
-            def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
-                if (type.type.name == className) {
-                    return classLoader.loadClass(NameUtils.getPackageName(className) + ".\$" + NameUtils.getSimpleName(className) + '$Introspection')
-                        .newInstance()
-                }
-                throw new IntrospectionException("No introspection")
-            }
-
-            @Override
-            def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
-                if (type.type.name == className) {
-                    return classLoader.loadClass(NameUtils.getPackageName(className) + ".\$" + NameUtils.getSimpleName(className) + '$Introspection')
-                            .newInstance()
-                }
-                throw new IntrospectionException("No introspection")
-            }
-        })
+        setupSerdeRegistry(context)
         jsonMapper = context.getBean(JsonMapper)
 
         def t = context.classLoader
@@ -50,5 +29,50 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         typeUnderTest = Argument.of(t)
         beanUnderTest = t.newInstance(properties)
         return context
+    }
+
+    Object newInstance(ApplicationContext context, String name, Map args) {
+        return context.classLoader.loadClass(name).newInstance(args)
+    }
+
+    Object newInstance(ApplicationContext context, String name, Object[] args) {
+        return context.classLoader.loadClass(name).newInstance(args)
+    }
+
+    @Override
+    ApplicationContext buildContext(@Language("java") String source) {
+        ApplicationContext context =
+                buildContext("test.Source" + System.currentTimeMillis(), source, true)
+
+
+        setupSerdeRegistry(context)
+        jsonMapper = context.getBean(JsonMapper)
+        return context
+    }
+
+    protected void setupSerdeRegistry(ApplicationContext context) {
+        def classLoader = context.classLoader
+        context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {
+
+            @Override
+            def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
+                try {
+                    return classLoader.loadClass(type.type.packageName + ".\$" + type.type.simpleName + '$Introspection')
+                            .newInstance()
+                } catch (ClassNotFoundException e) {
+                    throw new IntrospectionException("No introspection")
+                }
+            }
+
+            @Override
+            def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
+                try {
+                    return classLoader.loadClass(type.type.packageName + ".\$" + type.type.simpleName + '$Introspection')
+                            .newInstance()
+                } catch (ClassNotFoundException e) {
+                    throw new IntrospectionException("No introspection for type $type")
+                }
+            }
+        })
     }
 }

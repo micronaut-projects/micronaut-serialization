@@ -40,6 +40,7 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.serde.beans.DeserIntrospection;
+import io.micronaut.serde.beans.SerIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
@@ -420,8 +421,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
 
     @Override
-    public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
-        return introspections.getSerializableIntrospection(type);
+    public <T> SerIntrospection<T> getSerializableIntrospection(Argument<T> type) {
+        // TODO: cache these
+        try {
+            return new SerIntrospection<>(introspections.getSerializableIntrospection(type), this);
+        } catch (SerdeException e) {
+            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
+        }
     }
 
     private final static class TypeEntry {

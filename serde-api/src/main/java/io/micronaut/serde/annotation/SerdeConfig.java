@@ -52,6 +52,20 @@ public @interface SerdeConfig {
     String READ_ONLY = "readOnly";
 
     /**
+     * Is this property to be used only for writing.
+     */
+    String WRITE_ONLY = "writeOnly";
+
+    /**
+     * Internal metadata type for wrapped settings
+     */
+    @interface Unwrapped {
+        String NAME = Unwrapped.class.getName();
+        String PREFIX = "prefix";
+        String SUFFIX = "suffix";
+    }
+
+    /**
      * Include strategies.
      */
     enum Include {

@@ -2,3 +2,4 @@ io.micronaut.serde.processor.jackson.JsonIgnoreMapper
 io.micronaut.serde.processor.jackson.JsonCreatorMapper
 io.micronaut.serde.processor.jackson.JsonIncludeMapper
 io.micronaut.serde.processor.jackson.JsonPropertyMapper
+io.micronaut.serde.processor.jackson.JsonUnwrappedMapper
