@@ -59,6 +59,50 @@ class Test {
     }
 
     @Unroll
+    void "test basic type #type - null value"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private $type.name value;
+    public void setValue($type.name value) {
+        this.value = value;
+    } 
+    public $type.name getValue() {
+        return value;
+    }
+}
+""", data)
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == result
+        def read = jsonMapper.readValue(result, typeUnderTest)
+        typeUnderTest.type.isInstance(read)
+        read.value == null
+
+        cleanup:
+        context.close()
+
+        where:
+        type       | data          | result
+        BigDecimal | [value: null] | '{"value":null}'
+        BigInteger | [value: null] | '{"value":null}'
+        String     | [value: null] | '{"value":null}'
+        //wrappers
+        Boolean    | [value: null] | '{"value":null}'
+        Byte       | [value: null] | '{"value":null}'
+        Short      | [value: null] | '{"value":null}'
+        Integer    | [value: null] | '{"value":null}'
+        Long       | [value: null] | '{"value":null}'
+        Double     | [value: null] | '{"value":null}'
+        Float      | [value: null] | '{"value":null}'
+        Character  | [value: null] | '{"value":null}'
+    }
+
+    @Unroll
     void "test basic array type #type"() {
         given:
         def context = buildContext('test.Test', """

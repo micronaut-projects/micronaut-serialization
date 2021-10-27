@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
-import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
@@ -42,6 +41,7 @@ import io.micronaut.inject.BeanDefinition;
 import io.micronaut.serde.beans.DeserIntrospection;
 import io.micronaut.serde.beans.SerIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
 @Singleton
@@ -111,89 +111,75 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
         registerPrimitiveOptionalSerdes();
         this.deserializerMap.put(new TypeEntry(Argument.STRING),
-                                 (Deserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
+                                 (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
         this.deserializerMap.put(new TypeEntry(Argument.of(BigDecimal.class)),
-                                 (Deserializer<BigDecimal>) (decoder, decoderContext, type) -> decoder.decodeBigDecimal());
+                                 (NullableDeserializer<BigDecimal>) (decoder, decoderContext, type) -> decoder.decodeBigDecimal());
         this.deserializerMap.put(new TypeEntry(Argument.of(BigInteger.class)),
-                                 (Deserializer<BigInteger>) (decoder, decoderContext, type) -> decoder.decodeBigInteger());
-        final Deserializer<Boolean> booleanDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeBoolean();
+                                 (NullableDeserializer<BigInteger>) (decoder, decoderContext, type) -> decoder.decodeBigInteger());
         this.deserializerMap.put(
                 new TypeEntry(Argument.BOOLEAN),
-                booleanDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Boolean.class)),
-                booleanDeserializer
+                (NullableDeserializer<Boolean>) (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
-        final Deserializer<Integer> integerDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeInt();
+                ;
         this.deserializerMap.put(
                 new TypeEntry(Argument.INT),
-                integerDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeInt()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Integer.class)),
-                integerDeserializer
+                (NullableDeserializer<Integer>) (decoder, decoderContext, type) -> decoder.decodeInt()
         );
-        final Deserializer<Byte> byteDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeByte();
         this.deserializerMap.put(
                 new TypeEntry(Argument.BYTE),
-                byteDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeByte()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Byte.class)),
-                byteDeserializer
+                (NullableDeserializer<Byte>) (decoder, decoderContext, type) -> decoder.decodeByte()
         );
-        final Deserializer<Short> shortDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeShort();
         this.deserializerMap.put(
                 new TypeEntry(Argument.SHORT),
-                shortDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeShort()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Short.class)),
-                shortDeserializer
+                (NullableDeserializer<Short>) (decoder, decoderContext, type) -> decoder.decodeShort()
         );
-        final Deserializer<Long> longDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeLong();
         this.deserializerMap.put(
                 new TypeEntry(Argument.LONG),
-                longDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeLong()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Long.class)),
-                longDeserializer
+                (NullableDeserializer<Long>) (decoder, decoderContext, type) -> decoder.decodeLong()
         );
-        final Deserializer<Float> floatDeserializer = (decoder, decoderContext, type) -> decoder.decodeFloat();
         this.deserializerMap.put(
                 new TypeEntry(Argument.FLOAT),
-                floatDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeFloat()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Float.class)),
-                floatDeserializer
+                (NullableDeserializer<Float>) (decoder, decoderContext, type) -> decoder.decodeFloat()
         );
-        final Deserializer<Double> doubleDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeDouble();
         this.deserializerMap.put(
                 new TypeEntry(Argument.DOUBLE),
-                doubleDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeDouble()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Double.class)),
-                doubleDeserializer
+                (NullableDeserializer<Double>) (decoder, decoderContext, type) -> decoder.decodeDouble()
         );
-        final Deserializer<Character> characterDeserializer =
-                (decoder, decoderContext, type) -> decoder.decodeChar();
         this.deserializerMap.put(
                 new TypeEntry(Argument.CHAR),
-                characterDeserializer
+                (decoder, decoderContext, type) -> decoder.decodeChar()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Character.class)),
-                characterDeserializer
+                (NullableDeserializer<Character>) (decoder, decoderContext, type) -> decoder.decodeChar()
         );
         this.objectSerializer = objectSerializer;
         this.objectDeserializer = objectDeserializer;
