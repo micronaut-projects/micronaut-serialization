@@ -30,6 +30,7 @@ import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.JsonNodeDecoder;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import jakarta.inject.Singleton;
@@ -49,27 +50,35 @@ public class JsonStreamMapper implements JsonMapper {
 
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        return null;
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
+        return deserializer.deserialize(
+                JsonNodeDecoder.create(tree),
+                registry,
+                type
+        );
     }
 
     @Override
     public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        return null;
+        try (JsonParser parser = Json.createParser(inputStream)) {
+            return readValue(parser, type);
+        }
     }
 
     @Override
     public <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
-        final JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray));
-        try {
-            return deserializer.deserialize(
-                    new JsonParserDecoder(parser),
-                    registry,
-                    type
-            );
-        } finally {
-            parser.close();
+        try (JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray))) {
+            return readValue(parser, type);
         }
+    }
+
+    private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
+        return deserializer.deserialize(
+                new JsonParserDecoder(parser),
+                registry,
+                type
+        );
     }
 
     @Override
