@@ -57,7 +57,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
             @Override
             def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
                 try {
-                    return classLoader.loadClass(type.type.getPackage().name + ".\$" + type.type.simpleName + '$Introspection')
+                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
                             .newInstance()
                 } catch (ClassNotFoundException e) {
                     throw new IntrospectionException("No introspection")
@@ -67,7 +67,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
             @Override
             def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
                 try {
-                    return classLoader.loadClass(type.type.getPackage().name + ".\$" + type.type.simpleName + '$Introspection')
+                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
                             .newInstance()
                 } catch (ClassNotFoundException e) {
                     throw new IntrospectionException("No introspection for type $type")
