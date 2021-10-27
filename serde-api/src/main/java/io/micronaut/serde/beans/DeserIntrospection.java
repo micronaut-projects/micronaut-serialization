@@ -49,7 +49,9 @@ public final class DeserIntrospection<T> {
     public final DerProperty<T, Object>[] unwrappedProperties;
     public final int creatorSize;
 
-    public DeserIntrospection(BeanIntrospection<T> introspection, Deserializer.DecoderContext decoderContext)
+    public DeserIntrospection(
+            BeanIntrospection<T> introspection,
+            Deserializer.DecoderContext decoderContext)
             throws SerdeException {
         this.introspection = introspection;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();

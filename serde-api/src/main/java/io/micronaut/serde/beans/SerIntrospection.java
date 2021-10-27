@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -20,9 +21,15 @@ public final class SerIntrospection<T> {
     @NonNull
     public final BeanIntrospection<T> introspection;
     public final Map<String, SerProperty<T, Object>> writeProperties;
+    public final boolean unwrapped;
 
-    public SerIntrospection(@NonNull BeanIntrospection<T> introspection, Serializer.EncoderContext encoderContext)
+    public SerIntrospection(
+            Argument<T> definition,
+            @NonNull BeanIntrospection<T> introspection,
+            Serializer.EncoderContext encoderContext)
             throws SerdeException {
+        final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
+        this.unwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
         this.introspection = introspection;
         final Collection<BeanProperty<T, Object>> properties =
                 introspection.getBeanProperties().stream()
@@ -34,8 +41,13 @@ public final class SerIntrospection<T> {
             writeProperties = new LinkedHashMap<>(properties.size());
             for (BeanProperty<T, Object> property : properties) {
                 final Argument<Object> argument = property.asArgument();
-                final String n = property.stringValue(SerdeConfig.class, "property").orElse(argument.getName());
-
+                String n =
+                        property.stringValue(SerdeConfig.class, "property").orElse(argument.getName());
+                if (unwrapped) {
+                    n = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX)
+                            .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX)
+                            .orElse("");
+                }
                 writeProperties.put(n, new SerProperty<>(argument, property, encoderContext.findSerializer(argument)));
             }
         } else {

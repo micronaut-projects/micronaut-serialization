@@ -422,9 +422,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public <T> SerIntrospection<T> getSerializableIntrospection(Argument<T> type) {
-        // TODO: cache these
+        // TODO: cache these, the cache key should include the Unwrapped behaviour
         try {
-            return new SerIntrospection<>(introspections.getSerializableIntrospection(type), this);
+            return new SerIntrospection<>(type, introspections.getSerializableIntrospection(type), this);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

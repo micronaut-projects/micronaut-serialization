@@ -60,10 +60,9 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            final boolean isUnwrapped = type.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.Unwrapped.class);
             @SuppressWarnings("unchecked") final SerIntrospection<Object> introspection = context
                     .getSerializableIntrospection((Argument<Object>) type);
-            final Encoder childEncoder = isUnwrapped ? encoder : encoder.encodeObject();
+            final Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
             final Map<String, SerIntrospection.SerProperty<Object, Object>> writeProperties =
                     introspection.writeProperties;
             for (String propertyName : writeProperties.keySet()) {
@@ -104,7 +103,7 @@ public final class ObjectSerializer implements Serializer<Object> {
                     );
                 }
             }
-            if (!isUnwrapped) {
+            if (!introspection.unwrapped) {
                 childEncoder.finishStructure();
             }
         } catch (IntrospectionException e) {
