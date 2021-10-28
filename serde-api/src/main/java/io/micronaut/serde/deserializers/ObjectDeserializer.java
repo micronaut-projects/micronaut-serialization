@@ -28,7 +28,7 @@ import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.bea   ns.DeserIntrospection;
+import io.micronaut.serde.beans.DeserIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
