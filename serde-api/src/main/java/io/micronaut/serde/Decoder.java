@@ -82,6 +82,9 @@ public interface Decoder {
 
     void skipValue() throws IOException;
 
+    /**
+     * @throws IllegalStateException If there are still elements left to consume
+     */
     void finishStructure() throws IOException;
 
     IOException createDeserializationException(String message);
