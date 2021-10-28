@@ -63,6 +63,9 @@ public class JsonParserDecoder implements Decoder {
 
     @Override
     public String decodeKey() throws IOException {
+        if (currentEvent == JsonParser.Event.END_OBJECT) {
+            return null;
+        }
         try {
             return jsonParser.getString();
         } finally {

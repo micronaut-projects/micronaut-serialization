@@ -30,6 +30,9 @@ import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.JsonNodeDecoder;
+import io.micronaut.serde.JsonNodeEncoder;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import jakarta.inject.Singleton;
@@ -49,27 +52,35 @@ public class JsonStreamMapper implements JsonMapper {
 
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        return null;
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
+        return deserializer.deserialize(
+                JsonNodeDecoder.create(tree),
+                registry,
+                type
+        );
     }
 
     @Override
     public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
-        return null;
+        try (JsonParser parser = Json.createParser(inputStream)) {
+            return readValue(parser, type);
+        }
     }
 
     @Override
     public <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
-        final JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray));
-        try {
-            return deserializer.deserialize(
-                    new JsonParserDecoder(parser),
-                    registry,
-                    type
-            );
-        } finally {
-            parser.close();
+        try (JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray))) {
+            return readValue(parser, type);
         }
+    }
+
+    private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
+        return deserializer.deserialize(
+                new JsonParserDecoder(parser),
+                registry,
+                type
+        );
     }
 
     @Override
@@ -80,38 +91,36 @@ public class JsonStreamMapper implements JsonMapper {
 
     @Override
     public JsonNode writeValueToTree(Object value) throws IOException {
-        throw new UnsupportedOperationException("Not yet implemented");
+        JsonNodeEncoder encoder = JsonNodeEncoder.create();
+        serialize(encoder, value);
+        return encoder.getCompletedValue();
     }
 
     @Override
     public void writeValue(OutputStream outputStream, Object object) throws IOException {
-        final JsonGenerator generator = Json.createGenerator(
-                Objects.requireNonNull(outputStream, "Output stream cannot be null")
-        );
-        if (object == null) {
-            try {
+        try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
+            if (object == null) {
                 generator.writeNull();
-                generator.flush();
-            } finally {
-                generator.close();
-            }
-        } else {
-            try {
-                @SuppressWarnings("unchecked")
-                final Argument type = Argument.of(object.getClass());
-                final Serializer<Object> serializer = registry.findSerializer(type);
+            } else {
                 JsonStreamEncoder encoder = new JsonStreamEncoder(generator);
-                serializer.serialize(
-                        encoder,
-                        registry,
-                        object,
-                        type
-                );
-                generator.flush();
-            } finally {
-                generator.close();
+                serialize(encoder, object);
             }
+            generator.flush();
         }
+    }
+
+    private void serialize(Encoder encoder, Object object) throws IOException {
+        serialize(encoder, object, Argument.of(object.getClass()));
+    }
+
+    private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
+        final Serializer<Object> serializer = registry.findSerializer(type);
+        serializer.serialize(
+                encoder,
+                registry,
+                object,
+                type
+        );
     }
 
     @Override
