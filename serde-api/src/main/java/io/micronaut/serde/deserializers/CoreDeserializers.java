@@ -28,19 +28,20 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
 @Factory
 public class CoreDeserializers {
 
     @Singleton
-    protected Deserializer<String> stringDeserializer() {
+    protected NullableDeserializer<String> stringDeserializer() {
         return (decoder, decoderContext, type) -> decoder.decodeString();
     }
 
     @Singleton
     @Order(-100) // prioritize over hashset
-    protected <E> Deserializer<ArrayList<E>> arrayListDeserializer() {
+    protected <E> NullableDeserializer<ArrayList<E>> arrayListDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
@@ -65,7 +66,7 @@ public class CoreDeserializers {
     }
 
     @Singleton
-    protected <E> Deserializer<HashSet<E>> hashSetDeserializer() {
+    protected <E> NullableDeserializer<HashSet<E>> hashSetDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
@@ -90,7 +91,7 @@ public class CoreDeserializers {
     }
 
     @Singleton
-    protected <V> Deserializer<LinkedHashMap<String, V>> linkedHashMapDeserializer() {
+    protected <V> NullableDeserializer<LinkedHashMap<String, V>> linkedHashMapDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics) && generics.length != 2) {

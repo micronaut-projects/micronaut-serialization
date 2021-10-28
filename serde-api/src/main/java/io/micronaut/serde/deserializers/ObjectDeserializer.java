@@ -28,21 +28,18 @@ import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.beans.DeserIntrospection;
+import io.micronaut.serde.bea   ns.DeserIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
 @Singleton
 @Primary
-public class ObjectDeserializer implements Deserializer<Object> {
+public class ObjectDeserializer implements NullableDeserializer<Object> {
+
     @Override
-    public Object deserialize(Decoder decoder,
-                              DecoderContext decoderContext,
-                              Argument<? super Object> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
+    public Object deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+            throws IOException {
 
         final Class<? super Object> objectType = type.getType();
         final DeserIntrospection<? super Object> introspection;
