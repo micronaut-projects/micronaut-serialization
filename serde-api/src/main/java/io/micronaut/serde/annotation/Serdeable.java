@@ -37,6 +37,7 @@ import io.micronaut.serde.Serializer;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Introspected
+@SerdeConfig
 @Serdeable.Serializable
 @Serdeable.Deserializable
 public @interface Serdeable {

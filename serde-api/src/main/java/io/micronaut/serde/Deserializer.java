@@ -16,12 +16,14 @@
 package io.micronaut.serde;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.beans.DeserIntrospection;
+import io.micronaut.serde.beans.DeserBean;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -95,6 +97,14 @@ public interface Deserializer<T> {
          * @return The introspection, never {@code null}
          * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
          */
-        @NonNull <T> DeserIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type);
+        @NonNull <T> DeserBean<T> getDeserializableBean(@NonNull Argument<T> type);
+
+        /**
+         * Locates desrializable subtypes for the given super type.
+         * @param superType The super type
+         * @param <T> The generic super type
+         * @return The subtypes, never null
+         */
+        <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType);
     }
 }

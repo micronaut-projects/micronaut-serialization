@@ -24,21 +24,23 @@ import java.util.stream.Collectors;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanProperty;
+import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 
 @Internal
-public final class SerIntrospection<T> {
+public final class SerBean<T> {
     @NonNull
     public final BeanIntrospection<T> introspection;
     public final Map<String, SerProperty<T, Object>> writeProperties;
     public final boolean unwrapped;
 
-    public SerIntrospection(
+    public SerBean(
             Argument<T> definition,
             @NonNull BeanIntrospection<T> introspection,
             Serializer.EncoderContext encoderContext)
@@ -49,11 +51,25 @@ public final class SerIntrospection<T> {
         final Collection<BeanProperty<T, Object>> properties =
                 introspection.getBeanProperties().stream()
                         .filter(property -> !property.isWriteOnly() &&
-                                !property.booleanValue(SerdeConfig.class, "ignored").orElse(false) &&
-                                !property.booleanValue(SerdeConfig.class, "readOnly").orElse(false))
+                                !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
+                                !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
                         .collect(Collectors.toList());
         if (!properties.isEmpty()) {
             writeProperties = new LinkedHashMap<>(properties.size());
+            introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent((typeName) -> {
+                introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).ifPresent((typeProperty) -> {
+                    try {
+                        writeProperties.put(typeProperty, new SerProperty(
+                                Argument.of(String.class, typeProperty),
+                                null,
+                                encoderContext.findSerializer(Argument.STRING),
+                                typeName
+                        ));
+                    } catch (SerdeException e) {
+                        throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
+                    }
+                });
+            });
             for (BeanProperty<T, Object> property : properties) {
                 final Argument<Object> argument = property.asArgument();
                 String n =
@@ -63,7 +79,7 @@ public final class SerIntrospection<T> {
                             .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX)
                             .orElse("");
                 }
-                writeProperties.put(n, new SerProperty<>(argument, property, encoderContext.findSerializer(argument)));
+                writeProperties.put(n, new SerProperty<>(argument, property, encoderContext.findSerializer(argument), null));
             }
         } else {
             writeProperties = Collections.emptyMap();
@@ -73,23 +89,34 @@ public final class SerIntrospection<T> {
     @Internal
     public static final class SerProperty<B, P> {
         public final Argument<P> argument;
-        public final BeanProperty<B, Object> reader;
         public final Serializer<P> serializer;
         public final SerdeConfig.Include include;
         public final boolean unwrapped;
+        private final @Nullable P injected;
+        private final BeanProperty<B, Object> reader;
 
-        public SerProperty(Argument<P> argument, BeanProperty<B, Object> reader, Serializer<P> serializer) {
+        public SerProperty(
+                Argument<P> argument,
+                @Nullable BeanProperty<B, Object> reader,
+                Serializer<P> serializer,
+                @Nullable P injected) {
             this.argument = argument;
             this.reader = reader;
             this.serializer = serializer;
-            this.include = reader.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
+            final AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
+            this.include = annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
                     .orElse(SerdeConfig.Include.ALWAYS);
-            this.unwrapped = reader.hasAnnotation(SerdeConfig.Unwrapped.NAME);
+            this.unwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.NAME);
+            this.injected = injected;
         }
 
         @SuppressWarnings("unchecked")
         public P get(B bean) {
-            return (P) reader.get(bean);
+            if (injected != null) {
+                return injected;
+            } else {
+                return (P) reader.get(bean);
+            }
         }
     }
 }
