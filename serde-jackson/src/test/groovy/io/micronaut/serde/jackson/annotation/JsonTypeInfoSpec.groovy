@@ -54,15 +54,22 @@ class Cat extends Animal {
         dogClass.isInstance(dogBean)
         dogBean.name == "Fred"
         dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
 
         when:"the buffer is used"
         dogBean = jsonMapper.readValue('{"barkVolume":1.1,"name":"Fred","type":"dog"}', argumentOf(context, 'subtypes.Animal'))
+        catBean = jsonMapper.readValue('{"likesCream":true,"lives":9,"name":"Joe","type":"cat"}', argumentOf(context, 'subtypes.Animal'))
 
         then:
         dogClass.isInstance(dogBean)
         dogBean.name == "Fred"
         dogBean.barkVolume == 1.1d
-
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+        
         cleanup:
         context.close()
     }
@@ -127,14 +134,22 @@ class Cat extends Animal {
         dogClass.isInstance(dogBean)
         dogBean.name == "Fred"
         dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
 
         when:"the buffer is used"
         dogBean = jsonMapper.readValue('{"barkVolume":1.1,"name":"Fred","type":"dog"}', argumentOf(context, 'subtypes.Animal'))
+        catBean = jsonMapper.readValue('{"likesCream":true,"lives":9,"name":"Joe","type":"cat"}', argumentOf(context, 'subtypes.Animal'))
 
         then:
+        catClass.isInstance(catBean)
         dogClass.isInstance(dogBean)
         dogBean.name == "Fred"
         dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
 
         cleanup:
         context.close()
