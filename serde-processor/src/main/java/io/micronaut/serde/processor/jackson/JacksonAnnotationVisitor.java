@@ -15,14 +15,10 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Inherited;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JacksonAnnotation;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonRootName;
@@ -65,11 +61,17 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
                 });
             }
 
-            if (element.hasDeclaredAnnotation(JsonTypeName.class)) {
+            final Optional<ClassElement> superType = findTypeInfo(element);
+            if (superType.isPresent()) {
+                final ClassElement typeInfo = superType.get();
+                final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
                 element.annotate(SerdeConfig.class, builder -> {
-                    final String typeName = element.stringValue(JsonTypeName.class).orElse(element.getSimpleName());
-                    // TODO: Support interfaces
-                    String typeProperty = resolveTypeProperty(element.getSuperType()).orElse("@type");
+                    final String typeName = element.stringValue(JsonTypeName.class).orElseGet(() ->
+                          discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS ? element.getName() : element.getSimpleName()
+                    );
+                    String typeProperty = resolveTypeProperty(superType).orElseGet(() ->
+                       discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS ? "@class" : "@type"
+                    );
                     builder.member(SerdeConfig.TYPE_NAME, typeName);
                     builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
                 });
@@ -120,6 +122,27 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
         }
     }
 
+    private SerdeConfig.Subtyped.DiscriminatorValueKind getDiscriminatorValueKind(ClassElement typeInfo) {
+        return typeInfo.enumValue(
+                SerdeConfig.Subtyped.class,
+                SerdeConfig.Subtyped.DISCRIMINATOR_VALUE,
+                SerdeConfig.Subtyped.DiscriminatorValueKind.class)
+                .orElse(SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS);
+    }
+
+    private Optional<ClassElement> findTypeInfo(ClassElement element) {
+        // TODO: support interfaces
+        final ClassElement superElement = element.getSuperType().orElse(null);
+        if (superElement == null) {
+            return Optional.empty();
+        }
+        if (superElement.hasDeclaredAnnotation(JsonTypeInfo.class)) {
+            return Optional.of(superElement);
+        } else {
+            return findTypeInfo(superElement);
+        }
+    }
+
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<String> resolveTypeProperty(Optional<ClassElement> superType) {
         return superType.flatMap(st -> {
@@ -146,7 +169,8 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
                         JsonTypeName.class,
                         JsonTypeId.class,
                         JsonAutoDetect.class)
-                .anyMatch(element::hasDeclaredAnnotation);
+                .anyMatch(element::hasDeclaredAnnotation) ||
+                (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
     }
 
     @Override

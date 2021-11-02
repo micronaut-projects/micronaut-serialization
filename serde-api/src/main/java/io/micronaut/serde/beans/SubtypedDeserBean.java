@@ -32,7 +32,7 @@ public class SubtypedDeserBean<T> extends DeserBean<T> {
     @NonNull
     public final SerdeConfig.Subtyped.DiscriminatorType discriminatorType;
     @NonNull
-    public final SerdeConfig.Subtyped.DiscriminatorValue discriminatorValue;
+    public final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValue;
     @NonNull
     public final String discriminatorName;
 
@@ -48,19 +48,19 @@ public class SubtypedDeserBean<T> extends DeserBean<T> {
         this.discriminatorValue = introspection.enumValue(
                 SerdeConfig.Subtyped.class,
                 SerdeConfig.Subtyped.DISCRIMINATOR_VALUE,
-                SerdeConfig.Subtyped.DiscriminatorValue.class
-        ).orElse(SerdeConfig.Subtyped.DiscriminatorValue.CLASS);
+                SerdeConfig.Subtyped.DiscriminatorValueKind.class
+        ).orElse(SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS);
         this.discriminatorName = introspection.stringValue(
                 SerdeConfig.Subtyped.class,
                 SerdeConfig.Subtyped.DISCRIMINATOR_PROP
-        ).orElse(discriminatorValue == SerdeConfig.Subtyped.DiscriminatorValue.CLASS ? "@class" : "@type");
+        ).orElse(discriminatorValue == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS ? "@class" : "@type");
 
         final Class<T> superType = introspection.getBeanType();
         final Collection<BeanIntrospection<? extends T>> subtypeIntrospections = decoderContext.getDeserializableSubtypes(
                 superType);
         this.subtypes = new HashMap<>(subtypeIntrospections.size());
         for (BeanIntrospection<? extends T> subtypeIntrospection : subtypeIntrospections) {
-            if (discriminatorValue == SerdeConfig.Subtyped.DiscriminatorValue.CLASS) {
+            if (discriminatorValue == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS) {
                 final DeserBean<? extends T> deserBean = decoderContext.getDeserializableBean(
                         Argument.of(subtypeIntrospection.getBeanType())
                 );

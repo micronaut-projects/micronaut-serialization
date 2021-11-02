@@ -102,7 +102,7 @@ public @interface SerdeConfig {
             PROPERTY, WRAPPER_OBJECT
         }
 
-        enum DiscriminatorValue {
+        enum DiscriminatorValueKind {
             CLASS, NAME
         }
     }
