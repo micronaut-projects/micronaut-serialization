@@ -59,7 +59,7 @@ public interface Serializer<T> {
      * Used for {@code JsonInclude.Include#NON_ABSENT} checking.
      */
     default boolean isAbsent(T value) {
-        return false;
+        return value == null;
     }
 
     /**
