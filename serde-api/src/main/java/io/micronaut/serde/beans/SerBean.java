@@ -109,7 +109,8 @@ public final class SerBean<T> {
             this.reader = reader;
             this.serializer = serializer;
             final AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
-            this.include = annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
+            this.include = annotationMetadata
+                    .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
                     .orElse(SerdeConfig.Include.ALWAYS);
             this.unwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.NAME);
             this.injected = injected;
