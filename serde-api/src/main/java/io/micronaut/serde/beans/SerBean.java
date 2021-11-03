@@ -39,6 +39,8 @@ public final class SerBean<T> {
     public final BeanIntrospection<T> introspection;
     public final Map<String, SerProperty<T, Object>> writeProperties;
     public final boolean unwrapped;
+    @Nullable
+    public final String wrapperProperty;
 
     public SerBean(
             Argument<T> definition,
@@ -73,7 +75,7 @@ public final class SerBean<T> {
             for (BeanProperty<T, Object> property : properties) {
                 final Argument<Object> argument = property.asArgument();
                 String n =
-                        property.stringValue(SerdeConfig.class, "property").orElse(argument.getName());
+                        property.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(argument.getName());
                 if (unwrapped) {
                     n = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX)
                             .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX)
@@ -81,9 +83,12 @@ public final class SerBean<T> {
                 }
                 writeProperties.put(n, new SerProperty<>(argument, property, encoderContext.findSerializer(argument), null));
             }
+
         } else {
             writeProperties = Collections.emptyMap();
         }
+
+        wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
     }
 
     @Internal

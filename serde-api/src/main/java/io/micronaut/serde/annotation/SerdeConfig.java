@@ -71,6 +71,11 @@ public @interface SerdeConfig {
     String TYPE_PROPERTY = "typeProperty";
 
     /**
+     * A property that should be used to wrap this value when serializing.
+     */
+    String WRAPPER_PROPERTY = "wrapperProperty";
+
+    /**
      * Internal metadata type for wrapped settings
      */
     @Internal

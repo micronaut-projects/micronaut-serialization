@@ -72,8 +72,14 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
                     String typeProperty = resolveTypeProperty(superType).orElseGet(() ->
                        discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS ? "@class" : "@type"
                     );
-                    builder.member(SerdeConfig.TYPE_NAME, typeName);
-                    builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+                    final JsonTypeInfo.As include = resolveInclude(superType).orElse(null);
+                    if (include == JsonTypeInfo.As.WRAPPER_OBJECT) {
+                        builder.member(SerdeConfig.TYPE_NAME, typeName);
+                        builder.member(SerdeConfig.WRAPPER_PROPERTY, typeName);
+                    } else {
+                        builder.member(SerdeConfig.TYPE_NAME, typeName);
+                        builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+                    }
                 });
             }
 
@@ -155,6 +161,19 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
             }
         });
     }
+
+    private Optional<JsonTypeInfo.As> resolveInclude(Optional<ClassElement> superType) {
+        return superType.flatMap(st -> {
+            final JsonTypeInfo.As asValue = st.enumValue(JsonTypeInfo.class, "include", JsonTypeInfo.As.class)
+                    .orElse(null);
+            if (asValue != null) {
+                return Optional.of(asValue);
+            } else {
+                return resolveInclude(st.getSuperType());
+            }
+        });
+    }
+
 
     @Override
     public int getOrder() {

@@ -55,7 +55,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object> {
                 deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
         boolean hasProperties = readProperties != null;
 
-        final Decoder objectDecoder = decoder.decodeObject();
+        Decoder objectDecoder = decoder.decodeObject();
         TokenBuffer tokenBuffer = null;
         Object obj;
 
@@ -98,7 +98,29 @@ public class ObjectDeserializer implements NullableDeserializer<Object> {
                 }
 
             } else {
-                throw new UnsupportedOperationException("Unsupported discriminator strategy " + discriminatorType);
+                while (true) {
+                    final String key = objectDecoder.decodeKey();
+                    if (key == null) {
+                        break;
+                    }
+
+                    final DeserBean<?> subtypeBean = subtypes.get(key);
+                    if (subtypeBean != null) {
+                        if (!objectDecoder.decodeNull()) {
+                            objectDecoder = objectDecoder.decodeObject();
+                            deserBean = (DeserBean<? super Object>) subtypeBean;
+                            //noinspection unchecked
+                            objectType = (Class<? super Object>) subtypeBean.introspection.getBeanType();
+                            readProperties =
+                                    deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
+                            hasProperties = readProperties != null;
+                        }
+
+                        break;
+                    } else {
+                        objectDecoder.skipValue();
+                    }
+                }
             }
 
         }

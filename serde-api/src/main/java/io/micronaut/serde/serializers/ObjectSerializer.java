@@ -56,7 +56,13 @@ public final class ObjectSerializer implements Serializer<Object> {
         try {
             @SuppressWarnings("unchecked") final SerBean<Object> introspection = context
                     .getSerializableIntrospection((Argument<Object>) type);
-            final Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
+            Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
+
+            if (introspection.wrapperProperty != null) {
+                childEncoder.encodeKey(introspection.wrapperProperty);
+                childEncoder = childEncoder.encodeObject();
+            }
+
             final Map<String, SerBean.SerProperty<Object, Object>> writeProperties =
                     introspection.writeProperties;
             for (String propertyName : writeProperties.keySet()) {
