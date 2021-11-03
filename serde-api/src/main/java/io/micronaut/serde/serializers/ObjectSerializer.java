@@ -20,19 +20,18 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.beans.SerBean;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
  * standard types
- * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}.
+ * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link java.util.List}.
  * <p>
  * This class is used in multiple scenarios:
  * <ul>
@@ -45,6 +44,11 @@ import java.util.Map;
 @Singleton
 @Primary
 public final class ObjectSerializer implements Serializer<Object> {
+    private final SerdeIntrospections introspections;
+
+    public ObjectSerializer(SerdeIntrospections introspections) {
+        this.introspections = introspections;
+    }
 
     @Override
     public void serialize(
@@ -54,8 +58,7 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            @SuppressWarnings("unchecked") final SerBean<Object> introspection = context
-                    .getSerializableIntrospection((Argument<Object>) type);
+            @SuppressWarnings("unchecked") final SerBean<Object> introspection = getSerializableIntrospection(type, context);
             Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
 
             if (introspection.wrapperProperty != null) {
@@ -110,5 +113,18 @@ public final class ObjectSerializer implements Serializer<Object> {
             throw new SerdeException("Error serializing value at path: " + encoder.toString() + ". No serializer found for type: " + type, e);
         }
 
+    }
+
+    @SuppressWarnings("unchecked")
+    private SerBean<Object> getSerializableIntrospection(Argument<?> type, EncoderContext encoderContext) {
+        // TODO: cache these, the cache key should include the Unwrapped behaviour
+        try {
+            return new SerBean<>((Argument<Object>) type,
+                                 introspections.getSerializableIntrospection((Argument<Object>) type),
+                                 encoderContext
+            );
+        } catch (SerdeException e) {
+            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
+        }
     }
 }

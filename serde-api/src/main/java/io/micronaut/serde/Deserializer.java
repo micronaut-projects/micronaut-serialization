@@ -23,7 +23,6 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.beans.DeserBean;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -40,6 +39,7 @@ public interface Deserializer<T> {
      *
      * @param decoder The decoder, never {@code null}
      * @param decoderContext The decoder context, never {@code null}
+     * @param type The generic type to be deserialized
      * @return The deserialized object or {@code null} only if {@link #allowNull()} returns {@code true}
      * @throws IOException If an error occurs during deserialization of the object
      */
@@ -89,15 +89,6 @@ public interface Deserializer<T> {
                 throws SerdeException {
             return findDeserializer(Argument.of(type));
         }
-
-        /**
-         * Gets an introspection for the given type for serialization.
-         * @param type The type
-         * @param <T> The generic type
-         * @return The introspection, never {@code null}
-         * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
-         */
-        @NonNull <T> DeserBean<T> getDeserializableBean(@NonNull Argument<T> type);
 
         /**
          * Locates desrializable subtypes for the given super type.

@@ -16,18 +16,19 @@
 package io.micronaut.serde.processor.jackson;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.bind.annotation.Bindable;
-import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 
+/**
+ * Maps the {@link com.fasterxml.jackson.annotation.JsonProperty} annotation to {@link io.micronaut.serde.annotation.SerdeConfig}.
+ */
 public class JsonPropertyMapper implements TypedAnnotationMapper<JsonProperty> {
     @Override
     public Class<JsonProperty> annotationType() {
@@ -54,6 +55,8 @@ public class JsonPropertyMapper implements TypedAnnotationMapper<JsonProperty> {
                 case WRITE_ONLY:
                     builder.member("writeOnly", true);
                 break;
+                default:
+                    // no-op
             }
         }
         values.add(builder.build());

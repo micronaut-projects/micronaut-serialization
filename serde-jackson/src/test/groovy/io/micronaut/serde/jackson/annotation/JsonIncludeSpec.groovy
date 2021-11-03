@@ -1,9 +1,11 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.serde.jackson.JsonCompileSpec
+import spock.lang.Requires
 import spock.lang.Unroll
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.*
 
+@Requires({ jvm.isJava17Compatible() })
 class JsonIncludeSpec extends JsonCompileSpec {
 
     @Unroll

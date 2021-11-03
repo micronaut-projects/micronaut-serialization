@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -27,12 +28,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Decoder} interface that
+ * uss the {@link io.micronaut.json.tree.JsonNode} abstraction.
+ */
+@Internal
 public abstract class JsonNodeDecoder implements Decoder {
+    private JsonNodeDecoder() {
+    }
+
     public static JsonNodeDecoder create(JsonNode node) {
         return new Buffered(node);
     }
-
-    private JsonNodeDecoder() {}
 
     protected abstract JsonNode peekValue();
 

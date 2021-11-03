@@ -37,7 +37,6 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
 import io.micronaut.jackson.core.parser.JacksonCoreProcessor;
 import io.micronaut.jackson.core.tree.JsonNodeTreeCodec;
@@ -49,12 +48,14 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 
+/**
+ * Implementation of the {@link io.micronaut.json.JsonMapper} interface for Jackson.
+ */
 @Internal
 @Singleton
 @Primary

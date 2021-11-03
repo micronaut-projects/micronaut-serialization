@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.beans;
+package io.micronaut.serde.deserializers;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,8 +35,13 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 
+/**
+ * Holder for data about a deserializable bean.
+ * @param <T> The generic type
+ */
 @Internal
-public class DeserBean<T> {
+class DeserBean<T> {
+    // CHECKSTYLE:OFF
     @NonNull
     public final BeanIntrospection<T> introspection;
     @Nullable
@@ -48,10 +53,12 @@ public class DeserBean<T> {
     @Nullable
     public final DerProperty<T, Object>[] unwrappedProperties;
     public final int creatorSize;
+    // CHECKSTYLE:ON
 
     public DeserBean(
             BeanIntrospection<T> introspection,
-            Deserializer.DecoderContext decoderContext)
+            Deserializer.DecoderContext decoderContext,
+            DeserBeanRegistry deserBeanRegistry)
             throws SerdeException {
         this.introspection = introspection;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
@@ -72,7 +79,10 @@ public class DeserBean<T> {
                     creatorUnwrapped = new ArrayList<>();
                 }
 
-                final DeserBean<Object> unwrapped = decoderContext.getDeserializableBean(constructorArgument);
+                final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
+                        constructorArgument,
+                        decoderContext
+                );
                 creatorUnwrapped.add(new DerProperty(
                         introspection.getBeanType(),
                         i,
@@ -142,7 +152,10 @@ public class DeserBean<T> {
                     }
                     final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
 
-                    final DeserBean<Object> unwrapped = decoderContext.getDeserializableBean(t);
+                    final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
+                            t,
+                            decoderContext
+                    );
                     unwrappedProperties.add(new DerProperty(
                             beanProperty.getDeclaringType(),
                             i,
@@ -206,7 +219,13 @@ public class DeserBean<T> {
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
     }
 
+    /**
+     * Models a deserialization property.
+     * @param <B> The bean type
+     * @param <P> The property type
+     */
     @Internal
+    // CHECKSTYLE:OFF
     public static final class DerProperty<B, P> {
         public final Class<B> declaringType;
         public final int index;

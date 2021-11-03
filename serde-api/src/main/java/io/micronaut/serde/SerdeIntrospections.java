@@ -25,6 +25,9 @@ import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.annotation.Serdeable;
 
+/**
+ * Interface that abstracts the lookup for introspections usable for serialization and/or deserialization.
+ */
 public interface SerdeIntrospections {
     /**
      * Gets an introspection for the given type for serialization.

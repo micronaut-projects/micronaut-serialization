@@ -37,6 +37,9 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.annotation.Serdeable;
 
+/**
+ * Handles Jackson specific behaviour when processing serdes.
+ */
 public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
     @Override
@@ -173,7 +176,6 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
             }
         });
     }
-
 
     @Override
     public int getOrder() {

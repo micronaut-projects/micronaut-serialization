@@ -21,6 +21,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Core interface for encoding a serialization format such as JSON.
+ *
+ * @since 1.0.0
+ */
 public interface Encoder {
     Encoder encodeArray() throws IOException;
 

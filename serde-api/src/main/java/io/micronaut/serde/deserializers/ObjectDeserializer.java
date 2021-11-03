@@ -23,22 +23,33 @@ import java.util.Map;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.annotation.SerdeConfig;
-import io.micronaut.serde.beans.DeserBean;
-import io.micronaut.serde.beans.SubtypedDeserBean;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
+/**
+ * Implementation for deserialization of objects that uses introspection metadata.
+ *
+ * @author graemerocher
+ * @since 1.0.0
+ */
 @Singleton
 @Primary
-public class ObjectDeserializer implements NullableDeserializer<Object> {
+public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBeanRegistry {
+    private final SerdeIntrospections introspections;
+
+    public ObjectDeserializer(SerdeIntrospections introspections) {
+        this.introspections = introspections;
+    }
 
     @Override
     public Object deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
@@ -47,7 +58,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object> {
         Class<? super Object> objectType = type.getType();
         DeserBean<? super Object> deserBean;
         try {
-            deserBean = decoderContext.getDeserializableBean(type);
+            deserBean = getDeserializableBean(type, decoderContext);
         } catch (IntrospectionException e) {
             throw new SerdeException("Unable to deserialize object of type: " + type, e);
         }
@@ -450,6 +461,21 @@ public class ObjectDeserializer implements NullableDeserializer<Object> {
             return object;
         }
         return null;
+    }
+
+    @Override
+    public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) {
+        // TODO: cache these
+        try {
+            final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
+            if (deserializableIntrospection.hasAnnotation(SerdeConfig.Subtyped.class)) {
+                return new SubtypedDeserBean<>(deserializableIntrospection, decoderContext, this);
+            } else {
+                return new DeserBean<>(deserializableIntrospection, decoderContext, this);
+            }
+        } catch (SerdeException e) {
+            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
+        }
     }
 
     private static final class TokenBuffer implements Iterable<TokenBuffer> {

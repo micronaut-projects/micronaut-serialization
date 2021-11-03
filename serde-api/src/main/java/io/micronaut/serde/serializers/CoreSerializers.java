@@ -411,6 +411,7 @@ public class CoreSerializers {
     /**
      * A serializer for all instances of {@link java.lang.Iterable}.
      *
+     * @param <T> The element type
      * @return An iterable serializer
      */
     @Singleton protected <T> Serializer<Iterable<T>> iterableSerializer() {
@@ -455,6 +456,7 @@ public class CoreSerializers {
     /**
      * A serializer for all instances of {@link java.util.Optional}.
      *
+     * @param <T> The optional type
      * @return An Optional serializer
      */
     @Singleton protected <T> Serializer<Optional<T>> optionalSerializer() {
@@ -498,6 +500,8 @@ public class CoreSerializers {
     /**
      * A serializer for maps.
      *
+     * @param <K>  The key type
+     * @param <V>  The value type
      * @return A bit decimal serializer
      */
     @Singleton protected <K extends CharSequence, V> Serializer<Map<K, V>> mapSerializer() {
