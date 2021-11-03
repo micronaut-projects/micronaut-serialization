@@ -4,6 +4,9 @@ package io.micronaut.serde.jackson.object
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Unroll
 
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
+
 class ObjectSerializerCompileSpec extends JsonCompileSpec {
 
     @Unroll
@@ -35,27 +38,34 @@ class Test {
         context.close()
 
         where:
-        type       | data                             | result
-        BigDecimal | [value: 10.1]                    | '{"value":10.1}'
-        BigInteger | [value: BigInteger.valueOf(10l)] | '{"value":10}'
-        String     | [value: "Test"]                  | '{"value":"Test"}'
-        boolean    | [value: true]                    | '{"value":true}'
-        byte       | [value: 10]                      | '{"value":10}'
-        short      | [value: 10]                      | '{"value":10}'
-        int        | [value: 10]                      | '{"value":10}'
-        long       | [value: 10]                      | '{"value":10}'
-        double     | [value: 10.1d]                   | '{"value":10.1}'
-        float      | [value: 10.1f]                   | '{"value":10.1}'
-        char       | [value: 'a' as char]             | '{"value":97}'
+        type       | data                                  | result
+        BigDecimal | [value: 10.1]                         | '{"value":10.1}'
+        BigInteger | [value: BigInteger.valueOf(10l)]      | '{"value":10}'
+        String     | [value: "Test"]                       | '{"value":"Test"}'
+        boolean    | [value: true]                         | '{"value":true}'
+        byte       | [value: 10]                           | '{"value":10}'
+        short      | [value: 10]                           | '{"value":10}'
+        int        | [value: 10]                           | '{"value":10}'
+        long       | [value: 10]                           | '{"value":10}'
+        double     | [value: 10.1d]                        | '{"value":10.1}'
+        float      | [value: 10.1f]                        | '{"value":10.1}'
+        char       | [value: 'a' as char]                  | '{"value":97}'
         //wrappers
-        Boolean    | [value: true]                    | '{"value":true}'
-        Byte       | [value: 10]                      | '{"value":10}'
-        Short      | [value: 10]                      | '{"value":10}'
-        Integer    | [value: 10]                      | '{"value":10}'
-        Long       | [value: 10]                      | '{"value":10}'
-        Double     | [value: 10.1d]                   | '{"value":10.1}'
-        Float      | [value: 10.1f]                   | '{"value":10.1}'
-        Character  | [value: 'a' as char]             | '{"value":97}'
+        Boolean    | [value: true]                         | '{"value":true}'
+        Byte       | [value: 10]                           | '{"value":10}'
+        Short      | [value: 10]                           | '{"value":10}'
+        Integer    | [value: 10]                           | '{"value":10}'
+        Long       | [value: 10]                           | '{"value":10}'
+        Double     | [value: 10.1d]                        | '{"value":10.1}'
+        Float      | [value: 10.1f]                        | '{"value":10.1}'
+        Character  | [value: 'a' as char]                  | '{"value":97}'
+
+        // other common classes
+        URI        | [value: URI.create("http://foo.com")] | '{"value":"http://foo.com"}'
+        URL        | [value: new URL("http://foo.com")]    | '{"value":"http://foo.com"}'
+        Charset    | [value: StandardCharsets.UTF_8]       | '{"value":"UTF-8"}'
+        TimeZone   | [value: TimeZone.getTimeZone("GMT")]  | '{"value":"GMT"}'
+        Locale     | [value: Locale.CANADA_FRENCH]         | '{"value":"fr-CA"}'
     }
 
     @Unroll

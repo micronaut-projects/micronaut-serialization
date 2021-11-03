@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde;
+package io.micronaut.serde.util;
+
+import io.micronaut.serde.Serde;
 
 /**
- * Combined interface for a serializer and deserializer pair.
- * @param <T> The type
- * @since 1.0.0
+ * Specialization of {@link io.micronaut.serde.Serde} for types that allow a value of {@code null}.
+ * @param <T> Tge generic type
  */
-public interface Serde<T> extends Serializer<T>, Deserializer<T> {
+public interface NullableSerde<T> extends Serde<T>, NullableDeserializer<T> {
 }

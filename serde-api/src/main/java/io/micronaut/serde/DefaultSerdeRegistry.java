@@ -18,17 +18,24 @@ package io.micronaut.serde;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
@@ -40,6 +47,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 /**
@@ -87,7 +95,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     }
                 }
             } else {
-                throw new  ConfigurationException("Serializer without generic types defined: " + serializer.getBeanType());
+                throw new ConfigurationException("Serializer without generic types defined: " + serializer.getBeanType());
             }
         }
         for (BeanDefinition<Deserializer> deserializer : deserializers) {
@@ -110,13 +118,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
             }
         }
-        registerPrimitiveOptionalSerdes();
-        this.deserializerMap.put(new TypeEntry(Argument.STRING),
-                                 (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
-        this.deserializerMap.put(new TypeEntry(Argument.of(BigDecimal.class)),
-                                 (NullableDeserializer<BigDecimal>) (decoder, decoderContext, type) -> decoder.decodeBigDecimal());
-        this.deserializerMap.put(new TypeEntry(Argument.of(BigInteger.class)),
-                                 (NullableDeserializer<BigInteger>) (decoder, decoderContext, type) -> decoder.decodeBigInteger());
+
+        registerBuiltInSerdes();
+        registerPrimitiveSerdes();
+        this.objectSerializer = objectSerializer;
+        this.objectDeserializer = objectDeserializer;
+    }
+
+    private void registerPrimitiveSerdes() {
         this.deserializerMap.put(
                 new TypeEntry(Argument.BOOLEAN),
                 (decoder, decoderContext, type) -> decoder.decodeBoolean()
@@ -181,143 +190,28 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 new TypeEntry(Argument.of(Character.class)),
                 (NullableDeserializer<Character>) (decoder, decoderContext, type) -> decoder.decodeChar()
         );
-        this.objectSerializer = objectSerializer;
-        this.objectDeserializer = objectDeserializer;
     }
 
-    private void registerPrimitiveOptionalSerdes() {
-        final TypeEntry optionalIntKey = new TypeEntry(Argument.of(OptionalInt.class));
-        this.deserializerMap.put(optionalIntKey, new Deserializer<OptionalInt>() {
-            @Override
-            public OptionalInt deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalInt> type)
-                    throws IOException {
-                if (decoder.decodeNull()) {
-                    return OptionalInt.empty();
-                } else {
-                    return OptionalInt.of(
-                        decoder.decodeInt()
-                    );
-                }
-            }
-
-            @Override
-            public OptionalInt getDefaultValue() {
-                return OptionalInt.empty();
-            }
-        });
-        this.serializerMap.put(optionalIntKey, new Serializer<OptionalInt>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  OptionalInt value,
-                                  Argument<? extends OptionalInt> type) throws IOException {
-                 if (value.isPresent()) {
-                     encoder.encodeInt(value.getAsInt());
-                 } else {
-                     encoder.encodeNull();
-                 }
-            }
-
-            @Override
-            public boolean isEmpty(OptionalInt value) {
-                return value == null || !value.isPresent();
-            }
-
-            @Override
-            public boolean isAbsent(OptionalInt value) {
-                return value == null || !value.isPresent();
-            }
-        });
-
-        final TypeEntry optionalDoubleKey = new TypeEntry(Argument.of(OptionalDouble.class));
-        this.deserializerMap.put(optionalDoubleKey, new Deserializer<OptionalDouble>() {
-            @Override
-            public OptionalDouble deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalDouble> type)
-                    throws IOException {
-                if (decoder.decodeNull()) {
-                    return OptionalDouble.empty();
-                } else {
-                    return OptionalDouble.of(
-                            decoder.decodeDouble()
-                    );
-                }
-            }
-
-            @Override
-            public OptionalDouble getDefaultValue() {
-                return OptionalDouble.empty();
-            }
-        });
-        this.serializerMap.put(optionalDoubleKey, new Serializer<OptionalDouble>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  OptionalDouble value,
-                                  Argument<? extends OptionalDouble> type) throws IOException {
-                if (value.isPresent()) {
-                    encoder.encodeDouble(value.getAsDouble());
-                } else {
-                    encoder.encodeNull();
-                }
-            }
-
-            @Override
-            public boolean isEmpty(OptionalDouble value) {
-                return value == null || !value.isPresent();
-            }
-
-            @Override
-            public boolean isAbsent(OptionalDouble value) {
-                return value == null || !value.isPresent();
-            }
-        });
-
-        final TypeEntry optionalLongKey = new TypeEntry(Argument.of(OptionalLong.class));
-        this.deserializerMap.put(optionalLongKey, new Deserializer<OptionalLong>() {
-            @Override
-            public OptionalLong deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalLong> type)
-                    throws IOException {
-                if (decoder.decodeNull()) {
-                    return OptionalLong.empty();
-                } else {
-                    return OptionalLong.of(
-                            decoder.decodeLong()
-                    );
-                }
-            }
-
-            @Override
-            public OptionalLong getDefaultValue() {
-                return OptionalLong.empty();
-            }
-        });
-        this.serializerMap.put(optionalLongKey, new Serializer<OptionalLong>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  OptionalLong value,
-                                  Argument<? extends OptionalLong> type) throws IOException {
-                if (value.isPresent()) {
-                    encoder.encodeLong(value.getAsLong());
-                } else {
-                    encoder.encodeNull();
-                }
-            }
-
-            @Override
-            public boolean isEmpty(OptionalLong value) {
-                return value == null || !value.isPresent();
-            }
-
-            @Override
-            public boolean isAbsent(OptionalLong value) {
-                return value == null || !value.isPresent();
-            }
-        });
+    private void registerBuiltInSerdes() {
+        this.deserializerMap.put(new TypeEntry(Argument.STRING),
+                                 (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
+        Stream.of(
+                new OptionalIntSerde(),
+                new OptionalDoubleSerde(),
+                new OptionalLongSerde(),
+                new BigDecimalSerde(),
+                new BigIntegerSerde(),
+                new UUIDSerde(),
+                new URLSerde(),
+                new URISerde(),
+                new CharsetSerde(),
+                new TimeZoneSerde(),
+                new LocaleSerde()
+        ).forEach(SerdeRegistrar::register);
     }
 
     @Override
-    public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
+    public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeEntry key = new TypeEntry(type);
         final Deserializer<?> deserializer = deserializerMap.get(key);
@@ -367,8 +261,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                                     for (int j = 0; j < params.length; j++) {
                                         Argument<?> param = params[j];
                                         final Argument<?> candidateParam = candidateParams[j];
-                                        if (!((param.getType() == candidateParam.getType()) ||
-                                                      (candidateParam.isTypeVariable() && candidateParam.getType().isAssignableFrom(param.getType())))) {
+                                        if (!(
+                                                (param.getType() == candidateParam.getType()) ||
+                                                        (
+                                                                candidateParam.isTypeVariable() && candidateParam.getType()
+                                                                        .isAssignableFrom(param.getType())))) {
                                             i.remove();
                                         }
                                     }
@@ -421,6 +318,322 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public int hashCode() {
             return type.typeHashCode();
+        }
+    }
+
+    private abstract class SerdeRegistrar<T> implements Serde<T> {
+        abstract Argument<T> getType();
+
+        void register() {
+            final TypeEntry typeEntry = new TypeEntry(getType());
+            DefaultSerdeRegistry.this.deserializerMap
+                    .put(typeEntry, this);
+            DefaultSerdeRegistry.this.serializerMap
+                    .put(typeEntry, this);
+        }
+    }
+
+    private final class BigDecimalSerde
+            extends SerdeRegistrar<BigDecimal>
+            implements NullableSerde<BigDecimal> {
+
+        @Override
+        Argument<BigDecimal> getType() {
+            return Argument.of(BigDecimal.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, BigDecimal value, Argument<? extends BigDecimal> type)
+                throws IOException {
+            encoder.encodeBigDecimal(value);
+        }
+
+        @Override
+        public BigDecimal deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super BigDecimal> type)
+                throws IOException {
+            return decoder.decodeBigDecimal();
+        }
+    }
+
+    private final class URLSerde extends SerdeRegistrar<URL> implements NullableSerde<URL> {
+
+        @Override
+        Argument<URL> getType() {
+            return Argument.of(URL.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, URL value, Argument<? extends URL> type)
+                throws IOException {
+            encoder.encodeString(value.toString());
+        }
+
+        @Override
+        public URL deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super URL> type)
+                throws IOException {
+            return new URL(decoder.decodeString());
+        }
+    }
+
+    private final class URISerde extends SerdeRegistrar<URI> implements NullableSerde<URI> {
+
+        @Override
+        Argument<URI> getType() {
+            return Argument.of(URI.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, URI value, Argument<? extends URI> type)
+                throws IOException {
+            encoder.encodeString(value.toString());
+        }
+
+        @Override
+        public URI deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super URI> type)
+                throws IOException {
+            return URI.create(decoder.decodeString());
+        }
+    }
+
+    private final class CharsetSerde extends SerdeRegistrar<Charset> implements NullableSerde<Charset> {
+
+        @Override
+        Argument<Charset> getType() {
+            return Argument.of(Charset.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Charset value, Argument<? extends Charset> type)
+                throws IOException {
+            encoder.encodeString(value.name());
+        }
+
+        @Override
+        public Charset deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Charset> type)
+                throws IOException {
+            return Charset.forName(decoder.decodeString());
+        }
+    }
+
+    private final class TimeZoneSerde extends SerdeRegistrar<TimeZone> implements NullableSerde<TimeZone> {
+
+        @Override
+        Argument<TimeZone> getType() {
+            return Argument.of(TimeZone.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, TimeZone value, Argument<? extends TimeZone> type)
+                throws IOException {
+            encoder.encodeString(value.getID());
+        }
+
+        @Override
+        public TimeZone deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super TimeZone> type)
+                throws IOException {
+            return TimeZone.getTimeZone(decoder.decodeString());
+        }
+    }
+
+    private final class LocaleSerde extends SerdeRegistrar<Locale> implements NullableSerde<Locale> {
+
+        @Override
+        Argument<Locale> getType() {
+            return Argument.of(Locale.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Locale value, Argument<? extends Locale> type)
+                throws IOException {
+            encoder.encodeString(value.toLanguageTag());
+        }
+
+        @Override
+        public Locale deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Locale> type)
+                throws IOException {
+            return Locale.forLanguageTag(decoder.decodeString());
+        }
+    }
+
+    private final class UUIDSerde extends SerdeRegistrar<UUID> implements NullableSerde<UUID> {
+
+        @Override
+        Argument<UUID> getType() {
+            return Argument.of(UUID.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, UUID value, Argument<? extends UUID> type)
+                throws IOException {
+            encoder.encodeString(value.toString());
+        }
+
+        @Override
+        public UUID deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super UUID> type)
+                throws IOException {
+            return UUID.fromString(decoder.decodeString());
+        }
+    }
+
+    private final class BigIntegerSerde
+            extends SerdeRegistrar<BigInteger>
+            implements NullableSerde<BigInteger> {
+
+        @Override
+        Argument<BigInteger> getType() {
+            return Argument.of(BigInteger.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, BigInteger value, Argument<? extends BigInteger> type)
+                throws IOException {
+            encoder.encodeBigInteger(value);
+        }
+
+        @Override
+        public BigInteger deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super BigInteger> type)
+                throws IOException {
+            return decoder.decodeBigInteger();
+        }
+    }
+
+    private final class OptionalIntSerde extends SerdeRegistrar<OptionalInt> implements Serde<OptionalInt> {
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              OptionalInt value,
+                              Argument<? extends OptionalInt> type) throws IOException {
+            if (value.isPresent()) {
+                encoder.encodeInt(value.getAsInt());
+            } else {
+                encoder.encodeNull();
+            }
+        }
+
+        @Override
+        public OptionalInt deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalInt> type)
+                throws IOException {
+            if (decoder.decodeNull()) {
+                return OptionalInt.empty();
+            } else {
+                return OptionalInt.of(
+                        decoder.decodeInt()
+                );
+            }
+        }
+
+        @Override
+        public OptionalInt getDefaultValue() {
+            return OptionalInt.empty();
+        }
+
+        @Override
+        public boolean isEmpty(OptionalInt value) {
+            return value == null || !value.isPresent();
+        }
+
+        @Override
+        public boolean isAbsent(OptionalInt value) {
+            return value == null || !value.isPresent();
+        }
+
+        @Override
+        Argument<OptionalInt> getType() {
+            return Argument.of(OptionalInt.class);
+        }
+    }
+
+    private final class OptionalDoubleSerde extends SerdeRegistrar<OptionalDouble> implements Serde<OptionalDouble> {
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              OptionalDouble value,
+                              Argument<? extends OptionalDouble> type) throws IOException {
+            if (value.isPresent()) {
+                encoder.encodeDouble(value.getAsDouble());
+            } else {
+                encoder.encodeNull();
+            }
+        }
+
+        @Override
+        public OptionalDouble deserialize(Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super OptionalDouble> type)
+                throws IOException {
+            if (decoder.decodeNull()) {
+                return OptionalDouble.empty();
+            } else {
+                return OptionalDouble.of(
+                        decoder.decodeDouble()
+                );
+            }
+        }
+
+        @Override
+        public boolean isEmpty(OptionalDouble value) {
+            return value == null || !value.isPresent();
+        }
+
+        @Override
+        public boolean isAbsent(OptionalDouble value) {
+            return value == null || !value.isPresent();
+        }
+
+        @Override
+        public OptionalDouble getDefaultValue() {
+            return OptionalDouble.empty();
+        }
+
+        @Override
+        Argument<OptionalDouble> getType() {
+            return Argument.of(OptionalDouble.class);
+        }
+    }
+
+    private final class OptionalLongSerde extends SerdeRegistrar<OptionalLong> implements Serde<OptionalLong> {
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              OptionalLong value,
+                              Argument<? extends OptionalLong> type) throws IOException {
+            if (value.isPresent()) {
+                encoder.encodeLong(value.getAsLong());
+            } else {
+                encoder.encodeNull();
+            }
+        }
+
+        @Override
+        public OptionalLong deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalLong> type)
+                throws IOException {
+            if (decoder.decodeNull()) {
+                return OptionalLong.empty();
+            } else {
+                return OptionalLong.of(
+                        decoder.decodeLong()
+                );
+            }
+        }
+
+        @Override
+        public OptionalLong getDefaultValue() {
+            return OptionalLong.empty();
+        }
+
+        @Override
+        public boolean isEmpty(OptionalLong value) {
+            return value == null || !value.isPresent();
+        }
+
+        @Override
+        public boolean isAbsent(OptionalLong value) {
+            return value == null || !value.isPresent();
+        }
+
+        @Override
+        Argument<OptionalLong> getType() {
+            return Argument.of(OptionalLong.class);
         }
     }
 }

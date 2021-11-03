@@ -391,24 +391,6 @@ public class CoreSerializers {
     }
 
     /**
-     * A serializer for all instances of {@link java.math.BigInteger}.
-     *
-     * @return A big integer serializer
-     */
-    @Singleton protected Serializer<BigInteger> bigIntSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeBigInteger(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.math.BigDecimal}.
-     *
-     * @return A big decimal serializer
-     */
-    @Singleton protected Serializer<BigDecimal> bigDecimalSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeBigDecimal(value);
-    }
-
-    /**
      * A serializer for all instances of {@link java.lang.Iterable}.
      *
      * @param <T> The element type
