@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde;
+package io.micronaut.serde.util;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Encoder;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -35,7 +36,7 @@ public abstract class JsonNodeEncoder implements Encoder {
 
     /**
      * Creates a new instance.
-     * @return The {@link io.micronaut.serde.JsonNodeEncoder}
+     * @return The {@link JsonNodeEncoder}
      */
     @NonNull
     public static JsonNodeEncoder create() {

@@ -1,6 +1,7 @@
 package io.micronaut.serde
 
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.util.JsonNodeDecoder
 import spock.lang.Specification
 
 class JsonNodeDecoderSpec extends Specification {
