@@ -21,7 +21,6 @@ import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.beans.SerBean;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -40,6 +39,7 @@ public interface Serializer<T> {
      * @param encoder The encoder to use
      * @param context The encoder context, never {@code null}
      * @param value The value, can be {@code null}
+     * @param type Models the generic type of the value
      * @throws IOException If an error occurs during serialization
      */
     void serialize(
@@ -50,16 +50,20 @@ public interface Serializer<T> {
 
     /**
      * Used for {@code JsonInclude.Include#NON_EMPTY} checking.
+     * @param value The check to check
+     * @return Return {@code true} if the value is empty
      */
     default boolean isEmpty(@Nullable T value) {
-        return false;
+        return value == null;
     }
 
     /**
      * Used for {@code JsonInclude.Include#NON_ABSENT} checking.
+     * @param value The value to check
+     * @return Return {@code true} if the value is absent
      */
     default boolean isAbsent(T value) {
-        return false;
+        return value == null;
     }
 
     /**
@@ -87,14 +91,5 @@ public interface Serializer<T> {
                 throws SerdeException {
             return findSerializer(Argument.of(forType));
         }
-
-        /**
-         * Gets an introspection for the given type for serialization.
-         * @param type The type
-         * @param <T> The generic type
-         * @return The introspection, never {@code null}
-         * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
-         */
-        @NonNull <T> SerBean<T> getSerializableIntrospection(@NonNull Argument<T> type);
     }
 }

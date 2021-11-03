@@ -41,6 +41,9 @@ import jakarta.json.stream.JsonGenerator;
 import jakarta.json.stream.JsonParser;
 import org.reactivestreams.Processor;
 
+/**
+ * Implementation of the {@link io.micronaut.json.JsonMapper} interface for JSON-P.
+ */
 @Singleton
 @Replaces(JacksonDatabindMapper.class)
 public class JsonStreamMapper implements JsonMapper {

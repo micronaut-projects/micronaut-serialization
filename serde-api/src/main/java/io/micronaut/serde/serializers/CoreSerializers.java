@@ -18,6 +18,7 @@ package io.micronaut.serde.serializers;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -93,7 +94,20 @@ public class CoreSerializers {
      * @return A char sequence serializer
      */
     @Singleton protected Serializer<CharSequence> charSequenceSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeString(value.toString());
+        return new Serializer<CharSequence>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  CharSequence value,
+                                  Argument<? extends CharSequence> type) throws IOException {
+                encoder.encodeString(value.toString());
+            }
+
+            @Override
+            public boolean isEmpty(CharSequence value) {
+                return value == null || value.length() == 0;
+            }
+        };
     }
 
     /**
@@ -397,32 +411,52 @@ public class CoreSerializers {
     /**
      * A serializer for all instances of {@link java.lang.Iterable}.
      *
+     * @param <T> The element type
      * @return An iterable serializer
      */
     @Singleton protected <T> Serializer<Iterable<T>> iterableSerializer() {
-        return (encoder, context, value, type) -> {
-            final Encoder childEncoder = encoder.encodeArray();
-            final Argument[] generics = type.getTypeParameters();
-            if (ArrayUtils.isEmpty(generics)) {
-                throw new SerdeException("Serializing raw iterables is not supported for value: " + value);
+        return new Serializer<Iterable<T>>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  Iterable<T> value,
+                                  Argument<? extends Iterable<T>> type) throws IOException {
+                final Encoder childEncoder = encoder.encodeArray();
+                final Argument[] generics = type.getTypeParameters();
+                if (ArrayUtils.isEmpty(generics)) {
+                    throw new SerdeException("Serializing raw iterables is not supported for value: " + value);
+                }
+                final Argument<T> generic = (Argument<T>) generics[0];
+                final Serializer<T> componentSerializer = (Serializer<T>) context.findSerializer(generic);
+                for (T t : value) {
+                    componentSerializer.serialize(
+                            childEncoder,
+                            context,
+                            t,
+                            generic
+                    );
+                }
+                childEncoder.finishStructure();
             }
-            final Argument<T> generic = (Argument<T>) generics[0];
-            final Serializer<T> componentSerializer = (Serializer<T>) context.findSerializer(generic);
-            for (T t : value) {
-                componentSerializer.serialize(
-                        childEncoder,
-                        context,
-                        t,
-                        generic
-                );
+
+            @Override
+            public boolean isEmpty(Iterable<T> value) {
+                if (value == null) {
+                    return true;
+                }
+                if (value instanceof Collection) {
+                    return ((Collection<T>) value).isEmpty();
+                } else {
+                    return !value.iterator().hasNext();
+                }
             }
-            childEncoder.finishStructure();
         };
     }
 
     /**
      * A serializer for all instances of {@link java.util.Optional}.
      *
+     * @param <T> The optional type
      * @return An Optional serializer
      */
     @Singleton protected <T> Serializer<Optional<T>> optionalSerializer() {
@@ -466,6 +500,8 @@ public class CoreSerializers {
     /**
      * A serializer for maps.
      *
+     * @param <K>  The key type
+     * @param <V>  The value type
      * @return A bit decimal serializer
      */
     @Singleton protected <K extends CharSequence, V> Serializer<Map<K, V>> mapSerializer() {

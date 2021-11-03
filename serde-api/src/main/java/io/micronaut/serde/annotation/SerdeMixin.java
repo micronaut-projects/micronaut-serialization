@@ -34,6 +34,9 @@ public @interface SerdeMixin {
 
     Serdeable config() default @Serdeable;
 
+    /**
+     * Repeated wrapper for this annotation.
+     */
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.SOURCE)
     @interface Repeated {

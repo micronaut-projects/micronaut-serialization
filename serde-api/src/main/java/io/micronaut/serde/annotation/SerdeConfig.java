@@ -76,7 +76,7 @@ public @interface SerdeConfig {
     String WRAPPER_PROPERTY = "wrapperProperty";
 
     /**
-     * Internal metadata type for wrapped settings
+     * Internal metadata type for wrapped settings.
      */
     @Internal
     @interface Unwrapped {
@@ -85,9 +85,11 @@ public @interface SerdeConfig {
         String SUFFIX = "suffix";
     }
 
+    /**
+     * Meta annotations for subtyped mapping.
+     */
     @Internal
     @interface Subtyped {
-        String NAME = Subtyped.class.getName();
         /**
          * The discriminator to use.
          */

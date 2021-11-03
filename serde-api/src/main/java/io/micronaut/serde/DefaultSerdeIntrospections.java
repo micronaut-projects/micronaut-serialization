@@ -22,8 +22,14 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Singleton;
 
+/**
+ * Default implementation of the {@link io.micronaut.serde.SerdeIntrospections} interface
+ * which looks up instrospections from {@link io.micronaut.core.beans.BeanIntrospector#SHARED}.
+ *
+ * @author graemerocher
+ */
 @Singleton
-public class DefaultSerdeIntrospections implements SerdeIntrospections{
+public class DefaultSerdeIntrospections implements SerdeIntrospections {
     @Override
     public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
         final BeanIntrospection<T> introspection = BeanIntrospector.SHARED.getIntrospection(type.getType());

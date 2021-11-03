@@ -25,6 +25,9 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonParser;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Decoder} interface for JSON-P.
+ */
 public class JsonParserDecoder implements Decoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;

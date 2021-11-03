@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.beans;
+package io.micronaut.serde.serializers;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,15 +34,17 @@ import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 
 @Internal
-public final class SerBean<T> {
+final class SerBean<T> {
+    // CHECKSTYLE:OFF
     @NonNull
     public final BeanIntrospection<T> introspection;
     public final Map<String, SerProperty<T, Object>> writeProperties;
     public final boolean unwrapped;
     @Nullable
     public final String wrapperProperty;
+    // CHECKSTYLE:ON
 
-    public SerBean(
+    SerBean(
             Argument<T> definition,
             @NonNull BeanIntrospection<T> introspection,
             Serializer.EncoderContext encoderContext)
@@ -92,13 +94,15 @@ public final class SerBean<T> {
     }
 
     @Internal
-    public static final class SerProperty<B, P> {
+    static final class SerProperty<B, P> {
+        // CHECKSTYLE:OFF
         public final Argument<P> argument;
         public final Serializer<P> serializer;
         public final SerdeConfig.Include include;
         public final boolean unwrapped;
         private final @Nullable P injected;
         private final BeanProperty<B, Object> reader;
+        // CHECKSTYLE:ON
 
         public SerProperty(
                 Argument<P> argument,
@@ -109,7 +113,8 @@ public final class SerBean<T> {
             this.reader = reader;
             this.serializer = serializer;
             final AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
-            this.include = annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
+            this.include = annotationMetadata
+                    .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
                     .orElse(SerdeConfig.Include.ALWAYS);
             this.unwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.NAME);
             this.injected = injected;

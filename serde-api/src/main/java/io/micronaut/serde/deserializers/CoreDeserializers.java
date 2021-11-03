@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -31,16 +32,30 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
+/**
+ * Core deserializers.
+ */
 @Factory
 public class CoreDeserializers {
 
+    /**
+     * Deserializes string types.
+     * @return The string deserializer
+     */
     @Singleton
+    @NonNull
     protected NullableDeserializer<String> stringDeserializer() {
         return (decoder, decoderContext, type) -> decoder.decodeString();
     }
 
+    /**
+     * Deserializes array lists.
+     * @param <E> The element type
+     * @return the array list deserializer, never {@code null}
+     */
     @Singleton
     @Order(-100) // prioritize over hashset
+    @NonNull
     protected <E> NullableDeserializer<ArrayList<E>> arrayListDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument<?>[] generics = type.getTypeParameters();
@@ -65,6 +80,12 @@ public class CoreDeserializers {
         };
     }
 
+    /**
+     * Deserializes hash sets.
+     * @param <E> The element type
+     * @return The hash set deserializer, never {@link null}
+     */
+    @NonNull
     @Singleton
     protected <E> NullableDeserializer<HashSet<E>> hashSetDeserializer() {
         return (decoder, decoderContext, type) -> {
@@ -90,7 +111,13 @@ public class CoreDeserializers {
         };
     }
 
+    /**
+     * Deserializes hash maps.
+     * @param <V> The value type
+     * @return The hash map deserializer, never {@code null}
+     */
     @Singleton
+    @NonNull
     protected <V> NullableDeserializer<LinkedHashMap<String, V>> linkedHashMapDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument<?>[] generics = type.getTypeParameters();
@@ -116,7 +143,13 @@ public class CoreDeserializers {
         };
     }
 
+    /**
+     * Deserializes optional values.
+     * @param <V> The optional type
+     * @return The optional deserializer, never {@code null}
+     */
     @Singleton
+    @NonNull
     protected <V> Deserializer<Optional<V>> optionalDeserializer() {
         return new Deserializer<Optional<V>>() {
             @Override

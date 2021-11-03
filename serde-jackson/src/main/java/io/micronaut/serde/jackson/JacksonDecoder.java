@@ -34,10 +34,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Decoder} interface for Jackson.
+ */
 @Internal
-public class JacksonDecoder implements Decoder {
+public final class JacksonDecoder implements Decoder {
     @Internal
-    public final JsonParser parser; // todo: hide
+    private final JsonParser parser;
 
     @Nullable
     private final JacksonDecoder parent;
@@ -111,7 +114,7 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final void finishStructure() throws IOException {
+    public void finishStructure() throws IOException {
         checkChild();
         if (parent != null) {
             parent.child = null;
@@ -139,14 +142,14 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final boolean hasNextArrayValue() throws IOException {
+    public boolean hasNextArrayValue() throws IOException {
         checkChild();
         return parser.currentToken() != JsonToken.END_ARRAY;
     }
 
     @Nullable
     @Override
-    public final String decodeKey() throws IOException {
+    public String decodeKey() throws IOException {
         checkChild();
         JsonToken currentToken = parser.currentToken();
         if (currentToken == JsonToken.END_OBJECT) {
@@ -163,29 +166,31 @@ public class JacksonDecoder implements Decoder {
 
     @NonNull
     @Override
-    public final Decoder decodeArray() throws IOException {
+    public Decoder decodeArray() throws IOException {
         preDecodeValue();
         if (parser.currentToken() != JsonToken.START_ARRAY) {
             throw createDeserializationException("Unexpected token " + parser.currentToken() + ", expected array");
         }
         parser.nextToken();
-        return child = new JacksonDecoder(this);
+        child = new JacksonDecoder(this);
+        return child;
     }
 
     @NonNull
     @Override
-    public final Decoder decodeObject() throws IOException {
+    public Decoder decodeObject() throws IOException {
         preDecodeValue();
         if (parser.currentToken() != JsonToken.START_OBJECT) {
             throw ((Decoder) this).createDeserializationException("Unexpected token " + parser.currentToken() + ", expected object");
         }
         parser.nextToken();
-        return child = new JacksonDecoder(this);
+        child = new JacksonDecoder(this);
+        return child;
     }
 
     @NonNull
     @Override
-    public final String decodeString() throws IOException {
+    public String decodeString() throws IOException {
         preDecodeValue();
         switch (parser.currentToken()) {
             case VALUE_NUMBER_INT:
@@ -211,7 +216,7 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final boolean decodeBoolean() throws IOException {
+    public boolean decodeBoolean() throws IOException {
         preDecodeValue();
         switch (parser.currentToken()) {
             case VALUE_NUMBER_INT:
@@ -235,27 +240,27 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final byte decodeByte() throws IOException {
+    public byte decodeByte() throws IOException {
         return (byte) decodeInteger(Byte.MIN_VALUE, Byte.MAX_VALUE);
     }
 
     @Override
-    public final short decodeShort() throws IOException {
+    public short decodeShort() throws IOException {
         return (short) decodeInteger(Short.MIN_VALUE, Short.MAX_VALUE);
     }
 
     @Override
-    public final char decodeChar() throws IOException {
+    public char decodeChar() throws IOException {
         return (char) decodeInteger(Character.MIN_VALUE, Character.MAX_VALUE, true);
     }
 
     @Override
-    public final int decodeInt() throws IOException {
+    public int decodeInt() throws IOException {
         return (int) decodeInteger(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     @Override
-    public final long decodeLong() throws IOException {
+    public long decodeLong() throws IOException {
         return decodeInteger(Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
@@ -313,7 +318,7 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final float decodeFloat() throws IOException {
+    public float decodeFloat() throws IOException {
         return (float) decodeDouble();
     }
 
@@ -346,7 +351,7 @@ public class JacksonDecoder implements Decoder {
 
     @NonNull
     @Override
-    public final BigInteger decodeBigInteger() throws IOException {
+    public BigInteger decodeBigInteger() throws IOException {
         preDecodeValue();
         BigInteger value;
         switch (parser.currentToken()) {
@@ -386,7 +391,7 @@ public class JacksonDecoder implements Decoder {
 
     @NonNull
     @Override
-    public final BigDecimal decodeBigDecimal() throws IOException {
+    public BigDecimal decodeBigDecimal() throws IOException {
         preDecodeValue();
         BigDecimal value;
         switch (parser.currentToken()) {
@@ -425,7 +430,7 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final boolean decodeNull() throws IOException {
+    public boolean decodeNull() throws IOException {
         preDecodeValue();
         if (parser.currentToken() == JsonToken.VALUE_NULL) {
             parser.nextToken();
@@ -439,7 +444,7 @@ public class JacksonDecoder implements Decoder {
 
     @Nullable
     @Override
-    public final Object decodeArbitrary() throws IOException {
+    public Object decodeArbitrary() throws IOException {
         preDecodeValue();
         switch (parser.currentToken()) {
             case START_OBJECT:
@@ -509,7 +514,7 @@ public class JacksonDecoder implements Decoder {
     }
 
     @Override
-    public final void skipValue() throws IOException {
+    public void skipValue() throws IOException {
         preDecodeValue();
         parser.skipChildren();
         parser.nextToken();

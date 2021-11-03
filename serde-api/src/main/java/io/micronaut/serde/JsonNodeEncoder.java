@@ -25,15 +25,27 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Encoder} interface that encodes a
+ * in-memory {@link io.micronaut.json.tree.JsonNode}.
+ */
 public abstract class JsonNodeEncoder implements Encoder {
     private JsonNodeEncoder() {
     }
 
+    /**
+     * Creates a new instance.
+     * @return The {@link io.micronaut.serde.JsonNodeEncoder}
+     */
     @NonNull
     public static JsonNodeEncoder create() {
         return new Outer();
     }
 
+    /**
+     * Encode the given value.
+     * @param node The node to encode
+     */
     protected abstract void encodeValue(JsonNode node);
 
     @Override
@@ -111,7 +123,12 @@ public abstract class JsonNodeEncoder implements Encoder {
         return false;
     }
 
-    public JsonNode getCompletedValue() {
+    /**
+     * Obtains the completed value.
+     *
+     * @return The materialized {@link io.micronaut.json.tree.JsonNode}
+     */
+    public @NonNull JsonNode getCompletedValue() {
         throw new IllegalStateException("Can only get the completed value of the outermost encoder");
     }
 

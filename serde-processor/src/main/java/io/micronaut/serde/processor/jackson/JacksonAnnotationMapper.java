@@ -24,7 +24,10 @@ import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 
-public class JacksonAnnotationMapper implements TypedAnnotationMapper<JacksonAnnotation> {
+/**
+ * Maps the {@link com.fasterxml.jackson.annotation.JacksonAnnotation} stereotype to {@link io.micronaut.serde.annotation.SerdeConfig}.
+ */
+public final class JacksonAnnotationMapper implements TypedAnnotationMapper<JacksonAnnotation> {
     @Override
     public Class<JacksonAnnotation> annotationType() {
         return JacksonAnnotation.class;

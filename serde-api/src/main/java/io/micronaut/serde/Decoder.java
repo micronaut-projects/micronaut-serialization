@@ -22,7 +22,17 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Core interface for decoding values from a serialized format such as JSON.
+ *
+ * @since 1.0.0
+ */
 public interface Decoder {
+    /**
+     * Start decoding an array.
+     * @return The array decoder
+     * @throws IOException If an unrecoverable error occurs
+     */
     @NonNull
     Decoder decodeArray() throws IOException;
 
@@ -63,6 +73,8 @@ public interface Decoder {
      * Attempt to decode a null value. Returns {@code false} if this value is not null, and another method should be
      * used for decoding. Returns {@code true} if this value was null, and the cursor has been advanced to the next
      * value.
+     * @throws IOException If an unrecoverable error occurs
+     * @return Returns {@code true} if the value was {@code null}
      */
     boolean decodeNull() throws IOException;
 

@@ -33,20 +33,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
-import io.micronaut.serde.annotation.SerdeConfig;
-import io.micronaut.serde.beans.DeserBean;
-import io.micronaut.serde.beans.SerBean;
-import io.micronaut.serde.beans.SubtypedDeserBean;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
+/**
+ * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
+ */
 @Singleton
 public class DefaultSerdeRegistry implements SerdeRegistry {
 
@@ -127,7 +125,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 new TypeEntry(Argument.of(Boolean.class)),
                 (NullableDeserializer<Boolean>) (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
-                ;
         this.deserializerMap.put(
                 new TypeEntry(Argument.INT),
                 (decoder, decoderContext, type) -> decoder.decodeInt()
@@ -338,21 +335,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     @Override
-    public <T> DeserBean<T> getDeserializableBean(Argument<T> type) {
-        // TODO: cache these
-        try {
-            final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            if (deserializableIntrospection.hasAnnotation(SerdeConfig.Subtyped.class)) {
-                return new SubtypedDeserBean<>(deserializableIntrospection, this);
-            } else {
-                return new DeserBean<>(deserializableIntrospection, this);
-            }
-        } catch (SerdeException e) {
-            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
     public <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType) {
         return introspections.findSubtypeDeserializables(superType);
     }
@@ -417,20 +399,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return objectSerializer;
     }
 
-
-
-    @Override
-    public <T> SerBean<T> getSerializableIntrospection(Argument<T> type) {
-        // TODO: cache these, the cache key should include the Unwrapped behaviour
-        try {
-            return new SerBean<>(type, introspections.getSerializableIntrospection(type), this);
-        } catch (SerdeException e) {
-            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
-        }
-    }
-
-    private final static class TypeEntry {
+    private static final class TypeEntry {
         final Argument<?> type;
+
         public TypeEntry(Argument<?> type) {
             this.type = type;
         }

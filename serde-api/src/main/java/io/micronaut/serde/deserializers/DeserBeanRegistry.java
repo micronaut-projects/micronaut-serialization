@@ -13,28 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.json;
+package io.micronaut.serde.deserializers;
 
-import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.json.JsonConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Deserializer;
 
-/**
- * Implementation of the {@link io.micronaut.json.JsonConfiguration} interface
- * for the serialization project.
- */
 @Internal
-@Singleton
-@Secondary
-public class SerdeJsonConfiguration implements JsonConfiguration {
-    @Override
-    public boolean isAlwaysSerializeErrorsAsList() {
-        return true;
-    }
-
-    @Override
-    public int getArraySizeThreshold() {
-        return Integer.MAX_VALUE;
-    }
+interface DeserBeanRegistry {
+    <T> DeserBean<T> getDeserializableBean(Argument<T> type, Deserializer.DecoderContext decoderContext);
 }
