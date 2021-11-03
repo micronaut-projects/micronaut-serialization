@@ -1,0 +1,3 @@
+io.micronaut.serde.processor.jackson.JsonIncludeTransformer
+io.micronaut.serde.processor.jackson.JsonUnwrappedTransformer
+io.micronaut.serde.processor.jackson.JsonGetterTransformer

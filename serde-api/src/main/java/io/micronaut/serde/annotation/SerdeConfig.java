@@ -21,6 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.Internal;
 
 /**
@@ -83,6 +84,38 @@ public @interface SerdeConfig {
         String NAME = Unwrapped.class.getName();
         String PREFIX = "prefix";
         String SUFFIX = "suffix";
+    }
+
+    /**
+     * Internal metadata for a JSON getter.
+     */
+    @Internal
+    @Executable
+    @interface Getter {
+    }
+
+    /**
+     * Internal metadata for a JSON any getter.
+     */
+    @Internal
+    @Executable
+    @interface AnyGetter {
+    }
+
+    /**
+     * Internal metadata for a setter.
+     */
+    @Internal
+    @Executable
+    @interface Setter {
+    }
+
+    /**
+     * Internal metadata for any setter.
+     */
+    @Internal
+    @Executable
+    @interface AnySetter {
     }
 
     /**

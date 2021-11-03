@@ -31,6 +31,7 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -50,6 +51,19 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
                 "io.micronaut.serde.annotation.*",
                 "org.bson.codecs.pojo.annotations.*"
         );
+    }
+
+    @Override
+    public void visitMethod(MethodElement element, VisitorContext context) {
+        if (element.hasDeclaredAnnotation(SerdeConfig.Getter.class)) {
+            if (element.isStatic()) {
+                context.fail("A method annotated with JsonGetter cannot be static", element);
+            } else if (element.getReturnType().getName().equals("void")) {
+                context.fail("A method annotated with JsonGetter cannot return void", element);
+            } else if (element.hasParameters()) {
+                context.fail("A method annotated with JsonGetter cannot define arguments", element);
+            }
+        }
     }
 
     @Override

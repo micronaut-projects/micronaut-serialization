@@ -20,21 +20,21 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.inject.annotation.TypedAnnotationMapper;
+import io.micronaut.inject.annotation.TypedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 
 /**
  * Maps the {@link com.fasterxml.jackson.annotation.JsonInclude} annotation to {@link io.micronaut.serde.annotation.SerdeConfig}.
  */
-public class JsonIncludeMapper implements TypedAnnotationMapper<JsonInclude> {
+public class JsonIncludeTransformer implements TypedAnnotationTransformer<JsonInclude> {
     @Override
     public Class<JsonInclude> annotationType() {
         return JsonInclude.class;
     }
 
     @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<JsonInclude> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> transform(AnnotationValue<JsonInclude> annotation, VisitorContext visitorContext) {
         final SerdeConfig.Include v = annotation.enumValue(SerdeConfig.Include.class).orElse(null);
         if (v != null) {
             return Collections.singletonList(
