@@ -20,9 +20,8 @@ import java.io.IOException;
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.beans.SerIntrospection;
+import io.micronaut.serde.beans.SerBean;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -96,6 +95,6 @@ public interface Serializer<T> {
          * @return The introspection, never {@code null}
          * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
          */
-        @NonNull <T> SerIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type);
+        @NonNull <T> SerBean<T> getSerializableIntrospection(@NonNull Argument<T> type);
     }
 }

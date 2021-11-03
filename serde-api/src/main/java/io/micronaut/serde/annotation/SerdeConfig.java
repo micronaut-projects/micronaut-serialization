@@ -15,8 +15,11 @@
  */
 package io.micronaut.serde.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import io.micronaut.core.annotation.Internal;
 
@@ -29,6 +32,8 @@ import io.micronaut.core.annotation.Internal;
  */
 @Internal
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
+@Inherited
 public @interface SerdeConfig {
     /**
      * The property to use.
@@ -39,7 +44,6 @@ public @interface SerdeConfig {
      * Is it ignored.
      */
     String IGNORED = "ignored";
-
 
     /**
      * Include strategy.
@@ -57,17 +61,61 @@ public @interface SerdeConfig {
     String WRITE_ONLY = "writeOnly";
 
     /**
+     * A type name mapping. Used for subtype binding.
+     */
+    String TYPE_NAME = "typeName";
+
+    /**
+     * The type property used for subtype binding.
+     */
+    String TYPE_PROPERTY = "typeProperty";
+
+    /**
+     * A property that should be used to wrap this value when serializing.
+     */
+    String WRAPPER_PROPERTY = "wrapperProperty";
+
+    /**
      * Internal metadata type for wrapped settings
      */
+    @Internal
     @interface Unwrapped {
         String NAME = Unwrapped.class.getName();
         String PREFIX = "prefix";
         String SUFFIX = "suffix";
     }
 
+    @Internal
+    @interface Subtyped {
+        String NAME = Subtyped.class.getName();
+        /**
+         * The discriminator to use.
+         */
+        String DISCRIMINATOR_TYPE = "dt";
+
+        /**
+         * The discriminator value to use.
+         */
+        String DISCRIMINATOR_VALUE = "dv";
+
+        /**
+         * The discriminator property to use.
+         */
+        String DISCRIMINATOR_PROP = "dp";
+
+        enum DiscriminatorType {
+            PROPERTY, WRAPPER_OBJECT
+        }
+
+        enum DiscriminatorValueKind {
+            CLASS, NAME
+        }
+    }
+
     /**
      * Include strategies.
      */
+    @Internal
     enum Include {
 
         /**

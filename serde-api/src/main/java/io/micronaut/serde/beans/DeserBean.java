@@ -36,7 +36,7 @@ import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 
 @Internal
-public final class DeserIntrospection<T> {
+public class DeserBean<T> {
     @NonNull
     public final BeanIntrospection<T> introspection;
     @Nullable
@@ -49,7 +49,7 @@ public final class DeserIntrospection<T> {
     public final DerProperty<T, Object>[] unwrappedProperties;
     public final int creatorSize;
 
-    public DeserIntrospection(
+    public DeserBean(
             BeanIntrospection<T> introspection,
             Deserializer.DecoderContext decoderContext)
             throws SerdeException {
@@ -72,7 +72,7 @@ public final class DeserIntrospection<T> {
                     creatorUnwrapped = new ArrayList<>();
                 }
 
-                final DeserIntrospection<Object> unwrapped = decoderContext.getDeserializableIntrospection(constructorArgument);
+                final DeserBean<Object> unwrapped = decoderContext.getDeserializableBean(constructorArgument);
                 creatorUnwrapped.add(new DerProperty(
                         introspection.getBeanType(),
                         i,
@@ -142,7 +142,7 @@ public final class DeserIntrospection<T> {
                     }
                     final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
 
-                    final DeserIntrospection<Object> unwrapped = decoderContext.getDeserializableIntrospection(t);
+                    final DeserBean<Object> unwrapped = decoderContext.getDeserializableBean(t);
                     unwrappedProperties.add(new DerProperty(
                             beanProperty.getDeclaringType(),
                             i,
@@ -207,7 +207,7 @@ public final class DeserIntrospection<T> {
     }
 
     @Internal
-    public static class DerProperty<B, P> {
+    public static final class DerProperty<B, P> {
         public final Class<B> declaringType;
         public final int index;
         public final Argument<P> argument;
@@ -216,14 +216,14 @@ public final class DeserIntrospection<T> {
         public final boolean required;
         public final @Nullable BeanProperty<B, P> writer;
         public final @NonNull Deserializer<? super P> deserializer;
-        public final DeserIntrospection<P> unwrapped;
+        public final DeserBean<P> unwrapped;
 
         public DerProperty(Class<B> declaringType,
                            int index,
                            Argument<P> argument,
                            @Nullable BeanProperty<B, P> writer,
                            @NonNull Deserializer<P> deserializer,
-                           @Nullable DeserIntrospection<P> unwrapped) {
+                           @Nullable DeserBean<P> unwrapped) {
             this.declaringType = declaringType;
             this.index = index;
             this.argument = argument;

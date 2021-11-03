@@ -17,21 +17,15 @@ package io.micronaut.serde.serializers;
 
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.annotation.SerdeConfig;
-import io.micronaut.serde.beans.SerIntrospection;
+import io.micronaut.serde.beans.SerBean;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -60,13 +54,19 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            @SuppressWarnings("unchecked") final SerIntrospection<Object> introspection = context
+            @SuppressWarnings("unchecked") final SerBean<Object> introspection = context
                     .getSerializableIntrospection((Argument<Object>) type);
-            final Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
-            final Map<String, SerIntrospection.SerProperty<Object, Object>> writeProperties =
+            Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
+
+            if (introspection.wrapperProperty != null) {
+                childEncoder.encodeKey(introspection.wrapperProperty);
+                childEncoder = childEncoder.encodeObject();
+            }
+
+            final Map<String, SerBean.SerProperty<Object, Object>> writeProperties =
                     introspection.writeProperties;
             for (String propertyName : writeProperties.keySet()) {
-                final SerIntrospection.SerProperty<Object, Object> property =
+                final SerBean.SerProperty<Object, Object> property =
                             writeProperties.get(propertyName);
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
