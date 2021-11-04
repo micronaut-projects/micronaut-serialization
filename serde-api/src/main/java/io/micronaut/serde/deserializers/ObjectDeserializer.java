@@ -19,12 +19,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
@@ -157,7 +157,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             decoderContext,
                             propertyType
                     );
-                    if (sp.declaringType == objectType) {
+                    if (sp.instrospection.getBeanType() == objectType) {
                         params[sp.index] = val;
                         if (hasProperties && readProperties.containsKey(prop)) {
                             // will need binding to properties as well
@@ -226,7 +226,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         final DeserBean.DerProperty<? super Object, ?> derProperty =
                                 readProperties.remove(propertyBuffer.name);
                         if (derProperty != null) {
-                            if (derProperty.declaringType == objectType) {
+                            if (derProperty.instrospection.getBeanType() == objectType) {
                                 propertyBuffer.set(obj, decoderContext);
                             }
                         }
@@ -356,9 +356,9 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         propertyType
                 );
                 // writer is never null for properties
-                final BeanProperty<Object, Object> writer = property.writer;
-                if (introspection.introspection == writer.getDeclaringBean()) {
-                    writer.set(obj, val);
+                final BiConsumer<Object, Object> writer = property.writer;
+                if (introspection.introspection == property.instrospection) {
+                    writer.accept(obj, val);
                 } else {
                     propertyBuffer = initBuffer(propertyBuffer, property, prop, val);
                 }

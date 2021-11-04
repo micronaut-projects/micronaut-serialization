@@ -31,7 +31,11 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.ConstructorElement;
+import io.micronaut.inject.ast.Element;
+import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -54,7 +58,24 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
     }
 
     @Override
+    public void visitField(FieldElement element, VisitorContext context) {
+        if (checkForErrors(element, context)) {
+            return;
+        }
+    }
+
+    @Override
+    public void visitConstructor(ConstructorElement element, VisitorContext context) {
+        if (checkForErrors(element, context)) {
+            return;
+        }
+    }
+
+    @Override
     public void visitMethod(MethodElement element, VisitorContext context) {
+        if (checkForErrors(element, context)) {
+            return;
+        }
         if (element.hasDeclaredAnnotation(SerdeConfig.Getter.class)) {
             if (element.isStatic()) {
                 context.fail("A method annotated with JsonGetter cannot be static", element);
@@ -63,11 +84,32 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
             } else if (element.hasParameters()) {
                 context.fail("A method annotated with JsonGetter cannot define arguments", element);
             }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.Setter.class)) {
+            if (element.isStatic()) {
+                context.fail("A method annotated with JsonSetter cannot be static", element);
+            } else {
+                final ParameterElement[] parameters = element.getParameters();
+                if (parameters.length != 1) {
+                    context.fail("A method annotated with JsonSetter must specify exactly 1 argument", element);
+                }
+            }
         }
+    }
+
+    private boolean checkForErrors(Element element, VisitorContext context) {
+        final String error = element.stringValue(SerdeConfig.Error.class).orElse(null);
+        if (error != null) {
+            context.fail(error, element);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
+        if (checkForErrors(element, context)) {
+            return;
+        }
         if (isJsonAnnotated(element)) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class)) {

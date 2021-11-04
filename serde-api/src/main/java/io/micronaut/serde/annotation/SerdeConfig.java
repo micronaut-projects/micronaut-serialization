@@ -119,6 +119,13 @@ public @interface SerdeConfig {
     }
 
     /**
+     * Used to store errors.
+     */
+    @Internal
+    @interface Error {
+    }
+
+    /**
      * Meta annotations for subtyped mapping.
      */
     @Internal
