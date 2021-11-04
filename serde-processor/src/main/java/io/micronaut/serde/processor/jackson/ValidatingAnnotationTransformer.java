@@ -23,7 +23,6 @@ import java.util.Set;
 
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.TypedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
@@ -37,20 +36,20 @@ public abstract class ValidatingAnnotationTransformer<A extends Annotation> impl
     @Override
     public final List<AnnotationValue<?>> transform(AnnotationValue<A> annotation, VisitorContext visitorContext) {
         Set<String> supported = getSupportedMemberNames();
-        if (CollectionUtils.isNotEmpty(supported)) {
-            final Set<CharSequence> memberNames = annotation.getMemberNames();
-            final Optional<CharSequence> unsupportedMember = memberNames.stream()
-                    .filter(n -> !supported.contains(n.toString()))
-                    .findFirst();
-            if (unsupportedMember.isPresent()) {
-                return Collections.singletonList(
-                        AnnotationValue.builder(SerdeConfig.Error.class)
-                                .value("Annotation @" + annotationType().getSimpleName() + " specifies attribute '" + unsupportedMember.get() + "'. Currently supported attributes include: " + supported)
-                                .build()
-                );
-            }
-        }
-        return transformValid(annotation, visitorContext);
+        final Set<CharSequence> memberNames = annotation.getMemberNames();
+        final Optional<CharSequence> unsupportedMember = memberNames.stream()
+                .filter(n -> !supported.contains(n.toString()))
+                .findFirst();
+        return unsupportedMember.<List<AnnotationValue<?>>>map(charSequence -> Collections.singletonList(
+                AnnotationValue.builder(SerdeConfig.Error.class)
+                        .value(getErrorMessage(supported, charSequence))
+                        .build()
+        )).orElseGet(() -> transformValid(annotation, visitorContext));
+    }
+
+    private String getErrorMessage(Set<String> supported, CharSequence member) {
+        return "Annotation @" + annotationType().getSimpleName() + " specifies attribute '" + member + "'"
+                       + ". Currently supported attributes include: " + supported;
     }
 
     /**

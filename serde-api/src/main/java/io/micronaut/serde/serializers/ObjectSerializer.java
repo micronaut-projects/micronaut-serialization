@@ -19,6 +19,7 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
@@ -58,16 +59,16 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            @SuppressWarnings("unchecked") final SerBean<Object> introspection = getSerializableIntrospection(type, context);
-            Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
+            @SuppressWarnings("unchecked") final SerBean<Object> serBean = getSerBean(type, context);
+            Encoder childEncoder = serBean.unwrapped ? encoder : encoder.encodeObject();
 
-            if (introspection.wrapperProperty != null) {
-                childEncoder.encodeKey(introspection.wrapperProperty);
+            if (serBean.wrapperProperty != null) {
+                childEncoder.encodeKey(serBean.wrapperProperty);
                 childEncoder = childEncoder.encodeObject();
             }
 
             final Map<String, SerBean.SerProperty<Object, Object>> writeProperties =
-                    introspection.writeProperties;
+                    serBean.writeProperties;
             for (String propertyName : writeProperties.keySet()) {
                 final SerBean.SerProperty<Object, Object> property =
                             writeProperties.get(propertyName);
@@ -106,7 +107,37 @@ public final class ObjectSerializer implements Serializer<Object> {
                     );
                 }
             }
-            if (!introspection.unwrapped) {
+            final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
+            if (anyGetter != null) {
+                final Object data = anyGetter.get(value);
+                if (data instanceof Map) {
+                    Map<Object, Object> map = (Map<Object, Object>) data;
+                    if (CollectionUtils.isNotEmpty(map)) {
+
+                        for (Object k : map.keySet()) {
+                            final Object v = map.get(k);
+                            childEncoder.encodeKey(k.toString());
+                            if (v == null) {
+                                childEncoder.encodeNull();
+                            } else {
+                                Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
+                                        .orElse(null);
+                                if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
+                                    valueType = Argument.of(v.getClass());
+                                }
+                                final Serializer<Object> serializer = (Serializer<Object>) context.findSerializer(valueType);
+                                serializer.serialize(
+                                        childEncoder,
+                                        context,
+                                        v,
+                                        valueType
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+            if (!serBean.unwrapped) {
                 childEncoder.finishStructure();
             }
         } catch (IntrospectionException e) {
@@ -116,7 +147,7 @@ public final class ObjectSerializer implements Serializer<Object> {
     }
 
     @SuppressWarnings("unchecked")
-    private SerBean<Object> getSerializableIntrospection(Argument<?> type, EncoderContext encoderContext) {
+    private SerBean<Object> getSerBean(Argument<?> type, EncoderContext encoderContext) {
         // TODO: cache these, the cache key should include the Unwrapped behaviour
         try {
             return new SerBean<>((Argument<Object>) type,

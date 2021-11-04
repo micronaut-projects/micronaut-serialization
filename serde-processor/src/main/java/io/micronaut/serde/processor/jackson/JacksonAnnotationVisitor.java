@@ -15,12 +15,17 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -47,6 +52,9 @@ import io.micronaut.serde.annotation.Serdeable;
  */
 public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
+    private MethodElement anyGetterMethod;
+    private MethodElement anySetterMethod;
+
     @Override
     public Set<String> getSupportedAnnotationNames() {
         return CollectionUtils.setOf(
@@ -57,10 +65,22 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
         );
     }
 
+    private Set<Class<? extends Annotation>> getUnsupportedJacksonAnnotations() {
+        return CollectionUtils.setOf(
+                JsonFilter.class,
+                JsonBackReference.class,
+                JsonAutoDetect.class,
+                JsonMerge.class
+        );
+    }
+
     @Override
     public void visitField(FieldElement element, VisitorContext context) {
         if (checkForErrors(element, context)) {
             return;
+        }
+        if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
+            context.fail("AnySetter on fields is not supported", element);
         }
     }
 
@@ -93,10 +113,46 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
                     context.fail("A method annotated with JsonSetter must specify exactly 1 argument", element);
                 }
             }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+            if (this.anyGetterMethod == null) {
+                this.anyGetterMethod = element;
+            } else {
+                context.fail("Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true), element);
+            }
+            if (element.isStatic()) {
+                context.fail("A method annotated with AnyGetter cannot be static", element);
+            } else if (!element.getGenericReturnType().isAssignable(Map.class)) {
+                context.fail("A method annotated with AnyGetter must return a Map", element);
+            } else if (element.hasParameters()) {
+                context.fail("A method annotated with AnyGetter cannot define arguments", element);
+            }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
+            if (this.anySetterMethod == null) {
+                this.anySetterMethod = element;
+            } else {
+                context.fail("Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true), element);
+            }
+            if (element.isStatic()) {
+                context.fail("A method annotated with AnySetter cannot be static", element);
+            } else {
+                final ParameterElement[] parameters = element.getParameters();
+                if (parameters.length == 1) {
+                   if (!parameters[0].getGenericType().isAssignable(Map.class)) {
+                       context.fail("A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String", element);
+                   }
+                } else if (parameters.length != 2 || !parameters[0].getGenericType().isAssignable(String.class)) {
+                    context.fail("A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String", element);
+                }
+            }
         }
     }
 
     private boolean checkForErrors(Element element, VisitorContext context) {
+        for (Class<? extends Annotation> annotation : getUnsupportedJacksonAnnotations()) {
+            if (element.hasDeclaredAnnotation(annotation)) {
+                context.fail("Annotation @" + annotation.getSimpleName() + " is not supported", element);
+            }
+        }
         final String error = element.stringValue(SerdeConfig.Error.class).orElse(null);
         if (error != null) {
             context.fail(error, element);
@@ -107,6 +163,8 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
 
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
+        this.anyGetterMethod = null; // reset
+        this.anySetterMethod = null; // reset
         if (checkForErrors(element, context)) {
             return;
         }

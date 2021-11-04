@@ -16,6 +16,7 @@
 package io.micronaut.serde.deserializers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +56,9 @@ class DeserBean<T> {
     public final Map<String, DerProperty<T, Object>> readProperties;
     @Nullable
     public final DerProperty<T, Object>[] unwrappedProperties;
+    @Nullable
+    public final BeanMethod<T, Object> anySetter;
+
     public final int creatorSize;
     // CHECKSTYLE:ON
 
@@ -140,9 +144,18 @@ class DeserBean<T> {
                             !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false) &&
                             !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false);
                 }).collect(Collectors.toList());
-        final List<BeanMethod<T, Object>> jsonSetters = introspection.getBeanMethods().stream()
-                .filter(m -> m.isAnnotationPresent(SerdeConfig.Setter.class))
-                .collect(Collectors.toList());
+        final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
+        final List<BeanMethod<T, Object>> jsonSetters = new ArrayList<>(beanMethods.size());
+        BeanMethod<T, Object> anySetter = null;
+        for (BeanMethod<T, Object> method : beanMethods) {
+            if (method.isAnnotationPresent(SerdeConfig.Setter.class)) {
+                jsonSetters.add(method);
+            } else if (method.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
+                anySetter = method;
+            }
+        }
+
+        this.anySetter = anySetter;
 
         if (CollectionUtils.isNotEmpty(beanProperties) || CollectionUtils.isNotEmpty(jsonSetters)) {
             final HashMap<String, DerProperty<T, Object>> readProps = new HashMap<>(beanProperties.size() + jsonSetters.size());

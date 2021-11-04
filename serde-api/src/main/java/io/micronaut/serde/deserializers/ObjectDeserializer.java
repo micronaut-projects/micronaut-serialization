@@ -18,6 +18,7 @@ package io.micronaut.serde.deserializers;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -25,11 +26,13 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -68,6 +71,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
         Decoder objectDecoder = decoder.decodeObject();
         TokenBuffer tokenBuffer = null;
+        AnyValues<Object> anyValues = deserBean.anySetter != null ? initAnyValues(deserBean.anySetter, decoderContext) : null;
         Object obj;
 
         if (deserBean instanceof SubtypedDeserBean) {
@@ -99,12 +103,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         }
                         break;
                     } else {
-                        tokenBuffer = tokenBuffer == null ? new TokenBuffer(
-                                key,
-                                objectDecoder.decodeBuffer(),
-                                null
-                        ) : tokenBuffer.next(key, objectDecoder.decodeBuffer());
-
+                        tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, key);
                     }
                 }
 
@@ -129,7 +128,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
                         break;
                     } else {
-                        objectDecoder.skipValue();
+                        if (anyValues != null) {
+                            tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, key);
+                        } else {
+                            objectDecoder.skipValue();
+                        }
                     }
                 }
             }
@@ -141,7 +144,13 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     new HashMap<>(deserBean.creatorParams);
             int creatorSize = deserBean.creatorSize;
             Object[] params = new Object[creatorSize];
-            PropertyBuffer buffer = initFromTokenBuffer(tokenBuffer, creatorParameters, readProperties);
+            PropertyBuffer buffer = initFromTokenBuffer(
+                    tokenBuffer,
+                    creatorParameters,
+                    readProperties,
+                    anyValues,
+                    decoderContext
+            );
 
             while (true) {
                 final String prop = objectDecoder.decodeKey();
@@ -179,9 +188,27 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                                 argument
                         );
                         buffer = initBuffer(buffer, rp, prop, val);
+                    } else {
+                        if (anyValues != null) {
+                            anyValues.handle(
+                                    prop,
+                                    objectDecoder,
+                                    decoderContext
+                            );
+                        } else {
+                            objectDecoder.skipValue();
+                        }
                     }
                 } else {
-                    objectDecoder.skipValue();
+                    if (anyValues != null) {
+                        anyValues.handle(
+                                prop,
+                                objectDecoder,
+                                decoderContext
+                        );
+                    } else {
+                        objectDecoder.skipValue();
+                    }
                 }
             }
 
@@ -241,7 +268,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             objectDecoder,
                             readProperties,
                             deserBean.unwrappedProperties,
-                            buffer
+                            buffer,
+                            anyValues
                     );
                 }
 
@@ -253,18 +281,23 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         decoderContext
                 );
             }
-
-            return obj;
         } else {
             obj = deserBean.introspection.instantiate();
             if (hasProperties) {
+                final PropertyBuffer existingBuffer = initFromTokenBuffer(
+                        tokenBuffer,
+                        null,
+                        readProperties,
+                        anyValues,
+                        decoderContext);
                 final PropertyBuffer propertyBuffer = decodeProperties(deserBean,
                                                                        decoderContext,
                                                                        obj,
                                                                        objectDecoder,
                                                                        readProperties,
                                                                        deserBean.unwrappedProperties,
-                                                                       initFromTokenBuffer(tokenBuffer, null, readProperties));
+                                                                       existingBuffer,
+                                                                       anyValues);
                 // the property buffer will be non-null if there were any unwrapped
                 // properties in which case we need to go through and materialize unwrapped
                 // from the buffer
@@ -278,17 +311,45 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             }
         }
         // finish up
-        while (objectDecoder.decodeKey() != null) {
-            objectDecoder.skipValue();
+        while (true) {
+            final String key = objectDecoder.decodeKey();
+            if (key == null) {
+                break;
+            }
+            skipOrSetAny(decoderContext, objectDecoder, key, anyValues);
+        }
+        if (anyValues != null) {
+            anyValues.bind(obj);
         }
         objectDecoder.finishStructure();
 
         return obj;
     }
 
+    private AnyValues<Object> initAnyValues(
+            BeanMethod<? super Object, Object> anySetter,
+            DecoderContext decoderContext)
+            throws SerdeException {
+        return new AnyValues<>(
+                anySetter,
+                decoderContext
+        );
+    }
+
+    private TokenBuffer initTokenBuffer(TokenBuffer tokenBuffer, Decoder objectDecoder, String key) throws IOException {
+        return tokenBuffer == null ? new TokenBuffer(
+                key,
+                objectDecoder.decodeBuffer(),
+                null
+        ) : tokenBuffer.next(key, objectDecoder.decodeBuffer());
+    }
+
     private @Nullable PropertyBuffer initFromTokenBuffer(@Nullable TokenBuffer tokenBuffer,
                                                          @Nullable Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> creatorParameters,
-                                                         @Nullable Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties) {
+                                                         @Nullable Map<String, ? extends DeserBean.DerProperty<? super Object,
+                                                                 ?>> readProperties,
+                                                         @Nullable AnyValues<?> anyValues,
+                                                         DecoderContext decoderContext) throws IOException {
         if (tokenBuffer != null) {
             PropertyBuffer propertyBuffer = null;
             for (TokenBuffer buffer : tokenBuffer) {
@@ -308,6 +369,12 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             derProperty,
                             n,
                             buffer.decoder
+                    );
+                } else if (anyValues != null) {
+                    anyValues.handle(
+                            buffer.name,
+                            buffer.decoder,
+                            decoderContext
                     );
                 }
             }
@@ -340,7 +407,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             Decoder objectDecoder,
             Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties,
             DeserBean.DerProperty<? super Object, Object>[] unwrappedProperties,
-            PropertyBuffer propertyBuffer) throws IOException {
+            PropertyBuffer propertyBuffer,
+            @Nullable AnyValues<?> anyValues) throws IOException {
         while (true) {
             final String prop = objectDecoder.decodeKey();
             if (prop == null) {
@@ -362,14 +430,29 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                 } else {
                     propertyBuffer = initBuffer(propertyBuffer, property, prop, val);
                 }
-                if (readProperties.isEmpty() && unwrappedProperties == null) {
+                if (readProperties.isEmpty() && unwrappedProperties == null && introspection.anySetter == null) {
                     break;
                 }
             } else {
-                objectDecoder.skipValue();
+                skipOrSetAny(decoderContext, objectDecoder, prop, anyValues);
             }
         }
         return propertyBuffer;
+    }
+
+    private void skipOrSetAny(DecoderContext decoderContext,
+                              Decoder objectDecoder,
+                              String property,
+                              @Nullable AnyValues<?> anyValues) throws IOException {
+        if (anyValues != null) {
+            anyValues.handle(
+                    property,
+                    objectDecoder,
+                    decoderContext
+            );
+        } else {
+            objectDecoder.skipValue();
+        }
     }
 
     private void applyDefaultValuesOrFail(
@@ -476,6 +559,69 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }
+    }
+
+    private static final class AnyValues<T> {
+        Map<String, T> values;
+        final Argument<T> valueType;
+        @Nullable
+        final Deserializer<? extends T> deserializer;
+        private final BiConsumer<Object, Map<String, ? extends T>> mapSetter;
+        private final TriConsumer<Object, T> valueSetter;
+
+        private AnyValues(BeanMethod<? super Object, Object> anySetter, DecoderContext decoderContext) throws SerdeException {
+            final Argument<?>[] arguments = anySetter.getArguments();
+            // if the argument length is 1 we are dealing with a map parameter
+            // otherwise we are dealing with 2 parameter variant
+            final boolean singleArg = arguments.length == 1;
+            final Argument<T> argument =
+                    (Argument<T>) (singleArg ? arguments[0].getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT) : arguments[1]);
+            this.valueType = argument;
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            if (singleArg) {
+                this.valueSetter = null;
+                this.mapSetter = anySetter::invoke;
+            } else {
+                this.valueSetter = anySetter::invoke;
+                this.mapSetter = null;
+            }
+        }
+
+        void bind(Object object) {
+            if (values != null) {
+                if (mapSetter != null) {
+                    mapSetter.accept(object, values);
+                } else if (valueSetter != null) {
+                    for (String s : values.keySet()) {
+                        valueSetter.accept(object, s, values.get(s));
+                    }
+                }
+            }
+        }
+
+        void handle(String property, Decoder objectDecoder, DecoderContext decoderContext) throws IOException {
+            if (values == null) {
+                 values = new LinkedHashMap<>();
+            }
+            if (objectDecoder.decodeNull()) {
+                values.put(property, null);
+            } else {
+                if (deserializer != null) {
+                    values.put(property, deserializer.deserialize(
+                            objectDecoder,
+                            decoderContext,
+                            valueType
+                    ));
+                } else {
+                    //noinspection unchecked
+                    values.put(property, (T) objectDecoder.decodeArbitrary());
+                }
+            }
+        }
+    }
+
+    private interface TriConsumer<T, V> {
+        void accept(T t, String k, V v);
     }
 
     private static final class TokenBuffer implements Iterable<TokenBuffer> {

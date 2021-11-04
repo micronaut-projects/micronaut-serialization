@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.serializers;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -46,6 +47,8 @@ final class SerBean<T> {
     public final boolean unwrapped;
     @Nullable
     public final String wrapperProperty;
+    @Nullable
+    public final SerProperty<T, Object> anyGetter;
     // CHECKSTYLE:ON
 
     SerBean(
@@ -62,9 +65,22 @@ final class SerBean<T> {
                                 !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
                                 !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
                         .collect(Collectors.toList());
-        final List<BeanMethod<T, Object>> jsonGetters = introspection.getBeanMethods().stream()
-                .filter((method) -> method.isAnnotationPresent(SerdeConfig.Getter.class))
-                .collect(Collectors.toList());
+        final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
+        final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(beanMethods.size());
+        BeanMethod<T, Object> anyGetter = null;
+        for (BeanMethod<T, Object> beanMethod : beanMethods) {
+            if (beanMethod.isAnnotationPresent(SerdeConfig.Getter.class)) {
+                jsonGetters.add(beanMethod);
+            } else if (beanMethod.isAnnotationPresent(SerdeConfig.AnyGetter.class)) {
+                anyGetter = beanMethod;
+            }
+        }
+        this.anyGetter = anyGetter != null ? new SerProperty<>(
+                anyGetter.getReturnType().asArgument(),
+                anyGetter::invoke,
+                encoderContext.findSerializer(anyGetter.getReturnType().asArgument()),
+                null
+        ) : null;
         if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
             writeProperties = new LinkedHashMap<>(properties.size() + jsonGetters.size());
             introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent((typeName) -> {

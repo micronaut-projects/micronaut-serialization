@@ -29,6 +29,9 @@ import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 
+/**
+ * Transformer for JsonSetter.
+ */
 public final class JsonSetterTransformer extends ValidatingAnnotationTransformer<JsonSetter> {
     @Override
     public Class<JsonSetter> annotationType() {

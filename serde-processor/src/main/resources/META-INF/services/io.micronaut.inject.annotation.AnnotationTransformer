@@ -2,3 +2,5 @@ io.micronaut.serde.processor.jackson.JsonIncludeTransformer
 io.micronaut.serde.processor.jackson.JsonUnwrappedTransformer
 io.micronaut.serde.processor.jackson.JsonGetterTransformer
 io.micronaut.serde.processor.jackson.JsonSetterTransformer
+io.micronaut.serde.processor.jackson.JsonAnyGetterTransformer
+io.micronaut.serde.processor.jackson.JsonAnySetterTransformer
