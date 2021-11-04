@@ -34,6 +34,7 @@ import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.annotation.SerdeConfig;
@@ -57,7 +58,7 @@ class DeserBean<T> {
     @Nullable
     public final DerProperty<T, Object>[] unwrappedProperties;
     @Nullable
-    public final BeanMethod<T, Object> anySetter;
+    public final AnySetter<Object> anySetter;
 
     public final int creatorSize;
     // CHECKSTYLE:ON
@@ -72,10 +73,28 @@ class DeserBean<T> {
         creatorSize = constructorArguments.length;
         final HashMap<String, DerProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
         List<DerProperty<T, ?>> creatorUnwrapped = null;
+        AnySetter<Object> anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
         for (int i = 0; i < constructorArguments.length; i++) {
             Argument<Object> constructorArgument = (Argument<Object>) constructorArguments[i];
-            final AnnotationMetadata annotationMetadata = constructorArgument.getAnnotationMetadata();
+            final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument);
+
+            if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
+                anySetterValue = new AnySetter<>(constructorArgument, i, decoderContext);
+                creatorParams.put(
+                        constructorArgument.getName(),
+                        new DerProperty<>(
+                                introspection,
+                                i,
+                                constructorArgument,
+                                null,
+                                decoderContext.findDeserializer(constructorArgument),
+                                null
+                        )
+                );
+                continue;
+            }
+
             final String jsonProperty = annotationMetadata
                     .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                     .orElse(constructorArgument.getName());
@@ -150,73 +169,80 @@ class DeserBean<T> {
         for (BeanMethod<T, Object> method : beanMethods) {
             if (method.isAnnotationPresent(SerdeConfig.Setter.class)) {
                 jsonSetters.add(method);
-            } else if (method.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
+            } else if (method.isAnnotationPresent(SerdeConfig.AnySetter.class) && ArrayUtils.isNotEmpty(method.getArguments())) {
                 anySetter = method;
             }
         }
 
-        this.anySetter = anySetter;
+        //noinspection unchecked
+        if (anySetterValue == null) {
+            anySetterValue = (anySetter != null ? new AnySetter(anySetter, decoderContext) : null);
+        }
 
         if (CollectionUtils.isNotEmpty(beanProperties) || CollectionUtils.isNotEmpty(jsonSetters)) {
             final HashMap<String, DerProperty<T, Object>> readProps = new HashMap<>(beanProperties.size() + jsonSetters.size());
             for (int i = 0; i < beanProperties.size(); i++) {
                 BeanProperty<T, Object> beanProperty = beanProperties.get(i);
                 final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
-                final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
-                final Argument<Object> t = beanProperty.asArgument();
-
-                if (isUnwrapped) {
-                    if (unwrappedProperties == null) {
-                        unwrappedProperties = new ArrayList<>();
-                    }
-                    final Deserializer<Object> deserializer = (Deserializer<Object>) decoderContext.findDeserializer(t);
-                    final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
-                            t,
-                            decoderContext
-                    );
-                    unwrappedProperties.add(new DerProperty<>(
-                            introspection,
-                            i,
-                            t,
-                            beanProperty::set,
-                            deserializer,
-                            unwrapped
-                    ));
-                    String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
-                    String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
-
-                    final Map<String, DerProperty<Object, Object>> unwrappedProps = unwrapped.readProperties;
-                    if (unwrappedProps != null) {
-                        for (String n : unwrappedProps.keySet()) {
-                            String resolved = prefix + n + suffix;
-                            //noinspection unchecked
-                            readProps.put(resolved, (DerProperty<T, Object>) unwrappedProps.get(n));
-                        }
-                    }
-                    final Map<String, DerProperty<Object, ?>> unwrappedCreatorParams = unwrapped.creatorParams;
-                    if (unwrappedCreatorParams != null) {
-                        for (String n : unwrappedCreatorParams.keySet()) {
-                            String resolved = prefix + n + suffix;
-                            //noinspection unchecked
-                            creatorParams.put(resolved, (DerProperty<T, ?>) unwrappedCreatorParams.get(n));
-                        }
-                    }
+                if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
+                    anySetterValue = new AnySetter(beanProperty, decoderContext);
                 } else {
+                    final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+                    final Argument<Object> t = beanProperty.asArgument();
 
-                    final String jsonProperty = annotationMetadata
-                            .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                            .orElse(beanProperty.getName());
+                    if (isUnwrapped) {
+                        if (unwrappedProperties == null) {
+                            unwrappedProperties = new ArrayList<>();
+                        }
+                        final Deserializer<Object> deserializer = (Deserializer<Object>) decoderContext.findDeserializer(t);
+                        final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
+                                t,
+                                decoderContext
+                        );
+                        unwrappedProperties.add(new DerProperty<>(
+                                introspection,
+                                i,
+                                t,
+                                beanProperty::set,
+                                deserializer,
+                                unwrapped
+                        ));
+                        String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
+                        String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
 
-                    final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
-                    readProps.put(jsonProperty, new DerProperty<>(
-                            introspection,
-                            i,
-                            t,
-                            beanProperty::set,
-                            (Deserializer) deserializer,
-                            null
-                      )
-                    );
+                        final Map<String, DerProperty<Object, Object>> unwrappedProps = unwrapped.readProperties;
+                        if (unwrappedProps != null) {
+                            for (String n : unwrappedProps.keySet()) {
+                                String resolved = prefix + n + suffix;
+                                //noinspection unchecked
+                                readProps.put(resolved, (DerProperty<T, Object>) unwrappedProps.get(n));
+                            }
+                        }
+                        final Map<String, DerProperty<Object, ?>> unwrappedCreatorParams = unwrapped.creatorParams;
+                        if (unwrappedCreatorParams != null) {
+                            for (String n : unwrappedCreatorParams.keySet()) {
+                                String resolved = prefix + n + suffix;
+                                //noinspection unchecked
+                                creatorParams.put(resolved, (DerProperty<T, ?>) unwrappedCreatorParams.get(n));
+                            }
+                        }
+                    } else {
+
+                        final String jsonProperty = annotationMetadata
+                                .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                                .orElse(beanProperty.getName());
+
+                        final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
+                        readProps.put(jsonProperty, new DerProperty<>(
+                                              introspection,
+                                              i,
+                                              t,
+                                              beanProperty::set,
+                                              (Deserializer) deserializer,
+                                              null
+                                      )
+                        );
+                    }
                 }
             }
 
@@ -241,6 +267,7 @@ class DeserBean<T> {
             readProperties = null;
         }
 
+        this.anySetter = anySetterValue;
         if (creatorParams.isEmpty()) {
             this.creatorParams = null;
         } else {
@@ -250,6 +277,77 @@ class DeserBean<T> {
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
+    }
+
+    static final class AnySetter<T> {
+        final Argument<T> valueType;
+        @Nullable
+        final Deserializer<? extends T> deserializer;
+        private final BiConsumer<Object, Map<String, ? extends T>> mapSetter;
+        private final TriConsumer<Object, T> valueSetter;
+
+        private AnySetter(
+                BeanMethod<? super Object, Object> anySetter,
+                Deserializer.DecoderContext decoderContext) throws SerdeException {
+            final Argument<?>[] arguments = anySetter.getArguments();
+            // if the argument length is 1 we are dealing with a map parameter
+            // otherwise we are dealing with 2 parameter variant
+            final boolean singleArg = arguments.length == 1;
+            final Argument<T> argument =
+                    (Argument<T>) (singleArg ? arguments[0].getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT) : arguments[1]);
+            this.valueType = argument;
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            if (singleArg) {
+                this.valueSetter = null;
+                this.mapSetter = anySetter::invoke;
+            } else {
+                this.valueSetter = anySetter::invoke;
+                this.mapSetter = null;
+            }
+        }
+
+        private AnySetter(
+                BeanProperty<? super Object, Object> anySetter,
+                Deserializer.DecoderContext decoderContext) throws SerdeException {
+            // if the argument length is 1 we are dealing with a map parameter
+            // otherwise we are dealing with 2 parameter variant
+            final Argument<T> argument = (Argument<T>) anySetter.asArgument().getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT);
+            this.valueType = argument;
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            this.mapSetter = anySetter::set;
+            this.valueSetter = null;
+        }
+
+        private AnySetter(
+                Argument<Object> anySetter,
+                int index,
+                Deserializer.DecoderContext decoderContext) throws SerdeException {
+            // if the argument length is 1 we are dealing with a map parameter
+            // otherwise we are dealing with 2 parameter variant
+            final Argument<T> argument = (Argument<T>) anySetter.getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT);
+            this.valueType = argument;
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            this.mapSetter = (o, map) -> {
+                ((Object[]) o)[index] = map;
+            };
+            this.valueSetter = null;
+        }
+
+        void bind(Map<String, T> values, Object object) {
+            if (values != null) {
+                if (mapSetter != null) {
+                    mapSetter.accept(object, values);
+                } else if (valueSetter != null) {
+                    for (String s : values.keySet()) {
+                        valueSetter.accept(object, s, values.get(s));
+                    }
+                }
+            }
+        }
+    }
+
+    private interface TriConsumer<T, V> {
+        void accept(T t, String k, V v);
     }
 
     /**
@@ -266,6 +364,7 @@ class DeserBean<T> {
         @Nullable
         public final P defaultValue;
         public final boolean required;
+        public final boolean isAnySetter;
         public final @Nullable BiConsumer<B, P> writer;
         public final @NonNull Deserializer<? super P> deserializer;
         public final DeserBean<P> unwrapped;
@@ -283,10 +382,12 @@ class DeserBean<T> {
             this.writer = writer;
             this.deserializer = deserializer;
             // compute default
-            this.defaultValue = argument.getAnnotationMetadata()
+            AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument);
+            this.defaultValue = annotationMetadata
                     .getValue(Bindable.class, "defaultValue", argument)
                     .orElse(deserializer.getDefaultValue());
             this.unwrapped = unwrapped;
+            this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class);
         }
 
         public void setDefault(@NonNull B bean) throws SerdeException {
@@ -320,5 +421,16 @@ class DeserBean<T> {
                 writer.accept(obj, v);
             }
         }
+    }
+
+    private static <B, P> AnnotationMetadata resolveArgumentMetadata(BeanIntrospection<B> instrospection, Argument<P> argument) {
+        AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
+        if (annotationMetadata.isEmpty()) {
+            // records store metadata in the bean property
+            annotationMetadata = instrospection.getProperty(argument.getName(), argument.getType())
+                    .map(BeanProperty::getAnnotationMetadata)
+                    .orElse(AnnotationMetadata.EMPTY_METADATA);
+        }
+        return annotationMetadata;
     }
 }

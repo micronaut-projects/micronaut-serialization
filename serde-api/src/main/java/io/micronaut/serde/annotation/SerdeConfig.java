@@ -115,6 +115,7 @@ public @interface SerdeConfig {
      */
     @Internal
     @Executable
+    @SerdeConfig
     @interface AnySetter {
     }
 

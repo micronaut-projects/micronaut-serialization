@@ -54,6 +54,8 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
 
     private MethodElement anyGetterMethod;
     private MethodElement anySetterMethod;
+    private FieldElement anyGetterField;
+    private FieldElement anySetterField;
 
     @Override
     public Set<String> getSupportedAnnotationNames() {
@@ -79,8 +81,30 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
         if (checkForErrors(element, context)) {
             return;
         }
-        if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
-            context.fail("AnySetter on fields is not supported", element);
+        if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+            if (!element.getGenericField().isAssignable(Map.class)) {
+                context.fail("A field annotated with AnyGetter must be a Map", element);
+            } else {
+                if (anyGetterField != null) {
+                    context.fail("Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true), element);
+                } else if (anyGetterMethod != null) {
+                    context.fail("Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true), element);
+                } else {
+                    this.anyGetterField = element;
+                }
+            }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
+            if (!element.getGenericField().isAssignable(Map.class)) {
+                context.fail("A field annotated with AnySetter must be a Map", element);
+            } else {
+                if (anySetterField != null) {
+                    context.fail("Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true), element);
+                } else if (anySetterMethod != null) {
+                    context.fail("Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true), element);
+                } else {
+                    this.anySetterField = element;
+                }
+            }
         }
     }
 
@@ -165,6 +189,8 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
     public void visitClass(ClassElement element, VisitorContext context) {
         this.anyGetterMethod = null; // reset
         this.anySetterMethod = null; // reset
+        this.anyGetterField = null; // reset
+        this.anySetterField = null; // reset
         if (checkForErrors(element, context)) {
             return;
         }

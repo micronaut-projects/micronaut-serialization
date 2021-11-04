@@ -75,12 +75,13 @@ final class SerBean<T> {
                 anyGetter = beanMethod;
             }
         }
-        this.anyGetter = anyGetter != null ? new SerProperty<>(
+        SerProperty<T, Object> anyGetterProperty = anyGetter != null ? new SerProperty<>(
                 anyGetter.getReturnType().asArgument(),
                 anyGetter::invoke,
                 encoderContext.findSerializer(anyGetter.getReturnType().asArgument()),
                 null
         ) : null;
+
         if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
             writeProperties = new LinkedHashMap<>(properties.size() + jsonGetters.size());
             introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent((typeName) -> {
@@ -102,12 +103,16 @@ final class SerBean<T> {
                 final AnnotationMetadata propertyAnnotationMetadata = property.getAnnotationMetadata();
                 final String defaultPropertyName = argument.getName();
                 String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName);
-                writeProperties.put(n, new SerProperty<>(
+                final SerProperty<T, Object> serProperty = new SerProperty<>(
                         argument,
                         property::get,
                         encoderContext.findSerializer(argument),
-                        null)
-                );
+                        null);
+                if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+                    anyGetterProperty = serProperty;
+                } else {
+                    writeProperties.put(n, serProperty);
+                }
             }
 
             for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
@@ -124,7 +129,7 @@ final class SerBean<T> {
         } else {
             writeProperties = Collections.emptyMap();
         }
-
+        this.anyGetter = anyGetterProperty;
         wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
     }
 

@@ -26,13 +26,11 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -71,7 +69,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
         Decoder objectDecoder = decoder.decodeObject();
         TokenBuffer tokenBuffer = null;
-        AnyValues<Object> anyValues = deserBean.anySetter != null ? initAnyValues(deserBean.anySetter, decoderContext) : null;
+        AnyValues<Object> anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
         Object obj;
 
         if (deserBean instanceof SubtypedDeserBean) {
@@ -236,7 +234,12 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             params[sp.index] = o;
                         }
                     } else {
-                        sp.setDefault(params);
+                        if (sp.isAnySetter && anyValues != null) {
+                            anyValues.bind(params);
+                            anyValues = null;
+                        } else {
+                            sp.setDefault(params);
+                        }
                     }
                 }
             }
@@ -324,16 +327,6 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
         objectDecoder.finishStructure();
 
         return obj;
-    }
-
-    private AnyValues<Object> initAnyValues(
-            BeanMethod<? super Object, Object> anySetter,
-            DecoderContext decoderContext)
-            throws SerdeException {
-        return new AnyValues<>(
-                anySetter,
-                decoderContext
-        );
     }
 
     private TokenBuffer initTokenBuffer(TokenBuffer tokenBuffer, Decoder objectDecoder, String key) throws IOException {
@@ -563,40 +556,10 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
     private static final class AnyValues<T> {
         Map<String, T> values;
-        final Argument<T> valueType;
-        @Nullable
-        final Deserializer<? extends T> deserializer;
-        private final BiConsumer<Object, Map<String, ? extends T>> mapSetter;
-        private final TriConsumer<Object, T> valueSetter;
+        final DeserBean.AnySetter<T> anySetter;
 
-        private AnyValues(BeanMethod<? super Object, Object> anySetter, DecoderContext decoderContext) throws SerdeException {
-            final Argument<?>[] arguments = anySetter.getArguments();
-            // if the argument length is 1 we are dealing with a map parameter
-            // otherwise we are dealing with 2 parameter variant
-            final boolean singleArg = arguments.length == 1;
-            final Argument<T> argument =
-                    (Argument<T>) (singleArg ? arguments[0].getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT) : arguments[1]);
-            this.valueType = argument;
-            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
-            if (singleArg) {
-                this.valueSetter = null;
-                this.mapSetter = anySetter::invoke;
-            } else {
-                this.valueSetter = anySetter::invoke;
-                this.mapSetter = null;
-            }
-        }
-
-        void bind(Object object) {
-            if (values != null) {
-                if (mapSetter != null) {
-                    mapSetter.accept(object, values);
-                } else if (valueSetter != null) {
-                    for (String s : values.keySet()) {
-                        valueSetter.accept(object, s, values.get(s));
-                    }
-                }
-            }
+        private AnyValues(DeserBean.AnySetter<T> anySetter) {
+            this.anySetter = anySetter;
         }
 
         void handle(String property, Decoder objectDecoder, DecoderContext decoderContext) throws IOException {
@@ -606,11 +569,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             if (objectDecoder.decodeNull()) {
                 values.put(property, null);
             } else {
-                if (deserializer != null) {
-                    values.put(property, deserializer.deserialize(
+                if (anySetter.deserializer != null) {
+                    values.put(property, anySetter.deserializer.deserialize(
                             objectDecoder,
                             decoderContext,
-                            valueType
+                            anySetter.valueType
                     ));
                 } else {
                     //noinspection unchecked
@@ -618,10 +581,12 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                 }
             }
         }
-    }
 
-    private interface TriConsumer<T, V> {
-        void accept(T t, String k, V v);
+        void bind(Object obj) {
+            if (values != null) {
+                anySetter.bind(values, obj);
+            }
+        }
     }
 
     private static final class TokenBuffer implements Iterable<TokenBuffer> {

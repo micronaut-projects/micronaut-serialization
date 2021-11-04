@@ -33,6 +33,7 @@ public class JsonAnySetterTransformer extends ValidatingAnnotationTransformer<Js
     protected List<AnnotationValue<?>> transformValid(AnnotationValue<JsonAnySetter> annotation, VisitorContext visitorContext) {
         return Arrays.asList(
                 AnnotationValue.builder(Executable.class).build(),
+                AnnotationValue.builder(SerdeConfig.class).build(),
                 AnnotationValue.builder(SerdeConfig.AnySetter.class).build()
         );
     }
