@@ -46,7 +46,12 @@ final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
     @Override
     public N deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super N> type) throws IOException {
         final String s = decoder.decodeString();
-        final DecimalFormat decimalFormat = new DecimalFormat(pattern);
+        final DecimalFormat decimalFormat;
+        try {
+            decimalFormat = new DecimalFormat(pattern);
+        } catch (Exception e) {
+            throw new SerdeException("Error decoding number of type " + type + ", pattern is invalid " + pattern + ":" + e.getMessage(), e);
+        }
         try {
             final Number number = decimalFormat.parse(s);
             return (N) ConversionService.SHARED.convertRequired(number, type);

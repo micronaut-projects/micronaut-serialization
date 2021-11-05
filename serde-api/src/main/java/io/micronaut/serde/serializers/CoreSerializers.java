@@ -77,36 +77,6 @@ public class CoreSerializers {
     }
 
     /**
-     * A serializer for all instances of {@link java.lang.Double}.
-     *
-     * @return A double serializer
-     */
-    @Singleton
-    protected Serializer<Double> doubleSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeDouble(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Float}.
-     *
-     * @return A float serializer
-     */
-    @Singleton
-    protected Serializer<Float> floatSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeFloat(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Short}.
-     *
-     * @return A short serializer
-     */
-    @Singleton
-    protected Serializer<Short> shortSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeShort(value);
-    }
-
-    /**
      * A serializer for all instances of {@link java.lang.Character}.
      *
      * @return A Character serializer
@@ -114,16 +84,6 @@ public class CoreSerializers {
     @Singleton
     protected Serializer<Character> charSerializer() {
         return (encoder, context, value, type) -> encoder.encodeChar(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Byte}.
-     *
-     * @return A byte serializer
-     */
-    @Singleton
-    protected Serializer<Byte> byteSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeByte(value);
     }
 
     /**

@@ -144,38 +144,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 (NullableDeserializer<Boolean>) (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
         this.deserializerMap.put(
-                new TypeEntry(Argument.BYTE),
-                (decoder, decoderContext, type) -> decoder.decodeByte()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.of(Byte.class)),
-                (NullableDeserializer<Byte>) (decoder, decoderContext, type) -> decoder.decodeByte()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.SHORT),
-                (decoder, decoderContext, type) -> decoder.decodeShort()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.of(Short.class)),
-                (NullableDeserializer<Short>) (decoder, decoderContext, type) -> decoder.decodeShort()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.FLOAT),
-                (decoder, decoderContext, type) -> decoder.decodeFloat()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.of(Float.class)),
-                (NullableDeserializer<Float>) (decoder, decoderContext, type) -> decoder.decodeFloat()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.DOUBLE),
-                (decoder, decoderContext, type) -> decoder.decodeDouble()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.of(Double.class)),
-                (NullableDeserializer<Double>) (decoder, decoderContext, type) -> decoder.decodeDouble()
-        );
-        this.deserializerMap.put(
                 new TypeEntry(Argument.CHAR),
                 (decoder, decoderContext, type) -> decoder.decodeChar()
         );
@@ -191,6 +159,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         Stream.of(
                 new IntegerSerde(),
                 new LongSerde(),
+                new ShortSerde(),
+                new FloatSerde(),
+                new ByteSerde(),
+                new DoubleSerde(),
                 new OptionalIntSerde(),
                 new OptionalDoubleSerde(),
                 new OptionalLongSerde(),
@@ -327,6 +299,122 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public int hashCode() {
             return type.typeHashCode();
+        }
+    }
+
+    private final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
+        @Override
+        public Byte deserializeNonNull(Decoder decoder,
+                                         DecoderContext decoderContext,
+                                         Argument<? super Byte> type) throws IOException {
+            return decoder.decodeByte();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Byte value,
+                              Argument<? extends Byte> type) throws IOException {
+            encoder.encodeByte(value);
+        }
+
+        @Override
+        Argument<Byte> getType() {
+            return Argument.of(Byte.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                    getType(), Argument.BYTE
+            );
+        }
+    }
+
+    private final class DoubleSerde extends SerdeRegistrar<Double> implements NumberSerde<Double> {
+        @Override
+        public Double deserializeNonNull(Decoder decoder,
+                                        DecoderContext decoderContext,
+                                        Argument<? super Double> type) throws IOException {
+            return decoder.decodeDouble();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Double value,
+                              Argument<? extends Double> type) throws IOException {
+            encoder.encodeDouble(value);
+        }
+
+        @Override
+        Argument<Double> getType() {
+            return Argument.of(Double.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                    getType(), Argument.DOUBLE
+            );
+        }
+    }
+
+    private final class ShortSerde extends SerdeRegistrar<Short> implements NumberSerde<Short> {
+        @Override
+        public Short deserializeNonNull(Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super Short> type) throws IOException {
+            return decoder.decodeShort();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Short value,
+                              Argument<? extends Short> type) throws IOException {
+            encoder.encodeShort(value);
+        }
+
+        @Override
+        Argument<Short> getType() {
+            return Argument.of(Short.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                    getType(), Argument.SHORT
+            );
+        }
+    }
+
+    private final class FloatSerde extends SerdeRegistrar<Float> implements NumberSerde<Float> {
+        @Override
+        public Float deserializeNonNull(Decoder decoder,
+                                        DecoderContext decoderContext,
+                                        Argument<? super Float> type) throws IOException {
+            return decoder.decodeFloat();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Float value,
+                              Argument<? extends Float> type) throws IOException {
+            encoder.encodeFloat(value);
+        }
+
+        @Override
+        Argument<Float> getType() {
+            return Argument.of(Float.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                    getType(), Argument.FLOAT
+            );
         }
     }
 
@@ -755,7 +843,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private final class BigDecimalSerde
             extends SerdeRegistrar<BigDecimal>
-            implements NullableSerde<BigDecimal> {
+            implements NumberSerde<BigDecimal> {
 
         @Override
         Argument<BigDecimal> getType() {
@@ -897,7 +985,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private final class BigIntegerSerde
             extends SerdeRegistrar<BigInteger>
-            implements NullableSerde<BigInteger> {
+            implements NumberSerde<BigInteger> {
 
         @Override
         Argument<BigInteger> getType() {
