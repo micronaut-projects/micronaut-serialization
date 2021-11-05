@@ -32,6 +32,8 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.bind.annotation.Bindable;
+import io.micronaut.core.convert.ConversionService;
+import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -374,7 +376,7 @@ class DeserBean<T> {
                            Argument<P> argument,
                            @Nullable BiConsumer<B, P> writer,
                            @NonNull Deserializer<P> deserializer,
-                           @Nullable DeserBean<P> unwrapped) {
+                           @Nullable DeserBean<P> unwrapped) throws SerdeException {
             this.instrospection = instrospection;
             this.index = index;
             this.argument = argument;
@@ -383,9 +385,14 @@ class DeserBean<T> {
             this.deserializer = deserializer;
             // compute default
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument);
-            this.defaultValue = annotationMetadata
-                    .getValue(Bindable.class, "defaultValue", argument)
-                    .orElse(deserializer.getDefaultValue());
+            try {
+                this.defaultValue = annotationMetadata
+                        .stringValue(Bindable.class, "defaultValue")
+                        .map(s -> ConversionService.SHARED.convertRequired(s, argument))
+                        .orElse(null);
+            } catch (ConversionErrorException e) {
+                throw new SerdeException((index > -1 ? "Constructor Argument" : "Property") + " [" + argument + "] of type [" + instrospection.getBeanType().getName() + "] defines an invalid default value", e);
+            }
             this.unwrapped = unwrapped;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class);
         }

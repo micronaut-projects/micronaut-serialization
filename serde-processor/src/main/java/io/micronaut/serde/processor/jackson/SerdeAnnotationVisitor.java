@@ -48,9 +48,9 @@ import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.annotation.Serdeable;
 
 /**
- * Handles Jackson specific behaviour when processing serdes.
+ * A visitor that provides validation and extended handling for JSON annotations.
  */
-public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
+public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
     private MethodElement anyGetterMethod;
     private MethodElement anySetterMethod;

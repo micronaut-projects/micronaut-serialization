@@ -1,1 +1,1 @@
-io.micronaut.serde.processor.jackson.JacksonAnnotationVisitor
+io.micronaut.serde.processor.jackson.SerdeAnnotationVisitor
