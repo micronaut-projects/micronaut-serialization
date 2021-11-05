@@ -564,6 +564,10 @@ public class CoreSerializers {
                 final Argument<T> generic = (Argument<T>) generics[0];
                 final Serializer<T> componentSerializer = (Serializer<T>) context.findSerializer(generic);
                 for (T t : value) {
+                    if (t == null) {
+                        encoder.encodeNull();
+                        continue;
+                    }
                     componentSerializer.serialize(
                             childEncoder,
                             context,

@@ -16,8 +16,9 @@ rootProject.name = "serde-parent"
 include("serde-processor")
 include("serde-api")
 include("serde-jackson")
-include ("serde-jsonp")
+include("serde-jsonp")
 include("serde-support")
+include("serde-bson")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
@@ -28,6 +29,9 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("mn") {
             from("io.micronaut:micronaut-bom:${micronautVersion.get()}")
+        }
+        create("libs") {
+            alias("bson").to("org.mongodb:bson:${providers.gradleProperty("bsonVersion").get()}")
         }
     }
 }

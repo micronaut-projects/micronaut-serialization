@@ -423,7 +423,7 @@ class DeserBean<T> {
         }
 
         public boolean isNonNull() {
-            return argument.isPrimitive() || !argument.isNullable();
+            return !argument.isPrimitive() && !argument.isNullable();
         }
 
         public void set(@NonNull B obj, @Nullable P v) throws SerdeException {
