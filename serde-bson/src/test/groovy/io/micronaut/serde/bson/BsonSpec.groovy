@@ -63,6 +63,54 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
             encodeAsBinaryDecodeAsObject(obj) == obj
     }
 
+    def "validate arrays of arrays"() {
+        given:
+            def json = """{"vals": [[{"val": "A"}, null, {"val": "B"}]]}"""
+        when:
+            def obj = encodeAsBinaryDecodeAsObject(BsonDocument.parse(json), ObjectWithArrayOfArray)
+        then:
+            obj
+            obj.vals.size() == 1
+            obj.vals[0].size() == 3
+            obj.vals[0][0].val == "A"
+            obj.vals[0][1] == null
+            obj.vals[0][2].val == "B"
+        and:
+            asBsonJsonString(obj) == json
+            encodeAsBinaryDecodeJson(obj) == json
+            encodeAsBinaryDecodeAsObject(obj) == obj
+    }
+
+    def "validate empty arrays of arrays"() {
+        given:
+            def json = """{"vals": [[]]}"""
+        when:
+            def obj = encodeAsBinaryDecodeAsObject(BsonDocument.parse(json), ObjectWithArrayOfArray)
+        then:
+            obj
+            obj.vals.size() == 1
+            obj.vals[0].size() == 0
+        and:
+            asBsonJsonString(obj) == json
+            encodeAsBinaryDecodeJson(obj) == json
+            encodeAsBinaryDecodeAsObject(obj) == obj
+    }
+
+    def "validate null arrays of arrays"() {
+        given:
+            def json = """{"vals": [null]}"""
+        when:
+            def obj = encodeAsBinaryDecodeAsObject(BsonDocument.parse(json), ObjectWithArrayOfArray)
+        then:
+            obj
+            obj.vals.size() == 1
+            obj.vals[0] == null
+        and:
+            asBsonJsonString(obj) == json
+            encodeAsBinaryDecodeJson(obj) == json
+            encodeAsBinaryDecodeAsObject(obj) == obj
+    }
+
     def "validate arrays as null"() {
         given:
             def json = """{"vals": null}"""
