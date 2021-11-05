@@ -77,6 +77,26 @@ public @interface SerdeConfig {
     String WRAPPER_PROPERTY = "wrapperProperty";
 
     /**
+     * A pattern to use.
+     */
+    String PATTERN = "pattern";
+
+    /**
+     * A locale to use.
+     */
+    String LOCALE = "locale";
+
+    /**
+     * A time zone to use.
+     */
+    String TIMEZONE = "timezone";
+
+    /**
+     * if parsing is required whether to be lenient.
+     */
+    String LENIENT = "lenient";
+
+    /**
      * Internal metadata type for wrapped settings.
      */
     @Internal

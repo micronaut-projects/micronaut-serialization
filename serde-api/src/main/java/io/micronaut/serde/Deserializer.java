@@ -42,7 +42,7 @@ public interface Deserializer<T> {
      * @param decoderContext The decoder context
      * @return An instance of the same type of deserializer
      */
-    default @NonNull Deserializer<T> createContextual(
+    default @NonNull Deserializer<T> createSpecific(
             @NonNull Argument<? super T> context,
             @NonNull DecoderContext decoderContext) throws SerdeException {
         return this;

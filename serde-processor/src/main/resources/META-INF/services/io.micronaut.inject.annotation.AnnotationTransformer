@@ -9,3 +9,4 @@ io.micronaut.serde.processor.bson.BsonPropertyTransformer
 io.micronaut.serde.processor.bson.BsonIgnoreTransformer
 io.micronaut.serde.processor.bson.BsonCreatorTransformer
 io.micronaut.serde.processor.bson.BsonIdTransformer
+io.micronaut.serde.processor.jackson.JsonFormatTransformer

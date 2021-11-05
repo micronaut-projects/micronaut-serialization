@@ -13,15 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde;
+package io.micronaut.serde.serdes;
 
-import io.micronaut.core.annotation.Indexed;
+import io.micronaut.context.annotation.Factory;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.Serde;
+import jakarta.inject.Singleton;
 
 /**
- * Combined interface for a serializer and deserializer pair.
- * @param <T> The type
- * @since 1.0.0
+ * Factory class for core serdes.
  */
-@Indexed(Serde.class)
-public interface Serde<T> extends Serializer<T>, Deserializer<T> {
+@Factory
+public class CoreSerdes {
+    /**
+     * Serde used for object arrays.
+     * @return The serde
+     */
+    @Singleton
+    @NonNull
+    protected Serde<Object[]> objectArraySerde() {
+        return new ObjectArraySerde();
+    }
 }

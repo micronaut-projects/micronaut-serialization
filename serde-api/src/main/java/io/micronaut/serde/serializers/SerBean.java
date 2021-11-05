@@ -79,7 +79,8 @@ final class SerBean<T> {
                 anyGetter.getReturnType().asArgument(),
                 anyGetter::invoke,
                 encoderContext.findSerializer(anyGetter.getReturnType().asArgument()),
-                null
+                null,
+                encoderContext
         ) : null;
 
         if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
@@ -91,7 +92,8 @@ final class SerBean<T> {
                                 Argument.of(String.class, typeProperty),
                                 null,
                                 encoderContext.findSerializer(Argument.STRING),
-                                typeName
+                                typeName,
+                                encoderContext
                         ));
                     } catch (SerdeException e) {
                         throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
@@ -107,7 +109,9 @@ final class SerBean<T> {
                         argument,
                         property::get,
                         encoderContext.findSerializer(argument),
-                        null);
+                        null,
+                        encoderContext
+                );
                 if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
                     anyGetterProperty = serProperty;
                 } else {
@@ -123,7 +127,9 @@ final class SerBean<T> {
                         returnType,
                         (Function<T, Object>) jsonGetter::invoke,
                         encoderContext.findSerializer(returnType),
-                        null)
+                        null,
+                        encoderContext
+                    )
                 );
             }
         } else {
@@ -158,13 +164,14 @@ final class SerBean<T> {
         // CHECKSTYLE:ON
 
         public SerProperty(
-                Argument<P> argument,
+                @NonNull Argument<P> argument,
                 @Nullable Function<B, P> reader,
-                Serializer<P> serializer,
-                @Nullable P injected) {
+                @NonNull Serializer<P> serializer,
+                @Nullable P injected,
+                @NonNull Serializer.EncoderContext encoderContext) {
             this.argument = argument;
             this.reader = reader;
-            this.serializer = serializer;
+            this.serializer = serializer.createSpecific(argument, encoderContext);
             final AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
             this.include = annotationMetadata
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
