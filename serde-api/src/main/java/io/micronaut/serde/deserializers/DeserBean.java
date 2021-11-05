@@ -390,7 +390,7 @@ class DeserBean<T> {
             this.argument = argument;
             this.required = argument.isNonNull();
             this.writer = writer;
-            this.deserializer = deserializer.createContextual(argument, decoderContext);
+            this.deserializer = deserializer.createSpecific(argument, decoderContext);
             // compute default
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument);
             try {

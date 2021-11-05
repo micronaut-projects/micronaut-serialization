@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.deserializers;
+package io.micronaut.serde.serdes;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableDeserializer;
+import io.micronaut.serde.util.NullableSerde;
 
 /**
  * Deserializer for object arrays.
@@ -31,14 +35,13 @@ import io.micronaut.serde.util.NullableDeserializer;
  * @author graemerocher
  * @since 1.0.0
  */
-public class ObjectArrayDeserializer implements NullableDeserializer<Object[]> {
+public class ObjectArraySerde implements NullableSerde<Object[]>, Serde<Object[]> {
     @Override
-    public Deserializer<Object[]> createContextual(Argument<? super Object[]> context, DecoderContext decoderContext)
+    public Deserializer<Object[]> createSpecific(Argument<? super Object[]> context, DecoderContext decoderContext)
             throws SerdeException {
-        // TODO: cache these
         final Argument<Object> componentType = getComponentType(context);
         final Deserializer<?> deserializer = findDeserializer(decoderContext, componentType);
-        return new ObjectArrayDeserializer() {
+        return new ObjectArraySerde() {
             @Override
             protected Argument<Object> getComponentType(Argument<? super Object[]> type) {
                 return componentType;
@@ -93,5 +96,29 @@ public class ObjectArrayDeserializer implements NullableDeserializer<Object[]> {
      */
     protected Deserializer<?> findDeserializer(DecoderContext decoderContext, Argument<?> componentType) throws SerdeException {
         return decoderContext.findDeserializer(componentType);
+    }
+
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Object[] value, Argument<? extends Object[]> type)
+            throws IOException {
+        final Encoder arrayEncoder = encoder.encodeArray();
+        // TODO: need better generics handling in core for arrays
+        final Argument<?> componentType = Argument.of(type.getType().getComponentType());
+        final Serializer<Object> componentSerializer =
+                (Serializer<Object>) context.findSerializer(componentType);
+        for (Object v : value) {
+            componentSerializer.serialize(
+                    arrayEncoder,
+                    context,
+                    v,
+                    componentType
+            );
+        }
+        arrayEncoder.finishStructure();
+    }
+
+    @Override
+    public boolean isEmpty(Object[] value) {
+        return ArrayUtils.isEmpty(value);
     }
 }

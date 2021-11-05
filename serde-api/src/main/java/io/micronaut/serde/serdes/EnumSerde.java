@@ -24,8 +24,8 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 /**
@@ -34,10 +34,10 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-final class EnumSerde<E extends Enum<E>> implements Serializer<E>, Deserializer<E> {
+final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
 
     @Override
-    public E deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super E> type) throws IOException {
+    public E deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super E> type) throws IOException {
         @SuppressWarnings("rawtypes") final Class t = type.getType();
         return (E) Enum.valueOf(t, decoder.decodeString());
     }

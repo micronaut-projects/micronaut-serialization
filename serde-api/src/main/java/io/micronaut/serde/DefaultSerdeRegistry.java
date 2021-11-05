@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,8 +46,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
-import io.micronaut.serde.deserializers.ObjectArrayDeserializer;
+import io.micronaut.serde.deserializers.ObjectDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.serializers.ObjectSerializer;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
@@ -65,20 +67,22 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
     private final Deserializer<Object> objectDeserializer;
-    private final Deserializer<Object[]> objectArrayDeserializer = new ObjectArrayDeserializer();
+    private final Serde<Object[]> objectArraySerde;
 
     public DefaultSerdeRegistry(
             BeanContext beanContext,
-            Serializer<Object> objectSerializer,
-            Deserializer<Object> objectDeserializer,
+            ObjectSerializer objectSerializer,
+            ObjectDeserializer objectDeserializer,
+            Serde<Object[]> objectArraySerde,
             SerdeIntrospections introspections) {
         final Collection<BeanDefinition<Serializer>> serializers =
                 beanContext.getBeanDefinitions(Serializer.class);
         final Collection<BeanDefinition<Deserializer>> deserializers =
                 beanContext.getBeanDefinitions(Deserializer.class);
         this.introspections = introspections;
-        this.serializerDefMap = new HashMap<>(serializers.size());
-        this.deserializerDefMap = new HashMap<>(deserializers.size());
+        this.serializerDefMap = new HashMap<>(serializers.size() + 30); // some padding
+        this.deserializerDefMap = new HashMap<>(deserializers.size() + 30); // some padding
+        this.objectArraySerde = objectArraySerde;
         this.beanContext = beanContext;
         for (BeanDefinition<Serializer> serializer : serializers) {
             final List<Argument<?>> typeArguments = serializer.getTypeArguments(Serializer.class);
@@ -208,7 +212,15 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 new URISerde(),
                 new CharsetSerde(),
                 new TimeZoneSerde(),
-                new LocaleSerde()
+                new LocaleSerde(),
+                new IntArraySerde(),
+                new LongArraySerde(),
+                new FloatArraySerde(),
+                new ShortArraySerde(),
+                new DoubleArraySerde(),
+                new BooleanArraySerde(),
+                new ByteArraySerde(),
+                new CharArraySerde()
         ).forEach(SerdeRegistrar::register);
     }
 
@@ -228,8 +240,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             }
         }
         if (key.type.isArray()) {
-            deserializerMap.put(key, objectArrayDeserializer);
-            return (Deserializer<? extends T>) objectArrayDeserializer;
+            deserializerMap.put(key, objectArraySerde);
+            return (Deserializer<? extends T>) objectArraySerde;
         } else {
             deserializerMap.put(key, objectDeserializer);
             return (Deserializer<? extends T>) objectDeserializer;
@@ -338,6 +350,351 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     .put(typeEntry, this);
             DefaultSerdeRegistry.this.serializerMap
                     .put(typeEntry, this);
+        }
+    }
+
+    private final class BooleanArraySerde extends SerdeRegistrar<boolean[]> implements NullableSerde<boolean[]> {
+        @Override
+        public boolean[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super boolean[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            boolean[] buffer = new boolean[50];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeBoolean();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              boolean[] value,
+                              Argument<? extends boolean[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (boolean i : value) {
+                arrayEncoder.encodeBoolean(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(boolean[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<boolean[]> getType() {
+            return Argument.of(boolean[].class);
+        }
+    }
+
+    private final class DoubleArraySerde extends SerdeRegistrar<double[]> implements NullableSerde<double[]> {
+        @Override
+        public double[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super double[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            double[] buffer = new double[50];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeDouble();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              double[] value,
+                              Argument<? extends double[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (double i : value) {
+                arrayEncoder.encodeDouble(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(double[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<double[]> getType() {
+            return Argument.of(double[].class);
+        }
+    }
+
+    private final class ShortArraySerde extends SerdeRegistrar<short[]> implements NullableSerde<short[]> {
+        @Override
+        public short[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super short[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            short[] buffer = new short[50];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeShort();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              short[] value,
+                              Argument<? extends short[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (short i : value) {
+                arrayEncoder.encodeShort(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(short[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<short[]> getType() {
+            return Argument.of(short[].class);
+        }
+    }
+
+    private final class FloatArraySerde extends SerdeRegistrar<float[]> implements NullableSerde<float[]> {
+        @Override
+        public float[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super float[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            float[] buffer = new float[50];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeFloat();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              float[] value,
+                              Argument<? extends float[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (float i : value) {
+                arrayEncoder.encodeFloat(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(float[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<float[]> getType() {
+            return Argument.of(float[].class);
+        }
+    }
+
+    private final class LongArraySerde extends SerdeRegistrar<long[]> implements NullableSerde<long[]> {
+
+        @Override
+        public long[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super long[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            long[] buffer = new long[50];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeLong();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              long[] value,
+                              Argument<? extends long[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (long i : value) {
+                arrayEncoder.encodeLong(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(long[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<long[]> getType() {
+            return Argument.of(long[].class);
+        }
+    }
+
+    private final class CharArraySerde extends SerdeRegistrar<char[]> implements NullableSerde<char[]> {
+        @Override
+        public char[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super char[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            char[] buffer = new char[100];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeChar();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              char[] value,
+                              Argument<? extends char[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (char i : value) {
+                arrayEncoder.encodeChar(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(char[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<char[]> getType() {
+            return Argument.of(char[].class);
+        }
+    }
+
+    private final class ByteArraySerde extends SerdeRegistrar<byte[]> implements NullableSerde<byte[]> {
+        @Override
+        public byte[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super byte[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            byte[] buffer = new byte[100];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeByte();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              byte[] value,
+                              Argument<? extends byte[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (byte i : value) {
+                arrayEncoder.encodeByte(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(byte[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<byte[]> getType() {
+            return Argument.of(byte[].class);
+        }
+    }
+
+    private final class IntArraySerde extends SerdeRegistrar<int[]> implements NullableSerde<int[]> {
+        @Override
+        public int[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super int[]> type)
+                throws IOException {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            int[] buffer = new int[50];
+            int index = 0;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (buffer.length == index) {
+                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                }
+                if (!arrayDecoder.decodeNull()) {
+                    buffer[index] = arrayDecoder.decodeInt();
+                }
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              int[] value,
+                              Argument<? extends int[]> type) throws IOException {
+            final Encoder arrayEncoder = encoder.encodeArray();
+            for (int i : value) {
+                arrayEncoder.encodeInt(i);
+            }
+            arrayEncoder.finishStructure();
+        }
+
+        @Override
+        public boolean isEmpty(int[] value) {
+            return value == null || value.length == 0;
+        }
+
+        @Override
+        Argument<int[]> getType() {
+            return Argument.of(int[].class);
         }
     }
 
