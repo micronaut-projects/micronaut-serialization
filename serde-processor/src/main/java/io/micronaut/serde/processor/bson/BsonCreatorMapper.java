@@ -17,7 +17,7 @@ package io.micronaut.serde.processor.bson;
 
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Creator;
-import io.micronaut.inject.annotation.NamedAnnotationMapper;
+import io.micronaut.inject.annotation.NamedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
 
 import java.lang.annotation.Annotation;
@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author Denis Stepanov
  */
-public class BsonCreatorMapper implements NamedAnnotationMapper {
+public class BsonCreatorMapper implements NamedAnnotationTransformer {
 
     private static final List<AnnotationValue<?>> MAPPED = Collections.singletonList(AnnotationValue.builder(Creator.class).build());
 
@@ -39,7 +39,7 @@ public class BsonCreatorMapper implements NamedAnnotationMapper {
     }
 
     @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return MAPPED;
 
     }
