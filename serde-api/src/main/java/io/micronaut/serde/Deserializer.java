@@ -34,6 +34,20 @@ import io.micronaut.serde.exceptions.SerdeException;
  */
 @Indexed(Deserializer.class)
 public interface Deserializer<T> {
+
+    /**
+     * Create a new child deserializer or return this if non is necessary for the given context.
+     *
+     * @param context The context, including any annotation metadata and type information to narrow the deserializer type
+     * @param decoderContext The decoder context
+     * @return An instance of the same type of deserializer
+     */
+    default @NonNull Deserializer<T> createContextual(
+            @NonNull Argument<? super T> context,
+            @NonNull DecoderContext decoderContext) throws SerdeException {
+        return this;
+    }
+
     /**
      * Deserializes from the current state of the {@link Decoder} an object of type {@link T}.
      *

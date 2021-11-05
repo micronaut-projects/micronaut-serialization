@@ -91,7 +91,8 @@ class DeserBean<T> {
                                 constructorArgument,
                                 null,
                                 decoderContext.findDeserializer(constructorArgument),
-                                null
+                                null,
+                                decoderContext
                         )
                 );
                 continue;
@@ -117,7 +118,8 @@ class DeserBean<T> {
                         constructorArgument,
                         null,
                         deserializer,
-                        unwrapped
+                        unwrapped,
+                        decoderContext
                 ));
                 String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
                 String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
@@ -139,7 +141,8 @@ class DeserBean<T> {
                                 constructorArgument,
                                 null,
                                 (Deserializer) deserializer,
-                                unwrapped
+                                unwrapped,
+                                decoderContext
                         )
                 );
             } else {
@@ -151,7 +154,8 @@ class DeserBean<T> {
                                 constructorArgument,
                                 null,
                                 (Deserializer) deserializer,
-                                null
+                                null,
+                                decoderContext
                         )
                 );
             }
@@ -207,7 +211,8 @@ class DeserBean<T> {
                                 t,
                                 beanProperty::set,
                                 deserializer,
-                                unwrapped
+                                unwrapped,
+                                decoderContext
                         ));
                         String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
                         String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
@@ -241,7 +246,8 @@ class DeserBean<T> {
                                               t,
                                               beanProperty::set,
                                               (Deserializer) deserializer,
-                                              null
+                                              null,
+                                              decoderContext
                                       )
                         );
                     }
@@ -260,7 +266,8 @@ class DeserBean<T> {
                         argument,
                         jsonSetter::invoke,
                         deserializer,
-                        null
+                        null,
+                        decoderContext
                 ));
             }
 
@@ -376,13 +383,14 @@ class DeserBean<T> {
                            Argument<P> argument,
                            @Nullable BiConsumer<B, P> writer,
                            @NonNull Deserializer<P> deserializer,
-                           @Nullable DeserBean<P> unwrapped) throws SerdeException {
+                           @Nullable DeserBean<P> unwrapped,
+                           @NonNull Deserializer.DecoderContext decoderContext) throws SerdeException {
             this.instrospection = instrospection;
             this.index = index;
             this.argument = argument;
             this.required = argument.isNonNull();
             this.writer = writer;
-            this.deserializer = deserializer;
+            this.deserializer = deserializer.createContextual(argument, decoderContext);
             // compute default
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument);
             try {

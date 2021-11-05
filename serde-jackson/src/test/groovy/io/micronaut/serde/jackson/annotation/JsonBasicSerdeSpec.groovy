@@ -1,4 +1,4 @@
-package io.micronaut.serde.jackson.object
+package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.http.HttpStatus
 import io.micronaut.serde.jackson.JsonCompileSpec
@@ -7,7 +7,7 @@ import spock.lang.Unroll
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
-class ObjectSerializerCompileSpec extends JsonCompileSpec {
+class JsonBasicSerdeSpec extends JsonCompileSpec {
 
     @Unroll
     void "test basic type #type"() {
@@ -114,7 +114,7 @@ class Test {
     }
 
     @Unroll
-    void "test basic array type #type"() {
+    void "test basic array type #type with #data"() {
         given:
         def context = buildContext('test.Test', """
 package test;
@@ -134,6 +134,8 @@ class Test {
 """, data)
         expect:
         writeJson(jsonMapper, beanUnderTest) == result
+        def bean = jsonMapper.readValue(result, argumentOf(context, 'test.Test'))
+        bean.value == data.value
 
         cleanup:
         context.close()
@@ -158,6 +160,60 @@ class Test {
         Double[]    | [value: [10.1] as Double[]]   | '{"value":[10.1]}'
         Float[]     | [value: [10.1] as Float[]]    | '{"value":[10.1]}'
         Character[] | [value: ['a'] as Character[]] | '{"value":[97]}'
+        // null
+        String[]    | [value: null]                 | '{"value":null}'
+        boolean[]   | [value: null]                 | '{"value":null}'
+        byte[]      | [value: null]                 | '{"value":null}'
+        short[]     | [value: null]                 | '{"value":null}'
+        int[]       | [value: null]                 | '{"value":null}'
+        long[]      | [value: null]                 | '{"value":null}'
+        double[]    | [value: null]                 | '{"value":null}'
+        float[]     | [value: null]                 | '{"value":null}'
+        char[]      | [value: null]                 | '{"value":null}'
+
+
+    }
+
+    @Unroll
+    void "test basic array type #type with arrays and null values"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private $type.componentType.name[] value;
+    public void setValue($type.componentType.name[] value) {
+        this.value = value;
+    } 
+    public $type.componentType.name[] getValue() {
+        return value;
+    }
+}
+""")
+        def bean = jsonMapper.readValue(data, argumentOf(context, 'test.Test'))
+
+        expect:
+        bean.value == expected
+
+        cleanup:
+        context.close()
+
+        where:
+        type      | expected                   | data
+        String[]  | ["Test", null] as String[] | '{"value":["Test", null]}'
+        boolean[] | [true, false] as boolean[] | '{"value":[true, null]}'
+        byte[]    | [10, 0] as byte[]          | '{"value":[10, null]}'
+        short[]   | [10, 0] as short[]         | '{"value":[10, null]}'
+        int[]     | [10, 0] as int[]           | '{"value":[10, null]}'
+        long[]    | [10, 0] as long[]          | '{"value":[10, null]}'
+        double[]  | [10.1, 0d] as double[]     | '{"value":[10.1, null]}'
+        float[]   | [10.1, 0f] as float[]      | '{"value":[10.1, null]}'
+        char[]    | ['a', 0 as char] as char[] | '{"value":[97, null]}'
+
+
     }
 
     @Unroll

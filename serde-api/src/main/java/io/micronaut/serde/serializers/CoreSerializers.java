@@ -16,6 +16,7 @@
 package io.micronaut.serde.serializers;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -25,9 +26,11 @@ import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 /**
@@ -40,7 +43,7 @@ public class CoreSerializers {
      * Generic array serializer.
      * @return A serializer for object array
      */
-    @Singleton protected Serializer<Object[]> arraySerializer() {
+    @Singleton protected Serializer<Object[]> arraySerde() {
         return new Serializer<Object[]>() {
             @Override
             public void serialize(Encoder encoder,
@@ -158,8 +161,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<char[]> charArraySerializer() {
-        return new Serializer<char[]>() {
+    @Singleton protected NullableSerde<char[]> charArraySerde() {
+        return new NullableSerde<char[]>() {
+            @Override
+            public char[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super char[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                char[] buffer = new char[100];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeChar();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -193,8 +215,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<byte[]> byteArraySerializer() {
-        return new Serializer<byte[]>() {
+    @Singleton protected NullableSerde<byte[]> byteArraySerde() {
+        return new NullableSerde<byte[]>() {
+            @Override
+            public byte[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super byte[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                byte[] buffer = new byte[100];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeByte();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -228,8 +269,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<int[]> intArraySerializer() {
-        return new Serializer<int[]>() {
+    @Singleton protected NullableSerde<int[]> intArraySerde() {
+        return new NullableSerde<int[]>() {
+            @Override
+            public int[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super int[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                int[] buffer = new int[50];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeInt();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -250,12 +310,31 @@ public class CoreSerializers {
     }
 
     /**
-     * A serializer for all instances of {@code short[]}.
+     * A serde for all instances of {@code short[]}.
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<short[]> shortArraySerializer() {
-        return new Serializer<short[]>() {
+    @Singleton protected NullableSerde<short[]> shortArraySerde() {
+        return new NullableSerde<short[]>() {
+            @Override
+            public short[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super short[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                short[] buffer = new short[50];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeShort();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -280,8 +359,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<boolean[]> booleanArraySerializer() {
-        return new Serializer<boolean[]>() {
+    @Singleton protected NullableSerde<boolean[]> booleanArraySerde() {
+        return new NullableSerde<boolean[]>() {
+            @Override
+            public boolean[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super boolean[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                boolean[] buffer = new boolean[50];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeBoolean();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -306,8 +404,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<long[]> longArraySerializer() {
-        return new Serializer<long[]>() {
+    @Singleton protected NullableSerde<long[]> longArraySerde() {
+        return new NullableSerde<long[]>() {
+            @Override
+            public long[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super long[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                long[] buffer = new long[50];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeLong();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -332,8 +449,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<float[]> floatArraySerializer() {
-        return new Serializer<float[]>() {
+    @Singleton protected NullableSerde<float[]> floatArraySerde() {
+        return new NullableSerde<float[]>() {
+            @Override
+            public float[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super float[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                float[] buffer = new float[50];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeFloat();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
@@ -358,8 +494,27 @@ public class CoreSerializers {
      *
      * @return An array serializer
      */
-    @Singleton protected Serializer<double[]> doubleArraySerializer() {
-        return new Serializer<double[]>() {
+    @Singleton protected NullableSerde<double[]> doubleArraySerde() {
+        return new NullableSerde<double[]>() {
+            @Override
+            public double[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super double[]> type)
+                    throws IOException {
+                final Decoder arrayDecoder = decoder.decodeArray();
+                double[] buffer = new double[50];
+                int index = 0;
+                while (arrayDecoder.hasNextArrayValue()) {
+                    if (buffer.length == index) {
+                        buffer = Arrays.copyOf(buffer, buffer.length * 2);
+                    }
+                    if (!arrayDecoder.decodeNull()) {
+                        buffer[index] = arrayDecoder.decodeDouble();
+                    }
+                    index++;
+                }
+                arrayDecoder.finishStructure();
+                return Arrays.copyOf(buffer, index);
+            }
+
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,

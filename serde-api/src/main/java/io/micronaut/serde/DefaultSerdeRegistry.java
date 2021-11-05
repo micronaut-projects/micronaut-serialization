@@ -45,6 +45,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
+import io.micronaut.serde.deserializers.ObjectArrayDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.NullableSerde;
@@ -64,6 +65,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
     private final Deserializer<Object> objectDeserializer;
+    private final Deserializer<Object[]> objectArrayDeserializer = new ObjectArrayDeserializer();
 
     public DefaultSerdeRegistry(
             BeanContext beanContext,
@@ -225,7 +227,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 return (Deserializer<? extends T>) deser;
             }
         }
-        return (Deserializer<? extends T>) objectDeserializer;
+        if (key.type.isArray()) {
+            deserializerMap.put(key, objectArrayDeserializer);
+            return (Deserializer<? extends T>) objectArrayDeserializer;
+        } else {
+            deserializerMap.put(key, objectDeserializer);
+            return (Deserializer<? extends T>) objectDeserializer;
+        }
     }
 
     @Override
