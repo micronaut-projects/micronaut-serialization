@@ -35,6 +35,17 @@ import io.micronaut.serde.exceptions.SerdeException;
 public interface Serializer<T> {
 
     /**
+     * Create a more specific serializer for the given definition.
+     * @param encoderContext The encoder context
+     * @param type The type definition including any annotation metadata
+     * @return The more specific serializer
+     */
+    default @NonNull
+    Serializer<T> createSpecific(@NonNull Argument<? extends T> type, @NonNull EncoderContext encoderContext) {
+        return this;
+    }
+
+    /**
      * Serializes the given value using the passed {@link Encoder}.
      * @param encoder The encoder to use
      * @param context The encoder context, never {@code null}
@@ -67,7 +78,8 @@ public interface Serializer<T> {
     }
 
     /**
-     * Context object passes to the {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
+     * Context object passes to the
+     * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
     interface EncoderContext {
         /**
@@ -77,8 +89,9 @@ public interface Serializer<T> {
          * @return The serializer
          * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
          */
-        @NonNull <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType)
-            throws SerdeException;
+        @NonNull
+        <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType)
+                throws SerdeException;
 
         /**
          * Finds a serializer for the given type.
@@ -87,7 +100,8 @@ public interface Serializer<T> {
          * @return The serializer
          * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
          */
-        default @NonNull <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
+        default @NonNull
+        <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
                 throws SerdeException {
             return findSerializer(Argument.of(forType));
         }

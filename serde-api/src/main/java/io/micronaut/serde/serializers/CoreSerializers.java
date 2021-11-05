@@ -77,16 +77,6 @@ public class CoreSerializers {
     }
 
     /**
-     * A serializer for all instances of {@link java.lang.Long}.
-     *
-     * @return A long serializer
-     */
-    @Singleton
-    protected Serializer<Long> longSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeLong(value);
-    }
-
-    /**
      * A serializer for all instances of {@link java.lang.Double}.
      *
      * @return A double serializer
@@ -134,16 +124,6 @@ public class CoreSerializers {
     @Singleton
     protected Serializer<Byte> byteSerializer() {
         return (encoder, context, value, type) -> encoder.encodeByte(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Integer}.
-     *
-     * @return A integer serializer
-     */
-    @Singleton
-    protected Serializer<Integer> intSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeInt(value);
     }
 
     /**

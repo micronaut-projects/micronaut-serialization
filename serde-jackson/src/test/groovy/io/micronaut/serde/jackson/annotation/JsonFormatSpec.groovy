@@ -37,8 +37,10 @@ class Test {
         context.close()
 
         where:
-        type | data        | settings            | result
-        int  | [value: 10] | [pattern: "###.##"] | '{"value":"10.10"}'
-
+        type    | data             | settings                  | result
+        int     | [value: 10]      | [pattern: '$###,###.###'] | '{"value":"$10"}'
+        Integer | [value: 10]      | [pattern: '$###,###.###'] | '{"value":"$10"}'
+        long    | [value: 100000l] | [pattern: '$###,###.###'] | '{"value":"$100,000"}'
+        Long    | [value: 100000l] | [pattern: '$###,###.###'] | '{"value":"$100,000"}'
     }
 }

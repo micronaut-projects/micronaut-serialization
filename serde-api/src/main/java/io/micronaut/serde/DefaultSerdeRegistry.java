@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
@@ -48,6 +50,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.serde.deserializers.ObjectDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.serializers.NumberSerde;
 import io.micronaut.serde.serializers.ObjectSerializer;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.NullableSerde;
@@ -141,14 +144,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 (NullableDeserializer<Boolean>) (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
         this.deserializerMap.put(
-                new TypeEntry(Argument.INT),
-                (decoder, decoderContext, type) -> decoder.decodeInt()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.of(Integer.class)),
-                (NullableDeserializer<Integer>) (decoder, decoderContext, type) -> decoder.decodeInt()
-        );
-        this.deserializerMap.put(
                 new TypeEntry(Argument.BYTE),
                 (decoder, decoderContext, type) -> decoder.decodeByte()
         );
@@ -163,14 +158,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.deserializerMap.put(
                 new TypeEntry(Argument.of(Short.class)),
                 (NullableDeserializer<Short>) (decoder, decoderContext, type) -> decoder.decodeShort()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.LONG),
-                (decoder, decoderContext, type) -> decoder.decodeLong()
-        );
-        this.deserializerMap.put(
-                new TypeEntry(Argument.of(Long.class)),
-                (NullableDeserializer<Long>) (decoder, decoderContext, type) -> decoder.decodeLong()
         );
         this.deserializerMap.put(
                 new TypeEntry(Argument.FLOAT),
@@ -202,6 +189,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.deserializerMap.put(new TypeEntry(Argument.STRING),
                                  (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
         Stream.of(
+                new IntegerSerde(),
+                new LongSerde(),
                 new OptionalIntSerde(),
                 new OptionalDoubleSerde(),
                 new OptionalLongSerde(),
@@ -341,15 +330,81 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
+    private final class IntegerSerde extends SerdeRegistrar<Integer> implements NumberSerde<Integer> {
+        @Override
+        public Integer deserializeNonNull(Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super Integer> type) throws IOException {
+            return decoder.decodeInt();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Integer value,
+                              Argument<? extends Integer> type) throws IOException {
+            encoder.encodeInt(value);
+        }
+
+        @Override
+        Argument<Integer> getType() {
+            return Argument.of(Integer.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                    getType(), Argument.INT
+            );
+        }
+    }
+
+    private final class LongSerde extends SerdeRegistrar<Long> implements NumberSerde<Long> {
+        @Override
+        public Long deserializeNonNull(Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super Long> type) throws IOException {
+            return decoder.decodeLong();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Long value,
+                              Argument<? extends Long> type) throws IOException {
+            encoder.encodeLong(value);
+        }
+
+        @Override
+        Argument<Long> getType() {
+            return Argument.of(Long.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                    getType(), Argument.LONG
+            );
+        }
+    }
+
     private abstract class SerdeRegistrar<T> implements Serde<T> {
+        @NonNull
         abstract Argument<T> getType();
 
+        @NonNull
+        protected Iterable<Argument<?>> getTypes() {
+            return Collections.singleton(getType());
+        }
+
         void register() {
-            final TypeEntry typeEntry = new TypeEntry(getType());
-            DefaultSerdeRegistry.this.deserializerMap
-                    .put(typeEntry, this);
-            DefaultSerdeRegistry.this.serializerMap
-                    .put(typeEntry, this);
+            for (Argument<?> type : getTypes()) {
+                final TypeEntry typeEntry = new TypeEntry(type);
+                DefaultSerdeRegistry.this.deserializerMap
+                        .put(typeEntry, this);
+                DefaultSerdeRegistry.this.serializerMap
+                        .put(typeEntry, this);
+            }
         }
     }
 
