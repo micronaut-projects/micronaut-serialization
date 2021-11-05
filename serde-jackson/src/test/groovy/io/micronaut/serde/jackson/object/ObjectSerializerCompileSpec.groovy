@@ -1,6 +1,6 @@
 package io.micronaut.serde.jackson.object
 
-
+import io.micronaut.http.HttpStatus
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Unroll
 
@@ -59,6 +59,7 @@ class Test {
         Double     | [value: 10.1d]                        | '{"value":10.1}'
         Float      | [value: 10.1f]                        | '{"value":10.1}'
         Character  | [value: 'a' as char]                  | '{"value":97}'
+        HttpStatus | [value: HttpStatus.ACCEPTED]          | '{"value":"ACCEPTED"}'
 
         // other common classes
         URI        | [value: URI.create("http://foo.com")] | '{"value":"http://foo.com"}'

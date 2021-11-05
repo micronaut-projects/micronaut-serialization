@@ -16,6 +16,8 @@
 package io.micronaut.serde;
 
 import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
@@ -218,11 +220,22 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (deserializer != null) {
             return (Deserializer<? extends T>) deserializer;
         } else {
-            final Deserializer<?> deser = beanContext.findBean(Argument.of(Deserializer.class, type))
+            Deserializer<?> deser = beanContext.findBean(Argument.of(Deserializer.class, type))
                     .orElse(null);
             if (deser != null) {
                 deserializerMap.put(key, deser);
                 return (Deserializer<? extends T>) deser;
+            } else {
+                Type t = type.getType().getGenericSuperclass();
+                if (t instanceof ParameterizedType) {
+                    // bit of hack, findBean doesn't deal with generic super type / interface searches
+                    deser = (Deserializer<?>) beanContext.findBean(Argument.of(Deserializer.class, Argument.of(t)))
+                            .orElse(null);
+                    if (deser != null) {
+                        deserializerMap.put(key, deser);
+                        return (Deserializer<? extends T>) deser;
+                    }
+                }
             }
         }
         return (Deserializer<? extends T>) objectDeserializer;
