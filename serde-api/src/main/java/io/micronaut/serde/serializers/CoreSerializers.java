@@ -77,46 +77,6 @@ public class CoreSerializers {
     }
 
     /**
-     * A serializer for all instances of {@link java.lang.Long}.
-     *
-     * @return A long serializer
-     */
-    @Singleton
-    protected Serializer<Long> longSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeLong(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Double}.
-     *
-     * @return A double serializer
-     */
-    @Singleton
-    protected Serializer<Double> doubleSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeDouble(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Float}.
-     *
-     * @return A float serializer
-     */
-    @Singleton
-    protected Serializer<Float> floatSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeFloat(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Short}.
-     *
-     * @return A short serializer
-     */
-    @Singleton
-    protected Serializer<Short> shortSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeShort(value);
-    }
-
-    /**
      * A serializer for all instances of {@link java.lang.Character}.
      *
      * @return A Character serializer
@@ -124,26 +84,6 @@ public class CoreSerializers {
     @Singleton
     protected Serializer<Character> charSerializer() {
         return (encoder, context, value, type) -> encoder.encodeChar(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Byte}.
-     *
-     * @return A byte serializer
-     */
-    @Singleton
-    protected Serializer<Byte> byteSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeByte(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Integer}.
-     *
-     * @return A integer serializer
-     */
-    @Singleton
-    protected Serializer<Integer> intSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeInt(value);
     }
 
     /**
