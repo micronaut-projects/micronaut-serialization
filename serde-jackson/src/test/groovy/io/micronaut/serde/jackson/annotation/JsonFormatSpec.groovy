@@ -37,8 +37,8 @@ class Test {
         context.close()
 
         where:
-        type       | data                              | settings            | result
-        BigDecimal | [value: 10.1]                     | [pattern: "###.##"] | '{"value":10.10}'
+        type | data        | settings            | result
+        int  | [value: 10] | [pattern: "###.##"] | '{"value":"10.10"}'
 
     }
 }
