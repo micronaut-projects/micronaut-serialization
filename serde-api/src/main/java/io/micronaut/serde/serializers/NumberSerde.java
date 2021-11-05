@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.serializers;
 
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serde;
@@ -31,20 +32,22 @@ public interface NumberSerde<N extends Number> extends Serde<N>, NullableSerde<N
 
     @Override
     default Deserializer<N> createSpecific(Argument<? super N> context, DecoderContext decoderContext) throws SerdeException {
-        final String pattern = context.getAnnotationMetadata()
+        final AnnotationMetadata annotationMetadata = context.getAnnotationMetadata();
+        final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null) {
-            return new FormattedNumberSerde<>(pattern);
+            return new FormattedNumberSerde<>(pattern, annotationMetadata);
         }
         return this;
     }
 
     @Override
     default Serializer<N> createSpecific(Argument<? extends N> type, EncoderContext encoderContext) {
-        final String pattern = type.getAnnotationMetadata()
+        final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
+        final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null) {
-            return new FormattedNumberSerde<>(pattern);
+            return new FormattedNumberSerde<>(pattern, annotationMetadata);
         }
         return this;
     }

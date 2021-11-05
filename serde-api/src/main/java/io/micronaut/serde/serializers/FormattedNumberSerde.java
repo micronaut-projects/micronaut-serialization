@@ -17,11 +17,18 @@ package io.micronaut.serde.serializers;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
+
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -31,14 +38,18 @@ import io.micronaut.serde.exceptions.SerdeException;
 @Internal
 final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
     private final String pattern;
+    private final Locale locale;
 
-    FormattedNumberSerde(String pattern) {
+    FormattedNumberSerde(@NonNull String pattern, @NonNull AnnotationMetadata annotationMetadata) {
         this.pattern = pattern;
+        this.locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
+                .map(StringUtils::parseLocale)
+                .orElse(null);
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, N value, Argument<? extends N> type) throws IOException {
-        final DecimalFormat decimalFormat = new DecimalFormat(pattern);
+        final DecimalFormat decimalFormat = createDecimalFormat(type);
         final String result = decimalFormat.format(value);
         encoder.encodeString(result);
     }
@@ -46,17 +57,27 @@ final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
     @Override
     public N deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super N> type) throws IOException {
         final String s = decoder.decodeString();
-        final DecimalFormat decimalFormat;
-        try {
-            decimalFormat = new DecimalFormat(pattern);
-        } catch (Exception e) {
-            throw new SerdeException("Error decoding number of type " + type + ", pattern is invalid " + pattern + ":" + e.getMessage(), e);
-        }
+        final DecimalFormat decimalFormat = createDecimalFormat(type);
         try {
             final Number number = decimalFormat.parse(s);
             return (N) ConversionService.SHARED.convertRequired(number, type);
         } catch (Exception e) {
             throw new SerdeException("Error decoding number of type " + type + " using pattern " + pattern + ":" + e.getMessage(), e);
         }
+    }
+
+    private DecimalFormat createDecimalFormat(Argument<?> type) throws SerdeException {
+        final DecimalFormat decimalFormat;
+        try {
+            if (locale != null) {
+                decimalFormat = (DecimalFormat) NumberFormat.getInstance(locale);
+                decimalFormat.applyPattern(pattern);
+            } else {
+                decimalFormat = new DecimalFormat(pattern);
+            }
+        } catch (Exception e) {
+            throw new SerdeException("Error decoding number of type " + type + ", pattern is invalid " + pattern + ":" + e.getMessage(), e);
+        }
+        return decimalFormat;
     }
 }

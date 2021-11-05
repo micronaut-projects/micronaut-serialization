@@ -37,22 +37,27 @@ class Test {
         context.close()
 
         where:
-        type       | data                                 | settings                  | result
-        byte       | [value: 10]                          | [pattern: '$###,###.###'] | '{"value":"$10"}'
-        Byte       | [value: 10]                          | [pattern: '$###,###.###'] | '{"value":"$10"}'
-        int        | [value: 10]                          | [pattern: '$###,###.###'] | '{"value":"$10"}'
-        Integer    | [value: 10]                          | [pattern: '$###,###.###'] | '{"value":"$10"}'
-        long       | [value: 100000l]                     | [pattern: '$###,###.###'] | '{"value":"$100,000"}'
-        Long       | [value: 100000l]                     | [pattern: '$###,###.###'] | '{"value":"$100,000"}'
-        short      | [value: 10000]                       | [pattern: '$###,###.###'] | '{"value":"$10,000"}'
-        Short      | [value: 10000]                       | [pattern: '$###,###.###'] | '{"value":"$10,000"}'
-        double     | [value: 100000.12d]                  | [pattern: '$###,###.###'] | '{"value":"$100,000.12"}'
-        Double     | [value: 100000.12d]                  | [pattern: '$###,###.###'] | '{"value":"$100,000.12"}'
-        float      | [value: 100000.12f]                  | [pattern: '$###,###.###'] | '{"value":"$100,000.117"}'
-        Float      | [value: 100000.12f]                  | [pattern: '$###,###.###'] | '{"value":"$100,000.117"}'
-        BigDecimal | [value: new BigDecimal("100000.12")] | [pattern: '$###,###.###'] | '{"value":"$100,000.12"}'
-        BigDecimal | [value: new BigDecimal("100000.12")] | [pattern: '$###,###.###'] | '{"value":"$100,000.12"}'
-        BigInteger | [value: new BigInteger("100000")]    | [pattern: '$###,###.###'] | '{"value":"$100,000"}'
-        BigInteger | [value: new BigInteger("100000")]    | [pattern: '$###,###.###'] | '{"value":"$100,000"}'
+        type       | data                                 | settings                                   | result
+        // locale
+        Double     | [value: 100000.12d]                  | [pattern: '$###,###.###', locale: 'de_DE'] | '{"value":"$100.000,12"}'
+
+        // without locale
+        byte       | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        Byte       | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        int        | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        Integer    | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        long       | [value: 100000l]                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        Long       | [value: 100000l]                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        short      | [value: 10000]                       | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
+        Short      | [value: 10000]                       | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
+        double     | [value: 100000.12d]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        Double     | [value: 100000.12d]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        float      | [value: 100000.12f]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
+        Float      | [value: 100000.12f]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
+        BigDecimal | [value: new BigDecimal("100000.12")] | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        BigDecimal | [value: new BigDecimal("100000.12")] | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        BigInteger | [value: new BigInteger("100000")]    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        BigInteger | [value: new BigInteger("100000")]    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+
     }
 }

@@ -47,6 +47,7 @@ import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.serde.deserializers.ObjectDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -959,7 +960,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public Locale deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Locale> type)
                 throws IOException {
-            return Locale.forLanguageTag(decoder.decodeString());
+            return StringUtils.parseLocale(decoder.decodeString());
         }
     }
 
