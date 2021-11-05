@@ -36,6 +36,7 @@ public final class BsonReaderDecoder implements Decoder {
     private final BsonReader bsonReader;
     private final boolean inArray;
     private boolean isEndOfDocument;
+    private boolean arrayHasChildren;
 
     public BsonReaderDecoder(BsonReader bsonReader) {
         this(bsonReader, false);
@@ -50,7 +51,6 @@ public final class BsonReaderDecoder implements Decoder {
     private void next() {
         BsonType bsonType = bsonReader.readBsonType();
         isEndOfDocument = bsonType == BsonType.END_OF_DOCUMENT;
-        System.out.println(bsonType + " " + isEndOfDocument());
     }
 
     @Override
@@ -69,8 +69,12 @@ public final class BsonReaderDecoder implements Decoder {
             return false;
         }
         if (isEndOfDocument()) {
-            next();
-            return !isEndOfDocument();
+            if (arrayHasChildren) {
+                next();
+                return !isEndOfDocument();
+            } else {
+                return false;
+            }
         }
         return true;
     }
@@ -81,6 +85,9 @@ public final class BsonReaderDecoder implements Decoder {
 
     @Override
     public Decoder decodeObject() throws IOException {
+        if (inArray) {
+            arrayHasChildren = true;
+        }
         if (bsonReader.getCurrentBsonType() == BsonType.DOCUMENT) {
             bsonReader.readStartDocument();
         } else {

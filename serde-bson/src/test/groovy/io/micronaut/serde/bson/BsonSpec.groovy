@@ -32,6 +32,20 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
             encodeAsBinaryDecodeAsObject(obj) == obj
     }
 
+    def "validate empty arrays"() {
+        given:
+            def json = """{"vals": []}"""
+        when:
+            def obj = encodeAsBinaryDecodeAsObject(BsonDocument.parse(json), ObjectWithArray)
+        then:
+            obj
+            obj.vals.size() == 0
+        and:
+            asBsonJsonString(obj) == json
+            encodeAsBinaryDecodeJson(obj) == json
+            encodeAsBinaryDecodeAsObject(obj) == obj
+    }
+
     def "validate arrays with nulls"() {
         given:
             def json = """{"vals": [{"val": "A"}, null, {"val": "B"}]}"""
