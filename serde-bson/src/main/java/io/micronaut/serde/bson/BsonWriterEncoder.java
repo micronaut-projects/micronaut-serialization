@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.Encoder;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -132,6 +133,10 @@ public final class BsonWriterEncoder implements Encoder {
 
     public void encodeDecimal128(Decimal128 value) {
         bsonWriter.writeDecimal128(value);
+    }
+
+    public void encodeObjectId(ObjectId value) {
+        bsonWriter.writeObjectId(value);
     }
 
     @Override

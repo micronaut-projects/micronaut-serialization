@@ -25,6 +25,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 /**
  * Bson implementation of {@link Decoder}.
@@ -340,5 +341,22 @@ public final class BsonReaderDecoder implements Decoder {
             }
         }
         throw createDeserializationException("Cannot decode Decimal128 from: " + bsonReader.getCurrentBsonType());
+    }
+
+    /**
+     * Decodes {@link ObjectId}.
+     *
+     * @return decoded value
+     * @throws IOException
+     */
+    public ObjectId decodeObjectId() throws IOException {
+        if (bsonReader.getCurrentBsonType() == BsonType.OBJECT_ID) {
+            try {
+                return bsonReader.readObjectId();
+            } finally {
+                next();
+            }
+        }
+        throw createDeserializationException("Cannot decode ObjectId from: " + bsonReader.getCurrentBsonType());
     }
 }

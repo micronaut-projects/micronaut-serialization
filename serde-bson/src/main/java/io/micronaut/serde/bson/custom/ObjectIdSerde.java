@@ -20,27 +20,26 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.bson.BsonReaderDecoder;
 import io.micronaut.serde.bson.BsonWriterEncoder;
 import jakarta.inject.Singleton;
-import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 import java.io.IOException;
 
 /**
- * Serializer and deserializer of {@link Decimal128}.
+ * Serializer and deserializer of {@link ObjectId}.
  *
  * @author Denis Stepanov
  */
 @Singleton
 @Internal
-public final class Decimal128Serde extends AbstractBsonSerder<Decimal128> {
+public final class ObjectIdSerde extends AbstractBsonSerder<ObjectId> {
 
     @Override
-    protected Decimal128 doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super Decimal128> type) throws IOException {
-        return decoder.decodeDecimal128();
+    protected ObjectId doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super ObjectId> type) throws IOException {
+        return decoder.decodeObjectId();
     }
 
     @Override
-    protected void doSerialize(BsonWriterEncoder encoder, EncoderContext context, Decimal128 value, Argument<? extends Decimal128> type) throws IOException {
-        encoder.encodeDecimal128(value);
+    protected void doSerialize(BsonWriterEncoder encoder, EncoderContext context, ObjectId value, Argument<? extends ObjectId> type) throws IOException {
+        encoder.encodeObjectId(value);
     }
-
 }

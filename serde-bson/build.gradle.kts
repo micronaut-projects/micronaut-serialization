@@ -11,6 +11,7 @@ dependencies {
     api(project(":serde-api"))
 
     testAnnotationProcessor(mn.micronaut.inject.java)
+    testAnnotationProcessor(project(":serde-processor"))
     testImplementation(project(":serde-processor"))
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)

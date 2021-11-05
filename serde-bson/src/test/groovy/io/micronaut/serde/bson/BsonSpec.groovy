@@ -5,6 +5,7 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.bson.*
 import org.bson.types.Decimal128
+import org.bson.types.ObjectId
 import spock.lang.Specification
 
 @MicronautTest
@@ -178,7 +179,7 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
         when:
             def bsonAsJson = asBsonJsonString(all)
         then:
-            bsonAsJson == '''{"someInt": 123, "someLong": 234, "someDouble": 123.234, "someShort": 567, "someFloat": 11.220000267028809, "someByte": 34, "someString": "Hello", "someInteger": 444, "someLongObj": 555, "someDoubleObj": 666.77, "someShortObj": 777, "someFloatObj": 888.989990234375, "someByteObj": 99, "bigDecimal": {"$numberDecimal": "12345.12345"}, "bigInteger": {"$numberDecimal": "123456789"}, "decimal128": null, "someBoolean": true, "someBool": true}'''
+            bsonAsJson == '''{"someInt": 123, "someLong": 234, "someDouble": 123.234, "someShort": 567, "someFloat": 11.220000267028809, "someByte": 34, "someString": "Hello", "someInteger": 444, "someLongObj": 555, "someDoubleObj": 666.77, "someShortObj": 777, "someFloatObj": 888.989990234375, "someByteObj": 99, "bigDecimal": {"$numberDecimal": "12345.12345"}, "bigInteger": {"$numberDecimal": "123456789"}, "decimal128": null, "someBoolean": true, "someBool": true, "objectId": null}'''
             encodeAsBinaryDecodeAsObject(all) == all
     }
 
@@ -194,7 +195,19 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
             encodeAsBinaryDecodeAsObject(all).decimal128.bigDecimalValue() == decimal
     }
 
-    def "should skip unknown values decimal128"() {
+    def "validate objectId"() {
+        given:
+            def document = new BsonDocument()
+            def objectId = new ObjectId()
+            document.put("objectId", new BsonObjectId(objectId))
+        when:
+            def all = encodeAsBinaryDecodeAsObject(document, AllTypesBean)
+        then:
+            all.objectId == objectId
+            encodeAsBinaryDecodeAsObject(all).objectId == objectId
+    }
+
+    def "should skip unknown values"() {
         given:
             def document = new BsonDocument()
             document.put("unknown", new BsonString("A"))
@@ -219,6 +232,5 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
             value.decimal128 == null
             value.bigDecimal == null
     }
-
 
 }

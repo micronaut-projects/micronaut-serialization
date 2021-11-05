@@ -67,11 +67,9 @@ public final class ObjectSerializer implements Serializer<Object> {
                 childEncoder = childEncoder.encodeObject();
             }
 
-            final Map<String, SerBean.SerProperty<Object, Object>> writeProperties =
-                    serBean.writeProperties;
-            for (String propertyName : writeProperties.keySet()) {
-                final SerBean.SerProperty<Object, Object> property =
-                            writeProperties.get(propertyName);
+            for (Map.Entry<String, SerBean.SerProperty<Object, Object>> e : serBean.writeProperties.entrySet()) {
+                final String propertyName = e.getKey();
+                final SerBean.SerProperty<Object, Object> property = e.getValue();
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
                 switch (property.include) {

@@ -4,3 +4,4 @@ io.micronaut.serde.processor.jackson.JsonCreatorMapper
 io.micronaut.serde.processor.bson.BsonPropertyMapper
 io.micronaut.serde.processor.bson.BsonIgnoreMapper
 io.micronaut.serde.processor.bson.BsonCreatorMapper
+io.micronaut.serde.processor.bson.BsonIdMapper

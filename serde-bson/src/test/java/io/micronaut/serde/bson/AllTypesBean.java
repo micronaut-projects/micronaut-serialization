@@ -3,6 +3,7 @@ package io.micronaut.serde.bson;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -40,6 +41,8 @@ public class AllTypesBean {
     private BigInteger bigInteger;
     @Nullable
     private Decimal128 decimal128;
+    @Nullable
+    private ObjectId objectId;
 
     public int getSomeInt() {
         return someInt;
@@ -187,16 +190,25 @@ public class AllTypesBean {
         this.someBool = someBool;
     }
 
+    @Nullable
+    public ObjectId getObjectId() {
+        return objectId;
+    }
+
+    public void setObjectId(@Nullable ObjectId objectId) {
+        this.objectId = objectId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AllTypesBean that = (AllTypesBean) o;
-        return someBool == that.someBool && someInt == that.someInt && someLong == that.someLong && Double.compare(that.someDouble, someDouble) == 0 && someShort == that.someShort && Float.compare(that.someFloat, someFloat) == 0 && someByte == that.someByte && Objects.equals(someBoolean, that.someBoolean) && Objects.equals(someString, that.someString) && Objects.equals(someInteger, that.someInteger) && Objects.equals(someLongObj, that.someLongObj) && Objects.equals(someDoubleObj, that.someDoubleObj) && Objects.equals(someShortObj, that.someShortObj) && Objects.equals(someFloatObj, that.someFloatObj) && Objects.equals(someByteObj, that.someByteObj) && Objects.equals(bigDecimal, that.bigDecimal) && Objects.equals(bigInteger, that.bigInteger) && Objects.equals(decimal128, that.decimal128);
+        return someBool == that.someBool && someInt == that.someInt && someLong == that.someLong && Double.compare(that.someDouble, someDouble) == 0 && someShort == that.someShort && Float.compare(that.someFloat, someFloat) == 0 && someByte == that.someByte && Objects.equals(someBoolean, that.someBoolean) && Objects.equals(someString, that.someString) && Objects.equals(someInteger, that.someInteger) && Objects.equals(someLongObj, that.someLongObj) && Objects.equals(someDoubleObj, that.someDoubleObj) && Objects.equals(someShortObj, that.someShortObj) && Objects.equals(someFloatObj, that.someFloatObj) && Objects.equals(someByteObj, that.someByteObj) && Objects.equals(bigDecimal, that.bigDecimal) && Objects.equals(bigInteger, that.bigInteger) && Objects.equals(decimal128, that.decimal128) && Objects.equals(objectId, that.objectId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(someBool, someInt, someLong, someDouble, someShort, someFloat, someByte, someBoolean, someString, someInteger, someLongObj, someDoubleObj, someShortObj, someFloatObj, someByteObj, bigDecimal, bigInteger, decimal128);
+        return Objects.hash(someBool, someInt, someLong, someDouble, someShort, someFloat, someByte, someBoolean, someString, someInteger, someLongObj, someDoubleObj, someShortObj, someFloatObj, someByteObj, bigDecimal, bigInteger, decimal128, objectId);
     }
 }
