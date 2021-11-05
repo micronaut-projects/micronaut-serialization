@@ -389,7 +389,7 @@ class DeserBean<T> {
                 this.defaultValue = annotationMetadata
                         .stringValue(Bindable.class, "defaultValue")
                         .map(s -> ConversionService.SHARED.convertRequired(s, argument))
-                        .orElse(null);
+                        .orElse(deserializer.getDefaultValue());
             } catch (ConversionErrorException e) {
                 throw new SerdeException((index > -1 ? "Constructor Argument" : "Property") + " [" + argument + "] of type [" + instrospection.getBeanType().getName() + "] defines an invalid default value", e);
             }
