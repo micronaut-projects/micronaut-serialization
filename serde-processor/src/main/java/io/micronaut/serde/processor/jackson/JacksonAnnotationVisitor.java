@@ -82,7 +82,9 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
             return;
         }
         if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
-            if (!element.getGenericField().isAssignable(Map.class)) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
+            } else if (!element.getGenericField().isAssignable(Map.class)) {
                 context.fail("A field annotated with AnyGetter must be a Map", element);
             } else {
                 if (anyGetterField != null) {
@@ -94,7 +96,9 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
                 }
             }
         } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
-            if (!element.getGenericField().isAssignable(Map.class)) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                context.fail("A field annotated with AnySetter cannot be unwrapped", element);
+            } else if (!element.getGenericField().isAssignable(Map.class)) {
                 context.fail("A field annotated with AnySetter must be a Map", element);
             } else {
                 if (anySetterField != null) {
@@ -143,7 +147,10 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
             } else {
                 context.fail("Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true), element);
             }
-            if (element.isStatic()) {
+
+            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
+            } else if (element.isStatic()) {
                 context.fail("A method annotated with AnyGetter cannot be static", element);
             } else if (!element.getGenericReturnType().isAssignable(Map.class)) {
                 context.fail("A method annotated with AnyGetter must return a Map", element);
@@ -156,7 +163,9 @@ public class JacksonAnnotationVisitor implements TypeElementVisitor<SerdeConfig,
             } else {
                 context.fail("Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true), element);
             }
-            if (element.isStatic()) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
+            } else if (element.isStatic()) {
                 context.fail("A method annotated with AnySetter cannot be static", element);
             } else {
                 final ParameterElement[] parameters = element.getParameters();

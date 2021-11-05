@@ -345,4 +345,32 @@ record Test(
         cleanup:
         context.close()
     }
+
+    @Requires({ jvm.isJava17Compatible() })
+    void "test json any getter / setter - records fail on invalid component"() {
+        when:
+        buildBeanIntrospection('jsongetterrecord.Test', '''
+package jsongetterrecord;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import java.util.*;
+
+@Serdeable
+record Test( 
+    String name,
+    @JsonAnyGetter
+    @JsonAnySetter
+    String attributes) {
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("A method annotated with AnyGetter must return a Map")
+    }
 }
