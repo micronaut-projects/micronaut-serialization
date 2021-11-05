@@ -16,34 +16,31 @@
 package io.micronaut.serde.processor.bson;
 
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.Creator;
 import io.micronaut.inject.annotation.NamedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Mapper of @BsonIgnore.
+ * Mapper of @BsonCreator.
  *
  * @author Denis Stepanov
  */
-public class BsonIgnoreMapper implements NamedAnnotationTransformer {
+public class BsonCreatorTransformer implements NamedAnnotationTransformer {
 
-    private static final List<AnnotationValue<?>> MAPPED = Collections.singletonList(
-            AnnotationValue.builder(SerdeConfig.class)
-                    .member(SerdeConfig.IGNORED, true)
-                    .build()
-    );
+    private static final List<AnnotationValue<?>> MAPPED = Collections.singletonList(AnnotationValue.builder(Creator.class).build());
 
     @Override
     public String getName() {
-        return "org.bson.codecs.pojo.annotations.BsonIgnore";
+        return "org.bson.codecs.pojo.annotations.BsonCreator";
     }
 
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return MAPPED;
+
     }
 }

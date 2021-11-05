@@ -5,7 +5,7 @@ io.micronaut.serde.processor.jackson.JsonSetterTransformer
 io.micronaut.serde.processor.jackson.JsonAnyGetterTransformer
 io.micronaut.serde.processor.jackson.JsonAnySetterTransformer
 io.micronaut.serde.processor.jackson.JsonPropertyTransformer
-io.micronaut.serde.processor.bson.BsonPropertyMapper
-io.micronaut.serde.processor.bson.BsonIgnoreMapper
-io.micronaut.serde.processor.bson.BsonCreatorMapper
-io.micronaut.serde.processor.bson.BsonIdMapper
+io.micronaut.serde.processor.bson.BsonPropertyTransformer
+io.micronaut.serde.processor.bson.BsonIgnoreTransformer
+io.micronaut.serde.processor.bson.BsonCreatorTransformer
+io.micronaut.serde.processor.bson.BsonIdTransformer

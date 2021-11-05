@@ -29,7 +29,7 @@ import java.util.List;
  *
  * @author Denis Stepanov
  */
-public class BsonIdMapper implements NamedAnnotationTransformer {
+public class BsonIdTransformer implements NamedAnnotationTransformer {
 
     private static final List<AnnotationValue<?>> MAPPED = Collections.singletonList(
             AnnotationValue.builder(SerdeConfig.class)
