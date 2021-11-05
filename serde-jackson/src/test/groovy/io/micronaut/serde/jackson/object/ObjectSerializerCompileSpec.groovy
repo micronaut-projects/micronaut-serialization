@@ -167,6 +167,7 @@ class Test {
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.http.HttpStatus;
 import java.util.*;
 
 @Serdeable
@@ -190,20 +191,20 @@ class Test {
         context.close()
 
         where:
-        type                           | data                         | result
-        "List<String>"                 | [value: ["Test"]]            | '{"value":["Test"]}'
-        "Optional<String>"             | [value: Optional.of("Test")] | '{"value":"Test"}'
-        "Optional<String>"             | [value: Optional.empty()]    | '{"value":null}'
-        "List<? extends CharSequence>" | [value: ["Test"]]            | '{"value":["Test"]}'
-        "List<Boolean>"                | [value: [true]]              | '{"value":[true]}'
-        "Iterable<String>"             | [value: ["Test"]]            | '{"value":["Test"]}'
-        "Iterable<Boolean>"            | [value: [true]]              | '{"value":[true]}'
-        "Set<String>"                  | [value: ["Test"] as Set]     | '{"value":["Test"]}'
-        "Set<Boolean>"                 | [value: [true] as Set]       | '{"value":[true]}'
-        "Collection<String>"           | [value: ["Test"]]            | '{"value":["Test"]}'
-        "Collection<Boolean>"          | [value: [true]]              | '{"value":[true]}'
-        "Map<String, Boolean>"         | [value: [foo: true]]         | '{"value":{"foo":true}}'
-
+        type                           | data                               | result
+        "List<String>"                 | [value: ["Test"]]                  | '{"value":["Test"]}'
+        "Optional<String>"             | [value: Optional.of("Test")]       | '{"value":"Test"}'
+        "Optional<String>"             | [value: Optional.empty()]          | '{"value":null}'
+        "List<? extends CharSequence>" | [value: ["Test"]]                  | '{"value":["Test"]}'
+        "List<Boolean>"                | [value: [true]]                    | '{"value":[true]}'
+        "Iterable<String>"             | [value: ["Test"]]                  | '{"value":["Test"]}'
+        "Iterable<Boolean>"            | [value: [true]]                    | '{"value":[true]}'
+        "Set<String>"                  | [value: ["Test"] as Set]           | '{"value":["Test"]}'
+        "Set<Boolean>"                 | [value: [true] as Set]             | '{"value":[true]}'
+        "Collection<String>"           | [value: ["Test"]]                  | '{"value":["Test"]}'
+        "Collection<Boolean>"          | [value: [true]]                    | '{"value":[true]}'
+        "Map<String, Boolean>"         | [value: [foo: true]]               | '{"value":{"foo":true}}'
+        "EnumSet<HttpStatus>"          | [value: EnumSet.of(HttpStatus.OK)] | '{"value":["OK"]}'
     }
 
     void "test basic collection type #type with include NON_ABSENT"() {

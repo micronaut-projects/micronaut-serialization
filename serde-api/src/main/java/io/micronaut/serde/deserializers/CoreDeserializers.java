@@ -87,6 +87,7 @@ public class CoreDeserializers {
      */
     @NonNull
     @Singleton
+    @Order(-50) // prioritize over enumset
     protected <E> NullableDeserializer<HashSet<E>> hashSetDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument[] generics = type.getTypeParameters();

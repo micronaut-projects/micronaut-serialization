@@ -225,17 +225,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (deser != null) {
                 deserializerMap.put(key, deser);
                 return (Deserializer<? extends T>) deser;
-            } else {
-                Type t = type.getType().getGenericSuperclass();
-                if (t instanceof ParameterizedType) {
-                    // bit of hack, findBean doesn't deal with generic super type / interface searches
-                    deser = (Deserializer<?>) beanContext.findBean(Argument.of(Deserializer.class, Argument.of(t)))
-                            .orElse(null);
-                    if (deser != null) {
-                        deserializerMap.put(key, deser);
-                        return (Deserializer<? extends T>) deser;
-                    }
-                }
             }
         }
         return (Deserializer<? extends T>) objectDeserializer;
