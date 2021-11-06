@@ -416,6 +416,10 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         decoderContext,
                         propertyType
                 );
+                if (val == null && propertyType.isPrimitive()) {
+                    continue;
+                }
+
                 // writer is never null for properties
                 final BiConsumer<Object, Object> writer = property.writer;
                 if (introspection.introspection == property.instrospection) {
