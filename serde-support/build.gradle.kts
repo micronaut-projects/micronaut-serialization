@@ -7,7 +7,7 @@ dependencies {
 
     api(mn.micronaut.context)
     api(mn.micronaut.http)
-    api(project(":serde-api"))
+    api(projects.serdeApi)
 
     testImplementation(mn.micronaut.inject.java.test)
 

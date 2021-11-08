@@ -10,6 +10,7 @@ plugins {
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "serde-parent"
 
@@ -19,6 +20,7 @@ include("serde-jackson")
 include("serde-jsonp")
 include("serde-support")
 include("serde-bson")
+include("serde-tck")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 

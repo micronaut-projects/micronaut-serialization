@@ -8,6 +8,8 @@ import org.bson.codecs.BsonDocumentCodec
 import org.bson.codecs.DecoderContext
 import org.bson.codecs.EncoderContext
 import org.bson.io.BasicOutputBuffer
+import org.bson.json.JsonMode
+import org.bson.json.JsonWriterSettings
 
 import java.nio.ByteBuffer
 
@@ -30,17 +32,17 @@ trait BsonBinarySpec {
         return bsonBinaryMapper.readValue(bytes, Argument.of(obj.getClass()))
     }
 
-    private static byte[] writeToByteArray(BsonDocument document) {
+    static byte[] writeToByteArray(BsonDocument document) {
         BasicOutputBuffer buffer = new BasicOutputBuffer()
         BsonBinaryWriter writer = new BsonBinaryWriter(buffer)
         new BsonDocumentCodec().encode(writer, document, EncoderContext.builder().isEncodingCollectibleDocument(true).build())
         return buffer.toByteArray()
     }
 
-    private static String readByteArrayAsJson(byte[] bytes) {
+    static String readByteArrayAsJson(byte[] bytes) {
         BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(bytes))
         def document = new BsonDocumentCodec().decode(reader, DecoderContext.builder().build())
-        return document.toJson()
+        return document.toJson(JsonWriterSettings.builder().outputMode(JsonMode.RELAXED).indentCharacters("").build())
     }
 
 }

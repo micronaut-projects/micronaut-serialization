@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation(mn.jackson.annotations)
-    implementation(project(":serde-api"))
+    implementation(projects.serdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testImplementation(mn.micronaut.inject.java.test)

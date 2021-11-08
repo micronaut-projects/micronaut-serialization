@@ -1,9 +1,22 @@
-package io.micronaut.serde.bson;
+/*
+ * Copyright 2017-2021 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
-import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -39,10 +52,14 @@ public class AllTypesBean {
     private BigDecimal bigDecimal;
     @Nullable
     private BigInteger bigInteger;
-    @Nullable
-    private Decimal128 decimal128;
-    @Nullable
-    private ObjectId objectId;
+
+    public boolean isSomeBool() {
+        return someBool;
+    }
+
+    public void setSomeBool(boolean someBool) {
+        this.someBool = someBool;
+    }
 
     public int getSomeInt() {
         return someInt;
@@ -92,87 +109,6 @@ public class AllTypesBean {
         this.someByte = someByte;
     }
 
-    public String getSomeString() {
-        return someString;
-    }
-
-    public void setSomeString(String someString) {
-        this.someString = someString;
-    }
-
-    public Integer getSomeInteger() {
-        return someInteger;
-    }
-
-    public void setSomeInteger(Integer someInteger) {
-        this.someInteger = someInteger;
-    }
-
-    public Long getSomeLongObj() {
-        return someLongObj;
-    }
-
-    public void setSomeLongObj(Long someLongObj) {
-        this.someLongObj = someLongObj;
-    }
-
-    public Double getSomeDoubleObj() {
-        return someDoubleObj;
-    }
-
-    public void setSomeDoubleObj(Double someDoubleObj) {
-        this.someDoubleObj = someDoubleObj;
-    }
-
-    public Short getSomeShortObj() {
-        return someShortObj;
-    }
-
-    public void setSomeShortObj(Short someShortObj) {
-        this.someShortObj = someShortObj;
-    }
-
-    public Float getSomeFloatObj() {
-        return someFloatObj;
-    }
-
-    public void setSomeFloatObj(Float someFloatObj) {
-        this.someFloatObj = someFloatObj;
-    }
-
-    public Byte getSomeByteObj() {
-        return someByteObj;
-    }
-
-    public void setSomeByteObj(Byte someByteObj) {
-        this.someByteObj = someByteObj;
-    }
-
-    public BigDecimal getBigDecimal() {
-        return bigDecimal;
-    }
-
-    public void setBigDecimal(BigDecimal bigDecimal) {
-        this.bigDecimal = bigDecimal;
-    }
-
-    public BigInteger getBigInteger() {
-        return bigInteger;
-    }
-
-    public void setBigInteger(BigInteger bigInteger) {
-        this.bigInteger = bigInteger;
-    }
-
-    @Nullable
-    public Decimal128 getDecimal128() {
-        return decimal128;
-    }
-
-    public void setDecimal128(@Nullable Decimal128 decimal128) {
-        this.decimal128 = decimal128;
-    }
-
     @Nullable
     public Boolean getSomeBoolean() {
         return someBoolean;
@@ -182,21 +118,85 @@ public class AllTypesBean {
         this.someBoolean = someBoolean;
     }
 
-    public boolean isSomeBool() {
-        return someBool;
+    @Nullable
+    public String getSomeString() {
+        return someString;
     }
 
-    public void setSomeBool(boolean someBool) {
-        this.someBool = someBool;
+    public void setSomeString(@Nullable String someString) {
+        this.someString = someString;
     }
 
     @Nullable
-    public ObjectId getObjectId() {
-        return objectId;
+    public Integer getSomeInteger() {
+        return someInteger;
     }
 
-    public void setObjectId(@Nullable ObjectId objectId) {
-        this.objectId = objectId;
+    public void setSomeInteger(@Nullable Integer someInteger) {
+        this.someInteger = someInteger;
+    }
+
+    @Nullable
+    public Long getSomeLongObj() {
+        return someLongObj;
+    }
+
+    public void setSomeLongObj(@Nullable Long someLongObj) {
+        this.someLongObj = someLongObj;
+    }
+
+    @Nullable
+    public Double getSomeDoubleObj() {
+        return someDoubleObj;
+    }
+
+    public void setSomeDoubleObj(@Nullable Double someDoubleObj) {
+        this.someDoubleObj = someDoubleObj;
+    }
+
+    @Nullable
+    public Short getSomeShortObj() {
+        return someShortObj;
+    }
+
+    public void setSomeShortObj(@Nullable Short someShortObj) {
+        this.someShortObj = someShortObj;
+    }
+
+    @Nullable
+    public Float getSomeFloatObj() {
+        return someFloatObj;
+    }
+
+    public void setSomeFloatObj(@Nullable Float someFloatObj) {
+        this.someFloatObj = someFloatObj;
+    }
+
+    @Nullable
+    public Byte getSomeByteObj() {
+        return someByteObj;
+    }
+
+    public void setSomeByteObj(@Nullable Byte someByteObj) {
+        this.someByteObj = someByteObj;
+    }
+
+    @Nullable
+    public BigDecimal getBigDecimal() {
+        return bigDecimal;
+    }
+
+    public void setBigDecimal(@Nullable BigDecimal bigDecimal) {
+        this.bigDecimal = bigDecimal;
+    }
+
+    @Nullable
+    public BigInteger getBigInteger() {
+        return bigInteger;
+    }
+
+    public void setBigInteger(@Nullable BigInteger bigInteger) {
+        this.bigInteger = bigInteger;
     }
 
     @Override
@@ -204,11 +204,11 @@ public class AllTypesBean {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AllTypesBean that = (AllTypesBean) o;
-        return someBool == that.someBool && someInt == that.someInt && someLong == that.someLong && Double.compare(that.someDouble, someDouble) == 0 && someShort == that.someShort && Float.compare(that.someFloat, someFloat) == 0 && someByte == that.someByte && Objects.equals(someBoolean, that.someBoolean) && Objects.equals(someString, that.someString) && Objects.equals(someInteger, that.someInteger) && Objects.equals(someLongObj, that.someLongObj) && Objects.equals(someDoubleObj, that.someDoubleObj) && Objects.equals(someShortObj, that.someShortObj) && Objects.equals(someFloatObj, that.someFloatObj) && Objects.equals(someByteObj, that.someByteObj) && Objects.equals(bigDecimal, that.bigDecimal) && Objects.equals(bigInteger, that.bigInteger) && Objects.equals(decimal128, that.decimal128) && Objects.equals(objectId, that.objectId);
+        return someBool == that.someBool && someInt == that.someInt && someLong == that.someLong && Double.compare(that.someDouble, someDouble) == 0 && someShort == that.someShort && Float.compare(that.someFloat, someFloat) == 0 && someByte == that.someByte && Objects.equals(someBoolean, that.someBoolean) && Objects.equals(someString, that.someString) && Objects.equals(someInteger, that.someInteger) && Objects.equals(someLongObj, that.someLongObj) && Objects.equals(someDoubleObj, that.someDoubleObj) && Objects.equals(someShortObj, that.someShortObj) && Objects.equals(someFloatObj, that.someFloatObj) && Objects.equals(someByteObj, that.someByteObj) && Objects.equals(bigDecimal, that.bigDecimal) && Objects.equals(bigInteger, that.bigInteger);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(someBool, someInt, someLong, someDouble, someShort, someFloat, someByte, someBoolean, someString, someInteger, someLongObj, someDoubleObj, someShortObj, someFloatObj, someByteObj, bigDecimal, bigInteger, decimal128, objectId);
+        return Objects.hash(someBool, someInt, someLong, someDouble, someShort, someFloat, someByte, someBoolean, someString, someInteger, someLongObj, someDoubleObj, someShortObj, someFloatObj, someByteObj, bigDecimal, bigInteger);
     }
 }
