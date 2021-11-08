@@ -16,6 +16,7 @@
 package io.micronaut.serde.processor.jackson;
 
 import java.lang.annotation.Annotation;
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -34,6 +35,8 @@ import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.reflect.ClassUtils;
+import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
@@ -191,7 +194,45 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             context.fail(error, element);
             return true;
         }
+
+        final String pattern = element.stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
+        if (pattern != null) {
+            ClassElement type = resolvePropertyType(element);
+
+            if (isNumberType(type)) {
+                try {
+                    new DecimalFormat(pattern);
+                } catch (Exception e) {
+                    context.fail("Specified pattern [" + pattern + "] is not a valid decimal format. See the javadoc for DecimalFormat: " + e.getMessage(), element);
+                }
+            }
+        }
         return false;
+    }
+
+    private boolean isNumberType(ClassElement type) {
+        if (type == null) {
+            return false;
+        }
+        return type.isAssignable(Number.class) ||
+                (type.isPrimitive() && ClassUtils.getPrimitiveType(type.getName())
+                        .map(ReflectionUtils::getWrapperType)
+                        .map(Number.class::isAssignableFrom).orElse(false));
+    }
+
+    private ClassElement resolvePropertyType(Element element) {
+        ClassElement type = null;
+        if (element instanceof FieldElement) {
+            type = ((FieldElement) element).getGenericField().getType();
+        } else if (element instanceof MethodElement) {
+            MethodElement methodElement = (MethodElement) element;
+            if (!methodElement.hasParameters()) {
+                type = methodElement.getGenericReturnType();
+            } else {
+                type = methodElement.getParameters()[0].getGenericType();
+            }
+        }
+        return type;
     }
 
     @Override

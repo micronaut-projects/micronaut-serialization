@@ -2,9 +2,89 @@ package io.micronaut.serde.jackson.annotation
 
 
 import io.micronaut.serde.jackson.JsonCompileSpec
+import spock.lang.Requires
 import spock.lang.Unroll
 
 class JsonFormatSpec extends JsonCompileSpec {
+    @Requires({ jvm.isJava17Compatible() })
+    @Unroll
+    void "test fail compilation when invalid format applied to number for type #type"() {
+        when:
+        buildBeanIntrospection('jsongetterrecord.Test', """
+package jsongetterrecord;
+
+import io.micronaut.serde.annotation.Serdeable;              
+import com.fasterxml.jackson.annotation.JsonFormat;          
+
+
+@Serdeable
+record Test( 
+    @JsonFormat(pattern="bunch 'o junk")    
+    $type.name value) {
+}
+""")
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("Specified pattern [bunch 'o junk] is not a valid decimal format. See the javadoc for DecimalFormat: Malformed pattern \"bunch 'o junk\"")
+
+        where:
+        type << [Integer, int.class]
+    }
+
+    @Requires({ jvm.isJava17Compatible() })
+    @Unroll
+    void "test json format for #type and settings #settings with record"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.OptBoolean;
+
+@Serdeable
+record Test(
+    @JsonFormat(${settings.collect { "$it.key=\"$it.value\"" }.join(",")})
+    $type.name value   
+) {}
+""")
+        expect:
+        def beanUnderTest = newInstance(context, 'test.Test', value)
+        def typeUnderTest = argumentOf(context, 'test.Test')
+        writeJson(jsonMapper, beanUnderTest) == result
+        def read = jsonMapper.readValue(result, typeUnderTest)
+        typeUnderTest.type.isInstance(read)
+        read.value == value
+
+        cleanup:
+        context.close()
+
+        where:
+        type       | value                       | settings                                   | result
+        // locale
+        Double     | 100000.12d                  | [pattern: '$###,###.###', locale: 'de_DE'] | '{"value":"$100.000,12"}'
+
+        // without lo
+        byte       | 10 as byte                  | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        Byte       | 10 as byte                  | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        int        | 10                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        Integer    | 10                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        long       | 100000l                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        Long       | 100000l                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        short      | 10000 as short              | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
+        Short      | 10000 as short              | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
+        double     | 100000.12d                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        Double     | 100000.12d                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        float      | 100000.12f                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
+        Float      | 100000.12f                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
+        BigDecimal | new BigDecimal("100000.12") | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        BigDecimal | new BigDecimal("100000.12") | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+
+    }
+
     @Unroll
     void "test json format for #type and settings #settings"() {
         given:
@@ -26,38 +106,38 @@ class Test {
         return value;
     }
 }
-""", data)
+""", [value: value])
         expect:
         writeJson(jsonMapper, beanUnderTest) == result
         def read = jsonMapper.readValue(result, typeUnderTest)
         typeUnderTest.type.isInstance(read)
-        read.value == data.value
+        read.value == value
 
         cleanup:
         context.close()
 
         where:
-        type       | data                                 | settings                                   | result
+        type       | value                       | settings                                   | result
         // locale
-        Double     | [value: 100000.12d]                  | [pattern: '$###,###.###', locale: 'de_DE'] | '{"value":"$100.000,12"}'
+        Double     | 100000.12d                  | [pattern: '$###,###.###', locale: 'de_DE'] | '{"value":"$100.000,12"}'
 
         // without locale
-        byte       | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
-        Byte       | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
-        int        | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
-        Integer    | [value: 10]                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
-        long       | [value: 100000l]                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
-        Long       | [value: 100000l]                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
-        short      | [value: 10000]                       | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
-        Short      | [value: 10000]                       | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
-        double     | [value: 100000.12d]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
-        Double     | [value: 100000.12d]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
-        float      | [value: 100000.12f]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
-        Float      | [value: 100000.12f]                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
-        BigDecimal | [value: new BigDecimal("100000.12")] | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
-        BigDecimal | [value: new BigDecimal("100000.12")] | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
-        BigInteger | [value: new BigInteger("100000")]    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
-        BigInteger | [value: new BigInteger("100000")]    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        byte       | 10                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        Byte       | 10                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        int        | 10                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        Integer    | 10                          | [pattern: '$###,###.###']                  | '{"value":"$10"}'
+        long       | 100000l                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        Long       | 100000l                     | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        short      | 10000                       | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
+        Short      | 10000                       | [pattern: '$###,###.###']                  | '{"value":"$10,000"}'
+        double     | 100000.12d                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        Double     | 100000.12d                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        float      | 100000.12f                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
+        Float      | 100000.12f                  | [pattern: '$###,###.###']                  | '{"value":"$100,000.117"}'
+        BigDecimal | new BigDecimal("100000.12") | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        BigDecimal | new BigDecimal("100000.12") | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
+        BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
+        BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
 
     }
 }
