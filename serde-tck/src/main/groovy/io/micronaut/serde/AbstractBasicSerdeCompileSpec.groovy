@@ -22,6 +22,15 @@ import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Period
+import java.time.Year
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 abstract class AbstractBasicSerdeCompileSpec extends AbstractJsonCompileSpec {
 
@@ -54,35 +63,35 @@ class Test {
         context.close()
 
         where:
-        type       | data                                  | result
-        BigDecimal | [value: 10.1]                         | '{"value":10.1}'
-        BigInteger | [value: BigInteger.valueOf(10l)]      | '{"value":10}'
-        String     | [value: "Test"]                       | '{"value":"Test"}'
-        boolean    | [value: true]                         | '{"value":true}'
-        byte       | [value: 10]                           | '{"value":10}'
-        short      | [value: 10]                           | '{"value":10}'
-        int        | [value: 10]                           | '{"value":10}'
-        long       | [value: 10]                           | '{"value":10}'
-        double     | [value: 10.1d]                        | '{"value":10.1}'
-        float      | [value: 10.1f]                        | '{"value":10.1}'
-        char       | [value: 'a' as char]                  | '{"value":97}'
+        type       | data                                   | result
+        BigDecimal | [value: 10.1]                          | '{"value":10.1}'
+        BigInteger | [value: BigInteger.valueOf(10l)]       | '{"value":10}'
+        String     | [value: "Test"]                        | '{"value":"Test"}'
+        boolean    | [value: true]                          | '{"value":true}'
+        byte       | [value: 10]                            | '{"value":10}'
+        short      | [value: 10]                            | '{"value":10}'
+        int        | [value: 10]                            | '{"value":10}'
+        long       | [value: 10]                            | '{"value":10}'
+        double     | [value: 10.1d]                         | '{"value":10.1}'
+        float      | [value: 10.1f]                         | '{"value":10.1}'
+        char       | [value: 'a' as char]                   | '{"value":97}'
         //wrappers
-        Boolean    | [value: true]                         | '{"value":true}'
-        Byte       | [value: 10]                           | '{"value":10}'
-        Short      | [value: 10]                           | '{"value":10}'
-        Integer    | [value: 10]                           | '{"value":10}'
-        Long       | [value: 10]                           | '{"value":10}'
-        Double     | [value: 10.1d]                        | '{"value":10.1}'
-        Float      | [value: 10.1f]                        | '{"value":10.1}'
-        Character  | [value: 'a' as char]                  | '{"value":97}'
-        HttpStatus | [value: HttpStatus.ACCEPTED]          | '{"value":"ACCEPTED"}'
+        Boolean    | [value: true]                          | '{"value":true}'
+        Byte       | [value: 10]                            | '{"value":10}'
+        Short      | [value: 10]                            | '{"value":10}'
+        Integer    | [value: 10]                            | '{"value":10}'
+        Long       | [value: 10]                            | '{"value":10}'
+        Double     | [value: 10.1d]                         | '{"value":10.1}'
+        Float      | [value: 10.1f]                         | '{"value":10.1}'
+        Character  | [value: 'a' as char]                   | '{"value":97}'
+        HttpStatus | [value: HttpStatus.ACCEPTED]           | '{"value":"ACCEPTED"}'
 
         // other common classes
         URI        | [value: URI.create("https://foo.com")] | '{"value":"https://foo.com"}'
         URL        | [value: new URL("https://foo.com")]    | '{"value":"https://foo.com"}'
-        Charset    | [value: StandardCharsets.UTF_8]       | '{"value":"UTF-8"}'
-        TimeZone   | [value: TimeZone.getTimeZone("GMT")]  | '{"value":"GMT"}'
-        Locale     | [value: Locale.CANADA_FRENCH]         | '{"value":"fr-CA"}'
+        Charset    | [value: StandardCharsets.UTF_8]        | '{"value":"UTF-8"}'
+        TimeZone   | [value: TimeZone.getTimeZone("GMT")]   | '{"value":"GMT"}'
+        Locale     | [value: Locale.CANADA_FRENCH]          | '{"value":"fr-CA"}'
     }
 
     @Unroll
@@ -117,7 +126,7 @@ class Test {
         context.close()
 
         where:
-        type << ['Integer', 'int' , 'int[]']
+        type << ['Integer', 'int', 'int[]']
         defaultValue << [null, 0, null]
     }
 
@@ -312,6 +321,50 @@ class Test {
         "Map<String, Boolean>"         | [value: [foo: true]]               | '{"value":{"foo":true}}'
         "EnumSet<HttpStatus>"          | [value: EnumSet.of(HttpStatus.OK)] | '{"value":["OK"]}'
     }
+
+    @Unroll
+    void "test java.time #type"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.OptBoolean;
+
+@Serdeable
+class Test {
+    private $type.name value;
+    public void setValue($type.name value) {
+        this.value = value;
+    } 
+    public $type.name getValue() {
+        return value;
+    }
+}
+""", [value: value])
+        def result = writeJson(jsonMapper, beanUnderTest)
+        def read = jsonMapper.readValue(result, typeUnderTest)
+
+        expect:
+        typeUnderTest.type.isInstance(read)
+        resolver(read.value) == resolver(value)
+
+        cleanup:
+        context.close()
+
+        where:
+        type          | value                  | resolver
+        Instant       | Instant.now()          | { Instant i -> i.toEpochMilli() }
+        LocalTime     | LocalTime.now()        | { LocalTime i -> i.toSecondOfDay() }
+        LocalDate     | LocalDate.now()        | { LocalDate d -> d }
+        LocalDateTime | LocalDateTime.now()    | { LocalDateTime i -> i.toInstant(ZoneOffset.from(ZoneOffset.UTC)).toEpochMilli() }
+        ZonedDateTime | ZonedDateTime.now()    | { ZonedDateTime i -> i.toInstant().toEpochMilli() }
+        Duration      | Duration.ofSeconds(10) | { Duration d -> d.toSeconds() }
+        Period        | Period.ofWeeks(7)      | { Period p -> p }
+        Year          | Year.of(2021)          | { Year y -> y }
+    }
+
 
     byte[] jsonAsBytes(String json) {
         json.getBytes(StandardCharsets.UTF_8)
