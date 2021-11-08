@@ -28,6 +28,7 @@ import jakarta.inject.Singleton;
 @Singleton
 @Secondary
 public class SerdeJsonConfiguration implements JsonConfiguration {
+
     @Override
     public boolean isAlwaysSerializeErrorsAsList() {
         return true;

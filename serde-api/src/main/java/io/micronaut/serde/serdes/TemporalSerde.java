@@ -13,42 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.serializers;
+package io.micronaut.serde.serdes;
+
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableSerde;
 
 /**
- * Number serializer that handles formatting.
- * @param <N> The number type
+ * Interface for serializing and deserializing temporals.
+ *
+ * @param <T> The generic type
  */
-public interface NumberSerde<N extends Number> extends Serde<N>, NullableSerde<N> {
+public interface TemporalSerde<T extends TemporalAccessor> extends NullableSerde<T> {
+    ZoneId UTC = ZoneId.of(ZoneOffset.UTC.getId());
 
     @Override
-    default Deserializer<N> createSpecific(Argument<? super N> context, DecoderContext decoderContext) throws SerdeException {
-        final AnnotationMetadata annotationMetadata = context.getAnnotationMetadata();
-        final String pattern = annotationMetadata
-                .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
-        if (pattern != null) {
-            return new FormattedNumberSerde<>(pattern, annotationMetadata);
-        }
-        return this;
-    }
-
-    @Override
-    default Serializer<N> createSpecific(Argument<? extends N> type, EncoderContext encoderContext) {
+    default Serializer<T> createSpecific(Argument<? extends T> type, EncoderContext encoderContext) {
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null) {
-            return new FormattedNumberSerde<>(pattern, annotationMetadata);
+            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query());
+        }
+        return this;
+
+    }
+
+    @Override
+    default Deserializer<T> createSpecific(Argument<? super T> context, DecoderContext decoderContext) throws SerdeException {
+        final AnnotationMetadata annotationMetadata = context.getAnnotationMetadata();
+        final String pattern = annotationMetadata
+                .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
+        if (pattern != null) {
+            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query());
         }
         return this;
     }
+
+    /**
+     * @return The temporal query for the type.
+     */
+    @NonNull
+    TemporalQuery<T> query();
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.serializers;
+package io.micronaut.serde.serdes;
 
 import java.io.IOException;
 import java.text.DecimalFormat;

@@ -15,9 +15,17 @@
  */
 package io.micronaut.serde.serdes;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Period;
+
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 /**
@@ -33,5 +41,49 @@ public class CoreSerdes {
     @NonNull
     protected Serde<Object[]> objectArraySerde() {
         return new ObjectArraySerde();
+    }
+
+    /**
+     * Serde for duration.
+     * @return Duration serde
+     */
+    @Singleton
+    @NonNull
+    protected NullableSerde<Duration> durationSerde() {
+        return new NullableSerde<Duration>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Duration value, Argument<? extends Duration> type)
+                    throws IOException {
+                encoder.encodeLong(value.toNanos());
+            }
+
+            @Override
+            public Duration deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type)
+                    throws IOException {
+                return Duration.ofNanos(decoder.decodeLong());
+            }
+        };
+    }
+
+    /**
+     * Serde for period.
+     * @return Period serde
+     */
+    @Singleton
+    @NonNull
+    protected NullableSerde<Period> periodSerde() {
+        return new NullableSerde<Period>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Period value, Argument<? extends Period> type)
+                    throws IOException {
+                encoder.encodeString(value.toString());
+            }
+
+            @Override
+            public Period deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Period> type)
+                    throws IOException {
+                return Period.parse(decoder.decodeString());
+            }
+        };
     }
 }

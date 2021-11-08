@@ -5,6 +5,14 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Requires
 import spock.lang.Unroll
 
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Year
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+
 class JsonFormatSpec extends JsonCompileSpec {
     @Requires({ jvm.isJava17Compatible() })
     @Unroll
@@ -140,4 +148,48 @@ class Test {
         BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
 
     }
+
+    @Unroll
+    void "test json format for date #type and settings #settings"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.OptBoolean;
+
+@Serdeable
+class Test {
+    @JsonFormat(${settings.collect { "$it.key=\"$it.value\"" }.join(",")})
+    private $type.name value;
+    public void setValue($type.name value) {
+        this.value = value;
+    } 
+    public $type.name getValue() {
+        return value;
+    }
+}
+""", [value: value])
+        def result = writeJson(jsonMapper, beanUnderTest)
+        def read = jsonMapper.readValue(result, typeUnderTest)
+
+        expect:
+        result.startsWith('{"value":"') // was serialized as string, not long
+        typeUnderTest.type.isInstance(read)
+        resolver(read.value) == resolver(value)
+
+        cleanup:
+        context.close()
+
+        where:
+        type          | value               | settings                                | resolver
+        Instant       | Instant.now()       | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { Instant i -> i.toEpochMilli() }
+        LocalTime     | LocalTime.now()     | [pattern: "HH:mm:ss"]                   | { LocalTime i -> i.toSecondOfDay() }
+        LocalDate     | LocalDate.now()     | [pattern: "yyyy-MM-dd"]                 | { LocalDate d -> d }
+        LocalDateTime | LocalDateTime.now() | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS"]  | { LocalDateTime i -> i.toInstant(ZoneOffset.from(ZoneOffset.UTC)).toEpochMilli() }
+        ZonedDateTime | ZonedDateTime.now() | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { ZonedDateTime i -> i.toInstant().toEpochMilli() }
+        Year          | Year.of(2021)       | [pattern: "yyyy"]                       | { Year y -> y }
+    }
+
 }
