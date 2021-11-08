@@ -411,11 +411,17 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     (DeserBean.DerProperty<Object, Object>) readProperties.remove(prop);
             if (property != null && property.writer != null) {
                 final Argument<Object> propertyType = property.argument;
+                boolean isNull = objectDecoder.decodeNull();
+                if (isNull) {
+                    property.setDefault(obj);
+                    continue;
+                }
                 final Object val = property.deserializer.deserialize(
                         objectDecoder,
                         decoderContext,
                         propertyType
                 );
+
                 // writer is never null for properties
                 final BiConsumer<Object, Object> writer = property.writer;
                 if (introspection.introspection == property.instrospection) {
@@ -507,7 +513,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     if (!satisfied) {
                         if (der.defaultValue != null) {
                             params[der.index] = der.defaultValue;
-                        } else if (der.isNonNull()) {
+                        } else if (der.required) {
                             throw new SerdeException("Unable to deserialize type [" + unwrapped.introspection.getBeanType() + "]. Required constructor parameter [" + der.argument + "] at index [" + der.index + "] is not present in supplied data");
 
                         }

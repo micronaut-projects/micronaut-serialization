@@ -67,6 +67,11 @@ public @interface SerdeConfig {
     String TYPE_NAME = "typeName";
 
     /**
+     * A type name mapping. Used for subtype binding.
+     */
+    String TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER = "$CLASS_SIMPLE_NAME";
+
+    /**
      * The type property used for subtype binding.
      */
     String TYPE_PROPERTY = "typeProperty";

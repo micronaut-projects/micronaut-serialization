@@ -59,19 +59,15 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            @SuppressWarnings("unchecked") final SerBean<Object> serBean = getSerBean(type, context);
-            Encoder childEncoder = serBean.unwrapped ? encoder : encoder.encodeObject();
+            Encoder childEncoder = encoder.encodeObject();
 
+            @SuppressWarnings("unchecked") final SerBean<Object> serBean = getSerBean(type, context);
             if (serBean.wrapperProperty != null) {
                 childEncoder.encodeKey(serBean.wrapperProperty);
                 childEncoder = childEncoder.encodeObject();
             }
 
-            final Map<String, SerBean.SerProperty<Object, Object>> writeProperties =
-                    serBean.writeProperties;
-            for (String propertyName : writeProperties.keySet()) {
-                final SerBean.SerProperty<Object, Object> property =
-                            writeProperties.get(propertyName);
+            for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
                 switch (property.include) {
@@ -93,9 +89,7 @@ public final class ObjectSerializer implements Serializer<Object> {
                     default:
                     // fall through
                 }
-                if (!property.unwrapped) {
-                    childEncoder.encodeKey(propertyName);
-                }
+                childEncoder.encodeKey(property.name);
                 if (v == null) {
                     childEncoder.encodeNull();
                 } else {
@@ -137,9 +131,7 @@ public final class ObjectSerializer implements Serializer<Object> {
                     }
                 }
             }
-            if (!serBean.unwrapped) {
-                childEncoder.finishStructure();
-            }
+            childEncoder.finishStructure();
         } catch (IntrospectionException e) {
             throw new SerdeException("Error serializing value at path: " + encoder.toString() + ". No serializer found for type: " + type, e);
         }
@@ -150,10 +142,7 @@ public final class ObjectSerializer implements Serializer<Object> {
     private SerBean<Object> getSerBean(Argument<?> type, EncoderContext encoderContext) {
         // TODO: cache these, the cache key should include the Unwrapped behaviour
         try {
-            return new SerBean<>((Argument<Object>) type,
-                                 introspections.getSerializableIntrospection((Argument<Object>) type),
-                                 encoderContext
-            );
+            return new SerBean<>((Argument<Object>) type, introspections, encoderContext);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

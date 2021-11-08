@@ -1,4 +1,3 @@
 io.micronaut.serde.processor.jackson.JacksonAnnotationMapper
 io.micronaut.serde.processor.jackson.JsonIgnoreMapper
 io.micronaut.serde.processor.jackson.JsonCreatorMapper
-

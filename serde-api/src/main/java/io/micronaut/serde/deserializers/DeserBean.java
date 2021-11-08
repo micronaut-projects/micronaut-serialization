@@ -408,7 +408,7 @@ class DeserBean<T> {
         public void setDefault(@NonNull B bean) throws SerdeException {
             if (defaultValue != null && writer != null) {
                 writer.accept(bean, defaultValue);
-            } else if (isNonNull()) {
+            } else if (required) {
                 throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
                                                  "] is not present in supplied data");
             }
@@ -417,13 +417,9 @@ class DeserBean<T> {
         public void setDefault(@NonNull Object[] params) throws SerdeException {
             if (defaultValue != null) {
                 params[index] = defaultValue;
-            } else if (isNonNull()) {
+            } else if (required) {
                 throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
             }
-        }
-
-        public boolean isNonNull() {
-            return argument.isPrimitive() || !argument.isNullable();
         }
 
         public void set(@NonNull B obj, @Nullable P v) throws SerdeException {
