@@ -119,23 +119,14 @@ public final class BsonReaderDecoder implements Decoder {
 
     @Override
     public boolean decodeBoolean() throws IOException {
-        switch (bsonReader.getCurrentBsonType()) {
-            case NULL:
-                try {
-                    bsonReader.readNull();
-                    return false;
-                } finally {
-                    next();
-                }
-            case BOOLEAN:
-                try {
-                    return bsonReader.readBoolean();
-                } finally {
-                    next();
-                }
-            default:
-                throw createDeserializationException("Cannot decode Boolean from: " + bsonReader.getCurrentBsonType());
+        if (bsonReader.getCurrentBsonType() == BsonType.BOOLEAN) {
+            try {
+                return bsonReader.readBoolean();
+            } finally {
+                next();
+            }
         }
+        throw createDeserializationException("Cannot decode Boolean from: " + bsonReader.getCurrentBsonType());
     }
 
     @Override
@@ -155,35 +146,19 @@ public final class BsonReaderDecoder implements Decoder {
 
     @Override
     public int decodeInt() throws IOException {
-        switch (bsonReader.getCurrentBsonType()) {
-            case NULL:
-                try {
-                    bsonReader.readNull();
-                    return 0;
-                } finally {
-                    next();
-                }
-            case INT32:
-                try {
-                    return bsonReader.readInt32();
-                } finally {
-                    next();
-                }
-            default:
-                throw createDeserializationException("Cannot decode int from: " + bsonReader.getCurrentBsonType());
+        if (bsonReader.getCurrentBsonType() == BsonType.INT32) {
+            try {
+                return bsonReader.readInt32();
+            } finally {
+                next();
+            }
         }
+        throw createDeserializationException("Cannot decode int from: " + bsonReader.getCurrentBsonType());
     }
 
     @Override
     public long decodeLong() throws IOException {
         switch (bsonReader.getCurrentBsonType()) {
-            case NULL:
-                try {
-                    bsonReader.readNull();
-                    return 0L;
-                } finally {
-                    next();
-                }
             case INT32:
                 try {
                     return bsonReader.readInt32();
@@ -203,14 +178,6 @@ public final class BsonReaderDecoder implements Decoder {
 
     @Override
     public float decodeFloat() throws IOException {
-        if (bsonReader.getCurrentBsonType() == BsonType.NULL) {
-            try {
-                bsonReader.readNull();
-                return 0f;
-            } finally {
-                next();
-            }
-        }
         if (bsonReader.getCurrentBsonType() == BsonType.DOUBLE) {
             try {
                 return (float) bsonReader.readDouble();
@@ -223,14 +190,6 @@ public final class BsonReaderDecoder implements Decoder {
 
     @Override
     public double decodeDouble() throws IOException {
-        if (bsonReader.getCurrentBsonType() == BsonType.NULL) {
-            try {
-                bsonReader.readNull();
-                return 0d;
-            } finally {
-                next();
-            }
-        }
         if (bsonReader.getCurrentBsonType() == BsonType.DOUBLE) {
             try {
                 return bsonReader.readDouble();
