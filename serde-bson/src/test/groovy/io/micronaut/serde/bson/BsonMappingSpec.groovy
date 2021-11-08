@@ -20,7 +20,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
     def "validate mapping"() {
         given:
-            def expectedJson = """{"_id": "12345", "firstName": "John", "surname": "Smith", "addr": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}"""
+            def expectedJson = """{"_t": "Person", "_id": "12345", "firstName": "John", "surname": "Smith", "addr": {"_t": "Address", "address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}"""
             def person = new Person("12345", "John", "Smith", "p4sw0rd", new Address("The home", "Downstreet", "Paris", "123456"))
         expect:
             asBsonJsonString(person) == expectedJson

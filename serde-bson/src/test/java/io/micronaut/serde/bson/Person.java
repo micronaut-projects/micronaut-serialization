@@ -22,6 +22,7 @@ public final class Person {
     @BsonIgnore
     public String password;
 
+
     @BsonProperty(useDiscriminator = true)
     public Address addr;
 

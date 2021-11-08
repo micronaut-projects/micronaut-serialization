@@ -26,29 +26,24 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Mapper of @BsonProperty.
+ * Mapper of @BsonDiscriminator.
  *
  * @author Denis Stepanov
  */
-public class BsonPropertyTransformer implements NamedAnnotationTransformer {
+public class BsonDiscriminatorTransformer implements NamedAnnotationTransformer {
 
-    private static final String BSON_DEFAULT_DISCRIMINATOR_PROPERTY_NAME = "_t";
+    static final String BSON_DEFAULT_DISCRIMINATOR_PROPERTY_NAME = "_t";
 
     @Override
     public String getName() {
-        return "org.bson.codecs.pojo.annotations.BsonProperty";
+        return "org.bson.codecs.pojo.annotations.BsonDiscriminator";
     }
 
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.stringValue().ifPresent(s -> {
-            builder.member(SerdeConfig.PROPERTY, s);
-        });
-        if (annotation.booleanValue("useDiscriminator").orElse(false)) {
-            builder.member(SerdeConfig.TYPE_NAME, SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER);
-            builder.member(SerdeConfig.TYPE_PROPERTY, BSON_DEFAULT_DISCRIMINATOR_PROPERTY_NAME);
-        }
+        AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
+        builder.member(SerdeConfig.TYPE_NAME, annotation.stringValue().orElse(SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER));
+        builder.member(SerdeConfig.TYPE_PROPERTY, annotation.stringValue("key").orElse(BSON_DEFAULT_DISCRIMINATOR_PROPERTY_NAME));
         return Collections.singletonList(builder.build());
     }
 }
