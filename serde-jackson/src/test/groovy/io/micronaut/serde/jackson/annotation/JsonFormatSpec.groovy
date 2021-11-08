@@ -42,6 +42,32 @@ record Test(
 
     @Requires({ jvm.isJava17Compatible() })
     @Unroll
+    void "test fail compilation when invalid format applied to date for type #type"() {
+        when:
+        buildBeanIntrospection('jsongetterrecord.Test', """
+package jsongetterrecord;
+
+import io.micronaut.serde.annotation.Serdeable;              
+import com.fasterxml.jackson.annotation.JsonFormat;          
+
+
+@Serdeable
+record Test( 
+    @JsonFormat(pattern="bunch 'o junk")    
+    $type.name value) {
+}
+""")
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("Specified pattern [bunch 'o junk] is not a valid date format. See the javadoc for DateTimeFormatter: Unknown pattern letter: b")
+
+        where:
+        type << [LocalDateTime]
+    }
+
+    @Requires({ jvm.isJava17Compatible() })
+    @Unroll
     void "test json format for #type and settings #settings with record"() {
         given:
         def context = buildContext("""

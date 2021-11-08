@@ -17,6 +17,8 @@ package io.micronaut.serde.processor.jackson;
 
 import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -204,6 +206,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     new DecimalFormat(pattern);
                 } catch (Exception e) {
                     context.fail("Specified pattern [" + pattern + "] is not a valid decimal format. See the javadoc for DecimalFormat: " + e.getMessage(), element);
+                }
+            } else if (type.isAssignable(Temporal.class)) {
+                try {
+                    DateTimeFormatter.ofPattern(pattern);
+                } catch (Exception e) {
+                    context.fail("Specified pattern [" + pattern + "] is not a valid date format. See the javadoc for DateTimeFormatter: " + e.getMessage(), element);
                 }
             }
         }
