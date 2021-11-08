@@ -108,7 +108,7 @@ jobs:
             .github/ISSUE_TEMPLATE/new_feature.yaml
             .github/ISSUE_TEMPLATE/other.yaml
       - name: Create Pull Request - ${{ steps.branch.outputs.branch }}
-        uses: peter-evans/create-pull-request@v3.10.1
+        uses: peter-evans/create-pull-request@v3.11.0
         with:
           path: target
           token: ${{ secrets.GH_TOKEN }}
