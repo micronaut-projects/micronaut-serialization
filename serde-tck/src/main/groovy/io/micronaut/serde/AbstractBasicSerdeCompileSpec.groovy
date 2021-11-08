@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde
 
+import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpStatus
 import io.micronaut.serde.AbstractJsonCompileSpec
 import spock.lang.Unroll
@@ -82,6 +83,42 @@ class Test {
         Charset    | [value: StandardCharsets.UTF_8]       | '{"value":"UTF-8"}'
         TimeZone   | [value: TimeZone.getTimeZone("GMT")]  | '{"value":"GMT"}'
         Locale     | [value: Locale.CANADA_FRENCH]         | '{"value":"fr-CA"}'
+    }
+
+    @Unroll
+    void "test basic type #type missing value"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @io.micronaut.core.annotation.Nullable
+    private $type value;
+    public void setValue($type value) {
+        this.value = value;
+    } 
+    public $type getValue() {
+        return value;
+    }
+}
+""")
+
+        def typeUnderTest = argumentOf(context, 'test.Test')
+
+        expect:
+        def read = jsonMapper.readValue('{}', typeUnderTest)
+        typeUnderTest.type.isInstance(read)
+        read.value == defaultValue
+
+        cleanup:
+        context.close()
+
+        where:
+        type << ['Integer', 'int' , 'int[]']
+        defaultValue << [null, 0, null]
     }
 
     @Unroll
