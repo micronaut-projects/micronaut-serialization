@@ -19,15 +19,18 @@ import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeId;
@@ -39,6 +42,7 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
@@ -46,6 +50,7 @@ import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
+import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -260,6 +265,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     builder.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
                     builder.member("visibility", "PUBLIC");
                 });
+            }
+
+            final String[] ignoresProperties = element.stringValues(JsonIgnoreProperties.class);
+            if (ArrayUtils.isNotEmpty(ignoresProperties)) {
+                final boolean allowGetters = element.booleanValue(JsonIgnoreProperties.class, "allowGetters").orElse(false);
+                final boolean allowSetters = element.booleanValue(JsonIgnoreProperties.class, "allowSetters").orElse(false);
+                final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
+                final List<PropertyElement> beanProperties = element.getBeanProperties();
+                for (PropertyElement beanProperty : beanProperties) {
+                    if (ignoredSet.contains(beanProperty.getName())) {
+                        final Consumer<Element> configurer = m ->
+                                m.annotate(SerdeConfig.class, (builder) ->
+                                        builder.member(SerdeConfig.IGNORED, true)
+                                );
+                        if (allowGetters) {
+                            beanProperty.getWriteMethod().ifPresent(configurer);
+                        } else if (allowSetters) {
+                            beanProperty.getReadMethod().ifPresent(configurer);
+                        } else {
+                            configurer.accept(beanProperty);
+                        }
+                    }
+                }
             }
 
             final Optional<ClassElement> superType = findTypeInfo(element);
