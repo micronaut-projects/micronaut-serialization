@@ -227,8 +227,7 @@ public class JsonParserDecoder implements Decoder {
             case VALUE_STRING:
                 return decodeString();
             case VALUE_NUMBER:
-                // there's no API to tell what number type the input is
-                return decodeBigDecimal();
+                return ((JsonNumber) jsonParser.getValue()).numberValue();
             case VALUE_TRUE:
             case VALUE_FALSE:
                 return decodeBoolean();
@@ -277,8 +276,23 @@ public class JsonParserDecoder implements Decoder {
             case VALUE_STRING:
                 return JsonNode.createStringNode(decodeString());
             case VALUE_NUMBER:
-                // there's no API to tell what number type the input is
-                return JsonNode.createNumberNode(decodeBigDecimal());
+                Number number = ((JsonNumber) jsonParser.getValue()).numberValue();
+                if (number instanceof Byte || number instanceof Short || number instanceof Integer) {
+                    return JsonNode.createNumberNode(number.intValue());
+                } else if (number instanceof Long) {
+                    return JsonNode.createNumberNode(number.longValue());
+                } else if (number instanceof Float) {
+                    return JsonNode.createNumberNode(number.floatValue());
+                } else if (number instanceof Double) {
+                    return JsonNode.createNumberNode(number.doubleValue());
+                } else if (number instanceof BigInteger) {
+                    return JsonNode.createNumberNode((BigInteger) number);
+                } else if (number instanceof BigDecimal) {
+                    return JsonNode.createNumberNode((BigDecimal) number);
+                } else {
+                    // fallback, unknown number type
+                    return JsonNode.createNumberNode(decodeBigDecimal());
+                }
             case VALUE_TRUE:
             case VALUE_FALSE:
                 return JsonNode.createBooleanNode(decodeBoolean());
