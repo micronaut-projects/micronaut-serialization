@@ -34,6 +34,7 @@ import org.bson.types.ObjectId;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Custom {@link BsonType} representation serializer/deserializer.
@@ -47,43 +48,54 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
     protected Object doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         BsonReader bsonReader = decoder.getBsonReader();
         BsonType bsonType = getBsonType(type);
-        switch (bsonType) {
-            case DOUBLE:
-                return convert(context, type, bsonReader.readDouble());
-            case STRING:
-                if (type.getType().equals(ObjectId.class)) {
-                    return new ObjectId(bsonReader.readString());
-                }
-                return convert(context, type, bsonReader.readString());
-            case JAVASCRIPT:
-                return convert(context, type, bsonReader.readJavaScript());
-            case SYMBOL:
-                return convert(context, type, bsonReader.readSymbol());
-            case JAVASCRIPT_WITH_SCOPE:
-                return convert(context, type, bsonReader.readJavaScriptWithScope());
-            case BINARY:
-                return convert(context, type, bsonReader.readBinaryData());
-            case OBJECT_ID:
-                return convert(context, type, bsonReader.readObjectId());
-            case BOOLEAN:
-                return convert(context, type, bsonReader.readBoolean());
-            case DATE_TIME:
-                return convert(context, type, bsonReader.readDateTime());
-            case REGULAR_EXPRESSION:
-                return convert(context, type, bsonReader.readRegularExpression());
-            case DB_POINTER:
-                return convert(context, type, bsonReader.readDBPointer());
-            case INT32:
-                return convert(context, type, bsonReader.readInt32());
-            case TIMESTAMP:
-                return convert(context, type, bsonReader.readTimestamp());
-            case INT64:
-                return convert(context, type, bsonReader.readInt64());
-            case DECIMAL128:
-                return convert(context, type, bsonReader.readDecimal128());
-            default:
-                throw new SerdeException("Unsupported BsonType: " + bsonType);
+        try {
+            switch (bsonType) {
+                case DOUBLE:
+                    return convert(context, type, bsonReader.readDouble());
+                case STRING:
+                    if (type.getType().equals(ObjectId.class)) {
+                        return new ObjectId(bsonReader.readString());
+                    }
+                    return convert(context, type, bsonReader.readString());
+                case JAVASCRIPT:
+                    return convert(context, type, bsonReader.readJavaScript());
+                case SYMBOL:
+                    return convert(context, type, bsonReader.readSymbol());
+                case JAVASCRIPT_WITH_SCOPE:
+                    return convert(context, type, bsonReader.readJavaScriptWithScope());
+                case BINARY:
+                    if (type.getType().equals(byte[].class)) {
+                        return bsonReader.readBinaryData().getData();
+                    }
+                    if (type.getType().equals(UUID.class)) {
+                        return bsonReader.readBinaryData().asUuid();
+                    }
+                    return convert(context, type, bsonReader.readBinaryData());
+                case OBJECT_ID:
+                    return convert(context, type, bsonReader.readObjectId());
+                case BOOLEAN:
+                    return convert(context, type, bsonReader.readBoolean());
+                case DATE_TIME:
+                    return convert(context, type, bsonReader.readDateTime());
+                case REGULAR_EXPRESSION:
+                    return convert(context, type, bsonReader.readRegularExpression());
+                case DB_POINTER:
+                    return convert(context, type, bsonReader.readDBPointer());
+                case INT32:
+                    return convert(context, type, bsonReader.readInt32());
+                case TIMESTAMP:
+                    return convert(context, type, bsonReader.readTimestamp());
+                case INT64:
+                    return convert(context, type, bsonReader.readInt64());
+                case DECIMAL128:
+                    return convert(context, type, bsonReader.readDecimal128());
+                default:
+                    break;
+            }
+        } finally {
+            decoder.next();
         }
+        throw new SerdeException("Unsupported BsonType: " + bsonType);
     }
 
     private Object convert(DecoderContext context, Argument<? super Object> type, Object value) {
@@ -112,7 +124,13 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
                     }
                     break;
                 case BINARY:
-                    bsonWriter.writeBinaryData(convert(context, value, BsonBinary.class));
+                    if (value instanceof byte[]) {
+                        bsonWriter.writeBinaryData(new BsonBinary((byte[]) value));
+                    } else if (value instanceof UUID) {
+                        bsonWriter.writeBinaryData(new BsonBinary((UUID) value));
+                    } else {
+                        bsonWriter.writeBinaryData(convert(context, value, BsonBinary.class));
+                    }
                     break;
                 case OBJECT_ID:
                     if (value instanceof String) {
@@ -125,7 +143,11 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
                     bsonWriter.writeBoolean(convert(context, value, Boolean.class));
                     break;
                 case DATE_TIME:
-                    bsonWriter.writeDateTime(convert(context, value, Instant.class).getEpochSecond());
+                    if (value instanceof Long) {
+                        bsonWriter.writeDateTime((Long) value);
+                    } else {
+                        bsonWriter.writeDateTime(convert(context, value, Instant.class).getEpochSecond());
+                    }
                     break;
                 case REGULAR_EXPRESSION:
                     bsonWriter.writeRegularExpression(convert(context, value, BsonRegularExpression.class));

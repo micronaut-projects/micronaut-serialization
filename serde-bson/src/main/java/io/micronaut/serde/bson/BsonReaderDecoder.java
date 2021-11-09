@@ -50,7 +50,7 @@ public final class BsonReaderDecoder implements Decoder {
         next();
     }
 
-    public final void next() {
+    public void next() {
         state.currentBsonType = bsonReader.readBsonType();
     }
 

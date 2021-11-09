@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 /**
  * Holder for data about a deserializable bean.
+ *
  * @param <T> The generic type
  */
 @Internal
@@ -239,16 +240,15 @@ class DeserBean<T> {
                                 .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                                 .orElse(beanProperty.getName());
 
-                        final Deserializer<?> deserializer = decoderContext.findDeserializer(t);
                         readProps.put(jsonProperty, new DerProperty<>(
-                                              introspection,
-                                              i,
-                                              t,
-                                              beanProperty::set,
-                                              (Deserializer) deserializer,
-                                              null,
-                                              decoderContext
-                                      )
+                                        introspection,
+                                        i,
+                                        t,
+                                        beanProperty::set,
+                                        findDeserializer(decoderContext, t),
+                                        null,
+                                        decoderContext
+                                )
                         );
                     }
                 }
@@ -259,13 +259,12 @@ class DeserBean<T> {
                         .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                         .orElseGet(() -> NameUtils.getPropertyNameForSetter(jsonSetter.getName()));
                 final Argument<Object> argument = (Argument<Object>) jsonSetter.getArguments()[0];
-                final Deserializer<Object> deserializer = findDeserializer(decoderContext, argument);
                 readProps.put(property, new DerProperty<>(
                         introspection,
                         0,
                         argument,
                         jsonSetter::invoke,
-                        deserializer,
+                        findDeserializer(decoderContext, argument),
                         null,
                         decoderContext
                 ));
@@ -369,6 +368,7 @@ class DeserBean<T> {
 
     /**
      * Models a deserialization property.
+     *
      * @param <B> The bean type
      * @param <P> The property type
      */
@@ -382,8 +382,10 @@ class DeserBean<T> {
         public final P defaultValue;
         public final boolean required;
         public final boolean isAnySetter;
-        public final @Nullable BiConsumer<B, P> writer;
-        public final @NonNull Deserializer<? super P> deserializer;
+        public final @Nullable
+        BiConsumer<B, P> writer;
+        public final @NonNull
+        Deserializer<? super P> deserializer;
         public final DeserBean<P> unwrapped;
 
         public DerProperty(BeanIntrospection<B> instrospection,
@@ -418,7 +420,7 @@ class DeserBean<T> {
                 writer.accept(bean, defaultValue);
             } else if (required) {
                 throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                                                 "] is not present in supplied data");
+                        "] is not present in supplied data");
             }
         }
 
@@ -433,7 +435,7 @@ class DeserBean<T> {
         public void set(@NonNull B obj, @Nullable P v) throws SerdeException {
             if (v == null && argument.isNonNull()) {
                 throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                                                 "] is not present in supplied data");
+                        "] is not present in supplied data");
 
             }
             if (writer != null) {
