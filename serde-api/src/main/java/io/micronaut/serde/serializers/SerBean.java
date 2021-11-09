@@ -125,13 +125,18 @@ final class SerBean<T> {
                     }
                 } else {
                     String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false);
-                    final SerProperty<T, Object> serProperty = new SerProperty<>(n,
-                            argument,
-                            property::get,
-                            encoderContext.findSerializer(argument),
-                            null,
-                            encoderContext
-                    );
+                    final SerProperty<T, Object> serProperty;
+                    try {
+                        serProperty = new SerProperty<>(n,
+                                                        argument,
+                                                        property::get,
+                                                        encoderContext.findSerializer(argument),
+                                                        null,
+                                                        encoderContext
+                        );
+                    } catch (SerdeException e) {
+                        throw new SerdeException("Error resolving serializer for property [" + property + "] of type [" + argument.getType().getName() + "]: " + e.getMessage(), e);
+                    }
                     if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
                         anyGetterProperty = serProperty;
                     } else {

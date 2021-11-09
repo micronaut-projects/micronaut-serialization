@@ -133,7 +133,7 @@ public final class ObjectSerializer implements Serializer<Object> {
             }
             childEncoder.finishStructure();
         } catch (IntrospectionException e) {
-            throw new SerdeException("Error serializing value at path: " + encoder.toString() + ". No serializer found for type: " + type, e);
+            throw new SerdeException("Error serializing value at path: " + encoder + ". No serializer found for type: " + type, e);
         }
 
     }

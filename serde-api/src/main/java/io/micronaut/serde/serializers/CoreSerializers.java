@@ -17,7 +17,6 @@ package io.micronaut.serde.serializers;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,23 +34,6 @@ import jakarta.inject.Singleton;
  */
 @Factory
 public class CoreSerializers {
-
-    /**
-     * A serializer for the date type.
-     *
-     * @return A date serializer
-     */
-    @Singleton
-    protected Serializer<Date> dateSerializer() {
-        return (encoder, context, value, type) -> {
-            context.findSerializer(Argument.LONG)
-                    .serialize(
-                            encoder,
-                            context, value.getTime(),
-                            Argument.LONG
-                    );
-        };
-    }
 
     /**
      * A serializer for all instances of {@link java.lang.CharSequence}.
