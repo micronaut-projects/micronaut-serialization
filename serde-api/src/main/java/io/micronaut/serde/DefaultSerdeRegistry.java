@@ -15,6 +15,24 @@
  */
 package io.micronaut.serde;
 
+import io.micronaut.context.BeanContext;
+import io.micronaut.context.exceptions.ConfigurationException;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.reflect.ReflectionUtils;
+import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.core.util.StringUtils;
+import io.micronaut.inject.BeanDefinition;
+import io.micronaut.serde.deserializers.ObjectDeserializer;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.serializers.NumberSerde;
+import io.micronaut.serde.serializers.ObjectSerializer;
+import io.micronaut.serde.util.NullableDeserializer;
+import io.micronaut.serde.util.NullableSerde;
+import jakarta.inject.Singleton;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -184,6 +202,16 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 new ByteArraySerde(),
                 new CharArraySerde()
         ).forEach(SerdeRegistrar::register);
+    }
+
+    @Override
+    public <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass) throws SerdeException {
+        return beanContext.findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
+    }
+
+    @Override
+    public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
+        return beanContext.findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
     }
 
     @Override

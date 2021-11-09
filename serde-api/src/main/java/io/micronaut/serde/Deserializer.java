@@ -22,6 +22,7 @@ import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -82,6 +83,18 @@ public interface Deserializer<T> {
      * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)} method along with the decoder.
      */
     interface DecoderContext {
+
+        /**
+         * Gets a custom deserializer.
+         * @param deserializerClass The deserializer class, should not be {@code null}
+         * @param <T> The generic type
+         * @param <D> The deserializer type
+         * @return The deserializer
+         * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
+         */
+        @NonNull <T, D extends Deserializer<? extends T>> D findCustomDeserializer(@NonNull Class<? extends D> deserializerClass)
+                throws SerdeException;
+
         /**
          * Finds a deserializer for the given type.
          * @param type The type, should not be {@code null}
@@ -111,5 +124,13 @@ public interface Deserializer<T> {
          * @return The subtypes, never null
          */
         <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType);
+
+        /**
+         * @return Conversion service
+         */
+        @NonNull
+        default ConversionService<?> getConversionService() {
+            return ConversionService.SHARED;
+        }
     }
 }

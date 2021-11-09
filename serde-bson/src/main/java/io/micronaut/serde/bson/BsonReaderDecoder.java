@@ -15,10 +15,6 @@
  */
 package io.micronaut.serde.bson;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -26,6 +22,10 @@ import org.bson.BsonReader;
 import org.bson.BsonType;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * Bson implementation of {@link Decoder}.
@@ -50,7 +50,7 @@ public final class BsonReaderDecoder implements Decoder {
         next();
     }
 
-    private void next() {
+    public final void next() {
         state.currentBsonType = bsonReader.readBsonType();
     }
 
@@ -317,6 +317,10 @@ public final class BsonReaderDecoder implements Decoder {
             }
         }
         throw createDeserializationException("Cannot decode ObjectId from: " + state.currentBsonType);
+    }
+
+    public BsonReader getBsonReader() {
+        return bsonReader;
     }
 
     /**

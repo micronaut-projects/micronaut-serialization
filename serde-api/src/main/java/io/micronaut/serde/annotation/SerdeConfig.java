@@ -15,14 +15,14 @@
  */
 package io.micronaut.serde.annotation;
 
+import io.micronaut.context.annotation.Executable;
+import io.micronaut.core.annotation.Internal;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import io.micronaut.context.annotation.Executable;
-import io.micronaut.core.annotation.Internal;
 
 /**
  * Meta-annotation with meta annotation members that different annotation
@@ -100,6 +100,16 @@ public @interface SerdeConfig {
      * if parsing is required whether to be lenient.
      */
     String LENIENT = "lenient";
+
+    /**
+     * Custom serializer class.
+     */
+    String SERIALIZER_CLASS = "serializerClass";
+
+    /**
+     * Custom deserializer class.
+     */
+    String DESERIALIZER_CLASS = "deserializerClass";
 
     /**
      * Internal metadata type for wrapped settings.

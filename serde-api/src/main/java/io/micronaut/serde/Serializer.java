@@ -20,6 +20,7 @@ import java.io.IOException;
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -82,6 +83,18 @@ public interface Serializer<T> {
      * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
     interface EncoderContext {
+
+        /**
+         * Gets a custom serializer.
+         * @param serializerClass The serializer class, should not be {@code null}
+         * @param <T> The generic type
+         * @param <D> The serializer type
+         * @return The serializer
+         * @throws io.micronaut.serde.exceptions.SerdeException if no serializer is found
+         */
+        @NonNull <T, D extends Serializer<? extends T>> D findCustomSerializer(@NonNull Class<? extends D> serializerClass)
+                throws SerdeException;
+
         /**
          * Finds a serializer for the given type.
          * @param forType The type
@@ -104,6 +117,14 @@ public interface Serializer<T> {
         <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
                 throws SerdeException {
             return findSerializer(Argument.of(forType));
+        }
+
+        /**
+         * @return Conversion service
+         */
+        @NonNull
+        default ConversionService<?> getConversionService() {
+            return ConversionService.SHARED;
         }
     }
 }

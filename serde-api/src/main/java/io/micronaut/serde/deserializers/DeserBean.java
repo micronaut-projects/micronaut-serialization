@@ -15,15 +15,6 @@
  */
 package io.micronaut.serde.deserializers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -41,6 +32,15 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 /**
  * Holder for data about a deserializable bean.
@@ -200,7 +200,7 @@ class DeserBean<T> {
                         if (unwrappedProperties == null) {
                             unwrappedProperties = new ArrayList<>();
                         }
-                        final Deserializer<Object> deserializer = (Deserializer<Object>) decoderContext.findDeserializer(t);
+                        final Deserializer<Object> deserializer = findDeserializer(decoderContext, t);
                         final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
                                 t,
                                 decoderContext
@@ -259,7 +259,7 @@ class DeserBean<T> {
                         .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                         .orElseGet(() -> NameUtils.getPropertyNameForSetter(jsonSetter.getName()));
                 final Argument<Object> argument = (Argument<Object>) jsonSetter.getArguments()[0];
-                final Deserializer<Object> deserializer = (Deserializer<Object>) decoderContext.findDeserializer(argument);
+                final Deserializer<Object> deserializer = findDeserializer(decoderContext, argument);
                 readProps.put(property, new DerProperty<>(
                         introspection,
                         0,
@@ -286,6 +286,14 @@ class DeserBean<T> {
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
+    }
+
+    private Deserializer<Object> findDeserializer(Deserializer.DecoderContext decoderContext, Argument<Object> argument) throws SerdeException {
+        Class customDeser = argument.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).orElse(null);
+        if (customDeser != null) {
+            return decoderContext.findCustomDeserializer(customDeser);
+        }
+        return (Deserializer<Object>) decoderContext.findDeserializer(argument);
     }
 
     static final class AnySetter<T> {

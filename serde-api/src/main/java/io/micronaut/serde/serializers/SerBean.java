@@ -117,7 +117,7 @@ final class SerBean<T> {
                         final SerProperty<T, Object> serProperty = new SerProperty<>(n,
                                 unwrappedPropertyArgument,
                                 bean -> unwrappedProperty.get(property.get(bean)),
-                                (Serializer<Object>) encoderContext.findSerializer(unwrappedPropertyArgument),
+                                findSerializer(encoderContext, unwrappedPropertyArgument),
                                 null,
                                 encoderContext
                         );
@@ -130,7 +130,7 @@ final class SerBean<T> {
                         serProperty = new SerProperty<>(n,
                                                         argument,
                                                         property::get,
-                                                        encoderContext.findSerializer(argument),
+                                                        findSerializer(encoderContext, argument),
                                                         null,
                                                         encoderContext
                         );
@@ -163,6 +163,14 @@ final class SerBean<T> {
         }
         this.anyGetter = anyGetterProperty;
         wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+    }
+
+    private <K> Serializer<K> findSerializer(Serializer.EncoderContext encoderContext, Argument<K> argument) throws SerdeException {
+        Class customSer = argument.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).orElse(null);
+        if (customSer != null) {
+            return encoderContext.findCustomSerializer(customSer);
+        }
+        return (Serializer<K>) encoderContext.findSerializer(argument);
     }
 
     private String resolveName(AnnotationMetadata annotationMetadata,
