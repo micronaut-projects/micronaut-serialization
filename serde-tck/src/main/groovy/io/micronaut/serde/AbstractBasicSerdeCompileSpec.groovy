@@ -15,22 +15,14 @@
  */
 package io.micronaut.serde
 
-import io.micronaut.core.type.Argument
+
 import io.micronaut.http.HttpStatus
 import io.micronaut.serde.AbstractJsonCompileSpec
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.Period
-import java.time.Year
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
+import java.time.*
 
 abstract class AbstractBasicSerdeCompileSpec extends AbstractJsonCompileSpec {
 
@@ -118,7 +110,7 @@ class Test {
         def typeUnderTest = argumentOf(context, 'test.Test')
 
         expect:
-        def read = jsonMapper.readValue('{}', typeUnderTest)
+        def read = jsonMapper.readValue(jsonAsBytes('{}'), typeUnderTest)
         typeUnderTest.type.isInstance(read)
         read.value == defaultValue
 
@@ -344,7 +336,7 @@ class Test {
 }
 """, [value: value])
         def result = writeJson(jsonMapper, beanUnderTest)
-        def read = jsonMapper.readValue(result, typeUnderTest)
+        def read = jsonMapper.readValue(jsonAsBytes(result), typeUnderTest)
 
         expect:
         typeUnderTest.type.isInstance(read)

@@ -27,7 +27,7 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.serde.deserializers.ObjectDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.serializers.NumberSerde;
+import io.micronaut.serde.serdes.NumberSerde;
 import io.micronaut.serde.serializers.ObjectSerializer;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.NullableSerde;
@@ -56,24 +56,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
-import io.micronaut.context.BeanContext;
-import io.micronaut.context.exceptions.ConfigurationException;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.reflect.ReflectionUtils;
-import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.core.util.StringUtils;
-import io.micronaut.inject.BeanDefinition;
-import io.micronaut.serde.deserializers.ObjectDeserializer;
-import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.serdes.NumberSerde;
-import io.micronaut.serde.serializers.ObjectSerializer;
-import io.micronaut.serde.util.NullableDeserializer;
-import io.micronaut.serde.util.NullableSerde;
-import jakarta.inject.Singleton;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
