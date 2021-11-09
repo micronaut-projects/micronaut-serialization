@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
@@ -193,12 +194,25 @@ public class CoreSerializers {
                 if (ArrayUtils.isEmpty(generics) || generics.length != 2) {
                     throw new SerdeException("Serializing raw maps is not supported for value: " + value);
                 }
+                final Argument<K> keyGeneric  = (Argument<K>) generics[0];
                 final Argument<V> valueGeneric = (Argument<V>) generics[1];
                 final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
                 for (K k : value.keySet()) {
                     // relies on the key type implementing toString() correctly
                     // perhaps we should supply conversion service
-                    childEncoder.encodeKey(k.toString());
+                    if (CharSequence.class.isAssignableFrom(keyGeneric.getType())) {
+                        childEncoder.encodeKey(k.toString());
+                    } else {
+                        try {
+                            final String result = context.getConversionService().convertRequired(
+                                    k,
+                                    Argument.STRING
+                            );
+                            childEncoder.encodeKey(result != null ? result : k.toString());
+                        } catch (ConversionErrorException e) {
+                            throw new SerdeException("Error converting Map key [" + k + "] to String: " + e.getMessage(), e);
+                        }
+                    }
                     final V v = value.get(k);
                     if (v == null) {
                         childEncoder.encodeNull();
