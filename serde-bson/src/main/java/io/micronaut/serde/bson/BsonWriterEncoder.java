@@ -144,4 +144,8 @@ public final class BsonWriterEncoder implements Encoder {
         // TODO
         return false;
     }
+
+    public BsonWriter getBsonWriter() {
+        return bsonWriter;
+    }
 }

@@ -18,11 +18,10 @@ package io.micronaut.serde.bson.custom;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serializer;
 import io.micronaut.serde.bson.BsonReaderDecoder;
 import io.micronaut.serde.bson.BsonWriterEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableDeserializer;
+import io.micronaut.serde.util.NullableSerde;
 
 import java.io.IOException;
 
@@ -30,7 +29,7 @@ import java.io.IOException;
  * Abstract serializer/deserializer that needs to access Bson decoder/encoder.
  * @param <T>
  */
-abstract class AbstractBsonSerder<T> implements Serializer<T>, NullableDeserializer<T> {
+public abstract class AbstractBsonSerder<T> implements NullableSerde<T> {
 
     protected abstract T doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
 

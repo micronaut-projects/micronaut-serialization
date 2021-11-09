@@ -40,6 +40,62 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
             encodeAsBinaryDecodeAsObject(all).objectId == objectId
     }
 
+    def "validate binary"() {
+        given:
+            def document = new BsonDocument()
+            def data = new byte[]{1, 2, 3}
+            def uuid = UUID.randomUUID()
+            document.put("binary", new BsonBinary(data))
+            document.put("bytes", new BsonBinary(data))
+            document.put("uuid", new BsonBinary(uuid))
+        when:
+            def all = encodeAsBinaryDecodeAsObject(document, CustomTypes)
+        then:
+            all.binary.data == data
+            all.bytes == data
+            all.uuid == uuid
+            encodeAsBinaryDecodeAsObject(all).binary.data == data
+            encodeAsBinaryDecodeAsObject(all).bytes == data
+            encodeAsBinaryDecodeAsObject(all).uuid == uuid
+    }
+
+    def "validate regular exp"() {
+        given:
+            def document = new BsonDocument()
+            document.put("regularExpression", new BsonRegularExpression(".*"))
+        when:
+            def all = encodeAsBinaryDecodeAsObject(document, CustomTypes)
+        then:
+            all.regularExpression.pattern == ".*"
+            encodeAsBinaryDecodeAsObject(all).regularExpression.pattern == ".*"
+    }
+
+    def "validate db pointer"() {
+        given:
+            def document = new BsonDocument()
+            def objectId = new ObjectId()
+            document.put("dbPointer", new BsonDbPointer("my", objectId))
+        when:
+            def all = encodeAsBinaryDecodeAsObject(document, CustomTypes)
+        then:
+            all.dbPointer.namespace == "my"
+            all.dbPointer.id == objectId
+            encodeAsBinaryDecodeAsObject(all).dbPointer.namespace == "my"
+            encodeAsBinaryDecodeAsObject(all).dbPointer.id == objectId
+    }
+
+    def "validate datetime"() {
+        given:
+            def document = new BsonDocument()
+            def date = new Date()
+            document.put("dateTime", new BsonDateTime(date.getTime()))
+        when:
+            def all = encodeAsBinaryDecodeAsObject(document, CustomTypes)
+        then:
+            all.dateTime == date.getTime()
+            encodeAsBinaryDecodeAsObject(all).dateTime == date.getTime()
+    }
+
     def "should skip unknown values"() {
         given:
             def document = new BsonDocument()

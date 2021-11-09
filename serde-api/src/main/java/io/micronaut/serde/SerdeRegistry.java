@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde;
 
+import io.micronaut.core.convert.ConversionService;
+
 /**
  * Represents a registry where specific serializers can be looked up.
  *
@@ -25,4 +27,10 @@ package io.micronaut.serde;
 public interface SerdeRegistry
         extends Serializer.EncoderContext,
                 Deserializer.DecoderContext {
+
+    @Override
+    default ConversionService<?> getConversionService() {
+        return ConversionService.SHARED;
+    }
+
 }
