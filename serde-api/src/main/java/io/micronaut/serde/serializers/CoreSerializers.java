@@ -181,7 +181,7 @@ public class CoreSerializers {
      * @return A bit decimal serializer
      */
     @Singleton
-    protected <K extends CharSequence, V> Serializer<Map<K, V>> mapSerializer() {
+    protected <K, V> Serializer<Map<K, V>> mapSerializer() {
         return new Serializer<Map<K, V>>() {
             @Override
             public void serialize(Encoder encoder,
@@ -196,6 +196,8 @@ public class CoreSerializers {
                 final Argument<V> valueGeneric = (Argument<V>) generics[1];
                 final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
                 for (K k : value.keySet()) {
+                    // relies on the key type implementing toString() correctly
+                    // perhaps we should supply conversion service
                     childEncoder.encodeKey(k.toString());
                     final V v = value.get(k);
                     if (v == null) {

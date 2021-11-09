@@ -12,6 +12,7 @@ dependencies {
     api(projects.serdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
+    testAnnotationProcessor(projects.serdeProcessor)
     testImplementation(projects.serdeProcessor)
     testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
