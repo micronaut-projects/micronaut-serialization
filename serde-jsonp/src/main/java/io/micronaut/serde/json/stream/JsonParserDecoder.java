@@ -227,7 +227,9 @@ public class JsonParserDecoder implements Decoder {
             case VALUE_STRING:
                 return decodeString();
             case VALUE_NUMBER:
-                return ((JsonNumber) jsonParser.getValue()).numberValue();
+                Number number = ((JsonNumber) jsonParser.getValue()).numberValue();
+                afterValue();
+                return number;
             case VALUE_TRUE:
             case VALUE_FALSE:
                 return decodeBoolean();
