@@ -18,8 +18,14 @@ package io.micronaut.serde.json.stream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.JsonNodeDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonValue;
@@ -73,12 +79,21 @@ public class JsonParserDecoder implements Decoder {
         }
     }
 
+    private void afterValue() {
+        if (jsonParser.hasNext()) {
+            this.currentEvent = jsonParser.next();
+        } else {
+            // EOF
+            this.currentEvent = null;
+        }
+    }
+
     @Override
     public String decodeString() throws IOException {
         try {
             return jsonParser.getString();
         } finally {
-            this.currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
@@ -98,7 +113,7 @@ public class JsonParserDecoder implements Decoder {
                     throw createDeserializationException("Not a boolean value");
             }
         } finally {
-            this.currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
@@ -115,7 +130,7 @@ public class JsonParserDecoder implements Decoder {
                     throw createDeserializationException("Not a byte value");
             }
         } finally {
-            this.currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
@@ -142,7 +157,7 @@ public class JsonParserDecoder implements Decoder {
         try {
             return jsonParser.getInt();
         } finally {
-            currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
@@ -151,7 +166,7 @@ public class JsonParserDecoder implements Decoder {
         try {
             return jsonParser.getLong();
         } finally {
-            currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
@@ -180,7 +195,7 @@ public class JsonParserDecoder implements Decoder {
         try {
             return jsonParser.getBigDecimal().toBigInteger();
         } finally {
-            currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
@@ -189,14 +204,14 @@ public class JsonParserDecoder implements Decoder {
         try {
             return jsonParser.getBigDecimal();
         } finally {
-            currentEvent = jsonParser.next();
+            afterValue();
         }
     }
 
     @Override
     public boolean decodeNull() throws IOException {
         if (currentEvent == JsonParser.Event.VALUE_NULL) {
-            currentEvent = jsonParser.next();
+            afterValue();
             return true;
         }
         return false;
@@ -204,12 +219,97 @@ public class JsonParserDecoder implements Decoder {
 
     @Override
     public Object decodeArbitrary() throws IOException {
-        throw new UnsupportedOperationException("Not yet implemented");
+        switch (currentEvent) {
+            case START_OBJECT:
+                return decodeArbitraryMap(decodeObject());
+            case START_ARRAY:
+                return decodeArbitraryList(decodeArray());
+            case VALUE_STRING:
+                return decodeString();
+            case VALUE_NUMBER:
+                // there's no API to tell what number type the input is
+                return decodeBigDecimal();
+            case VALUE_TRUE:
+            case VALUE_FALSE:
+                return decodeBoolean();
+            case VALUE_NULL:
+                decodeNull();
+                return null;
+            default:
+                throw ((Decoder) this).createDeserializationException("Unexpected token " + currentEvent + ", expected value");
+        }
+    }
+
+    private static Map<String, Object> decodeArbitraryMap(Decoder elementDecoder) throws IOException {
+        Map<String, Object> result = new LinkedHashMap<>();
+        while (true) {
+            String key = elementDecoder.decodeKey();
+            if (key == null) {
+                break;
+            }
+            result.put(key, elementDecoder.decodeArbitrary());
+        }
+        elementDecoder.finishStructure();
+        return result;
+    }
+
+    private static List<Object> decodeArbitraryList(Decoder elementDecoder) throws IOException {
+        List<Object> result = new ArrayList<>();
+        while (elementDecoder.hasNextArrayValue()) {
+            result.add(elementDecoder.decodeArbitrary());
+        }
+        elementDecoder.finishStructure();
+        return result;
     }
 
     @Override
     public Decoder decodeBuffer() throws IOException {
-        throw new UnsupportedOperationException("Not yet implemented");
+        JsonNode node = decodeNode();
+        return JsonNodeDecoder.create(node);
+    }
+
+    private JsonNode decodeNode() throws IOException {
+        switch (currentEvent) {
+            case START_OBJECT:
+                return decodeObjectNode((JsonParserDecoder) decodeObject());
+            case START_ARRAY:
+                return decodeArrayNode((JsonParserDecoder) decodeArray());
+            case VALUE_STRING:
+                return JsonNode.createStringNode(decodeString());
+            case VALUE_NUMBER:
+                // there's no API to tell what number type the input is
+                return JsonNode.createNumberNode(decodeBigDecimal());
+            case VALUE_TRUE:
+            case VALUE_FALSE:
+                return JsonNode.createBooleanNode(decodeBoolean());
+            case VALUE_NULL:
+                decodeNull();
+                return JsonNode.nullNode();
+            default:
+                throw ((Decoder) this).createDeserializationException("Unexpected token " + currentEvent + ", expected value");
+        }
+    }
+
+    private static JsonNode decodeObjectNode(JsonParserDecoder elementDecoder) throws IOException {
+        Map<String, JsonNode> result = new LinkedHashMap<>();
+        while (true) {
+            String key = elementDecoder.decodeKey();
+            if (key == null) {
+                break;
+            }
+            result.put(key, elementDecoder.decodeNode());
+        }
+        elementDecoder.finishStructure();
+        return JsonNode.createObjectNode(result);
+    }
+
+    private static JsonNode decodeArrayNode(JsonParserDecoder elementDecoder) throws IOException {
+        List<JsonNode> result = new ArrayList<>();
+        while (elementDecoder.hasNextArrayValue()) {
+            result.add(elementDecoder.decodeNode());
+        }
+        elementDecoder.finishStructure();
+        return JsonNode.createArrayNode(result);
     }
 
     @Override
@@ -220,9 +320,7 @@ public class JsonParserDecoder implements Decoder {
     @Override
     public void finishStructure() throws IOException {
         if (currentEvent == JsonParser.Event.END_ARRAY || currentEvent == JsonParser.Event.END_OBJECT) {
-            if (jsonParser.hasNext()) {
-                this.currentEvent = jsonParser.next();
-            }
+            afterValue();
         } else {
             throw createDeserializationException("Not a structure end");
         }
