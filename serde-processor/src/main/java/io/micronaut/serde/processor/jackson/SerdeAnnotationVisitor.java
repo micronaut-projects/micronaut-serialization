@@ -15,17 +15,6 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.text.DecimalFormat;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.Temporal;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
@@ -56,6 +45,17 @@ import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.annotation.Serdeable;
+
+import java.lang.annotation.Annotation;
+import java.text.DecimalFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * A visitor that provides validation and extended handling for JSON annotations.
@@ -296,10 +296,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
                 element.annotate(SerdeConfig.class, builder -> {
                     final String typeName = element.stringValue(JsonTypeName.class).orElseGet(() ->
-                          discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS ? element.getName() : element.getSimpleName()
+                          discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? element.getName() : element.getSimpleName()
                     );
                     String typeProperty = resolveTypeProperty(superType).orElseGet(() ->
-                       discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS ? "@class" : "@type"
+                       discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
                     );
                     final JsonTypeInfo.As include = resolveInclude(superType).orElse(null);
                     if (include == JsonTypeInfo.As.WRAPPER_OBJECT) {
@@ -362,7 +362,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 SerdeConfig.Subtyped.class,
                 SerdeConfig.Subtyped.DISCRIMINATOR_VALUE,
                 SerdeConfig.Subtyped.DiscriminatorValueKind.class)
-                .orElse(SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS);
+                .orElse(SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME);
     }
 
     private Optional<ClassElement> findTypeInfo(ClassElement element) {

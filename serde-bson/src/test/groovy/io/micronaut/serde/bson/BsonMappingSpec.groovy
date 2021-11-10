@@ -6,7 +6,10 @@ import jakarta.inject.Inject
 import org.bson.BsonDocument
 import org.bson.BsonObjectId
 import org.bson.types.ObjectId
+import spock.lang.PendingFeature
 import spock.lang.Specification
+
+import java.nio.charset.StandardCharsets
 
 @MicronautTest
 class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
@@ -38,6 +41,58 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             def bsonDocument = bsonBinaryMapper.readValue(data, Argument.of(BsonDocument))
         then:
             bsonDocument.get("serialNumber") instanceof BsonObjectId
+    }
+
+    def "validate mapping inheritance"() {
+        given:
+            def dog = new Dog(id: new ObjectId(), name: "Bark", breed: "Unknown")
+            def cat = new Cat(id: new ObjectId(), name: "Meow", kitten: true)
+        when:
+            def dogData = bsonBinaryMapper.writeValueAsBytes(dog)
+            def catData = bsonBinaryMapper.writeValueAsBytes(cat)
+            def newDog = bsonBinaryMapper.readValue(dogData, Argument.of(AbstractPet)) as Dog
+            def newCat = bsonBinaryMapper.readValue(catData, Argument.of(AbstractPet)) as Cat
+        then:
+            newDog instanceof Dog
+            newDog.id == dog.id
+            newDog.name == dog.name
+            newDog.breed == dog.breed
+            newCat instanceof Cat
+            newCat.id == cat.id
+            newCat.name == cat.name
+            newCat.kitten == cat.kitten
+    }
+
+    def "validate mapping inheritance of field"() {
+        given:
+            def dog = new Dog(id: new ObjectId(), name: "Bark", breed: "Unknown")
+            def cat = new Cat(id: new ObjectId(), name: "Meow", kitten: true)
+            def pets = new Pets(pets: [dog, cat])
+        when:
+            def data = bsonBinaryMapper.writeValueAsBytes(pets)
+            def newPets = bsonBinaryMapper.readValue(data, Argument.of(Pets))
+        then:
+            newPets.pets[0] instanceof Dog
+            newPets.pets[1] instanceof Cat
+    }
+
+    @PendingFeature(reason = "Should work when 'decodeBuffer' is implemented")
+    def "validate mapping inheritance type order"() {
+        given:
+            def dogJson = """{"breed": "Unknown", "_id": {"\$oid": "618b890200bbd4063ab74213"}, "name": "Bark", "_t": "Dog"}"""
+            def catJson = """{"kitten": true, "_id": {"\$oid": "618b890300bbd4063ab74214"}, "name": "Meow", "_t": "Cat"}"""
+        when:
+            def newDog = bsonJsonMapper.readValue(dogJson.getBytes(StandardCharsets.UTF_8), Argument.of(AbstractPet)) as Dog
+            def newCat = bsonJsonMapper.readValue(catJson.getBytes(StandardCharsets.UTF_8), Argument.of(AbstractPet)) as Cat
+        then:
+            newDog instanceof Dog
+            newDog.id
+            newDog.name == "Bark"
+            newDog.breed == "Unknown"
+            newCat instanceof Cat
+            newCat.id
+            newCat.name == "Meow"
+            newCat.kitten
     }
 
 }
