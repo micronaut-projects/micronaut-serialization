@@ -9,6 +9,7 @@ import io.micronaut.core.naming.NameUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.jackson.JsonCompileSpec
 import jakarta.inject.Provider
 import org.intellij.lang.annotations.Language
 import spock.lang.PendingFeature
@@ -18,7 +19,7 @@ import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
 import java.nio.charset.StandardCharsets
 
-class ObjectSerdeSpec extends AbstractTypeElementSpec {
+class ObjectSerdeSpec extends JsonCompileSpec {
     private <T> String serializeToString(JsonMapper jsonMapper, T value, Class<?> view = Object.class) {
         return new String(jsonMapper.cloneWithViewClass(view).writeValueAsBytes(value), StandardCharsets.UTF_8)
     }
