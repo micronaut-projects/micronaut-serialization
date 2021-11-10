@@ -643,7 +643,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
         final DeserBean.DerProperty<Object, Object> property;
         final String name;
-        Object value;
+        private Object value;
         private final PropertyBuffer next;
 
         public PropertyBuffer(DeserBean.DerProperty<? super Object, ?> derProperty,
