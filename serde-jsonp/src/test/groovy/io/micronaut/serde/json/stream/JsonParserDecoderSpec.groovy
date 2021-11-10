@@ -1,16 +1,21 @@
-package io.micronaut.serde.jackson
+package io.micronaut.serde.json.stream
 
-import com.fasterxml.jackson.core.JsonFactoryBuilder
 import io.micronaut.serde.Decoder
 import io.micronaut.serde.exceptions.SerdeException
+import jakarta.json.Json
+import jakarta.json.stream.JsonParser
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification
 
-class JacksonDecoderSpec extends Specification {
-    private static Decoder createDecoder(@Language('json') String json) {
-        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json))
+class JsonParserDecoderSpec extends Specification {
+    static JsonParser createParser(@Language('json') String s) {
+        return Json.createParser(new StringReader(s))
     }
-    
+
+    private static Decoder createDecoder(@Language('json') String json) {
+        return new JsonParserDecoder(createParser(json))
+    }
+
     def "unwrap arrays normal"() {
         expect:
         createDecoder('["a"]').decodeString() == 'a'
