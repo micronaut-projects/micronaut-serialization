@@ -758,50 +758,58 @@ enum Foo {
         serializeToString(jsonMapper, Enum.valueOf(ctx.classLoader.loadClass('example.Foo'), 'A')) == '"A"'
     }
 
-    @PendingFeature
     void "injected serializer uses Serializer.isEmpty"() {
         given:
-        def ctx = buildContext('example.A', '''
+        def compiled = buildContext('example.A', '''
 package example;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.micronaut.json.Encoder;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.Encoder;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.Serializer;
 import jakarta.inject.Singleton;
+import io.micronaut.core.type.Argument;
+import java.io.IOException;
 
 @Serdeable//(allowDeserialization = false)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class A {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public B b;
 }
 
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class B {
     public boolean present;
 }
 
 @Singleton
-class BSerializer implements io.micronaut.json.Serializer<B> {
-    @Override
-    public void serialize(Encoder encoder, B value) throws java.io.IOException {
-        encoder.encodeBoolean(value.present);
+class BSerializer implements Serializer<B> {
+    @Override public void serialize(Encoder encoder,
+                      EncoderContext context,
+                      example.B value,
+                      Argument<? extends example.B> type)throws IOException {
+        encoder.encodeBoolean(value.present);    
     }
 
     @Override
     public boolean isEmpty(B value) {
-        return !value.present;
+        return value == null || !value.present;
     }
 }
 ''', true)
         def jsonMapper = compiled.getBean(JsonMapper)
 
-        def bPresent = ctx.classLoader.loadClass('example.B').newInstance()
+        def bPresent = newInstance(compiled, 'example.B')
         bPresent.present = true
-        def bAbsent = ctx.classLoader.loadClass('example.B').newInstance()
+        def bAbsent = newInstance(compiled, 'example.B')
         bAbsent.present = false
 
-        def aPresent = ctx.classLoader.loadClass('example.A').newInstance()
+        def aPresent = newInstance(compiled, 'example.A')
         aPresent.b = bPresent
-        def aAbsent = ctx.classLoader.loadClass('example.A').newInstance()
+        def aAbsent = newInstance(compiled, 'example.A')
         aAbsent.b = bAbsent
 
         expect:
