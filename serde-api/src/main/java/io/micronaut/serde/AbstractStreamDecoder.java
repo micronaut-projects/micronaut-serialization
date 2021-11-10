@@ -1,9 +1,25 @@
+/*
+ * Copyright 2017-2021 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.util.JsonNodeDecoder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -13,6 +29,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Abstract base class for stream-based {@link Decoder}s.
+ */
 @Internal
 public abstract class AbstractStreamDecoder implements Decoder {
     @Nullable
@@ -27,6 +46,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     /**
      * Child constructor. Should inherit the parser from the parent.
+     * @param parent The parent decoder.
      */
     protected AbstractStreamDecoder(@NonNull AbstractStreamDecoder parent) {
         this.parent = parent;
@@ -35,6 +55,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     /**
      * Root constructor.
+     * @param view The selected view class.
      */
     protected AbstractStreamDecoder(@NonNull Class<?> view) {
         this.parent = null;
@@ -53,6 +74,10 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     protected abstract void nextToken() throws IOException;
 
+    /**
+     * @param expected The token type that was expected in place of {@link #currentToken()}.
+     * @return The exception that should be thrown to signify an unexpected token.
+     */
     protected IOException unexpectedToken(TokenType expected) {
         return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected);
     }
@@ -96,7 +121,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     }
 
     @Override
-    public void finishStructure() throws IOException {
+    public final void finishStructure() throws IOException {
         checkChild();
         TokenType currentToken = currentToken();
         if (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
@@ -135,6 +160,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     /**
      * Get the current object field name. Only called for {@link TokenType#KEY}.
+     * @return The current field key
      */
     protected abstract String getCurrentKey() throws IOException;
 
@@ -157,6 +183,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     /**
      * Create a new child decoder using {@link AbstractStreamDecoder#AbstractStreamDecoder(AbstractStreamDecoder)}.
+     * @return The new decoder
      */
     protected abstract AbstractStreamDecoder createChildDecoder();
 
@@ -168,7 +195,8 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw unexpectedToken(TokenType.START_ARRAY);
         }
         nextToken();
-        return child = createChildDecoder();
+        child = createChildDecoder();
+        return child;
     }
 
     @NonNull
@@ -179,11 +207,13 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw unexpectedToken(TokenType.START_OBJECT);
         }
         nextToken();
-        return child = createChildDecoder();
+        child = createChildDecoder();
+        return child;
     }
 
     /**
      * Decode any non-null scalar value (number, string or boolean) to its string representation.
+     * @return The current value, coerced to a string
      */
     protected abstract String coerceScalarToString() throws IOException;
 
@@ -214,6 +244,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     /**
      * Decode the current {@link TokenType#BOOLEAN} value. Called for no other token type.
+     * @return The boolean value
      */
     protected abstract boolean getBoolean() throws IOException;
 
@@ -221,21 +252,18 @@ public abstract class AbstractStreamDecoder implements Decoder {
     public final boolean decodeBoolean() throws IOException {
         preDecodeValue();
         switch (currentToken()) {
-            case BOOLEAN: {
-                boolean value = getBoolean();
+            case BOOLEAN:
+                boolean bool = getBoolean();
                 nextToken();
-                return value;
-            }
-            case NUMBER: {
-                double value = getDouble();
+                return bool;
+            case NUMBER:
+                double number = getDouble();
                 nextToken();
-                return value != 0;
-            }
-            case STRING: {
-                String value = coerceScalarToString();
+                return number != 0;
+            case STRING:
+                String string = coerceScalarToString();
                 nextToken();
-                return value.equals("true");
-            }
+                return string.equals("true");
             case START_ARRAY:
                 if (beginUnwrapArray()) {
                     boolean unwrapped = decodeBoolean();
@@ -279,29 +307,39 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a long value. Called for no other token type.
+     * @return The number value
      */
     protected abstract long getLong() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a double value. Called for no other token type.
+     * @return The number value
      */
     protected abstract double getDouble() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link BigInteger} value. Called for no other token type.
+     * @return The number value
      */
     protected abstract BigInteger getBigInteger() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link BigDecimal} value. Called for no other token type.
+     * @return The number value
      */
     protected abstract BigDecimal getBigDecimal() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link Number} value. Called for no other token type.
+     * @return The number value
      */
     protected abstract Number getBestNumber() throws IOException;
 
+    /**
+     * Decode the current {@link TokenType#NUMBER} value as a numeric {@link JsonNode}. Called for no other token type.
+     * Default implementation tries to construct a node from {@link #getBestNumber()}.
+     * @return The number value
+     */
     protected JsonNode getBestNumberNode() throws IOException {
         Number number = getBestNumber();
         if (number instanceof Byte || number instanceof Short || number instanceof Integer) {
@@ -344,17 +382,15 @@ public abstract class AbstractStreamDecoder implements Decoder {
                     nextToken();
                     return value;
                 }
-            case NUMBER: {
+            case NUMBER:
                 // todo: better coercion rules
-                long value = getLong();
+                long number = getLong();
                 nextToken();
-                return value;
-            }
-            case BOOLEAN: {
-                boolean value = getBoolean();
+                return number;
+            case BOOLEAN:
+                boolean bool = getBoolean();
                 nextToken();
-                return value ? 1 : 0;
-            }
+                return bool ? 1 : 0;
             case START_ARRAY:
                 if (beginUnwrapArray()) {
                     long unwrapped = decodeInteger(min, max);
@@ -378,27 +414,24 @@ public abstract class AbstractStreamDecoder implements Decoder {
     public final double decodeDouble() throws IOException {
         preDecodeValue();
         switch (currentToken()) {
-            case NUMBER: {
+            case NUMBER:
                 double value = getDouble();
                 nextToken();
                 return value;
-            }
-            case STRING: {
+            case STRING:
                 String string = coerceScalarToString();
-                double value;
+                double number;
                 try {
-                    value = Double.parseDouble(string);
+                    number = Double.parseDouble(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to double");
                 }
                 nextToken();
-                return value;
-            }
-            case BOOLEAN: {
-                boolean value = getBoolean();
+                return number;
+            case BOOLEAN:
+                boolean bool = getBoolean();
                 nextToken();
-                return value ? 1 : 0;
-            }
+                return bool ? 1 : 0;
             case START_ARRAY:
                 if (beginUnwrapArray()) {
                     double unwrapped = decodeDouble();
