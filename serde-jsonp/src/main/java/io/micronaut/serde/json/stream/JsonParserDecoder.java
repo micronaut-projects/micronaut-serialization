@@ -18,337 +18,134 @@ package io.micronaut.serde.json.stream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
-import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.JsonNodeDecoder;
+import io.micronaut.serde.AbstractStreamDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.json.JsonNumber;
-import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonParser;
 
-public class JsonParserDecoder implements Decoder {
+public class JsonParserDecoder extends AbstractStreamDecoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;
-    private boolean inArray = false;
 
     public JsonParserDecoder(JsonParser jsonParser) {
+        super(Object.class);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }
 
-    @Override
-    public Decoder decodeArray() throws IOException {
-        if (currentEvent == JsonParser.Event.START_ARRAY) {
-            this.currentEvent = this.jsonParser.next();
-            inArray = true;
-        } else {
-            throw createDeserializationException("Not an array");
-        }
-        return this;
+    private JsonParserDecoder(JsonParserDecoder parent) {
+        super(parent);
+        this.jsonParser = parent.jsonParser;
+
+        this.currentEvent = parent.currentEvent;
+        parent.currentEvent = null;
     }
 
     @Override
-    public boolean hasNextArrayValue() throws IOException {
-        return currentEvent != JsonParser.Event.END_ARRAY;
+    protected TokenType currentToken() {
+        switch (currentEvent) {
+            case START_ARRAY:
+                return TokenType.START_ARRAY;
+            case START_OBJECT:
+                return TokenType.START_OBJECT;
+            case KEY_NAME:
+                return TokenType.KEY;
+            case VALUE_STRING:
+                return TokenType.STRING;
+            case VALUE_NUMBER:
+                return TokenType.NUMBER;
+            case VALUE_TRUE:
+            case VALUE_FALSE:
+                return TokenType.BOOLEAN;
+            case VALUE_NULL:
+                return TokenType.NULL;
+            case END_OBJECT:
+                return TokenType.END_OBJECT;
+            case END_ARRAY:
+                return TokenType.END_ARRAY;
+            default:
+                return TokenType.OTHER;
+        }
     }
 
     @Override
-    public Decoder decodeObject() throws IOException {
-        if (currentEvent == JsonParser.Event.START_OBJECT) {
-            this.currentEvent = jsonParser.next();
-        } else {
-            throw createDeserializationException("Not an object");
-        }
-        return this;
-    }
-
-    @Override
-    public String decodeKey() throws IOException {
-        if (currentEvent == JsonParser.Event.END_OBJECT) {
-            return null;
-        }
-        try {
-            return jsonParser.getString();
-        } finally {
-            this.currentEvent = jsonParser.next();
-        }
-    }
-
-    private void afterValue() {
+    protected void nextToken() {
         if (jsonParser.hasNext()) {
-            this.currentEvent = jsonParser.next();
+            currentEvent = jsonParser.next();
         } else {
             // EOF
-            this.currentEvent = null;
+            currentEvent = null;
         }
     }
 
     @Override
-    public String decodeString() throws IOException {
-        try {
-            return jsonParser.getString();
-        } finally {
-            afterValue();
-        }
+    protected String getCurrentKey() {
+        return jsonParser.getString();
     }
 
     @Override
-    public boolean decodeBoolean() throws IOException {
-        try {
-            final JsonValue value = jsonParser.getValue();
-            switch (value.getValueType()) {
-                case TRUE:
-                    return true;
-                case FALSE:
-                case NULL:
-                    return false;
-                case STRING:
-                    return Boolean.parseBoolean(value.toString());
-                default:
-                    throw createDeserializationException("Not a boolean value");
-            }
-        } finally {
-            afterValue();
-        }
-    }
-
-    @Override
-    public byte decodeByte() throws IOException {
-        try {
-            final JsonValue value = jsonParser.getValue();
-            switch (value.getValueType()) {
-                case NUMBER:
-                    return (byte) ((JsonNumber) value).intValue();
-                case STRING:
-                    return Byte.parseByte(value.toString());
-                default:
-                    throw createDeserializationException("Not a byte value");
-            }
-        } finally {
-            afterValue();
-        }
-    }
-
-    @Override
-    public short decodeShort() throws IOException {
-        final JsonValue value = jsonParser.getValue();
-        switch (value.getValueType()) {
-        case NUMBER:
-            return (short) ((JsonNumber) value).intValue();
-        case STRING:
-            return Short.parseShort(value.toString());
-        default:
-            throw createDeserializationException("Not a byte value");
-        }
-    }
-
-    @Override
-    public char decodeChar() throws IOException {
-        return 0;
-    }
-
-    @Override
-    public int decodeInt() throws IOException {
-        try {
-            return jsonParser.getInt();
-        } finally {
-            afterValue();
-        }
-    }
-
-    @Override
-    public long decodeLong() throws IOException {
-        try {
-            return jsonParser.getLong();
-        } finally {
-            afterValue();
-        }
-    }
-
-    @Override
-    public float decodeFloat() throws IOException {
-        if (currentEvent == JsonParser.Event.VALUE_NUMBER) {
-            final JsonNumber value = (JsonNumber) jsonParser.getValue();
-            currentEvent = jsonParser.next();
-            return value.bigDecimalValue().floatValue();
-        }
-        throw createDeserializationException("Not a float");
-    }
-
-    @Override
-    public double decodeDouble() throws IOException {
-        if (currentEvent == JsonParser.Event.VALUE_NUMBER) {
-            final JsonNumber value = (JsonNumber) jsonParser.getValue();
-            currentEvent = jsonParser.next();
-            return value.doubleValue();
-        }
-        throw createDeserializationException("Not a double");
-    }
-
-    @Override
-    public BigInteger decodeBigInteger() throws IOException {
-        try {
-            return jsonParser.getBigDecimal().toBigInteger();
-        } finally {
-            afterValue();
-        }
-    }
-
-    @Override
-    public BigDecimal decodeBigDecimal() throws IOException {
-        try {
-            return jsonParser.getBigDecimal();
-        } finally {
-            afterValue();
-        }
-    }
-
-    @Override
-    public boolean decodeNull() throws IOException {
-        if (currentEvent == JsonParser.Event.VALUE_NULL) {
-            afterValue();
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public Object decodeArbitrary() throws IOException {
+    protected String coerceScalarToString() {
         switch (currentEvent) {
-            case START_OBJECT:
-                return decodeArbitraryMap(decodeObject());
-            case START_ARRAY:
-                return decodeArbitraryList(decodeArray());
             case VALUE_STRING:
-                return decodeString();
             case VALUE_NUMBER:
-                Number number = ((JsonNumber) jsonParser.getValue()).numberValue();
-                afterValue();
-                return number;
+                // only allowed for string and number
+                return jsonParser.getString();
             case VALUE_TRUE:
+                return "true";
             case VALUE_FALSE:
-                return decodeBoolean();
-            case VALUE_NULL:
-                decodeNull();
-                return null;
+                return "false";
             default:
-                throw ((Decoder) this).createDeserializationException("Unexpected token " + currentEvent + ", expected value");
+                throw new IllegalStateException("Method called in wrong context " + currentEvent);
         }
-    }
-
-    private static Map<String, Object> decodeArbitraryMap(Decoder elementDecoder) throws IOException {
-        Map<String, Object> result = new LinkedHashMap<>();
-        while (true) {
-            String key = elementDecoder.decodeKey();
-            if (key == null) {
-                break;
-            }
-            result.put(key, elementDecoder.decodeArbitrary());
-        }
-        elementDecoder.finishStructure();
-        return result;
-    }
-
-    private static List<Object> decodeArbitraryList(Decoder elementDecoder) throws IOException {
-        List<Object> result = new ArrayList<>();
-        while (elementDecoder.hasNextArrayValue()) {
-            result.add(elementDecoder.decodeArbitrary());
-        }
-        elementDecoder.finishStructure();
-        return result;
     }
 
     @Override
-    public Decoder decodeBuffer() throws IOException {
-        JsonNode node = decodeNode();
-        return JsonNodeDecoder.create(node);
-    }
-
-    private JsonNode decodeNode() throws IOException {
-        switch (currentEvent) {
-            case START_OBJECT:
-                return decodeObjectNode((JsonParserDecoder) decodeObject());
-            case START_ARRAY:
-                return decodeArrayNode((JsonParserDecoder) decodeArray());
-            case VALUE_STRING:
-                return JsonNode.createStringNode(decodeString());
-            case VALUE_NUMBER:
-                Number number = ((JsonNumber) jsonParser.getValue()).numberValue();
-                if (number instanceof Byte || number instanceof Short || number instanceof Integer) {
-                    return JsonNode.createNumberNode(number.intValue());
-                } else if (number instanceof Long) {
-                    return JsonNode.createNumberNode(number.longValue());
-                } else if (number instanceof Float) {
-                    return JsonNode.createNumberNode(number.floatValue());
-                } else if (number instanceof Double) {
-                    return JsonNode.createNumberNode(number.doubleValue());
-                } else if (number instanceof BigInteger) {
-                    return JsonNode.createNumberNode((BigInteger) number);
-                } else if (number instanceof BigDecimal) {
-                    return JsonNode.createNumberNode((BigDecimal) number);
-                } else {
-                    // fallback, unknown number type
-                    return JsonNode.createNumberNode(decodeBigDecimal());
-                }
-            case VALUE_TRUE:
-            case VALUE_FALSE:
-                return JsonNode.createBooleanNode(decodeBoolean());
-            case VALUE_NULL:
-                decodeNull();
-                return JsonNode.nullNode();
-            default:
-                throw ((Decoder) this).createDeserializationException("Unexpected token " + currentEvent + ", expected value");
-        }
-    }
-
-    private static JsonNode decodeObjectNode(JsonParserDecoder elementDecoder) throws IOException {
-        Map<String, JsonNode> result = new LinkedHashMap<>();
-        while (true) {
-            String key = elementDecoder.decodeKey();
-            if (key == null) {
-                break;
-            }
-            result.put(key, elementDecoder.decodeNode());
-        }
-        elementDecoder.finishStructure();
-        return JsonNode.createObjectNode(result);
-    }
-
-    private static JsonNode decodeArrayNode(JsonParserDecoder elementDecoder) throws IOException {
-        List<JsonNode> result = new ArrayList<>();
-        while (elementDecoder.hasNextArrayValue()) {
-            result.add(elementDecoder.decodeNode());
-        }
-        elementDecoder.finishStructure();
-        return JsonNode.createArrayNode(result);
+    protected AbstractStreamDecoder createChildDecoder() {
+        return new JsonParserDecoder(this);
     }
 
     @Override
-    public void skipValue() throws IOException {
-        jsonParser.skipObject();
+    protected boolean getBoolean() {
+        return currentEvent == JsonParser.Event.VALUE_TRUE;
     }
 
     @Override
-    public void finishStructure() throws IOException {
-        if (currentEvent == JsonParser.Event.END_ARRAY || currentEvent == JsonParser.Event.END_OBJECT) {
-            afterValue();
-        } else {
-            throw createDeserializationException("Not a structure end");
+    protected long getLong() {
+        return jsonParser.getLong();
+    }
+
+    @Override
+    protected double getDouble() {
+        return jsonParser.getBigDecimal().doubleValue();
+    }
+
+    @Override
+    protected BigInteger getBigInteger() {
+        return jsonParser.getBigDecimal().toBigInteger();
+    }
+
+    @Override
+    protected BigDecimal getBigDecimal() {
+        return jsonParser.getBigDecimal();
+    }
+
+    @Override
+    protected Number getBestNumber() {
+        return ((JsonNumber) jsonParser.getValue()).numberValue();
+    }
+
+    @Override
+    protected void skipChildren() {
+        if (currentEvent == JsonParser.Event.START_OBJECT) {
+            jsonParser.skipObject();
+        } else if (currentEvent == JsonParser.Event.START_ARRAY) {
+            jsonParser.skipArray();
         }
     }
 
     @Override
     public IOException createDeserializationException(String message) {
         return new SerdeException(message + " \n at " + jsonParser.getLocation());
-    }
-
-    @Override
-    public boolean hasView(Class<?>... views) {
-        return false;
     }
 }
