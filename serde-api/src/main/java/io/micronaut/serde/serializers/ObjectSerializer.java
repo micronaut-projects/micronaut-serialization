@@ -17,28 +17,22 @@ package io.micronaut.serde.serializers;
 
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.annotation.SerdeConfig;
-import io.micronaut.serde.beans.SerIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
  * standard types
- * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link List}.
+ * like {@link Number}, {@link String}, {@link Boolean}, {@link Map} and {@link java.util.List}.
  * <p>
  * This class is used in multiple scenarios:
  * <ul>
@@ -51,6 +45,11 @@ import java.util.Map;
 @Singleton
 @Primary
 public final class ObjectSerializer implements Serializer<Object> {
+    private final SerdeIntrospections introspections;
+
+    public ObjectSerializer(SerdeIntrospections introspections) {
+        this.introspections = introspections;
+    }
 
     @Override
     public void serialize(
@@ -60,14 +59,15 @@ public final class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            @SuppressWarnings("unchecked") final SerIntrospection<Object> introspection = context
-                    .getSerializableIntrospection((Argument<Object>) type);
-            final Encoder childEncoder = introspection.unwrapped ? encoder : encoder.encodeObject();
-            final Map<String, SerIntrospection.SerProperty<Object, Object>> writeProperties =
-                    introspection.writeProperties;
-            for (String propertyName : writeProperties.keySet()) {
-                final SerIntrospection.SerProperty<Object, Object> property =
-                            writeProperties.get(propertyName);
+            Encoder childEncoder = encoder.encodeObject();
+
+            @SuppressWarnings("unchecked") final SerBean<Object> serBean = getSerBean(type, context);
+            if (serBean.wrapperProperty != null) {
+                childEncoder.encodeKey(serBean.wrapperProperty);
+                childEncoder = childEncoder.encodeObject();
+            }
+
+            for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
                 switch (property.include) {
@@ -89,9 +89,7 @@ public final class ObjectSerializer implements Serializer<Object> {
                     default:
                     // fall through
                 }
-                if (!property.unwrapped) {
-                    childEncoder.encodeKey(propertyName);
-                }
+                childEncoder.encodeKey(property.name);
                 if (v == null) {
                     childEncoder.encodeNull();
                 } else {
@@ -103,12 +101,50 @@ public final class ObjectSerializer implements Serializer<Object> {
                     );
                 }
             }
-            if (!introspection.unwrapped) {
-                childEncoder.finishStructure();
+            final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
+            if (anyGetter != null) {
+                final Object data = anyGetter.get(value);
+                if (data instanceof Map) {
+                    Map<Object, Object> map = (Map<Object, Object>) data;
+                    if (CollectionUtils.isNotEmpty(map)) {
+
+                        for (Object k : map.keySet()) {
+                            final Object v = map.get(k);
+                            childEncoder.encodeKey(k.toString());
+                            if (v == null) {
+                                childEncoder.encodeNull();
+                            } else {
+                                Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
+                                        .orElse(null);
+                                if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
+                                    valueType = Argument.of(v.getClass());
+                                }
+                                final Serializer<Object> serializer = (Serializer<Object>) context.findSerializer(valueType);
+                                serializer.serialize(
+                                        childEncoder,
+                                        context,
+                                        v,
+                                        valueType
+                                );
+                            }
+                        }
+                    }
+                }
             }
+            childEncoder.finishStructure();
         } catch (IntrospectionException e) {
-            throw new SerdeException("Error serializing value at path: " + encoder.toString() + ". No serializer found for type: " + type, e);
+            throw new SerdeException("Error serializing value at path: " + encoder + ". No serializer found for type: " + type, e);
         }
 
+    }
+
+    @SuppressWarnings("unchecked")
+    private SerBean<Object> getSerBean(Argument<?> type, EncoderContext encoderContext) {
+        // TODO: cache these, the cache key should include the Unwrapped behaviour
+        try {
+            return new SerBean<>((Argument<Object>) type, introspections, encoderContext);
+        } catch (SerdeException e) {
+            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
+        }
     }
 }

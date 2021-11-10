@@ -15,10 +15,19 @@
  */
 package io.micronaut.serde;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.annotation.Serdeable;
 
+/**
+ * Interface that abstracts the lookup for introspections usable for serialization and/or deserialization.
+ */
 public interface SerdeIntrospections {
     /**
      * Gets an introspection for the given type for serialization.
@@ -31,11 +40,30 @@ public interface SerdeIntrospections {
     <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type);
 
     /**
-     * Gets an introspection for the given type for serialization.
+     * Gets an introspection for the given type for deserialization.
      * @param type The type
      * @param <T> The generic type
      * @return The introspection, never {@code null}
      * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
      */
     @NonNull <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type);
+
+    /**
+     * Gets an subtype introspection for the given type for deserialization.
+     * @param type The type
+     * @param <T> The generic type
+     * @return A collectino of introspections, never {@code null}
+     */
+    default @NonNull <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
+        final List list =
+                BeanIntrospector.SHARED.findIntrospections(ref -> {
+                    if (ref.isPresent()) {
+                        final Class<?> bt = ref.getBeanType();
+                        return bt != type && type.isAssignableFrom(bt);
+                    }
+                    return false;
+                }).stream().filter(bi -> bi.hasStereotype(Serdeable.Deserializable.class))
+                .collect(Collectors.toList());
+        return list;
+    }
 }

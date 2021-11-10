@@ -15,10 +15,14 @@
  */
 package io.micronaut.serde.annotation;
 
+import io.micronaut.context.annotation.Executable;
+import io.micronaut.core.annotation.Internal;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import io.micronaut.core.annotation.Internal;
+import java.lang.annotation.Target;
 
 /**
  * Meta-annotation with meta annotation members that different annotation
@@ -29,6 +33,8 @@ import io.micronaut.core.annotation.Internal;
  */
 @Internal
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
+@Inherited
 public @interface SerdeConfig {
     /**
      * The property to use.
@@ -39,7 +45,6 @@ public @interface SerdeConfig {
      * Is it ignored.
      */
     String IGNORED = "ignored";
-
 
     /**
      * Include strategy.
@@ -57,8 +62,59 @@ public @interface SerdeConfig {
     String WRITE_ONLY = "writeOnly";
 
     /**
-     * Internal metadata type for wrapped settings
+     * A type name mapping. Used for subtype binding.
      */
+    String TYPE_NAME = "typeName";
+
+    /**
+     * A type name mapping. Used for subtype binding.
+     */
+    String TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER = "$CLASS_SIMPLE_NAME";
+
+    /**
+     * The type property used for subtype binding.
+     */
+    String TYPE_PROPERTY = "typeProperty";
+
+    /**
+     * A property that should be used to wrap this value when serializing.
+     */
+    String WRAPPER_PROPERTY = "wrapperProperty";
+
+    /**
+     * A pattern to use.
+     */
+    String PATTERN = "pattern";
+
+    /**
+     * A locale to use.
+     */
+    String LOCALE = "locale";
+
+    /**
+     * A time zone to use.
+     */
+    String TIMEZONE = "timezone";
+
+    /**
+     * if parsing is required whether to be lenient.
+     */
+    String LENIENT = "lenient";
+
+    /**
+     * Custom serializer class.
+     */
+    String SERIALIZER_CLASS = "serializerClass";
+
+    /**
+     * Custom deserializer class.
+     */
+    String DESERIALIZER_CLASS = "deserializerClass";
+
+    /**
+     * Internal metadata type for wrapped settings.
+     */
+    @Internal
     @interface Unwrapped {
         String NAME = Unwrapped.class.getName();
         String PREFIX = "prefix";
@@ -66,8 +122,78 @@ public @interface SerdeConfig {
     }
 
     /**
+     * Internal metadata for a JSON getter.
+     */
+    @Internal
+    @Executable
+    @interface Getter {
+    }
+
+    /**
+     * Internal metadata for a JSON any getter.
+     */
+    @Internal
+    @Executable
+    @interface AnyGetter {
+    }
+
+    /**
+     * Internal metadata for a setter.
+     */
+    @Internal
+    @Executable
+    @interface Setter {
+    }
+
+    /**
+     * Internal metadata for any setter.
+     */
+    @Internal
+    @Executable
+    @SerdeConfig
+    @interface AnySetter {
+    }
+
+    /**
+     * Used to store errors.
+     */
+    @Internal
+    @interface Error {
+    }
+
+    /**
+     * Meta annotations for subtyped mapping.
+     */
+    @Internal
+    @interface Subtyped {
+        /**
+         * The discriminator to use.
+         */
+        String DISCRIMINATOR_TYPE = "dt";
+
+        /**
+         * The discriminator value to use.
+         */
+        String DISCRIMINATOR_VALUE = "dv";
+
+        /**
+         * The discriminator property to use.
+         */
+        String DISCRIMINATOR_PROP = "dp";
+
+        enum DiscriminatorType {
+            PROPERTY, WRAPPER_OBJECT
+        }
+
+        enum DiscriminatorValueKind {
+            CLASS, NAME
+        }
+    }
+
+    /**
      * Include strategies.
      */
+    @Internal
     enum Include {
 
         /**

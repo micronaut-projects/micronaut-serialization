@@ -22,25 +22,42 @@ import java.util.LinkedHashMap;
 import java.util.Optional;
 
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
+import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
+/**
+ * Core deserializers.
+ */
 @Factory
 public class CoreDeserializers {
 
+    /**
+     * Deserializes string types.
+     * @return The string deserializer
+     */
     @Singleton
-    protected Deserializer<String> stringDeserializer() {
+    @NonNull
+    protected NullableDeserializer<String> stringDeserializer() {
         return (decoder, decoderContext, type) -> decoder.decodeString();
     }
 
+    /**
+     * Deserializes array lists.
+     * @param <E> The element type
+     * @return the array list deserializer, never {@code null}
+     */
     @Singleton
     @Order(-100) // prioritize over hashset
-    protected <E> Deserializer<ArrayList<E>> arrayListDeserializer() {
+    @NonNull
+    protected <E> NullableDeserializer<ArrayList<E>> arrayListDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
@@ -64,8 +81,15 @@ public class CoreDeserializers {
         };
     }
 
+    /**
+     * Deserializes hash sets.
+     * @param <E> The element type
+     * @return The hash set deserializer, never {@link null}
+     */
+    @NonNull
     @Singleton
-    protected <E> Deserializer<HashSet<E>> hashSetDeserializer() {
+    @Order(-50) // prioritize over enumset
+    protected <E> NullableDeserializer<HashSet<E>> hashSetDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
@@ -89,23 +113,44 @@ public class CoreDeserializers {
         };
     }
 
+    /**
+     * Deserializes hash maps.
+     * @param <K> The key type
+     * @param <V> The value type
+     * @return The hash map deserializer, never {@code null}
+     */
     @Singleton
-    protected <V> Deserializer<LinkedHashMap<String, V>> linkedHashMapDeserializer() {
+    @NonNull
+    protected <K, V> NullableDeserializer<LinkedHashMap<K, V>> linkedHashMapDeserializer() {
         return (decoder, decoderContext, type) -> {
             final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics) && generics.length != 2) {
                 throw new SerdeException("Cannot deserialize raw map");
             }
-            @SuppressWarnings("unchecked") final Argument<V> generic = (Argument<V>) generics[1];
-            final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(generic);
+            @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
+            @SuppressWarnings("unchecked") final Argument<V> valueType = (Argument<V>) generics[1];
+            final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(valueType);
             final Decoder objectDecoder = decoder.decodeObject();
             String key = objectDecoder.decodeKey();
-            LinkedHashMap<String, V> map = new LinkedHashMap<>();
+            LinkedHashMap<K, V> map = new LinkedHashMap<>();
             while (key != null) {
-                map.put(key, valueDeser.deserialize(
+                K k;
+                if (keyType.isInstance(key)) {
+                    k = (K) key;
+                } else {
+                    try {
+                        k = decoderContext.getConversionService().convertRequired(
+                                key,
+                                keyType
+                        );
+                    } catch (ConversionErrorException e) {
+                        throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
+                    }
+                }
+                map.put(k, valueDeser.deserialize(
                                 objectDecoder,
                                 decoderContext,
-                                generic
+                                valueType
                         )
                 );
                 key = objectDecoder.decodeKey();
@@ -115,7 +160,13 @@ public class CoreDeserializers {
         };
     }
 
+    /**
+     * Deserializes optional values.
+     * @param <V> The optional type
+     * @return The optional deserializer, never {@code null}
+     */
     @Singleton
+    @NonNull
     protected <V> Deserializer<Optional<V>> optionalDeserializer() {
         return new Deserializer<Optional<V>>() {
             @Override

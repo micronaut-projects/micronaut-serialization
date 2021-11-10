@@ -25,6 +25,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Encoder} interface for Jackson.
+ */
 public abstract class JacksonEncoder implements Encoder {
     protected final JsonGenerator generator;
     @Nullable

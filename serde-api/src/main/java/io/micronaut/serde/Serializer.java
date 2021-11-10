@@ -20,9 +20,8 @@ import java.io.IOException;
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.beans.SerIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -37,10 +36,22 @@ import io.micronaut.serde.exceptions.SerdeException;
 public interface Serializer<T> {
 
     /**
+     * Create a more specific serializer for the given definition.
+     * @param encoderContext The encoder context
+     * @param type The type definition including any annotation metadata
+     * @return The more specific serializer
+     */
+    default @NonNull
+    Serializer<T> createSpecific(@NonNull Argument<? extends T> type, @NonNull EncoderContext encoderContext) {
+        return this;
+    }
+
+    /**
      * Serializes the given value using the passed {@link Encoder}.
      * @param encoder The encoder to use
      * @param context The encoder context, never {@code null}
      * @param value The value, can be {@code null}
+     * @param type Models the generic type of the value
      * @throws IOException If an error occurs during serialization
      */
     void serialize(
@@ -51,31 +62,38 @@ public interface Serializer<T> {
 
     /**
      * Used for {@code JsonInclude.Include#NON_EMPTY} checking.
+     * @param value The check to check
+     * @return Return {@code true} if the value is empty
      */
     default boolean isEmpty(@Nullable T value) {
-        return false;
+        return value == null;
     }
 
     /**
      * Used for {@code JsonInclude.Include#NON_ABSENT} checking.
+     * @param value The value to check
+     * @return Return {@code true} if the value is absent
      */
     default boolean isAbsent(T value) {
-        return false;
+        return value == null;
     }
 
     /**
-     * Context object passes to the {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
+     * Context object passes to the
+     * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
     interface EncoderContext {
+
         /**
-         * Finds a serializer for the given type.
-         * @param forType The type
+         * Gets a custom serializer.
+         * @param serializerClass The serializer class, should not be {@code null}
          * @param <T> The generic type
+         * @param <D> The serializer type
          * @return The serializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
+         * @throws io.micronaut.serde.exceptions.SerdeException if no serializer is found
          */
-        @NonNull <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType)
-            throws SerdeException;
+        @NonNull <T, D extends Serializer<? extends T>> D findCustomSerializer(@NonNull Class<? extends D> serializerClass)
+                throws SerdeException;
 
         /**
          * Finds a serializer for the given type.
@@ -84,18 +102,29 @@ public interface Serializer<T> {
          * @return The serializer
          * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
          */
-        default @NonNull <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
+        @NonNull
+        <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType)
+                throws SerdeException;
+
+        /**
+         * Finds a serializer for the given type.
+         * @param forType The type
+         * @param <T> The generic type
+         * @return The serializer
+         * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
+         */
+        default @NonNull
+        <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
                 throws SerdeException {
             return findSerializer(Argument.of(forType));
         }
 
         /**
-         * Gets an introspection for the given type for serialization.
-         * @param type The type
-         * @param <T> The generic type
-         * @return The introspection, never {@code null}
-         * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
+         * @return Conversion service
          */
-        @NonNull <T> SerIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type);
+        @NonNull
+        default ConversionService<?> getConversionService() {
+            return ConversionService.SHARED;
+        }
     }
 }

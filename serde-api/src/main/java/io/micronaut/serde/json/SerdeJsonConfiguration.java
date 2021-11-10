@@ -20,10 +20,15 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.JsonConfiguration;
 import jakarta.inject.Singleton;
 
+/**
+ * Implementation of the {@link io.micronaut.json.JsonConfiguration} interface
+ * for the serialization project.
+ */
 @Internal
 @Singleton
 @Secondary
 public class SerdeJsonConfiguration implements JsonConfiguration {
+
     @Override
     public boolean isAlwaysSerializeErrorsAsList() {
         return true;

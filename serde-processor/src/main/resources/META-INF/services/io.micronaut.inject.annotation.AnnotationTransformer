@@ -1,0 +1,13 @@
+io.micronaut.serde.processor.jackson.JsonIncludeTransformer
+io.micronaut.serde.processor.jackson.JsonUnwrappedTransformer
+io.micronaut.serde.processor.jackson.JsonGetterTransformer
+io.micronaut.serde.processor.jackson.JsonSetterTransformer
+io.micronaut.serde.processor.jackson.JsonAnyGetterTransformer
+io.micronaut.serde.processor.jackson.JsonAnySetterTransformer
+io.micronaut.serde.processor.jackson.JsonPropertyTransformer
+io.micronaut.serde.processor.jackson.JsonFormatTransformer
+io.micronaut.serde.processor.bson.BsonPropertyTransformer
+io.micronaut.serde.processor.bson.BsonIgnoreTransformer
+io.micronaut.serde.processor.bson.BsonCreatorTransformer
+io.micronaut.serde.processor.bson.BsonIdTransformer
+io.micronaut.serde.processor.bson.BsonDiscriminatorTransformer

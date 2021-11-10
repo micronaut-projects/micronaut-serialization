@@ -17,6 +17,9 @@ package io.micronaut.serde.exceptions;
 
 import java.io.IOException;
 
+/**
+ * Parent exception type for all serialization / deserialization exceptions.
+ */
 public final class SerdeException extends IOException {
     public SerdeException() {
     }

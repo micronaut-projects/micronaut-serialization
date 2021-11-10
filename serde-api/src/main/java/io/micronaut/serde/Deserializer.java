@@ -16,12 +16,14 @@
 package io.micronaut.serde;
 
 import java.io.IOException;
+import java.util.Collection;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.beans.DeserIntrospection;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
@@ -33,11 +35,26 @@ import io.micronaut.serde.exceptions.SerdeException;
  */
 @Indexed(Deserializer.class)
 public interface Deserializer<T> {
+
+    /**
+     * Create a new child deserializer or return this if non is necessary for the given context.
+     *
+     * @param context The context, including any annotation metadata and type information to narrow the deserializer type
+     * @param decoderContext The decoder context
+     * @return An instance of the same type of deserializer
+     */
+    default @NonNull Deserializer<T> createSpecific(
+            @NonNull Argument<? super T> context,
+            @NonNull DecoderContext decoderContext) throws SerdeException {
+        return this;
+    }
+
     /**
      * Deserializes from the current state of the {@link Decoder} an object of type {@link T}.
      *
      * @param decoder The decoder, never {@code null}
      * @param decoderContext The decoder context, never {@code null}
+     * @param type The generic type to be deserialized
      * @return The deserialized object or {@code null} only if {@link #allowNull()} returns {@code true}
      * @throws IOException If an error occurs during deserialization of the object
      */
@@ -66,6 +83,18 @@ public interface Deserializer<T> {
      * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)} method along with the decoder.
      */
     interface DecoderContext {
+
+        /**
+         * Gets a custom deserializer.
+         * @param deserializerClass The deserializer class, should not be {@code null}
+         * @param <T> The generic type
+         * @param <D> The deserializer type
+         * @return The deserializer
+         * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
+         */
+        @NonNull <T, D extends Deserializer<? extends T>> D findCustomDeserializer(@NonNull Class<? extends D> deserializerClass)
+                throws SerdeException;
+
         /**
          * Finds a deserializer for the given type.
          * @param type The type, should not be {@code null}
@@ -89,12 +118,19 @@ public interface Deserializer<T> {
         }
 
         /**
-         * Gets an introspection for the given type for serialization.
-         * @param type The type
-         * @param <T> The generic type
-         * @return The introspection, never {@code null}
-         * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
+         * Locates desrializable subtypes for the given super type.
+         * @param superType The super type
+         * @param <T> The generic super type
+         * @return The subtypes, never null
          */
-        @NonNull <T> DeserIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type);
+        <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType);
+
+        /**
+         * @return Conversion service
+         */
+        @NonNull
+        default ConversionService<?> getConversionService() {
+            return ConversionService.SHARED;
+        }
     }
 }

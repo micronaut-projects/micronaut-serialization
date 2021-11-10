@@ -22,6 +22,12 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 
+/**
+ * Sub-interface of {@link io.micronaut.serde.Deserializer} for deserializers that allow
+ * {@code null}. Deals with the decoding of {@code null} and delegates to {@link #deserializeNonNull(io.micronaut.serde.Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)}.
+ *
+ * @param <T> The type to deserialize
+ */
 @FunctionalInterface
 public interface NullableDeserializer<T> extends Deserializer<T> {
     @Override

@@ -31,8 +31,8 @@ import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.JsonNodeDecoder;
-import io.micronaut.serde.JsonNodeEncoder;
+import io.micronaut.serde.util.JsonNodeDecoder;
+import io.micronaut.serde.util.JsonNodeEncoder;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import jakarta.inject.Singleton;
@@ -41,6 +41,9 @@ import jakarta.json.stream.JsonGenerator;
 import jakarta.json.stream.JsonParser;
 import org.reactivestreams.Processor;
 
+/**
+ * Implementation of the {@link io.micronaut.json.JsonMapper} interface for JSON-P.
+ */
 @Singleton
 @Replaces(JacksonDatabindMapper.class)
 public class JsonStreamMapper implements JsonMapper {

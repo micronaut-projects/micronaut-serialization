@@ -24,6 +24,9 @@ import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.json.JsonNumber;
 import jakarta.json.stream.JsonParser;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Decoder} interface for JSON-P.
+ */
 public class JsonParserDecoder extends AbstractStreamDecoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;

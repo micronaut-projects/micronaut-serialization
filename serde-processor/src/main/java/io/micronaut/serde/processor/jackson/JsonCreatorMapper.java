@@ -24,6 +24,9 @@ import io.micronaut.core.annotation.Creator;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 
+/**
+ * Maps the {@link com.fasterxml.jackson.annotation.JsonCreator} annotation to {@link io.micronaut.core.annotation.Creator}.
+ */
 public final class JsonCreatorMapper implements TypedAnnotationMapper<JsonCreator> {
 
     private static final List<AnnotationValue<?>> MAPPED =

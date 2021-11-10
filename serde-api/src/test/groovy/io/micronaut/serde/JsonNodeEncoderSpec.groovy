@@ -1,6 +1,7 @@
 package io.micronaut.serde
 
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.util.JsonNodeEncoder
 import spock.lang.Specification
 
 import java.util.function.Consumer

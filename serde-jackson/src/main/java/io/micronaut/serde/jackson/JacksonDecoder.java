@@ -26,10 +26,13 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Decoder} interface for Jackson.
+ */
 @Internal
-public class JacksonDecoder extends AbstractStreamDecoder {
+public final class JacksonDecoder extends AbstractStreamDecoder {
     @Internal
-    public final JsonParser parser; // todo: hide
+    private final JsonParser parser;
 
     private JacksonDecoder(@NonNull JacksonDecoder parent) {
         super(parent);

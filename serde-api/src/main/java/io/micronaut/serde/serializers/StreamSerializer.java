@@ -28,9 +28,12 @@ import java.util.stream.Stream;
 
 @Singleton
 final class StreamSerializer<T> implements Serializer<Stream<T>> {
+
     @Override
     public void serialize(Encoder encoder,
-                          EncoderContext context, Stream<T> value, Argument<? extends Stream<T>> type) throws IOException {
+                          EncoderContext context,
+                          Stream<T> value,
+                          Argument<? extends Stream<T>> type) throws IOException {
         if (value == null) {
             throw new SerdeException("Stream is required");
         }
@@ -53,6 +56,4 @@ final class StreamSerializer<T> implements Serializer<Stream<T>> {
         }
         arrayEncoder.finishStructure();
     }
-
-
-}
+    }
