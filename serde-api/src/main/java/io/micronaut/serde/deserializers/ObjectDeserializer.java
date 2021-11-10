@@ -15,14 +15,8 @@
  */
 package io.micronaut.serde.deserializers;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
-
 import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -30,12 +24,20 @@ import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -550,9 +552,13 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
         // TODO: cache these
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            if (deserializableIntrospection.hasAnnotation(SerdeConfig.Subtyped.class)) {
-                return new SubtypedDeserBean<>(deserializableIntrospection, decoderContext, this);
-            } else {
+            AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
+                    type.getAnnotationMetadata(),
+                    deserializableIntrospection.getAnnotationMetadata()
+            );
+            if (annotationMetadata.hasAnnotation(SerdeConfig.Subtyped.class)) {
+                return new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this);
+            } else  {
                 return new DeserBean<>(deserializableIntrospection, decoderContext, this);
             }
         } catch (SerdeException e) {
