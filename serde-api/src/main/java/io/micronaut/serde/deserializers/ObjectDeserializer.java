@@ -643,7 +643,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
         final DeserBean.DerProperty<Object, Object> property;
         final String name;
-        final Object value;
+        Object value;
         private final PropertyBuffer next;
 
         public PropertyBuffer(DeserBean.DerProperty<? super Object, ?> derProperty,
@@ -685,26 +685,25 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
         public void set(Object obj, DecoderContext decoderContext) throws IOException {
             if (value instanceof Decoder) {
-                property.set(obj, property.deserializer.deserialize(
-                        (Decoder) value,
-                        decoderContext,
-                        property.argument
-                ));
-            } else {
-                property.set(obj, value);
-            }
-        }
-
-        public void set(Object[] params, DecoderContext decoderContext) throws IOException {
-            if (value instanceof Decoder) {
-                params[property.index] = property.deserializer.deserialize(
+                value = property.deserializer.deserialize(
                         (Decoder) value,
                         decoderContext,
                         property.argument
                 );
-            } else {
-                params[property.index] = value;
             }
+            property.set(obj, value);
+        }
+
+        public void set(Object[] params, DecoderContext decoderContext) throws IOException {
+            if (value instanceof Decoder) {
+                value = property.deserializer.deserialize(
+                        (Decoder) value,
+                        decoderContext,
+                        property.argument
+                );
+
+            }
+            params[property.index] = value;
         }
     }
 

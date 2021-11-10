@@ -297,7 +297,6 @@ class Cat extends Animal {
         context.close()
     }
 
-    @Ignore // TODO: name is read twice
     void "test subtype binding as property -- immutable types"() {
         given:
         def context = buildContext("""
