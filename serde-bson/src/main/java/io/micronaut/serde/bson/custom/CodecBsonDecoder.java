@@ -20,6 +20,9 @@ import io.micronaut.serde.bson.BsonReaderDecoder;
 import io.micronaut.serde.bson.BsonWriterEncoder;
 import org.bson.codecs.Codec;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+
 /**
  * Serializer/deserializer implemented by {@link Codec}.
  *
@@ -39,9 +42,9 @@ public class CodecBsonDecoder<T> extends AbstractBsonSerder<T> {
     @Override
     protected T doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super T> type) {
         try {
-            return codec.decode(decoder.getBsonReader(), DEFAULT_DECODER_CONTEXT);
-        } finally {
-            decoder.next();
+            return decoder.decodeCustom(p -> codec.decode(decoder.getBsonReader(), DEFAULT_DECODER_CONTEXT));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

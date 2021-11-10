@@ -46,9 +46,9 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
 
     @Override
     protected Object doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-        BsonReader bsonReader = decoder.getBsonReader();
         BsonType bsonType = getBsonType(type);
-        try {
+        return decoder.decodeCustom(p -> {
+            BsonReader bsonReader = decoder.getBsonReader();
             switch (bsonType) {
                 case DOUBLE:
                     return convert(context, type, bsonReader.readDouble());
@@ -90,12 +90,9 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
                 case DECIMAL128:
                     return convert(context, type, bsonReader.readDecimal128());
                 default:
-                    break;
+                    throw new SerdeException("Unsupported BsonType: " + bsonType);
             }
-        } finally {
-            decoder.next();
-        }
-        throw new SerdeException("Unsupported BsonType: " + bsonType);
+        });
     }
 
     private Object convert(DecoderContext context, Argument<? super Object> type, Object value) {
