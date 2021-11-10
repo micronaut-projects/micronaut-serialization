@@ -1,14 +1,8 @@
 package io.micronaut.serde.jackson.object
 
-import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
-import io.micronaut.context.ApplicationContext
-import io.micronaut.core.annotation.NonNull
-import io.micronaut.core.beans.BeanIntrospection
-import io.micronaut.core.beans.exceptions.IntrospectionException
-import io.micronaut.core.naming.NameUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
-import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
 import jakarta.inject.Provider
 import org.intellij.lang.annotations.Language
@@ -28,35 +22,9 @@ class ObjectSerdeSpec extends JsonCompileSpec {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
     }
 
-    protected void setupSerdeRegistry(ApplicationContext context) {
-        def classLoader = context.classLoader
-        context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {
-
-            @Override
-            def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
-                try {
-                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
-                            .newInstance()
-                } catch (ClassNotFoundException e) {
-                    throw new IntrospectionException("No introspection")
-                }
-            }
-
-            @Override
-            def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
-                try {
-                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
-                            .newInstance()
-                } catch (ClassNotFoundException e) {
-                    throw new IntrospectionException("No introspection for type $type")
-                }
-            }
-        })
-    }
-
     //region JsonSubTypesSpec
-
-    def 'wrapper array'() {
+    @PendingFeature(reason = "Support for WRAPPER_ARRAY not implemented yet")
+    def 'test JsonSubTypes with wrapper array'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -81,10 +49,8 @@ class B extends Base {
     public String fieldB;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
-        def a = compiled.classLoader.loadClass('example.A').newInstance()
+        def a = newInstance(compiled, 'example.A')
         a.fieldA = 'foo'
 
         expect:
@@ -95,7 +61,8 @@ class B extends Base {
         serializeToString(jsonMapper, a) == '["a",{"fieldA":"foo"}]'
     }
 
-    def 'wrapper object'() {
+    @PendingFeature(reason = "Support for @JsonSubTypes not implemented yet")
+    def 'test JsonSubTypes with wrapper object'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -113,17 +80,19 @@ import io.micronaut.serde.annotation.Serdeable;
 class Base {
 }
 
+@Serdeable
 class A extends Base {
     public String fieldA;
 }
+
+@Serdeable
 class B extends Base {
     public String fieldB;
 }
-''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
+''')
+
         def baseClass = compiled.classLoader.loadClass('example.Base')
-        def a = compiled.classLoader.loadClass('example.A').newInstance()
+        def a = newInstance(compiled, 'example.A')
         a.fieldA = 'foo'
 
         expect:
@@ -132,9 +101,13 @@ class B extends Base {
         deserializeFromString(jsonMapper, baseClass, '{"c":{"fieldB":"foo"}}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"a":{"fieldA":"foo"}}'
+
+        cleanup:
+        compiled.close()
     }
 
-    def 'property'() {
+    @PendingFeature(reason = "Support for @JsonSubTypes not implemented yet")
+    def 'test JsonSubTypes with property'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -159,10 +132,8 @@ class B extends Base {
     public String fieldB;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
-        def a = compiled.classLoader.loadClass('example.A').newInstance()
+        def a = newInstance(compiled, 'example.A')
         a.fieldA = 'foo'
 
         expect:
@@ -171,9 +142,13 @@ class B extends Base {
         deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"type":"a","fieldA":"foo"}'
+
+        cleanup:
+        compiled.close()
     }
 
-    def 'deduction'() {
+    @PendingFeature(reason = "JsonTypeInfo.Id.DEDUCTION not supported")
+    def 'test JsonSubTypes with deduction'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -198,10 +173,8 @@ class B extends Base {
     public String fieldB;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
-        def a = compiled.classLoader.loadClass('example.A').newInstance()
+        def a = newInstance(compiled, 'example.A')
         a.fieldA = 'foo'
 
         expect:
@@ -209,9 +182,13 @@ class B extends Base {
         deserializeFromString(jsonMapper, baseClass, '{"fieldB":"foo"}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"fieldA":"foo"}'
+
+        cleanup:
+        compiled.close()
     }
 
-    def 'deduction with supertype prop'() {
+    @PendingFeature(reason = "JsonTypeInfo.Id.DEDUCTION not supported")
+    def 'test JsonSubTypes with deduction with supertype prop'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -237,10 +214,8 @@ class B extends Base {
     public String fieldB;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
-        def a = compiled.classLoader.loadClass('example.A').newInstance()
+        def a = newInstance(compiled, 'example.A')
         a.sup = 'x'
         a.fieldA = 'foo'
 
@@ -251,9 +226,13 @@ class B extends Base {
         deserializeFromString(jsonMapper, baseClass, '{"sup":"x","fieldB":"foo"}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"fieldA":"foo","sup":"x"}'
+
+        cleanup:
+        compiled.close()
     }
 
-    def 'deduction unwrapped'() {
+    @PendingFeature(reason = "JsonTypeInfo.Id.DEDUCTION not supported")
+    def 'test JsonSubTypes with deduction unwrapped'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -296,14 +275,12 @@ class B2 extends Base2 {
     public String fieldB2;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base1')
         def parsed = deserializeFromString(jsonMapper, baseClass, '{"fieldA1":"foo","sup":"x","fieldA2":"bar"}')
 
-        def a1 = compiled.classLoader.loadClass('example.A1').newInstance()
+        def a1 = newInstance(compiled, 'example.A1')
         a1.fieldA1 = 'foo'
-        def a2 = compiled.classLoader.loadClass('example.A2').newInstance()
+        def a2 = newInstance(compiled, 'example.A2')
         a2.sup = 'x'
         a2.fieldA2 = 'bar'
         a1.base2 = a2
@@ -314,9 +291,13 @@ class B2 extends Base2 {
         parsed.base2.fieldA2 == 'bar'
 
         serializeToString(jsonMapper, a1) == '{"fieldA1":"foo","fieldA2":"bar","sup":"x"}'
+
+        cleanup:
+        compiled.close()
     }
 
-    void 'unknown property handling on subtypes'() {
+    @PendingFeature(reason = "@JsonIgnoreProperties(ignoreUnknown = true) not yet implemented")
+    void 'test @JsonIgnoreProperties unknown property handling on subtypes'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -339,8 +320,6 @@ class A extends Base {
 class B extends Base {
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
 
         expect:
@@ -349,10 +328,13 @@ class B extends Base {
         when:
         deserializeFromString(jsonMapper, baseClass, '{"type":".B","foo":"bar"}')
         then:
-        thrown DeserializationException
+        thrown SerdeException
+
+        cleanup:
+        compiled.close()
     }
 
-    void 'any setter merge'() {
+    void 'test @JsonSubTypes with @AnySetter'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -366,9 +348,11 @@ import io.micronaut.serde.annotation.Serdeable;
     @JsonSubTypes.Type(value = A.class),
     @JsonSubTypes.Type(value = B.class)
 })
-@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
 class Base {
 }
+
+@Serdeable
 class A extends Base {
     private Map<String, String> anySetter = new HashMap<>();
     
@@ -377,6 +361,8 @@ class A extends Base {
         anySetter.put(key, value);
     }
 }
+
+@Serdeable
 class B extends Base {
     private Map<String, String> anySetter = new HashMap<>();
     
@@ -386,21 +372,23 @@ class B extends Base {
     }
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
 
         expect:
-        deserializeFromString(jsonMapper, baseClass, '{"type":".A","foo":"bar"}').class.simpleName == 'A'
-        deserializeFromString(jsonMapper, baseClass, '{"type":".A","foo":"bar"}').anySetter == [foo: 'bar']
-        deserializeFromString(jsonMapper, baseClass, '{"type":".B","foo":"bar"}').class.simpleName == 'B'
-        deserializeFromString(jsonMapper, baseClass, '{"type":".B","foo":"bar"}').anySetter == [foo: 'bar']
+        deserializeFromString(jsonMapper, baseClass, '{"type":"example.A","foo":"bar"}').class.simpleName == 'A'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"example.A","foo":"bar"}').anySetter == [foo: 'bar']
+        deserializeFromString(jsonMapper, baseClass, '{"type":"example.B","foo":"bar"}').class.simpleName == 'B'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"example.B","foo":"bar"}').anySetter == [foo: 'bar']
 
-        deserializeFromString(jsonMapper, baseClass, '{"foo":"bar","type":".A"}').anySetter == [foo: 'bar']
-        deserializeFromString(jsonMapper, baseClass, '{"foo":"bar","type":".B"}').anySetter == [foo: 'bar']
+        deserializeFromString(jsonMapper, baseClass, '{"foo":"bar","type":"example.A"}').anySetter == [foo: 'bar']
+        deserializeFromString(jsonMapper, baseClass, '{"foo":"bar","type":"example.B"}').anySetter == [foo: 'bar']
+
+        cleanup:
+        compiled.close()
     }
 
-    def 'JsonTypeName'() {
+    @PendingFeature(reason = "Support for WRAPPER_ARRAY is not yet implemented")
+    def 'test @JsonSubTypes with @JsonTypeName'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -426,7 +414,6 @@ class B extends Base {
     public String fieldB;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
         def jsonMapper = compiled.getBean(JsonMapper)
         def baseClass = compiled.classLoader.loadClass('example.Base')
         def a = compiled.classLoader.loadClass('example.A').newInstance()
@@ -437,33 +424,37 @@ class B extends Base {
         deserializeFromString(jsonMapper, baseClass, '["b",{"fieldB":"foo"}]').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '["A",{"fieldA":"foo"}]'
+
+        cleanup:
+        compiled.close()
     }
 
-    // endregion
-
-    // region MapperVisitorSpec
-
-    void "nested beans"() {
+    void "test nested beans"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.serde.annotation.Serdeable;@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class A {
     public B b;
     public String bar;
 }
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class B {
     public String foo;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
 
-        def a = compiled.classLoader.loadClass("example.A").newInstance()
-        def b = compiled.classLoader.loadClass("example.B").newInstance()
+        def a = newInstance(compiled, 'example.A')
+        def b = newInstance(compiled, 'example.B')
+        def aClass = a.getClass()
+        def bClass = b.getClass()
 
         a.b = b
         a.bar = "123"
@@ -472,110 +463,172 @@ class B {
         expect:
         serializeToString(jsonMapper, b) == '{"foo":"456"}'
         serializeToString(jsonMapper, a) == '{"b":{"foo":"456"},"bar":"123"}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.B"), '{"foo":"456"}').foo == "456"
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.A"), '{"b":{"foo":"456"},"bar":"123"}').bar == "123"
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.A"), '{"b":{"foo":"456"},"bar":"123"}').b.foo == "456"
+        deserializeFromString(jsonMapper, bClass, '{"foo":"456"}').foo == "456"
+        deserializeFromString(jsonMapper, aClass, '{"b":{"foo":"456"},"bar":"123"}').bar == "123"
+        deserializeFromString(jsonMapper, aClass, '{"b":{"foo":"456"},"bar":"123"}').b.foo == "456"
+
+        cleanup:
+        compiled.close()
     }
 
-    void "lists"() {
+    void "test lists"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.serde.annotation.Serdeable;import java.util.List;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     public List<String> list;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-
-        def test = compiled.classLoader.loadClass("example.Test").newInstance()
-
+        def test = newInstance(compiled, 'example.Test')
         test.list = ['foo', 'bar']
+
+        def testClass = test.getClass()
 
         expect:
         serializeToString(jsonMapper, test) == '{"list":["foo","bar"]}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.Test"), '{"list":["foo","bar"]}').list == ['foo', 'bar']
+        deserializeFromString(jsonMapper, testClass, '{"list":["foo","bar"]}').list == ['foo', 'bar']
+
+        cleanup:
+        compiled.close()
     }
 
-    void "maps"() {
+    void "test maps"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     public Map<String, String> map;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-
-        def test = compiled.classLoader.loadClass("example.Test").newInstance()
+        def test = newInstance(compiled, 'example.Test')
         test.map = ['foo': 'bar']
+        def testClass = test.getClass()
 
         expect:
         serializeToString(jsonMapper, test) == '{"map":{"foo":"bar"}}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.Test"), '{"map":{"foo":"bar"}}').map == ['foo': 'bar']
+        deserializeFromString(jsonMapper, testClass, '{"map":{"foo":"bar"}}').map == ['foo': 'bar']
+
+        cleanup:
+        compiled.close()
     }
 
-    void "null map values"() {
+    void "test null map values"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
 
-@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
 class Test {
     public Map<String, String> map;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-
-        def test = compiled.classLoader.loadClass("example.Test").newInstance()
+        def test = newInstance(compiled, 'example.Test')
         test.map = ['foo': null]
+        def testClass = test.getClass()
 
         expect:
         serializeToString(jsonMapper, test) == '{"map":{"foo":null}}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.Test"), '{"map":{"foo":null}}').map == ['foo': null]
+        deserializeFromString(jsonMapper, testClass, '{"map":{"foo":null}}').map == ['foo': null]
+
+        cleanup:
+        compiled.close()
     }
 
-    void "nested generic"() {
+    void "test nested generic"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
-@io.micronaut.serde.annotation.Serdeable
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
 class A {
     public B<C> b;
 }
 
-@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
 class B<T> {
     public T foo;
 }
 
-@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
 class C {
     public String bar;
 }
 ''', true)
-        setupSerdeRegistry(compiled)
         def jsonMapper = compiled.getBean(JsonMapper)
 
-        def a = compiled.classLoader.loadClass("example.A").newInstance()
-        def b = compiled.classLoader.loadClass("example.B").newInstance()
-        def c = compiled.classLoader.loadClass("example.C").newInstance()
+        def a = newInstance(compiled, 'example.A')
+        def b = newInstance(compiled, 'example.B')
+        def c = newInstance(compiled, 'example.C')
+        def aClass = a.getClass()
+        a.b = b
+        b.foo = c
+        c.bar = "123"
+
+        expect:
+        serializeToString(jsonMapper, a) == '{"b":{"foo":{"bar":"123"}}}'
+        deserializeFromString(jsonMapper, aClass, '{"b":{"foo":{"bar":"123"}}}').b.foo.bar == "123"
+
+        cleanup:
+        compiled.close()
+    }
+
+    void "test nested generic inline"() {
+        given:
+        def compiled = buildContext('example.Test', '''
+package example;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class A {
+    public B<C> b;
+}
+
+@Serdeable//(inline = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class B<T> {
+    public T foo;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class C {
+    public String bar;
+}
+''', true)
+        def jsonMapper = compiled.getBean(JsonMapper)
+
+        def a = newInstance(compiled, 'example.A')
+        def b = newInstance(compiled, 'example.B')
+        def c = newInstance(compiled, 'example.C')
+        def aClass = a.getClass()
 
         a.b = b
         b.foo = c
@@ -583,51 +636,22 @@ class C {
 
         expect:
         serializeToString(jsonMapper, a) == '{"b":{"foo":{"bar":"123"}}}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.A"), '{"b":{"foo":{"bar":"123"}}}').b.foo.bar == "123"
+        deserializeFromString(jsonMapper, aClass, '{"b":{"foo":{"bar":"123"}}}').b.foo.bar == "123"
+
+        cleanup:
+        compiled.close()
     }
 
-    void "nested generic inline"() {
+    void "test enum fields"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.serde.annotation.Serdeable;@io.micronaut.serde.annotation.Serdeable
-class A {
-    public B<C> b;
-}
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 
-@io.micronaut.serde.annotation.Serdeable//(inline = true)
-class B<T> {
-    public T foo;
-}
-
-@io.micronaut.serde.annotation.Serdeable
-class C {
-    public String bar;
-}
-''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-
-        def a = compiled.classLoader.loadClass("example.A").newInstance()
-        def b = compiled.classLoader.loadClass("example.B").newInstance()
-        def c = compiled.classLoader.loadClass("example.C").newInstance()
-
-        a.b = b
-        b.foo = c
-        c.bar = "123"
-
-        expect:
-        serializeToString(jsonMapper, a) == '{"b":{"foo":{"bar":"123"}}}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.A"), '{"b":{"foo":{"bar":"123"}}}').b.foo.bar == "123"
-    }
-
-    void "enum"() {
-        given:
-        def compiled = buildContext('example.Test', '''
-package example;
-
-import io.micronaut.serde.annotation.Serdeable;@io.micronaut.serde.annotation.Serdeable
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class A {
     public E e;
 }
@@ -636,80 +660,80 @@ enum E {
     A, B
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-
-        def a = compiled.classLoader.loadClass("example.A").newInstance()
+        def a = newInstance(compiled, 'example.A')
+        def aClass = a.getClass()
         a.e = compiled.classLoader.loadClass("example.E").enumConstants[1]
 
         expect:
         serializeToString(jsonMapper, a) == '{"e":"B"}'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.A"), '{"e":"A"}').e.name() == 'A'
-        deserializeFromString(jsonMapper, compiled.classLoader.loadClass("example.A"), '{"e":"B"}').e.name() == 'B'
+        deserializeFromString(jsonMapper, aClass, '{"e":"A"}').e.name() == 'A'
+        deserializeFromString(jsonMapper, aClass, '{"e":"B"}').e.name() == 'B'
+
+        cleanup:
+        compiled.close()
     }
 
-    void "nested class"() {
+    void "test nested class"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
+import io.micronaut.serde.annotation.Serdeable;
+
 class A {
-    @io.micronaut.serde.annotation.Serdeable
+    @Serdeable
     static class B {
     }
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-
-        def b = compiled.classLoader.loadClass('example.A$B').newInstance()
+        def b = newInstance(compiled, 'example.A$B')
 
         expect:
         serializeToString(jsonMapper, b) == '{}'
     }
 
-    void "interface"() {
+    void "test interface"() {
         given:
         def compiled = buildContext('example.Test', '''
 package example;
 
-@io.micronaut.serde.annotation.Serdeable//(allowDeserialization = false)
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable//(allowDeserialization = false)
 interface Test {
     String getFoo();
 }
 ''', true)
-        setupSerdeRegistry(compiled)
         def jsonMapper = compiled.getBean(JsonMapper)
         def testBean = ['getFoo': { Object[] args -> 'bar' }].asType(compiled.classLoader.loadClass('example.Test'))
 
         expect:
         serializeToString(jsonMapper, testBean) == '{"foo":"bar"}'
 
-        when:
-        compiled.classLoader.loadClass('example.$Test$Deserializer')
-
-        then:
-        thrown ClassNotFoundException
+        cleanup:
+        compiled.close()
     }
 
-    void "optional"() {
+    void "test optional"() {
         given:
         def compiled = buildContext('example.A', '''
 package example;
 
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
 class A {
     public java.util.Optional<B> b;
 }
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 class B {
 }
 ''', true)
-        setupSerdeRegistry(compiled)
-        def jsonMapper = compiled.getBean(JsonMapper)
-        def testBean = compiled.classLoader.loadClass("example.A").newInstance()
-        testBean.b = Optional.of(compiled.classLoader.loadClass("example.B").newInstance())
+        def testBean = newInstance(compiled, 'example.A')
+        testBean.b = Optional.of(newInstance(compiled, 'example.B'))
 
         expect:
         serializeToString(jsonMapper, testBean) == '{"b":{}}'
@@ -728,7 +752,6 @@ enum Foo {
     A, B
 }
 ''', true)
-        setupSerdeRegistry(ctx)
         def jsonMapper = ctx.getBean(JsonMapper)
 
         expect:
@@ -769,7 +792,6 @@ class BSerializer implements io.micronaut.json.Serializer<B> {
     }
 }
 ''', true)
-        setupSerdeRegistry(compiled)
         def jsonMapper = compiled.getBean(JsonMapper)
 
         def bPresent = ctx.classLoader.loadClass('example.B').newInstance()
@@ -787,6 +809,7 @@ class BSerializer implements io.micronaut.json.Serializer<B> {
         serializeToString(jsonMapper, aAbsent) == '{}'
     }
 
+    @PendingFeature(reason = "Support for @JsonView not yet implemented")
     def 'simple views'() {
         given:
         def ctx = buildContext('example.WithViews', '''
@@ -812,7 +835,6 @@ class Internal extends Public {}
 
 class Admin extends Internal {}
 ''', true)
-        setupSerdeRegistry(ctx)
         def jsonMapper = ctx.getBean(JsonMapper)
 
         def withViews = ctx.classLoader.loadClass('example.WithViews').newInstance()
@@ -857,6 +879,7 @@ class Admin extends Internal {}
                 .password == 'secret'
     }
 
+    @PendingFeature(reason = "Support for @JsonView not yet implemented")
     def 'unwrapped view'() {
         given:
         def ctx = buildContext('example.WithViews', '''
@@ -875,7 +898,6 @@ class Nested {
     public String b;
 }
 ''', true)
-        setupSerdeRegistry(ctx)
         def jsonMapper = ctx.getBean(JsonMapper)
 
         def outer = ctx.classLoader.loadClass('example.Outer').newInstance()
@@ -933,7 +955,6 @@ class LowerCaseDeser implements Deserializer<String> {
     }
 }
 ''', true)
-        setupSerdeRegistry(ctx)
         def jsonMapper = ctx.getBean(JsonMapper)
 
         def testInstance = ctx.classLoader.loadClass('example.Test').newInstance()

@@ -17,7 +17,6 @@ import io.micronaut.serde.SerdeIntrospections
 import org.intellij.lang.annotations.Language
 
 import javax.tools.JavaFileObject
-import java.lang.reflect.Field
 
 class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
@@ -92,7 +91,21 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         return context
     }
 
+    @Override
+    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
+        def context = super.buildContext(className, cls, true)
+        setupSerdeRegistry(context)
+        jsonMapper = context.getBean(JsonMapper)
+        return context
+    }
 
+    @Override
+    ApplicationContext buildContext(String className, @Language("java") String cls) {
+        def context = super.buildContext(className, cls, true)
+        setupSerdeRegistry(context)
+        jsonMapper = context.getBean(JsonMapper)
+        return context
+    }
 
     protected void setupSerdeRegistry(ApplicationContext context) {
         def classLoader = context.classLoader
