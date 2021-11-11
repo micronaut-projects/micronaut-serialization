@@ -19,15 +19,20 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.bson.BsonBinaryReader;
+import org.bson.BsonBinaryWriter;
 import org.bson.BsonReader;
 import org.bson.BsonType;
+import org.bson.BsonWriter;
 import org.bson.codecs.DecoderContext;
+import org.bson.io.BasicOutputBuffer;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -356,5 +361,116 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
         currentToken = null;
         currentBsonType = null;
         return decodeCustom(p -> decoder.decode(bsonReader, context));
+    }
+
+    /**
+     * Copy the current value to a bson document containing a single element with name {@code ""} and the value.
+     */
+    private byte[] copyValueToDocument() {
+        BasicOutputBuffer buffer = new BasicOutputBuffer();
+        try (BsonBinaryWriter writer = new BsonBinaryWriter(buffer)) {
+            // have to wrap in a document
+            writer.writeStartDocument();
+            writer.writeName("");
+            transfer(bsonReader, writer, currentBsonType);
+            writer.writeEndDocument();
+        }
+
+        currentToken = null;
+        currentBsonType = null;
+        return buffer.getInternalBuffer();
+    }
+
+    @Override
+    public Decoder decodeBuffer() throws IOException {
+        byte[] documentBytes = decodeCustom(p -> ((BsonReaderDecoder) p).copyValueToDocument());
+        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)));
+        Decoder objectDecoder = topDecoder.decodeObject();
+        objectDecoder.decodeKey(); // skip key
+        return objectDecoder;
+    }
+
+    private static void transfer(BsonReader src, BsonWriter dest, BsonType type) {
+        switch (type) {
+            case DOUBLE:
+                dest.writeDouble(src.readDouble());
+                break;
+            case STRING:
+                dest.writeString(src.readString());
+                break;
+            case DOCUMENT:
+                dest.pipe(src);
+                break;
+            case ARRAY:
+                src.readStartArray();
+                dest.writeStartArray();
+                while (true) {
+                    BsonType elementType = src.readBsonType();
+                    if (elementType == BsonType.END_OF_DOCUMENT) {
+                        break;
+                    }
+                    transfer(src, dest, elementType);
+                }
+                src.readEndArray();
+                dest.writeEndArray();
+                break;
+            case BINARY:
+                dest.writeBinaryData(src.readBinaryData());
+                break;
+            case UNDEFINED:
+                src.readUndefined();
+                dest.writeUndefined();
+                break;
+            case OBJECT_ID:
+                dest.writeObjectId(src.readObjectId());
+                break;
+            case BOOLEAN:
+                dest.writeBoolean(src.readBoolean());
+                break;
+            case DATE_TIME:
+                dest.writeDateTime(src.readDateTime());
+                break;
+            case NULL:
+                src.readNull();
+                dest.writeNull();
+                break;
+            case REGULAR_EXPRESSION:
+                dest.writeRegularExpression(src.readRegularExpression());
+                break;
+            case DB_POINTER:
+                dest.writeDBPointer(src.readDBPointer());
+                break;
+            case JAVASCRIPT:
+                dest.writeJavaScript(src.readJavaScript());
+                break;
+            case SYMBOL:
+                dest.writeSymbol(src.readSymbol());
+                break;
+            case JAVASCRIPT_WITH_SCOPE:
+                dest.writeJavaScriptWithScope(src.readJavaScriptWithScope());
+                break;
+            case INT32:
+                dest.writeInt32(src.readInt32());
+                break;
+            case TIMESTAMP:
+                dest.writeTimestamp(src.readTimestamp());
+                break;
+            case INT64:
+                dest.writeInt64(src.readInt64());
+                break;
+            case DECIMAL128:
+                dest.writeDecimal128(src.readDecimal128());
+                break;
+            case MIN_KEY:
+                src.readMinKey();
+                dest.writeMinKey();
+                break;
+            case MAX_KEY:
+                src.readMaxKey();
+                dest.writeMaxKey();
+                break;
+            default:
+                throw new IllegalStateException("Can't transfer bson token: " + type);
+        }
     }
 }
