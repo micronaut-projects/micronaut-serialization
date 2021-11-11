@@ -4,13 +4,9 @@ import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
-import jakarta.inject.Provider
 import org.intellij.lang.annotations.Language
 import spock.lang.PendingFeature
 
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.TypeVariable
-import java.lang.reflect.WildcardType
 import java.nio.charset.StandardCharsets
 
 class ObjectSerdeSpec extends JsonCompileSpec {
