@@ -76,7 +76,6 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             newPets.pets[1] instanceof Cat
     }
 
-    @PendingFeature(reason = "Should work when 'decodeBuffer' is implemented")
     def "validate mapping inheritance type order"() {
         given:
             def dogJson = """{"breed": "Unknown", "_id": {"\$oid": "618b890200bbd4063ab74213"}, "name": "Bark", "_t": "Dog"}"""
