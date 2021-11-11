@@ -28,8 +28,8 @@ import org.bson.types.ObjectId;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * Bson implementation of {@link Decoder}.
@@ -39,7 +39,7 @@ import java.util.List;
 @Internal
 public final class BsonReaderDecoder extends AbstractStreamDecoder {
     private final BsonReader bsonReader;
-    private final List<Context> contextStack;
+    private final Deque<Context> contextStack;
 
     private BsonType currentBsonType;
     private TokenType currentToken;
@@ -47,7 +47,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     public BsonReaderDecoder(BsonReader bsonReader) {
         super(Object.class);
         this.bsonReader = bsonReader;
-        this.contextStack = new ArrayList<>();
+        this.contextStack = new ArrayDeque<>();
         this.contextStack.add(Context.TOP);
         nextToken();
     }
@@ -73,36 +73,24 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
         super.backFromChild(child);
     }
 
-    private Context popContext() {
-        return contextStack.remove(contextStack.size() - 1);
-    }
-
-    private void pushContext(Context ctx) {
-        contextStack.add(ctx);
-    }
-
-    private Context currentContext() {
-        return contextStack.get(contextStack.size() - 1);
-    }
-
     @Override
     protected void nextToken() {
         if (currentToken != null) {
             switch (currentToken) {
                 case START_ARRAY:
-                    pushContext(Context.ARRAY);
+                    contextStack.push(Context.ARRAY);
                     bsonReader.readStartArray();
                     break;
                 case START_OBJECT:
-                    pushContext(Context.DOCUMENT);
+                    contextStack.push(Context.DOCUMENT);
                     bsonReader.readStartDocument();
                     break;
                 case END_ARRAY:
-                    popContext();
+                    contextStack.pop();
                     bsonReader.readEndArray();
                     break;
                 case END_OBJECT:
-                    popContext();
+                    contextStack.pop();
                     bsonReader.readEndDocument();
                     break;
                 case NULL:
@@ -113,7 +101,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
             }
         }
 
-        Context ctx = currentContext();
+        Context ctx = contextStack.peek();
         if (ctx == Context.DOCUMENT) {
             if (currentToken == TokenType.KEY) {
                 // move into the value
