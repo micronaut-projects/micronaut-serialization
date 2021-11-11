@@ -142,6 +142,8 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * Called when the old child has finished processing and returns control of the stream to the parent. Current token
      * is assumed to be {@link TokenType#END_ARRAY} or {@link TokenType#END_OBJECT}. However we {@link #currentToken()}
      * may hold an outdated value until {@link #nextToken()} is called, which this method does.
+     *
+     * @param child The now-invalid child decoder.
      */
     protected void backFromChild(AbstractStreamDecoder child) throws IOException {
         nextToken();
@@ -513,7 +515,6 @@ public abstract class AbstractStreamDecoder implements Decoder {
         return value;
     }
 
-
     /**
      * Decode a custom type.
      *
@@ -521,8 +522,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * @param <T> Value type
      * @return The parsed value.
      */
-    @Internal
-    public final <T> T decodeCustom(ValueDecoder<T> readFunction) throws IOException {
+    protected final <T> T decodeCustom(ValueDecoder<T> readFunction) throws IOException {
         preDecodeValue();
         T value = readFunction.decode(this);
         nextToken();

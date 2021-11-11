@@ -42,7 +42,7 @@ public class CodecBsonDecoder<T> extends AbstractBsonSerder<T> {
     @Override
     protected T doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super T> type) {
         try {
-            return decoder.decodeCustom(p -> codec.decode(decoder.getBsonReader(), DEFAULT_DECODER_CONTEXT));
+            return decoder.decodeCustom(codec, DEFAULT_DECODER_CONTEXT);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

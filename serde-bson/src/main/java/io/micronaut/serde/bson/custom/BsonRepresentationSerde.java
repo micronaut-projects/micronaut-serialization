@@ -22,7 +22,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 import org.bson.BsonBinary;
 import org.bson.BsonDbPointer;
-import org.bson.BsonReader;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
 import org.bson.BsonType;
@@ -32,6 +31,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -47,8 +47,7 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
     @Override
     protected Object doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         BsonType bsonType = getBsonType(type);
-        return decoder.decodeCustom(p -> {
-            BsonReader bsonReader = decoder.getBsonReader();
+        return decoder.decodeCustom((bsonReader, ctx) -> {
             switch (bsonType) {
                 case DOUBLE:
                     return convert(context, type, bsonReader.readDouble());
@@ -90,9 +89,9 @@ public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
                 case DECIMAL128:
                     return convert(context, type, bsonReader.readDecimal128());
                 default:
-                    throw new SerdeException("Unsupported BsonType: " + bsonType);
+                    throw new UncheckedIOException(new SerdeException("Unsupported BsonType: " + bsonType));
             }
-        });
+        }, null);
     }
 
     private Object convert(DecoderContext context, Argument<? super Object> type, Object value) {

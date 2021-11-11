@@ -21,6 +21,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonReader;
 import org.bson.BsonType;
+import org.bson.codecs.DecoderContext;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
@@ -42,7 +43,6 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
 
     private BsonType currentBsonType;
     private TokenType currentToken;
-    private boolean inKey;
 
     public BsonReaderDecoder(BsonReader bsonReader) {
         super(Object.class);
@@ -58,7 +58,6 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
         this.contextStack = parent.contextStack;
         this.currentBsonType = parent.currentBsonType;
         this.currentToken = parent.currentToken;
-        this.inKey = parent.inKey;
     }
 
     private enum Context {
@@ -71,7 +70,6 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     protected void backFromChild(AbstractStreamDecoder child) throws IOException {
         this.currentBsonType = ((BsonReaderDecoder) child).currentBsonType;
         this.currentToken = ((BsonReaderDecoder) child).currentToken;
-        this.inKey = ((BsonReaderDecoder) child).inKey;
         super.backFromChild(child);
     }
 
@@ -89,71 +87,79 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
 
     @Override
     protected void nextToken() {
-        if (currentContext() == Context.DOCUMENT) {
-            if (inKey) {
+        if (currentToken != null) {
+            switch (currentToken) {
+                case START_ARRAY:
+                    pushContext(Context.ARRAY);
+                    bsonReader.readStartArray();
+                    break;
+                case START_OBJECT:
+                    pushContext(Context.DOCUMENT);
+                    bsonReader.readStartDocument();
+                    break;
+                case END_ARRAY:
+                    popContext();
+                    bsonReader.readEndArray();
+                    break;
+                case END_OBJECT:
+                    popContext();
+                    bsonReader.readEndDocument();
+                    break;
+                case NULL:
+                    bsonReader.readNull();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        Context ctx = currentContext();
+        if (ctx == Context.DOCUMENT) {
+            if (currentToken == TokenType.KEY) {
                 // move into the value
-                onValueToken();
-                inKey = false;
+                currentToken = toToken(currentBsonType, ctx);
             } else {
                 currentBsonType = bsonReader.readBsonType();
                 if (currentBsonType == BsonType.END_OF_DOCUMENT) {
-                    onValueToken();
-                    // context may change
-                    inKey = currentContext() == Context.DOCUMENT;
+                    currentToken = TokenType.END_OBJECT;
                 } else {
                     currentToken = TokenType.KEY;
-                    inKey = true;
                 }
             }
         } else {
-            if (currentContext() != Context.TOP || currentBsonType != BsonType.END_OF_DOCUMENT) {
+            if (ctx != Context.TOP || currentBsonType != BsonType.END_OF_DOCUMENT) {
                 currentBsonType = bsonReader.readBsonType();
-                onValueToken();
+                currentToken = toToken(currentBsonType, ctx);
             }
         }
     }
 
-    private void onValueToken() {
-        switch (currentBsonType) {
+    private static TokenType toToken(BsonType bsonType, Context ctx) {
+        switch (bsonType) {
             case ARRAY:
-                bsonReader.readStartArray();
-                pushContext(Context.ARRAY);
-                currentToken = TokenType.START_ARRAY;
-                break;
+                return TokenType.START_ARRAY;
             case DOCUMENT:
-                bsonReader.readStartDocument();
-                pushContext(Context.DOCUMENT);
-                currentToken = TokenType.START_OBJECT;
-                break;
+                return TokenType.START_OBJECT;
             case END_OF_DOCUMENT:
-                Context ctx = popContext();
                 if (ctx == Context.ARRAY) {
-                    bsonReader.readEndArray();
-                    currentToken = TokenType.END_ARRAY;
+                    return TokenType.END_ARRAY;
                 } else if (ctx == Context.DOCUMENT) {
-                    bsonReader.readEndDocument();
-                    currentToken = TokenType.END_OBJECT;
+                    return TokenType.END_OBJECT;
                 } else {
                     // EOF
-                    currentToken = null;
+                    return null;
                 }
-                break;
             case DOUBLE:
             case INT32:
             case INT64:
             case DECIMAL128:
-                currentToken = TokenType.NUMBER;
-                break;
+                return TokenType.NUMBER;
             case STRING:
-                currentToken = TokenType.STRING;
-                break;
+                return TokenType.STRING;
             case BOOLEAN:
-                currentToken = TokenType.BOOLEAN;
-                break;
+                return TokenType.BOOLEAN;
             case NULL:
-                bsonReader.readNull();
-                currentToken = TokenType.NULL;
-                break;
+                return TokenType.NULL;
             case BINARY:
             case UNDEFINED:
             case OBJECT_ID:
@@ -167,8 +173,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
             case MIN_KEY:
             case MAX_KEY:
             default:
-                currentToken = TokenType.OTHER;
-                break;
+                return TokenType.OTHER;
         }
     }
 
@@ -357,7 +362,9 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
         return decodeCustom(parser -> ((BsonReaderDecoder) parser).bsonReader.readObjectId());
     }
 
-    public BsonReader getBsonReader() {
-        return bsonReader;
+    public <T> T decodeCustom(org.bson.codecs.Decoder<T> decoder, DecoderContext context) throws IOException {
+        currentToken = null;
+        currentBsonType = null;
+        return decodeCustom(p -> decoder.decode(bsonReader, context));
     }
 }
