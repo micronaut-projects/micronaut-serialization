@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Abstract base class for stream-based {@link Decoder}s.
@@ -91,6 +92,10 @@ public abstract class AbstractStreamDecoder implements Decoder {
         }
     }
 
+    /**
+     * Should be called before attempting to decode a value. Has basic sanity checks, such as confirming we're not
+     * currently in a {@link TokenType#KEY} and that there's no child decoder currently running.
+     */
     private void preDecodeValue() {
         checkChild();
         if (currentToken() == TokenType.KEY) {
@@ -129,7 +134,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
         }
         if (parent != null) {
             parent.child = null;
-            parent.backFromChild();
+            parent.backFromChild(this);
         }
     }
 
@@ -137,8 +142,10 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * Called when the old child has finished processing and returns control of the stream to the parent. Current token
      * is assumed to be {@link TokenType#END_ARRAY} or {@link TokenType#END_OBJECT}. However we {@link #currentToken()}
      * may hold an outdated value until {@link #nextToken()} is called, which this method does.
+     *
+     * @param child The now-invalid child decoder.
      */
-    private void backFromChild() throws IOException {
+    protected void backFromChild(AbstractStreamDecoder child) throws IOException {
         nextToken();
     }
 
@@ -225,6 +232,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
             case NUMBER:
             case STRING:
             case BOOLEAN:
+            case OTHER:
                 String value = coerceScalarToString();
                 nextToken();
                 return value;
@@ -412,6 +420,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     @Override
     public final double decodeDouble() throws IOException {
+        // could use decodeNumber but this is more efficient
         preDecodeValue();
         switch (currentToken()) {
             case NUMBER:
@@ -449,62 +458,50 @@ public abstract class AbstractStreamDecoder implements Decoder {
     @NonNull
     @Override
     public final BigInteger decodeBigInteger() throws IOException {
-        preDecodeValue();
-        BigInteger value;
-        switch (currentToken()) {
-            case NUMBER:
-                value = getBigInteger();
-                break;
-            case STRING:
-                try {
-                    value = new BigInteger(coerceScalarToString());
-                } catch (NumberFormatException e) {
-                    // match behavior of getValueAsInt
-                    value = BigInteger.ZERO;
-                }
-                break;
-            case BOOLEAN:
-                value = getBoolean() ? BigInteger.ONE : BigInteger.ZERO;
-                break;
-            case START_ARRAY:
-                if (beginUnwrapArray()) {
-                    BigInteger unwrapped = decodeBigInteger();
-                    if (endUnwrapArray()) {
-                        return unwrapped;
-                    } else {
-                        throw createDeserializationException("Expected one integer, but got array of multiple values");
-                    }
-                }
-            default:
-                throw unexpectedToken(TokenType.NUMBER);
-        }
-        nextToken();
-        return value;
+        return decodeNumber(AbstractStreamDecoder::getBigInteger, BigInteger::new, BigInteger.ZERO, BigInteger.ONE);
     }
 
     @NonNull
     @Override
     public final BigDecimal decodeBigDecimal() throws IOException {
+        return decodeNumber(AbstractStreamDecoder::getBigDecimal, BigDecimal::new, BigDecimal.ZERO, BigDecimal.ONE);
+    }
+
+    /**
+     * Decode a number type, applying all necessary coercions.
+     *
+     * @param fromNumberToken Called if {@link #currentToken()} is a {@link TokenType#NUMBER}.
+     * @param fromString      Called for the textual value if {@link #currentToken()} is a {@link TokenType#STRING}. Should throw {@link NumberFormatException} on parse failure.
+     * @param zero            The zero value.
+     * @param one             The one value.
+     * @param <T>             The number type.
+     * @return The parsed number.
+     */
+    protected final <T> T decodeNumber(
+            ValueDecoder<T> fromNumberToken,
+            Function<String, T> fromString,
+            T zero, T one
+    ) throws IOException {
         preDecodeValue();
-        BigDecimal value;
+        T value;
         switch (currentToken()) {
             case NUMBER:
-                value = getBigDecimal();
+                value = fromNumberToken.decode(this);
                 break;
             case STRING:
                 try {
-                    value = new BigDecimal(coerceScalarToString());
+                    value = fromString.apply(coerceScalarToString());
                 } catch (NumberFormatException e) {
                     // match behavior of getValueAsDouble
-                    value = BigDecimal.ZERO;
+                    value = zero;
                 }
                 break;
             case BOOLEAN:
-                value = getBoolean() ? BigDecimal.ONE : BigDecimal.ZERO;
+                value = getBoolean() ? one : zero;
                 break;
             case START_ARRAY:
                 if (beginUnwrapArray()) {
-                    BigDecimal unwrapped = decodeBigDecimal();
+                    T unwrapped = decodeNumber(fromNumberToken, fromString, zero, one);
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
@@ -514,6 +511,20 @@ public abstract class AbstractStreamDecoder implements Decoder {
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
+        nextToken();
+        return value;
+    }
+
+    /**
+     * Decode a custom type.
+     *
+     * @param readFunction Function to call for reading the value. The {@link AbstractStreamDecoder} parameter to the function will just be {@code this}, but this allows subclasses to avoid capturing {@code this} to avoid an allocation.
+     * @param <T> Value type
+     * @return The parsed value.
+     */
+    protected final <T> T decodeCustom(ValueDecoder<T> readFunction) throws IOException {
+        preDecodeValue();
+        T value = readFunction.decode(this);
         nextToken();
         return value;
     }
@@ -640,5 +651,20 @@ public abstract class AbstractStreamDecoder implements Decoder {
         preDecodeValue();
         skipChildren();
         nextToken();
+    }
+
+    /**
+     * Decoder function for a single value.
+     * @param <R> Value type
+     */
+    @Internal
+    public interface ValueDecoder<R> {
+        /**
+         * Decode this value.
+         *
+         * @param target Reference to {@code this}, allows subclasses to avoid capturing {@code this} to avoid an allocation.
+         * @return The decoded value
+         */
+        R decode(AbstractStreamDecoder target) throws IOException;
     }
 }

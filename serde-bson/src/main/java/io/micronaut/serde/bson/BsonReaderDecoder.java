@@ -16,16 +16,21 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonReader;
 import org.bson.BsonType;
+import org.bson.codecs.DecoderContext;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * Bson implementation of {@link Decoder}.
@@ -33,246 +38,275 @@ import java.math.BigInteger;
  * @author Denis Stepanov
  */
 @Internal
-public final class BsonReaderDecoder implements Decoder {
+public final class BsonReaderDecoder extends AbstractStreamDecoder {
     private final BsonReader bsonReader;
-    private final boolean inArray;
-    private boolean arrayHasChildren;
-    private final State state;
+    private final Deque<Context> contextStack;
+
+    private BsonType currentBsonType;
+    private TokenType currentToken;
 
     public BsonReaderDecoder(BsonReader bsonReader) {
-        this(bsonReader, false, new State());
-    }
-
-    private BsonReaderDecoder(BsonReader bsonReader, boolean inArray, State state) {
+        super(Object.class);
         this.bsonReader = bsonReader;
-        this.inArray = inArray;
-        this.state = state;
-        next();
+        this.contextStack = new ArrayDeque<>();
+        this.contextStack.add(Context.TOP);
+        nextToken();
     }
 
-    public void next() {
-        state.currentBsonType = bsonReader.readBsonType();
+    private BsonReaderDecoder(BsonReaderDecoder parent) {
+        super(parent);
+        this.bsonReader = parent.bsonReader;
+        this.contextStack = parent.contextStack;
+        this.currentBsonType = parent.currentBsonType;
+        this.currentToken = parent.currentToken;
+    }
+
+    private enum Context {
+        ARRAY,
+        DOCUMENT,
+        TOP,
     }
 
     @Override
-    public Decoder decodeArray() throws IOException {
-        if (state.currentBsonType == BsonType.ARRAY) {
-            bsonReader.readStartArray();
-        } else {
-            throw createDeserializationException("Not an array");
-        }
-        return new BsonReaderDecoder(bsonReader, true, state);
+    protected void backFromChild(AbstractStreamDecoder child) throws IOException {
+        this.currentBsonType = ((BsonReaderDecoder) child).currentBsonType;
+        this.currentToken = ((BsonReaderDecoder) child).currentToken;
+        super.backFromChild(child);
     }
 
     @Override
-    public boolean hasNextArrayValue() {
-        if (!inArray) {
-            return false;
-        }
-        if (isEndOfDocument()) {
-            if (arrayHasChildren) {
-                next();
-                return !isEndOfDocument();
-            } else {
-                return false;
+    protected void nextToken() {
+        if (currentToken != null) {
+            switch (currentToken) {
+                case START_ARRAY:
+                    contextStack.push(Context.ARRAY);
+                    bsonReader.readStartArray();
+                    break;
+                case START_OBJECT:
+                    contextStack.push(Context.DOCUMENT);
+                    bsonReader.readStartDocument();
+                    break;
+                case END_ARRAY:
+                    contextStack.pop();
+                    bsonReader.readEndArray();
+                    break;
+                case END_OBJECT:
+                    contextStack.pop();
+                    bsonReader.readEndDocument();
+                    break;
+                case NULL:
+                    bsonReader.readNull();
+                    break;
+                default:
+                    break;
             }
         }
-        return true;
-    }
 
-    private boolean isEndOfDocument() {
-        return state.currentBsonType == BsonType.END_OF_DOCUMENT;
-    }
-
-    @Override
-    public Decoder decodeObject() throws IOException {
-        if (inArray) {
-            arrayHasChildren = true;
-        }
-        if (state.currentBsonType == BsonType.DOCUMENT) {
-            bsonReader.readStartDocument();
+        Context ctx = contextStack.peek();
+        if (ctx == Context.DOCUMENT) {
+            if (currentToken == TokenType.KEY) {
+                // move into the value
+                currentToken = toToken(currentBsonType, ctx);
+            } else {
+                currentBsonType = bsonReader.readBsonType();
+                if (currentBsonType == BsonType.END_OF_DOCUMENT) {
+                    currentToken = TokenType.END_OBJECT;
+                } else {
+                    currentToken = TokenType.KEY;
+                }
+            }
         } else {
-            throw createDeserializationException("Not an object");
+            if (ctx != Context.TOP || currentBsonType != BsonType.END_OF_DOCUMENT) {
+                currentBsonType = bsonReader.readBsonType();
+                currentToken = toToken(currentBsonType, ctx);
+            }
         }
-        return new BsonReaderDecoder(bsonReader, false, state);
+    }
+
+    private static TokenType toToken(BsonType bsonType, Context ctx) {
+        switch (bsonType) {
+            case ARRAY:
+                return TokenType.START_ARRAY;
+            case DOCUMENT:
+                return TokenType.START_OBJECT;
+            case END_OF_DOCUMENT:
+                if (ctx == Context.ARRAY) {
+                    return TokenType.END_ARRAY;
+                } else if (ctx == Context.DOCUMENT) {
+                    return TokenType.END_OBJECT;
+                } else {
+                    // EOF
+                    return null;
+                }
+            case DOUBLE:
+            case INT32:
+            case INT64:
+            case DECIMAL128:
+                return TokenType.NUMBER;
+            case STRING:
+                return TokenType.STRING;
+            case BOOLEAN:
+                return TokenType.BOOLEAN;
+            case NULL:
+                return TokenType.NULL;
+            case BINARY:
+            case UNDEFINED:
+            case OBJECT_ID:
+            case DATE_TIME:
+            case REGULAR_EXPRESSION:
+            case DB_POINTER:
+            case JAVASCRIPT:
+            case SYMBOL:
+            case JAVASCRIPT_WITH_SCOPE:
+            case TIMESTAMP:
+            case MIN_KEY:
+            case MAX_KEY:
+            default:
+                return TokenType.OTHER;
+        }
     }
 
     @Override
-    public String decodeKey() {
-        if (isEndOfDocument()) {
-            return null;
-        }
+    protected String getCurrentKey() {
         return bsonReader.readName();
     }
 
     @Override
-    public String decodeString() throws IOException {
-        if (state.currentBsonType == BsonType.STRING) {
-            try {
-                return bsonReader.readString();
-            } finally {
-                next();
-            }
-        }
-        throw createDeserializationException("Cannot decode String from: " + state.currentBsonType);
-    }
-
-    @Override
-    public boolean decodeBoolean() throws IOException {
-        if (state.currentBsonType == BsonType.BOOLEAN) {
-            try {
-                return bsonReader.readBoolean();
-            } finally {
-                next();
-            }
-        }
-        throw createDeserializationException("Cannot decode Boolean from: " + state.currentBsonType);
-    }
-
-    @Override
-    public byte decodeByte() throws IOException {
-        return (byte) decodeInt();
-    }
-
-    @Override
-    public short decodeShort() throws IOException {
-        return (short) decodeInt();
-    }
-
-    @Override
-    public char decodeChar() throws IOException {
-        return (char) decodeInt();
-    }
-
-    @Override
-    public int decodeInt() throws IOException {
-        if (state.currentBsonType == BsonType.INT32) {
-            try {
-                return bsonReader.readInt32();
-            } finally {
-                next();
-            }
-        }
-        throw createDeserializationException("Cannot decode int from: " + state.currentBsonType);
-    }
-
-    @Override
-    public long decodeLong() throws IOException {
-        switch (state.currentBsonType) {
-            case INT32:
-                try {
-                    return bsonReader.readInt32();
-                } finally {
-                    next();
-                }
-            case INT64:
-                try {
-                    return bsonReader.readInt64();
-                } finally {
-                    next();
-                }
-            default:
-                throw createDeserializationException("Cannot decode Long from: " + state.currentBsonType);
-        }
-    }
-
-    @Override
-    public float decodeFloat() throws IOException {
-        if (state.currentBsonType == BsonType.DOUBLE) {
-            try {
-                return (float) bsonReader.readDouble();
-            } finally {
-                next();
-            }
-        }
-        return decodeDecimal128().floatValue();
-    }
-
-    @Override
-    public double decodeDouble() throws IOException {
-        if (state.currentBsonType == BsonType.DOUBLE) {
-            try {
-                return bsonReader.readDouble();
-            } finally {
-                next();
-            }
-        }
-        return decodeDecimal128().doubleValue();
-    }
-
-    @Override
-    public BigInteger decodeBigInteger() throws IOException {
-        switch (state.currentBsonType) {
-            case INT32:
-                return BigInteger.valueOf(decodeInt());
-            case INT64:
-                return BigInteger.valueOf(decodeLong());
-            case DECIMAL128:
-                return decodeDecimal128().bigDecimalValue().toBigInteger();
-            default:
-                throw createDeserializationException("Cannot decode BigInteger from: " + state.currentBsonType);
-        }
-    }
-
-    @Override
-    public BigDecimal decodeBigDecimal() throws IOException {
-        switch (state.currentBsonType) {
-            case INT32:
-                return BigDecimal.valueOf(decodeInt());
-            case INT64:
-                return BigDecimal.valueOf(decodeLong());
+    protected String coerceScalarToString() throws IOException {
+        switch (currentBsonType) {
             case DOUBLE:
-                return BigDecimal.valueOf(decodeDouble());
+                return String.valueOf(bsonReader.readDouble());
+            case STRING:
+                return bsonReader.readString();
+            case OBJECT_ID:
+                return bsonReader.readObjectId().toHexString();
+            case BOOLEAN:
+                return String.valueOf(bsonReader.readBoolean());
+            case DATE_TIME:
+                return String.valueOf(bsonReader.readDateTime());
+            case REGULAR_EXPRESSION:
+                return bsonReader.readRegularExpression().toString();
+            case JAVASCRIPT:
+                return bsonReader.readJavaScript();
+            case SYMBOL:
+                return bsonReader.readSymbol();
+            case JAVASCRIPT_WITH_SCOPE:
+                return bsonReader.readJavaScriptWithScope();
+            case INT32:
+                return String.valueOf(bsonReader.readInt32());
+            case TIMESTAMP:
+                return bsonReader.readTimestamp().toString();
+            case INT64:
+                return String.valueOf(bsonReader.readInt64());
             case DECIMAL128:
-                return decodeDecimal128().bigDecimalValue();
+                return bsonReader.readDecimal128().toString();
+            case BINARY:
+                return new String(bsonReader.readBinaryData().getData(), StandardCharsets.UTF_8);
+            case DB_POINTER:
+                return bsonReader.readDBPointer().toString();
             default:
-                throw createDeserializationException("Cannot decode BigDecimal from: " + state.currentBsonType);
+                throw new SerdeException("Can't decode " + currentBsonType + " as string");
         }
     }
 
     @Override
-    public boolean decodeNull() {
-        if (state.currentBsonType == BsonType.NULL) {
-            try {
-                bsonReader.readNull();
-                return true;
-            } finally {
-                next();
-            }
-        }
-        return false;
+    protected AbstractStreamDecoder createChildDecoder() {
+        return new BsonReaderDecoder(this);
     }
 
     @Override
-    public Object decodeArbitrary() {
-        throw new UnsupportedOperationException("Not yet implemented");
+    protected boolean getBoolean() {
+        return bsonReader.readBoolean();
     }
 
     @Override
-    public Decoder decodeBuffer() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void skipValue() {
-        try {
-            bsonReader.skipValue();
-        } finally {
-            next();
+    protected long getLong() {
+        switch (currentBsonType) {
+            case INT32:
+                return bsonReader.readInt32();
+            case INT64:
+                return bsonReader.readInt64();
+            case DOUBLE:
+                return (long) bsonReader.readDouble();
+            case DECIMAL128:
+                return bsonReader.readDecimal128().longValue();
+            default:
+                throw new IllegalStateException("Not in number state");
         }
     }
 
     @Override
-    public void finishStructure() throws IOException {
-        if (isEndOfDocument()) {
-            if (inArray) {
-                bsonReader.readEndArray();
-            } else {
-                bsonReader.readEndDocument();
-            }
-        } else {
-            throw createDeserializationException("Expected END_OF_DOCUMENT got: " + state.currentBsonType);
+    protected double getDouble() {
+        switch (currentBsonType) {
+            case INT32:
+                return bsonReader.readInt32();
+            case INT64:
+                return bsonReader.readInt64();
+            case DOUBLE:
+                return bsonReader.readDouble();
+            case DECIMAL128:
+                return bsonReader.readDecimal128().doubleValue();
+            default:
+                throw new IllegalStateException("Not in number state");
         }
+    }
+
+    @Override
+    protected BigInteger getBigInteger() {
+        switch (currentBsonType) {
+            case INT32:
+                return BigInteger.valueOf(bsonReader.readInt32());
+            case INT64:
+                return BigInteger.valueOf(bsonReader.readInt64());
+            case DOUBLE:
+                return BigDecimal.valueOf(bsonReader.readDouble()).toBigInteger();
+            case DECIMAL128:
+                return bsonReader.readDecimal128().bigDecimalValue().toBigInteger();
+            default:
+                throw new IllegalStateException("Not in number state");
+        }
+    }
+
+    @Override
+    protected BigDecimal getBigDecimal() {
+        switch (currentBsonType) {
+            case INT32:
+                return BigDecimal.valueOf(bsonReader.readInt32());
+            case INT64:
+                return BigDecimal.valueOf(bsonReader.readInt64());
+            case DOUBLE:
+                return BigDecimal.valueOf(bsonReader.readDouble());
+            case DECIMAL128:
+                return bsonReader.readDecimal128().bigDecimalValue();
+            default:
+                throw new IllegalStateException("Not in number state");
+        }
+    }
+
+    @Override
+    protected Number getBestNumber() {
+        switch (currentBsonType) {
+            case INT32:
+                return bsonReader.readInt32();
+            case INT64:
+                return bsonReader.readInt64();
+            case DOUBLE:
+                return bsonReader.readDouble();
+            case DECIMAL128:
+                return bsonReader.readDecimal128();
+            default:
+                throw new IllegalStateException("Not in number state");
+        }
+    }
+
+    @Override
+    protected void skipChildren() {
+        bsonReader.skipValue();
+    }
+
+    @Override
+    protected TokenType currentToken() {
+        return currentToken;
     }
 
     @Override
@@ -280,9 +314,19 @@ public final class BsonReaderDecoder implements Decoder {
         return new SerdeException(message + " \n at ");
     }
 
-    @Override
-    public boolean hasView(Class<?>... views) {
-        return false;
+    private Decimal128 getDecimal128() {
+        switch (currentBsonType) {
+            case INT32:
+                return new Decimal128(bsonReader.readInt32());
+            case INT64:
+                return new Decimal128(bsonReader.readInt64());
+            case DOUBLE:
+                return new Decimal128(BigDecimal.valueOf(bsonReader.readDouble()));
+            case DECIMAL128:
+                return bsonReader.readDecimal128();
+            default:
+                throw new IllegalStateException("Not in number state");
+        }
     }
 
     /**
@@ -292,14 +336,7 @@ public final class BsonReaderDecoder implements Decoder {
      * @throws IOException
      */
     public Decimal128 decodeDecimal128() throws IOException {
-        if (state.currentBsonType == BsonType.DECIMAL128) {
-            try {
-                return bsonReader.readDecimal128();
-            } finally {
-                next();
-            }
-        }
-        throw createDeserializationException("Cannot decode Decimal128 from: " + state.currentBsonType);
+        return decodeNumber(decoder -> ((BsonReaderDecoder) decoder).getDecimal128(), Decimal128::parse, Decimal128.POSITIVE_ZERO, new Decimal128(1));
     }
 
     /**
@@ -309,24 +346,15 @@ public final class BsonReaderDecoder implements Decoder {
      * @throws IOException
      */
     public ObjectId decodeObjectId() throws IOException {
-        if (state.currentBsonType == BsonType.OBJECT_ID) {
-            try {
-                return bsonReader.readObjectId();
-            } finally {
-                next();
-            }
+        if (currentBsonType != BsonType.OBJECT_ID) {
+            throw createDeserializationException("Cannot decode ObjectId from: " + currentBsonType);
         }
-        throw createDeserializationException("Cannot decode ObjectId from: " + state.currentBsonType);
+        return decodeCustom(parser -> ((BsonReaderDecoder) parser).bsonReader.readObjectId());
     }
 
-    public BsonReader getBsonReader() {
-        return bsonReader;
-    }
-
-    /**
-     * Shared state to fix Bson's Json reader inconsistent `currentBsonType`.
-     */
-    private static class State {
-        BsonType currentBsonType;
+    public <T> T decodeCustom(org.bson.codecs.Decoder<T> decoder, DecoderContext context) throws IOException {
+        currentToken = null;
+        currentBsonType = null;
+        return decodeCustom(p -> decoder.decode(bsonReader, context));
     }
 }
