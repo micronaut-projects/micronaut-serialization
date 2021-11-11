@@ -28,6 +28,7 @@ import org.bson.types.ObjectId;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -199,9 +200,10 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
                 return String.valueOf(bsonReader.readInt64());
             case DECIMAL128:
                 return bsonReader.readDecimal128().toString();
-            case DB_POINTER:
             case BINARY:
-                // todo
+                return new String(bsonReader.readBinaryData().getData(), StandardCharsets.UTF_8);
+            case DB_POINTER:
+                return bsonReader.readDBPointer().toString();
             default:
                 throw new SerdeException("Can't decode " + currentBsonType + " as string");
         }
