@@ -331,6 +331,7 @@ class B extends Base {
         compiled.close()
     }
 
+    @PendingFeature(reason = "@JsonSubTypes not yet implemented")
     void 'test @JsonSubTypes with @AnySetter'() {
         given:
         def compiled = buildContext('example.Base', '''
@@ -550,6 +551,7 @@ class Test {
         compiled.close()
     }
 
+    @PendingFeature(reason = "Waiting on https://github.com/micronaut-projects/micronaut-core/pull/6510")
     void "test nested generic"() {
         given:
         def compiled = buildContext('example.Test', '''
@@ -594,6 +596,7 @@ class C {
         compiled.close()
     }
 
+    @PendingFeature(reason = "Waiting on https://github.com/micronaut-projects/micronaut-core/pull/6510")
     void "test nested generic inline"() {
         given:
         def compiled = buildContext('example.Test', '''
