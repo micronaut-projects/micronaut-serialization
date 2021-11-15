@@ -33,8 +33,19 @@ class Test {
     }
 }
 """, [value:'test'])
-        expect:
-        writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
+
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"value":"test"}'
+
+        when:"deserialization happens"
+        def value = jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
+
+        then:"the property is ignored for the purposes of deserialization"
+        value.ignored == false
 
         cleanup:
         context.close()
