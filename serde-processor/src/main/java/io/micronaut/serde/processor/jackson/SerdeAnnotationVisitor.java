@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeId;
@@ -50,6 +49,7 @@ import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -257,6 +257,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
+
         if (isJsonAnnotated(element)) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class)) {
@@ -267,10 +268,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 });
             }
 
-            final String[] ignoresProperties = element.stringValues(JsonIgnoreProperties.class);
+            final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
             if (ArrayUtils.isNotEmpty(ignoresProperties)) {
-                final boolean allowGetters = element.booleanValue(JsonIgnoreProperties.class, "allowGetters").orElse(false);
-                final boolean allowSetters = element.booleanValue(JsonIgnoreProperties.class, "allowSetters").orElse(false);
+                final boolean allowGetters = element.booleanValue(SerdeConfig.Ignored.class, "allowGetters").orElse(false);
+                final boolean allowSetters = element.booleanValue(SerdeConfig.Ignored.class, "allowSetters").orElse(false);
                 final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
                 final List<PropertyElement> beanProperties = element.getBeanProperties();
                 for (PropertyElement beanProperty : beanProperties) {

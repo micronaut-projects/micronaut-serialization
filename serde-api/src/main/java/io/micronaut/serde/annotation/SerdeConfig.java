@@ -130,6 +130,13 @@ public @interface SerdeConfig {
     }
 
     /**
+     * Ignore handling meta annotation.
+     */
+    @Internal
+    @interface Ignored {
+    }
+
+    /**
      * Internal metadata for a JSON any getter.
      */
     @Internal
@@ -193,7 +200,6 @@ public @interface SerdeConfig {
     /**
      * Include strategies.
      */
-    @Internal
     enum Include {
 
         /**
@@ -224,6 +230,11 @@ public @interface SerdeConfig {
          * Value that indicates that only properties with null value,
          * or what is considered empty, are not to be included.
          */
-        NON_EMPTY
+        NON_EMPTY,
+
+        /**
+         * Ignore the property.
+         */
+        NEVER
     }
 }

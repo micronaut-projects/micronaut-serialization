@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.json;
+package io.micronaut.serde.config;
 
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.Internal;
@@ -28,14 +28,22 @@ import jakarta.inject.Singleton;
 @Singleton
 @Secondary
 public class SerdeJsonConfiguration implements JsonConfiguration {
+    private final SerializationConfiguration serialization;
+    private final DeserializationConfiguration deserialization;
+
+    public SerdeJsonConfiguration(SerializationConfiguration serialization,
+                                  DeserializationConfiguration deserialization) {
+        this.serialization = serialization;
+        this.deserialization = deserialization;
+    }
 
     @Override
     public boolean isAlwaysSerializeErrorsAsList() {
-        return true;
+        return serialization.isAlwaysSerializeErrorsAsList();
     }
 
     @Override
     public int getArraySizeThreshold() {
-        return Integer.MAX_VALUE;
+        return deserialization.getArraySizeThreshold().orElse(100);
     }
 }

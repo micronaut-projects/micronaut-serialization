@@ -20,8 +20,8 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalMultiValues;
 import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.serde.Encoder;
-import io.micronaut.json.JsonConfiguration;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
@@ -34,7 +34,7 @@ import java.util.Optional;
 class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues<V>> {
     private final boolean alwaysSerializeErrorsAsList;
 
-    public OptionalMultiValuesSerializer(JsonConfiguration jacksonConfiguration) {
+    public OptionalMultiValuesSerializer(SerializationConfiguration jacksonConfiguration) {
         this.alwaysSerializeErrorsAsList = jacksonConfiguration.isAlwaysSerializeErrorsAsList();
     }
 
