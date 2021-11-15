@@ -35,6 +35,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.Element;
+import io.micronaut.inject.ast.ElementQuery;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
@@ -49,7 +50,6 @@ import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -119,6 +119,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     this.anySetterField = element;
                 }
             }
+        }
+
+        final AnnotationMetadata annotationMetadata = element.getAnnotationMetadata();
+        if (annotationMetadata.hasAnnotation(SerdeConfig.Ignored.Type.class)) {
+            element.annotate(SerdeConfig.class, (builder) ->
+                builder.member(SerdeConfig.IGNORED, true)
+            );
         }
     }
 
@@ -268,12 +275,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 });
             }
 
+            final List<PropertyElement> beanProperties = element.getBeanProperties();
+            for (PropertyElement beanProperty : beanProperties) {
+                if (!beanProperty.isPrimitive()) {
+                    final ClassElement t = beanProperty.getGenericType();
+                    final boolean ignoredType = context.getClassElement(t.getName())
+                            .map((c) -> c.hasAnnotation(SerdeConfig.Ignored.Type.class)).orElse(false);
+                    if (ignoredType) {
+                        beanProperty.annotate(SerdeConfig.class, (builder) ->
+                                builder.member(SerdeConfig.IGNORED, true)
+                        );
+                    }
+                }
+            }
             final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
             if (ArrayUtils.isNotEmpty(ignoresProperties)) {
                 final boolean allowGetters = element.booleanValue(SerdeConfig.Ignored.class, "allowGetters").orElse(false);
                 final boolean allowSetters = element.booleanValue(SerdeConfig.Ignored.class, "allowSetters").orElse(false);
                 final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
-                final List<PropertyElement> beanProperties = element.getBeanProperties();
                 for (PropertyElement beanProperty : beanProperties) {
                     if (ignoredSet.contains(beanProperty.getName())) {
                         final Consumer<Element> configurer = m ->
