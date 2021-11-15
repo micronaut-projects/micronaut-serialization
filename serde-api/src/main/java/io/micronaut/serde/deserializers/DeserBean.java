@@ -64,6 +64,8 @@ class DeserBean<T> {
     public final AnySetter<Object> anySetter;
 
     public final int creatorSize;
+
+    public final boolean ignoreUnknown;
     // CHECKSTYLE:ON
 
     public DeserBean(
@@ -74,6 +76,7 @@ class DeserBean<T> {
         this.introspection = introspection;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
+        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.Ignored.class, "ignoreUnknown").orElse(true);
         final HashMap<String, DerProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter<Object> anySetterValue = null;

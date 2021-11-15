@@ -1,5 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
 
 class JsonIgnoreSpec extends JsonCompileSpec {
@@ -34,6 +35,43 @@ class Test {
 """, [value:'test'])
         expect:
         writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
+
+        cleanup:
+        context.close()
+    }
+
+    void "test ignoreUnknown=false with @JsonIgnoreProperties"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
+class Test {
+    private String value;
+    public void setValue(String value) {
+        this.value = value;
+    } 
+    public String getValue() {
+        return value;
+    }
+}
+""", [value:'test'])
+        when:
+        def result = jsonMapper.readValue('{"value":"test"}', typeUnderTest)
+
+        then:
+        result.value == 'test'
+
+        when:
+        jsonMapper.readValue('{"value":"test","unknown":true}', typeUnderTest)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == 'Unknown property [unknown] encountered during deserialization'
 
         cleanup:
         context.close()

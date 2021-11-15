@@ -28,6 +28,7 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
@@ -49,9 +50,11 @@ import java.util.function.BiConsumer;
 @Primary
 public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
+    private final boolean ignoreUnknown;
 
-    public ObjectDeserializer(SerdeIntrospections introspections) {
+    public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
         this.introspections = introspections;
+        this.ignoreUnknown = deserializationConfiguration.isIgnoreUnknown();
     }
 
     @Override
@@ -68,6 +71,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
         Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties =
                 deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
         boolean hasProperties = readProperties != null;
+        boolean ignoreUnknown = this.ignoreUnknown && deserBean.ignoreUnknown;
 
         Decoder objectDecoder = decoder.decodeObject();
         TokenBuffer tokenBuffer = null;
@@ -189,26 +193,22 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         );
                         buffer = initBuffer(buffer, rp, prop, val);
                     } else {
-                        if (anyValues != null) {
-                            anyValues.handle(
-                                    prop,
-                                    objectDecoder,
-                                    decoderContext
-                            );
-                        } else {
-                            objectDecoder.skipValue();
-                        }
+                        skipOrSetAny(
+                                decoderContext,
+                                objectDecoder,
+                                prop,
+                                anyValues,
+                                ignoreUnknown
+                        );
                     }
                 } else {
-                    if (anyValues != null) {
-                        anyValues.handle(
-                                prop,
-                                objectDecoder,
-                                decoderContext
-                        );
-                    } else {
-                        objectDecoder.skipValue();
-                    }
+                    skipOrSetAny(
+                            decoderContext,
+                            objectDecoder,
+                            prop,
+                            anyValues,
+                            ignoreUnknown
+                    );
                 }
             }
 
@@ -274,7 +274,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             readProperties,
                             deserBean.unwrappedProperties,
                             buffer,
-                            anyValues
+                            anyValues,
+                            ignoreUnknown
                     );
                 }
 
@@ -302,7 +303,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                                                                        readProperties,
                                                                        deserBean.unwrappedProperties,
                                                                        existingBuffer,
-                                                                       anyValues);
+                                                                       anyValues,
+                                                                       ignoreUnknown);
                 // the property buffer will be non-null if there were any unwrapped
                 // properties in which case we need to go through and materialize unwrapped
                 // from the buffer
@@ -321,7 +323,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             if (key == null) {
                 break;
             }
-            skipOrSetAny(decoderContext, objectDecoder, key, anyValues);
+            skipOrSetAny(decoderContext, objectDecoder, key, anyValues, ignoreUnknown);
         }
         if (anyValues != null) {
             anyValues.bind(obj);
@@ -403,7 +405,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties,
             DeserBean.DerProperty<? super Object, Object>[] unwrappedProperties,
             PropertyBuffer propertyBuffer,
-            @Nullable AnyValues<?> anyValues) throws IOException {
+            @Nullable AnyValues<?> anyValues,
+            boolean ignoreUnknown) throws IOException {
         while (true) {
             final String prop = objectDecoder.decodeKey();
             if (prop == null) {
@@ -435,7 +438,13 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     break;
                 }
             } else {
-                skipOrSetAny(decoderContext, objectDecoder, prop, anyValues);
+                skipOrSetAny(
+                        decoderContext,
+                        objectDecoder,
+                        prop,
+                        anyValues,
+                        ignoreUnknown
+                );
             }
         }
         return propertyBuffer;
@@ -444,7 +453,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
     private void skipOrSetAny(DecoderContext decoderContext,
                               Decoder objectDecoder,
                               String property,
-                              @Nullable AnyValues<?> anyValues) throws IOException {
+                              @Nullable AnyValues<?> anyValues,
+                              boolean ignoreUnknown) throws IOException {
         if (anyValues != null) {
             anyValues.handle(
                     property,
@@ -452,7 +462,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     decoderContext
             );
         } else {
-            objectDecoder.skipValue();
+            if (ignoreUnknown) {
+                objectDecoder.skipValue();
+            } else {
+                throw new SerdeException("Unknown property [" + property + "] encountered during deserialization");
+            }
         }
     }
 
