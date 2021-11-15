@@ -35,7 +35,6 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.Element;
-import io.micronaut.inject.ast.ElementQuery;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
@@ -119,13 +118,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     this.anySetterField = element;
                 }
             }
-        }
-
-        final AnnotationMetadata annotationMetadata = element.getAnnotationMetadata();
-        if (annotationMetadata.hasAnnotation(SerdeConfig.Ignored.Type.class)) {
-            element.annotate(SerdeConfig.class, (builder) ->
-                builder.member(SerdeConfig.IGNORED, true)
-            );
         }
     }
 
