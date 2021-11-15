@@ -16,18 +16,23 @@
 package io.micronaut.serde.serializers;
 
 import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
@@ -44,7 +49,7 @@ import java.util.Map;
 @Internal
 @Singleton
 @Primary
-public final class ObjectSerializer implements Serializer<Object> {
+public class ObjectSerializer implements Serializer<Object> {
     private final SerdeIntrospections introspections;
 
     public ObjectSerializer(SerdeIntrospections introspections) {
@@ -52,7 +57,28 @@ public final class ObjectSerializer implements Serializer<Object> {
     }
 
     @Override
-    public void serialize(
+    public Serializer<Object> createSpecific(Argument<?> type, EncoderContext encoderContext) {
+        final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
+        if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class)) {
+            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.Ignored.class);
+            if (ArrayUtils.isNotEmpty(ignored)) {
+                Set<String> ignoreSet = CollectionUtils.setOf(ignored);
+                return new ObjectSerializer(introspections) {
+                    @Override
+                    protected SerdeConfig.Include getInclude(SerBean.SerProperty<Object, Object> property) {
+                        if (ignoreSet.contains(property.name)) {
+                            return SerdeConfig.Include.NEVER;
+                        }
+                        return super.getInclude(property);
+                    }
+                };
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public final void serialize(
             Encoder encoder,
             EncoderContext context,
             Object value,
@@ -70,7 +96,7 @@ public final class ObjectSerializer implements Serializer<Object> {
             for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
-                switch (property.include) {
+                switch (getInclude(property)) {
                     case NON_NULL:
                         if (v == null) {
                             continue;
@@ -86,6 +112,8 @@ public final class ObjectSerializer implements Serializer<Object> {
                             continue;
                         }
                         break;
+                    case NEVER:
+                        continue;
                     default:
                     // fall through
                 }
@@ -136,6 +164,15 @@ public final class ObjectSerializer implements Serializer<Object> {
             throw new SerdeException("Error serializing value at path: " + encoder + ". No serializer found for type: " + type, e);
         }
 
+    }
+
+    /**
+     * Obtain the include for the given property.
+     * @param property The property
+     * @return The include
+     */
+    protected @NonNull SerdeConfig.Include getInclude(SerBean.SerProperty<Object, Object> property) {
+        return property.include;
     }
 
     @SuppressWarnings("unchecked")
