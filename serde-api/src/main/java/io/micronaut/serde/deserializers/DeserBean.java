@@ -29,6 +29,7 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -84,7 +85,9 @@ class DeserBean<T> {
         for (int i = 0; i < constructorArguments.length; i++) {
             Argument<Object> constructorArgument = (Argument<Object>) constructorArguments[i];
             final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument);
-
+            if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)) {
+                continue;
+            }
             if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
                 anySetterValue = new AnySetter<>(constructorArgument, i, decoderContext);
                 creatorParams.put(
@@ -449,12 +452,10 @@ class DeserBean<T> {
 
     private static <B, P> AnnotationMetadata resolveArgumentMetadata(BeanIntrospection<B> instrospection, Argument<P> argument) {
         AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
-        if (annotationMetadata.isEmpty()) {
-            // records store metadata in the bean property
-            annotationMetadata = instrospection.getProperty(argument.getName(), argument.getType())
-                    .map(BeanProperty::getAnnotationMetadata)
-                    .orElse(AnnotationMetadata.EMPTY_METADATA);
-        }
-        return annotationMetadata;
+        // records store metadata in the bean property
+        final AnnotationMetadata propertyMetadata = instrospection.getProperty(argument.getName(), argument.getType())
+                .map(BeanProperty::getAnnotationMetadata)
+                .orElse(AnnotationMetadata.EMPTY_METADATA);
+        return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
     }
 }

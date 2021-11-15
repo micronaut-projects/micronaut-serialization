@@ -134,6 +134,7 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface Ignored {
+        public @interface Type { }
     }
 
     /**

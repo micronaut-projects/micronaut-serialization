@@ -1,9 +1,63 @@
 package io.micronaut.serde.jackson.annotation
 
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
 
 class JsonIgnoreSpec extends JsonCompileSpec {
+    void "test @JsonIgnoreType"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Other {
+    private Test test;
+    
+    public void setTest(test.Test test) {
+        this.test = test;
+    }
+    public test.Test getTest() {
+        return test;
+    }
+}
+@Serdeable
+@JsonIgnoreType
+class Test {
+    private String value = "ignored";
+    public void setValue(String value) {
+        this.value = value;
+    } 
+    public String getValue() {
+        return value;
+    }
+}
+""")
+        def t = newInstance(context, 'test.Test')
+        t.value = 'test'
+        def o = newInstance(context, 'test.Other')
+        o.test = t
+
+        when:
+        def result = writeJson(jsonMapper, o)
+
+        then:
+        result == '{}'
+
+        when:
+        def read = jsonMapper.readValue('{"test":{"value":"test"}}', Argument.of(o.getClass()))
+
+        then:"ignored for deserialization"
+        read.test == null
+
+        cleanup:
+        context.close()
+    }
+
     void "test simple @JsonIgnoreProperties"() {
         given:
         def context = buildContext('test.Test', """
