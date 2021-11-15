@@ -269,14 +269,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
             final List<PropertyElement> beanProperties = element.getBeanProperties();
             for (PropertyElement beanProperty : beanProperties) {
-                if (!beanProperty.isPrimitive()) {
+                if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                     final ClassElement t = beanProperty.getGenericType();
-                    final boolean ignoredType = context.getClassElement(t.getName())
-                            .map((c) -> c.hasAnnotation(SerdeConfig.Ignored.Type.class)).orElse(false);
-                    if (ignoredType) {
-                        beanProperty.annotate(SerdeConfig.class, (builder) ->
-                                builder.member(SerdeConfig.IGNORED, true)
-                        );
+                    final String typeName = t.getName();
+                    if (!ClassUtils.isJavaBasicType(typeName)) {
+                        final boolean ignoredType = context.getClassElement(typeName)
+                                .map((c) -> c.hasAnnotation(SerdeConfig.Ignored.Type.class)).orElse(false);
+                        if (ignoredType) {
+                            beanProperty.annotate(SerdeConfig.class, (builder) ->
+                                    builder.member(SerdeConfig.IGNORED, true)
+                            );
+                        }
                     }
                 }
             }
