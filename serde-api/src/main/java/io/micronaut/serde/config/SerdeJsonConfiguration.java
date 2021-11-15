@@ -44,6 +44,6 @@ public class SerdeJsonConfiguration implements JsonConfiguration {
 
     @Override
     public int getArraySizeThreshold() {
-        return deserialization.getArraySizeThreshold().orElse(Integer.MAX_VALUE);
+        return deserialization.getArraySizeThreshold().orElse(100);
     }
 }
