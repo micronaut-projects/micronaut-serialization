@@ -28,6 +28,7 @@ import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.util.ArrayUtils;
@@ -49,6 +50,7 @@ import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -90,6 +92,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
+        checkForFieldErrors(element, context);
+    }
+
+    private void checkForFieldErrors(FieldElement element, VisitorContext context) {
         if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
             if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
                 context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
@@ -97,9 +103,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 context.fail("A field annotated with AnyGetter must be a Map", element);
             } else {
                 if (anyGetterField != null) {
-                    context.fail("Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true), element);
+                    context.fail("Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true),
+                                 element);
                 } else if (anyGetterMethod != null) {
-                    context.fail("Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true), element);
+                    context.fail("Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true),
+                                 element);
                 } else {
                     this.anyGetterField = element;
                 }
@@ -111,9 +119,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 context.fail("A field annotated with AnySetter must be a Map", element);
             } else {
                 if (anySetterField != null) {
-                    context.fail("Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true), element);
+                    context.fail("Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true),
+                                 element);
                 } else if (anySetterMethod != null) {
-                    context.fail("Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true), element);
+                    context.fail("Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true),
+                                 element);
                 } else {
                     this.anySetterField = element;
                 }
@@ -195,7 +205,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 context.fail("Annotation @" + annotation.getSimpleName() + " is not supported", element);
             }
         }
-        final String error = element.stringValue(SerdeConfig.Error.class).orElse(null);
+        final String error = element.stringValue(SerdeConfig.SerdeError.class).orElse(null);
         if (error != null) {
             context.fail(error, element);
             return true;
@@ -268,6 +278,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
 
             final List<PropertyElement> beanProperties = element.getBeanProperties();
+            final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.PropertyOrder.class));
             for (PropertyElement beanProperty : beanProperties) {
                 if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                     final ClassElement t = beanProperty.getGenericType();
@@ -282,6 +293,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         }
                     }
                 }
+
+                if (CollectionUtils.isNotEmpty(order)) {
+                    final int i = order.indexOf(beanProperty.getName());
+                    if (i > -1) {
+                        beanProperty.annotate(Order.class, (builder) ->
+                            builder.value(i)
+                        );
+
+                    }
+                }
             }
             final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
             if (ArrayUtils.isNotEmpty(ignoresProperties)) {
@@ -291,9 +312,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 for (PropertyElement beanProperty : beanProperties) {
                     if (ignoredSet.contains(beanProperty.getName())) {
                         final Consumer<Element> configurer = m ->
-                                m.annotate(SerdeConfig.class, (builder) ->
-                                        builder.member(SerdeConfig.IGNORED, true)
-                                );
+                            m.annotate(SerdeConfig.class, (builder) ->
+                                    builder.member(SerdeConfig.IGNORED, true)
+                            );
                         if (allowGetters) {
                             beanProperty.getWriteMethod().ifPresent(configurer);
                         } else if (allowSetters) {

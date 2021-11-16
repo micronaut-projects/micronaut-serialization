@@ -166,7 +166,14 @@ public @interface SerdeConfig {
      * Used to store errors.
      */
     @Internal
-    @interface Error {
+    @interface SerdeError {
+    }
+
+    /**
+     * Used to store order information.
+     */
+    @Internal
+    @interface PropertyOrder {
     }
 
     /**
