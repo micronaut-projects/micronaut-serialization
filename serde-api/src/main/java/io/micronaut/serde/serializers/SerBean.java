@@ -19,11 +19,14 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.naming.NameUtils;
+import io.micronaut.core.order.OrderUtil;
+import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
@@ -34,12 +37,27 @@ import io.micronaut.serde.exceptions.SerdeException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Internal
 final class SerBean<T> {
+    private static final Comparator<BeanProperty<?, Object>> BEAN_PROPERTY_COMPARATOR = (o1, o2) -> OrderUtil.COMPARATOR.compare(
+            new Ordered() {
+                @Override
+                public int getOrder() {
+                    return o1.intValue(Order.class).orElse(0);
+                }
+            }, new Ordered() {
+                @Override
+                public int getOrder() {
+                    return o2.intValue(Order.class).orElse(0);
+                }
+            }
+    );
+
     // CHECKSTYLE:OFF
     @NonNull
     public final BeanIntrospection<T> introspection;
@@ -50,7 +68,9 @@ final class SerBean<T> {
     public final SerProperty<T, Object> anyGetter;
     // CHECKSTYLE:ON
 
-    SerBean(Argument<T> definition, SerdeIntrospections introspections, Serializer.EncoderContext encoderContext) throws SerdeException {
+    SerBean(Argument<T> definition,
+            SerdeIntrospections introspections,
+            Serializer.EncoderContext encoderContext) throws SerdeException {
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
         final Collection<BeanProperty<T, Object>> properties =
@@ -58,6 +78,7 @@ final class SerBean<T> {
                         .filter(property -> !property.isWriteOnly() &&
                                 !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
                                 !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
+                        .sorted(getPropertyComparator())
                         .collect(Collectors.toList());
         final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
         final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(beanMethods.size());
@@ -151,7 +172,8 @@ final class SerBean<T> {
 
             for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
                 final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
-                String n = resolveName(annotationMetadata, jsonGetterAnnotationMetadata, NameUtils.getPropertyNameForGetter(jsonGetter.getName()), false);
+                final String propertyName = NameUtils.getPropertyNameForGetter(jsonGetter.getName());
+                String n = resolveName(annotationMetadata, jsonGetterAnnotationMetadata, propertyName, false);
                 final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
                 writeProperties.add(new SerProperty<>(this, n,
                                 returnType,
@@ -166,7 +188,11 @@ final class SerBean<T> {
             writeProperties = Collections.emptyList();
         }
         this.anyGetter = anyGetterProperty;
-        wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+        this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+    }
+
+    private Comparator<BeanProperty<?, Object>> getPropertyComparator() {
+        return BEAN_PROPERTY_COMPARATOR;
     }
 
     private <K> Serializer<K> findSerializer(Serializer.EncoderContext encoderContext, Argument<K> argument) throws SerdeException {

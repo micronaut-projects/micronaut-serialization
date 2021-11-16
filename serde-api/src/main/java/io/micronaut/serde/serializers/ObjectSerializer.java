@@ -31,6 +31,11 @@ import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,20 +64,26 @@ public class ObjectSerializer implements Serializer<Object> {
     @Override
     public Serializer<Object> createSpecific(Argument<?> type, EncoderContext encoderContext) {
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class)) {
+        if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
+                SerdeConfig.PropertyOrder.class)) {
             final String[] ignored = annotationMetadata.stringValues(SerdeConfig.Ignored.class);
-            if (ArrayUtils.isNotEmpty(ignored)) {
-                Set<String> ignoreSet = CollectionUtils.setOf(ignored);
-                return new ObjectSerializer(introspections) {
-                    @Override
-                    protected SerdeConfig.Include getInclude(SerBean.SerProperty<Object, Object> property) {
-                        if (ignoreSet.contains(property.name)) {
-                            return SerdeConfig.Include.NEVER;
-                        }
-                        return super.getInclude(property);
+            List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.PropertyOrder.class));
+            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
+            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : Collections.emptySet();
+            return new ObjectSerializer(introspections) {
+                @Override
+                protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
+                    final List<SerBean.SerProperty<Object, Object>> writeProperties = new ArrayList<>(super.getWriteProperties(serBean));
+                    if (!order.isEmpty()) {
+                        writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
                     }
-                };
-            }
+                    if (hasIgnored) {
+                        writeProperties.removeIf(p -> ignoreSet.contains(p.name));
+                    }
+                    return writeProperties;
+                }
+
+            };
         }
         return this;
     }
@@ -93,10 +104,10 @@ public class ObjectSerializer implements Serializer<Object> {
                 childEncoder = childEncoder.encodeObject();
             }
 
-            for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
+            for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
-                switch (getInclude(property)) {
+                switch (property.include) {
                     case NON_NULL:
                         if (v == null) {
                             continue;
@@ -167,12 +178,12 @@ public class ObjectSerializer implements Serializer<Object> {
     }
 
     /**
-     * Obtain the include for the given property.
-     * @param property The property
-     * @return The include
+     * Obtains the write properties for this serializer.
+     * @param serBean The serialization bean.
+     * @return The write properties, never {@code null}
      */
-    protected @NonNull SerdeConfig.Include getInclude(SerBean.SerProperty<Object, Object> property) {
-        return property.include;
+    protected @NonNull List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
+        return serBean.writeProperties;
     }
 
     @SuppressWarnings("unchecked")

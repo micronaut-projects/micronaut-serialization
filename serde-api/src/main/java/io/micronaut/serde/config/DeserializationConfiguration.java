@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.config;
 
-import java.util.Optional;
 import java.util.OptionalInt;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
