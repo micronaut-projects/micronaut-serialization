@@ -63,8 +63,35 @@ public class ObjectSerializer implements Serializer<Object> {
 
     @Override
     public Serializer<Object> createSpecific(Argument<?> type, EncoderContext encoderContext) {
+        final SerBean<Object> serBean = getSerBean(type, encoderContext);
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
+        final SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
+        if (jsonValue != null) {
+            final Serializer<Object> serializer = jsonValue.serializer;
+            return new Serializer<Object>() {
+                @Override
+                public void serialize(Encoder encoder, EncoderContext context, Object value, Argument<?> type)
+                        throws IOException {
+                    final Object v = jsonValue.get(value);
+                    serializer.serialize(
+                            encoder,
+                            context,
+                            v,
+                            jsonValue.argument
+                    );
+                }
+
+                @Override
+                public boolean isEmpty(Object value) {
+                    return serializer.isEmpty(jsonValue.get(value));
+                }
+
+                @Override
+                public boolean isAbsent(Object value) {
+                    return serializer.isAbsent(jsonValue.get(value));
+                }
+            };
+        } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
                 SerdeConfig.PropertyOrder.class)) {
             final String[] ignored = annotationMetadata.stringValues(SerdeConfig.Ignored.class);
             List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.PropertyOrder.class));
@@ -96,9 +123,9 @@ public class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
+            final SerBean<Object> serBean = getSerBean(type, context);
             Encoder childEncoder = encoder.encodeObject();
 
-            @SuppressWarnings("unchecked") final SerBean<Object> serBean = getSerBean(type, context);
             if (serBean.wrapperProperty != null) {
                 childEncoder.encodeKey(serBean.wrapperProperty);
                 childEncoder = childEncoder.encodeObject();
@@ -108,24 +135,24 @@ public class ObjectSerializer implements Serializer<Object> {
                 final Object v = property.get(value);
                 final Serializer<Object> serializer = property.serializer;
                 switch (property.include) {
-                    case NON_NULL:
-                        if (v == null) {
-                            continue;
-                        }
-                        break;
-                    case NON_ABSENT:
-                        if (serializer.isAbsent(v)) {
-                            continue;
-                        }
-                        break;
-                    case NON_EMPTY:
-                        if (serializer.isEmpty(v)) {
-                            continue;
-                        }
-                        break;
-                    case NEVER:
+                case NON_NULL:
+                    if (v == null) {
                         continue;
-                    default:
+                    }
+                    break;
+                case NON_ABSENT:
+                    if (serializer.isAbsent(v)) {
+                        continue;
+                    }
+                    break;
+                case NON_EMPTY:
+                    if (serializer.isEmpty(v)) {
+                        continue;
+                    }
+                    break;
+                case NEVER:
+                    continue;
+                default:
                     // fall through
                 }
 
@@ -163,7 +190,8 @@ public class ObjectSerializer implements Serializer<Object> {
                                 if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
                                     valueType = Argument.of(v.getClass());
                                 }
-                                final Serializer<Object> serializer = (Serializer<Object>) context.findSerializer(valueType);
+                                @SuppressWarnings("unchecked") final Serializer<Object> serializer =
+                                        (Serializer<Object>) context.findSerializer(valueType);
                                 serializer.serialize(
                                         childEncoder,
                                         context,

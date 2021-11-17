@@ -92,6 +92,8 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         return context
     }
 
+
+
     protected void setupSerdeRegistry(ApplicationContext context) {
         def classLoader = context.classLoader
         context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {

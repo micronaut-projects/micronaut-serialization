@@ -67,6 +67,7 @@ final class SerBean<T> {
     public final String wrapperProperty;
     @Nullable
     public final SerProperty<T, Object> anyGetter;
+    public final SerProperty<T, Object> jsonValue;
     // CHECKSTYLE:ON
 
     SerBean(Argument<T> definition,
@@ -74,122 +75,161 @@ final class SerBean<T> {
             Serializer.EncoderContext encoderContext) throws SerdeException {
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
-        final Collection<BeanProperty<T, Object>> properties =
-                introspection.getBeanProperties().stream()
-                        .filter(property -> !property.isWriteOnly() &&
-                                !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
-                                !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
-                        .sorted(getPropertyComparator())
-                        .collect(Collectors.toList());
-        final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
-        final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(beanMethods.size());
-        BeanMethod<T, Object> anyGetter = null;
-        for (BeanMethod<T, Object> beanMethod : beanMethods) {
-            if (beanMethod.isAnnotationPresent(SerdeConfig.Getter.class)) {
-                jsonGetters.add(beanMethod);
-            } else if (beanMethod.isAnnotationPresent(SerdeConfig.AnyGetter.class)) {
-                anyGetter = beanMethod;
-            }
-        }
-        SerProperty<T, Object> anyGetterProperty = anyGetter != null ? new SerProperty<>(this, "any",
-                anyGetter.getReturnType().asArgument(),
-                anyGetter::invoke,
-                encoderContext.findSerializer(anyGetter.getReturnType().asArgument()),
-                null,
-                encoderContext
-        ) : null;
-
-        if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
-            writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
-            AnnotationMetadata am = new AnnotationMetadataHierarchy(introspection, definition.getAnnotationMetadata());
-            am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent((typeName) -> {
-                String injectedValue;
-                Function<T, String> reader;
-                if (SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER.equals(typeName)) {
-                    injectedValue = null;
-                    reader = t -> t.getClass().getSimpleName();
-                } else {
-                    injectedValue = typeName;
-                    reader = null;
-                }
-                String typeProperty = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
-                if (typeProperty != null) {
-                    try {
-                        writeProperties.add(new SerProperty(this, typeProperty,
-                                                            Argument.of(String.class, typeProperty),
-                                                            reader,
-                                                            encoderContext.findSerializer(Argument.STRING),
-                                                            injectedValue,
-                                                            encoderContext
-                        ));
-                    } catch (SerdeException e) {
-                        throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
-                    }
-                }
-            });
-            for (BeanProperty<T, Object> property : properties) {
-                final Argument<Object> argument = property.asArgument();
-                final AnnotationMetadata propertyAnnotationMetadata = property.getAnnotationMetadata();
-                final String defaultPropertyName = argument.getName();
-                boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
-                if (unwrapped) {
-                    BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
-                    for (BeanProperty<Object, Object> unwrappedProperty : propertyIntrospection.getBeanProperties()) {
-                        Argument<Object> unwrappedPropertyArgument = unwrappedProperty.asArgument();
-                        String n = resolveName(propertyAnnotationMetadata,
-                                unwrappedProperty.getAnnotationMetadata(),
-                                unwrappedPropertyArgument.getName(),
-                                true);
-                        final SerProperty<T, Object> serProperty = new SerProperty<>(this, n,
-                                unwrappedPropertyArgument,
-                                bean -> unwrappedProperty.get(property.get(bean)),
-                                findSerializer(encoderContext, unwrappedPropertyArgument),
-                                null,
-                                encoderContext
-                        );
-                        writeProperties.add(serProperty);
-                    }
-                } else {
-                    String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false);
-                    final SerProperty<T, Object> serProperty;
-                    try {
-                        serProperty = new SerProperty<>(this, n,
-                                argument,
-                                property::get,
-                                findSerializer(encoderContext, argument),
-                                null,
-                                encoderContext
-                        );
-                    } catch (SerdeException e) {
-                        throw new SerdeException("Error resolving serializer for property [" + property + "] of type [" + argument.getType().getName() + "]: " + e.getMessage(), e);
-                    }
-                    if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
-                        anyGetterProperty = serProperty;
-                    } else {
-                        writeProperties.add(serProperty);
-                    }
-                }
-            }
-
-            for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
-                final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
-                final String propertyName = NameUtils.getPropertyNameForGetter(jsonGetter.getName());
-                String n = resolveName(annotationMetadata, jsonGetterAnnotationMetadata, propertyName, false);
-                final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
-                writeProperties.add(new SerProperty<>(this, n,
-                                returnType,
-                                (Function<T, Object>) jsonGetter::invoke,
-                                encoderContext.findSerializer(returnType),
-                                null,
-                                encoderContext
-                        )
-                );
-            }
-        } else {
+        final BeanProperty<T, Object> serValue = introspection
+                .getIndexedProperty(SerdeConfig.SerValue.class).orElse(null);
+        if (serValue != null) {
+            wrapperProperty = null;
+            anyGetter = null;
+            final Argument<Object> serType = serValue.asArgument();
+            jsonValue = new SerProperty<>(
+                    this,
+                    serValue.getName(),
+                    serType,
+                    serValue::get,
+                    encoderContext.findSerializer(serType),
+                    null,
+                    encoderContext
+            );
             writeProperties = Collections.emptyList();
+        } else {
+            final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
+            final BeanMethod<T, Object> serMethod = beanMethods.stream()
+                    .filter(m -> m.isAnnotationPresent(SerdeConfig.SerValue.class))
+                    .findFirst().orElse(null);
+            if (serMethod != null) {
+                wrapperProperty = null;
+                anyGetter = null;
+                final Argument<Object> serType = serMethod.getReturnType().asArgument();
+                jsonValue = new SerProperty<>(
+                        this,
+                        serMethod.getName(),
+                        serType,
+                        serMethod::invoke,
+                        encoderContext.findSerializer(serType),
+                        null,
+                        encoderContext
+                );
+                writeProperties = Collections.emptyList();
+            } else {
+
+                jsonValue = null;
+                final Collection<BeanProperty<T, Object>> properties =
+                        introspection.getBeanProperties().stream()
+                                .filter(property -> !property.isWriteOnly() &&
+                                        !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
+                                        !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
+                                .sorted(getPropertyComparator())
+                                .collect(Collectors.toList());
+                final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(beanMethods.size());
+                BeanMethod<T, Object> anyGetter = null;
+                for (BeanMethod<T, Object> beanMethod : beanMethods) {
+                    if (beanMethod.isAnnotationPresent(SerdeConfig.Getter.class)) {
+                        jsonGetters.add(beanMethod);
+                    } else if (beanMethod.isAnnotationPresent(SerdeConfig.AnyGetter.class)) {
+                        anyGetter = beanMethod;
+                    }
+                }
+                SerProperty<T, Object> anyGetterProperty = anyGetter != null ? new SerProperty<>(this, "any",
+                                                                                                 anyGetter.getReturnType().asArgument(),
+                                                                                                 anyGetter::invoke,
+                                                                                                 encoderContext.findSerializer(anyGetter.getReturnType().asArgument()),
+                                                                                                 null,
+                                                                                                 encoderContext
+                ) : null;
+
+                if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
+                    writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
+                    AnnotationMetadata am = new AnnotationMetadataHierarchy(introspection, definition.getAnnotationMetadata());
+                    am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent((typeName) -> {
+                        String injectedValue;
+                        Function<T, String> reader;
+                        if (SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER.equals(typeName)) {
+                            injectedValue = null;
+                            reader = t -> t.getClass().getSimpleName();
+                        } else {
+                            injectedValue = typeName;
+                            reader = null;
+                        }
+                        String typeProperty = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+                        if (typeProperty != null) {
+                            try {
+                                writeProperties.add(new SerProperty(this, typeProperty,
+                                                                    Argument.of(String.class, typeProperty),
+                                                                    reader,
+                                                                    encoderContext.findSerializer(Argument.STRING),
+                                                                    injectedValue,
+                                                                    encoderContext
+                                ));
+                            } catch (SerdeException e) {
+                                throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
+                            }
+                        }
+                    });
+                    for (BeanProperty<T, Object> property : properties) {
+                        final Argument<Object> argument = property.asArgument();
+                        final AnnotationMetadata propertyAnnotationMetadata = property.getAnnotationMetadata();
+                        final String defaultPropertyName = argument.getName();
+                        boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+                        if (unwrapped) {
+                            BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
+                            for (BeanProperty<Object, Object> unwrappedProperty : propertyIntrospection.getBeanProperties()) {
+                                Argument<Object> unwrappedPropertyArgument = unwrappedProperty.asArgument();
+                                String n = resolveName(propertyAnnotationMetadata,
+                                                       unwrappedProperty.getAnnotationMetadata(),
+                                                       unwrappedPropertyArgument.getName(),
+                                                       true);
+                                final SerProperty<T, Object> serProperty = new SerProperty<>(this, n,
+                                                                                             unwrappedPropertyArgument,
+                                                                                             bean -> unwrappedProperty.get(property.get(bean)),
+                                                                                             findSerializer(encoderContext, unwrappedPropertyArgument),
+                                                                                             null,
+                                                                                             encoderContext
+                                );
+                                writeProperties.add(serProperty);
+                            }
+                        } else {
+                            String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false);
+                            final SerProperty<T, Object> serProperty;
+                            try {
+                                serProperty = new SerProperty<>(this, n,
+                                                                argument,
+                                                                property::get,
+                                                                findSerializer(encoderContext, argument),
+                                                                null,
+                                                                encoderContext
+                                );
+                            } catch (SerdeException e) {
+                                throw new SerdeException("Error resolving serializer for property [" + property + "] of type [" + argument.getType().getName() + "]: " + e.getMessage(), e);
+                            }
+                            if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+                                anyGetterProperty = serProperty;
+                            } else {
+                                writeProperties.add(serProperty);
+                            }
+                        }
+                    }
+
+                    for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
+                        final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
+                        final String propertyName = NameUtils.getPropertyNameForGetter(jsonGetter.getName());
+                        String n = resolveName(annotationMetadata, jsonGetterAnnotationMetadata, propertyName, false);
+                        final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
+                        writeProperties.add(new SerProperty<>(this, n,
+                                                              returnType,
+                                                              (Function<T, Object>) jsonGetter::invoke,
+                                                              encoderContext.findSerializer(returnType),
+                                                              null,
+                                                              encoderContext
+                                            )
+                        );
+                    }
+                } else {
+                    writeProperties = Collections.emptyList();
+                }
+                this.anyGetter = anyGetterProperty;
+                this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+            }
         }
-        this.anyGetter = anyGetterProperty;
-        this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
     }
 
     private Comparator<BeanProperty<?, Object>> getPropertyComparator() {
@@ -224,8 +264,8 @@ final class SerBean<T> {
         public final String name;
         public final Argument<P> argument;
         public final Serializer<P> serializer;
-        public final SerdeConfig.Include include;
         public final Class<?>[] views;
+        public final SerdeConfig.SerInclude include;
         private final @Nullable
         P injected;
         private final Function<B, P> reader;
@@ -250,8 +290,8 @@ final class SerBean<T> {
             final Class<?>[] views = hierarchy.classValues(SerdeConfig.class, SerdeConfig.VIEWS);
             this.views = ArrayUtils.isNotEmpty(views) ? views : null;
             this.include = hierarchy
-                    .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
-                    .orElse(SerdeConfig.Include.ALWAYS);
+                    .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
+                    .orElse(SerdeConfig.SerInclude.ALWAYS);
             this.injected = injected;
 
         }

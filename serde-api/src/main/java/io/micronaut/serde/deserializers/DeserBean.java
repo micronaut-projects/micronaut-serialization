@@ -16,6 +16,7 @@
 package io.micronaut.serde.deserializers;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
@@ -67,6 +68,7 @@ class DeserBean<T> {
     public final int creatorSize;
 
     public final boolean ignoreUnknown;
+    public final boolean delegating;
     // CHECKSTYLE:ON
 
     public DeserBean(
@@ -75,6 +77,11 @@ class DeserBean<T> {
             DeserBeanRegistry deserBeanRegistry)
             throws SerdeException {
         this.introspection = introspection;
+        final SerdeConfig.CreatorMode creatorMode = introspection
+                .getConstructor().getAnnotationMetadata()
+                .enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class)
+                .orElse(null);
+        delegating = creatorMode == SerdeConfig.CreatorMode.DELEGATING;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
         this.ignoreUnknown = introspection.booleanValue(SerdeConfig.Ignored.class, "ignoreUnknown").orElse(true);

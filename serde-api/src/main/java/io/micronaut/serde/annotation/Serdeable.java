@@ -44,6 +44,7 @@ public @interface Serdeable {
     /**
      * Annotation used to indicate a type is serializable.
      */
+    @Introspected(indexed = @Introspected.IndexedAnnotation(annotation = SerdeConfig.SerValue.class))
     @interface Serializable {
         /**
          * @return The {@link io.micronaut.serde.Serializer} to use.
@@ -54,7 +55,6 @@ public @interface Serdeable {
     /**
      * Annotation used to indicate a type is deserializable.
      */
-    @Introspected(indexed = @Introspected.IndexedAnnotation(annotation = SerdeConfig.class, member = "property"))
     @interface Deserializable {
         Class<? extends Deserializer> deserializer() default Deserializer.class;
     }
