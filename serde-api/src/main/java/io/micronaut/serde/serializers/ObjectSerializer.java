@@ -63,8 +63,35 @@ public class ObjectSerializer implements Serializer<Object> {
 
     @Override
     public Serializer<Object> createSpecific(Argument<?> type, EncoderContext encoderContext) {
+        final SerBean<Object> serBean = getSerBean(type, encoderContext);
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
+        final SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
+        if (jsonValue != null) {
+            final Serializer<Object> serializer = jsonValue.serializer;
+            return new Serializer<Object>() {
+                @Override
+                public void serialize(Encoder encoder, EncoderContext context, Object value, Argument<?> type)
+                        throws IOException {
+                    final Object v = jsonValue.get(value);
+                    serializer.serialize(
+                            encoder,
+                            context,
+                            v,
+                            jsonValue.argument
+                    );
+                }
+
+                @Override
+                public boolean isEmpty(Object value) {
+                    return serializer.isEmpty(jsonValue.get(value));
+                }
+
+                @Override
+                public boolean isAbsent(Object value) {
+                    return serializer.isAbsent(jsonValue.get(value));
+                }
+            };
+        } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
                 SerdeConfig.PropertyOrder.class)) {
             final String[] ignored = annotationMetadata.stringValues(SerdeConfig.Ignored.class);
             List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.PropertyOrder.class));
@@ -97,101 +124,86 @@ public class ObjectSerializer implements Serializer<Object> {
             throws IOException {
         try {
             final SerBean<Object> serBean = getSerBean(type, context);
-            final SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
-            if (jsonValue != null) {
-                final Object v = jsonValue.get(value);
+            Encoder childEncoder = encoder.encodeObject();
+
+            if (serBean.wrapperProperty != null) {
+                childEncoder.encodeKey(serBean.wrapperProperty);
+                childEncoder = childEncoder.encodeObject();
+            }
+
+            for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
+                final Object v = property.get(value);
+                final Serializer<Object> serializer = property.serializer;
+                switch (property.include) {
+                case NON_NULL:
+                    if (v == null) {
+                        continue;
+                    }
+                    break;
+                case NON_ABSENT:
+                    if (serializer.isAbsent(v)) {
+                        continue;
+                    }
+                    break;
+                case NON_EMPTY:
+                    if (serializer.isEmpty(v)) {
+                        continue;
+                    }
+                    break;
+                case NEVER:
+                    continue;
+                default:
+                    // fall through
+                }
+
+                if (property.views != null && !context.hasView(property.views)) {
+                    continue;
+                }
+
+                childEncoder.encodeKey(property.name);
                 if (v == null) {
-                    encoder.encodeNull();
+                    childEncoder.encodeNull();
                 } else {
-                    jsonValue.serializer.serialize(
-                            encoder,
+                    serializer.serialize(
+                            childEncoder,
                             context,
                             v,
-                            jsonValue.argument
+                            property.argument
                     );
                 }
-            } else {
-                Encoder childEncoder = encoder.encodeObject();
+            }
+            final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
+            if (anyGetter != null) {
+                final Object data = anyGetter.get(value);
+                if (data instanceof Map) {
+                    Map<Object, Object> map = (Map<Object, Object>) data;
+                    if (CollectionUtils.isNotEmpty(map)) {
 
-                if (serBean.wrapperProperty != null) {
-                    childEncoder.encodeKey(serBean.wrapperProperty);
-                    childEncoder = childEncoder.encodeObject();
-                }
-
-                for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
-                    final Object v = property.get(value);
-                    final Serializer<Object> serializer = property.serializer;
-                    switch (property.include) {
-                    case NON_NULL:
-                        if (v == null) {
-                            continue;
-                        }
-                        break;
-                    case NON_ABSENT:
-                        if (serializer.isAbsent(v)) {
-                            continue;
-                        }
-                        break;
-                    case NON_EMPTY:
-                        if (serializer.isEmpty(v)) {
-                            continue;
-                        }
-                        break;
-                    case NEVER:
-                        continue;
-                    default:
-                        // fall through
-                    }
-
-                    if (property.views != null && !context.hasView(property.views)) {
-                        continue;
-                    }
-
-                    childEncoder.encodeKey(property.name);
-                    if (v == null) {
-                        childEncoder.encodeNull();
-                    } else {
-                        serializer.serialize(
-                                childEncoder,
-                                context,
-                                v,
-                                property.argument
-                        );
-                    }
-                }
-                final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
-                if (anyGetter != null) {
-                    final Object data = anyGetter.get(value);
-                    if (data instanceof Map) {
-                        Map<Object, Object> map = (Map<Object, Object>) data;
-                        if (CollectionUtils.isNotEmpty(map)) {
-
-                            for (Object k : map.keySet()) {
-                                final Object v = map.get(k);
-                                childEncoder.encodeKey(k.toString());
-                                if (v == null) {
-                                    childEncoder.encodeNull();
-                                } else {
-                                    Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
-                                            .orElse(null);
-                                    if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
-                                        valueType = Argument.of(v.getClass());
-                                    }
-                                    @SuppressWarnings("unchecked") final Serializer<Object> serializer =
-                                            (Serializer<Object>) context.findSerializer(valueType);
-                                    serializer.serialize(
-                                            childEncoder,
-                                            context,
-                                            v,
-                                            valueType
-                                    );
+                        for (Object k : map.keySet()) {
+                            final Object v = map.get(k);
+                            childEncoder.encodeKey(k.toString());
+                            if (v == null) {
+                                childEncoder.encodeNull();
+                            } else {
+                                Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
+                                        .orElse(null);
+                                if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
+                                    valueType = Argument.of(v.getClass());
                                 }
+                                @SuppressWarnings("unchecked") final Serializer<Object> serializer =
+                                        (Serializer<Object>) context.findSerializer(valueType);
+                                serializer.serialize(
+                                        childEncoder,
+                                        context,
+                                        v,
+                                        valueType
+                                );
                             }
                         }
                     }
                 }
-                childEncoder.finishStructure();
             }
+            childEncoder.finishStructure();
         } catch (IntrospectionException e) {
             throw new SerdeException("Error serializing value at path: " + encoder + ". No serializer found for type: " + type, e);
         }

@@ -11,10 +11,12 @@ class JsonValueSpec extends JsonCompileSpec {
 package jsonvalue;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
 class Other {
     private Test test;
     public void setTest(jsonvalue.Test test) {
@@ -53,6 +55,14 @@ class Test {
 
         then:
         read.test.name == 'test'
+
+        when:'null is returned'
+        o.test = newInstance(context, 'jsonvalue.Test', (Object[]) null)
+        result = writeJson(jsonMapper, o)
+
+        then:
+        result == '{}'
+
 
         cleanup:
         context.close()
