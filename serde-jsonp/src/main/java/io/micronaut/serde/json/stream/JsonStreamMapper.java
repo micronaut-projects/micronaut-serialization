@@ -58,7 +58,7 @@ public class JsonStreamMapper implements JsonMapper {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
         return deserializer.deserialize(
                 JsonNodeDecoder.create(tree),
-                registry,
+                registry.newDecoderContext(null),
                 type
         );
     }
@@ -81,7 +81,7 @@ public class JsonStreamMapper implements JsonMapper {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
         return deserializer.deserialize(
                 new JsonParserDecoder(parser),
-                registry,
+                registry.newDecoderContext(null),
                 type
         );
     }
@@ -120,7 +120,7 @@ public class JsonStreamMapper implements JsonMapper {
         final Serializer<Object> serializer = registry.findSerializer(type);
         serializer.serialize(
                 encoder,
-                registry,
+                registry.newEncoderContext(null),
                 object,
                 type
         );

@@ -164,6 +164,10 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                 final DeserBean.DerProperty<? super Object, ?> sp =
                         creatorParameters.remove(prop);
                 if (sp != null) {
+                    if (sp.views != null && !decoderContext.hasView(sp.views)) {
+                        objectDecoder.skipValue();
+                        continue;
+                    }
                     @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
                     final Object val = sp.deserializer.deserialize(
                             objectDecoder,
@@ -415,6 +419,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             @SuppressWarnings("unchecked") final DeserBean.DerProperty<Object, Object> property =
                     (DeserBean.DerProperty<Object, Object>) readProperties.remove(prop);
             if (property != null && property.writer != null) {
+                if (property.views != null && !decoderContext.hasView(property.views)) {
+                    objectDecoder.skipValue();
+                    continue;
+                }
+
                 final Argument<Object> propertyType = property.argument;
                 boolean isNull = objectDecoder.decodeNull();
                 if (isNull) {

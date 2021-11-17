@@ -112,6 +112,11 @@ public @interface SerdeConfig {
     String DESERIALIZER_CLASS = "deserializerClass";
 
     /**
+     * The views an element is part of.
+     */
+    String VIEWS = "views";
+
+    /**
      * Internal metadata type for wrapped settings.
      */
     @Internal

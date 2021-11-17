@@ -388,6 +388,8 @@ class DeserBean<T> {
         public final P defaultValue;
         public final boolean required;
         public final boolean isAnySetter;
+        @Nullable
+        public final Class<?>[] views;
         public final @Nullable
         BiConsumer<B, P> writer;
         public final @NonNull
@@ -409,6 +411,9 @@ class DeserBean<T> {
             this.deserializer = deserializer.createSpecific(argument, decoderContext);
             // compute default
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument);
+            final Class<?>[] views = annotationMetadata.classValues(SerdeConfig.class, SerdeConfig.VIEWS);
+            this.views = ArrayUtils.isNotEmpty(views) ? views : null;
+
             try {
                 this.defaultValue = annotationMetadata
                         .stringValue(Bindable.class, "defaultValue")

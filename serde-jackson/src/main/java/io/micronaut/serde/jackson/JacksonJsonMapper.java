@@ -68,12 +68,16 @@ public final class JacksonJsonMapper implements JsonMapper {
     private final JsonNodeTreeCodec treeCodec;
     private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
     private final Class<?> view;
+    private final Serializer.EncoderContext encoderContext;
+    private final Deserializer.DecoderContext decoderContext;
 
-    private JacksonJsonMapper(SerdeRegistry registry, JsonStreamConfig deserializationConfig, Class<?> view) {
+    private JacksonJsonMapper(@NonNull SerdeRegistry registry, @NonNull JsonStreamConfig deserializationConfig, @Nullable Class<?> view) {
         this.registry = registry;
         this.deserializationConfig = deserializationConfig;
         this.treeCodec = JsonNodeTreeCodec.getInstance().withConfig(deserializationConfig);
         this.view = view;
+        this.encoderContext = registry.newEncoderContext(view);
+        this.decoderContext = registry.newDecoderContext(view);
     }
 
     @Inject
@@ -92,10 +96,10 @@ public final class JacksonJsonMapper implements JsonMapper {
         gen.setCodec(objectCodecImpl);
         final Argument<T> argument = Argument.of(type);
         Serializer<? super T> serializer = registry.findSerializer(argument);
-        final JacksonEncoder encoder = JacksonEncoder.create(gen, view);
+        final JacksonEncoder encoder = JacksonEncoder.create(gen);
         serializer.serialize(
                 encoder,
-                registry,
+                encoderContext,
                 value,
                 argument
         );
@@ -119,7 +123,7 @@ public final class JacksonJsonMapper implements JsonMapper {
         final Decoder decoder = JacksonDecoder.create(parser, view);
         return (T) deserializer.deserialize(
                 decoder,
-                registry,
+                decoderContext,
                 type
         );
     }

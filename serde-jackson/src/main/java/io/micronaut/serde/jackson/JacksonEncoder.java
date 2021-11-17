@@ -35,29 +35,19 @@ public abstract class JacksonEncoder implements Encoder {
 
     private JacksonEncoder child = null;
 
-    @NonNull
-    private final Class<?> view;
-
     private JacksonEncoder(@NonNull JacksonEncoder parent) {
         this.generator = parent.generator;
         this.parent = parent;
-        this.view = parent.view;
     }
 
-    private JacksonEncoder(@NonNull JsonGenerator generator, @NonNull Class<?> view) {
+    private JacksonEncoder(@NonNull JsonGenerator generator) {
         this.generator = generator;
-        this.view = view;
         this.parent = null;
     }
 
     public static JacksonEncoder create(@NonNull JsonGenerator generator) {
-        return create(generator, Object.class);
-    }
-
-    public static JacksonEncoder create(@NonNull JsonGenerator generator, @NonNull Class<?> view) {
         Objects.requireNonNull(generator, "generator");
-        Objects.requireNonNull(view, "view");
-        return new OuterEncoder(generator, view);
+        return new OuterEncoder(generator);
     }
 
     private void checkChild() {
@@ -175,16 +165,6 @@ public abstract class JacksonEncoder implements Encoder {
         generator.writeNull();
     }
 
-    @Override
-    public boolean hasView(Class<?>... views) {
-        for (Class<?> candidate : views) {
-            if (candidate.isAssignableFrom(view)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static class ArrayEncoder extends JacksonEncoder {
         ArrayEncoder(JacksonEncoder parent) {
             super(parent);
@@ -208,12 +188,12 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     private static class OuterEncoder extends JacksonEncoder {
-        OuterEncoder(@NonNull JsonGenerator generator, @NonNull Class<?> view) {
-            super(generator, view);
+        OuterEncoder(@NonNull JsonGenerator generator) {
+            super(generator);
         }
 
         @Override
-        protected void finishStructureToken() throws IOException {
+        protected void finishStructureToken() {
             throw new IllegalStateException("Not in structure");
         }
     }

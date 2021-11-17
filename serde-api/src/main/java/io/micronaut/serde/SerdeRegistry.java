@@ -15,7 +15,8 @@
  */
 package io.micronaut.serde;
 
-import io.micronaut.core.convert.ConversionService;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 
 /**
  * Represents a registry where specific serializers can be looked up.
@@ -25,12 +26,19 @@ import io.micronaut.core.convert.ConversionService;
  *
  */
 public interface SerdeRegistry
-        extends Serializer.EncoderContext,
-                Deserializer.DecoderContext {
+        extends SerializerLocator,
+                DeserializerLocator {
+    /**
+     * Creates a new encoder context.
+     * @param view The view
+     * @return The encoder context
+     */
+    @NonNull Serializer.EncoderContext newEncoderContext(@Nullable Class<?> view);
 
-    @Override
-    default ConversionService<?> getConversionService() {
-        return ConversionService.SHARED;
-    }
-
+    /**
+     * Creates a new decoder context.
+     * @param view The view
+     * @return The decoder context
+     */
+    @NonNull Deserializer.DecoderContext newDecoderContext(@Nullable Class<?> view);
 }

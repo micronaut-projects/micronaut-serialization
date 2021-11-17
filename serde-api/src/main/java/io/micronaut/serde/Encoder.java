@@ -58,10 +58,4 @@ public interface Encoder {
     void encodeBigDecimal(@NonNull BigDecimal value) throws IOException;
 
     void encodeNull() throws IOException;
-
-    /**
-     * @param views Views to check.
-     * @return {@code true} iff any of the given views is enabled.
-     */
-    boolean hasView(Class<?>... views);
 }
