@@ -211,9 +211,16 @@ public @interface SerdeConfig {
     }
 
     /**
-     * Include strategies.
+     * Meta-annotation used to model the value used during serialization.
      */
-    enum Include {
+    @Internal
+    @interface SerValue {
+    }
+
+    /**
+     * Include strategies for serialization.
+     */
+    enum SerInclude {
 
         /**
          * Value that indicates that property is to be always included,
@@ -249,5 +256,19 @@ public @interface SerdeConfig {
          * Ignore the property.
          */
         NEVER
+    }
+
+    /**
+     * Creator mode used when invoking the {@link io.micronaut.core.annotation.Creator}.
+     */
+    enum CreatorMode {
+        /**
+         * Use a single argument as the value.
+         */
+        DELEGATING,
+        /**
+         * From properties.
+         */
+        PROPERTIES
     }
 }

@@ -35,7 +35,7 @@ public class JsonIncludeTransformer implements TypedAnnotationTransformer<JsonIn
 
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<JsonInclude> annotation, VisitorContext visitorContext) {
-        final SerdeConfig.Include v = annotation.enumValue(SerdeConfig.Include.class).orElse(null);
+        final SerdeConfig.SerInclude v = annotation.enumValue(SerdeConfig.SerInclude.class).orElse(null);
         if (v != null) {
             return Collections.singletonList(
                     AnnotationValue.builder(SerdeConfig.class)

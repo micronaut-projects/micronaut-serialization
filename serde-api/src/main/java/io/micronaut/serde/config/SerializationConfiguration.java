@@ -29,11 +29,11 @@ public interface SerializationConfiguration {
     String PREFIX = "micronaut.serialization";
 
     /**
-     * @return The default inclusion to use. Defaults to {@link io.micronaut.serde.annotation.SerdeConfig.Include#ALWAYS}.
+     * @return The default inclusion to use. Defaults to {@link io.micronaut.serde.annotation.SerdeConfig.SerInclude#ALWAYS}.
      */
     @Bindable(defaultValue = "ALWAYS")
     @NonNull
-    SerdeConfig.Include getInclusion();
+    SerdeConfig.SerInclude getInclusion();
 
     /**
      * @return Whether to serialize errors as a list.

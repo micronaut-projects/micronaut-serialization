@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonClassDescription;
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonKey;
 import com.fasterxml.jackson.annotation.JsonMerge;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeId;
@@ -27,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.reflect.ClassUtils;
@@ -67,6 +69,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private MethodElement anySetterMethod;
     private FieldElement anyGetterField;
     private FieldElement anySetterField;
+    private MethodElement jsonValueMethod;
+    private FieldElement jsonValueField;
+    private SerdeConfig.CreatorMode creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
 
     @Override
     public Set<String> getSupportedAnnotationNames() {
@@ -80,6 +85,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private Set<Class<? extends Annotation>> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
+                JsonKey.class,
                 JsonFilter.class,
                 JsonBackReference.class,
                 JsonAutoDetect.class,
@@ -99,6 +105,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
             if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
                 context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
+            } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+                context.fail("A field annotated with AnyGetter cannot be a JsonValue", element);
             } else if (!element.getGenericField().isAssignable(Map.class)) {
                 context.fail("A field annotated with AnyGetter must be a Map", element);
             } else {
@@ -113,7 +121,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
-            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                context.fail("A field annotated with AnySetter cannot use DELEGATING creation", element);
+            } else if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
                 context.fail("A field annotated with AnySetter cannot be unwrapped", element);
             } else if (!element.getGenericField().isAssignable(Map.class)) {
                 context.fail("A field annotated with AnySetter must be a Map", element);
@@ -127,6 +137,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 } else {
                     this.anySetterField = element;
                 }
+            }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+            if (jsonValueField != null) {
+                context.fail("A JsonValue field is already defined: " + jsonValueField, element);
+            } else if (jsonValueMethod != null) {
+                context.fail("A JsonValue method is already defined: " + jsonValueMethod, element);
+            } else {
+                this.jsonValueField = element;
             }
         }
     }
@@ -196,6 +214,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     context.fail("A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String", element);
                 }
             }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+            if (jsonValueField != null) {
+                context.fail("A JsonValue field is already defined: " + jsonValueField, element);
+            } else if (jsonValueMethod != null) {
+                context.fail("A JsonValue method is already defined: " + jsonValueMethod, element);
+            } else {
+                this.jsonValueMethod = element;
+            }
         }
     }
 
@@ -259,10 +285,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
-        this.anyGetterMethod = null; // reset
-        this.anySetterMethod = null; // reset
-        this.anyGetterField = null; // reset
-        this.anySetterField = null; // reset
+        // reset
+        resetForNewClass();
         if (checkForErrors(element, context)) {
             return;
         }
@@ -275,6 +299,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     builder.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
                     builder.member("visibility", "PUBLIC");
                 });
+            }
+
+            final MethodElement primaryConstructor = element.getPrimaryConstructor().orElse(null);
+            if (primaryConstructor != null) {
+
+                this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class).orElse(null);
+                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                    if (primaryConstructor.getParameters().length != 1) {
+                        context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.", element);
+                    }
+                }
             }
 
             final List<PropertyElement> beanProperties = element.getBeanProperties();
@@ -329,6 +364,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final Optional<ClassElement> superType = findTypeInfo(element);
             if (superType.isPresent()) {
                 final ClassElement typeInfo = superType.get();
+                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                    context.fail("Inheritance cannot be combined with DELEGATING creation", element);
+                    return;
+                }
                 final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
                 element.annotate(SerdeConfig.class, builder -> {
                     final String typeName = element.stringValue(JsonTypeName.class).orElseGet(() ->
@@ -349,6 +388,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
 
             element.findAnnotation(JsonTypeInfo.class).ifPresent((typeInfo) -> {
+                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                    context.fail("Inheritance cannot be combined with DELEGATING creation", element);
+                    return;
+                }
                 final JsonTypeInfo.Id use = typeInfo.enumValue("use", JsonTypeInfo.Id.class).orElse(null);
                 final JsonTypeInfo.As include = typeInfo.enumValue("include", JsonTypeInfo.As.class)
                         .orElse(JsonTypeInfo.As.WRAPPER_OBJECT);
@@ -391,6 +434,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             });
         }
+    }
+
+    private void resetForNewClass() {
+        this.creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
+        this.anyGetterMethod = null;
+        this.anySetterMethod = null;
+        this.anyGetterField = null;
+        this.anySetterField = null;
+        this.jsonValueField = null;
+        this.jsonValueMethod = null;
     }
 
     private SerdeConfig.Subtyped.DiscriminatorValueKind getDiscriminatorValueKind(ClassElement typeInfo) {

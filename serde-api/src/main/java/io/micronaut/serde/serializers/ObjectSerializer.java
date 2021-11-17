@@ -96,18 +96,32 @@ public class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            Encoder childEncoder = encoder.encodeObject();
+            final SerBean<Object> serBean = getSerBean(type, context);
+            final SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
+            if (jsonValue != null) {
+                final Object v = jsonValue.get(value);
+                if (v == null) {
+                    encoder.encodeNull();
+                } else {
+                    jsonValue.serializer.serialize(
+                            encoder,
+                            context,
+                            v,
+                            jsonValue.argument
+                    );
+                }
+            } else {
+                Encoder childEncoder = encoder.encodeObject();
 
-            @SuppressWarnings("unchecked") final SerBean<Object> serBean = getSerBean(type, context);
-            if (serBean.wrapperProperty != null) {
-                childEncoder.encodeKey(serBean.wrapperProperty);
-                childEncoder = childEncoder.encodeObject();
-            }
+                if (serBean.wrapperProperty != null) {
+                    childEncoder.encodeKey(serBean.wrapperProperty);
+                    childEncoder = childEncoder.encodeObject();
+                }
 
-            for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
-                final Object v = property.get(value);
-                final Serializer<Object> serializer = property.serializer;
-                switch (property.include) {
+                for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
+                    final Object v = property.get(value);
+                    final Serializer<Object> serializer = property.serializer;
+                    switch (property.include) {
                     case NON_NULL:
                         if (v == null) {
                             continue;
@@ -126,56 +140,58 @@ public class ObjectSerializer implements Serializer<Object> {
                     case NEVER:
                         continue;
                     default:
-                    // fall through
-                }
+                        // fall through
+                    }
 
-                if (property.views != null && !context.hasView(property.views)) {
-                    continue;
-                }
+                    if (property.views != null && !context.hasView(property.views)) {
+                        continue;
+                    }
 
-                childEncoder.encodeKey(property.name);
-                if (v == null) {
-                    childEncoder.encodeNull();
-                } else {
-                    serializer.serialize(
-                            childEncoder,
-                            context,
-                            v,
-                            property.argument
-                    );
+                    childEncoder.encodeKey(property.name);
+                    if (v == null) {
+                        childEncoder.encodeNull();
+                    } else {
+                        serializer.serialize(
+                                childEncoder,
+                                context,
+                                v,
+                                property.argument
+                        );
+                    }
                 }
-            }
-            final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
-            if (anyGetter != null) {
-                final Object data = anyGetter.get(value);
-                if (data instanceof Map) {
-                    Map<Object, Object> map = (Map<Object, Object>) data;
-                    if (CollectionUtils.isNotEmpty(map)) {
+                final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
+                if (anyGetter != null) {
+                    final Object data = anyGetter.get(value);
+                    if (data instanceof Map) {
+                        Map<Object, Object> map = (Map<Object, Object>) data;
+                        if (CollectionUtils.isNotEmpty(map)) {
 
-                        for (Object k : map.keySet()) {
-                            final Object v = map.get(k);
-                            childEncoder.encodeKey(k.toString());
-                            if (v == null) {
-                                childEncoder.encodeNull();
-                            } else {
-                                Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
-                                        .orElse(null);
-                                if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
-                                    valueType = Argument.of(v.getClass());
+                            for (Object k : map.keySet()) {
+                                final Object v = map.get(k);
+                                childEncoder.encodeKey(k.toString());
+                                if (v == null) {
+                                    childEncoder.encodeNull();
+                                } else {
+                                    Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
+                                            .orElse(null);
+                                    if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
+                                        valueType = Argument.of(v.getClass());
+                                    }
+                                    @SuppressWarnings("unchecked") final Serializer<Object> serializer =
+                                            (Serializer<Object>) context.findSerializer(valueType);
+                                    serializer.serialize(
+                                            childEncoder,
+                                            context,
+                                            v,
+                                            valueType
+                                    );
                                 }
-                                final Serializer<Object> serializer = (Serializer<Object>) context.findSerializer(valueType);
-                                serializer.serialize(
-                                        childEncoder,
-                                        context,
-                                        v,
-                                        valueType
-                                );
                             }
                         }
                     }
                 }
+                childEncoder.finishStructure();
             }
-            childEncoder.finishStructure();
         } catch (IntrospectionException e) {
             throw new SerdeException("Error serializing value at path: " + encoder + ". No serializer found for type: " + type, e);
         }
