@@ -15,6 +15,14 @@
  */
 package io.micronaut.serde.serializers;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -28,19 +36,12 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Internal
 final class SerBean<T> {
@@ -224,6 +225,7 @@ final class SerBean<T> {
         public final Argument<P> argument;
         public final Serializer<P> serializer;
         public final SerdeConfig.Include include;
+        public final Class<?>[] views;
         private final @Nullable
         P injected;
         private final Function<B, P> reader;
@@ -241,15 +243,19 @@ final class SerBean<T> {
             this.name = name;
             this.argument = argument;
             this.reader = reader;
-            this.serializer = serializer.createSpecific(argument, encoderContext);
             final AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
-            this.include = new AnnotationMetadataHierarchy(bean.introspection.getAnnotationMetadata(), annotationMetadata)
+            final AnnotationMetadataHierarchy hierarchy =
+                    new AnnotationMetadataHierarchy(bean.introspection.getAnnotationMetadata(), annotationMetadata);
+            this.serializer = serializer.createSpecific(argument, encoderContext);
+            final Class<?>[] views = hierarchy.classValues(SerdeConfig.class, SerdeConfig.VIEWS);
+            this.views = ArrayUtils.isNotEmpty(views) ? views : null;
+            this.include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.Include.class)
                     .orElse(SerdeConfig.Include.ALWAYS);
             this.injected = injected;
+
         }
 
-        @SuppressWarnings("unchecked")
         public P get(B bean) {
             if (injected != null) {
                 return injected;

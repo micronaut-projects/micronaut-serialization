@@ -243,11 +243,6 @@ public abstract class JsonNodeDecoder implements Decoder {
         return new SerdeException(message);
     }
 
-    @Override
-    public boolean hasView(Class<?>... views) {
-        return false;
-    }
-
     private static class Obj extends JsonNodeDecoder {
         private final Iterator<Map.Entry<String, JsonNode>> iterator;
         private JsonNode nextValue = null;

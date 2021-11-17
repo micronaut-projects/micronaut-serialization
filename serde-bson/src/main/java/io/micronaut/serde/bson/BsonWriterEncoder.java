@@ -139,12 +139,6 @@ public final class BsonWriterEncoder implements Encoder {
         bsonWriter.writeObjectId(value);
     }
 
-    @Override
-    public boolean hasView(Class<?>... views) {
-        // TODO
-        return false;
-    }
-
     public BsonWriter getBsonWriter() {
         return bsonWriter;
     }

@@ -119,11 +119,6 @@ public abstract class JsonNodeEncoder implements Encoder {
         return new Obj(this);
     }
 
-    @Override
-    public boolean hasView(Class<?>... views) {
-        return false;
-    }
-
     /**
      * Obtains the completed value.
      *

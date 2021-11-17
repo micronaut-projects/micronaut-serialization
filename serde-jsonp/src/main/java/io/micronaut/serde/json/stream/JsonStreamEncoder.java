@@ -110,10 +110,4 @@ final class JsonStreamEncoder implements Encoder {
     public void encodeNull() throws IOException {
         jsonGenerator.writeNull();
     }
-
-    @Override
-    public boolean hasView(Class<?>... views) {
-        // TODO
-        return false;
-    }
 }

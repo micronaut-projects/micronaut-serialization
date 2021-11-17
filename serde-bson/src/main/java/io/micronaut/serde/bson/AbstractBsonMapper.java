@@ -61,7 +61,7 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree), registry, type);
+        return deserializer.deserialize(JsonNodeDecoder.create(tree), registry.newDecoderContext(null), type);
     }
 
     @Override
@@ -81,7 +81,7 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     }
 
     private <T> T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
-        return registry.findDeserializer(type).deserialize(new BsonReaderDecoder(bsonReader), registry, type);
+        return registry.findDeserializer(type).deserialize(new BsonReaderDecoder(bsonReader), registry.newDecoderContext(null), type);
     }
 
     @Override
@@ -116,7 +116,7 @@ public abstract class AbstractBsonMapper implements JsonMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         final Serializer<Object> serializer = registry.findSerializer(type);
-        serializer.serialize(encoder, registry, object, type);
+        serializer.serialize(encoder, registry.newEncoderContext(null), object, type);
     }
 
     @Override

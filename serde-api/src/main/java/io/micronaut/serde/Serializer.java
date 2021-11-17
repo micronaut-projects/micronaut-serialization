@@ -22,7 +22,6 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.exceptions.SerdeException;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -82,42 +81,7 @@ public interface Serializer<T> {
      * Context object passes to the
      * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
-    interface EncoderContext {
-
-        /**
-         * Gets a custom serializer.
-         * @param serializerClass The serializer class, should not be {@code null}
-         * @param <T> The generic type
-         * @param <D> The serializer type
-         * @return The serializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if no serializer is found
-         */
-        @NonNull <T, D extends Serializer<? extends T>> D findCustomSerializer(@NonNull Class<? extends D> serializerClass)
-                throws SerdeException;
-
-        /**
-         * Finds a serializer for the given type.
-         * @param forType The type
-         * @param <T> The generic type
-         * @return The serializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
-         */
-        @NonNull
-        <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType)
-                throws SerdeException;
-
-        /**
-         * Finds a serializer for the given type.
-         * @param forType The type
-         * @param <T> The generic type
-         * @return The serializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
-         */
-        default @NonNull
-        <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
-                throws SerdeException {
-            return findSerializer(Argument.of(forType));
-        }
+    interface EncoderContext extends SerializerLocator {
 
         /**
          * @return Conversion service
@@ -125,6 +89,14 @@ public interface Serializer<T> {
         @NonNull
         default ConversionService<?> getConversionService() {
             return ConversionService.SHARED;
+        }
+
+        /**
+         * @param views Views to check.
+         * @return {@code true} iff any of the given views is enabled.
+         */
+        default boolean hasView(Class<?>... views) {
+            return false;
         }
     }
 }

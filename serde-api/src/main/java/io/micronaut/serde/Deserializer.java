@@ -16,12 +16,10 @@
 package io.micronaut.serde;
 
 import java.io.IOException;
-import java.util.Collection;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -82,48 +80,7 @@ public interface Deserializer<T> {
     /**
      * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)} method along with the decoder.
      */
-    interface DecoderContext {
-
-        /**
-         * Gets a custom deserializer.
-         * @param deserializerClass The deserializer class, should not be {@code null}
-         * @param <T> The generic type
-         * @param <D> The deserializer type
-         * @return The deserializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
-         */
-        @NonNull <T, D extends Deserializer<? extends T>> D findCustomDeserializer(@NonNull Class<? extends D> deserializerClass)
-                throws SerdeException;
-
-        /**
-         * Finds a deserializer for the given type.
-         * @param type The type, should not be {@code null}
-         * @param <T> The generic type
-         * @return The deserializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
-         */
-        @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type)
-            throws SerdeException;
-
-        /**
-         * Finds a deserializer for the given type.
-         * @param type The type, should not be {@code null}
-         * @param <T> The generic type
-         * @return The deserializer
-         * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
-         */
-        default @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Class<? extends T> type)
-                throws SerdeException {
-            return findDeserializer(Argument.of(type));
-        }
-
-        /**
-         * Locates desrializable subtypes for the given super type.
-         * @param superType The super type
-         * @param <T> The generic super type
-         * @return The subtypes, never null
-         */
-        <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType);
+    interface DecoderContext extends DeserializerLocator {
 
         /**
          * @return Conversion service
@@ -131,6 +88,14 @@ public interface Deserializer<T> {
         @NonNull
         default ConversionService<?> getConversionService() {
             return ConversionService.SHARED;
+        }
+
+        /**
+         * @param views Views to check.
+         * @return {@code true} iff any of the given views is enabled.
+         */
+        default boolean hasView(Class<?>... views) {
+            return false;
         }
     }
 }

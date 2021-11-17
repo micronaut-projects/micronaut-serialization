@@ -128,6 +128,11 @@ public class ObjectSerializer implements Serializer<Object> {
                     default:
                     // fall through
                 }
+
+                if (property.views != null && !context.hasView(property.views)) {
+                    continue;
+                }
+
                 childEncoder.encodeKey(property.name);
                 if (v == null) {
                     childEncoder.encodeNull();

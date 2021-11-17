@@ -150,16 +150,6 @@ public abstract class AbstractStreamDecoder implements Decoder {
     }
 
     @Override
-    public boolean hasView(Class<?>... views) {
-        for (Class<?> candidate : views) {
-            if (candidate.isAssignableFrom(view)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public final boolean hasNextArrayValue() {
         checkChild();
         return currentToken() != TokenType.END_ARRAY;

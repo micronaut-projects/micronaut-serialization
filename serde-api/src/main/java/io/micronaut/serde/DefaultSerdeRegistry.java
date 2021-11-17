@@ -288,6 +288,42 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return objectSerializer;
     }
 
+    @Override
+    public Serializer.EncoderContext newEncoderContext(Class<?> view) {
+        if (view != null) {
+            return new DefaultEncoderContext(this) {
+                @Override
+                public boolean hasView(Class<?>... views) {
+                    for (Class<?> candidate : views) {
+                        if (candidate.isAssignableFrom(view)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
+        }
+        return new DefaultEncoderContext(this);
+    }
+
+    @Override
+    public Deserializer.DecoderContext newDecoderContext(Class<?> view) {
+        if (view != null) {
+            return new DefaultDecoderContext(this) {
+                @Override
+                public boolean hasView(Class<?>... views) {
+                    for (Class<?> candidate : views) {
+                        if (candidate.isAssignableFrom(view)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
+        }
+        return new DefaultDecoderContext(this);
+    }
+
     private static final class TypeEntry {
         final Argument<?> type;
 
