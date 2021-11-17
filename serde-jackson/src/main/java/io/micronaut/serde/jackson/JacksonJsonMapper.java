@@ -95,7 +95,8 @@ public final class JacksonJsonMapper implements JsonMapper {
     private <T> void writeValue0(JsonGenerator gen, T value, Class<T> type) throws IOException {
         gen.setCodec(objectCodecImpl);
         final Argument<T> argument = Argument.of(type);
-        Serializer<? super T> serializer = registry.findSerializer(argument);
+        Serializer<? super T> serializer = registry.findSerializer(argument)
+                                                   .createSpecific(argument, encoderContext);
         final JacksonEncoder encoder = JacksonEncoder.create(gen);
         serializer.serialize(
                 encoder,

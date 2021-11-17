@@ -34,6 +34,7 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SerdeAnnotationUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,7 +92,7 @@ class DeserBean<T> {
         List<DerProperty<T, ?>> unwrappedProperties = null;
         for (int i = 0; i < constructorArguments.length; i++) {
             Argument<Object> constructorArgument = (Argument<Object>) constructorArguments[i];
-            final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument);
+            final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument, constructorArgument.getAnnotationMetadata());
             if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)) {
                 continue;
             }
@@ -219,10 +220,14 @@ class DeserBean<T> {
                                 t,
                                 decoderContext
                         );
+                        final AnnotationMetadataHierarchy combinedMetadata =
+                                new AnnotationMetadataHierarchy(annotationMetadata,
+                                                                t.getAnnotationMetadata());
                         unwrappedProperties.add(new DerProperty<>(
                                 introspection,
                                 i,
                                 t,
+                                combinedMetadata,
                                 beanProperty::set,
                                 deserializer,
                                 unwrapped,
@@ -403,9 +408,29 @@ class DeserBean<T> {
         Deserializer<? super P> deserializer;
         public final DeserBean<P> unwrapped;
 
+        public DerProperty(BeanIntrospection<B> introspection,
+                           int index,
+                           Argument<P> argument,
+                           @Nullable BiConsumer<B, P> writer,
+                           @NonNull Deserializer<P> deserializer,
+                           @Nullable DeserBean<P> unwrapped,
+                           @NonNull Deserializer.DecoderContext decoderContext) throws SerdeException {
+            this(
+                    introspection,
+                    index,
+                    argument,
+                    argument.getAnnotationMetadata(),
+                    writer,
+                    deserializer,
+                    unwrapped,
+                    decoderContext
+            );
+        }
+
         public DerProperty(BeanIntrospection<B> instrospection,
                            int index,
                            Argument<P> argument,
+                           AnnotationMetadata argumentMetadata,
                            @Nullable BiConsumer<B, P> writer,
                            @NonNull Deserializer<P> deserializer,
                            @Nullable DeserBean<P> unwrapped,
@@ -417,9 +442,8 @@ class DeserBean<T> {
             this.writer = writer;
             this.deserializer = deserializer.createSpecific(argument, decoderContext);
             // compute default
-            AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument);
-            final Class<?>[] views = annotationMetadata.classValues(SerdeConfig.class, SerdeConfig.VIEWS);
-            this.views = ArrayUtils.isNotEmpty(views) ? views : null;
+            AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument, argumentMetadata);
+            this.views = SerdeAnnotationUtil.resolveViews(instrospection, annotationMetadata);
 
             try {
                 this.defaultValue = annotationMetadata
@@ -462,8 +486,7 @@ class DeserBean<T> {
         }
     }
 
-    private static <B, P> AnnotationMetadata resolveArgumentMetadata(BeanIntrospection<B> instrospection, Argument<P> argument) {
-        AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
+    private static <B, P> AnnotationMetadata resolveArgumentMetadata(BeanIntrospection<B> instrospection, Argument<P> argument, AnnotationMetadata annotationMetadata) {
         // records store metadata in the bean property
         final AnnotationMetadata propertyMetadata = instrospection.getProperty(argument.getName(), argument.getType())
                 .map(BeanProperty::getAnnotationMetadata)
