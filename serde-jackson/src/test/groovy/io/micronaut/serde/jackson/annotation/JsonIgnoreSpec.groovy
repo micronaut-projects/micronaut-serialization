@@ -136,7 +136,7 @@ class Test {
 
         then:
         def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization'
+        e.message == 'Unknown property [unknown] encountered during deserialization of type: Test'
 
         cleanup:
         context.close()

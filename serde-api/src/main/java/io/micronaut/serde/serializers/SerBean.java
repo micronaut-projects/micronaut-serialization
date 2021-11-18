@@ -36,12 +36,12 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SerdeAnnotationUtil;
 
 @Internal
 final class SerBean<T> {
@@ -75,8 +75,16 @@ final class SerBean<T> {
             Serializer.EncoderContext encoderContext) throws SerdeException {
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
-        final BeanProperty<T, Object> serValue = introspection
-                .getIndexedProperty(SerdeConfig.SerValue.class).orElse(null);
+        final Collection<BeanProperty<T, Object>> properties =
+                introspection.getBeanProperties().stream()
+                        .filter(property -> !property.isWriteOnly() &&
+                                !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
+                                !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
+                        .sorted(getPropertyComparator())
+                        .collect(Collectors.toList());
+        final BeanProperty<T, Object> serValue = properties.stream()
+                .filter(bp -> bp.hasAnnotation(SerdeConfig.SerValue.class))
+                .findFirst().orElse(null);
         if (serValue != null) {
             wrapperProperty = null;
             anyGetter = null;
@@ -113,13 +121,7 @@ final class SerBean<T> {
             } else {
 
                 jsonValue = null;
-                final Collection<BeanProperty<T, Object>> properties =
-                        introspection.getBeanProperties().stream()
-                                .filter(property -> !property.isWriteOnly() &&
-                                        !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
-                                        !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
-                                .sorted(getPropertyComparator())
-                                .collect(Collectors.toList());
+
                 final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(beanMethods.size());
                 BeanMethod<T, Object> anyGetter = null;
                 for (BeanMethod<T, Object> beanMethod : beanMethods) {
@@ -178,8 +180,14 @@ final class SerBean<T> {
                                                        unwrappedProperty.getAnnotationMetadata(),
                                                        unwrappedPropertyArgument.getName(),
                                                        true);
+                                final AnnotationMetadataHierarchy combinedMetadata =
+                                        new AnnotationMetadataHierarchy(
+                                                argument.getAnnotationMetadata(),
+                                                unwrappedProperty.getAnnotationMetadata()
+                                        );
                                 final SerProperty<T, Object> serProperty = new SerProperty<>(this, n,
                                                                                              unwrappedPropertyArgument,
+                                                                                             combinedMetadata,
                                                                                              bean -> unwrappedProperty.get(property.get(bean)),
                                                                                              findSerializer(encoderContext, unwrappedPropertyArgument),
                                                                                              null,
@@ -278,17 +286,28 @@ final class SerBean<T> {
                 @Nullable Function<B, P> reader,
                 @NonNull Serializer<P> serializer,
                 @Nullable P injected,
-                @NonNull Serializer.EncoderContext encoderContext) {
+                @NonNull Serializer.EncoderContext encoderContext) throws SerdeException {
+           this(bean, name, argument, argument.getAnnotationMetadata(), reader, serializer, injected, encoderContext);
+        }
+
+        public SerProperty(
+                SerBean<B> bean,
+                @NonNull String name,
+                @NonNull Argument<P> argument,
+                @NonNull AnnotationMetadata annotationMetadata,
+                @Nullable Function<B, P> reader,
+                @NonNull Serializer<P> serializer,
+                @Nullable P injected,
+                @NonNull Serializer.EncoderContext encoderContext) throws SerdeException {
             this.bean = bean;
             this.name = name;
             this.argument = argument;
             this.reader = reader;
-            final AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
+            final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
             final AnnotationMetadataHierarchy hierarchy =
-                    new AnnotationMetadataHierarchy(bean.introspection.getAnnotationMetadata(), annotationMetadata);
+                    new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
             this.serializer = serializer.createSpecific(argument, encoderContext);
-            final Class<?>[] views = hierarchy.classValues(SerdeConfig.class, SerdeConfig.VIEWS);
-            this.views = ArrayUtils.isNotEmpty(views) ? views : null;
+            this.views = SerdeAnnotationUtil.resolveViews(beanMetadata, annotationMetadata);
             this.include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
                     .orElse(SerdeConfig.SerInclude.ALWAYS);
@@ -304,4 +323,5 @@ final class SerBean<T> {
             }
         }
     }
+
 }

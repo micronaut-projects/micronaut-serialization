@@ -137,41 +137,7 @@ public class CoreSerializers {
      */
     @Singleton
     protected <T> Serializer<Optional<T>> optionalSerializer() {
-        return new Serializer<Optional<T>>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  Optional<T> value,
-                                  Argument<? extends Optional<T>> type) throws IOException {
-                final Argument[] generics = type.getTypeParameters();
-                if (ArrayUtils.isEmpty(generics)) {
-                    throw new SerdeException("Serializing raw optionals is not supported for value: " + value);
-                }
-                final T o = value.orElse(null);
-                if (o != null) {
-                    final Argument<T> generic = (Argument<T>) generics[0];
-                    final Serializer<T> componentSerializer = (Serializer<T>) context.findSerializer(generic);
-                    componentSerializer.serialize(
-                            encoder,
-                            context,
-                            o,
-                            generic
-                    );
-                } else {
-                    encoder.encodeNull();
-                }
-            }
-
-            @Override
-            public boolean isEmpty(Optional<T> value) {
-                return value == null || !value.isPresent();
-            }
-
-            @Override
-            public boolean isAbsent(Optional<T> value) {
-                return value == null || !value.isPresent();
-            }
-        };
+        return new OptionalSerializer<>();
     }
 
     /**
@@ -234,4 +200,5 @@ public class CoreSerializers {
             }
         };
     }
+
 }

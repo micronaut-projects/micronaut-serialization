@@ -22,6 +22,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.exceptions.SerdeException;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -41,7 +42,8 @@ public interface Serializer<T> {
      * @return The more specific serializer
      */
     default @NonNull
-    Serializer<T> createSpecific(@NonNull Argument<? extends T> type, @NonNull EncoderContext encoderContext) {
+    Serializer<T> createSpecific(@NonNull Argument<? extends T> type, @NonNull EncoderContext encoderContext) throws
+            SerdeException {
         return this;
     }
 
