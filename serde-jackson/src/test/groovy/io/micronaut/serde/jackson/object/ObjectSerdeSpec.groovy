@@ -1017,7 +1017,7 @@ class LowerCaseDeser implements Deserializer<String> {
 
     void "simple bean"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('''
 package example;
 
 import io.micronaut.core.annotation.Introspected;
@@ -1039,16 +1039,21 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"a": "foo", "b": "bar"}')
-        def testBean = compiled.newInstance()
+
+        def typeUnderTest = argumentOf(context, 'example.Test')
+        def deserialized = deserializeFromString(jsonMapper, typeUnderTest.type, '{"a": "foo", "b": "bar"}')
+        def testBean = newInstance(context, 'example.Test')
         testBean.a = "foo"
         testBean.b = "bar"
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+        def serialized = serializeToString(jsonMapper, testBean)
 
         expect:
         deserialized.a == "foo"
         deserialized.b == "bar"
         serialized == '{"b":"bar","a":"foo"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonProperty on field"() {
