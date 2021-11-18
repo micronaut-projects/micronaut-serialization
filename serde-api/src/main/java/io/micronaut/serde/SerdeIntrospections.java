@@ -30,6 +30,14 @@ import io.micronaut.serde.annotation.Serdeable;
  */
 public interface SerdeIntrospections {
     /**
+     * The bean introspector to use.
+     * @return The introspector
+     */
+    default @NonNull BeanIntrospector getBeanIntrospector() {
+        return BeanIntrospector.SHARED;
+    }
+
+    /**
      * Gets an introspection for the given type for serialization.
      * @param type The type
      * @param <T> The generic type
@@ -52,11 +60,11 @@ public interface SerdeIntrospections {
      * Gets an subtype introspection for the given type for deserialization.
      * @param type The type
      * @param <T> The generic type
-     * @return A collectino of introspections, never {@code null}
+     * @return A collection of introspections, never {@code null}
      */
     default @NonNull <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
         final List list =
-                BeanIntrospector.SHARED.findIntrospections(ref -> {
+                getBeanIntrospector().findIntrospections(ref -> {
                     if (ref.isPresent()) {
                         final Class<?> bt = ref.getBeanType();
                         return bt != type && type.isAssignableFrom(bt);

@@ -15,10 +15,15 @@
  */
 package io.micronaut.serde;
 
+import java.util.Collection;
+import java.util.Optional;
+
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
+import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.inject.Singleton;
 
@@ -32,18 +37,32 @@ import jakarta.inject.Singleton;
 public class DefaultSerdeIntrospections implements SerdeIntrospections {
     @Override
     public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
-        final BeanIntrospection<T> introspection = BeanIntrospector.SHARED.getIntrospection(type.getType());
-        if (introspection.hasStereotype(Serdeable.Serializable.class)) {
-            return introspection;
-        } else {
-            throw new IntrospectionException("No serializable introspection present for type. Consider adding Serdeable.Serializable annotate to type " + type);
-        }
+        final BeanIntrospector beanIntrospector = getBeanIntrospector();
+        final Optional<BeanIntrospection<T>> introspection = beanIntrospector.findIntrospection(type.getType());
+        if (introspection.isPresent()) {
 
+            final BeanIntrospection<T> i = introspection.get();
+            if (i.hasStereotype(Serdeable.Serializable.class)) {
+                return i;
+            }
+        }
+        final Collection<BeanIntrospection<Object>> candidates =
+                beanIntrospector.findIntrospections(reference -> reference.isPresent() &&
+                reference.getBeanType().isAssignableFrom(type.getType()) &&
+                reference.getAnnotationMetadata().hasStereotype(Serdeable.Serializable.class));
+        if (CollectionUtils.isNotEmpty(candidates)) {
+            if (candidates.size() == 1) {
+                return (BeanIntrospection<T>) candidates.iterator().next();
+            } else {
+                return (BeanIntrospection<T>) OrderUtil.sort(candidates.stream()).findFirst().get();
+            }
+        }
+        throw new IntrospectionException("No serializable introspection present for type. Consider adding Serdeable.Serializable annotate to type " + type);
     }
 
     @Override
     public <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
-        final BeanIntrospection<T> introspection = BeanIntrospector.SHARED.getIntrospection(type.getType());
+        final BeanIntrospection<T> introspection = getBeanIntrospector().getIntrospection(type.getType());
         if (introspection.hasStereotype(Serdeable.Deserializable.class)) {
             return introspection;
         } else {

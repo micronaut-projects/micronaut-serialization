@@ -7,16 +7,20 @@ import io.micronaut.context.ApplicationContext
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.beans.BeanIntrospectionReference
+import io.micronaut.core.beans.BeanIntrospector
 import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.core.naming.NameUtils
 import io.micronaut.core.reflect.InstantiationUtils
 import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.serde.DefaultSerdeIntrospections
 import io.micronaut.serde.SerdeIntrospections
 import org.intellij.lang.annotations.Language
 
 import javax.tools.JavaFileObject
+import java.util.function.Predicate
+import java.util.stream.Collectors
 
 class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
@@ -112,46 +116,50 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
     protected void setupSerdeRegistry(ApplicationContext context) {
         def classLoader = context.classLoader
-        context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {
+        // horrible hack this
+        GroovyObject go = (GroovyObject) classLoader
+        def files = ((Reference) go.getProperty("files")).get()
+        def resolvedTypes = files.findAll({ JavaFileObject jfo ->
+            jfo.name.endsWith('$IntrospectionRef.class')
+        }).collect( { JavaFileObject jfo ->
+            String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
+            classLoader.loadClass(className)
+        })
+
+
+        def references = resolvedTypes
+                .collect() {
+                    (BeanIntrospectionReference) InstantiationUtils.instantiate(it)
+                }
+
+        context.registerSingleton(SerdeIntrospections, new DefaultSerdeIntrospections() {
 
             @Override
-            def <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
-                // horrible hack this
-                GroovyObject go = (GroovyObject) classLoader
-                def files = ((Reference) go.getProperty("files")).get()
-                def resolvedTypes = files.findAll({ JavaFileObject jfo ->
-                    jfo.name.endsWith('$IntrospectionRef.class')
-                }).collect( { JavaFileObject jfo ->
-                    String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
-                    classLoader.loadClass(className)
-                })
+            BeanIntrospector getBeanIntrospector() {
+                return new BeanIntrospector() {
+                    @Override
+                    Collection<BeanIntrospection<Object>> findIntrospections(@NonNull Predicate<? super BeanIntrospectionReference<?>> filter) {
+                        return references.stream()
+                            .filter(filter)
+                            .filter(BeanIntrospectionReference::isPresent)
+                            .map(BeanIntrospectionReference::load)
+                            .collect(Collectors.toList())
+                    }
 
-                return resolvedTypes
-                    .collect() {
-                        (BeanIntrospectionReference) InstantiationUtils.instantiate(it)
-                    }.findAll { it.beanType != type && type.isAssignableFrom(it.beanType) }
-                    .collect { it.load() }
-            }
+                    @Override
+                    Collection<Class<?>> findIntrospectedTypes(@NonNull Predicate<? super BeanIntrospectionReference<?>> filter) {
+                        return Collections.emptySet()
+                    }
 
-            @Override
-            def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
-                try {
-                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
-                            .newInstance()
-                } catch (ClassNotFoundException e) {
-                    throw new IntrospectionException("No introspection")
+                    @Override
+                    def <T> Optional<BeanIntrospection<T>> findIntrospection(@NonNull Class<T> beanType) {
+                        return findIntrospections({ ref ->
+                            ref.isPresent() && ref.beanType == beanType
+                        }).stream().findFirst()
+                    }
                 }
             }
 
-            @Override
-            def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
-                try {
-                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
-                            .newInstance()
-                } catch (ClassNotFoundException e) {
-                    throw new IntrospectionException("No introspection for type $type")
-                }
-            }
         })
     }
 }

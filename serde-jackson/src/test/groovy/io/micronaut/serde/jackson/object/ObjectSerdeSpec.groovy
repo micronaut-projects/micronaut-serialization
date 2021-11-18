@@ -674,7 +674,6 @@ enum E {
         compiled.close()
     }
 
-    @PendingFeature(reason = "Fix nested classes")
     void "test nested class"() {
         given:
         def compiled = buildContext('example.Test', '''
@@ -694,27 +693,25 @@ class A {
         serializeToString(jsonMapper, b) == '{}'
     }
 
-    @PendingFeature(reason = "Fix interfaces")
     void "test interface"() {
         given:
-        def compiled = buildContext('example.Test', '''
+        def context = buildContext('example.Test', '''
 package example;
 
 import io.micronaut.serde.annotation.Serdeable;
 
-@Serdeable//(allowDeserialization = false)
+@Serdeable
 interface Test {
     String getFoo();
 }
-''', true)
-        def jsonMapper = compiled.getBean(JsonMapper)
-        def testBean = ['getFoo': { Object[] args -> 'bar' }].asType(compiled.classLoader.loadClass('example.Test'))
+''')
+        def testBean = ['getFoo': { Object[] args -> 'bar' }].asType(context.classLoader.loadClass('example.Test'))
 
         expect:
-        serializeToString(jsonMapper, testBean) == '{"foo":"bar"}'
+        writeJson(jsonMapper, testBean) == '{"foo":"bar"}'
 
         cleanup:
-        compiled.close()
+        context.close()
     }
 
     void "test optional"() {
@@ -907,6 +904,7 @@ class Outer {
     @JsonView(Runnable.class) @JsonUnwrapped public Nested nested;
 }
 
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Nested {
     public String b;
