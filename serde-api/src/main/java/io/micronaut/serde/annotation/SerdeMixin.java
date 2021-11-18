@@ -15,24 +15,42 @@
  */
 package io.micronaut.serde.annotation;
 
-import io.micronaut.context.annotation.AliasFor;
-import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.Introspected;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.lang.annotation.*;
+import io.micronaut.core.annotation.Internal;
 
 /**
- * Annotation to trigger serializer generation for another class.
+ * Annotation to allow external classes to be enabled for serialization / deserialization.
  */
 @Internal
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 @Repeatable(SerdeMixin.Repeated.class)
+@SerdeConfig
 public @interface SerdeMixin {
-    @AliasFor(annotation = Introspected.class, member = "classes")
+    /**
+     * Allows making an external class or interface serializable.
+     *
+     * <p>Note that mixins only work with publicly accessible members (constructors, getters/setters etc.),
+     * anything not public will not be includes in the serialization/deserialization result.</p>
+     *
+     * @return The type to enable serialization for.
+     */
     Class<?> value();
 
-    Serdeable config() default @Serdeable;
+    /**
+     * @return Serialization configuration to use.
+     */
+    Serdeable.Serializable ser() default @Serdeable.Serializable;
+
+    /**
+     * @return Deserialization Configuration to use.
+     */
+    Serdeable.Deserializable deser() default @Serdeable.Deserializable;
 
     /**
      * Repeated wrapper for this annotation.

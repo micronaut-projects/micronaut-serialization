@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.processor.jackson;
+package io.micronaut.serde.processor;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Order;
@@ -47,12 +48,14 @@ import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.annotation.SerdeMixin;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -291,8 +294,25 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
-
-        if (isJsonAnnotated(element)) {
+        if (element.hasAnnotation(SerdeMixin.Repeated.class)) {
+            final List<AnnotationValue<SerdeMixin>> values = element.getAnnotationValuesByType(SerdeMixin.class);
+            List<AnnotationClassValue<?>> classValues = new ArrayList<>();
+            for (AnnotationValue<SerdeMixin> value : values) {
+                value.annotationClassValue(AnnotationMetadata.VALUE_MEMBER)
+                        .flatMap(acv -> context.getClassElement(acv.getName()))
+                        .ifPresent(c -> {
+                            if (!c.isPublic()) {
+                                context.fail("Cannot mixin non-public type: " + c.getName(), element);
+                            } else {
+                                classValues.add(new AnnotationClassValue<>(c.getName()));
+                                visitClass(c, context);
+                            }
+                        });
+            }
+            element.annotate(Introspected.class, (builder) ->
+                builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
+            );
+        } else if (isJsonAnnotated(element)) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class)) {
                 element.annotate(Serdeable.class);

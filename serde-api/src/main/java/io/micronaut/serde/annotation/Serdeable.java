@@ -41,11 +41,17 @@ import io.micronaut.serde.Serializer;
 @Serdeable.Serializable
 @Serdeable.Deserializable
 public @interface Serdeable {
+
     /**
      * Annotation used to indicate a type is serializable.
      */
     @Introspected(indexed = @Introspected.IndexedAnnotation(annotation = SerdeConfig.SerValue.class))
     @interface Serializable {
+        /**
+         * @return Whether serialization is enabled. Defaults to true.
+         */
+        boolean enabled() default true;
+
         /**
          * @return The {@link io.micronaut.serde.Serializer} to use.
          */
@@ -56,6 +62,14 @@ public @interface Serdeable {
      * Annotation used to indicate a type is deserializable.
      */
     @interface Deserializable {
+        /**
+         * @return Whether serialization is enabled. Defaults to true.
+         */
+        boolean enabled() default true;
+
+        /**
+         * @return The deserializer.
+         */
         Class<? extends Deserializer> deserializer() default Deserializer.class;
     }
 }

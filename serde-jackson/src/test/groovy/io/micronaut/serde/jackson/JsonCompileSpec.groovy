@@ -120,7 +120,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         GroovyObject go = (GroovyObject) classLoader
         def files = ((Reference) go.getProperty("files")).get()
         def resolvedTypes = files.findAll({ JavaFileObject jfo ->
-            jfo.name.endsWith('$IntrospectionRef.class')
+            jfo.name.contains('$IntrospectionRef')
         }).collect( { JavaFileObject jfo ->
             String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
             classLoader.loadClass(className)
