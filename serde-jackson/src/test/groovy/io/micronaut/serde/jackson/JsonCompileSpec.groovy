@@ -103,6 +103,9 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
     ApplicationContext buildContext(String className, @Language("java") String cls) {
         def context = super.buildContext(className, cls, true)
         setupSerdeRegistry(context)
+        def t = context.classLoader
+                .loadClass(className)
+        typeUnderTest = Argument.of(t)
         jsonMapper = context.getBean(JsonMapper)
         return context
     }

@@ -1,4 +1,5 @@
 package io.micronaut.serde.jackson.object
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import groovy.transform.Immutable
 import io.micronaut.core.type.Argument
@@ -893,7 +894,7 @@ class Admin extends Internal {}
 
     def 'unwrapped view'() {
         given:
-        def ctx = buildContext('example.WithViews', '''
+        def ctx = buildContext('example.Outer', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -922,7 +923,7 @@ class Nested {
         // abuse Runnable as the view class
         serializeToString(jsonMapper, outer, Runnable) == '{"a":"a","b":"b"}'
 
-        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Outer"), '{"a":"a","b":"b"}').nested?.b == null
+        jsonMapper.readValue('{"a":"a","b":"b"}', typeUnderTest).nested?.b == null
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Outer"), '{"a":"a","b":"b"}', Runnable).nested.b == 'b'
     }
 
@@ -974,45 +975,25 @@ class LowerCaseDeser implements Deserializer<String> {
         when:
         testInstance.foo = 'boo'
         testInstance.bar = 'Baz'
-        then:'normal ser'
+        then: 'normal ser'
         serializeToString(serializer, testInstance) == '{"foo":"boo","bar":"BAZ"}'
 
         when:
         testInstance.foo = 'boo'
         testInstance.bar = ''
-        then:'empty ser is skipped'
+        then: 'empty ser is skipped'
         serializeToString(serializer, testInstance) == '{"foo":"boo"}'
 
         when:
         testInstance.foo = 'boo'
         testInstance.bar = null
-        then:'null ser is skipped'
+        then: 'null ser is skipped'
         serializeToString(serializer, testInstance) == '{"foo":"boo"}'
 
-        expect:'deser'
+        expect: 'deser'
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":"BAZ"}').foo == 'boo'
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":"BAZ"}').bar == 'baz'
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":null}').bar == null
-    }
-
-    // endregion
-    // region InlineBeanSerializerSymbolSpec
-
-    def buildSerializer(@Language("java") String cls) {
-        def classElement = buildClassElement(cls)
-        def ctx = buildContext('', cls, true)
-
-        return new CompiledBean(ctx.classLoader.loadClass(classElement.name), ctx.getBean(JsonMapper))
-    }
-
-    @Immutable(knownImmutableClasses = [JsonMapper])
-    static class CompiledBean<T> {
-        Class<T> beanClass
-        JsonMapper jsonMapper
-
-        def newInstance(List<?> params = []) {
-            return beanClass.newInstance(params.toArray(Object[]::new))
-        }
     }
 
     void "simple bean"() {
@@ -1058,7 +1039,7 @@ class Test {
 
     void "JsonProperty on field"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.JsonProperty;import io.micronaut.core.annotation.Introspected;
@@ -1068,20 +1049,22 @@ class Test {
     @JsonProperty("foo")
     public String bar;
 }
-''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
-        def testBean = compiled.newInstance()
-        testBean.bar = "42"
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+''', [:])
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+        beanUnderTest.bar = "42"
+        def serialized = writeJson(jsonMapper, beanUnderTest)
 
         expect:
         deserialized.bar == "42"
         serialized == '{"foo":"42"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonProperty on getter"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -1098,24 +1081,28 @@ class Test {
         this.bar = bar;
     }
 }
-''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
-        def testBean = compiled.newInstance()
-        testBean.bar = "42"
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+''', [:])
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+        beanUnderTest.bar = "42"
+        def serialized = writeJson(jsonMapper, beanUnderTest)
 
         expect:
         deserialized.bar == "42"
         serialized == '{"foo":"42"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonProperty on is-getter"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     private boolean bar;
     
@@ -1128,25 +1115,29 @@ class Test {
         this.bar = bar;
     }
 }
-''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": true}')
-        def testBean = compiled.newInstance()
-        testBean.bar = true
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+''', [:])
+        def deserialized = jsonMapper.readValue('{"foo": true}', typeUnderTest)
+        beanUnderTest.bar = true
+        def serialized = writeJson(jsonMapper, beanUnderTest)
 
         expect:
         deserialized.bar == true
         serialized == '{"foo":true}'
+
+        cleanup:
+        context.close()
     }
 
     @PendingFeature(reason = 'other accessor conventions')
     void "JsonProperty on accessors without prefix"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     private String bar;
     
@@ -1160,24 +1151,28 @@ class Test {
         this.bar = bar;
     }
 }
-''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"bar": "42"}')
-        def testBean = compiled.newInstance()
-        testBean.bar = "42"
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+''', [:])
+        def deserialized = jsonMapper.readValue('{"bar": "42"}', typeUnderTest)
+        beanUnderTest.bar = "42"
+        def serialized = serializeToString(jsonMapper, beanUnderTest)
 
         expect:
         deserialized.bar == "42"
         serialized == '{"bar":"42"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonCreator constructor"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     @JsonProperty("foo")
     private final String bar;
@@ -1192,18 +1187,21 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
-        def testBean = compiled.newInstance(["42"])
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+        def testBean = newInstance(context, 'example.Test', "42")
+        def serialized = writeJson(jsonMapper, testBean)
 
         expect:
         deserialized.bar == "42"
         serialized == '{"foo":"42"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonCreator with parameter names"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -1219,16 +1217,19 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42", "bar": "56"}')
+        def deserialized = jsonMapper.readValue('{"foo": "42", "bar": "56"}', typeUnderTest)
 
         expect:
         deserialized.foo == "42"
         deserialized.bar == "56"
+
+        cleanup:
+        context.close()
     }
 
     void "implicit creator with parameter names"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -1243,16 +1244,19 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42", "bar": "56"}')
+        def deserialized = jsonMapper.readValue('{"foo": "42", "bar": "56"}', typeUnderTest)
 
         expect:
         deserialized.foo == "42"
         deserialized.bar == "56"
+
+        cleanup:
+        context.close()
     }
 
     void "JsonCreator with single parameter of same name"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -1266,16 +1270,19 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
 
         expect:
         deserialized.foo == "42"
+
+        cleanup:
+        context.close()
     }
 
     @PendingFeature(reason = 'single-parameter json creator')
     void "JsonCreator with single parameter of different name"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -1289,19 +1296,24 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '"42"')
+        def deserialized = jsonMapper.readValue('"42"', typeUnderTest)
 
         expect:
         deserialized.foo == "42"
+
+        cleanup:
+        context.close()
     }
 
     void "JsonCreator constructor with properties mode set"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     @JsonProperty("foo")
     private final String bar;
@@ -1316,22 +1328,27 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
-        def testBean = compiled.newInstance(["42"])
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+        def testBean = newInstance(context, 'example.Test', "42")
+        def serialized = writeJson(jsonMapper, testBean)
 
         expect:
         deserialized.bar == "42"
         serialized == '{"foo":"42"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonCreator static method"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     @JsonProperty("foo")
     private final String bar;
@@ -1350,22 +1367,27 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
-        def testBean = compiled.newInstance(["42"])
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+        def testBean = newInstance(context, 'example.Test', "42")
+        def serialized = writeJson(jsonMapper, testBean)
 
         expect:
         deserialized.bar == "42"
         serialized == '{"foo":"42"}'
+
+        cleanup:
+        context.close()
     }
 
     void "JsonCreator no getter"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     private final String bar;
     
@@ -1375,20 +1397,23 @@ class Test {
     }
 }
 ''')
-        def deserialized = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}')
-        def testBean = compiled.newInstance(["42"])
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+        def testBean = newInstance(context, 'example.Test', "42")
+        def serialized = writeJson(jsonMapper, testBean)
 
         expect:
         deserialized.bar == "42"
         serialized == '{}'
+
+        cleanup:
+        context.close()
     }
 
     @PendingFeature(reason = 'duplicate property errors')
     @SuppressWarnings('JsonDuplicatePropertyKeys')
     void "duplicate property throws exception"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 @io.micronaut.serde.annotation.Serdeable
@@ -1398,20 +1423,25 @@ class Test {
 ''')
 
         when:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42", "foo": "43"}')
+        jsonMapper.readValue('{"foo": "42", "foo": "43"}', typeUnderTest)
 
         then:
         thrown SerdeException
+
+        cleanup:
+        context.close()
     }
 
     @SuppressWarnings('JsonDuplicatePropertyKeys')
     void "missing required property throws exception"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     String foo;
     
@@ -1423,19 +1453,24 @@ class Test {
 ''')
 
         when:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{}')
+        jsonMapper.readValue('{}', typeUnderTest)
 
         then:
         thrown SerdeException
+
+        cleanup:
+        context.close()
     }
 
     void "missing required property throws exception, many variables"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     String v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, 
     v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, 
@@ -1457,17 +1492,20 @@ class Test {
 ''')
 
         when:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"v7": "42", "v75": "43"}')
+        jsonMapper.readValue('{"v7": "42", "v75": "43"}', typeUnderTest)
 
         then:
         def e = thrown SerdeException
         // with the right message please
         e.message.contains("v14")
+
+        cleanup:
+        context.close()
     }
 
     void "unknown properties lead to error"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -1479,18 +1517,24 @@ class Test {
 ''')
 
         when:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "1", "bar": "2"}')
+        jsonMapper.readValue('{"foo": "1", "bar": "2"}', typeUnderTest)
 
         then:
         thrown SerdeException
+
+        cleanup:
+        context.close()
     }
 
     void "unknown properties with proper annotation"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
-import com.fasterxml.jackson.annotation.*;import io.micronaut.core.annotation.Introspected;import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
@@ -1499,18 +1543,23 @@ class Test {
 }
 ''')
 
-        def des = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "1", "bar": "2"}')
+        def des = jsonMapper.readValue('{"foo": "1", "bar": "2"}', typeUnderTest)
 
         expect:
         des.foo == "1"
+
+        cleanup:
+        context.close()
     }
 
     void "unknown properties with proper annotation, complex"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
-import com.fasterxml.jackson.annotation.*;import io.micronaut.core.annotation.Introspected;
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @io.micronaut.serde.annotation.Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
@@ -1519,67 +1568,85 @@ class Test {
 }
 ''')
 
-        def des = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "1", "bar": [1, 2]}')
+        def des = jsonMapper.readValue('{"foo": "1", "bar": [1, 2]}', typeUnderTest)
 
         expect:
         des.foo == "1"
+
+        cleanup:
+        context.close()
     }
 
     void "json ignore"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
-import com.fasterxml.jackson.annotation.*;import io.micronaut.core.annotation.Introspected;
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     @JsonIgnore public String foo;
     public String bar;
 }
-''')
+''', [:])
 
-        def des = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "1", "bar": "2"}')
-        def testBean = compiled.newInstance()
-        testBean.foo = "1"
-        testBean.bar = "2"
-        def serialized = serializeToString(compiled.jsonMapper, testBean)
+        def des = jsonMapper.readValue('{"foo": "1", "bar": "2"}', typeUnderTest)
+        beanUnderTest.foo = "1"
+        beanUnderTest.bar = "2"
+        def serialized = writeJson(jsonMapper, beanUnderTest)
 
         expect:
         des.foo == null
         des.bar == "2"
         serialized == '{"bar":"2"}'
+
+        cleanup:
+        context.close()
     }
 
     void "nullable"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Nullable;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
 class Test {
     @Nullable String foo;
 }
-''')
+''', [:])
 
-        def des = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": null}')
-        def testBean = compiled.newInstance()
-        testBean.foo = null
+        def des = jsonMapper.readValue('{"foo": null}', typeUnderTest)
+        beanUnderTest.foo = null
 
         expect:
         des.foo == null
-        serializeToString(compiled.jsonMapper, testBean) == '{}'
+        writeJson(jsonMapper, beanUnderTest) == '{}'
+
+        cleanup:
+        context.close()
     }
 
     void "nullable setter"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import io.micronaut.core.annotation.Nullable;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     private String foo;
     
@@ -1590,49 +1657,60 @@ class Test {
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": null}').foo == null
+        jsonMapper.readValue('{"foo": null}', typeUnderTest).foo == null
+
+        cleanup:
+        context.close()
     }
 
     void "unwrapped"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;import io.micronaut.core.annotation.Introspected;
-@io.micronaut.serde.annotation.Serdeable
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     @JsonUnwrapped public Name name = new Name();
 }
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Name {
     public String first;
     public String last;
 }
-''')
+''', [:])
 
-        def des = deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"first":"foo","last":"bar"}')
-        def testBean = compiled.newInstance()
-        testBean.name.first = "foo"
-        testBean.name.last = "bar"
+        def des = jsonMapper.readValue('{"first":"foo","last":"bar"}', typeUnderTest)
+        beanUnderTest.name.first = "foo"
+        beanUnderTest.name.last = "bar"
 
         expect:
-        serializeToString(compiled.jsonMapper, testBean) == '{"first":"foo","last":"bar"}'
+        writeJson(jsonMapper, beanUnderTest) == '{"first":"foo","last":"bar"}'
         des.name != null
         des.name.first == "foo"
         des.name.last == "bar"
+
+        cleanup:
+        context.close()
     }
 
     @PendingFeature(reason = 'alias')
     void "aliases"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
-import com.fasterxml.jackson.annotation.JsonAlias;import io.micronaut.core.annotation.Introspected;
-@io.micronaut.serde.annotation.Serdeable
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     @JsonAlias("bar")
@@ -1641,13 +1719,16 @@ class Test {
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo": "42"}').foo == '42'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"bar": "42"}').foo == '42'
+        jsonMapper.readValue('{"foo": "42"}', typeUnderTest).foo == '42'
+        jsonMapper.readValue('{"bar": "42"}', typeUnderTest).foo == '42'
+
+        cleanup:
+        context.close()
     }
 
     void "value and creator"() {
         given:
-        def context = buildContext('example.Test','''
+        def context = buildContext('example.Test', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
@@ -1746,35 +1827,38 @@ class Test {
 
     void "optional"() {
         given:
-        def compiled = buildSerializer('''
+        def compiled = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.core.annotation.Introspected;import java.util.Optional;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.core.annotation.Introspected;
+import java.util.Optional;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     public Optional<String> foo = Optional.empty();
 }
-''')
-        def testBean = compiled.newInstance()
-        testBean.foo = Optional.of('bar')
+''', [:])
+        beanUnderTest.foo = Optional.of('bar')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"bar"}').foo.get() == 'bar'
-        !deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":null}').foo.isPresent()
-        !deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{}').foo.isPresent()
-        serializeToString(compiled.jsonMapper, testBean) == '{"foo":"bar"}'
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest).foo.get() == 'bar'
+        !jsonMapper.readValue('{"foo":null}', typeUnderTest).foo.isPresent()
+        !jsonMapper.readValue('{}', typeUnderTest).foo.isPresent()
+        writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar"}'
     }
 
-    @PendingFeature(reason = 'mixed nullable types')
     void "optional nullable mix"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.core.annotation.Nullable;
+import com.fasterxml.jackson.annotation.JsonSetter;import io.micronaut.core.annotation.Nullable;
 import java.util.Optional;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     @Nullable
     private String foo;
@@ -1783,28 +1867,33 @@ class Test {
         return Optional.ofNullable(foo);
     }
     
+    @JsonSetter("foo")
     public void setFoo(@Nullable String foo) {
         this.foo = foo;
     }
 }
-''')
-        def testBean = compiled.newInstance()
-        testBean.foo = 'bar'
+''', [:])
+        beanUnderTest.foo = 'bar'
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"bar"}').foo.get() == 'bar'
-        serializeToString(compiled.jsonMapper, testBean) == '{"foo":"bar"}'
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest).foo.get() == 'bar'
+        writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar"}'
+
+        cleanup:
+        context.close()
     }
 
     void "@JsonInclude"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('''
 package example;
 
-import com.fasterxml.jackson.annotation.JsonInclude;import io.micronaut.core.annotation.Introspected;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.core.annotation.Introspected;
 import java.util.*;
+import io.micronaut.serde.annotation.Serdeable;
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Test {
     @JsonInclude(JsonInclude.Include.ALWAYS)
@@ -1827,7 +1916,7 @@ class Test {
     public Optional<List<String>> nonEmptyOptionalList;
 }
 ''')
-        def with = compiled.newInstance()
+        def with = newInstance(context, 'example.Test')
         with.alwaysString = 'a';
         with.nonNullString = 'a';
         with.nonAbsentString = 'a';
@@ -1837,7 +1926,7 @@ class Test {
         with.nonAbsentOptionalString = Optional.of('a');
         with.nonEmptyOptionalList = Optional.of(['a']);
 
-        def without = compiled.newInstance()
+        def without = newInstance(context, 'example.Test')
         without.alwaysString = null
         without.nonNullString = null
         without.nonAbsentString = null
@@ -1848,13 +1937,13 @@ class Test {
         without.nonEmptyOptionalList = Optional.of([])
 
         expect:
-        serializeToString(compiled.jsonMapper, with) == '{"alwaysString":"a","nonNullString":"a","nonAbsentString":"a","nonEmptyString":"a","nonEmptyArray":["a"],"nonEmptyList":["a"],"nonAbsentOptionalString":"a","nonEmptyOptionalList":["a"]}'
-        serializeToString(compiled.jsonMapper, without) == '{"alwaysString":null}'
+        writeJson(jsonMapper, with) == '{"alwaysString":"a","nonNullString":"a","nonAbsentString":"a","nonEmptyString":"a","nonEmptyArray":["a"],"nonEmptyList":["a"],"nonAbsentOptionalString":"a","nonEmptyOptionalList":["a"]}'
+        writeJson(jsonMapper, without) == '{"alwaysString":null}'
     }
 
     void "missing properties are not overwritten"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import io.micronaut.core.annotation.Introspected;import io.micronaut.core.annotation.Nullable;
@@ -1868,18 +1957,23 @@ class Test {
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{}').foo == 'bar'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":null}').foo == null
+        jsonMapper.readValue('{}', typeUnderTest).foo == 'bar'
+        jsonMapper.readValue('{"foo":null}', typeUnderTest).foo == null
+
+        cleanup:
+        context.close()
     }
 
     void "@JsonAnyGetter"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     @JsonAnyGetter
     Map<String, String> anyGetter() {
@@ -1889,22 +1983,23 @@ class Test {
         return map;
     }
 }
-''')
-        def test = compiled.newInstance()
+''', [:])
 
         expect:
-        serializeToString(compiled.jsonMapper, test) == '{"foo":"bar","123":"456"}'
+        writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar","123":"456"}'
     }
 
     void "@JsonAnySetter"() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Test', '''
 package example;
 
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Test {
     private Map<String, String> anySetter = new HashMap<>();
     
@@ -1916,46 +2011,55 @@ class Test {
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"bar","123":"456"}').anySetter == ['foo': 'bar', '123': '456']
+        jsonMapper.readValue('{"foo":"bar","123":"456"}', typeUnderTest).anySetter == ['foo': 'bar', '123': '456']
+
+        cleanup:
+        context.close()
     }
 
     void 'unwrapped ignore unknown outer'() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.A', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 @JsonIgnoreProperties(ignoreUnknown = true)
 class A {
     @JsonUnwrapped B b;
 }
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @JsonIgnoreProperties(ignoreUnknown = false)
 class B {
 }
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"bar"}') != null
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest) != null
+
+        cleanup:
+        context.close()
     }
 
     void 'unwrapped ignore unknown inner'() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.A', '''
 package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @JsonIgnoreProperties(ignoreUnknown = false)
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class A {
     @JsonUnwrapped B b;
 }
 
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class B {
@@ -1963,50 +2067,64 @@ class B {
 ''')
 
         when:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"bar"}') != null
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest) != null
 
         then:
         def e = thrown SerdeException
-        expect:'error should have the name of the outer class'
+        expect: 'error should have the name of the outer class'
         e.message.contains("A")
+
+        cleanup:
+        context.close()
     }
 
     void 'unwrapped ignore unknown neither'() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Outer', '''
 package example;
 
-import com.fasterxml.jackson.annotation.*;import io.micronaut.core.annotation.Introspected;
-@io.micronaut.serde.annotation.Serdeable
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 @JsonIgnoreProperties(ignoreUnknown = false)
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Outer {
     @JsonUnwrapped B b;
 }
-@io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
 @JsonIgnoreProperties(ignoreUnknown = false)
 class B {
 }
 ''')
 
         when:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"bar"}')
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest)
 
         then:
         def e = thrown SerdeException
-        expect:'error should have the name of the outer class'
+        expect: 'error should have the name of the outer class'
         e.message.contains("Outer")
+
+        cleanup:
+        context.close()
     }
 
     void 'generic supertype'() {
         given:
-        def compiled = buildSerializer('''
+        def compiled = buildContext('example.Sub', '''
 package example;
 
-import io.micronaut.core.annotation.Introspected;@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Sub extends Sup<String> {
 }
-@io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Sup<T> {
     public T value;
@@ -2014,23 +2132,26 @@ class Sup<T> {
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"value":"bar"}').value == 'bar'
+        jsonMapper.readValue('{"value":"bar"}', typeUnderTest).value == 'bar'
     }
 
     void 'generic supertype mixed'() {
         given:
-        def compiled = buildSerializer('''
+        def context = buildContext('example.Subsub', '''
 package example;
 
-import io.micronaut.core.annotation.Introspected;@io.micronaut.serde.annotation.Serdeable
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 class Subsub extends Sub<java.util.List<String>> {
 }
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Sub<T> extends Sup<String> {
     public java.util.List<T> value2;
 }
-@io.micronaut.serde.annotation.Serdeable
+@Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Sup<T> {
     public T value;
@@ -2038,14 +2159,14 @@ class Sup<T> {
 ''')
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"value":"bar","value2":[["foo","bar"]]}').value == 'bar'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"value":"bar","value2":[["foo","bar"]]}').value2 == [["foo", "bar"]]
+        jsonMapper.readValue('{"value":"bar","value2":[["foo","bar"]]}', typeUnderTest).value == 'bar'
+        jsonMapper.readValue('{"value":"bar","value2":[["foo","bar"]]}', typeUnderTest).value2 == [["foo", "bar"]]
     }
 
     @PendingFeature(reason = '@JsonAutoDetect')
     void 'auto-detect visibility homogenous'() {
         given:
-        def compiled = buildSerializer("""
+        def context = buildContext('example.Test', """
 package example;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -2078,8 +2199,8 @@ class Test {
         return isGetterValue;
     }
 }
-""")
-        def instance = compiled.newInstance()
+""", [:])
+        def instance = beanUnderTest
         instance.field = 'foo'
         instance.setterValue = 'qux'
         instance.getterValue = 'bar'
@@ -2092,43 +2213,43 @@ class Test {
         def expectedJson = appears ? '{"field":"foo","getter":"bar","isGetter":"baz"}' : '{}'
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).field == appears ? 'foo' : 'unchanged'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).setterValue == appears ? 'qux' : 'unchanged'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).getterValue == 'unchanged' // never written
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).isGetterValue == 'unchanged' // never written
+        jsonMapper.readValue(fullJson, typeUnderTest).field == appears ? 'foo' : 'unchanged'
+        jsonMapper.readValue(fullJson, typeUnderTest).setterValue == appears ? 'qux' : 'unchanged'
+        jsonMapper.readValue(fullJson, typeUnderTest).getterValue == 'unchanged' // never written
+        jsonMapper.readValue(fullJson, typeUnderTest).isGetterValue == 'unchanged' // never written
 
-        serializeToString(compiled.jsonMapper, instance) == expectedJson
+        writeJson(jsonMapper, instance) == expectedJson
 
         where:
-        configuredVisibility         | declaredVisibility    | appears
+        configuredVisibility                           | declaredVisibility | appears
         // hide private by default
-        JsonAutoDetect.Visibility.DEFAULT | 'private' | false
+        JsonAutoDetect.Visibility.DEFAULT              | 'private'          | false
         // hide package-private by default
-        JsonAutoDetect.Visibility.DEFAULT | ''                         | false
+        JsonAutoDetect.Visibility.DEFAULT              | ''                 | false
         // various access modes
         // ANY is not supported (we can't access private fields)
-        JsonAutoDetect.Visibility.NON_PRIVATE | 'private'                  | false
-        JsonAutoDetect.Visibility.NON_PRIVATE | ''                         | true
-        JsonAutoDetect.Visibility.NON_PRIVATE | 'protected'                | true
-        JsonAutoDetect.Visibility.NON_PRIVATE | 'public'                   | true
-        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | 'private'                  | false
-        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | ''                         | false
-        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | 'protected'                | true
-        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | 'public'                   | true
-        JsonAutoDetect.Visibility.PUBLIC_ONLY | 'private'                  | false
-        JsonAutoDetect.Visibility.PUBLIC_ONLY | ''                         | false
-        JsonAutoDetect.Visibility.PUBLIC_ONLY | 'protected'                | false
-        JsonAutoDetect.Visibility.PUBLIC_ONLY | 'public'                   | true
-        JsonAutoDetect.Visibility.NONE | 'private'                  | false
-        JsonAutoDetect.Visibility.NONE | ''                         | false
-        JsonAutoDetect.Visibility.NONE | 'protected'                | false
-        JsonAutoDetect.Visibility.NONE | 'public'                   | false
+        JsonAutoDetect.Visibility.NON_PRIVATE          | 'private'          | false
+        JsonAutoDetect.Visibility.NON_PRIVATE          | ''                 | true
+        JsonAutoDetect.Visibility.NON_PRIVATE          | 'protected'        | true
+        JsonAutoDetect.Visibility.NON_PRIVATE          | 'public'           | true
+        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | 'private'          | false
+        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | ''                 | false
+        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | 'protected'        | true
+        JsonAutoDetect.Visibility.PROTECTED_AND_PUBLIC | 'public'           | true
+        JsonAutoDetect.Visibility.PUBLIC_ONLY          | 'private'          | false
+        JsonAutoDetect.Visibility.PUBLIC_ONLY          | ''                 | false
+        JsonAutoDetect.Visibility.PUBLIC_ONLY          | 'protected'        | false
+        JsonAutoDetect.Visibility.PUBLIC_ONLY          | 'public'           | true
+        JsonAutoDetect.Visibility.NONE                 | 'private'          | false
+        JsonAutoDetect.Visibility.NONE                 | ''                 | false
+        JsonAutoDetect.Visibility.NONE                 | 'protected'        | false
+        JsonAutoDetect.Visibility.NONE                 | 'public'           | false
     }
 
     @PendingFeature(reason = '@JsonAutoDetect')
     void 'auto-detect visibility heterogenous'() {
         given:
-        def compiled = buildSerializer("""
+        def context = buildContext('example.Test', """
 package example;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
@@ -2161,8 +2282,8 @@ class Test {
         return isGetterValue;
     }
 }
-""")
-        def instance = compiled.newInstance()
+""", [:])
+        def instance = beanUnderTest
         instance.field = 'foo'
         instance.setterValue = 'qux'
         instance.getterValue = 'bar'
@@ -2180,29 +2301,29 @@ class Test {
         expectedJson += '}'
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).field == fieldAppears ? 'foo' : 'unchanged'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).setterValue == setterAppears ? 'qux' : 'unchanged'
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).getterValue == 'unchanged' // never written
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, fullJson).isGetterValue == 'unchanged' // never written
+        jsonMapper.readValue(fullJson, typeUnderTest).field == fieldAppears ? 'foo' : 'unchanged'
+        jsonMapper.readValue(fullJson, typeUnderTest).setterValue == setterAppears ? 'qux' : 'unchanged'
+        jsonMapper.readValue(fullJson, typeUnderTest).getterValue == 'unchanged' // never written
+        jsonMapper.readValue(fullJson, typeUnderTest).isGetterValue == 'unchanged' // never written
 
-        serializeToString(compiled.jsonMapper, instance) == expectedJson
+        writeJson(jsonMapper, instance) == expectedJson
 
         where:
 
-        configuredFieldVisibility         | declaredFieldVisibility    | fieldAppears
-        JsonAutoDetect.Visibility.NON_PRIVATE | ''                  | true
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
+        configuredFieldVisibility             | declaredFieldVisibility | fieldAppears
+        JsonAutoDetect.Visibility.NON_PRIVATE | ''                      | true
+        JsonAutoDetect.Visibility.DEFAULT     | ''                      | false
+        JsonAutoDetect.Visibility.DEFAULT     | ''                      | false
+        JsonAutoDetect.Visibility.DEFAULT     | ''                      | false
         __
-        configuredGetterVisibility         | declaredGetterVisibility    | getterAppears
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
-        JsonAutoDetect.Visibility.NON_PRIVATE | ''                  | true
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
+        configuredGetterVisibility | declaredGetterVisibility | getterAppears
+        JsonAutoDetect.Visibility.DEFAULT | '' | false
+        JsonAutoDetect.Visibility.NON_PRIVATE | '' | true
+        JsonAutoDetect.Visibility.DEFAULT | '' | false
+        JsonAutoDetect.Visibility.DEFAULT | '' | false
         __
-        configuredIsGetterVisibility         | declaredIsGetterVisibility    | isGetterAppears
-        JsonAutoDetect.Visibility.DEFAULT | ''                  | false
+        configuredIsGetterVisibility | declaredIsGetterVisibility | isGetterAppears
+        JsonAutoDetect.Visibility.DEFAULT | '' | false
         JsonAutoDetect.Visibility.DEFAULT | '' | false
         JsonAutoDetect.Visibility.NON_PRIVATE | '' | true
         JsonAutoDetect.Visibility.DEFAULT | '' | false
@@ -2214,13 +2335,13 @@ class Test {
         JsonAutoDetect.Visibility.NON_PRIVATE | '' | true
     }
 
-    @PendingFeature(reason = 'JsonIgnoreType')
     void 'JsonIgnoreType'() {
         given:
-        def compiled = buildSerializer('''
+        def compiled = buildContext('''
 package example;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreType;import io.micronaut.core.annotation.Introspected;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import io.micronaut.core.annotation.Introspected;
 
 @io.micronaut.serde.annotation.Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
@@ -2235,14 +2356,14 @@ class Used {
     public String bar;
 }
 ''')
-        def bean = compiled.newInstance()
+        def bean = newInstance(compiled, 'example.Test')
         bean.foo = '42'
-        bean.used = compiled.beanClass.classLoader.loadClass('example.Used').newInstance()
+        bean.used = newInstance(compiled, 'example.Used')
         bean.used.bar = '56'
 
         expect:
-        deserializeFromString(compiled.jsonMapper, compiled.beanClass, '{"foo":"42","used":{"bar":"56"}}').used == null
-        serializeToString(compiled.jsonMapper, bean) == '{"foo":"42"}'
+        serializeToString(jsonMapper, bean) == '{"foo":"42"}'
+        deserializeFromString(jsonMapper, bean.getClass(), '{"foo":"42","used":{"bar":"56"}}').used == null
     }
     // endregion
 }
