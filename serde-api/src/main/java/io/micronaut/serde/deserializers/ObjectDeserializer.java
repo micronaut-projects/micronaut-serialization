@@ -504,7 +504,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             if (ignoreUnknown) {
                 objectDecoder.skipValue();
             } else {
-                throw new SerdeException("Unknown property [" + property + "] encountered during deserialization of type" + type);
+                throw new SerdeException("Unknown property [" + property + "] encountered during deserialization of type: " + type);
             }
         }
     }
