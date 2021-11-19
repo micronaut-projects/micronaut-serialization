@@ -3,6 +3,9 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
+    includeBuild("build-logic") {
+        name = "serde-build-logic"
+    }
 }
 
 plugins {
