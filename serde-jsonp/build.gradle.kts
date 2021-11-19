@@ -2,6 +2,11 @@ plugins {
     id("io.micronaut.build.internal.serde-module")
 }
 
+configurations.all {
+    exclude("io.micronaut", "micronaut-jackson-databind")
+    exclude("io.micronaut", "micronaut-jackson-core")
+}
+
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.serdeProcessor)

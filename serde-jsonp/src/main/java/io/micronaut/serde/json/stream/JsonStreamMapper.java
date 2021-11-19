@@ -23,9 +23,7 @@ import java.io.OutputStream;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import io.micronaut.context.annotation.Replaces;
 import io.micronaut.core.type.Argument;
-import io.micronaut.jackson.databind.JacksonDatabindMapper;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -45,7 +43,6 @@ import org.reactivestreams.Processor;
  * Implementation of the {@link io.micronaut.json.JsonMapper} interface for JSON-P.
  */
 @Singleton
-@Replaces(JacksonDatabindMapper.class)
 public class JsonStreamMapper implements JsonMapper {
     private final SerdeRegistry registry;
 
