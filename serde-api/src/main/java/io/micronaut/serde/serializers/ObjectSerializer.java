@@ -19,6 +19,7 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -27,6 +28,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
@@ -56,14 +58,17 @@ import java.util.Set;
 @Primary
 public class ObjectSerializer implements Serializer<Object> {
     private final SerdeIntrospections introspections;
+    private final SerializationConfiguration configuration;
 
-    public ObjectSerializer(SerdeIntrospections introspections) {
+    public ObjectSerializer(SerdeIntrospections introspections,
+                            SerializationConfiguration configuration) {
         this.introspections = introspections;
+        this.configuration = configuration;
     }
 
     @Override
     public Serializer<Object> createSpecific(Argument<?> type, EncoderContext encoderContext) {
-        final SerBean<Object> serBean = getSerBean(type, encoderContext);
+        final SerBean<Object> serBean = getSerBean(type, null, encoderContext);
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         final SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
         if (jsonValue != null) {
@@ -97,7 +102,7 @@ public class ObjectSerializer implements Serializer<Object> {
             List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.PropertyOrder.class));
             final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
             Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : Collections.emptySet();
-            return new ObjectSerializer(introspections) {
+            return new ObjectSerializer(introspections, configuration) {
                 @Override
                 protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
                     final List<SerBean.SerProperty<Object, Object>> writeProperties = new ArrayList<>(super.getWriteProperties(serBean));
@@ -123,7 +128,7 @@ public class ObjectSerializer implements Serializer<Object> {
             Argument<?> type)
             throws IOException {
         try {
-            final SerBean<Object> serBean = getSerBean(type, context);
+            final SerBean<Object> serBean = getSerBean(type, value, context);
             Encoder childEncoder = encoder.encodeObject();
 
             if (serBean.wrapperProperty != null) {
@@ -220,10 +225,17 @@ public class ObjectSerializer implements Serializer<Object> {
     }
 
     @SuppressWarnings("unchecked")
-    private SerBean<Object> getSerBean(Argument<?> type, EncoderContext encoderContext) {
+    private SerBean<Object> getSerBean(Argument<?> type, @Nullable Object value, EncoderContext encoderContext) {
         // TODO: cache these, the cache key should include the Unwrapped behaviour
         try {
-            return new SerBean<>((Argument<Object>) type, introspections, encoderContext);
+            return new SerBean<>((Argument<Object>) type, introspections, encoderContext, configuration);
+        } catch (IntrospectionException e) {
+            // TODO: replace with optional
+            if (value != null && value.getClass() != type.getClass()) {
+                return getSerBean(Argument.of(value.getClass()), null, encoderContext);
+            } else {
+                throw e;
+            }
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

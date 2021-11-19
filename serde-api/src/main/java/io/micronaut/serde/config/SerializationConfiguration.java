@@ -29,9 +29,9 @@ public interface SerializationConfiguration {
     String PREFIX = "micronaut.serialization";
 
     /**
-     * @return The default inclusion to use. Defaults to {@link io.micronaut.serde.annotation.SerdeConfig.SerInclude#ALWAYS}.
+     * @return The default inclusion to use. Defaults to {@link io.micronaut.serde.annotation.SerdeConfig.SerInclude#NON_EMPTY}.
      */
-    @Bindable(defaultValue = "ALWAYS")
+    @Bindable(defaultValue = "NON_EMPTY")
     @NonNull
     SerdeConfig.SerInclude getInclusion();
 

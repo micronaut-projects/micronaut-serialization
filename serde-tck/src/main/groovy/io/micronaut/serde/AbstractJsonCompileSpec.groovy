@@ -19,6 +19,7 @@ import com.sun.source.util.JavacTask
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.annotation.processing.test.JavaParser
 import io.micronaut.context.ApplicationContext
+import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.beans.BeanIntrospectionReference
@@ -28,6 +29,7 @@ import io.micronaut.core.reflect.InstantiationUtils
 import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.serde.annotation.SerdeConfig
 import org.intellij.lang.annotations.Language
 
 import javax.tools.JavaFileObject
@@ -107,6 +109,11 @@ abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implement
         setupSerdeRegistry(context)
         jsonMapper = context.getBean(getJsonMapperClass())
         return context
+    }
+
+    @Override
+    protected void configureContext(ApplicationContextBuilder contextBuilder) {
+        contextBuilder.properties("micronaut.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS)
     }
 
     protected void setupSerdeRegistry(ApplicationContext context) {

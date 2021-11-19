@@ -27,6 +27,7 @@ import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.naming.NameUtils;
+import io.micronaut.core.naming.Named;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
@@ -52,6 +53,8 @@ import java.util.stream.Collectors;
  */
 @Internal
 class DeserBean<T> {
+    private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
+
     // CHECKSTYLE:OFF
     @NonNull
     public final BeanIntrospection<T> introspection;
@@ -113,9 +116,7 @@ class DeserBean<T> {
                 continue;
             }
 
-            final String jsonProperty = annotationMetadata
-                    .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                    .orElse(constructorArgument.getName());
+            final String jsonProperty = resolveName(constructorArgument, annotationMetadata);
             final Deserializer<?> deserializer = decoderContext.findDeserializer(constructorArgument);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
             if (isUnwrapped) {
@@ -254,9 +255,7 @@ class DeserBean<T> {
                         }
                     } else {
 
-                        final String jsonProperty = annotationMetadata
-                                .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                                .orElse(beanProperty.getName());
+                        final String jsonProperty = resolveName(beanProperty, annotationMetadata);
 
                         readProps.put(jsonProperty, new DerProperty<>(
                                         introspection,
@@ -273,9 +272,10 @@ class DeserBean<T> {
             }
 
             for (BeanMethod<T, Object> jsonSetter : jsonSetters) {
-                final String property = jsonSetter.getAnnotationMetadata()
-                        .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                        .orElseGet(() -> NameUtils.getPropertyNameForSetter(jsonSetter.getName()));
+                final String property = resolveName(
+                        () -> NameUtils.getPropertyNameForSetter(jsonSetter.getName()),
+                        jsonSetter.getAnnotationMetadata()
+                );
                 final Argument<Object> argument = (Argument<Object>) jsonSetter.getArguments()[0];
                 readProps.put(property, new DerProperty<>(
                         introspection,
@@ -303,6 +303,15 @@ class DeserBean<T> {
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
+    }
+
+    private String resolveName(Named named, AnnotationMetadata annotationMetadata) {
+        return annotationMetadata
+                .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                .orElseGet(() ->
+                    annotationMetadata.stringValue(JK_PROP)
+                            .orElseGet(named::getName)
+                );
     }
 
     private Deserializer<Object> findDeserializer(Deserializer.DecoderContext decoderContext, Argument<Object> argument) throws SerdeException {

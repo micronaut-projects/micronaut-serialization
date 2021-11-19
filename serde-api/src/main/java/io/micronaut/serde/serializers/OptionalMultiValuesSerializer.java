@@ -59,19 +59,29 @@ class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues
                 String fieldName = key.toString();
                 objectEncoder.encodeKey(fieldName);
                 List<V> list = opt.get();
-                if (list.size() == 1 && (list.get(0).getClass() != JsonError.class || !alwaysSerializeErrorsAsList)) {
-                    valueSerializer.serialize(
-                            encoder,
-                            context, list.get(0),
+                if (alwaysSerializeErrorsAsList) {
+                    listSerializer.serialize(
+                            objectEncoder,
+                            context,
+                            list,
                             listGeneric
                     );
                 } else {
-                    listSerializer.serialize(
-                            encoder,
-                            context,
-                            list,
-                            generic
-                    );
+                    if (list.size() == 1) {
+                        valueSerializer.serialize(
+                                objectEncoder,
+                                context,
+                                list.get(0),
+                                generic
+                        );
+                    } else {
+                        listSerializer.serialize(
+                                objectEncoder,
+                                context,
+                                list,
+                                listGeneric
+                        );
+                    }
                 }
             }
         }

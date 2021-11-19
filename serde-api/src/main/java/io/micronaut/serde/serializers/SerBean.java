@@ -40,6 +40,7 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.SerdeAnnotationUtil;
 
@@ -58,6 +59,7 @@ final class SerBean<T> {
                 }
             }
     );
+    private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
 
     // CHECKSTYLE:OFF
     @NonNull
@@ -68,11 +70,14 @@ final class SerBean<T> {
     @Nullable
     public final SerProperty<T, Object> anyGetter;
     public final SerProperty<T, Object> jsonValue;
+    public final SerializationConfiguration configuration;
     // CHECKSTYLE:ON
 
     SerBean(Argument<T> definition,
             SerdeIntrospections introspections,
-            Serializer.EncoderContext encoderContext) throws SerdeException {
+            Serializer.EncoderContext encoderContext,
+            SerializationConfiguration configuration) throws SerdeException {
+        this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
         final Collection<BeanProperty<T, Object>> properties =
@@ -256,7 +261,11 @@ final class SerBean<T> {
                                AnnotationMetadata propertyAnnotationMetadata,
                                String defaultPropertyName, boolean unwrapped) {
         String n =
-                propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(defaultPropertyName);
+                propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+        if (n == null) {
+            n = propertyAnnotationMetadata.stringValue(JK_PROP)
+                    .orElse(defaultPropertyName);
+        }
         if (unwrapped) {
             n = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX)
                     .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX)
@@ -310,7 +319,7 @@ final class SerBean<T> {
             this.views = SerdeAnnotationUtil.resolveViews(beanMetadata, annotationMetadata);
             this.include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
-                    .orElse(SerdeConfig.SerInclude.ALWAYS);
+                    .orElse(bean.configuration.getInclusion());
             this.injected = injected;
 
         }

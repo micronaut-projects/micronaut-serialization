@@ -17,11 +17,13 @@ package io.micronaut.serde
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.serde.annotation.SerdeConfig
+import io.micronaut.test.support.TestPropertyProvider
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
 
-abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec {
+abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec, TestPropertyProvider {
 
     abstract JsonMapper getJsonMapper()
 
@@ -233,5 +235,10 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec 
         def expected = jsonMapper.readValue(json, Argument.of(obj.getClass()))
         assert obj == expected
         obj == expected
+    }
+
+    @Override
+    Map<String, String> getProperties() {
+        ["micronaut.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS.name()]
     }
 }

@@ -77,16 +77,20 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private boolean isEnabledForDeserialization(AnnotationMetadataProvider reference, Argument<?> type) {
         final AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
-        return (annotationMetadata.hasStereotype(Serdeable.Deserializable.class) &&
+        return isCoreType(type) || (annotationMetadata.hasStereotype(Serdeable.Deserializable.class) &&
                 annotationMetadata.booleanValue(Serdeable.Deserializable.class, "enabled").orElse(true)) ||
                 (annotationMetadata.hasAnnotation(SerdeMixin.class) && isMixinEnabledForDeserialization(annotationMetadata.getAnnotationValuesByType(SerdeMixin.class), type));
     }
 
     private boolean isEnabledForSerialization(AnnotationMetadataProvider reference, Argument<?> type) {
         final AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
-        return (annotationMetadata.hasStereotype(Serdeable.Serializable.class) &&
+        return isCoreType(type) || (annotationMetadata.hasStereotype(Serdeable.Serializable.class) &&
                 annotationMetadata.booleanValue(Serdeable.Serializable.class, "enabled").orElse(true)) ||
                 (annotationMetadata.hasAnnotation(SerdeMixin.class) && isMixinEnabledForSerialization(annotationMetadata.getAnnotationValuesByType(SerdeMixin.class), type));
+    }
+
+    private boolean isCoreType(Argument<?> type) {
+        return type.getTypeName().startsWith("io.micronaut.");
     }
 
     private <T extends Annotation> boolean isMixinEnabledForDeserialization(List<AnnotationValue<T>> mixinsValues,
