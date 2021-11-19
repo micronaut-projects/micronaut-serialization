@@ -14,6 +14,7 @@ dependencies {
     api("jakarta.json:jakarta.json-api:2.0.1")
     api(mn.micronaut.context)
     api(projects.serdeApi)
+    compileOnly(mn.graal)
     compileOnly(mn.micronaut.jackson.databind)
     testImplementation("org.glassfish:jakarta.json:2.0.1")
 
