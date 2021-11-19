@@ -176,7 +176,7 @@ public class CoreSerializers {
                                   Argument<? extends Map<K, V>> type) throws IOException {
                 final Encoder childEncoder = encoder.encodeObject();
                 final Argument[] generics = type.getTypeParameters();
-                final boolean hasGenerics = ArrayUtils.isEmpty(generics) || generics.length != 2;
+                final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
                 if (hasGenerics) {
 
                     final Argument<V> valueGeneric = (Argument<V>) generics[1];

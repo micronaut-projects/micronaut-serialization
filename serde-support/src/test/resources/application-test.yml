@@ -1,0 +1,4 @@
+endpoints:
+  all:
+    enabled: true
+    sensitive: false

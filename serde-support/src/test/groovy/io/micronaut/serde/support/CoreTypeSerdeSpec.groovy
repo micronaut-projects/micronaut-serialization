@@ -1,9 +1,11 @@
 package io.micronaut.serde.support
 
 import io.micronaut.core.type.Argument
+import io.micronaut.health.HealthStatus
 import io.micronaut.http.hateoas.JsonError
 import io.micronaut.http.hateoas.Link
 import io.micronaut.json.JsonMapper
+import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -13,6 +15,19 @@ import java.nio.charset.StandardCharsets
 @MicronautTest
 class CoreTypeSerdeSpec extends Specification {
     @Inject JsonMapper jsonMapper
+
+    void "test read / write health result"() {
+        given:
+        HealthResult hr = HealthResult.builder("db", HealthStatus.DOWN)
+            .details(Collections.singletonMap("foo", "bar"))
+            .build()
+
+        when:
+        def result = writeJson(hr)
+
+        then:
+        result == '{"name":"db","status":{"name":"DOWN","operational":false,"severity":1000},"details":{"foo":"bar"}}'
+    }
 
     void "test read / write JsonError"() {
         given:
@@ -36,7 +51,7 @@ class CoreTypeSerdeSpec extends Specification {
 //        read.embedded.size() == 1
     }
 
-    private String writeJson(JsonError error) {
-        new String(jsonMapper.writeValueAsBytes(error), StandardCharsets.UTF_8)
+    private String writeJson(Object o) {
+        new String(jsonMapper.writeValueAsBytes(o), StandardCharsets.UTF_8)
     }
 }

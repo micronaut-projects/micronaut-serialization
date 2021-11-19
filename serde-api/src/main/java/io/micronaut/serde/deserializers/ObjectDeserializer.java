@@ -32,6 +32,7 @@ import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
+import io.micronaut.serde.util.TypeKey;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 /**
@@ -52,6 +54,7 @@ import java.util.function.BiConsumer;
 public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;
+    private final Map<TypeKey, DeserBean<Object>> deserBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
         this.introspections = introspections;
@@ -605,21 +608,26 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) {
-        // TODO: cache these
-        try {
-            final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
-                    type.getAnnotationMetadata(),
-                    deserializableIntrospection.getAnnotationMetadata()
-            );
-            if (annotationMetadata.hasAnnotation(SerdeConfig.Subtyped.class)) {
-                return new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this);
-            } else  {
-                return new DeserBean<>(deserializableIntrospection, decoderContext, this);
+        TypeKey key = new TypeKey(type);
+        DeserBean<T> deserBean = (DeserBean<T>) deserBeanMap.get(key);
+        if (deserBean == null) {
+            try {
+                final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
+                AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
+                        type.getAnnotationMetadata(),
+                        deserializableIntrospection.getAnnotationMetadata()
+                );
+                if (annotationMetadata.hasAnnotation(SerdeConfig.Subtyped.class)) {
+                    deserBean = new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this);
+                } else  {
+                    deserBean = new DeserBean<>(deserializableIntrospection, decoderContext, this);
+                }
+            } catch (SerdeException e) {
+                throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
             }
-        } catch (SerdeException e) {
-            throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
+            deserBeanMap.put(key, (DeserBean<Object>) deserBean);
         }
+        return deserBean;
     }
 
     private static final class AnyValues<T> {

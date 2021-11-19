@@ -31,6 +31,7 @@ import io.micronaut.serde.serdes.NumberSerde;
 import io.micronaut.serde.serializers.ObjectSerializer;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.NullableSerde;
+import io.micronaut.serde.util.TypeKey;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -66,8 +67,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final Serializer<Object> objectSerializer;
     private final Map<Class<?>, List<BeanDefinition<Serializer>>> serializerDefMap;
     private final Map<Class<?>, List<BeanDefinition<Deserializer>>> deserializerDefMap;
-    private final Map<TypeEntry, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
-    private final Map<TypeEntry, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeKey, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
     private final Deserializer<Object> objectDeserializer;
@@ -137,25 +138,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private void registerPrimitiveSerdes() {
         this.deserializerMap.put(
-                new TypeEntry(Argument.BOOLEAN),
+                new TypeKey(Argument.BOOLEAN),
                 (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
         this.deserializerMap.put(
-                new TypeEntry(Argument.of(Boolean.class)),
+                new TypeKey(Argument.of(Boolean.class)),
                 (NullableDeserializer<Boolean>) (decoder, decoderContext, type) -> decoder.decodeBoolean()
         );
         this.deserializerMap.put(
-                new TypeEntry(Argument.CHAR),
+                new TypeKey(Argument.CHAR),
                 (decoder, decoderContext, type) -> decoder.decodeChar()
         );
         this.deserializerMap.put(
-                new TypeEntry(Argument.of(Character.class)),
+                new TypeKey(Argument.of(Character.class)),
                 (NullableDeserializer<Character>) (decoder, decoderContext, type) -> decoder.decodeChar()
         );
     }
 
     private void registerBuiltInSerdes() {
-        this.deserializerMap.put(new TypeEntry(Argument.STRING),
+        this.deserializerMap.put(new TypeKey(Argument.STRING),
                                  (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
         Stream.of(
                 new IntegerSerde(),
@@ -199,7 +200,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) {
         Objects.requireNonNull(type, "Type cannot be null");
-        final TypeEntry key = new TypeEntry(type);
+        final TypeKey key = new TypeKey(type);
         final Deserializer<?> deserializer = deserializerMap.get(key);
         if (deserializer != null) {
             return (Deserializer<? extends T>) deserializer;
@@ -211,7 +212,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 return (Deserializer<? extends T>) deser;
             }
         }
-        if (key.type.isArray()) {
+        if (key.getType().isArray()) {
             deserializerMap.put(key, objectArraySerde);
             return (Deserializer<? extends T>) objectArraySerde;
         } else {
@@ -228,7 +229,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
-        final TypeEntry key = new TypeEntry(type);
+        final TypeKey key = new TypeKey(type);
         final Serializer<?> serializer = serializerMap.get(key);
         if (serializer != null) {
             //noinspection unchecked
@@ -322,31 +323,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             };
         }
         return new DefaultDecoderContext(this);
-    }
-
-    private static final class TypeEntry {
-        final Argument<?> type;
-
-        public TypeEntry(Argument<?> type) {
-            this.type = type;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            TypeEntry that = (TypeEntry) o;
-            return type.equalsType(that.type);
-        }
-
-        @Override
-        public int hashCode() {
-            return type.typeHashCode();
-        }
     }
 
     private final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
@@ -534,7 +510,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         void register() {
             for (Argument<?> type : getTypes()) {
-                final TypeEntry typeEntry = new TypeEntry(type);
+                final TypeKey typeEntry = new TypeKey(type);
                 DefaultSerdeRegistry.this.deserializerMap
                         .put(typeEntry, this);
                 DefaultSerdeRegistry.this.serializerMap
