@@ -94,23 +94,42 @@ public class CoreSerializers {
                                   Iterable<T> value,
                                   Argument<? extends Iterable<T>> type) throws IOException {
                 final Encoder childEncoder = encoder.encodeArray();
-                final Argument[] generics = type.getTypeParameters();
-                if (ArrayUtils.isEmpty(generics)) {
-                    throw new SerdeException("Serializing raw iterables is not supported for value: " + value);
-                }
-                final Argument<T> generic = (Argument<T>) generics[0];
-                final Serializer<T> componentSerializer = (Serializer<T>) context.findSerializer(generic);
-                for (T t : value) {
-                    if (t == null) {
-                        encoder.encodeNull();
-                        continue;
+                final Argument<?>[] generics = type.getTypeParameters();
+                final boolean hasGeneric = ArrayUtils.isNotEmpty(generics);
+                if (hasGeneric) {
+
+                    @SuppressWarnings("unchecked")
+                    final Argument<T> generic = (Argument<T>) generics[0];
+                    Serializer<? super T> componentSerializer = context.findSerializer(generic);
+                    for (T t : value) {
+                        if (t == null) {
+                            encoder.encodeNull();
+                            continue;
+                        }
+                        componentSerializer.serialize(
+                                childEncoder,
+                                context,
+                                t,
+                                generic
+                        );
                     }
-                    componentSerializer.serialize(
-                            childEncoder,
-                            context,
-                            t,
-                            generic
-                    );
+                } else {
+                    // slow path, generic look up per element
+                    for (T t : value) {
+                        if (t == null) {
+                            encoder.encodeNull();
+                            continue;
+                        }
+                        @SuppressWarnings("unchecked")
+                        Argument<T> generic = (Argument<T>) Argument.of(t.getClass());
+                        Serializer<? super T> componentSerializer = context.findSerializer(generic);
+                        componentSerializer.serialize(
+                                childEncoder,
+                                context,
+                                t,
+                                generic
+                        );
+                    }
                 }
                 childEncoder.finishStructure();
             }
@@ -157,38 +176,43 @@ public class CoreSerializers {
                                   Argument<? extends Map<K, V>> type) throws IOException {
                 final Encoder childEncoder = encoder.encodeObject();
                 final Argument[] generics = type.getTypeParameters();
-                if (ArrayUtils.isEmpty(generics) || generics.length != 2) {
-                    throw new SerdeException("Serializing raw maps is not supported for value: " + value);
-                }
-                final Argument<K> keyGeneric  = (Argument<K>) generics[0];
-                final Argument<V> valueGeneric = (Argument<V>) generics[1];
-                final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
-                for (K k : value.keySet()) {
-                    // relies on the key type implementing toString() correctly
-                    // perhaps we should supply conversion service
-                    if (CharSequence.class.isAssignableFrom(keyGeneric.getType())) {
-                        childEncoder.encodeKey(k.toString());
-                    } else {
-                        try {
-                            final String result = context.getConversionService().convertRequired(
-                                    k,
-                                    Argument.STRING
+                final boolean hasGenerics = ArrayUtils.isEmpty(generics) || generics.length != 2;
+                if (hasGenerics) {
+
+                    final Argument<V> valueGeneric = (Argument<V>) generics[1];
+                    final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
+                    for (K k : value.keySet()) {
+                        encodeMapKey(context, childEncoder, k);
+                        final V v = value.get(k);
+                        if (v == null) {
+                            childEncoder.encodeNull();
+                        } else {
+                            valSerializer.serialize(
+                                    encoder,
+                                    context,
+                                    v,
+                                    valueGeneric
                             );
-                            childEncoder.encodeKey(result != null ? result : k.toString());
-                        } catch (ConversionErrorException e) {
-                            throw new SerdeException("Error converting Map key [" + k + "] to String: " + e.getMessage(), e);
                         }
                     }
-                    final V v = value.get(k);
-                    if (v == null) {
-                        childEncoder.encodeNull();
-                    } else {
-                        valSerializer.serialize(
-                                encoder,
-                                context,
-                                v,
-                                valueGeneric
-                        );
+                } else {
+                    // slow path, lookup each value serializer
+                    for (Map.Entry<K, V> entry : value.entrySet()) {
+                        encodeMapKey(context, childEncoder, entry.getKey());
+                        final V v = entry.getValue();
+                        if (v == null) {
+                            childEncoder.encodeNull();
+                        } else {
+                            @SuppressWarnings("unchecked")
+                            final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
+                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric);
+                            valSerializer.serialize(
+                                    encoder,
+                                    context,
+                                    v,
+                                    valueGeneric
+                            );
+                        }
                     }
                 }
                 childEncoder.finishStructure();
@@ -199,6 +223,24 @@ public class CoreSerializers {
                 return CollectionUtils.isEmpty(value);
             }
         };
+    }
+
+    private <K> void encodeMapKey(Serializer.EncoderContext context, Encoder childEncoder, K k) throws IOException {
+        // relies on the key type implementing toString() correctly
+        // perhaps we should supply conversion service
+        if (k instanceof CharSequence) {
+            childEncoder.encodeKey(k.toString());
+        } else {
+            try {
+                final String result = context.getConversionService().convertRequired(
+                        k,
+                        Argument.STRING
+                );
+                childEncoder.encodeKey(result != null ? result : k.toString());
+            } catch (ConversionErrorException e) {
+                throw new SerdeException("Error converting Map key [" + k + "] to String: " + e.getMessage(), e);
+            }
+        }
     }
 
 }
