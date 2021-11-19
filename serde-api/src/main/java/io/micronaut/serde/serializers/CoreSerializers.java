@@ -188,7 +188,7 @@ public class CoreSerializers {
                             childEncoder.encodeNull();
                         } else {
                             valSerializer.serialize(
-                                    encoder,
+                                    childEncoder,
                                     context,
                                     v,
                                     valueGeneric
@@ -207,7 +207,7 @@ public class CoreSerializers {
                             final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
                             final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric);
                             valSerializer.serialize(
-                                    encoder,
+                                    childEncoder,
                                     context,
                                     v,
                                     valueGeneric

@@ -33,12 +33,12 @@ class CoreTypeSerdeSpec extends Specification {
         given:
         JsonError error = new JsonError("my error")
         error.link(Link.SELF, "http://test")
-        error.embedded("info", new MyInfo("Additional Info"))
+        error.embedded("info", new MyInfo("Additional Info").link(Link.SELF, "http://info.com"))
 
         when:
         def result = writeJson(error)
         then:
-        result == '{"message":"my error","_links":{"self":[{"href":"http://test","templated":false}]},"_embedded":{"info":[{"info":"Additional Info"}]}}'
+        result == '{"message":"my error","_links":{"self":[{"href":"http://test","templated":false}]},"_embedded":{"info":[{"info":"Additional Info","_links":{"self":[{"href":"http://info.com","templated":false}]}}]}}'
 
         when:
         def read = jsonMapper.readValue(result, Argument.of(JsonError))
