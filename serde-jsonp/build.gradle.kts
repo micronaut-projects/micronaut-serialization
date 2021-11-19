@@ -10,7 +10,7 @@ dependencies {
     api(mn.micronaut.context)
     api(projects.serdeApi)
     compileOnly(mn.micronaut.jackson.databind)
-    testImplementation("org.eclipse:yasson:2.0.2")
+    testImplementation("org.glassfish:jakarta.json:2.0.1")
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testImplementation(projects.serdeProcessor)
