@@ -23,6 +23,7 @@ dependencies {
 
     testImplementation("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
     testImplementation(projects.serdeProcessor)
+    testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.test.junit5)
     testRuntimeOnly(
