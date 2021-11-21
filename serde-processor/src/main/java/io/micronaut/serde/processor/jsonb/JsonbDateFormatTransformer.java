@@ -18,7 +18,7 @@ package io.micronaut.serde.processor.jsonb;
 
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
-import io.micronaut.inject.annotation.NamedAnnotationMapper;
+import io.micronaut.inject.annotation.NamedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeConfig;
 import java.lang.annotation.Annotation;
@@ -30,10 +30,10 @@ import java.util.List;
  *
  * @author gkrocher
  */
-public class JsonbDateFormatMapper implements NamedAnnotationMapper {
+public class JsonbDateFormatTransformer implements NamedAnnotationTransformer {
 
     @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
         String pattern = annotation.stringValue().orElse(null);
         if (null == pattern) {

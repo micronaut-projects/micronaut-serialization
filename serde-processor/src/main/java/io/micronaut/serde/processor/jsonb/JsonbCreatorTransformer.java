@@ -17,9 +17,9 @@
 package io.micronaut.serde.processor.jsonb;
 
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.inject.annotation.NamedAnnotationMapper;
+import io.micronaut.core.annotation.Creator;
+import io.micronaut.inject.annotation.NamedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
@@ -28,20 +28,19 @@ import java.util.List;
  *
  * @author gkrocher
  */
-public class JsonbTransientMapper implements NamedAnnotationMapper {
+public class JsonbCreatorTransformer implements NamedAnnotationTransformer {
 
     @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return Collections.singletonList(
-            AnnotationValue.builder(SerdeConfig.class)
-                .member("ignored", true)
+            AnnotationValue.builder(Creator.class)
                 .build()
         );
     }
 
     @Override
     public String getName() {
-        return "jakarta.json.bind.annotation.JsonbTransient";
+        return "jakarta.json.bind.annotation.JsonbCreator";
     }
 
 }
