@@ -26,7 +26,7 @@ import io.micronaut.serde.annotation.SerdeConfig;
  */
 @ConfigurationProperties(SerializationConfiguration.PREFIX)
 public interface SerializationConfiguration {
-    String PREFIX = "micronaut.serialization";
+    String PREFIX = SerdeConfiguration.PREFIX + ".serialization";
 
     /**
      * @return The default inclusion to use. Defaults to {@link io.micronaut.serde.annotation.SerdeConfig.SerInclude#NON_EMPTY}.

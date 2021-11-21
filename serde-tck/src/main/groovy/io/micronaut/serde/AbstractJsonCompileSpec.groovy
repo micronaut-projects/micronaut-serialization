@@ -113,7 +113,7 @@ abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implement
 
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
-        contextBuilder.properties("micronaut.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS)
+        contextBuilder.properties("micronaut.serde.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS)
     }
 
     protected void setupSerdeRegistry(ApplicationContext context) {

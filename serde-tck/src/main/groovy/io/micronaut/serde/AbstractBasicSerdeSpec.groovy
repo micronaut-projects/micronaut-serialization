@@ -239,6 +239,6 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
 
     @Override
     Map<String, String> getProperties() {
-        ["micronaut.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS.name()]
+        ["micronaut.serde.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS.name()]
     }
 }

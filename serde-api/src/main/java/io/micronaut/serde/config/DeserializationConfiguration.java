@@ -26,7 +26,7 @@ import io.micronaut.core.util.StringUtils;
  */
 @ConfigurationProperties(DeserializationConfiguration.PREFIX)
 public interface DeserializationConfiguration {
-    String PREFIX = "micronaut.deserialization";
+    String PREFIX = SerdeConfiguration.PREFIX + ".deserialization";
 
     /**
      * Whether to ignore unknown values during deserialization.
