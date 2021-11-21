@@ -32,7 +32,9 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.annotation.SerdeMixin;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,9 +49,14 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private final Set<String> serdePackages;
 
+    @Inject
     public DefaultSerdeIntrospections(SerdeConfiguration configuration) {
         this.serdePackages = new HashSet<>(configuration.getIncludedIntrospectionPackages());
         this.serdePackages.add("io.micronaut");
+    }
+
+    public DefaultSerdeIntrospections() {
+        this.serdePackages = Collections.singleton("io.micronaut");
     }
 
     @Override
