@@ -23,6 +23,7 @@ import java.time.temporal.TemporalQuery;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
 
 /**
@@ -31,12 +32,12 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class ZonedDateTimeSerde implements TemporalSerde<ZonedDateTime> {
+public class ZonedDateTimeSerde 
+    extends DefaultFormattedTemporalSerde<ZonedDateTime>
+    implements TemporalSerde<ZonedDateTime> {
 
-    @Override
-    public void serialize(Encoder encoder, EncoderContext context, ZonedDateTime value, Argument<? extends ZonedDateTime> type)
-            throws IOException {
-        encoder.encodeLong(value.withZoneSameInstant(UTC).toInstant().toEpochMilli());
+    protected ZonedDateTimeSerde(SerdeConfiguration configuration) {
+        super(configuration);
     }
 
     @Override
@@ -45,9 +46,12 @@ public class ZonedDateTimeSerde implements TemporalSerde<ZonedDateTime> {
     }
 
     @Override
-    public ZonedDateTime deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super ZonedDateTime> type)
-            throws IOException {
+    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, ZonedDateTime value, Argument<? extends ZonedDateTime> type) throws IOException {
+        encoder.encodeLong(value.withZoneSameInstant(UTC).toInstant().toEpochMilli());
+    }
 
+    @Override
+    protected ZonedDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super ZonedDateTime> type) throws IOException {
         return ZonedDateTime.ofInstant(
                 Instant.ofEpochMilli(decoder.decodeLong()),
                 TemporalSerde.UTC

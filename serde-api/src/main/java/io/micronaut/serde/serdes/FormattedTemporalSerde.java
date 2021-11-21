@@ -17,9 +17,9 @@ package io.micronaut.serde.serdes;
 
 import java.io.IOException;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
@@ -30,6 +30,7 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.annotation.SerdeConfig;
+
 
 @Internal
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T>  {
@@ -43,13 +44,19 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
         Locale locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
                 .map(StringUtils::parseLocale)
                 .orElse(null);
-        DateTimeFormatter formatter = locale != null ? DateTimeFormatter.ofPattern(pattern, locale) :
+        DateTimeFormatter f = locale != null ? DateTimeFormatter.ofPattern(pattern, locale) :
                 DateTimeFormatter.ofPattern(pattern);
         final ZoneId zone = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.TIMEZONE)
                 .map(ZoneId::of).orElse(UTC);
 
-        this.formatter = formatter.withZone(zone);
+        this.formatter = f.withZone(zone);
+        this.query = query;
+    }
+
+    FormattedTemporalSerde(DateTimeFormatter formatter,
+                           TemporalQuery<T> query) {
+        this.formatter = formatter;
         this.query = query;
     }
 

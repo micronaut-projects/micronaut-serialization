@@ -25,6 +25,7 @@ import java.time.temporal.TemporalQuery;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
 
 /**
@@ -33,11 +34,11 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class LocalDateTimeSerde implements TemporalSerde<LocalDateTime> {
-    @Override
-    public void serialize(Encoder encoder, EncoderContext context, LocalDateTime value, Argument<? extends LocalDateTime> type)
-            throws IOException {
-        encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli());
+public class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateTime> 
+                                implements TemporalSerde<LocalDateTime> {
+
+    protected LocalDateTimeSerde(SerdeConfiguration configuration) {
+        super(configuration);
     }
 
     @Override
@@ -46,8 +47,12 @@ public class LocalDateTimeSerde implements TemporalSerde<LocalDateTime> {
     }
 
     @Override
-    public LocalDateTime deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type)
-            throws IOException {
+    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalDateTime value, Argument<? extends LocalDateTime> type) throws IOException {
+        encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli());
+    }
+
+    @Override
+    protected LocalDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type) throws IOException {
         return LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(decoder.decodeLong()),
                 ZoneId.from(ZoneOffset.UTC)

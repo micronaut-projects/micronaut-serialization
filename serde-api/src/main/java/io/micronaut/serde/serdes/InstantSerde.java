@@ -22,6 +22,7 @@ import java.time.temporal.TemporalQuery;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
 
 /**
@@ -30,21 +31,26 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class InstantSerde implements TemporalSerde<Instant> {
-    @Override
-    public void serialize(Encoder encoder, EncoderContext context, Instant value, Argument<? extends Instant> type)
-            throws IOException {
-        encoder.encodeLong(value.toEpochMilli());
+public class InstantSerde extends DefaultFormattedTemporalSerde<Instant> implements TemporalSerde<Instant> {
+
+    private static final TemporalQuery<Instant> QUERY = Instant::from;
+
+    protected InstantSerde(SerdeConfiguration configuration) {
+        super(configuration);
     }
 
     @Override
     public TemporalQuery<Instant> query() {
-        return Instant::from;
+        return QUERY;
     }
 
     @Override
-    public Instant deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Instant> type)
-            throws IOException {
+    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, Instant value, Argument<? extends Instant> type) throws IOException {
+        encoder.encodeLong(value.toEpochMilli());
+    }
+
+    @Override
+    protected Instant deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super Instant> type) throws IOException {
         return Instant.ofEpochMilli(decoder.decodeLong());
     }
 }
