@@ -19,6 +19,9 @@ dependencies {
     compileOnly(mn.graal)
     compileOnly(mn.micronaut.jackson.databind)    
     testAnnotationProcessor(mn.micronaut.inject.java)
+    testAnnotationProcessor(projects.serdeProcessor)
+
+    testImplementation("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
     testImplementation(projects.serdeProcessor)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.test.junit5)
