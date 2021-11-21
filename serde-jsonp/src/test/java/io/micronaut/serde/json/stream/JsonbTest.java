@@ -13,6 +13,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.json.bind.annotation.JsonbPropertyOrder;
 import jakarta.json.bind.annotation.JsonbTransient;
 import java.time.Instant;
+import java.time.LocalDate;
 
 /**
  *
@@ -25,7 +26,7 @@ public class JsonbTest {
     @JsonbProperty("n")
     private final String name;
     @JsonbDateFormat("ddMMyy")
-    private Instant dateCreated = Instant.now();
+    private LocalDate dateCreated = LocalDate.of(2021, 10, 1);
     @JsonbNumberFormat("$##.##")
     private double price = 1.1;
     @JsonbTransient
@@ -34,14 +35,6 @@ public class JsonbTest {
     @JsonbCreator
     public JsonbTest(String name) {
         this.name = name;
-    }
-
-    public Instant getDateCreated() {
-        return dateCreated;
-    }
-
-    public void setDateCreated(Instant dateCreated) {
-        this.dateCreated = dateCreated;
     }
 
     public String getName() {
@@ -62,5 +55,13 @@ public class JsonbTest {
 
     public void setIgnored(boolean ignored) {
         this.ignored = ignored;
+    }
+
+    public LocalDate getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(LocalDate dateCreated) {
+        this.dateCreated = dateCreated;
     }
 }
