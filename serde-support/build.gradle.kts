@@ -16,8 +16,6 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.serdeProcessor)
 
-    api(mn.micronaut.context)
-    api(mn.micronaut.http)
     api(projects.serdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)

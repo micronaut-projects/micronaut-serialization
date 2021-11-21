@@ -31,7 +31,10 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.annotation.SerdeMixin;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeIntrospections} interface
@@ -41,6 +44,14 @@ import jakarta.inject.Singleton;
  */
 @Singleton
 public class DefaultSerdeIntrospections implements SerdeIntrospections {
+
+    private final Set<String> serdePackages;
+
+    public DefaultSerdeIntrospections(SerdeConfiguration configuration) {
+        this.serdePackages = new HashSet<>(configuration.getIncludedIntrospectionPackages());
+        this.serdePackages.add("io.micronaut");
+    }
+
     @Override
     public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
         final BeanIntrospector beanIntrospector = getBeanIntrospector();
@@ -77,20 +88,21 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private boolean isEnabledForDeserialization(AnnotationMetadataProvider reference, Argument<?> type) {
         final AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
-        return isCoreType(type) || (annotationMetadata.hasStereotype(Serdeable.Deserializable.class) &&
+        return isWithinSerdePackage(type) || (annotationMetadata.hasStereotype(Serdeable.Deserializable.class) &&
                 annotationMetadata.booleanValue(Serdeable.Deserializable.class, "enabled").orElse(true)) ||
                 (annotationMetadata.hasAnnotation(SerdeMixin.class) && isMixinEnabledForDeserialization(annotationMetadata.getAnnotationValuesByType(SerdeMixin.class), type));
     }
 
     private boolean isEnabledForSerialization(AnnotationMetadataProvider reference, Argument<?> type) {
         final AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
-        return isCoreType(type) || (annotationMetadata.hasStereotype(Serdeable.Serializable.class) &&
+        return isWithinSerdePackage(type) || (annotationMetadata.hasStereotype(Serdeable.Serializable.class) &&
                 annotationMetadata.booleanValue(Serdeable.Serializable.class, "enabled").orElse(true)) ||
                 (annotationMetadata.hasAnnotation(SerdeMixin.class) && isMixinEnabledForSerialization(annotationMetadata.getAnnotationValuesByType(SerdeMixin.class), type));
     }
 
-    private boolean isCoreType(Argument<?> type) {
-        return type.getTypeName().startsWith("io.micronaut.");
+    private boolean isWithinSerdePackage(Argument<?> type) {
+        return this.serdePackages.stream()
+            .anyMatch(p -> type.getTypeName().startsWith(p + "."));
     }
 
     private <T extends Annotation> boolean isMixinEnabledForDeserialization(List<AnnotationValue<T>> mixinsValues,

@@ -14,10 +14,10 @@ dependencies {
     api("jakarta.json:jakarta.json-api:2.0.1")
     api(mn.micronaut.context)
     api(projects.serdeApi)
+    implementation(projects.serdeSupport)
     compileOnly(mn.graal)
     compileOnly(mn.micronaut.jackson.databind)
     testImplementation("org.glassfish:jakarta.json:2.0.1")
-
     testAnnotationProcessor(mn.micronaut.inject.java)
     testImplementation(projects.serdeProcessor)
     testImplementation(mn.micronaut.inject.java.test)

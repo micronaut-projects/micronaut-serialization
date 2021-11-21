@@ -9,7 +9,7 @@ dependencies {
     api(libs.bson)
     api(mn.micronaut.context)
     api(projects.serdeApi)
-
+    implementation(projects.serdeSupport)
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.serdeProcessor)
     testImplementation(projects.serdeProcessor)
