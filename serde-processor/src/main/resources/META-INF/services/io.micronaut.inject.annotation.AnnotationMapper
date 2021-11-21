@@ -1,5 +1,6 @@
 io.micronaut.serde.processor.jsonb.JsonbPropertyMapper
 io.micronaut.serde.processor.jsonb.JsonbDateFormatMapper
+io.micronaut.serde.processor.jsonb.JsonbTransientMapper
 io.micronaut.serde.processor.jackson.JacksonAnnotationMapper
 io.micronaut.serde.processor.jackson.JsonIgnoreMapper
 io.micronaut.serde.processor.jackson.JsonViewMapper
