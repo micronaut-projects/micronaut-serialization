@@ -5,6 +5,7 @@
 
 package io.micronaut.serde.json.stream;
 
+import io.micronaut.serde.annotation.Serdeable;
 import jakarta.json.bind.annotation.JsonbCreator;
 import jakarta.json.bind.annotation.JsonbDateFormat;
 import jakarta.json.bind.annotation.JsonbNumberFormat;
@@ -18,6 +19,7 @@ import java.time.Instant;
  * @author gkrocher
  */
 @JsonbPropertyOrder({"name", "price", "dateCreated"}) 
+@Serdeable
 public class JsonbTest {
 
     @JsonbProperty("n")

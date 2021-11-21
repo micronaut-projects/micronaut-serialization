@@ -19,3 +19,5 @@ io.micronaut.serde.processor.jsonb.JsonbDateFormatTransformer
 io.micronaut.serde.processor.jsonb.JsonbCreatorTransformer
 io.micronaut.serde.processor.jsonb.JsonbPropertyTransformer
 io.micronaut.serde.processor.jsonb.JsonbTransientTransformer
+io.micronaut.serde.processor.jsonb.JsonbNumberFormatTransformer
+io.micronaut.serde.processor.jsonb.JsonbPropertyOrderTransformer
