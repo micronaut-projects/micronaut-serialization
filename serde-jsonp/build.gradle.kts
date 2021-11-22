@@ -19,12 +19,19 @@ dependencies {
     compileOnly(mn.graal)
     compileOnly(mn.micronaut.jackson.databind)    
     testAnnotationProcessor(mn.micronaut.inject.java)
+    testAnnotationProcessor(projects.serdeProcessor)
+
+    testImplementation("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
     testImplementation(projects.serdeProcessor)
+    testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.test.junit5)
     testRuntimeOnly(
         "org.junit.jupiter:junit-jupiter-engine"
     )
+    testCompileOnly(mn.micronaut.inject.groovy)
+    testImplementation(mn.micronaut.test.spock)
+
 }
 
 tasks {

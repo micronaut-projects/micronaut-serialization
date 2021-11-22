@@ -15,3 +15,9 @@ io.micronaut.serde.processor.bson.BsonIgnoreTransformer
 io.micronaut.serde.processor.bson.BsonCreatorTransformer
 io.micronaut.serde.processor.bson.BsonIdTransformer
 io.micronaut.serde.processor.bson.BsonDiscriminatorTransformer
+io.micronaut.serde.processor.jsonb.JsonbDateFormatTransformer
+io.micronaut.serde.processor.jsonb.JsonbCreatorTransformer
+io.micronaut.serde.processor.jsonb.JsonbPropertyTransformer
+io.micronaut.serde.processor.jsonb.JsonbTransientTransformer
+io.micronaut.serde.processor.jsonb.JsonbNumberFormatTransformer
+io.micronaut.serde.processor.jsonb.JsonbPropertyOrderTransformer
