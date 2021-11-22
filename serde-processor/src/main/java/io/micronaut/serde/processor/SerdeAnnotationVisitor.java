@@ -60,6 +60,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -341,6 +342,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
             final List<PropertyElement> beanProperties = element.getBeanProperties();
             final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.PropertyOrder.class));
+            Collections.reverse(order);
             final Set<Introspected.AccessKind> access = CollectionUtils.setOf(element.enumValues(Introspected.class,
                                                                                                      "accessKind",
                                                                                                      Introspected.AccessKind.class));
@@ -468,9 +470,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 final int i = order.indexOf(propertyName);
                 if (i > -1) {
                     beanProperty.annotate(Order.class, (builder) ->
-                        builder.value(i)
+                        builder.value(-(i + 1))
                     );
-
                 }
             }
 

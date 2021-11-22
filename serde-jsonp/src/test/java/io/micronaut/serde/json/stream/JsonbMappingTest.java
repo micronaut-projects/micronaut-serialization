@@ -24,7 +24,7 @@ public class JsonbMappingTest {
         byte[] bytes = jsonMapper.writeValueAsBytes(
                 new JsonbTest("test")
         );
-        assertEquals("{\"n\":\"test\",\"price\":\"$1.1\",\"dateCreated\":\"011021\"}", new String(bytes, StandardCharsets.UTF_8));
+        assertEquals("{\"n\":\"test\",\"price\":\"$1.1\",\"dateCreated\":\"011021\",\"other\":null}", new String(bytes, StandardCharsets.UTF_8));
     }
 
 }

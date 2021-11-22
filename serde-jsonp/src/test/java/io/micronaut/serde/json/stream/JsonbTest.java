@@ -8,6 +8,7 @@ package io.micronaut.serde.json.stream;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.json.bind.annotation.JsonbCreator;
 import jakarta.json.bind.annotation.JsonbDateFormat;
+import jakarta.json.bind.annotation.JsonbNillable;
 import jakarta.json.bind.annotation.JsonbNumberFormat;
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.json.bind.annotation.JsonbPropertyOrder;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
  */
 @JsonbPropertyOrder({"name", "price", "dateCreated"}) 
 @Serdeable
+@JsonbNillable
 public class JsonbTest {
 
     @JsonbProperty("n")
@@ -31,10 +33,16 @@ public class JsonbTest {
     private double price = 1.1;
     @JsonbTransient
     private boolean ignored;
+    // should be included due to JsonbNillable
+    private final String other = null;
 
     @JsonbCreator
     public JsonbTest(String name) {
         this.name = name;
+    }
+
+    public String getOther() {
+        return other;
     }
 
     public String getName() {
