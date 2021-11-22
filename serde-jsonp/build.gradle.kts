@@ -29,6 +29,9 @@ dependencies {
     testRuntimeOnly(
         "org.junit.jupiter:junit-jupiter-engine"
     )
+    testCompileOnly(mn.micronaut.inject.groovy)
+    testImplementation(mn.micronaut.test.spock)
+
 }
 
 tasks {
