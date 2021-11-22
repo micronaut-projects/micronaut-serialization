@@ -26,6 +26,7 @@ import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.util.JsonNodeDecoder;
 import io.micronaut.serde.util.JsonNodeEncoder;
+import io.micronaut.serde.util.SimpleBufferingJsonNodeProcessor;
 import jakarta.inject.Singleton;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonReader;
@@ -87,7 +88,16 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     @Override
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return new SimpleBufferingJsonNodeProcessor(onSubscribe, streamArray) {
+            @Override
+            protected JsonNode parseOne(InputStream is) throws IOException {
+                try (BsonReader bsonReader = createBsonReader(toByteBuffer(is))) {
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader);
+                    final Object o = decoder.decodeArbitrary();
+                    return writeValueToTree(o);
+                }
+            }
+        };
     }
 
     @Override

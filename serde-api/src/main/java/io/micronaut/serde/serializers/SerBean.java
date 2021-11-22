@@ -333,8 +333,8 @@ final class SerBean<T> {
             this.argument = argument;
             this.reader = reader;
             final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
-            final AnnotationMetadataHierarchy hierarchy =
-                    new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
+            final AnnotationMetadata hierarchy =
+                    annotationMetadata.isEmpty() ? beanMetadata : new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
             this.serializer = serializer.createSpecific(argument, encoderContext);
             this.views = SerdeAnnotationUtil.resolveViews(beanMetadata, annotationMetadata);
             this.include = hierarchy
