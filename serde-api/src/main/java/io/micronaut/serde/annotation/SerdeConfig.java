@@ -139,7 +139,13 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface Ignored {
-        public @interface Type { }
+        @interface Type { }
+    }
+
+    /**
+     * Include property meta annotation.
+     */
+    @interface Included {
     }
 
     /**

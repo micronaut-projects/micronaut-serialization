@@ -346,6 +346,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                                                                                      Introspected.AccessKind.class));
             boolean supportFields = access.contains(Introspected.AccessKind.FIELD);
             final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
+            final String[] includeProperties = element.stringValues(SerdeConfig.Included.class);
+
             final boolean allowGetters = element.booleanValue(SerdeConfig.Ignored.class, "allowGetters").orElse(false);
             final boolean allowSetters = element.booleanValue(SerdeConfig.Ignored.class, "allowSetters").orElse(false);
             processProperties(
@@ -353,6 +355,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     beanProperties,
                     order,
                     ignoresProperties,
+                    includeProperties,
                     allowGetters,
                     allowSetters
             );
@@ -364,6 +367,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         fields,
                         order,
                         ignoresProperties,
+                        includeProperties,
                         allowGetters,
                         allowSetters
                 );
@@ -448,17 +452,20 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    List<? extends TypedElement> beanProperties,
                                    List<String> order,
                                    String[] ignoresProperties,
+                                   String[] includeProperties,
                                    boolean allowGetters,
                                    boolean allowSetters) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
+        final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         for (TypedElement beanProperty : beanProperties) {
             if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                 final ClassElement t = beanProperty.getGenericType();
                 handleJsonIgnoreType(context, beanProperty, t);
             }
 
+            final String propertyName = beanProperty.getName();
             if (CollectionUtils.isNotEmpty(order)) {
-                final int i = order.indexOf(beanProperty.getName());
+                final int i = order.indexOf(propertyName);
                 if (i > -1) {
                     beanProperty.annotate(Order.class, (builder) ->
                         builder.value(i)
@@ -467,27 +474,30 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
 
-            if (CollectionUtils.isNotEmpty(ignoredSet)) {
-                if (ignoredSet.contains(beanProperty.getName())) {
-                    final Consumer<Element> configurer = m ->
-                            m.annotate(SerdeConfig.class, (builder) ->
-                                    builder.member(SerdeConfig.IGNORED, true)
-                            );
-                    if (beanProperty instanceof PropertyElement) {
-                        final PropertyElement propertyElement = (PropertyElement) beanProperty;
-                        if (allowGetters) {
-                            propertyElement.getWriteMethod().ifPresent(configurer);
-                        } else if (allowSetters) {
-                            propertyElement.getReadMethod().ifPresent(configurer);
-                        } else {
-                            configurer.accept(beanProperty);
-                        }
-                    } else {
-                        configurer.accept(beanProperty);
-                    }
-                }
+            if (ignoredSet.contains(propertyName)) {
+                ignoreProperty(allowGetters, allowSetters, beanProperty);
+            } else if (!includeSet.isEmpty() && !includeSet.contains(propertyName)) {
+                ignoreProperty(allowGetters, allowSetters, beanProperty);
             }
+        }
+    }
 
+    private void ignoreProperty(boolean allowGetters, boolean allowSetters, TypedElement beanProperty) {
+        final Consumer<Element> configurer = m ->
+                m.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.IGNORED, true)
+                );
+        if (beanProperty instanceof PropertyElement) {
+            final PropertyElement propertyElement = (PropertyElement) beanProperty;
+            if (allowGetters) {
+                propertyElement.getWriteMethod().ifPresent(configurer);
+            } else if (allowSetters) {
+                propertyElement.getReadMethod().ifPresent(configurer);
+            } else {
+                configurer.accept(beanProperty);
+            }
+        } else {
+            configurer.accept(beanProperty);
         }
     }
 
