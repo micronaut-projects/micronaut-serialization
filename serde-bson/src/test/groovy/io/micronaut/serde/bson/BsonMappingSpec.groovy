@@ -6,7 +6,6 @@ import jakarta.inject.Inject
 import org.bson.BsonDocument
 import org.bson.BsonObjectId
 import org.bson.types.ObjectId
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -92,6 +91,27 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             newCat.id
             newCat.name == "Meow"
             newCat.kitten
+    }
+
+    def "validate mapping with constructor"() {
+        given:
+            def expectedJson = """{"_t": "Person2", "personId": "12345", "firstName": "John", "lastName": "Smith", "address": {"_t": "Address", "address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}"""
+            def person = new Person2("12345", "John", "Smith", new Address("The home", "Downstreet", "Paris", "123456"))
+        expect:
+            asBsonJsonString(person) == expectedJson
+            encodeAsBinaryDecodeJson(person) == expectedJson
+            encodeAsBinaryDecodeAsObject(person) == person
+    }
+
+    def "validate mapping with constructor and annotation hierarchy"() {
+        given:
+            def expectedWriteJson = """{"_t": "Person3", "_id": "12345", "firstName": "John", "surname": "Smith", "address": {"_t": "Address", "address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}"""
+            def readJson = """{"_t": "Person3", "personId": "12345", "firstName": "John", "lastName": "Smith", "address": {"_t": "Address", "address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}"""
+            def person = new Person3("12345", "John", "Smith", new Address("The home", "Downstreet", "Paris", "123456"))
+        expect:
+            asBsonJsonString(person) == expectedWriteJson
+            encodeAsBinaryDecodeJson(person) == expectedWriteJson
+            bsonJsonMapper.readValue(readJson.getBytes(StandardCharsets.UTF_8), Argument.of(Person3)) == person
     }
 
 }
