@@ -117,6 +117,11 @@ public @interface SerdeConfig {
     String VIEWS = "views";
 
     /**
+     * Aliases for deserialization.
+     */
+    String ALIASES = "aliases";
+
+    /**
      * Internal metadata type for wrapped settings.
      */
     @Internal

@@ -187,6 +187,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     if (sp != null) {
                         if (sp.views != null && !decoderContext.hasView(sp.views)) {
                             objectDecoder.skipValue();
+                            skipAliases(creatorParameters, sp);
                             continue;
                         }
                         @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
@@ -195,6 +196,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                                 decoderContext,
                                 propertyType
                         );
+                        skipAliases(creatorParameters, sp);
                         if (sp.instrospection.getBeanType() == objectType) {
                             params[sp.index] = val;
                             if (hasProperties && readProperties.containsKey(prop)) {
@@ -248,6 +250,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                                     params,
                                     decoderContext
                             );
+                            skipAliases(creatorParameters, derProperty);
                         }
                     }
                 }
@@ -288,6 +291,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                                 if (derProperty.instrospection.getBeanType() == objectType) {
                                     propertyBuffer.set(obj, decoderContext);
                                 }
+                                skipAliases(readProperties, derProperty);
                             }
                         }
                     }
@@ -360,6 +364,15 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             objectDecoder.finishStructure();
 
             return obj;
+        }
+    }
+
+    private void skipAliases(Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> props,
+                           DeserBean.DerProperty<? super Object, ?> sp) {
+        if (sp.aliases != null) {
+            for (String alias : sp.aliases) {
+                props.remove(alias);
+            }
         }
     }
 
@@ -448,9 +461,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             if (property != null && property.writer != null) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
                     objectDecoder.skipValue();
+                    skipAliases(readProperties, property);
                     continue;
                 }
 
+                skipAliases(readProperties, property);
                 final Argument<Object> propertyType = property.argument;
                 boolean isNull = objectDecoder.decodeNull();
                 if (isNull) {

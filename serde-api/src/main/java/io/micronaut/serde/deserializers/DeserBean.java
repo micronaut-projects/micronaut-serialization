@@ -89,7 +89,7 @@ class DeserBean<T> {
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
         this.ignoreUnknown = introspection.booleanValue(SerdeConfig.Ignored.class, "ignoreUnknown").orElse(true);
-        final HashMap<String, DerProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
+        final Map<String, DerProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter<Object> anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
@@ -101,11 +101,13 @@ class DeserBean<T> {
             }
             if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
                 anySetterValue = new AnySetter<>(constructorArgument, i, decoderContext);
+                final String n = constructorArgument.getName();
                 creatorParams.put(
-                        constructorArgument.getName(),
+                        n,
                         new DerProperty<>(
                                 introspection,
                                 i,
+                                n,
                                 constructorArgument,
                                 null,
                                 decoderContext.findDeserializer(constructorArgument),
@@ -119,6 +121,7 @@ class DeserBean<T> {
             final String jsonProperty = resolveName(constructorArgument, annotationMetadata);
             final Deserializer<?> deserializer = decoderContext.findDeserializer(constructorArgument);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+            final DerProperty<T, ?> derProperty;
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
                     creatorUnwrapped = new ArrayList<>();
@@ -131,6 +134,7 @@ class DeserBean<T> {
                 creatorUnwrapped.add(new DerProperty(
                         introspection,
                         i,
+                        jsonProperty,
                         constructorArgument,
                         null,
                         deserializer,
@@ -149,32 +153,34 @@ class DeserBean<T> {
                     }
                 }
 
-                creatorParams.put(
+                derProperty = new DerProperty<>(
+                        introspection,
+                        i,
                         jsonProperty,
-                        new DerProperty<>(
-                                introspection,
-                                i,
-                                constructorArgument,
-                                null,
-                                (Deserializer) deserializer,
-                                unwrapped,
-                                decoderContext
-                        )
+                        constructorArgument,
+                        null,
+                        (Deserializer) deserializer,
+                        unwrapped,
+                        decoderContext
                 );
+
             } else {
-                creatorParams.put(
+                derProperty = new DerProperty<>(
+                        introspection,
+                        i,
                         jsonProperty,
-                        new DerProperty<>(
-                                introspection,
-                                i,
-                                constructorArgument,
-                                null,
-                                (Deserializer) deserializer,
-                                null,
-                                decoderContext
-                        )
+                        constructorArgument,
+                        null,
+                        (Deserializer) deserializer,
+                        null,
+                        decoderContext
                 );
             }
+            creatorParams.put(
+                    jsonProperty,
+                    derProperty
+            );
+            handleAliases(creatorParams, derProperty);
         }
 
 
@@ -196,7 +202,6 @@ class DeserBean<T> {
             }
         }
 
-        //noinspection unchecked
         if (anySetterValue == null) {
             anySetterValue = (anySetter != null ? new AnySetter(anySetter, decoderContext) : null);
         }
@@ -227,6 +232,7 @@ class DeserBean<T> {
                         unwrappedProperties.add(new DerProperty<>(
                                 introspection,
                                 i,
+                                t.getName(),
                                 t,
                                 combinedMetadata,
                                 beanProperty::set,
@@ -256,17 +262,18 @@ class DeserBean<T> {
                     } else {
 
                         final String jsonProperty = resolveName(beanProperty, annotationMetadata);
-
-                        readProps.put(jsonProperty, new DerProperty<>(
-                                        introspection,
-                                        i,
-                                        t,
-                                        beanProperty::set,
-                                        findDeserializer(decoderContext, t),
-                                        null,
-                                        decoderContext
-                                )
+                        final DerProperty<T, Object> derProperty = new DerProperty<>(
+                                introspection,
+                                i,
+                                jsonProperty,
+                                t,
+                                beanProperty::set,
+                                findDeserializer(decoderContext, t),
+                                null,
+                                decoderContext
                         );
+                        readProps.put(jsonProperty, derProperty);
+                        handleAliases(readProps, derProperty);
                     }
                 }
             }
@@ -277,15 +284,19 @@ class DeserBean<T> {
                         jsonSetter.getAnnotationMetadata()
                 );
                 final Argument<Object> argument = (Argument<Object>) jsonSetter.getArguments()[0];
-                readProps.put(property, new DerProperty<>(
+                final DerProperty<T, Object> derProperty = new DerProperty<>(
                         introspection,
                         0,
+                        property,
                         argument,
                         jsonSetter::invoke,
                         findDeserializer(decoderContext, argument),
                         null,
                         decoderContext
-                ));
+                );
+                readProps.put(property, derProperty);
+                handleAliases(readProps, derProperty);
+
             }
 
             this.readProperties = Collections.unmodifiableMap(readProps);
@@ -303,6 +314,17 @@ class DeserBean<T> {
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
+    }
+
+    private void handleAliases(Map creatorParams, DerProperty<T, ?> derProperty) {
+        if (derProperty.aliases != null) {
+            for (String alias : derProperty.aliases) {
+                creatorParams.put(
+                        alias,
+                        derProperty
+                );
+            }
+        }
     }
 
     private String resolveName(Named named, AnnotationMetadata annotationMetadata) {
@@ -411,6 +433,9 @@ class DeserBean<T> {
         public final boolean isAnySetter;
         @Nullable
         public final Class<?>[] views;
+        @Nullable
+        public final String[] aliases;
+
         public final @Nullable
         BiConsumer<B, P> writer;
         public final @NonNull
@@ -419,6 +444,7 @@ class DeserBean<T> {
 
         public DerProperty(BeanIntrospection<B> introspection,
                            int index,
+                           String property,
                            Argument<P> argument,
                            @Nullable BiConsumer<B, P> writer,
                            @NonNull Deserializer<P> deserializer,
@@ -427,6 +453,7 @@ class DeserBean<T> {
             this(
                     introspection,
                     index,
+                    property,
                     argument,
                     argument.getAnnotationMetadata(),
                     writer,
@@ -438,6 +465,7 @@ class DeserBean<T> {
 
         public DerProperty(BeanIntrospection<B> instrospection,
                            int index,
+                           String property,
                            Argument<P> argument,
                            AnnotationMetadata argumentMetadata,
                            @Nullable BiConsumer<B, P> writer,
@@ -464,6 +492,13 @@ class DeserBean<T> {
             }
             this.unwrapped = unwrapped;
             this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class);
+            final String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
+            if (ArrayUtils.isNotEmpty(aliases)) {
+                this.aliases = ArrayUtils.concat(aliases, property);
+            } else {
+                this.aliases = null;
+            }
+
         }
 
         public void setDefault(@NonNull B bean) throws SerdeException {

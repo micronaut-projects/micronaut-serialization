@@ -1698,7 +1698,6 @@ class Name {
         context.close()
     }
 
-    @PendingFeature(reason = 'alias')
     void "aliases"() {
         given:
         def context = buildContext('example.Test', '''
