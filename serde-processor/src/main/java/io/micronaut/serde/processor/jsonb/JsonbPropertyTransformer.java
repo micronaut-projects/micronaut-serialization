@@ -34,7 +34,9 @@ public class JsonbPropertyTransformer implements NamedAnnotationTransformer {
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.stringValue().ifPresent(builder::value);
+        annotation.stringValue().ifPresent(name ->
+            builder.member(SerdeConfig.PROPERTY, name)
+        );
         annotation.booleanValue("nillable")
                 .ifPresent(include -> {
             if (include) {
