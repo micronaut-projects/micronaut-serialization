@@ -15,14 +15,6 @@
  */
 package io.micronaut.serde.serializers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -43,6 +35,18 @@ import io.micronaut.serde.annotation.SerdeConfig;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.SerdeAnnotationUtil;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Internal
 final class SerBean<T> {
@@ -80,25 +84,40 @@ final class SerBean<T> {
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
-        final Collection<BeanProperty<T, Object>> properties =
+        final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanProperties().stream()
                         .filter(property -> !property.isWriteOnly() &&
                                 !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
                                 !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
                         .sorted(getPropertyComparator())
+                        .map(beanProperty -> {
+                            Optional<Argument<?>> constructorArgument = Arrays.stream(introspection.getConstructor().getArguments())
+                                    .filter(a -> a.getName().equals(beanProperty.getName()) && a.getType().equals(beanProperty.getType()))
+                                    .findFirst();
+                            return constructorArgument.<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>>map(argument -> new AbstractMap.SimpleEntry<>(
+                                    beanProperty,
+                                    new AnnotationMetadataHierarchy(argument.getAnnotationMetadata(), beanProperty.getAnnotationMetadata())
+                            )).orElseGet(() -> new AbstractMap.SimpleEntry<>(
+                                    beanProperty,
+                                    beanProperty.getAnnotationMetadata()
+                            ));
+                        })
                         .collect(Collectors.toList());
-        final BeanProperty<T, Object> serValue = properties.stream()
-                .filter(bp -> bp.hasAnnotation(SerdeConfig.SerValue.class))
+        final Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
+                .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class))
                 .findFirst().orElse(null);
-        if (serValue != null) {
+        if (serPropEntry != null) {
             wrapperProperty = null;
             anyGetter = null;
-            final Argument<Object> serType = serValue.asArgument();
+            BeanProperty<T, Object> beanProperty = serPropEntry.getKey();
+            final Argument<Object> serType = beanProperty.asArgument();
+            AnnotationMetadata propertyAnnotationMetadata = serPropEntry.getValue();
             jsonValue = new SerProperty<>(
                     this,
-                    serValue.getName(),
+                    beanProperty.getName(),
                     serType,
-                    serValue::get,
+                    propertyAnnotationMetadata,
+                    beanProperty::get,
                     encoderContext.findSerializer(serType),
                     null,
                     encoderContext
@@ -172,9 +191,10 @@ final class SerBean<T> {
                             }
                         }
                     });
-                    for (BeanProperty<T, Object> property : properties) {
+                    for (Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> propWithAnnotations : properties) {
+                        final BeanProperty<T, Object> property = propWithAnnotations.getKey();
                         final Argument<Object> argument = property.asArgument();
-                        final AnnotationMetadata propertyAnnotationMetadata = property.getAnnotationMetadata();
+                        final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
                         final String defaultPropertyName = argument.getName();
                         boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
                         if (unwrapped) {
