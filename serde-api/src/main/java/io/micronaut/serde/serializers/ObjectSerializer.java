@@ -36,7 +36,6 @@ import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -156,11 +155,14 @@ public class ObjectSerializer implements Serializer<Object> {
                     }
                 };
             } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
-                    SerdeConfig.PropertyOrder.class)) {
+                    SerdeConfig.PropertyOrder.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.Included.class)) {
                 final String[] ignored = annotationMetadata.stringValues(SerdeConfig.Ignored.class);
+                final String[] included = annotationMetadata.stringValues(SerdeConfig.Included.class);
                 List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.PropertyOrder.class));
                 final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
-                Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : Collections.emptySet();
+                final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
+                Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
+                Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
                 return new ObjectSerializer(introspections, configuration) {
                     @Override
                     protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
@@ -170,6 +172,9 @@ public class ObjectSerializer implements Serializer<Object> {
                         }
                         if (hasIgnored) {
                             writeProperties.removeIf(p -> ignoreSet.contains(p.name));
+                        }
+                        if (hasIncluded) {
+                            writeProperties.removeIf(p -> !includedSet.contains(p.name));
                         }
                         return writeProperties;
                     }
