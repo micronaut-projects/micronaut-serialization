@@ -43,8 +43,13 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     private final boolean streamArray;
     private Subscriber<? super JsonNode> jsonSubscriber;
     private Subscription subscription;
-    private boolean upstreamComplete;
-    private boolean downstreamComplete;
+    private volatile boolean upstreamComplete;
+    private volatile boolean downstreamComplete;
+
+    /**
+     * Guard for {@link #downstreamDemand} and {@link #nodeBuffer}.
+     */
+    private final Object nodeLock = new Object();
     private int downstreamDemand;
     private final Queue<JsonNode> nodeBuffer = new ArrayDeque<>();
 
@@ -78,7 +83,10 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
         this.jsonSubscriber.onSubscribe(new Subscription() {
             @Override
             public void request(long n) {
-                downstreamDemand += n;
+                synchronized (nodeLock) {
+                    downstreamDemand += n;
+                    flushBuffer();
+                }
                 if (subscription != null) {
                     subscription.request(n);
                 }
@@ -189,12 +197,14 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     }
 
     private void processTopLevelNode(JsonNode node) {
-        if (streamArray && node.isArray()) {
-            for (JsonNode child : node.values()) {
-                nodeBuffer.add(child);
+        synchronized (nodeLock) {
+            if (streamArray && node.isArray()) {
+                for (JsonNode child : node.values()) {
+                    nodeBuffer.add(child);
+                }
+            } else {
+                nodeBuffer.add(node);
             }
-        } else {
-            nodeBuffer.add(node);
         }
     }
 
@@ -231,13 +241,15 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     }
 
     private void flushBuffer() {
-        if (!downstreamComplete) {
-            while (downstreamDemand != 0 && !nodeBuffer.isEmpty()) {
-                jsonSubscriber.onNext(nodeBuffer.remove());
-            }
-            if (nodeBuffer.isEmpty() && upstreamComplete) {
-                downstreamComplete = true;
-                jsonSubscriber.onComplete();
+        synchronized (nodeLock) {
+            if (!downstreamComplete) {
+                while (downstreamDemand != 0 && !nodeBuffer.isEmpty()) {
+                    jsonSubscriber.onNext(nodeBuffer.remove());
+                }
+                if (upstreamComplete && nodeBuffer.isEmpty()) {
+                    downstreamComplete = true;
+                    jsonSubscriber.onComplete();
+                }
             }
         }
     }
