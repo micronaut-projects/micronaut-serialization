@@ -1126,7 +1126,6 @@ class Test {
         context.close()
     }
 
-    @PendingFeature(reason = 'other accessor conventions')
     void "JsonProperty on accessors without prefix"() {
         given:
         def context = buildContext('example.Test', '''

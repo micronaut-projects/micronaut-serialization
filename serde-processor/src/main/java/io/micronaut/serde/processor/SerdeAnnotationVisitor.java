@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.micronaut.context.annotation.DefaultImplementation;
+import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -37,6 +38,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
@@ -58,13 +60,7 @@ import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -79,6 +75,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private FieldElement anySetterField;
     private MethodElement jsonValueMethod;
     private FieldElement jsonValueField;
+    private Set<MethodElement> readMethods = new HashSet<>(20);
+    private Set<MethodElement> writeMethods = new HashSet<>(20);
     private SerdeConfig.CreatorMode creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
 
     @Override
@@ -172,7 +170,30 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
-        if (element.hasDeclaredAnnotation(SerdeConfig.Getter.class)) {
+        AnnotationMetadata declaredMetadata = element.getDeclaredMetadata();
+        if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Property.class) ||
+            declaredMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
+            if (!readMethods.contains(element) && !writeMethods.contains(element)) {
+
+                ParameterElement[] parameters = element.getParameters();
+                if (element.isStatic()) {
+                    context.fail("A method annotated with JsonProperty cannot be static", element);
+                } else if (parameters.length == 0) {
+                    if (element.getReturnType().getName().equals("void")) {
+                        context.fail("A method annotated with JsonProperty cannot return void", element);
+                    } else {
+                        element.annotate(Executable.class);
+                        element.annotate(SerdeConfig.Getter.class);
+                    }
+                } else if (parameters.length == 1) {
+                    element.annotate(Executable.class);
+                    element.annotate(SerdeConfig.Setter.class);
+                } else {
+                    context.fail("A method annotated with JsonProperty must specify at most 1 argument", element);
+                }
+            }
+
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Getter.class)) {
             if (element.isStatic()) {
                 context.fail("A method annotated with JsonGetter cannot be static", element);
             } else if (element.getReturnType().getName().equals("void")) {
@@ -180,7 +201,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else if (element.hasParameters()) {
                 context.fail("A method annotated with JsonGetter cannot define arguments", element);
             }
-        } else if (element.hasDeclaredAnnotation(SerdeConfig.Setter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Setter.class)) {
             if (element.isStatic()) {
                 context.fail("A method annotated with JsonSetter cannot be static", element);
             } else {
@@ -189,14 +210,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     context.fail("A method annotated with JsonSetter must specify exactly 1 argument", element);
                 }
             }
-        } else if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
             if (this.anyGetterMethod == null) {
                 this.anyGetterMethod = element;
             } else {
                 context.fail("Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true), element);
             }
 
-            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
                 context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
             } else if (element.isStatic()) {
                 context.fail("A method annotated with AnyGetter cannot be static", element);
@@ -205,13 +226,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else if (element.hasParameters()) {
                 context.fail("A method annotated with AnyGetter cannot define arguments", element);
             }
-        } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
             if (this.anySetterMethod == null) {
                 this.anySetterMethod = element;
             } else {
                 context.fail("Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true), element);
             }
-            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
                 context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
             } else if (element.isStatic()) {
                 context.fail("A method annotated with AnySetter cannot be static", element);
@@ -225,7 +246,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     context.fail("A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String", element);
                 }
             }
-        } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
             if (jsonValueField != null) {
                 context.fail("A JsonValue field is already defined: " + jsonValueField, element);
             } else if (jsonValueMethod != null) {
@@ -460,6 +481,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         for (TypedElement beanProperty : beanProperties) {
+            if (beanProperty instanceof PropertyElement) {
+                PropertyElement pm = (PropertyElement) beanProperty;
+                pm.getReadMethod().ifPresent(rm ->
+                    readMethods.add(rm)
+                );
+                pm.getWriteMethod().ifPresent(rm ->
+                    writeMethods.add(rm)
+                );
+            }
             if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                 final ClassElement t = beanProperty.getGenericType();
                 handleJsonIgnoreType(context, beanProperty, t);
@@ -523,6 +553,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.anySetterField = null;
         this.jsonValueField = null;
         this.jsonValueMethod = null;
+        this.readMethods.clear();
+        this.writeMethods.clear();
     }
 
     private SerdeConfig.Subtyped.DiscriminatorValueKind getDiscriminatorValueKind(ClassElement typeInfo) {

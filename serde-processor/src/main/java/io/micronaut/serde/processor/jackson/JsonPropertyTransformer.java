@@ -38,13 +38,18 @@ public class JsonPropertyTransformer implements TypedAnnotationTransformer<JsonP
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<JsonProperty> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.stringValue().ifPresent(s -> builder.member(SerdeConfig.PROPERTY, s));
+        String propertyName = annotation.stringValue().orElse(null);
         ArrayList<AnnotationValue<?>> values = new ArrayList<>();
+        if (propertyName != null) {
+            builder.member(SerdeConfig.PROPERTY, propertyName);
+        } else {
+            values.add(AnnotationValue.builder(SerdeConfig.Property.class).build());
+        }
 
         annotation.stringValue("defaultValue")
                 .ifPresent(s ->
-                                   values.add(AnnotationValue.builder(Bindable.class)
-                                                      .member("defaultValue", s).build())
+                       values.add(AnnotationValue.builder(Bindable.class)
+                                          .member("defaultValue", s).build())
                 );
         final JsonProperty.Access access = annotation.enumValue("access", JsonProperty.Access.class).orElse(null);
         if (access != null) {
