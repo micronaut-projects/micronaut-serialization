@@ -46,6 +46,7 @@ public @interface Serdeable {
      * Annotation used to indicate a type is serializable.
      */
     @Introspected(indexed = @Introspected.IndexedAnnotation(annotation = SerdeConfig.SerValue.class))
+    @SerdeConfig
     @interface Serializable {
         /**
          * @return Whether serialization is enabled. Defaults to true.
@@ -61,6 +62,7 @@ public @interface Serdeable {
     /**
      * Annotation used to indicate a type is deserializable.
      */
+    @SerdeConfig
     @interface Deserializable {
         /**
          * @return Whether serialization is enabled. Defaults to true.

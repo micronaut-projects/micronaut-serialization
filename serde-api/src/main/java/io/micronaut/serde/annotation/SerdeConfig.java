@@ -23,6 +23,7 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.annotation.Repeatable;
 
 /**
  * Meta-annotation with meta annotation members that different annotation
@@ -204,6 +205,10 @@ public @interface SerdeConfig {
     @Internal
     @interface Subtyped {
         /**
+         * @return the subtypes
+         */
+        Subtype[] value() default {};
+        /**
          * The discriminator to use.
          */
         String DISCRIMINATOR_TYPE = "dt";
@@ -224,6 +229,13 @@ public @interface SerdeConfig {
 
         enum DiscriminatorValueKind {
             CLASS_NAME, CLASS_SIMPLE_NAME, NAME
+        }
+
+        /**
+         * Meta annotation for a mapped subtype.
+         */
+        @Repeatable(Subtyped.class)
+        @interface Subtype {
         }
     }
 
