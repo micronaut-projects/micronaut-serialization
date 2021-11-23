@@ -19,9 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Queue;
 import java.util.function.Consumer;
 
@@ -51,15 +49,15 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     private final Queue<JsonNode> nodeBuffer = new ArrayDeque<>();
 
     /**
-     * bytes left to process
+     * bytes left to process.
      */
     private final Queue<byte[]> buffers = new ArrayDeque<>();
     /**
-     * Offset into {@link #buffers}{@code [0]} to use for parsing
+     * Offset into {@link #buffers}{@code [0]} to use for parsing.
      */
     private int headOffset = 0;
     /**
-     * Current state of {@link #walkJson} in the {@link #buffers}
+     * Current state of {@link #walkJson} in the {@link #buffers}.
      */
     private long buffersState = 0;
 
@@ -286,6 +284,8 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
                     case ']':
                         nestCount--;
                         break;
+                    default:
+                        break;
                 }
                 break;
             case 1:
@@ -297,6 +297,8 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
                     case '\\':
                         dfaState = 2;
                         break;
+                    default:
+                        break;
                 }
                 break;
             case 2:
@@ -304,6 +306,8 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
                 // the only escape we care about is \", so we don't need to handle longer escapes.
                 dfaState = 1;
                 break;
+            default:
+                throw new AssertionError();
         }
 
         // repack the two variables
