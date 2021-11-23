@@ -18,13 +18,13 @@ package io.micronaut.serde.support;
 import java.lang.management.LockInfo;
 import java.lang.management.ThreadInfo;
 
-import io.micronaut.serde.annotation.SerdeMixin;
+import io.micronaut.serde.annotation.SerdeImport;
 
 /**
  * Additional Serdes for core types needed by Micronaut management module.
  */
-@SerdeMixin(ThreadInfo.class)
-@SerdeMixin(LockInfo.class)
-@SerdeMixin(StackTraceElement.class)
+@SerdeImport(ThreadInfo.class)
+@SerdeImport(LockInfo.class)
+@SerdeImport(StackTraceElement.class)
 final class AdditionalSerdes {
 }

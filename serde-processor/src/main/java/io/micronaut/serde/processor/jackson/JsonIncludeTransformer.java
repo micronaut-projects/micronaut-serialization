@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.annotation.TypedAnnotationTransformer;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
- * Maps the {@link com.fasterxml.jackson.annotation.JsonInclude} annotation to {@link io.micronaut.serde.annotation.SerdeConfig}.
+ * Maps the {@link com.fasterxml.jackson.annotation.JsonInclude} annotation to {@link SerdeConfig}.
  */
 public class JsonIncludeTransformer implements TypedAnnotationTransformer<JsonInclude> {
     @Override

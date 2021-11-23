@@ -11,9 +11,9 @@ class SerdeMixinSpec extends JsonCompileSpec {
 package mixintest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.micronaut.serde.annotation.SerdeMixin;
+import io.micronaut.serde.annotation.SerdeImport;
 
-@SerdeMixin(Test.class)
+@SerdeImport(Test.class)
 class TestMixin {}
 
 public class Test {
@@ -39,10 +39,10 @@ public class Test {
 package mixintest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.micronaut.serde.annotation.SerdeMixin;
+import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 
-@SerdeMixin(
+@SerdeImport(
     value = Test.class,
     deser = @Serdeable.Deserializable(enabled = false)
 )

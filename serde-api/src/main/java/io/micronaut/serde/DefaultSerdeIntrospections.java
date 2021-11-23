@@ -29,7 +29,7 @@ import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.serde.annotation.SerdeMixin;
+import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Inject;
@@ -97,14 +97,14 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
         final AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
         return isWithinSerdePackage(type) || (annotationMetadata.hasStereotype(Serdeable.Deserializable.class) &&
                 annotationMetadata.booleanValue(Serdeable.Deserializable.class, "enabled").orElse(true)) ||
-                (annotationMetadata.hasAnnotation(SerdeMixin.class) && isMixinEnabledForDeserialization(annotationMetadata.getAnnotationValuesByType(SerdeMixin.class), type));
+                (annotationMetadata.hasAnnotation(SerdeImport.class) && isMixinEnabledForDeserialization(annotationMetadata.getAnnotationValuesByType(SerdeImport.class), type));
     }
 
     private boolean isEnabledForSerialization(AnnotationMetadataProvider reference, Argument<?> type) {
         final AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
         return isWithinSerdePackage(type) || (annotationMetadata.hasStereotype(Serdeable.Serializable.class) &&
                 annotationMetadata.booleanValue(Serdeable.Serializable.class, "enabled").orElse(true)) ||
-                (annotationMetadata.hasAnnotation(SerdeMixin.class) && isMixinEnabledForSerialization(annotationMetadata.getAnnotationValuesByType(SerdeMixin.class), type));
+                (annotationMetadata.hasAnnotation(SerdeImport.class) && isMixinEnabledForSerialization(annotationMetadata.getAnnotationValuesByType(SerdeImport.class), type));
     }
 
     private boolean isWithinSerdePackage(Argument<?> type) {

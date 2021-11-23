@@ -47,8 +47,8 @@ import io.micronaut.inject.ast.TypedElement;
 import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
-import io.micronaut.serde.annotation.SerdeMixin;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.lang.annotation.Annotation;
@@ -351,10 +351,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
-        if (element.hasAnnotation(SerdeMixin.Repeated.class)) {
-            final List<AnnotationValue<SerdeMixin>> values = element.getAnnotationValuesByType(SerdeMixin.class);
+        if (element.hasAnnotation(SerdeImport.Repeated.class)) {
+            final List<AnnotationValue<SerdeImport>> values = element.getAnnotationValuesByType(SerdeImport.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
-            for (AnnotationValue<SerdeMixin> value : values) {
+            for (AnnotationValue<SerdeImport> value : values) {
                 value.annotationClassValue(AnnotationMetadata.VALUE_MEMBER)
                         .flatMap(acv -> context.getClassElement(acv.getName()))
                         .ifPresent(c -> {

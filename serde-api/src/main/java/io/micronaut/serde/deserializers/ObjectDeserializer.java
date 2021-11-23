@@ -28,7 +28,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.SerdeIntrospections;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;

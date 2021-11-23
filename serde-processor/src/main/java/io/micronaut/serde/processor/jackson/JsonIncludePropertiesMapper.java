@@ -24,7 +24,7 @@ import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Support for JsonIncludeProperties.

@@ -24,7 +24,7 @@ import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Maps the {@link com.fasterxml.jackson.annotation.JsonCreator} annotation to {@link io.micronaut.core.annotation.Creator}.

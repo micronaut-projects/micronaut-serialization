@@ -19,7 +19,7 @@ import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Configuration for serialization.
@@ -29,7 +29,7 @@ public interface SerializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".serialization";
 
     /**
-     * @return The default inclusion to use. Defaults to {@link io.micronaut.serde.annotation.SerdeConfig.SerInclude#NON_EMPTY}.
+     * @return The default inclusion to use. Defaults to {@link SerdeConfig.SerInclude#NON_EMPTY}.
      */
     @Bindable(defaultValue = "NON_EMPTY")
     @NonNull

@@ -18,7 +18,6 @@ package io.micronaut.serde.serializers;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalMultiValues;
-import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -30,8 +29,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Serializer for {@link OptionalMultiValues}.
+ * @param <V> The value type
+ */
 @Singleton
-class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues<V>> {
+final class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues<V>> {
     private final boolean alwaysSerializeErrorsAsList;
 
     public OptionalMultiValuesSerializer(SerializationConfiguration jacksonConfiguration) {

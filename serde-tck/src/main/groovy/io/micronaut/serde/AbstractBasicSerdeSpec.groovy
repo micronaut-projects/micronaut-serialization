@@ -17,7 +17,7 @@ package io.micronaut.serde
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
-import io.micronaut.serde.annotation.SerdeConfig
+import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.test.support.TestPropertyProvider
 import spock.lang.Specification
 

@@ -31,10 +31,10 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.SerdeAnnotationUtil;
+import io.micronaut.serde.config.annotation.SerdeAnnotationUtil;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;

@@ -29,7 +29,7 @@ import io.micronaut.core.reflect.InstantiationUtils
 import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
-import io.micronaut.serde.annotation.SerdeConfig
+import io.micronaut.serde.config.annotation.SerdeConfig
 import org.intellij.lang.annotations.Language
 
 import javax.tools.JavaFileObject

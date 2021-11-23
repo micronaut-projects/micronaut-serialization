@@ -22,6 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Annotation to allow external classes to be enabled for serialization / deserialization.
@@ -29,9 +30,9 @@ import io.micronaut.core.annotation.Internal;
 @Internal
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-@Repeatable(SerdeMixin.Repeated.class)
+@Repeatable(SerdeImport.Repeated.class)
 @SerdeConfig
-public @interface SerdeMixin {
+public @interface SerdeImport {
     /**
      * Allows making an external class or interface serializable.
      *
@@ -58,6 +59,6 @@ public @interface SerdeMixin {
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.SOURCE)
     @interface Repeated {
-        SerdeMixin[] value();
+        SerdeImport[] value();
     }
 }

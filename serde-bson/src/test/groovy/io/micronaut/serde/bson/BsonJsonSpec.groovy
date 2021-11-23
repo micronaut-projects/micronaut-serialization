@@ -1,7 +1,7 @@
 package io.micronaut.serde.bson
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.annotation.SerdeConfig
+import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.test.support.TestPropertyProvider
 
 import java.nio.charset.StandardCharsets

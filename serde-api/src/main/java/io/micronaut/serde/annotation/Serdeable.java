@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * A Serde is an annotation that can be applied to type to indicate that

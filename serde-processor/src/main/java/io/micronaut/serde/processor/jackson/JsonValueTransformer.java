@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Support for JsonValue.

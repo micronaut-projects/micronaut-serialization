@@ -33,9 +33,9 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.SerdeAnnotationUtil;
+import io.micronaut.serde.config.annotation.SerdeAnnotationUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;

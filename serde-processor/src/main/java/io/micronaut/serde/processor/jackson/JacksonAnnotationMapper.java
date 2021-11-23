@@ -22,10 +22,10 @@ import com.fasterxml.jackson.annotation.JacksonAnnotation;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.SerdeConfig;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
- * Maps the {@link com.fasterxml.jackson.annotation.JacksonAnnotation} stereotype to {@link io.micronaut.serde.annotation.SerdeConfig}.
+ * Maps the {@link com.fasterxml.jackson.annotation.JacksonAnnotation} stereotype to {@link SerdeConfig}.
  */
 public final class JacksonAnnotationMapper implements TypedAnnotationMapper<JacksonAnnotation> {
     @Override

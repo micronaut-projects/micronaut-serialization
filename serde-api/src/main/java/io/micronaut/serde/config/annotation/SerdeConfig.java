@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.annotation;
+package io.micronaut.serde.config.annotation;
 
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.Internal;

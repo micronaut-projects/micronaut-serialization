@@ -1,13 +1,9 @@
 package io.micronaut.serde.jackson.annotation
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter
-import com.fasterxml.jackson.annotation.JsonAnySetter
-import io.micronaut.core.beans.BeanIntrospection
-import io.micronaut.core.type.Argument
+
 import io.micronaut.serde.SerdeIntrospections
-import io.micronaut.serde.annotation.SerdeConfig
+import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.PendingFeature
 import spock.lang.Requires
 
 class JsonGetterSetterSpec extends JsonCompileSpec {
