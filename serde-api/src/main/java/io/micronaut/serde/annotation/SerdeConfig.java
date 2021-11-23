@@ -193,6 +193,12 @@ public @interface SerdeConfig {
     }
 
     /**
+     * For case where property is defined with no name.
+     */
+    @interface Property {
+    }
+
+    /**
      * Meta annotations for subtyped mapping.
      */
     @Internal
