@@ -18,16 +18,16 @@ package io.micronaut.serde.util;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 import io.micronaut.core.annotation.Experimental;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.json.tree.JsonArray;
 import io.micronaut.json.tree.JsonNode;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
@@ -45,11 +45,25 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     private final boolean streamArray;
     private Subscriber<? super JsonNode> jsonSubscriber;
     private Subscription subscription;
-    private byte[] buffer;
     private boolean upstreamComplete;
     private boolean downstreamComplete;
     private int downstreamDemand;
-    private final List<JsonNode> nodeBuffer;
+    private final Queue<JsonNode> nodeBuffer = new ArrayDeque<>();
+
+    /**
+     * bytes left to process
+     */
+    private final Queue<byte[]> buffers = new ArrayDeque<>();
+    /**
+     * Offset into {@link #buffers}{@code [0]} to use for parsing
+     */
+    private int headOffset = 0;
+    /**
+     * Current state of {@link #walkJson} in the {@link #buffers}
+     */
+    private long buffersState = 0;
+
+    private boolean onlyWhitespace = true;
 
     public SimpleBufferingJsonNodeProcessor(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                             boolean streamArray) {
@@ -57,7 +71,6 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
         this.streamArray = streamArray;
         upstreamComplete = false;
         downstreamComplete = false;
-        nodeBuffer = new ArrayList<>();
     }
 
     @Override
@@ -93,55 +106,93 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     @Override
     public void onNext(byte[] bytes) {
         if (!upstreamComplete) {
-            if (streamArray) {
-                if (buffer == null) {
-                    buffer = bytes;
-                } else {
-                    if (bytes.length != 0) {
-                        buffer = ArrayUtils.concat(buffer, bytes);
-                    }
-                }
-            } else {
-                if (bytes.length > 0) {
-                    if (buffer == null) {
-                        buffer = bytes;
-                    } else {
-                        buffer = ArrayUtils.concat(buffer, bytes);
-                    }
-                    final byte s = buffer[0];
-                    final byte f = s == (byte) '{' ? (byte) '}' : (byte) ']';
-                    if (countBytes(s, f, buffer)) {
-                        try {
-                            JsonNode node = parseOne(buffer);
-                            nodeBuffer.add(node);
-                        } catch (Exception e) {
-                            subscription.cancel();
-                            upstreamComplete = true;
-                            if (jsonSubscriber != null) {
-                                jsonSubscriber.onError(e);
-                                downstreamComplete = true;
-                            }
-                        }
-                        buffer = null;
-                        flushBuffer();
-                    }
-                }
-            }
+            feed(bytes);
+            flushBuffer();
             subscription.request(1);
         }
     }
 
-    private boolean countBytes(byte start, byte end, byte[] data) {
-        int[] counts = new int[2];
-        for (int i = 0; i < data.length; i++) {
-            byte b = data[i];
-            if (b == start) {
-                counts[0]++;
-            } else if (b == end) {
-                counts[1]++;
+    private void feed(byte[] bytes) {
+        if (bytes.length == 0) {
+            return;
+        }
+        buffers.add(bytes);
+        for (int i = 0; i < bytes.length; ) {
+            boolean ws = isJsonWhitespace(bytes[i]);
+            buffersState = walkJson(buffersState, bytes[i]);
+            onlyWhitespace &= ws;
+            i++;
+            if (buffersState == 0 && ws && !onlyWhitespace) {
+                processOne(bytes.length - i);
+                onlyWhitespace = true;
             }
         }
-        return counts[0] == counts[1];
+    }
+
+    private void processRemainingData() {
+        if (!onlyWhitespace) {
+            processOne(0);
+            onlyWhitespace = true;
+        }
+    }
+
+    /**
+     * Process one JSON value from {@link #buffers}{@code [0][}{@link #headOffset}{@code ]} to
+     * {@link #buffers}{@code [-1][-tailRemaining]}, then adjust {@link #buffers} and {@link #headOffset} to only
+     * contain remaining data from the tail.
+     */
+    private void processOne(int tailRemaining) {
+        // count total length
+        int totalLength = -headOffset - tailRemaining;
+        for (byte[] buffer : buffers) {
+            totalLength += buffer.length;
+        }
+        // copy data into a single buffer
+        byte[] composite = new byte[totalLength];
+        int compositeOff = 0;
+        boolean head = true;
+        byte[] tailBuffer = null;
+        for (Iterator<byte[]> iterator = buffers.iterator(); iterator.hasNext(); ) {
+            byte[] buffer = iterator.next();
+            boolean tail = !iterator.hasNext();
+            if (tail) {
+                tailBuffer = buffer;
+            }
+            int bufferOff = head ? headOffset : 0;
+            int bufferLen = buffer.length - bufferOff - (tail ? tailRemaining : 0);
+            System.arraycopy(buffer, bufferOff, composite, compositeOff, bufferLen);
+            compositeOff += bufferLen;
+            head = false;
+        }
+        // parse
+        try {
+            processTopLevelNode(parseOne(composite));
+        } catch (Exception e) {
+            subscription.cancel();
+            upstreamComplete = true;
+            if (jsonSubscriber != null) {
+                jsonSubscriber.onError(e);
+                downstreamComplete = true;
+            }
+        }
+        // restructure local buffers
+        buffers.clear();
+        if (tailBuffer != null && tailRemaining != 0) {
+            buffers.add(tailBuffer);
+            headOffset = tailBuffer.length - tailRemaining;
+        } else {
+            headOffset = 0;
+        }
+    }
+
+    private void processTopLevelNode(JsonNode node) {
+        if (streamArray && node.isArray()) {
+            for (JsonNode child : node.values()) {
+                nodeBuffer.add(child);
+            }
+        } else {
+            nodeBuffer.add(node);
+        }
     }
 
     @Override
@@ -157,7 +208,7 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     public void onComplete() {
         if (!upstreamComplete && !downstreamComplete) {
             upstreamComplete = true;
-            initBuffer();
+            processRemainingData();
             flushBuffer();
         }
     }
@@ -170,30 +221,6 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
      */
     protected abstract @NonNull JsonNode parseOne(@NonNull InputStream is) throws IOException;
 
-    private void initBuffer() {
-        final byte[] buffer = this.buffer;
-        if (buffer != null) {
-            if (streamArray) {
-                try (ByteArrayInputStream is = new ByteArrayInputStream(buffer)) {
-                    final JsonNode jsonNode = parseOne(is);
-                    if (jsonNode instanceof JsonArray) {
-                        JsonArray array = (JsonArray) jsonNode;
-                        for (JsonNode value : array.values()) {
-                            nodeBuffer.add(value);
-                        }
-                    } else {
-                        nodeBuffer.add(jsonNode);
-                    }
-                } catch (Exception e) {
-                    jsonSubscriber.onError(e);
-                    downstreamComplete = true;
-                } finally {
-                    this.buffer = null;
-                }
-            }
-        }
-    }
-
     private JsonNode parseOne(byte[] remaining) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(remaining)) {
             return parseOne(is);
@@ -202,19 +229,79 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
 
     private void flushBuffer() {
         if (!downstreamComplete) {
-            if (downstreamDemand > 0) {
-                final Iterator<JsonNode> i = nodeBuffer.iterator();
-                while (downstreamDemand-- != 0 && i.hasNext()) {
-                    final JsonNode node = i.next();
-                    i.remove();
-                    jsonSubscriber.onNext(node);
-                }
+            while (downstreamDemand != 0 && !nodeBuffer.isEmpty()) {
+                jsonSubscriber.onNext(nodeBuffer.remove());
             }
-
             if (nodeBuffer.isEmpty() && upstreamComplete) {
                 downstreamComplete = true;
                 jsonSubscriber.onComplete();
             }
         }
+    }
+
+    private static boolean isJsonWhitespace(byte b) {
+        return b == 0x20 || b == 0x0a || b == 0x0d || b == 0x09;
+    }
+
+    /**
+     * This method is a simple JSON lexer. It uses a single {@code long state}, which is {@code 0} when a JSON object
+     * or array has been fully visited. If there is still data missing (i.e. if there is still an unmatched brace or
+     * bracket), the state will be {@code != 0}. If the JSON is invalid, the state is undefined. Example:
+     *
+     * <pre>{@code
+     * long state = 0;
+     * for (byte b : bytes) state = walkJson(state, b);
+     * }</pre>
+     * <p>
+     * {@code state} will be 0 if the `bytes` contain a full JSON array or object.
+     * <p>
+     * Note: Does not work for top-level scalar values, or for invalid JSON.
+     *
+     * @param state The old state
+     * @param b     The new input byte to visit
+     * @return The new state
+     */
+    static long walkJson(long state, byte b) {
+        // unpack the two variables
+        int dfaState = (int) state;
+        int nestCount = (int) (state >> 32);
+
+        switch (dfaState) {
+            case 0:
+                // outside string
+                switch (b) {
+                    case '"':
+                        dfaState = 1;
+                        break;
+                    case '{':
+                    case '[':
+                        nestCount++;
+                        break;
+                    case '}':
+                    case ']':
+                        nestCount--;
+                        break;
+                }
+                break;
+            case 1:
+                // inside string
+                switch (b) {
+                    case '"':
+                        dfaState = 0;
+                        break;
+                    case '\\':
+                        dfaState = 2;
+                        break;
+                }
+                break;
+            case 2:
+                // inside escape sequence
+                // the only escape we care about is \", so we don't need to handle longer escapes.
+                dfaState = 1;
+                break;
+        }
+
+        // repack the two variables
+        return ((long) nestCount << 32) | dfaState;
     }
 }
