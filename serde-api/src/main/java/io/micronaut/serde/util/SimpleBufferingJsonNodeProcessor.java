@@ -241,15 +241,27 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     }
 
     private void flushBuffer() {
-        synchronized (nodeLock) {
-            if (!downstreamComplete) {
-                while (downstreamDemand != 0 && !nodeBuffer.isEmpty()) {
-                    jsonSubscriber.onNext(nodeBuffer.remove());
+        while (true) {
+            JsonNode toForward;
+            synchronized (nodeLock) {
+                if (downstreamComplete) {
+                    return;
                 }
                 if (upstreamComplete && nodeBuffer.isEmpty()) {
                     downstreamComplete = true;
-                    jsonSubscriber.onComplete();
+                    toForward = null;
+                } else {
+                    if (nodeBuffer.isEmpty()) {
+                        return;
+                    } else {
+                        toForward = nodeBuffer.remove();
+                    }
                 }
+            }
+            if (toForward == null) {
+                jsonSubscriber.onComplete();
+            } else {
+                jsonSubscriber.onNext(toForward);
             }
         }
     }
