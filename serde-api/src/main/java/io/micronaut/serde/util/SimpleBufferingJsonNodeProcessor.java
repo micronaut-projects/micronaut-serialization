@@ -119,12 +119,16 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
         buffers.add(bytes);
         for (int i = 0; i < bytes.length; ) {
             boolean ws = isJsonWhitespace(bytes[i]);
+            boolean wasOutsideStructure = buffersState == 0;
             buffersState = walkJson(buffersState, bytes[i]);
+            if (buffersState != 0 && wasOutsideStructure && !onlyWhitespace) {
+                processOne(bytes.length - i);
+            }
             onlyWhitespace &= ws;
             i++;
+            // split on whitespace
             if (buffersState == 0 && ws && !onlyWhitespace) {
                 processOne(bytes.length - i);
-                onlyWhitespace = true;
             }
         }
     }
@@ -183,6 +187,7 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
         } else {
             headOffset = 0;
         }
+        onlyWhitespace = true;
     }
 
     private void processTopLevelNode(JsonNode node) {

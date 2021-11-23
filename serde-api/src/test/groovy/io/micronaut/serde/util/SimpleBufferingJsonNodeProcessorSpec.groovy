@@ -250,6 +250,7 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
         data << [
                 ['{"abc', '":"def"', '}', '\n'],
                 ['{"abc', '":"def"', '}'],
+                ['{"abc":"def"}{"abc":"def"}'],
                 ['"abc', '" "def"', '\n'],
                 ['4', '2 55 56', '7\n'],
         ]
