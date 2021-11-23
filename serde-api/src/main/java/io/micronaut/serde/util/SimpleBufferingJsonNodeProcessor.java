@@ -220,8 +220,8 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     @Override
     public void onComplete() {
         if (!upstreamComplete && !downstreamComplete) {
-            upstreamComplete = true;
             processRemainingData();
+            upstreamComplete = true;
             flushBuffer();
         }
     }
