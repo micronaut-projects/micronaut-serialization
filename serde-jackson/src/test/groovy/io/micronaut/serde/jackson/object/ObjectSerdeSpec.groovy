@@ -1276,7 +1276,7 @@ class Test {
         context.close()
     }
 
-    @PendingFeature(reason = 'single-parameter json creator')
+    @PendingFeature(reason = 'single-parameter json creator. Dont think we should support this, can be done with delegating mode for JsonCreator')
     void "JsonCreator with single parameter of different name"() {
         given:
         def context = buildContext('example.Test', '''

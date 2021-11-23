@@ -81,8 +81,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private FieldElement anySetterField;
     private MethodElement jsonValueMethod;
     private FieldElement jsonValueField;
-    private Set<MethodElement> readMethods = new HashSet<>(20);
-    private Set<MethodElement> writeMethods = new HashSet<>(20);
+    private final Set<String> readMethods = new HashSet<>(20);
+    private final Set<String> writeMethods = new HashSet<>(20);
     private SerdeConfig.CreatorMode creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
 
     @Override
@@ -179,26 +179,25 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         AnnotationMetadata declaredMetadata = element.getDeclaredMetadata();
         if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Property.class) ||
             declaredMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
-            if (!readMethods.contains(element) && !writeMethods.contains(element)) {
+            ParameterElement[] parameters = element.getParameters();
+            if (element.isStatic()) {
+                context.fail("A method annotated with JsonProperty cannot be static", element);
+            } else if (parameters.length == 0) {
+                if (element.getReturnType().getName().equals("void")) {
+                    context.fail("A method annotated with JsonProperty cannot return void", element);
+                } else if (!readMethods.contains(element.getName())) {
+                    element.annotate(Executable.class);
+                    element.annotate(SerdeConfig.Getter.class);
+                }
+            } else if (parameters.length == 1) {
+                if (!writeMethods.contains(element.getName())) {
 
-                ParameterElement[] parameters = element.getParameters();
-                if (element.isStatic()) {
-                    context.fail("A method annotated with JsonProperty cannot be static", element);
-                } else if (parameters.length == 0) {
-                    if (element.getReturnType().getName().equals("void")) {
-                        context.fail("A method annotated with JsonProperty cannot return void", element);
-                    } else {
-                        element.annotate(Executable.class);
-                        element.annotate(SerdeConfig.Getter.class);
-                    }
-                } else if (parameters.length == 1) {
                     element.annotate(Executable.class);
                     element.annotate(SerdeConfig.Setter.class);
-                } else {
-                    context.fail("A method annotated with JsonProperty must specify at most 1 argument", element);
                 }
+            } else {
+                context.fail("A method annotated with JsonProperty must specify at most 1 argument", element);
             }
-
         } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Getter.class)) {
             if (element.isStatic()) {
                 context.fail("A method annotated with JsonGetter cannot be static", element);
@@ -490,10 +489,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (beanProperty instanceof PropertyElement) {
                 PropertyElement pm = (PropertyElement) beanProperty;
                 pm.getReadMethod().ifPresent(rm ->
-                    readMethods.add(rm)
+                    readMethods.add(rm.getName())
                 );
                 pm.getWriteMethod().ifPresent(rm ->
-                    writeMethods.add(rm)
+                    writeMethods.add(rm.getName())
                 );
             }
             if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
