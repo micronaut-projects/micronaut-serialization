@@ -29,10 +29,11 @@ import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.util.JsonNodeDecoder;
-import io.micronaut.serde.util.JsonNodeEncoder;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.util.JsonNodeDecoder;
+import io.micronaut.serde.util.JsonNodeEncoder;
+import io.micronaut.serde.util.SimpleBufferingJsonNodeProcessor;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
@@ -86,7 +87,16 @@ public class JsonStreamMapper implements JsonMapper {
     @Override
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return new SimpleBufferingJsonNodeProcessor(onSubscribe, streamArray) {
+            @Override
+            protected JsonNode parseOne(InputStream is) throws IOException {
+                try (JsonParser parser = Json.createParser(is)) {
+                    final JsonParserDecoder decoder = new JsonParserDecoder(parser);
+                    final Object o = decoder.decodeArbitrary();
+                    return writeValueToTree(o);
+                }
+            }
+        };
     }
 
     @Override
@@ -134,4 +144,5 @@ public class JsonStreamMapper implements JsonMapper {
     public JsonStreamConfig getStreamConfig() {
         return null;
     }
+
 }

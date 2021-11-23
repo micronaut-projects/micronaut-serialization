@@ -26,12 +26,14 @@ dependencies {
     testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.test.junit5)
+    testImplementation(mn.micronaut.http.server.netty)
+    testImplementation(mn.micronaut.http.client)
     testRuntimeOnly(
         "org.junit.jupiter:junit-jupiter-engine"
     )
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)
-
+    testImplementation(mn.micronaut.reactor)
 }
 
 tasks {
