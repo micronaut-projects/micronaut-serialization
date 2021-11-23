@@ -30,14 +30,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.context.annotation.Executable;
-import io.micronaut.core.annotation.AnnotationClassValue;
-import io.micronaut.core.annotation.AnnotationMetadata;
-import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.core.annotation.Creator;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Order;
+import io.micronaut.core.annotation.*;
 import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
@@ -327,6 +323,34 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
+        List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.Subtyped.Subtype.class);
+        if (!subtypes.isEmpty()) {
+            final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
+            String typeProperty = resolveTypeProperty(Optional.of(element)).orElseGet(() ->
+                    discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
+            );
+            for (AnnotationValue<SerdeConfig.Subtyped.Subtype> subtype : subtypes) {
+                String className = subtype.stringValue().orElse(null);
+                if (className != null) {
+                    ClassElement subElement = context.getClassElement(className).orElse(null);
+                    String[] names = subtype.stringValues("names");
+                    String typeName;
+
+                    if (subElement != null && !subElement.hasStereotype(SerdeConfig.class)) {
+                        if (ArrayUtils.isNotEmpty(names)) {
+                            typeName = names[0]; // TODO: support multiple
+                        } else {
+                            typeName = subElement.getSimpleName();
+                        }
+                        subElement.annotate(Serdeable.class);
+                        subElement.annotate(SerdeConfig.class, (builder) -> {
+                            JsonTypeInfo.As include = resolveInclude(Optional.of(element)).orElse(null);
+                            handleSubtypeInclude(builder, typeName, typeProperty, include);
+                        });
+                    }
+                }
+            }
+        }
         if (element.hasAnnotation(SerdeMixin.Repeated.class)) {
             final List<AnnotationValue<SerdeMixin>> values = element.getAnnotationValuesByType(SerdeMixin.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
@@ -417,13 +441,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                        discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
                     );
                     final JsonTypeInfo.As include = resolveInclude(superType).orElse(null);
-                    if (include == JsonTypeInfo.As.WRAPPER_OBJECT) {
-                        builder.member(SerdeConfig.TYPE_NAME, typeName);
-                        builder.member(SerdeConfig.WRAPPER_PROPERTY, typeName);
-                    } else {
-                        builder.member(SerdeConfig.TYPE_NAME, typeName);
-                        builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
-                    }
+                    handleSubtypeInclude(builder, typeName, typeProperty, include);
                 });
             }
 
@@ -473,6 +491,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     }
                 }
             });
+        }
+    }
+
+    private void handleSubtypeInclude(AnnotationValueBuilder<SerdeConfig> builder, String typeName, String typeProperty, JsonTypeInfo.As include) {
+        if (include == JsonTypeInfo.As.WRAPPER_OBJECT) {
+            builder.member(SerdeConfig.TYPE_NAME, typeName);
+            builder.member(SerdeConfig.WRAPPER_PROPERTY, typeName);
+        } else if (typeProperty != null) {
+            builder.member(SerdeConfig.TYPE_NAME, typeName);
+            builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
         }
     }
 
@@ -572,6 +600,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private Optional<ClassElement> findTypeInfo(ClassElement element) {
         // TODO: support interfaces
+        if (element.hasDeclaredAnnotation(JsonTypeInfo.class)) {
+            return Optional.of(element);
+        }
+
         final ClassElement superElement = element.getSuperType().orElse(null);
         if (superElement == null) {
             return Optional.empty();

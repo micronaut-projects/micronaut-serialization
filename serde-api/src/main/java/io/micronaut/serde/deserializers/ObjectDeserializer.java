@@ -124,6 +124,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                                     readProperties =
                                             deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
                                     hasProperties = readProperties != null;
+                                    anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
                                 }
                             }
                             break;
@@ -348,6 +349,14 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             propertyBuffer,
                             decoderContext
                     );
+                } else if (anyValues != null && tokenBuffer != null) {
+                    for (TokenBuffer buffer : tokenBuffer) {
+                        anyValues.handle(
+                                buffer.name,
+                                buffer.decoder,
+                                decoderContext
+                        );
+                    }
                 }
             }
             // finish up
