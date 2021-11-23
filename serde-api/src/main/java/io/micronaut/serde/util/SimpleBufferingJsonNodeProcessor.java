@@ -85,8 +85,8 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
             public void request(long n) {
                 synchronized (nodeLock) {
                     downstreamDemand += n;
-                    flushBuffer();
                 }
+                flushBuffer();
                 if (subscription != null) {
                     subscription.request(n);
                 }
@@ -244,7 +244,7 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
         while (true) {
             JsonNode toForward;
             synchronized (nodeLock) {
-                if (downstreamComplete) {
+                if (downstreamComplete || downstreamDemand == 0) {
                     return;
                 }
                 if (upstreamComplete && nodeBuffer.isEmpty()) {
@@ -255,6 +255,9 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
                         return;
                     } else {
                         toForward = nodeBuffer.remove();
+                        if (downstreamDemand > 0) {
+                            downstreamDemand--;
+                        }
                     }
                 }
             }
