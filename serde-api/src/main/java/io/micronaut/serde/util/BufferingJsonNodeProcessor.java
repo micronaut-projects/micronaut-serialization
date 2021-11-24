@@ -38,7 +38,7 @@ import org.reactivestreams.Subscriber;
  */
 @Internal
 @Experimental
-public abstract class SimpleBufferingJsonNodeProcessor extends SpreadProcessor<byte[], JsonNode> {
+public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[], JsonNode> {
     private final Consumer<Processor<byte[], JsonNode>> onSubscribe;
 
     private final boolean streamArray;
@@ -57,8 +57,8 @@ public abstract class SimpleBufferingJsonNodeProcessor extends SpreadProcessor<b
 
     private boolean onlyWhitespace = true;
 
-    public SimpleBufferingJsonNodeProcessor(Consumer<Processor<byte[], JsonNode>> onSubscribe,
-                                            boolean streamArray) {
+    public BufferingJsonNodeProcessor(Consumer<Processor<byte[], JsonNode>> onSubscribe,
+                                      boolean streamArray) {
         this.onSubscribe = onSubscribe;
         this.streamArray = streamArray;
     }

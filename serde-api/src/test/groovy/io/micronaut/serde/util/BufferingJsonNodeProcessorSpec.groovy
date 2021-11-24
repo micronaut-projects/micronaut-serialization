@@ -15,7 +15,7 @@ import spock.lang.Specification
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
 
-class SimpleBufferingJsonNodeProcessorSpec extends Specification {
+class BufferingJsonNodeProcessorSpec extends Specification {
     private static final JsonFactory factory = new JsonFactory()
 
     private static JsonNode node(@Language('json') String json) {
@@ -39,7 +39,7 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
         when:
         long state = 0
         for (int i = 0; i < bytes.length; i++) {
-            state = SimpleBufferingJsonNodeProcessor.walkJson(state, bytes[i])
+            state = BufferingJsonNodeProcessor.walkJson(state, bytes[i])
             assert isComplete(factory.createParser(bytes, 0, i + 1)) == (state == 0)
         }
 
@@ -145,7 +145,7 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
 
     def 'nodes are forwarded asap'() {
         given:
-        def processor = new SimpleBufferingJsonNodeProcessorImpl(false)
+        def processor = new BufferingJsonNodeProcessorImpl(false)
         def seen = new ArrayDeque<JsonNode>()
         processor.onSubscribe(new Subscription() {
             @Override
@@ -207,7 +207,7 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
             expectedNodes.add(JsonNodeTreeCodec.instance.readTree(parser))
         }
         def actualNodes = new ArrayList<JsonNode>()
-        def processor = new SimpleBufferingJsonNodeProcessorImpl(false)
+        def processor = new BufferingJsonNodeProcessorImpl(false)
         processor.onSubscribe(new Subscription() {
             @Override
             void request(long n) {
@@ -270,7 +270,7 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
             expectedNodes.remove(0)
         }
         def actualNodes = new ArrayList<JsonNode>()
-        def processor = new SimpleBufferingJsonNodeProcessorImpl(true)
+        def processor = new BufferingJsonNodeProcessorImpl(true)
         processor.onSubscribe(new Subscription() {
             @Override
             void request(long n) {
@@ -318,13 +318,13 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
         ]
     }
 
-    static class SimpleBufferingJsonNodeProcessorImpl extends SimpleBufferingJsonNodeProcessor {
+    static class BufferingJsonNodeProcessorImpl extends BufferingJsonNodeProcessor {
 
-        SimpleBufferingJsonNodeProcessorImpl(boolean streamArray) {
+        BufferingJsonNodeProcessorImpl(boolean streamArray) {
             this({}, streamArray)
         }
 
-        SimpleBufferingJsonNodeProcessorImpl(Consumer<Processor<byte[], JsonNode>> onSubscribe, boolean streamArray) {
+        BufferingJsonNodeProcessorImpl(Consumer<Processor<byte[], JsonNode>> onSubscribe, boolean streamArray) {
             super(onSubscribe, streamArray)
         }
 
