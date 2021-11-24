@@ -15,22 +15,12 @@
  */
 package io.micronaut.serde.processor;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonClassDescription;
-import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonKey;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonMerge;
-import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.*;
+import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.util.ArrayUtils;
@@ -51,7 +41,6 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 
-import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
@@ -91,16 +80,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         );
     }
 
-    private Set<Class<? extends Annotation>> getUnsupportedJacksonAnnotations() {
+    private Set<String> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
-                JsonKey.class,
-                JsonFilter.class,
-                JsonBackReference.class,
-                JsonAutoDetect.class,
-                JsonMerge.class,
-                JsonIdentityInfo.class,
-                JsonIdentityReference.class,
-                JsonManagedReference.class
+                "com.fasterxml.jackson.annotation.JsonKey",
+                "com.fasterxml.jackson.annotation.JsonFilter",
+                "com.fasterxml.jackson.annotation.JsonBackReference",
+                "com.fasterxml.jackson.annotation.JsonAutoDetect",
+                "com.fasterxml.jackson.annotation.JsonMerge",
+                "com.fasterxml.jackson.annotation.JsonIdentityInfo",
+                "com.fasterxml.jackson.annotation.JsonIdentityReference",
+                "com.fasterxml.jackson.annotation.JsonManagedReference"
         );
     }
 
@@ -259,9 +248,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private boolean checkForErrors(Element element, VisitorContext context) {
-        for (Class<? extends Annotation> annotation : getUnsupportedJacksonAnnotations()) {
+        for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
-                context.fail("Annotation @" + annotation.getSimpleName() + " is not supported", element);
+                context.fail("Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported", element);
             }
         }
         final String error = element.stringValue(SerdeConfig.SerdeError.class).orElse(null);
@@ -647,12 +636,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private boolean isJsonAnnotated(ClassElement element) {
         return Stream.of(
-                        JsonClassDescription.class,
-                        JsonTypeInfo.class,
-                        JsonRootName.class,
-                        JsonTypeName.class,
-                        JsonTypeId.class,
-                        JsonAutoDetect.class)
+                        "com.fasterxml.jackson.annotation.JsonClassDescription",
+                        "com.fasterxml.jackson.annotation.JsonTypeInfo",
+                        "com.fasterxml.jackson.annotation.JsonRootName",
+                        "com.fasterxml.jackson.annotation.JsonTypeName",
+                        "com.fasterxml.jackson.annotation.JsonTypeId",
+                        "com.fasterxml.jackson.annotation.JsonAutoDetect")
                 .anyMatch(element::hasDeclaredAnnotation) ||
                 (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
     }

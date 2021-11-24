@@ -15,26 +15,22 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.inject.annotation.TypedAnnotationTransformer;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Maps the {@link com.fasterxml.jackson.annotation.JsonInclude} annotation to {@link SerdeConfig}.
  */
-public class JsonIncludeTransformer implements TypedAnnotationTransformer<JsonInclude> {
-    @Override
-    public Class<JsonInclude> annotationType() {
-        return JsonInclude.class;
-    }
+public class JsonIncludeMapper implements NamedAnnotationMapper {
 
     @Override
-    public List<AnnotationValue<?>> transform(AnnotationValue<JsonInclude> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final SerdeConfig.SerInclude v = annotation.enumValue(SerdeConfig.SerInclude.class).orElse(null);
         if (v != null) {
             return Collections.singletonList(
@@ -44,5 +40,10 @@ public class JsonIncludeTransformer implements TypedAnnotationTransformer<JsonIn
             );
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonInclude";
     }
 }

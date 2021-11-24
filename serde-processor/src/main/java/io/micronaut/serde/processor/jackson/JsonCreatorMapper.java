@@ -15,32 +15,32 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.annotation.Creator;
-import io.micronaut.inject.annotation.TypedAnnotationMapper;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Maps the {@link com.fasterxml.jackson.annotation.JsonCreator} annotation to {@link io.micronaut.core.annotation.Creator}.
  */
-public final class JsonCreatorMapper implements TypedAnnotationMapper<JsonCreator> {
+public final class JsonCreatorMapper implements NamedAnnotationMapper {
 
     @Override
-    public Class<JsonCreator> annotationType() {
-        return JsonCreator.class;
-    }
-
-    @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<JsonCreator> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<Creator> builder = AnnotationValue.builder(Creator.class);
         annotation.enumValue("mode", SerdeConfig.CreatorMode.class)
                 .ifPresent(e -> builder.member("mode", e));
         return Collections.singletonList(builder.build());
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonCreator";
     }
 }

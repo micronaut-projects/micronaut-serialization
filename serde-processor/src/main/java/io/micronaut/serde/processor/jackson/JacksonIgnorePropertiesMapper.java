@@ -15,30 +15,32 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonValue;
-import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.AnnotationValueBuilder;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Support for JsonValue.
+ * Support for JsonIgnoreProperties.
  */
-public class JsonValueTransformer extends ValidatingAnnotationTransformer<JsonValue> {
+public class JacksonIgnorePropertiesMapper implements NamedAnnotationMapper {
     @Override
-    protected List<AnnotationValue<?>> transformValid(AnnotationValue<JsonValue> annotation, VisitorContext visitorContext) {
-        return Arrays.asList(
-                AnnotationValue.builder(Executable.class).build(),
-                AnnotationValue.builder(SerdeConfig.SerValue.class)
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
+        final AnnotationValueBuilder<SerdeConfig.Ignored> builder = AnnotationValue.builder(SerdeConfig.Ignored.class);
+
+        return Collections.singletonList(
+                builder.members(annotation.getValues())
                         .build()
         );
     }
 
     @Override
-    public Class<JsonValue> annotationType() {
-        return JsonValue.class;
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonIgnoreProperties";
     }
 }

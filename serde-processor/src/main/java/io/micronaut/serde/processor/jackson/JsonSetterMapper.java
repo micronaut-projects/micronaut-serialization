@@ -15,13 +15,13 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -32,19 +32,14 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 /**
  * Transformer for JsonSetter.
  */
-public final class JsonSetterTransformer extends ValidatingAnnotationTransformer<JsonSetter> {
-    @Override
-    public Class<JsonSetter> annotationType() {
-        return JsonSetter.class;
-    }
-
+public final class JsonSetterMapper extends ValidatingAnnotationMapper {
     @Override
     protected Set<String> getSupportedMemberNames() {
         return Collections.singleton(AnnotationMetadata.VALUE_MEMBER);
     }
 
     @Override
-    protected List<AnnotationValue<?>> transformValid(AnnotationValue<JsonSetter> annotation, VisitorContext visitorContext) {
+    protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final String n = annotation.stringValue().orElse(null);
         List<AnnotationValue<?>> values = new ArrayList<>(3);
         if (n != null) {
@@ -57,5 +52,10 @@ public final class JsonSetterTransformer extends ValidatingAnnotationTransformer
                 AnnotationValue.builder(SerdeConfig.Setter.class).build()
         ));
         return values;
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonSetter";
     }
 }

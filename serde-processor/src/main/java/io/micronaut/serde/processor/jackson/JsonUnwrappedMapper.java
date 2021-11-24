@@ -15,27 +15,22 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
-import io.micronaut.inject.annotation.TypedAnnotationTransformer;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Adds support for Jackson's JsonUnwrapped.
  */
-public class JsonUnwrappedTransformer implements TypedAnnotationTransformer<JsonUnwrapped> {
+public class JsonUnwrappedMapper implements NamedAnnotationMapper {
     @Override
-    public Class<JsonUnwrapped> annotationType() {
-        return JsonUnwrapped.class;
-    }
-
-    @Override
-    public List<AnnotationValue<?>> transform(AnnotationValue<JsonUnwrapped> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<SerdeConfig.Unwrapped> unwrapped =
                 AnnotationValue.builder(SerdeConfig.Unwrapped.class);
         annotation.stringValue(SerdeConfig.Unwrapped.PREFIX).ifPresent(v -> unwrapped.member(
@@ -46,4 +41,10 @@ public class JsonUnwrappedTransformer implements TypedAnnotationTransformer<Json
         ));
         return Collections.singletonList(unwrapped.build());
     }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonUnwrapped";
+    }
+
 }

@@ -15,11 +15,11 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.util.CollectionUtils;
@@ -32,7 +32,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
  * @author graemerocher
  * @since 1.0.0
  */
-public class JsonFormatTransformer extends ValidatingAnnotationTransformer<JsonFormat> {
+public class JsonFormatMapper extends ValidatingAnnotationMapper {
 
     private static final Set<String> MEMBER_NAMES = CollectionUtils.setOf(
             SerdeConfig.PATTERN,
@@ -42,7 +42,7 @@ public class JsonFormatTransformer extends ValidatingAnnotationTransformer<JsonF
     );
 
     @Override
-    protected List<AnnotationValue<?>> transformValid(AnnotationValue<JsonFormat> annotation, VisitorContext visitorContext) {
+    protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
         for (String memberName : MEMBER_NAMES) {
             annotation.stringValue(memberName)
@@ -58,7 +58,7 @@ public class JsonFormatTransformer extends ValidatingAnnotationTransformer<JsonF
     }
 
     @Override
-    public Class<JsonFormat> annotationType() {
-        return JsonFormat.class;
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonFormat";
     }
 }

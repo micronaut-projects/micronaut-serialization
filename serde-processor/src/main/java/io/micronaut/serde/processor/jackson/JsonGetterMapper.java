@@ -15,29 +15,24 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
-import io.micronaut.inject.annotation.TypedAnnotationTransformer;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Support for Jackson's JsonGetter.
  */
-public class JsonGetterTransformer implements TypedAnnotationTransformer<JsonGetter> {
+public class JsonGetterMapper implements NamedAnnotationMapper {
     @Override
-    public Class<JsonGetter> annotationType() {
-        return JsonGetter.class;
-    }
-
-    @Override
-    public List<AnnotationValue<?>> transform(AnnotationValue<JsonGetter> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final String n = annotation.stringValue().orElse(null);
         List<AnnotationValue<?>> values = new ArrayList<>(3);
         if (n != null) {
@@ -50,5 +45,10 @@ public class JsonGetterTransformer implements TypedAnnotationTransformer<JsonGet
                 AnnotationValue.builder(SerdeConfig.Getter.class).build()
         ));
         return values;
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonGetter";
     }
 }

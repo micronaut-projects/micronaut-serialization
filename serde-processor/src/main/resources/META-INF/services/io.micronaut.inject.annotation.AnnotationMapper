@@ -6,3 +6,15 @@ io.micronaut.serde.processor.jackson.JsonViewMapper
 io.micronaut.serde.processor.jackson.JsonCreatorMapper
 io.micronaut.serde.processor.jackson.JsonAliasMapper
 io.micronaut.serde.processor.bson.BsonRepresentationMapper
+io.micronaut.serde.processor.jackson.JsonPropertyOrderMapper
+io.micronaut.serde.processor.jackson.JsonValueMapper
+io.micronaut.serde.processor.jackson.JsonSetterMapper
+io.micronaut.serde.processor.jackson.JsonAnyGetterMapper
+io.micronaut.serde.processor.jackson.JsonAnySetterMapper
+io.micronaut.serde.processor.jackson.JsonFormatMapper
+io.micronaut.serde.processor.jackson.JsonIncludeMapper
+io.micronaut.serde.processor.jackson.JacksonIgnorePropertiesMapper
+io.micronaut.serde.processor.jackson.JacksonIgnoreTypeMapper
+io.micronaut.serde.processor.jackson.JsonUnwrappedMapper
+io.micronaut.serde.processor.jackson.JsonGetterMapper
+io.micronaut.serde.processor.jackson.JsonPropertyMapper

@@ -15,31 +15,30 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
- * Adds support for JsonAnyGetter.
+ * Support for JsonValue.
  */
-public class JsonAnyGetterTransformer extends ValidatingAnnotationTransformer<JsonAnyGetter> {
-
+public class JsonValueMapper extends ValidatingAnnotationMapper {
     @Override
-    protected List<AnnotationValue<?>> transformValid(AnnotationValue<JsonAnyGetter> annotation, VisitorContext visitorContext) {
+    protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return Arrays.asList(
                 AnnotationValue.builder(Executable.class).build(),
-                AnnotationValue.builder(SerdeConfig.class).build(),
-                AnnotationValue.builder(SerdeConfig.AnyGetter.class).build()
+                AnnotationValue.builder(SerdeConfig.SerValue.class)
+                        .build()
         );
     }
 
     @Override
-    public Class<JsonAnyGetter> annotationType() {
-        return JsonAnyGetter.class;
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonValue";
     }
 }

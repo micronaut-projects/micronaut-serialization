@@ -15,14 +15,13 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.inject.annotation.TypedAnnotationMapper;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
@@ -34,14 +33,9 @@ import java.util.List;
 /**
  * Support JsonSubTypes.
  */
-public class JsonSubTypesMapper implements TypedAnnotationMapper<JsonSubTypes> {
+public class JsonSubTypesMapper implements NamedAnnotationMapper {
     @Override
-    public Class<JsonSubTypes> annotationType() {
-        return JsonSubTypes.class;
-    }
-
-    @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<JsonSubTypes> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = new ArrayList<>();
         List<AnnotationValue<Annotation>> annotations = annotation.getAnnotations(AnnotationMetadata.VALUE_MEMBER);
         for (AnnotationValue<Annotation> annotationValue : annotations) {
@@ -68,5 +62,10 @@ public class JsonSubTypesMapper implements TypedAnnotationMapper<JsonSubTypes> {
             );
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonSubTypes";
     }
 }

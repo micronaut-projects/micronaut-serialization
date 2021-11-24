@@ -23,18 +23,18 @@ import java.util.Set;
 
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.inject.annotation.TypedAnnotationTransformer;
+import io.micronaut.core.naming.NameUtils;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Abstract transformer that validate supported members returned by {@link #getSupportedMemberNames()}.
- * @param <A> The annotation type.
  */
-public abstract class ValidatingAnnotationTransformer<A extends Annotation> implements TypedAnnotationTransformer<A> {
+public abstract class ValidatingAnnotationMapper implements NamedAnnotationMapper {
 
     @Override
-    public final List<AnnotationValue<?>> transform(AnnotationValue<A> annotation, VisitorContext visitorContext) {
+    public final List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         Set<String> supported = getSupportedMemberNames();
         final Set<CharSequence> memberNames = annotation.getMemberNames();
         final Optional<CharSequence> unsupportedMember = memberNames.stream()
@@ -44,11 +44,11 @@ public abstract class ValidatingAnnotationTransformer<A extends Annotation> impl
                 AnnotationValue.builder(SerdeConfig.SerdeError.class)
                         .value(getErrorMessage(supported, charSequence))
                         .build()
-        )).orElseGet(() -> transformValid(annotation, visitorContext));
+        )).orElseGet(() -> mapValid(annotation, visitorContext));
     }
 
     private String getErrorMessage(Set<String> supported, CharSequence member) {
-        return "Annotation @" + annotationType().getSimpleName() + " specifies attribute '" + member + "'"
+        return "Annotation @" + NameUtils.getSimpleName(getName()) + " specifies attribute '" + member + "'"
                        + ". Currently supported attributes include: " + supported;
     }
 
@@ -59,7 +59,7 @@ public abstract class ValidatingAnnotationTransformer<A extends Annotation> impl
      * @param visitorContext The context that is being visited
      * @return A list of zero or many annotations and values to map to
      */
-    protected abstract List<AnnotationValue<?>> transformValid(AnnotationValue<A> annotation, VisitorContext visitorContext);
+    protected abstract List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext);
 
     /**
      * @return The set of annotation member names that are supported.
