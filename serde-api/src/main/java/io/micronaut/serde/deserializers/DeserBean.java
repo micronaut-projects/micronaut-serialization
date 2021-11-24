@@ -29,6 +29,7 @@ import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.naming.Named;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
@@ -94,7 +95,7 @@ class DeserBean<T> {
         AnySetter<Object> anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
         for (int i = 0; i < constructorArguments.length; i++) {
-            Argument<Object> constructorArgument = (Argument<Object>) constructorArguments[i];
+            Argument<Object> constructorArgument = resolveArgument((Argument<Object>) constructorArguments[i]);
             final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument, constructorArgument.getAnnotationMetadata());
             if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)) {
                 continue;
@@ -215,7 +216,7 @@ class DeserBean<T> {
                     anySetterValue = new AnySetter(beanProperty, decoderContext);
                 } else {
                     final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
-                    final Argument<Object> t = beanProperty.asArgument();
+                    final Argument<Object> t = resolveArgument(beanProperty.asArgument());
 
                     if (isUnwrapped) {
                         if (unwrappedProperties == null) {
@@ -283,7 +284,7 @@ class DeserBean<T> {
                         () -> NameUtils.getPropertyNameForSetter(jsonSetter.getName()),
                         jsonSetter.getAnnotationMetadata()
                 );
-                final Argument<Object> argument = (Argument<Object>) jsonSetter.getArguments()[0];
+                final Argument<Object> argument = resolveArgument((Argument<Object>) jsonSetter.getArguments()[0]);
                 final DerProperty<T, Object> derProperty = new DerProperty<>(
                         introspection,
                         0,
@@ -314,6 +315,77 @@ class DeserBean<T> {
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
+    }
+
+    private <A> Argument<A> resolveArgument(Argument<A> argument) {
+        if (argument instanceof GenericPlaceholder || argument.hasTypeVariables()) {
+            Map<String, Argument<?>> bounds = getBounds();
+            if (!bounds.isEmpty()) {
+                return resolveArgument(argument, bounds);
+            }
+        }
+        return argument;
+    }
+
+    @SuppressWarnings("unchecked")
+    private <A> Argument<A> resolveArgument(Argument<A> argument, Map<String, Argument<?>> bounds) {
+        Argument<?>[] declaredParameters = argument.getTypeParameters();
+        Argument<?>[] typeParameters = resolveParameters(bounds, declaredParameters);
+        if (argument instanceof GenericPlaceholder) {
+            GenericPlaceholder<A> gp = (GenericPlaceholder<A>) argument;
+            Argument<?> resolved = bounds.get(gp.getVariableName());
+            if (resolved != null) {
+                return (Argument<A>) Argument.of(
+                        resolved.getType(),
+                        argument.getName(),
+                        argument.getAnnotationMetadata(),
+                        typeParameters
+                );
+            } else if (typeParameters != declaredParameters) {
+                return Argument.ofTypeVariable(
+                        argument.getType(),
+                        argument.getName(),
+                        gp.getVariableName(),
+                        gp.getAnnotationMetadata(),
+                        typeParameters
+                );
+            }
+        } else if (typeParameters != declaredParameters) {
+            return Argument.of(
+                    argument.getType(),
+                    argument.getName(),
+                    argument.getAnnotationMetadata(),
+                    typeParameters
+            );
+        }
+        return argument;
+    }
+
+    private Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument[] typeParameters) {
+        if (ArrayUtils.isEmpty(typeParameters)) {
+            return typeParameters;
+        }
+        Argument<?>[] resolvedParameters = new Argument[typeParameters.length];
+        boolean differ = false;
+        for (int i = 0; i < typeParameters.length; i++) {
+            Argument<?> typeParameter = typeParameters[i];
+            Argument<?> resolved = resolveArgument(typeParameter, bounds);
+            if (resolved != typeParameter) {
+                resolvedParameters[i] = resolved;
+                differ = true;
+            } else {
+                resolvedParameters[i] = typeParameter;
+            }
+        }
+        return differ ? resolvedParameters : typeParameters;
+    }
+
+    /**
+     * The generic bounds for this deserializable bean.
+     * @return The bounds, never {@code null}
+     */
+    protected @NonNull Map<String, Argument<?>> getBounds() {
+        return Collections.emptyMap();
     }
 
     private void handleAliases(Map creatorParams, DerProperty<T, ?> derProperty) {

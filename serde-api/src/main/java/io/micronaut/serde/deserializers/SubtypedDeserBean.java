@@ -34,7 +34,7 @@ import java.util.Map;
  * @param <T> The generic type
  */
 @Internal
-final class SubtypedDeserBean<T> extends DeserBean<T> {
+class SubtypedDeserBean<T> extends DeserBean<T> {
     // CHECKSTYLE:OFF
     @NonNull
     public final Map<String, DeserBean<? extends T>> subtypes;
