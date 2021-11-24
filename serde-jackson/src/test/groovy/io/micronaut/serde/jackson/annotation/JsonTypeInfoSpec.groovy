@@ -27,7 +27,7 @@ class Test {
 """)
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("Only 'use' of type CLASS or NAME are supported")
+        e.message.contains(" Unsupported JsonTypeInfo use: " + use.name())
 
         where:
         use << [JsonTypeInfo.Id.DEDUCTION, JsonTypeInfo.Id.MINIMAL_CLASS, JsonTypeInfo.Id.CUSTOM]

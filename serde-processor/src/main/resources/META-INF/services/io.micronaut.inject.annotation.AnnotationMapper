@@ -8,8 +8,10 @@ io.micronaut.serde.processor.jackson.JsonAliasMapper
 io.micronaut.serde.processor.bson.BsonRepresentationMapper
 io.micronaut.serde.processor.jackson.JsonPropertyOrderMapper
 io.micronaut.serde.processor.jackson.JsonValueMapper
+io.micronaut.serde.processor.jackson.JsonTypeInfoMapper
 io.micronaut.serde.processor.jackson.JsonSetterMapper
 io.micronaut.serde.processor.jackson.JsonAnyGetterMapper
+io.micronaut.serde.processor.jackson.JsonTypeNameMapper
 io.micronaut.serde.processor.jackson.JsonAnySetterMapper
 io.micronaut.serde.processor.jackson.JsonFormatMapper
 io.micronaut.serde.processor.jackson.JsonIncludeMapper

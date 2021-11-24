@@ -40,22 +40,24 @@ public class JsonbDateFormatTransformer implements NamedAnnotationTransformer {
                 SerdeConfig.PATTERN, 
                 DateTimeFormatter.RFC_1123_DATE_TIME.toString()    
             );
-        } else switch (pattern) {
-            case "##default":
-                builder.member(
-                        SerdeConfig.PATTERN,
-                        DateTimeFormatter.RFC_1123_DATE_TIME.toString()
-                );  
-            break;
-            case "##time-in-millis":
-                // no format, use millis
-                return Collections.emptyList();
-            default:
-                builder.member(
-                    SerdeConfig.PATTERN,
-                    pattern
-                );  
-            break;
+        } else {
+            switch (pattern) {
+                case "##default":
+                    builder.member(
+                            SerdeConfig.PATTERN,
+                            DateTimeFormatter.RFC_1123_DATE_TIME.toString()
+                    );
+                    break;
+                case "##time-in-millis":
+                    // no format, use millis
+                    return Collections.emptyList();
+                default:
+                    builder.member(
+                            SerdeConfig.PATTERN,
+                            pattern
+                    );
+                    break;
+            }
         }
         annotation.stringValue("locale")
             .ifPresent(l -> builder.member("locale", l));

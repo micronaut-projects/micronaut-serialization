@@ -15,9 +15,6 @@
  */
 package io.micronaut.serde.processor;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.*;
 import io.micronaut.core.naming.NameUtils;
@@ -333,7 +330,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         }
                         subElement.annotate(Serdeable.class);
                         subElement.annotate(SerdeConfig.class, (builder) -> {
-                            JsonTypeInfo.As include = resolveInclude(Optional.of(element)).orElse(null);
+                            String include = resolveInclude(Optional.of(element)).orElse(null);
                             handleSubtypeInclude(builder, typeName, typeProperty, include);
                         });
                     }
@@ -414,7 +411,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 );
             }
 
-            final Optional<ClassElement> superType = findTypeInfo(element);
+            final Optional<ClassElement> superType = findTypeInfo(element, false);
             if (superType.isPresent()) {
                 final ClassElement typeInfo = superType.get();
                 if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
@@ -423,68 +420,25 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
                 final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
                 element.annotate(SerdeConfig.class, builder -> {
-                    final String typeName = element.stringValue(JsonTypeName.class).orElseGet(() ->
+                    final String typeName = element.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseGet(() ->
                           discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? element.getName() : element.getSimpleName()
                     );
                     String typeProperty = resolveTypeProperty(superType).orElseGet(() ->
                        discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
                     );
-                    final JsonTypeInfo.As include = resolveInclude(superType).orElse(null);
+                    final String include = resolveInclude(superType).orElse(null);
                     handleSubtypeInclude(builder, typeName, typeProperty, include);
                 });
             }
 
-            element.findAnnotation(JsonTypeInfo.class).ifPresent((typeInfo) -> {
-                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
-                    context.fail("Inheritance cannot be combined with DELEGATING creation", element);
-                    return;
-                }
-                final JsonTypeInfo.Id use = typeInfo.enumValue("use", JsonTypeInfo.Id.class).orElse(null);
-                final JsonTypeInfo.As include = typeInfo.enumValue("include", JsonTypeInfo.As.class)
-                        .orElse(JsonTypeInfo.As.WRAPPER_OBJECT);
-                typeInfo.stringValue("defaultImpl").ifPresent(di ->
-                      element.annotate(DefaultImplementation.class, (builder) ->
-                              builder.member(
-                                      AnnotationMetadata.VALUE_MEMBER,
-                                      new AnnotationClassValue<>(di)
-                              ))
-                );
-
-                switch (include) {
-                case PROPERTY:
-                case WRAPPER_OBJECT:
-                    element.annotate(SerdeConfig.Subtyped.class, (builder) -> {
-                        builder.member(SerdeConfig.Subtyped.DISCRIMINATOR_TYPE, include.name());
-                    });
-                    break;
-                default:
-                    context.fail("Only 'include' of type PROPERTY or WRAPPER_OBJECT are supported", element);
-                }
-                if (use == null) {
-                    context.fail("You must specify 'use' member when using @JsonTypeInfo", element);
-                } else {
-                    switch (use) {
-                    case CLASS:
-                    case NAME:
-                        element.annotate(SerdeConfig.Subtyped.class, (builder) -> {
-                            builder.member(SerdeConfig.Subtyped.DISCRIMINATOR_VALUE, use.name());
-                            final String property = typeInfo.stringValue("property")
-                                    .orElseGet(() ->
-                                                       use == JsonTypeInfo.Id.CLASS ? "@class" : "@type"
-                                    );
-                            builder.member(SerdeConfig.Subtyped.DISCRIMINATOR_PROP, property);
-                        });
-                        break;
-                    default:
-                        context.fail("Only 'use' of type CLASS or NAME are supported", element);
-                    }
-                }
-            });
+            if (element.hasDeclaredAnnotation(SerdeConfig.Subtyped.class) && creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                context.fail("Inheritance cannot be combined with DELEGATING creation", element);
+            }
         }
     }
 
-    private void handleSubtypeInclude(AnnotationValueBuilder<SerdeConfig> builder, String typeName, String typeProperty, JsonTypeInfo.As include) {
-        if (include == JsonTypeInfo.As.WRAPPER_OBJECT) {
+    private void handleSubtypeInclude(AnnotationValueBuilder<SerdeConfig> builder, String typeName, String typeProperty, String include) {
+        if ("WRAPPER_OBJECT".equalsIgnoreCase(include)) {
             builder.member(SerdeConfig.TYPE_NAME, typeName);
             builder.member(SerdeConfig.WRAPPER_PROPERTY, typeName);
         } else if (typeProperty != null) {
@@ -587,9 +541,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 .orElse(SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME);
     }
 
-    private Optional<ClassElement> findTypeInfo(ClassElement element) {
+    private Optional<ClassElement> findTypeInfo(ClassElement element, boolean includeElement) {
         // TODO: support interfaces
-        if (element.hasDeclaredAnnotation(JsonTypeInfo.class)) {
+        if (element.hasDeclaredAnnotation(SerdeConfig.Subtyped.class) && includeElement) {
             return Optional.of(element);
         }
 
@@ -597,17 +551,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (superElement == null) {
             return Optional.empty();
         }
-        if (superElement.hasDeclaredAnnotation(JsonTypeInfo.class)) {
+        if (superElement.hasDeclaredAnnotation(SerdeConfig.Subtyped.class)) {
             return Optional.of(superElement);
         } else {
-            return findTypeInfo(superElement);
+            return findTypeInfo(superElement, true);
         }
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private Optional<String> resolveTypeProperty(Optional<ClassElement> superType) {
         return superType.flatMap(st -> {
-            final String property = st.stringValue(JsonTypeInfo.class, "property")
+            final String property = st.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_PROP)
                     .orElse(null);
             if (property != null) {
                 return Optional.of(property);
@@ -617,9 +571,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         });
     }
 
-    private Optional<JsonTypeInfo.As> resolveInclude(Optional<ClassElement> superType) {
+    private Optional<String> resolveInclude(Optional<ClassElement> superType) {
         return superType.flatMap(st -> {
-            final JsonTypeInfo.As asValue = st.enumValue(JsonTypeInfo.class, "include", JsonTypeInfo.As.class)
+            final String asValue = st.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_TYPE)
                     .orElse(null);
             if (asValue != null) {
                 return Optional.of(asValue);
