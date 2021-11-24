@@ -15,33 +15,33 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.inject.annotation.TypedAnnotationMapper;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Support for JsonView.
  */
-public class JsonViewMapper implements TypedAnnotationMapper<JsonView> {
+public class JsonViewMapper implements NamedAnnotationMapper {
     @Override
-    public Class<JsonView> annotationType() {
-        return JsonView.class;
-    }
-
-    @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<JsonView> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationClassValue<?>[] classValues = annotation.annotationClassValues(AnnotationMetadata.VALUE_MEMBER);
         return Collections.singletonList(
                 AnnotationValue.builder(SerdeConfig.class)
                         .member(SerdeConfig.VIEWS, classValues)
                         .build()
         );
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonView";
     }
 }

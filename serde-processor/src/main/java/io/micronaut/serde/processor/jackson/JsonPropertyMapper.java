@@ -15,28 +15,24 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.bind.annotation.Bindable;
-import io.micronaut.inject.annotation.TypedAnnotationTransformer;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Maps the {@link com.fasterxml.jackson.annotation.JsonProperty} annotation to {@link SerdeConfig}.
  */
-public class JsonPropertyTransformer implements TypedAnnotationTransformer<JsonProperty> {
-    @Override
-    public Class<JsonProperty> annotationType() {
-        return JsonProperty.class;
-    }
+public class JsonPropertyMapper implements NamedAnnotationMapper {
 
     @Override
-    public List<AnnotationValue<?>> transform(AnnotationValue<JsonProperty> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
         String propertyName = annotation.stringValue().orElse(null);
         ArrayList<AnnotationValue<?>> values = new ArrayList<>();
@@ -51,13 +47,13 @@ public class JsonPropertyTransformer implements TypedAnnotationTransformer<JsonP
                        values.add(AnnotationValue.builder(Bindable.class)
                                           .member("defaultValue", s).build())
                 );
-        final JsonProperty.Access access = annotation.enumValue("access", JsonProperty.Access.class).orElse(null);
+        final String access = annotation.stringValue("access").orElse(null);
         if (access != null) {
             switch (access) {
-            case READ_ONLY:
+            case "READ_ONLY":
                 builder.member("readOnly", true);
                 break;
-            case WRITE_ONLY:
+            case "WRITE_ONLY":
                 builder.member("writeOnly", true);
                 break;
             default:
@@ -66,5 +62,10 @@ public class JsonPropertyTransformer implements TypedAnnotationTransformer<JsonP
         }
         values.add(builder.build());
         return values;
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonProperty";
     }
 }

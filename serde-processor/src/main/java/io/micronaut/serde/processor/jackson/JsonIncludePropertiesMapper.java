@@ -15,28 +15,23 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.inject.annotation.TypedAnnotationMapper;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Support for JsonIncludeProperties.
  */
-public class JsonIncludePropertiesMapper implements TypedAnnotationMapper<JsonIncludeProperties> {
+public class JsonIncludePropertiesMapper implements NamedAnnotationMapper {
     @Override
-    public Class<JsonIncludeProperties> annotationType() {
-        return JsonIncludeProperties.class;
-    }
-
-    @Override
-    public List<AnnotationValue<?>> map(AnnotationValue<JsonIncludeProperties> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final String[] values = annotation.stringValues();
         if (ArrayUtils.isNotEmpty(values)) {
             return Collections.singletonList(
@@ -46,5 +41,10 @@ public class JsonIncludePropertiesMapper implements TypedAnnotationMapper<JsonIn
             );
         }
         return Collections.emptyList();
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonIncludeProperties";
     }
 }

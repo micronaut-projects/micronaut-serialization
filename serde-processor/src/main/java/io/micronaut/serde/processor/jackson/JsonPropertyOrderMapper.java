@@ -15,11 +15,11 @@
  */
 package io.micronaut.serde.processor.jackson;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -28,24 +28,24 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 /**
  * Support for @JsonPropertyOrder.
  */
-public class JsonPropertyOrderTransformer extends ValidatingAnnotationTransformer<JsonPropertyOrder> {
-    @Override
-    public Class<JsonPropertyOrder> annotationType() {
-        return JsonPropertyOrder.class;
-    }
-
+public class JsonPropertyOrderMapper extends ValidatingAnnotationMapper {
     @Override
     protected Set<String> getSupportedMemberNames() {
         return Collections.singleton(AnnotationMetadata.VALUE_MEMBER);
     }
 
     @Override
-    protected List<AnnotationValue<?>> transformValid(AnnotationValue<JsonPropertyOrder> annotation,
+    protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation,
                                                       VisitorContext visitorContext) {
         return Collections.singletonList(
                 AnnotationValue.builder(SerdeConfig.PropertyOrder.class)
                         .member(AnnotationMetadata.VALUE_MEMBER, annotation.stringValues())
                         .build()
         );
+    }
+
+    @Override
+    public String getName() {
+        return "com.fasterxml.jackson.annotation.JsonPropertyOrder";
     }
 }

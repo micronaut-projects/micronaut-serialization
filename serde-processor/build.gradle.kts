@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation(mn.jackson.annotations)
     implementation(projects.serdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)

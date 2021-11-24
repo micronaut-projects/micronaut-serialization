@@ -15,32 +15,32 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Support for JsonAlias.
+ * Supports json type name.
  */
-public final class JsonAliasMapper implements NamedAnnotationMapper {
+public class JsonTypeNameMapper implements NamedAnnotationMapper {
     @Override
     public String getName() {
-        return "com.fasterxml.jackson.annotation.JsonAlias";
+        return "com.fasterxml.jackson.annotation.JsonTypeName";
     }
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final String[] values = annotation.stringValues();
-        if (ArrayUtils.isNotEmpty(values)) {
+        String n = annotation.stringValue().orElse(null);
+        if (StringUtils.isNotEmpty(n)) {
             return Collections.singletonList(
                     AnnotationValue.builder(SerdeConfig.class)
-                            .member(SerdeConfig.ALIASES, values)
+                            .member(SerdeConfig.TYPE_NAME, n)
                             .build()
             );
         }
