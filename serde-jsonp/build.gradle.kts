@@ -21,6 +21,7 @@ dependencies {
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.serdeProcessor)
 
+    testImplementation(mn.jackson.annotations)
     testImplementation("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
     testImplementation(projects.serdeProcessor)
     testImplementation(projects.serdeTck)
