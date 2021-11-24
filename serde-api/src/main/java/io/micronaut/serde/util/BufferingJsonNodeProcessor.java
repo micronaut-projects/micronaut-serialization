@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.function.Consumer;
@@ -29,7 +30,6 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.json.tree.JsonNode;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 /**
  * Utility class for buffering and parsing JSON to support {@link io.micronaut.json.JsonMapper#createReactiveParser(java.util.function.Consumer, boolean)}.
@@ -38,16 +38,10 @@ import org.reactivestreams.Subscription;
  */
 @Internal
 @Experimental
-public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte[], JsonNode> {
+public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[], JsonNode> {
     private final Consumer<Processor<byte[], JsonNode>> onSubscribe;
-    private final boolean streamArray;
-    private Subscriber<? super JsonNode> jsonSubscriber;
-    private Subscription subscription;
-    private boolean upstreamComplete;
-    private boolean downstreamComplete;
-    private int downstreamDemand;
-    private final Queue<JsonNode> nodeBuffer = new ArrayDeque<>();
 
+    private final boolean streamArray;
     /**
      * bytes left to process.
      */
@@ -63,54 +57,20 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
 
     private boolean onlyWhitespace = true;
 
-    public SimpleBufferingJsonNodeProcessor(Consumer<Processor<byte[], JsonNode>> onSubscribe,
-                                            boolean streamArray) {
+    public BufferingJsonNodeProcessor(Consumer<Processor<byte[], JsonNode>> onSubscribe,
+                                      boolean streamArray) {
         this.onSubscribe = onSubscribe;
         this.streamArray = streamArray;
-        upstreamComplete = false;
-        downstreamComplete = false;
     }
 
     @Override
     public void subscribe(Subscriber<? super JsonNode> s) {
         onSubscribe.accept(this);
-        this.jsonSubscriber = s;
-        this.jsonSubscriber.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
-                downstreamDemand += n;
-                if (subscription != null) {
-                    subscription.request(n);
-                }
-            }
-
-            @Override
-            public void cancel() {
-                // cancel upstream
-                if (!upstreamComplete && subscription != null) {
-                    subscription.cancel();
-                }
-                downstreamComplete = true;
-            }
-        });
+        super.subscribe(s);
     }
 
     @Override
-    public void onSubscribe(Subscription s) {
-        subscription = s;
-        subscription.request(1);
-    }
-
-    @Override
-    public void onNext(byte[] bytes) {
-        if (!upstreamComplete) {
-            feed(bytes);
-            flushBuffer();
-            subscription.request(1);
-        }
-    }
-
-    private void feed(byte[] bytes) {
+    protected void spread(byte[] bytes, Collection<JsonNode> out) throws IOException {
         if (bytes.length == 0) {
             return;
         }
@@ -120,20 +80,21 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
             boolean wasOutsideStructure = buffersState == 0;
             buffersState = walkJson(buffersState, bytes[i]);
             if (buffersState != 0 && wasOutsideStructure && !onlyWhitespace) {
-                processOne(bytes.length - i);
+                processOne(bytes.length - i, out);
             }
             onlyWhitespace &= ws;
             i++;
             // split on whitespace
             if (buffersState == 0 && ws && !onlyWhitespace) {
-                processOne(bytes.length - i);
+                processOne(bytes.length - i, out);
             }
         }
     }
 
-    private void processRemainingData() {
+    @Override
+    protected void complete(Collection<JsonNode> out) throws IOException {
         if (!onlyWhitespace) {
-            processOne(0);
+            processOne(0, out);
             onlyWhitespace = true;
         }
     }
@@ -143,7 +104,7 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
      * {@link #buffers}{@code [-1][-tailRemaining]}, then adjust {@link #buffers} and {@link #headOffset} to only
      * contain remaining data from the tail.
      */
-    private void processOne(int tailRemaining) {
+    private void processOne(int tailRemaining, Collection<JsonNode> out) throws IOException {
         // count total length
         int totalLength = -headOffset - tailRemaining;
         for (byte[] buffer : buffers) {
@@ -167,16 +128,7 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
             head = false;
         }
         // parse
-        try {
-            processTopLevelNode(parseOne(composite));
-        } catch (Exception e) {
-            subscription.cancel();
-            upstreamComplete = true;
-            if (jsonSubscriber != null) {
-                jsonSubscriber.onError(e);
-                downstreamComplete = true;
-            }
-        }
+        processTopLevelNode(parseOne(composite), out);
         // restructure local buffers
         buffers.clear();
         if (tailBuffer != null && tailRemaining != 0) {
@@ -188,31 +140,13 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
         onlyWhitespace = true;
     }
 
-    private void processTopLevelNode(JsonNode node) {
+    private void processTopLevelNode(JsonNode node, Collection<JsonNode> out) {
         if (streamArray && node.isArray()) {
             for (JsonNode child : node.values()) {
-                nodeBuffer.add(child);
+                out.add(child);
             }
         } else {
-            nodeBuffer.add(node);
-        }
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        if (!downstreamComplete && jsonSubscriber != null) {
-            downstreamComplete = true;
-            jsonSubscriber.onError(t);
-        }
-        upstreamComplete = true;
-    }
-
-    @Override
-    public void onComplete() {
-        if (!upstreamComplete && !downstreamComplete) {
-            upstreamComplete = true;
-            processRemainingData();
-            flushBuffer();
+            out.add(node);
         }
     }
 
@@ -227,18 +161,6 @@ public abstract class SimpleBufferingJsonNodeProcessor implements Processor<byte
     private JsonNode parseOne(byte[] remaining) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(remaining)) {
             return parseOne(is);
-        }
-    }
-
-    private void flushBuffer() {
-        if (!downstreamComplete) {
-            while (downstreamDemand != 0 && !nodeBuffer.isEmpty()) {
-                jsonSubscriber.onNext(nodeBuffer.remove());
-            }
-            if (nodeBuffer.isEmpty() && upstreamComplete) {
-                downstreamComplete = true;
-                jsonSubscriber.onComplete();
-            }
         }
     }
 
