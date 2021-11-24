@@ -117,8 +117,9 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
     protected void setupSerdeRegistry(ApplicationContext context) {
         def classLoader = context.classLoader
         // horrible hack this
-        GroovyObject go = (GroovyObject) classLoader
-        def files = ((Reference) go.getProperty("files")).get()
+        def f = ReflectionUtils.getRequiredField(classLoader.getClass(), "files")
+        f.setAccessible(true)
+        def files = f.get(classLoader)
         def resolvedTypes = files.findAll({ JavaFileObject jfo ->
             jfo.name.contains('$IntrospectionRef')
         }).collect( { JavaFileObject jfo ->

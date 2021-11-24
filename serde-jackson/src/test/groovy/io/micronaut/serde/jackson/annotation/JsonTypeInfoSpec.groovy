@@ -83,7 +83,7 @@ class Dog extends Animal {
 
 @JsonTypeName("cat")
 class Cat extends Animal {
-    boolean likesCream;
+    public boolean likesCream;
     public int lives;
 }
 """)
@@ -154,7 +154,7 @@ class Dog extends Animal {
 
 @JsonTypeName("cat")
 class Cat extends Animal {
-    boolean likesCream;
+    public boolean likesCream;
     public int lives;
 }
 """)

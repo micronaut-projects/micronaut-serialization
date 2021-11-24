@@ -93,8 +93,12 @@ public final class JacksonJsonMapper implements JsonMapper {
 
     // type-safe helper method
     private <T> void writeValue0(JsonGenerator gen, T value, Class<T> type) throws IOException {
-        gen.setCodec(objectCodecImpl);
         final Argument<T> argument = Argument.of(type);
+        writeValue(gen, value, argument);
+    }
+
+    private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
+        gen.setCodec(objectCodecImpl);
         Serializer<? super T> serializer = registry.findSerializer(argument)
                                                    .createSpecific(argument, encoderContext);
         final JacksonEncoder encoder = JacksonEncoder.create(gen);
@@ -142,6 +146,13 @@ public final class JacksonJsonMapper implements JsonMapper {
     }
 
     @Override
+    public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
+        TreeGenerator treeGenerator = treeCodec.createTreeGenerator();
+        writeValue(treeGenerator, value, type);
+        return treeGenerator.getCompletedValue();
+    }
+
+    @Override
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
         try (JsonParser parser = FACTORY.createParser(inputStream)) {
             return readValue(parser, type);
@@ -163,10 +174,28 @@ public final class JacksonJsonMapper implements JsonMapper {
     }
 
     @Override
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+        try (JsonGenerator generator = FACTORY.createGenerator(outputStream)) {
+            writeValue(generator, object, type);
+        }
+    }
+
+    @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         ByteArrayBuilder bb = new ByteArrayBuilder(FACTORY._getBufferRecycler());
         try (JsonGenerator generator = FACTORY.createGenerator(bb)) {
             writeValue0(generator, object);
+        }
+        byte[] bytes = bb.toByteArray();
+        bb.release();
+        return bytes;
+    }
+
+    @Override
+    public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+        ByteArrayBuilder bb = new ByteArrayBuilder(FACTORY._getBufferRecycler());
+        try (JsonGenerator generator = FACTORY.createGenerator(bb)) {
+            writeValue(generator, object, type);
         }
         byte[] bytes = bb.toByteArray();
         bb.release();

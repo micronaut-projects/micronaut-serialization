@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -34,6 +35,7 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
+@Secondary
 final class SqlDateSerde implements NullableSerde<Date> {
     private static final Argument<LocalDate> LOCAL_DATE_ARGUMENT = Argument.of(LocalDate.class);
     private final LocalDateSerde localDateSerde;

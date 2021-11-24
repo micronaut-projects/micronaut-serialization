@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Date;
 
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -33,7 +32,6 @@ import jakarta.inject.Singleton;
  * Serde for dates.
  */
 @Singleton
-@Primary
 final class DateSerde implements NullableSerde<Date> {
     private static final Argument<Instant> INSTANT_ARGUMENT = Argument.of(Instant.class);
     private final InstantSerde instantSerde;

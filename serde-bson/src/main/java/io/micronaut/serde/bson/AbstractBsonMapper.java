@@ -60,6 +60,33 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;
 
     @Override
+    public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
+        JsonNodeEncoder encoder = JsonNodeEncoder.create();
+        serialize(encoder, value);
+        return encoder.getCompletedValue();
+    }
+
+    @Override
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+        try (AbstractBsonWriter bsonWriter = createBsonWriter(outputStream)) {
+            if (object == null) {
+                bsonWriter.writeNull();
+            } else {
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, false);
+                serialize(encoder, object, type);
+            }
+            bsonWriter.flush();
+        }
+    }
+
+    @Override
+    public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, type, object);
+        return output.toByteArray();
+    }
+
+    @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
         return deserializer.deserialize(JsonNodeDecoder.create(tree), registry.newDecoderContext(null), type);

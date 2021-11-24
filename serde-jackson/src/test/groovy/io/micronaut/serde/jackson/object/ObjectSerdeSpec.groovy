@@ -550,7 +550,6 @@ class Test {
         compiled.close()
     }
 
-    @PendingFeature(reason = "Waiting on https://github.com/micronaut-projects/micronaut-core/pull/6510")
     void "test nested generic"() {
         given:
         def compiled = buildContext('example.Test', '''
