@@ -57,6 +57,7 @@ import java.util.stream.Stream;
  */
 public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
+    private boolean failOnError = true;
     private MethodElement anyGetterMethod;
     private MethodElement anySetterMethod;
     private FieldElement anyGetterField;
@@ -99,49 +100,52 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void checkForFieldErrors(FieldElement element, VisitorContext context) {
-        if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
-            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
-                context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
+        if (failOnError) {
+
+            if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+                if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                    context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
+                } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+                    context.fail("A field annotated with AnyGetter cannot be a JsonValue", element);
+                } else if (!element.getGenericField().isAssignable(Map.class)) {
+                    context.fail("A field annotated with AnyGetter must be a Map", element);
+                } else {
+                    if (anyGetterField != null) {
+                        context.fail("Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true),
+                                element);
+                    } else if (anyGetterMethod != null) {
+                        context.fail("Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true),
+                                element);
+                    } else {
+                        this.anyGetterField = element;
+                    }
+                }
+            } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
+                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                    context.fail("A field annotated with AnySetter cannot use DELEGATING creation", element);
+                } else if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                    context.fail("A field annotated with AnySetter cannot be unwrapped", element);
+                } else if (!element.getGenericField().isAssignable(Map.class)) {
+                    context.fail("A field annotated with AnySetter must be a Map", element);
+                } else {
+                    if (anySetterField != null) {
+                        context.fail("Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true),
+                                element);
+                    } else if (anySetterMethod != null) {
+                        context.fail("Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true),
+                                element);
+                    } else {
+                        this.anySetterField = element;
+                    }
+                }
             } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                context.fail("A field annotated with AnyGetter cannot be a JsonValue", element);
-            } else if (!element.getGenericField().isAssignable(Map.class)) {
-                context.fail("A field annotated with AnyGetter must be a Map", element);
-            } else {
-                if (anyGetterField != null) {
-                    context.fail("Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true),
-                                 element);
-                } else if (anyGetterMethod != null) {
-                    context.fail("Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true),
-                                 element);
+                if (jsonValueField != null) {
+                    context.fail("A JsonValue field is already defined: " + jsonValueField, element);
+                } else if (jsonValueMethod != null) {
+                    context.fail("A JsonValue method is already defined: " + jsonValueMethod, element);
                 } else {
-                    this.anyGetterField = element;
+                    this.jsonValueField = element;
                 }
-            }
-        } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
-            if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
-                context.fail("A field annotated with AnySetter cannot use DELEGATING creation", element);
-            } else if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
-                context.fail("A field annotated with AnySetter cannot be unwrapped", element);
-            } else if (!element.getGenericField().isAssignable(Map.class)) {
-                context.fail("A field annotated with AnySetter must be a Map", element);
-            } else {
-                if (anySetterField != null) {
-                    context.fail("Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true),
-                                 element);
-                } else if (anySetterMethod != null) {
-                    context.fail("Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true),
-                                 element);
-                } else {
-                    this.anySetterField = element;
-                }
-            }
-        } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-            if (jsonValueField != null) {
-                context.fail("A JsonValue field is already defined: " + jsonValueField, element);
-            } else if (jsonValueMethod != null) {
-                context.fail("A JsonValue method is already defined: " + jsonValueMethod, element);
-            } else {
-                this.jsonValueField = element;
             }
         }
     }
@@ -251,13 +255,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         }
         final String error = element.stringValue(SerdeConfig.SerdeError.class).orElse(null);
-        if (error != null) {
+        if (error != null && failOnError) {
             context.fail(error, element);
             return true;
         }
 
         final String pattern = element.stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
-        if (pattern != null) {
+        if (pattern != null && failOnError) {
             ClassElement type = resolvePropertyType(element);
 
             if (isNumberType(type)) {
@@ -305,7 +309,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
         // reset
-        resetForNewClass();
+        resetForNewClass(element);
         if (checkForErrors(element, context)) {
             return;
         }
@@ -370,7 +374,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
                 this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class).orElse(null);
                 if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
-                    if (primaryConstructor.getParameters().length != 1) {
+                    if (failOnError && primaryConstructor.getParameters().length != 1) {
                         context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.", element);
                     }
                 }
@@ -414,7 +418,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final Optional<ClassElement> superType = findTypeInfo(element, false);
             if (superType.isPresent()) {
                 final ClassElement typeInfo = superType.get();
-                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                if (failOnError && creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
                     context.fail("Inheritance cannot be combined with DELEGATING creation", element);
                     return;
                 }
@@ -431,7 +435,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 });
             }
 
-            if (element.hasDeclaredAnnotation(SerdeConfig.Subtyped.class) && creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+            if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.Subtyped.class) && creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
                 context.fail("Inheritance cannot be combined with DELEGATING creation", element);
             }
         }
@@ -521,7 +525,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
-    private void resetForNewClass() {
+    private void resetForNewClass(ClassElement element) {
+        this.failOnError = element.booleanValue(SerdeConfig.class, "validate").orElse(true);
         this.creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
         this.anyGetterMethod = null;
         this.anySetterMethod = null;

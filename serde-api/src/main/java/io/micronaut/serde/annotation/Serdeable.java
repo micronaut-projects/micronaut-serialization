@@ -20,6 +20,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
@@ -42,6 +43,11 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 @Serdeable.Serializable
 @Serdeable.Deserializable
 public @interface Serdeable {
+    /**
+     * @return Whether build time validation should fail compilation on definition errors.
+     */
+    @AliasFor(annotation = SerdeConfig.class, member = "validate")
+    boolean validate() default true;
 
     /**
      * Annotation used to indicate a type is serializable.
@@ -58,6 +64,12 @@ public @interface Serdeable {
          * @return The {@link io.micronaut.serde.Serializer} to use.
          */
         Class<? extends Serializer> serializer() default Serializer.class;
+
+        /**
+         * @return Whether build time validation should fail compilation on definition errors.
+         */
+        @AliasFor(annotation = SerdeConfig.class, member = "validate")
+        boolean validate() default true;
     }
 
     /**
@@ -74,5 +86,11 @@ public @interface Serdeable {
          * @return The deserializer.
          */
         Class<? extends Deserializer> deserializer() default Deserializer.class;
+
+        /**
+         * @return Whether build time validation should fail compilation on definition errors.
+         */
+        @AliasFor(annotation = SerdeConfig.class, member = "validate")
+        boolean validate() default true;
     }
 }

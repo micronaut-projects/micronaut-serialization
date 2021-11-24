@@ -1,6 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
-
+import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Requires
 import spock.lang.Unroll
@@ -16,6 +16,28 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 class JsonFormatSpec extends JsonCompileSpec {
+
+    @Requires({ jvm.isJava17Compatible() })
+    void "test disable validation"() {
+        when:
+        def i = buildBeanIntrospection('jsongetterrecord.Test', """
+package jsongetterrecord;
+
+import io.micronaut.serde.annotation.Serdeable;              
+import com.fasterxml.jackson.annotation.JsonFormat;          
+
+
+@Serdeable(validate=false)
+record Test( 
+    @JsonFormat(pattern="bunch 'o junk")    
+    int value) {
+}
+""")
+
+        then:
+        i != null
+    }
+
     @Requires({ jvm.isJava17Compatible() })
     @Unroll
     void "test fail compilation when invalid format applied to number for type #type"() {
