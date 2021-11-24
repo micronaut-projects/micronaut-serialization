@@ -642,9 +642,29 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         deserializableIntrospection.getAnnotationMetadata()
                 );
                 if (annotationMetadata.hasAnnotation(SerdeConfig.Subtyped.class)) {
-                    deserBean = new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this);
+                    if (type.hasTypeVariables()) {
+                        final Map<String, Argument<?>> bounds = type.getTypeVariables();
+                        deserBean = new SubtypedDeserBean(annotationMetadata, deserializableIntrospection, decoderContext, this) {
+                            @Override
+                            protected Map<String, Argument<?>> getBounds() {
+                                return bounds;
+                            }
+                        };
+                    } else {
+                        deserBean = new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this);
+                    }
                 } else  {
-                    deserBean = new DeserBean<>(deserializableIntrospection, decoderContext, this);
+                    if (type.hasTypeVariables()) {
+                        final Map<String, Argument<?>> bounds = type.getTypeVariables();
+                        deserBean = new DeserBean(deserializableIntrospection, decoderContext, this) {
+                            @Override
+                            protected Map<String, Argument<?>> getBounds() {
+                                return bounds;
+                            }
+                        };
+                    } else {
+                        deserBean = new DeserBean<>(deserializableIntrospection, decoderContext, this);
+                    }
                 }
             } catch (SerdeException e) {
                 throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);

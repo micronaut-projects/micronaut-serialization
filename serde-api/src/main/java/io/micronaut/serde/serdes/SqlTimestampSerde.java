@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -32,6 +33,7 @@ import jakarta.inject.Singleton;
  * Serde for SQL timestamps.
  */
 @Singleton
+@Secondary
 final class SqlTimestampSerde implements NullableSerde<Timestamp> {
     private static final Argument<Instant> INSTANT_ARGUMENT = Argument.of(Instant.class);
     private final InstantSerde instantSerde;

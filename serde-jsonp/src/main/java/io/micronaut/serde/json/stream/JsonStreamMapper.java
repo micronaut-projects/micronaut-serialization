@@ -107,6 +107,13 @@ public class JsonStreamMapper implements JsonMapper {
     }
 
     @Override
+    public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
+        JsonNodeEncoder encoder = JsonNodeEncoder.create();
+        serialize(encoder, value, type);
+        return encoder.getCompletedValue();
+    }
+
+    @Override
     public void writeValue(OutputStream outputStream, Object object) throws IOException {
         try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
@@ -114,6 +121,19 @@ public class JsonStreamMapper implements JsonMapper {
             } else {
                 JsonStreamEncoder encoder = new JsonStreamEncoder(generator);
                 serialize(encoder, object);
+            }
+            generator.flush();
+        }
+    }
+
+    @Override
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+        try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
+            if (object == null) {
+                generator.writeNull();
+            } else {
+                JsonStreamEncoder encoder = new JsonStreamEncoder(generator);
+                serialize(encoder, object, type);
             }
             generator.flush();
         }
@@ -137,6 +157,13 @@ public class JsonStreamMapper implements JsonMapper {
     public byte[] writeValueAsBytes(Object object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, object);
+        return output.toByteArray();
+    }
+
+    @Override
+    public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, type, object);
         return output.toByteArray();
     }
 

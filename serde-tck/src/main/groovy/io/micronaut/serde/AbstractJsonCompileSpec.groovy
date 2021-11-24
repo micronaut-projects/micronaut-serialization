@@ -123,8 +123,9 @@ abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implement
             @Override
             def <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
                 // horrible hack this
-                GroovyObject go = (GroovyObject) classLoader
-                def files = ((Reference) go.getProperty("files")).get()
+                def f = ReflectionUtils.getRequiredField(classLoader.getClass(), "files")
+                f.setAccessible(true)
+                def files = f.get(classLoader)
                 def resolvedTypes = files.findAll({ JavaFileObject jfo ->
                     jfo.name.endsWith('$IntrospectionRef.class')
                 }).collect( { JavaFileObject jfo ->
