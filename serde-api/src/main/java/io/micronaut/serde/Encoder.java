@@ -16,6 +16,7 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -27,35 +28,115 @@ import java.math.BigInteger;
  * @since 1.0.0
  */
 public interface Encoder {
-    Encoder encodeArray() throws IOException;
+    /**
+     * Encodes an array.
+     * @param type The array type, never {@code null}
+     * @return The encoder, never {@code null}
+     * @throws IOException if an error occurs
+     */
+    @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException;
 
-    Encoder encodeObject() throws IOException;
+    /**
+     * Encodes an object.
+     * @param type The object type, never {@code null}
+     * @return The encoder, never {@code null}
+     * @throws IOException if an error occurs
+     */
+    @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException;
 
+    /**
+     * Finalize a previously created structure, like an array or object.
+     * @throws IOException If an error occurs
+     */
     void finishStructure() throws IOException;
 
+    /**
+     * Encode a key.
+     * @param key The key, never {@code null}
+     * @throws IOException If an error occurs
+     */
     void encodeKey(@NonNull String key) throws IOException;
 
+    /**
+     * Encode a string.
+     * @param value The string, never {@code null}
+     * @throws IOException If an error occurs
+     */
     void encodeString(@NonNull String value) throws IOException;
 
+    /**
+     * Encode a boolean.
+     * @param value The boolean
+     * @throws IOException If an error occurs
+     */
     void encodeBoolean(boolean value) throws IOException;
 
+    /**
+     * Encode a byte.
+     * @param value The byte
+     * @throws IOException If an error occurs
+     */
     void encodeByte(byte value) throws IOException;
 
+    /**
+     * Encode a short.
+     * @param value The short
+     * @throws IOException If an error occurs
+     */
     void encodeShort(short value) throws IOException;
 
+    /**
+     * Encode a char.
+     * @param value The char
+     * @throws IOException If an error occurs
+     */
     void encodeChar(char value) throws IOException;
 
+    /**
+     * Encode an int.
+     * @param value The int
+     * @throws IOException If an error occurs
+     */
     void encodeInt(int value) throws IOException;
 
+    /**
+     * Encode a long.
+     * @param value The long
+     * @throws IOException If an error occurs
+     */
     void encodeLong(long value) throws IOException;
 
+    /**
+     * Encode a float.
+     * @param value The float
+     * @throws IOException If an error occurs
+     */
     void encodeFloat(float value) throws IOException;
 
+    /**
+     * Encode a double.
+     * @param value The double
+     * @throws IOException If an error occurs
+     */
     void encodeDouble(double value) throws IOException;
 
+    /**
+     * Encode a BigInteger.
+     * @param value The BigInteger, never {@code null}
+     * @throws IOException If an error occurs
+     */
     void encodeBigInteger(@NonNull BigInteger value) throws IOException;
 
+    /**
+     * Encode a BigDecimal.
+     * @param value The BigDecimal, never {@code null}
+     * @throws IOException If an error occurs
+     */
     void encodeBigDecimal(@NonNull BigDecimal value) throws IOException;
 
+    /**
+     * Encode {@code null}.
+     * @throws IOException If an error occurs
+     */
     void encodeNull() throws IOException;
 }

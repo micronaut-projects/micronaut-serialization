@@ -94,7 +94,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
             boolean hasProperties = readProperties != null;
             boolean ignoreUnknown = this.ignoreUnknown && deserBean.ignoreUnknown;
 
-            Decoder objectDecoder = decoder.decodeObject();
+            Decoder objectDecoder = decoder.decodeObject(type);
             TokenBuffer tokenBuffer = null;
             AnyValues<Object> anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
             Object obj;
@@ -143,7 +143,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         final DeserBean<?> subtypeBean = subtypes.get(key);
                         if (subtypeBean != null) {
                             if (!objectDecoder.decodeNull()) {
-                                objectDecoder = objectDecoder.decodeObject();
+                                objectDecoder = objectDecoder.decodeObject(type);
                                 deserBean = (DeserBean<? super Object>) subtypeBean;
                                 //noinspection unchecked
                                 objectType = (Class<? super Object>) subtypeBean.introspection.getBeanType();

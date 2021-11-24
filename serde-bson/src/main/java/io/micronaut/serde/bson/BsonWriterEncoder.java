@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
@@ -40,7 +41,7 @@ public final class BsonWriterEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray() {
+    public Encoder encodeArray(Argument<?> type) {
         bsonWriter.writeStartArray();
         if (isArray) {
             return this;
@@ -49,7 +50,7 @@ public final class BsonWriterEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeObject() {
+    public Encoder encodeObject(Argument<?> type) {
         bsonWriter.writeStartDocument();
         if (!isArray) {
             return this;

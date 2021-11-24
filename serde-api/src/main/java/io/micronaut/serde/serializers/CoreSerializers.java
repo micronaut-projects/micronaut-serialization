@@ -93,7 +93,7 @@ public class CoreSerializers {
                                   EncoderContext context,
                                   Iterable<T> value,
                                   Argument<? extends Iterable<T>> type) throws IOException {
-                final Encoder childEncoder = encoder.encodeArray();
+                final Encoder childEncoder = encoder.encodeArray(type);
                 final Argument<?>[] generics = type.getTypeParameters();
                 final boolean hasGeneric = ArrayUtils.isNotEmpty(generics);
                 if (hasGeneric) {
@@ -174,7 +174,7 @@ public class CoreSerializers {
                                   EncoderContext context,
                                   Map<K, V> value,
                                   Argument<? extends Map<K, V>> type) throws IOException {
-                final Encoder childEncoder = encoder.encodeObject();
+                final Encoder childEncoder = encoder.encodeObject(type);
                 final Argument[] generics = type.getTypeParameters();
                 final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
                 if (hasGenerics) {

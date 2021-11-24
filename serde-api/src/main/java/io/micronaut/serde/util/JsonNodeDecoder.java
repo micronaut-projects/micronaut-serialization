@@ -16,6 +16,7 @@
 package io.micronaut.serde.util;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -45,7 +46,7 @@ public abstract class JsonNodeDecoder implements Decoder {
     protected abstract JsonNode peekValue();
 
     @Override
-    public Decoder decodeArray() throws IOException {
+    public Decoder decodeArray(Argument<?> type) throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isArray()) {
             skipValue();
@@ -56,7 +57,7 @@ public abstract class JsonNodeDecoder implements Decoder {
     }
 
     @Override
-    public Decoder decodeObject() throws IOException {
+    public Decoder decodeObject(Argument<?> type) throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isObject()) {
             skipValue();

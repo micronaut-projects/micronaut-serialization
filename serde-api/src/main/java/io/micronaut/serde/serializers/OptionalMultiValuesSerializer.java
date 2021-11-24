@@ -55,7 +55,7 @@ final class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMulti
         final Argument listGeneric = Argument.listOf(generic);
         Serializer listSerializer = context.findSerializer(listGeneric);
         Serializer valueSerializer = context.findSerializer(generic);
-        Encoder objectEncoder = encoder.encodeObject();
+        Encoder objectEncoder = encoder.encodeObject(type);
         for (CharSequence key : value) {
             Optional<? extends List<V>> opt = value.get(key);
             if (opt.isPresent()) {

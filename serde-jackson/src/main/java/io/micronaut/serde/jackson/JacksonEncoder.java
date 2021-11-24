@@ -18,6 +18,7 @@ package io.micronaut.serde.jackson;
 import com.fasterxml.jackson.core.JsonGenerator;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 
 import java.io.IOException;
@@ -60,7 +61,7 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray() throws IOException {
+    public Encoder encodeArray(Argument<?> type) throws IOException {
         checkChild();
 
         generator.writeStartArray();
@@ -70,7 +71,7 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeObject() throws IOException {
+    public Encoder encodeObject(Argument<?> type) throws IOException {
         checkChild();
 
         generator.writeStartObject();

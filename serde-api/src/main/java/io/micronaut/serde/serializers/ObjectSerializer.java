@@ -194,11 +194,11 @@ public class ObjectSerializer implements Serializer<Object> {
             throws IOException {
         try {
             final SerBean<Object> serBean = getSerBean(type, value, context);
-            Encoder childEncoder = encoder.encodeObject();
+            Encoder childEncoder = encoder.encodeObject(type);
 
             if (serBean.wrapperProperty != null) {
                 childEncoder.encodeKey(serBean.wrapperProperty);
-                childEncoder = childEncoder.encodeObject();
+                childEncoder = childEncoder.encodeObject(type);
             }
 
             for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {

@@ -39,7 +39,7 @@ class OptionalValuesSerializer<V> implements Serializer<OptionalValues<V>> {
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw OptionalValues");
         }
-        Encoder objectEncoder = encoder.encodeObject();
+        Encoder objectEncoder = encoder.encodeObject(type);
 
         final Argument<V> generic = (Argument<V>) generics[0];
         Serializer<V> valueSerializer = (Serializer<V>) context.findSerializer(

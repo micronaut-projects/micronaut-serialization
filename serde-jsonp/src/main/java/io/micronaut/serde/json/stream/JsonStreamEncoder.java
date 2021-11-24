@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import jakarta.json.stream.JsonGenerator;
 
@@ -30,13 +31,13 @@ final class JsonStreamEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray() throws IOException {
+    public Encoder encodeArray(Argument<?> type) throws IOException {
         jsonGenerator.writeStartArray();
         return this;
     }
 
     @Override
-    public Encoder encodeObject() throws IOException {
+    public Encoder encodeObject(Argument<?> type) throws IOException {
         jsonGenerator.writeStartObject();
         return this;
     }

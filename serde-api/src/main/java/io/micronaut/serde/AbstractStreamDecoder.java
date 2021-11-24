@@ -18,6 +18,7 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.util.JsonNodeDecoder;
 
@@ -186,7 +187,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     @NonNull
     @Override
-    public final Decoder decodeArray() throws IOException {
+    public final Decoder decodeArray(Argument<?> type) throws IOException {
         preDecodeValue();
         if (currentToken() != TokenType.START_ARRAY) {
             throw unexpectedToken(TokenType.START_ARRAY);
@@ -198,7 +199,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     @NonNull
     @Override
-    public final Decoder decodeObject() throws IOException {
+    public final Decoder decodeObject(Argument<?> type) throws IOException {
         preDecodeValue();
         if (currentToken() != TokenType.START_OBJECT) {
             throw unexpectedToken(TokenType.START_OBJECT);

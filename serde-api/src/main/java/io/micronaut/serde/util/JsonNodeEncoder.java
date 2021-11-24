@@ -16,6 +16,7 @@
 package io.micronaut.serde.util;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 
@@ -110,12 +111,12 @@ public abstract class JsonNodeEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray() {
+    public Encoder encodeArray(Argument<?> type) {
         return new Array(this);
     }
 
     @Override
-    public Encoder encodeObject() {
+    public Encoder encodeObject(Argument<?> type) {
         return new Obj(this);
     }
 

@@ -44,7 +44,7 @@ final class StreamSerializer<T> implements Serializer<Stream<T>> {
         final Argument generic = generics[0];
         final Serializer componentSerializer = context.findSerializer(generic);
 
-        Encoder arrayEncoder = encoder.encodeArray();
+        Encoder arrayEncoder = encoder.encodeArray(type);
         Iterator<T> itr = value.iterator();
         while (itr.hasNext()) {
             componentSerializer

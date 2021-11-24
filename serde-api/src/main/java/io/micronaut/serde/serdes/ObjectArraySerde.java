@@ -101,7 +101,7 @@ public class ObjectArraySerde implements NullableSerde<Object[]>, Serde<Object[]
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Object[] value, Argument<? extends Object[]> type)
             throws IOException {
-        final Encoder arrayEncoder = encoder.encodeArray();
+        final Encoder arrayEncoder = encoder.encodeArray(type);
         // TODO: need better generics handling in core for arrays
         final Argument<?> componentType = Argument.of(type.getType().getComponentType());
         final Serializer<Object> componentSerializer =

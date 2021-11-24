@@ -544,7 +544,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               boolean[] value,
                               Argument<? extends boolean[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (boolean i : value) {
                 arrayEncoder.encodeBoolean(i);
             }
@@ -587,7 +587,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               double[] value,
                               Argument<? extends double[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (double i : value) {
                 arrayEncoder.encodeDouble(i);
             }
@@ -630,7 +630,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               short[] value,
                               Argument<? extends short[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (short i : value) {
                 arrayEncoder.encodeShort(i);
             }
@@ -673,7 +673,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               float[] value,
                               Argument<? extends float[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (float i : value) {
                 arrayEncoder.encodeFloat(i);
             }
@@ -717,7 +717,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               long[] value,
                               Argument<? extends long[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (long i : value) {
                 arrayEncoder.encodeLong(i);
             }
@@ -760,7 +760,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               char[] value,
                               Argument<? extends char[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (char i : value) {
                 arrayEncoder.encodeChar(i);
             }
@@ -803,7 +803,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               byte[] value,
                               Argument<? extends byte[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (byte i : value) {
                 arrayEncoder.encodeByte(i);
             }
@@ -846,7 +846,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               int[] value,
                               Argument<? extends int[]> type) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray();
+            final Encoder arrayEncoder = encoder.encodeArray(type);
             for (int i : value) {
                 arrayEncoder.encodeInt(i);
             }

@@ -130,7 +130,7 @@ public class CoreDeserializers {
             @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
             @SuppressWarnings("unchecked") final Argument<V> valueType = (Argument<V>) generics[1];
             final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(valueType);
-            final Decoder objectDecoder = decoder.decodeObject();
+            final Decoder objectDecoder = decoder.decodeObject(type);
             String key = objectDecoder.decodeKey();
             LinkedHashMap<K, V> map = new LinkedHashMap<>();
             while (key != null) {
