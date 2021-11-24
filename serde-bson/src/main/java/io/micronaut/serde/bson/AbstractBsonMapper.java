@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
@@ -89,8 +90,9 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
         return new SimpleBufferingJsonNodeProcessor(onSubscribe, streamArray) {
+            @NonNull
             @Override
-            protected JsonNode parseOne(InputStream is) throws IOException {
+            protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
                 try (BsonReader bsonReader = createBsonReader(toByteBuffer(is))) {
                     final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader);
                     final Object o = decoder.decodeArbitrary();

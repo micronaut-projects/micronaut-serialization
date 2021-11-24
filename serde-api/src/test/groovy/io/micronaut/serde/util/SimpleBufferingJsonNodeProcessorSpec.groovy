@@ -328,6 +328,7 @@ class SimpleBufferingJsonNodeProcessorSpec extends Specification {
             super(onSubscribe, streamArray)
         }
 
+        @NonNull
         @Override
         protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
             return JsonNodeTreeCodec.instance.readTree(factory.createParser(is))

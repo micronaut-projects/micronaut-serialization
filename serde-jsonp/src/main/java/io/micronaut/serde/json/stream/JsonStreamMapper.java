@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
@@ -88,8 +89,9 @@ public class JsonStreamMapper implements JsonMapper {
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
         return new SimpleBufferingJsonNodeProcessor(onSubscribe, streamArray) {
+            @NonNull
             @Override
-            protected JsonNode parseOne(InputStream is) throws IOException {
+            protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
                 try (JsonParser parser = Json.createParser(is)) {
                     final JsonParserDecoder decoder = new JsonParserDecoder(parser);
                     final Object o = decoder.decodeArbitrary();
