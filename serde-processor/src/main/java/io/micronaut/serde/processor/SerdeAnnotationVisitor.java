@@ -676,7 +676,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.databind.annotation.JsonNaming",
                         "com.fasterxml.jackson.databind.annotation.JsonSerialize",
                         "com.fasterxml.jackson.databind.annotation.JsonDeserialize",
+                        "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
+                        "com.fasterxml.jackson.annotation.JsonTypeName",
                         "com.fasterxml.jackson.annotation.JsonTypeId",
                         "com.fasterxml.jackson.annotation.JsonAutoDetect")
                 .anyMatch(element::hasDeclaredAnnotation) ||
