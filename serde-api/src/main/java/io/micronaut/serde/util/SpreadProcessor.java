@@ -133,6 +133,9 @@ abstract class SpreadProcessor<T, R> implements Processor<T, R> {
             upstreamSubscription = null;
         }
 
+        // need to check this before looking at demand
+        boolean upstreamComplete = this.upstreamComplete;
+
         while (demand.get() != 0 && !cancelled) {
             R toForward = outboundQueue.poll();
             if (toForward == null) {
