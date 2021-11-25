@@ -59,6 +59,90 @@ class Test {
         include << JsonTypeInfo.As.values() - [JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.WRAPPER_OBJECT]
     }
 
+    void "test subtype binding as property for interface"() {
+        given:
+        def context = buildContext("""
+package subtypes;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME, 
+  property = "type")
+interface Animal {
+    String getName();
+}
+
+@JsonTypeName("dog")
+class Dog implements Animal {
+    public double barkVolume;
+    private String name;
+    @Override public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat implements Animal {
+    public boolean likesCream;
+    public int lives;
+    private String name;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+        def dog = newInstance(context, 'subtypes.Dog', [name:"Fred", barkVolume:1.1d])
+        def cat = newInstance(context, 'subtypes.Cat', [name:"Joe", likesCream:true, lives: 9])
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+
+        when:
+        def dogClass = dog.getClass()
+        def catClass = cat.getClass()
+        def dogBean = jsonMapper.readValue(dogJson, argumentOf(context, 'subtypes.Animal'))
+        def catBean = jsonMapper.readValue(catJson, argumentOf(context, 'subtypes.Animal'))
+
+
+        then:
+        catClass.isInstance(catBean)
+        dogClass.isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+
+        when:"the buffer is used"
+        dogBean = jsonMapper.readValue('{"barkVolume":1.1,"name":"Fred","type":"dog"}', argumentOf(context, 'subtypes.Animal'))
+        catBean = jsonMapper.readValue('{"likesCream":true,"lives":9,"name":"Joe","type":"cat"}', argumentOf(context, 'subtypes.Animal'))
+
+        then:
+        dogClass.isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+
+        cleanup:
+        context.close()
+    }
+
     void "test subtype binding as property"() {
         given:
         def context = buildContext("""
