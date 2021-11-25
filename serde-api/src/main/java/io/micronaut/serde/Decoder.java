@@ -182,8 +182,8 @@ public interface Decoder {
      * </ul>
      *
      *
-     * @return
-     * @throws IOException
+     * @return The decoded object
+     * @throws IOException If an unrecoverable error occurs
      */
     @Nullable
     Object decodeArbitrary() throws IOException;
@@ -196,6 +196,7 @@ public interface Decoder {
      * {@code decoder.decodeDouble()} should be equivalent to {@code decoder.decodeBuffer().decodeDouble()}.
      *
      * @return An independent decoder that visits this subtree.
+     * @throws IOException If an unrecoverable error occurs
      */
     Decoder decodeBuffer() throws IOException;
 

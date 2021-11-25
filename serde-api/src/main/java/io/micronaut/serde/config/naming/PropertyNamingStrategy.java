@@ -108,6 +108,8 @@ public interface PropertyNamingStrategy {
                 case "UPPER_CAMEL_CASE_WITH_SPACES":
                 case "io.micronaut.serde.config.naming.UpperCamelCaseStrategyWithSpaces":
                     return Optional.of(UPPER_CAMEL_CASE_WITH_SPACES);
+                default:
+                    return Optional.empty();
             }
         }
         return Optional.empty();
