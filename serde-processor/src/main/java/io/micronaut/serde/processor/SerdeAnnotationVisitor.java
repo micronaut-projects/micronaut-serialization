@@ -79,6 +79,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "com.fasterxml.jackson.annotation.*",
                 "jakarta.json.bind.annotation.*",
                 "io.micronaut.serde.annotation.*",
+                "io.micronaut.serde.config.annotation.*",
                 "org.bson.codecs.pojo.annotations.*",
                 "com.fasterxml.jackson.databind.annotation.*"
         );
