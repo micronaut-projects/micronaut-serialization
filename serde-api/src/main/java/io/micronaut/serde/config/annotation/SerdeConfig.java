@@ -38,6 +38,21 @@ import java.lang.annotation.Repeatable;
 @Inherited
 public @interface SerdeConfig {
     /**
+     * Used to store the type that will serialize this type.
+     */
+    String SERIALIZE_AS = "serAs";
+
+    /**
+     * Used to store the type that will deserialize this type.
+     */
+    String DESERIALIZE_AS = "deserAs";
+
+    /**
+     * Whether to validate at compilation time the config.
+     */
+    String VALIDATE = "validate";
+
+    /**
      * The property to use.
      */
     String PROPERTY = "property";

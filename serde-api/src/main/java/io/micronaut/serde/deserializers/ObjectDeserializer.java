@@ -65,10 +65,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
     public Object deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
             throws IOException {
 
-        Class<? super Object> objectType = type.getType();
+        Class<? super Object> objectType;
         DeserBean<? super Object> deserBean;
         try {
             deserBean = getDeserializableBean(type, decoderContext);
+            objectType = deserBean.introspection.getBeanType();
         } catch (IntrospectionException e) {
             throw new SerdeException("Unable to deserialize object of type: " + type, e);
         }
@@ -280,7 +281,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                 try {
                     obj = deserBean.introspection.instantiate(params);
                 } catch (InstantiationException e) {
-                    throw new SerdeException("Unable to deserialize type [" + type + "]:" + e.getMessage(), e);
+                    throw new SerdeException("Unable to deserialize type [" + type + "]: " + e.getMessage(), e);
                 }
                 if (hasProperties) {
 
