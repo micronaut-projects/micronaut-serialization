@@ -2,6 +2,8 @@ io.micronaut.serde.processor.jackson.databind.JsonNamingMapper
 io.micronaut.serde.processor.jackson.databind.JsonSerializeMapper
 io.micronaut.serde.processor.jackson.databind.JsonDeserializeMapper
 io.micronaut.serde.processor.jackson.JacksonAnnotationMapper
+io.micronaut.serde.processor.jackson.JsonClassDescriptionMapper
+io.micronaut.serde.processor.jackson.JsonRootNameMapper
 io.micronaut.serde.processor.jackson.JsonSubTypesMapper
 io.micronaut.serde.processor.jackson.JsonIncludePropertiesMapper
 io.micronaut.serde.processor.jackson.JsonIgnoreMapper

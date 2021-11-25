@@ -10,10 +10,10 @@ class JsonBasicSerdeSpec extends JsonCompileSpec {
         def context = buildContext('test.Test', """
 package test;
 
-import io.micronaut.serde.annotation.Serdeable;
 import java.util.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
-@Serdeable
+
+@com.fasterxml.jackson.annotation.JsonClassDescription
 class Test {
     @JsonInclude(JsonInclude.Include.NON_ABSENT)
     private $type value;
