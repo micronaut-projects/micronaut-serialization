@@ -46,14 +46,7 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -324,7 +317,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.Subtyped.Subtype.class);
         if (!subtypes.isEmpty()) {
             final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
-            String typeProperty = resolveTypeProperty(Optional.of(element)).orElseGet(() ->
+            String typeProperty = resolveTypeProperty(element).orElseGet(() ->
                     discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
             );
             for (AnnotationValue<SerdeConfig.Subtyped.Subtype> subtype : subtypes) {
@@ -342,7 +335,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         }
                         subElement.annotate(Serdeable.class);
                         subElement.annotate(SerdeConfig.class, (builder) -> {
-                            String include = resolveInclude(Optional.of(element)).orElse(null);
+                            String include = resolveInclude(element).orElse(null);
                             handleSubtypeInclude(builder, typeName, typeProperty, include);
                         });
                     }
@@ -472,10 +465,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     final String typeName = element.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseGet(() ->
                           discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? element.getName() : element.getSimpleName()
                     );
-                    String typeProperty = resolveTypeProperty(superType).orElseGet(() ->
+                    String typeProperty = resolveTypeProperty(typeInfo).orElseGet(() ->
                        discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
                     );
-                    final String include = resolveInclude(superType).orElse(null);
+                    final String include = resolveInclude(typeInfo).orElse(null);
                     handleSubtypeInclude(builder, typeName, typeProperty, include);
                 });
             }
@@ -631,39 +624,58 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         final ClassElement superElement = element.getSuperType().orElse(null);
+
         if (superElement == null) {
-            return Optional.empty();
+            ClassElement itfe = findInDeclaredInterfaces(element);
+            if (itfe != null) {
+                return Optional.of(itfe);
+            } else {
+                return Optional.empty();
+            }
         }
+
         if (superElement.hasDeclaredAnnotation(SerdeConfig.Subtyped.class)) {
             return Optional.of(superElement);
         } else {
-            return findTypeInfo(superElement, true);
+            ClassElement itfe = findInDeclaredInterfaces(superElement);
+            if (itfe != null) {
+                return Optional.of(itfe);
+            } else {
+                return findTypeInfo(superElement, true);
+            }
         }
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private Optional<String> resolveTypeProperty(Optional<ClassElement> superType) {
-        return superType.flatMap(st -> {
-            final String property = st.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_PROP)
-                    .orElse(null);
-            if (property != null) {
-                return Optional.of(property);
-            } else {
-                return resolveTypeProperty(st.getSuperType());
+    private ClassElement findInDeclaredInterfaces(@NonNull ClassElement superElement) {
+        Collection<ClassElement> interfaces = superElement.getInterfaces();
+        if (CollectionUtils.isNotEmpty(interfaces)) {
+            for (ClassElement anInterface : interfaces) {
+                if (anInterface.hasDeclaredAnnotation(SerdeConfig.Subtyped.class)) {
+                    return anInterface;
+                }
+                ClassElement e = findInDeclaredInterfaces(anInterface);
+                if (e != null) {
+                    return e;
+                }
             }
-        });
+        }
+        return null;
     }
 
-    private Optional<String> resolveInclude(Optional<ClassElement> superType) {
-        return superType.flatMap(st -> {
-            final String asValue = st.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_TYPE)
-                    .orElse(null);
-            if (asValue != null) {
-                return Optional.of(asValue);
-            } else {
-                return resolveInclude(st.getSuperType());
-            }
-        });
+    private Optional<String> resolveTypeProperty(@NonNull ClassElement superType) {
+        ClassElement typeInfo = findTypeInfo(superType, true).orElse(null);
+        if (typeInfo != null) {
+            return typeInfo.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_PROP);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<String> resolveInclude(ClassElement superType) {
+        ClassElement typeInfo = findTypeInfo(superType, true).orElse(null);
+        if (typeInfo != null) {
+            return typeInfo.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_TYPE);
+        }
+        return Optional.empty();
     }
 
     @Override
