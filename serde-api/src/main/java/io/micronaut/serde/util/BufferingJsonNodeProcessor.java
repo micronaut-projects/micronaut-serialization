@@ -85,7 +85,7 @@ public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[],
             onlyWhitespace &= ws;
             i++;
             // split on whitespace
-            if (buffersState == 0 && ws && !onlyWhitespace) {
+            if (buffersState == 0 && (ws || !wasOutsideStructure) && !onlyWhitespace) {
                 processOne(bytes.length - i, out);
             }
         }
