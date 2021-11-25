@@ -17,6 +17,9 @@ package io.micronaut.serde.processor;
 
 import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.*;
+import io.micronaut.core.bind.annotation.Bindable;
+import io.micronaut.core.convert.ConversionService;
+import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.reflect.InstantiationUtils;
@@ -495,6 +498,25 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                 final ClassElement t = beanProperty.getGenericType();
                 handleJsonIgnoreType(context, beanProperty, t);
+            }
+
+            String name = beanProperty.getGenericType().getName();
+            if (failOnError && ClassUtils.isJavaBasicType(name)) {
+
+                String defaultValue = beanProperty.stringValue(Bindable.class, "defaultValue").orElse(null);
+                if (defaultValue != null) {
+                    Class t = ClassUtils.forName(name, getClass().getClassLoader()).orElse(null);
+                    if (t != null) {
+                        try {
+                            if (ConversionService.SHARED.canConvert(String.class, t)) {
+                                ConversionService.SHARED.convertRequired(defaultValue, t);
+                            }
+                        } catch (ConversionErrorException e) {
+                            context.fail("Invalid defaultValue [" + defaultValue + "] specified for property [" + beanProperty.getName() + "]: " + e.getConversionError().getCause().getMessage(), beanProperty);
+                            return;
+                        }
+                    }
+                }
             }
 
             final String propertyName = beanProperty.getName();

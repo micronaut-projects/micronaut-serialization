@@ -3,8 +3,72 @@ package io.micronaut.serde.jackson.annotation
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Requires
+import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
+    @Unroll
+    void "test invalid defaultValue for #type and value #value"() {
+
+        when:
+        buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonProperty(defaultValue = "$value")
+    private $type.name value;
+    public void setValue($type.name value) {
+        this.value = value;
+    } 
+    public $type.name getValue() {
+        return value;
+    }
+}
+""", [:])
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("Invalid defaultValue [$value] specified for property [value]")
+
+        where:
+        type    | value
+        Integer | 'junk'
+        URL     | 'ws://junk'
+    }
+
+    @Unroll
+    @Requires({ jvm.isJava17Compatible() })
+    void "test invalid defaultValue for #type and value #value for records"() {
+
+        when:
+        buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test(
+    @JsonProperty(defaultValue = "$value")
+    $type.name value
+) {}
+""")
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("Invalid defaultValue [$value] specified for property [value]")
+
+        where:
+        type    | value
+        Integer | 'junk'
+        URL     | 'ws://junk'
+    }
+
     void "test @JsonProperty on field"() {
         given:
         def context = buildContext('test.Test', """
@@ -35,7 +99,7 @@ class Test {
         return ignored;
     }
 }
-""", [value:'test'])
+""", [value: 'test'])
         when:
         def result = writeJson(jsonMapper, beanUnderTest)
 
@@ -43,7 +107,7 @@ class Test {
         result == '{"other":"test"}'
 
         when:
-        def bean  =
+        def bean =
                 jsonMapper.readValue('{"ignored":true}', argumentOf(context, 'test.Test'))
         then:
         bean.ignored == true
@@ -80,14 +144,14 @@ record Test(
         result == '{"other":"test"}'
 
         when:
-        bean  = jsonMapper.readValue('{"ignored":true}', argumentOf(context, 'test.Test'))
+        bean = jsonMapper.readValue('{"ignored":true}', argumentOf(context, 'test.Test'))
 
         then:
         bean.ignored == true
         bean.value == 'default'
 
         when:
-        bean  = jsonMapper.readValue('{}', argumentOf(context, 'test.Test'))
+        bean = jsonMapper.readValue('{}', argumentOf(context, 'test.Test'))
 
         then:
         bean.ignored == false
@@ -108,7 +172,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
 
-@Serdeable
+@Serdeable(validate = false)
 record Test(
     @JsonProperty(value = "other", defaultValue = "default")
     String value,
@@ -124,7 +188,7 @@ record Test(
         result == '{"other":"test"}'
 
         when:
-        bean  = jsonMapper.readValue('{"ignored":true}', argumentOf(context, 'test.Test'))
+        bean = jsonMapper.readValue('{"ignored":true}', argumentOf(context, 'test.Test'))
 
         then:
         def e = thrown(SerdeException)
