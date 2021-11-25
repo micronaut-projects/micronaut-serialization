@@ -520,12 +520,20 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 handleJsonIgnoreType(context, beanProperty, t);
             }
 
-            String name = beanProperty.getGenericType().getName();
-            if (failOnError && ClassUtils.isJavaBasicType(name)) {
+            ClassElement propertyType = beanProperty.getGenericType();
+            String name = propertyType.getName();
+            if (failOnError && (ClassUtils.isJavaBasicType(name) || (propertyType.isPrimitive() && !propertyType.isArray()))) {
 
                 String defaultValue = beanProperty.stringValue(Bindable.class, "defaultValue").orElse(null);
                 if (defaultValue != null) {
-                    Class t = ClassUtils.forName(name, getClass().getClassLoader()).orElse(null);
+                    Class t;
+                    if (propertyType.isPrimitive()) {
+                        t = ClassUtils.getPrimitiveType(propertyType.getName())
+                                .map(ReflectionUtils::getWrapperType)
+                                .orElse(null);
+                    } else {
+                        t =  ClassUtils.forName(name, getClass().getClassLoader()).orElse(null);
+                    }
                     if (t != null) {
                         try {
                             if (ConversionService.SHARED.canConvert(String.class, t)) {

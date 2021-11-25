@@ -64,9 +64,10 @@ record Test(
         e.message.contains("Invalid defaultValue [$value] specified for property [value]")
 
         where:
-        type    | value
-        Integer | 'junk'
-        URL     | 'ws://junk'
+        type      | value
+        Integer   | 'junk'
+        int.class | 'junk'
+        URL       | 'ws://junk'
     }
 
     void "test @JsonProperty on field"() {
