@@ -24,6 +24,8 @@ import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
@@ -48,6 +50,12 @@ public @interface Serdeable {
      */
     @AliasFor(annotation = SerdeConfig.class, member = "validate")
     boolean validate() default true;
+
+    /**
+     * @return Naming strategy to use for both serialization and deserialization.
+     */
+    @AliasFor(annotation = SerdeConfig.class, member = "naming")
+    Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
 
     /**
      * Annotation used to indicate a type is serializable.

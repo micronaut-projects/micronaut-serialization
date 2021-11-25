@@ -21,8 +21,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
 /**
  * Annotation to allow external classes to be enabled for serialization / deserialization.
@@ -42,6 +45,12 @@ public @interface SerdeImport {
      * @return The type to enable serialization for.
      */
     Class<?> value();
+
+    /**
+     * @return Naming strategy to use for both serialization and deserialization.
+     */
+    @AliasFor(annotation = SerdeConfig.class, member = "naming")
+    Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
 
     /**
      * @return Serialization configuration to use.

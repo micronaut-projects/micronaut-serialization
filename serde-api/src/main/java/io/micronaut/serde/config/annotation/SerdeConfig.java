@@ -123,6 +123,11 @@ public @interface SerdeConfig {
     String ALIASES = "aliases";
 
     /**
+     * Naming strategy.
+     */
+    String NAMING = "naming";
+
+    /**
      * Internal metadata type for wrapped settings.
      */
     @Internal
