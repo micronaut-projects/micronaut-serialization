@@ -76,7 +76,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
             final Collection<BeanIntrospection<Object>> candidates =
                     beanIntrospector.findIntrospections(reference -> reference.isPresent() &&
-                            type.getType().isAssignableFrom(reference.getBeanType()) && isEnabledForSerialization(reference, type));
+                            reference.getBeanType().isAssignableFrom(type.getType()) && isEnabledForSerialization(reference, type));
             if (CollectionUtils.isNotEmpty(candidates)) {
                 if (candidates.size() == 1) {
                     result = (BeanIntrospection<T>) candidates.iterator().next();
