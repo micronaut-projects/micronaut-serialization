@@ -32,6 +32,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.Collections;
@@ -63,31 +64,63 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
     public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
         final BeanIntrospector beanIntrospector = getBeanIntrospector();
         final Optional<BeanIntrospection<T>> introspection = beanIntrospector.findIntrospection(type.getType());
+        BeanIntrospection<T> result = null;
         if (introspection.isPresent()) {
 
             final BeanIntrospection<T> i = introspection.get();
             if (isEnabledForSerialization(i, type)) {
-                return i;
+                result = i;
             }
         }
-        final Collection<BeanIntrospection<Object>> candidates =
-                beanIntrospector.findIntrospections(reference -> reference.isPresent() &&
-                        reference.getBeanType().isAssignableFrom(type.getType()) && isEnabledForSerialization(reference, type));
-        if (CollectionUtils.isNotEmpty(candidates)) {
-            if (candidates.size() == 1) {
-                return (BeanIntrospection<T>) candidates.iterator().next();
+        if (result == null) {
+
+            final Collection<BeanIntrospection<Object>> candidates =
+                    beanIntrospector.findIntrospections(reference -> reference.isPresent() &&
+                            reference.getBeanType().isAssignableFrom(type.getType()) && isEnabledForSerialization(reference, type));
+            if (CollectionUtils.isNotEmpty(candidates)) {
+                if (candidates.size() == 1) {
+                    result = (BeanIntrospection<T>) candidates.iterator().next();
+                } else {
+                    result = (BeanIntrospection<T>) OrderUtil.sort(candidates.stream()).findFirst().get();
+                }
+            }
+        }
+        if (result != null) {
+            Class serializeType = result.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS)
+                    .orElse(null);
+            if (serializeType != null && !serializeType.equals(type.getType())) {
+                Argument resolved = Argument.of(
+                        serializeType,
+                        type.getName(),
+                        type.getAnnotationMetadata(),
+                        type.getTypeParameters()
+                );
+                return getSerializableIntrospection(resolved);
             } else {
-                return (BeanIntrospection<T>) OrderUtil.sort(candidates.stream()).findFirst().get();
+                return result;
             }
+        } else {
+            throw new IntrospectionException("No serializable introspection present for type. Consider adding Serdeable.Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeMixin(" + type.getSimpleName() + ".class) to enable serialization of this type.");
         }
-        throw new IntrospectionException("No serializable introspection present for type. Consider adding Serdeable.Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeMixin(" + type.getSimpleName() + ".class) to enable serialization of this type.");
     }
 
     @Override
     public <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
         final BeanIntrospection<T> introspection = getBeanIntrospector().getIntrospection(type.getType());
         if (isEnabledForDeserialization(introspection, type)) {
-            return introspection;
+            Class serializeType = introspection.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS)
+                    .orElse(null);
+            if (serializeType != null) {
+                Argument resolved = Argument.of(
+                        serializeType,
+                        type.getName(),
+                        type.getAnnotationMetadata(),
+                        type.getTypeParameters()
+                );
+                return getSerializableIntrospection(resolved);
+            } else {
+                return introspection;
+            }
         } else {
             throw new IntrospectionException("No deserializable introspection present for type. Consider adding Serdeable.Deserializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeMixin(" + type.getSimpleName() + ".class) to enable deserialization of this type.");
         }

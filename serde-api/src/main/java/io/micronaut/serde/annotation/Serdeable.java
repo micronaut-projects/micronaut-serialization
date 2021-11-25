@@ -48,13 +48,13 @@ public @interface Serdeable {
     /**
      * @return Whether build time validation should fail compilation on definition errors.
      */
-    @AliasFor(annotation = SerdeConfig.class, member = "validate")
+    @AliasFor(annotation = SerdeConfig.class, member =SerdeConfig.VALIDATE)
     boolean validate() default true;
 
     /**
      * @return Naming strategy to use for both serialization and deserialization.
      */
-    @AliasFor(annotation = SerdeConfig.class, member = "naming")
+    @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.NAMING)
     Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
 
     /**
@@ -76,8 +76,15 @@ public @interface Serdeable {
         /**
          * @return Whether build time validation should fail compilation on definition errors.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = "validate")
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.VALIDATE)
         boolean validate() default true;
+
+        /**
+         * Use the given class to serialize this type.
+         * @return A type that is a subclass of the annotated type.
+         */
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.SERIALIZE_AS)
+        Class<?> as() default void.class;
     }
 
     /**
@@ -98,7 +105,14 @@ public @interface Serdeable {
         /**
          * @return Whether build time validation should fail compilation on definition errors.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = "validate")
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.VALIDATE)
         boolean validate() default true;
+
+        /**
+         * Use the given class to deserialize this type.
+         * @return A type that is a subclass of the annotated type.
+         */
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.DESERIALIZE_AS)
+        Class<?> as() default void.class;
     }
 }

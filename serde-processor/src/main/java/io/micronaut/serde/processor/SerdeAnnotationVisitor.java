@@ -79,7 +79,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "com.fasterxml.jackson.annotation.*",
                 "jakarta.json.bind.annotation.*",
                 "io.micronaut.serde.annotation.*",
-                "org.bson.codecs.pojo.annotations.*"
+                "org.bson.codecs.pojo.annotations.*",
+                "com.fasterxml.jackson.databind.annotation.*"
         );
     }
 
@@ -318,6 +319,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
+
         List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.Subtyped.Subtype.class);
         if (!subtypes.isEmpty()) {
             final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
@@ -372,6 +374,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     builder.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
                     builder.member("visibility", "PUBLIC");
                 });
+            }
+
+            String serializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
+            if (serializeAs != null) {
+                ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
+                if (thatType != null && !thatType.isAssignable(element)) {
+                    context.fail("Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
+                    return;
+                }
+            }
+
+            String deserializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
+            if (deserializeAs != null) {
+                ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
+                if (thatType != null && !thatType.isAssignable(element)) {
+                    context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
+                    return;
+                }
             }
 
             final MethodElement primaryConstructor = element.getPrimaryConstructor().orElse(null);
@@ -646,6 +666,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return Stream.of(
                         "com.fasterxml.jackson.annotation.JsonClassDescription",
                         "com.fasterxml.jackson.databind.annotation.JsonNaming",
+                        "com.fasterxml.jackson.databind.annotation.JsonSerialize",
+                        "com.fasterxml.jackson.databind.annotation.JsonDeserialize",
                         "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",

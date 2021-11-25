@@ -68,7 +68,6 @@ package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.micronaut.serde.annotation.Serdeable;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 @JsonNaming(${strategy.class.canonicalName}.class)
