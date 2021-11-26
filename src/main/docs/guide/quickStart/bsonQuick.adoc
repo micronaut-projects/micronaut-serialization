@@ -7,9 +7,9 @@ To do so in a Gradle build add the following configuration (either Groovy or Kot
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-        .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-        .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
     }
 }
 ----

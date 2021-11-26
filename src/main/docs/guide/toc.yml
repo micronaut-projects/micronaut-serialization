@@ -1,10 +1,16 @@
 introduction:
   title: Introduction
+  why: Why Micronaut Serialization?
 releaseHistory: Release History
 quickStart:
   title: Quick Start
   jacksonQuick: Jackson Annotations & Jackson Core
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
+jacksonAnnotations: Jackson Annotations
+bsonAnnotations: BSON Annotations
+jsonbAnnotations: JSON-B Annotations
+serdes: Custom Serializers & Deserializers
+keys: Custom Key Converters
 repository: Repository
 
