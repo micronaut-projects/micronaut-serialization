@@ -40,7 +40,7 @@ import java.util.Optional;
 
 @Factory
 @Internal
-final class CustomSerders {
+final class CustomBsonSerdes {
 
     @Singleton
     @NonNull

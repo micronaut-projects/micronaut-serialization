@@ -42,7 +42,6 @@ import java.nio.charset.StandardCharsets;
 @Singleton
 @Primary
 @BootstrapContextCompatible
-@Internal
 public final class BsonJsonMapper extends AbstractBsonMapper {
 
     @Inject

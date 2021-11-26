@@ -37,7 +37,6 @@ import java.util.Objects;
  * @author Denis Stepanov
  */
 @Singleton
-@Internal
 public final class BsonBinaryMapper extends AbstractBsonMapper {
 
     @Inject

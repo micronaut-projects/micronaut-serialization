@@ -8,8 +8,8 @@ quickStart:
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
 jacksonAnnotations: Jackson Annotations
-bsonAnnotations: BSON Annotations
 jsonbAnnotations: JSON-B Annotations
+bsonAnnotations: BSON Annotations
 serdes: Custom Serializers & Deserializers
 keys: Custom Key Converters
 repository: Repository

@@ -42,7 +42,7 @@ import java.util.UUID;
  * @author Denis Stepanov
  */
 @Singleton
-public final class BsonRepresentationSerde extends AbstractBsonSerder<Object> {
+public final class BsonRepresentationSerde extends AbstractBsonSerde<Object> {
 
     @Override
     protected Object doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {

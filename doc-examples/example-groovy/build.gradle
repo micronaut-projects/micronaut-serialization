@@ -21,4 +21,3 @@ dependencies {
 application {
     mainClass.set("example.Application")
 }
-testNativeImage.enabled = false

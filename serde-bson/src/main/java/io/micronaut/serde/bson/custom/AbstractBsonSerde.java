@@ -29,7 +29,7 @@ import java.io.IOException;
  * Abstract serializer/deserializer that needs to access Bson decoder/encoder.
  * @param <T>
  */
-public abstract class AbstractBsonSerder<T> implements NullableSerde<T> {
+public abstract class AbstractBsonSerde<T> implements NullableSerde<T> {
 
     protected abstract T doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
 
