@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -73,7 +73,7 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#fields.inherited.from.class.io.micronaut.serde.bson.AbstractBsonMapper">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
@@ -112,12 +112,12 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd>io.micronaut.json.JsonMapper</dd>
+<dd>io.micronaut.json.JsonMapper, <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dd>
 </dl>
 <hr>
 <br>
 <pre>@Singleton
- @Internal
+ @Primary
 public final class <span class="typeNameLabel">BsonJsonMapper</span>
 extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></pre>
 <div class="block">Textual JSON Bson mapper.</div>
@@ -131,6 +131,21 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<ul class="blockList">
+<li class="blockList"><a name="fields.inherited.from.class.io.micronaut.serde.bson.AbstractBsonMapper">
+<!--   -->
+</a>
+<h3>Fields inherited from class&nbsp;io.micronaut.serde.bson.<a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></h3>
+<code><a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html#registry">registry</a>, <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html#view">view</a></code></li>
+</ul>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -144,6 +159,10 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonJsonMapper.html#BsonJsonMapper-io.micronaut.serde.SerdeRegistry-">BsonJsonMapper</a></span>(<a href="../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonJsonMapper.html#BsonJsonMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">BsonJsonMapper</a></span>(<a href="../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+              java.lang.Class&lt;?&gt;&nbsp;view)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -161,10 +180,14 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>io.micronaut.json.JsonMapper</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonJsonMapper.html#cloneWithViewClass-java.lang.Class-">cloneWithViewClass</a></span>(java.lang.Class&lt;?&gt;&nbsp;viewClass)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected org.bson.BsonReader</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonJsonMapper.html#createBsonReader-java.nio.ByteBuffer-">createBsonReader</a></span>(java.nio.ByteBuffer&nbsp;byteBuffer)</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>protected org.bson.AbstractBsonWriter</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonJsonMapper.html#createBsonWriter-java.io.OutputStream-">createBsonWriter</a></span>(java.io.OutputStream&nbsp;outputStream)</code>&nbsp;</td>
 </tr>
@@ -184,11 +207,18 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
 </ul>
 <ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.ObjectMapper">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></h3>
+<code><a href="../../../../io/micronaut/serde/ObjectMapper.html#cloneWithFeatures-io.micronaut.json.JsonFeatures-">cloneWithFeatures</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#readValue-byte:A-java.lang.Class-">readValue</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#readValue-java.io.InputStream-java.lang.Class-">readValue</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#readValue-java.lang.String-java.lang.Class-">readValue</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-">writeValueAsString</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-java.nio.charset.Charset-">writeValueAsString</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-T-">writeValueAsString</a></code></li>
+</ul>
+<ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.json.JsonMapper">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.json.JsonMapper</h3>
-<code>cloneWithFeatures, cloneWithViewClass, detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
+<code>detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
 </ul>
 </li>
 </ul>
@@ -207,10 +237,21 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 <a name="BsonJsonMapper-io.micronaut.serde.SerdeRegistry-">
 <!--   -->
 </a>
+<ul class="blockList">
+<li class="blockList">
+<h4>BsonJsonMapper</h4>
+<pre>@Inject
+public&nbsp;BsonJsonMapper(<a href="../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</pre>
+</li>
+</ul>
+<a name="BsonJsonMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">
+<!--   -->
+</a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>BsonJsonMapper</h4>
-<pre>public&nbsp;BsonJsonMapper(<a href="../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</pre>
+<pre>public&nbsp;BsonJsonMapper(<a href="../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+                      java.lang.Class&lt;?&gt;&nbsp;view)</pre>
 </li>
 </ul>
 </li>
@@ -221,6 +262,15 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="cloneWithViewClass-java.lang.Class-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>cloneWithViewClass</h4>
+<pre>public&nbsp;io.micronaut.json.JsonMapper&nbsp;cloneWithViewClass(java.lang.Class&lt;?&gt;&nbsp;viewClass)</pre>
+</li>
+</ul>
 <a name="createBsonReader-java.nio.ByteBuffer-">
 <!--   -->
 </a>
@@ -300,7 +350,7 @@ extends <a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html" ti
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#fields.inherited.from.class.io.micronaut.serde.bson.AbstractBsonMapper">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>

@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd>io.micronaut.json.JsonMapper</dd>
+<dd>io.micronaut.json.JsonMapper, <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dd>
 </dl>
 <hr>
 <br>
@@ -116,7 +116,7 @@ var activeTableTab = "activeTableTab";
  @Primary
 public final class <span class="typeNameLabel">JacksonJsonMapper</span>
 extends java.lang.Object
-implements io.micronaut.json.JsonMapper</pre>
+implements <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></pre>
 <div class="block">Implementation of the <code>JsonMapper</code> interface for Jackson.</div>
 </li>
 </ul>
@@ -219,11 +219,18 @@ implements io.micronaut.json.JsonMapper</pre>
 <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
 </ul>
 <ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.ObjectMapper">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></h3>
+<code><a href="../../../../io/micronaut/serde/ObjectMapper.html#cloneWithFeatures-io.micronaut.json.JsonFeatures-">cloneWithFeatures</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#readValue-byte:A-java.lang.Class-">readValue</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#readValue-java.io.InputStream-java.lang.Class-">readValue</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#readValue-java.lang.String-java.lang.Class-">readValue</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-">writeValueAsString</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-java.nio.charset.Charset-">writeValueAsString</a>, <a href="../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-T-">writeValueAsString</a></code></li>
+</ul>
+<ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.json.JsonMapper">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.json.JsonMapper</h3>
-<code>cloneWithFeatures, detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
+<code>detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
 </ul>
 </li>
 </ul>

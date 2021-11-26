@@ -78,11 +78,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#AbstractBsonMapper-io.micronaut.serde.SerdeRegistry-">AbstractBsonMapper(SerdeRegistry)</a></span> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom"><span class="typeNameLink">AbstractBsonSerder</span></a>&lt;<a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="type parameter in AbstractBsonSerder">T</a>&gt; - Class in <a href="io/micronaut/serde/bson/custom/package-summary.html">io.micronaut.serde.bson.custom</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#AbstractBsonMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">AbstractBsonMapper(SerdeRegistry, Class&lt;?&gt;)</a></span> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom"><span class="typeNameLink">AbstractBsonSerde</span></a>&lt;<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="type parameter in AbstractBsonSerde">T</a>&gt; - Class in <a href="io/micronaut/serde/bson/custom/package-summary.html">io.micronaut.serde.bson.custom</a></dt>
 <dd>
 <div class="block">Abstract serializer/deserializer that needs to access Bson decoder/encoder.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html#AbstractBsonSerder--">AbstractBsonSerder()</a></span> - Constructor for class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#AbstractBsonSerde--">AbstractBsonSerde()</a></span> - Constructor for class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde"><span class="typeNameLink">AbstractStreamDecoder</span></a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
@@ -144,6 +146,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonBinaryMapper.html#BsonBinaryMapper-io.micronaut.serde.SerdeRegistry-">BsonBinaryMapper(SerdeRegistry)</a></span> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonBinaryMapper.html" title="class in io.micronaut.serde.bson">BsonBinaryMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonBinaryMapper.html#BsonBinaryMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">BsonBinaryMapper(SerdeRegistry, Class&lt;?&gt;)</a></span> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonBinaryMapper.html" title="class in io.micronaut.serde.bson">BsonBinaryMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/bson/BsonCreatorTransformer.html" title="class in io.micronaut.serde.processor.bson"><span class="typeNameLink">BsonCreatorTransformer</span></a> - Class in <a href="io/micronaut/serde/processor/bson/package-summary.html">io.micronaut.serde.processor.bson</a></dt>
 <dd>
 <div class="block">Mapper of @BsonCreator.</div>
@@ -173,6 +177,8 @@
 <div class="block">Textual JSON Bson mapper.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonJsonMapper.html#BsonJsonMapper-io.micronaut.serde.SerdeRegistry-">BsonJsonMapper(SerdeRegistry)</a></span> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonJsonMapper.html" title="class in io.micronaut.serde.bson">BsonJsonMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonJsonMapper.html#BsonJsonMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">BsonJsonMapper(SerdeRegistry, Class&lt;?&gt;)</a></span> - Constructor for class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonJsonMapper.html" title="class in io.micronaut.serde.bson">BsonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/bson/BsonPropertyTransformer.html" title="class in io.micronaut.serde.processor.bson"><span class="typeNameLink">BsonPropertyTransformer</span></a> - Class in <a href="io/micronaut/serde/processor/bson/package-summary.html">io.micronaut.serde.processor.bson</a></dt>
 <dd>
@@ -224,7 +230,15 @@
 <dd>
 <div class="block">A serializer for all instances of <code>Character</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#cloneWithFeatures-io.micronaut.json.JsonFeatures-">cloneWithFeatures(JsonFeatures)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonBinaryMapper.html#cloneWithViewClass-java.lang.Class-">cloneWithViewClass(Class&lt;?&gt;)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonBinaryMapper.html" title="class in io.micronaut.serde.bson">BsonBinaryMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonJsonMapper.html#cloneWithViewClass-java.lang.Class-">cloneWithViewClass(Class&lt;?&gt;)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonJsonMapper.html" title="class in io.micronaut.serde.bson">BsonJsonMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#cloneWithViewClass-java.lang.Class-">cloneWithViewClass(Class&lt;?&gt;)</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#cloneWithViewClass-java.lang.Class-">cloneWithViewClass(Class&lt;?&gt;)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="class in io.micronaut.serde.bson.custom"><span class="typeNameLink">CodecBsonDecoder</span></a>&lt;<a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt; - Class in <a href="io/micronaut/serde/bson/custom/package-summary.html">io.micronaut.serde.bson.custom</a></dt>
 <dd>
@@ -559,7 +573,7 @@
 <dd>
 <div class="block">Used to store the type that will deserialize this type.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/deserializers/ObjectDeserializer.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super Object&gt;)</a></span> - Method in class io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.deserializers">ObjectDeserializer</a></dt>
 <dd>&nbsp;</dd>
@@ -617,13 +631,13 @@
 <dd>
 <div class="block">The discriminator value to use.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html#doDeserializeNonNull-io.micronaut.serde.bson.BsonReaderDecoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">doDeserializeNonNull(BsonReaderDecoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#doDeserializeNonNull-io.micronaut.serde.bson.BsonReaderDecoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">doDeserializeNonNull(BsonReaderDecoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html#doDeserializeNonNull-io.micronaut.serde.bson.BsonReaderDecoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">doDeserializeNonNull(BsonReaderDecoder, Deserializer.DecoderContext, Argument&lt;? super Object&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html" title="class in io.micronaut.serde.bson.custom">BsonRepresentationSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html#doDeserializeNonNull-io.micronaut.serde.bson.BsonReaderDecoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">doDeserializeNonNull(BsonReaderDecoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="class in io.micronaut.serde.bson.custom">CodecBsonDecoder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html#doSerialize-io.micronaut.serde.bson.BsonWriterEncoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">doSerialize(BsonWriterEncoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#doSerialize-io.micronaut.serde.bson.BsonWriterEncoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">doSerialize(BsonWriterEncoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html#doSerialize-io.micronaut.serde.bson.BsonWriterEncoder-io.micronaut.serde.Serializer.EncoderContext-java.lang.Object-io.micronaut.core.type.Argument-">doSerialize(BsonWriterEncoder, Serializer.EncoderContext, Object, Argument&lt;?&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html" title="class in io.micronaut.serde.bson.custom">BsonRepresentationSerde</a></dt>
 <dd>&nbsp;</dd>
@@ -1482,6 +1496,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#JsonStreamMapper-io.micronaut.serde.SerdeRegistry-">JsonStreamMapper(SerdeRegistry)</a></span> - Constructor for class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#JsonStreamMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">JsonStreamMapper(SerdeRegistry, Class&lt;?&gt;)</a></span> - Constructor for class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonSubTypesMapper.html" title="class in io.micronaut.serde.processor.jackson"><span class="typeNameLink">JsonSubTypesMapper</span></a> - Class in <a href="io/micronaut/serde/processor/jackson/package-summary.html">io.micronaut.serde.processor.jackson</a></dt>
 <dd>
 <div class="block">Support JsonSubTypes.</div>
@@ -1737,6 +1753,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/deserializers/ObjectDeserializer.html#ObjectDeserializer-io.micronaut.serde.SerdeIntrospections-io.micronaut.serde.config.DeserializationConfiguration-">ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration)</a></span> - Constructor for class io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.deserializers">ObjectDeserializer</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde"><span class="typeNameLink">ObjectMapper</span></a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Sub-interface of <code>JsonMapper</code> with customizations.</div>
+</dd>
 <dt><a href="io/micronaut/serde/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.serializers"><span class="typeNameLink">ObjectSerializer</span></a> - Class in <a href="io/micronaut/serde/serializers/package-summary.html">io.micronaut.serde.serializers</a></dt>
 <dd>
 <div class="block">Fallback <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a> for general <code>Object</code> values.</div>
@@ -1837,11 +1857,25 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#readValue-byte:A-io.micronaut.core.type.Argument-">readValue(byte[], Argument&lt;T&gt;)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#readValue-java.io.InputStream-java.lang.Class-">readValue(InputStream, Class&lt;T&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>
+<div class="block">Read a value from the given input stream for the given type.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#readValue-byte:A-java.lang.Class-">readValue(byte[], Class&lt;T&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>
+<div class="block">Read a value from the byte array for the given type.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#readValue-java.lang.String-java.lang.Class-">readValue(String, Class&lt;T&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>
+<div class="block">Read a value from the given string for the given type.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#readValueFromTree-io.micronaut.json.tree.JsonNode-io.micronaut.core.type.Argument-">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#readValueFromTree-io.micronaut.json.tree.JsonNode-io.micronaut.core.type.Argument-">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#readValueFromTree-io.micronaut.json.tree.JsonNode-io.micronaut.core.type.Argument-">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#registry">registry</a></span> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/annotation/SerdeAnnotationUtil.html#resolveViews-io.micronaut.core.annotation.AnnotationMetadata-io.micronaut.core.annotation.AnnotationMetadata-">resolveViews(AnnotationMetadata, AnnotationMetadata)</a></span> - Static method in class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeAnnotationUtil.html" title="class in io.micronaut.serde.config.annotation">SerdeAnnotationUtil</a></dt>
 <dd>
@@ -1994,7 +2028,7 @@
 <dd>
 <div class="block">Configuration for serialization.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize(Encoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize(Encoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize(Encoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.serdes.<a href="io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a></dt>
 <dd>&nbsp;</dd>
@@ -2301,6 +2335,8 @@ the order they are declared.</div>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#view">view</a></span> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#VIEWS">VIEWS</a></span> - Static variable in annotation type io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">The views an element is part of.</div>
@@ -2351,6 +2387,18 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueAsBytes-io.micronaut.core.type.Argument-T-">writeValueAsBytes(Argument&lt;T&gt;, T)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#writeValueAsString-T-">writeValueAsString(T)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>
+<div class="block">Write the given value as a string.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-">writeValueAsString(Argument&lt;T&gt;, T)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>
+<div class="block">Write the given value as a string.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-java.nio.charset.Charset-">writeValueAsString(Argument&lt;T&gt;, T, Charset)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
+<dd>
+<div class="block">Write the given value as a string.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueToTree-io.micronaut.core.type.Argument-T-">writeValueToTree(Argument&lt;T&gt;, T)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueToTree-java.lang.Object-">writeValueToTree(Object)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>

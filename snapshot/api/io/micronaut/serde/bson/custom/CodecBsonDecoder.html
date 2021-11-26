@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">io.micronaut.serde.bson.custom.AbstractBsonSerder</a>&lt;T&gt;</li>
+<li><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">io.micronaut.serde.bson.custom.AbstractBsonSerde</a>&lt;T&gt;</li>
 <li>
 <ul class="inheritance">
 <li>io.micronaut.serde.bson.custom.CodecBsonDecoder&lt;T&gt;</li>
@@ -121,7 +121,7 @@ var activeTableTab = "activeTableTab";
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">CodecBsonDecoder&lt;T&gt;</span>
-extends <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a>&lt;T&gt;</pre>
+extends <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a>&lt;T&gt;</pre>
 <div class="block">Serializer/deserializer implemented by <code>Codec</code>.</div>
 </li>
 </ul>
@@ -197,11 +197,11 @@ extends <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.bson.custom.AbstractBsonSerder">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.bson.custom.AbstractBsonSerde">
 <!--   -->
 </a>
-<h3>Methods inherited from class&nbsp;io.micronaut.serde.bson.custom.<a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a></h3>
-<code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a>, <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code></li>
+<h3>Methods inherited from class&nbsp;io.micronaut.serde.bson.custom.<a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></h3>
+<code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a>, <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -273,7 +273,7 @@ extends <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde
                                  io.micronaut.core.type.Argument&lt;? super <a href="../../../../../io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt;&nbsp;type)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html#doDeserializeNonNull-io.micronaut.serde.bson.BsonReaderDecoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">doDeserializeNonNull</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a>&lt;<a href="../../../../../io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt;</code></dd>
+<dd><code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html#doDeserializeNonNull-io.micronaut.serde.bson.BsonReaderDecoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">doDeserializeNonNull</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a>&lt;<a href="../../../../../io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt;</code></dd>
 </dl>
 </li>
 </ul>
@@ -291,7 +291,7 @@ extends <a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde
                            io.micronaut.core.type.Argument&lt;? extends <a href="../../../../../io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt;&nbsp;type)</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html#doSerialize-io.micronaut.serde.bson.BsonWriterEncoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">doSerialize</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerder.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerder</a>&lt;<a href="../../../../../io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt;</code></dd>
+<dd><code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html#doSerialize-io.micronaut.serde.bson.BsonWriterEncoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">doSerialize</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a>&lt;<a href="../../../../../io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt;</code></dd>
 </dl>
 </li>
 </ul>

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -107,14 +107,14 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd>io.micronaut.json.JsonMapper</dd>
+<dd>io.micronaut.json.JsonMapper, <a href="../../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dd>
 </dl>
 <hr>
 <br>
 <pre>@Singleton
 public class <span class="typeNameLabel">JsonStreamMapper</span>
 extends java.lang.Object
-implements io.micronaut.json.JsonMapper</pre>
+implements <a href="../../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></pre>
 <div class="block">Implementation of the <code>JsonMapper</code> interface for JSON-P.</div>
 </li>
 </ul>
@@ -136,6 +136,10 @@ implements io.micronaut.json.JsonMapper</pre>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#JsonStreamMapper-io.micronaut.serde.SerdeRegistry-">JsonStreamMapper</a></span>(<a href="../../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</code>&nbsp;</td>
 </tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#JsonStreamMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">JsonStreamMapper</a></span>(<a href="../../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+                java.lang.Class&lt;?&gt;&nbsp;view)</code>&nbsp;</td>
+</tr>
 </table>
 </li>
 </ul>
@@ -152,55 +156,59 @@ implements io.micronaut.json.JsonMapper</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>io.micronaut.json.JsonMapper</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#cloneWithViewClass-java.lang.Class-">cloneWithViewClass</a></span>(java.lang.Class&lt;?&gt;&nbsp;viewClass)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>org.reactivestreams.Processor&lt;byte[],io.micronaut.json.tree.JsonNode&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#createReactiveParser-java.util.function.Consumer-boolean-">createReactiveParser</a></span>(java.util.function.Consumer&lt;org.reactivestreams.Processor&lt;byte[],io.micronaut.json.tree.JsonNode&gt;&gt;&nbsp;onSubscribe,
                     boolean&nbsp;streamArray)</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>io.micronaut.json.JsonStreamConfig</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#getStreamConfig--">getStreamConfig</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;T</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#readValue-byte:A-io.micronaut.core.type.Argument-">readValue</a></span>(byte[]&nbsp;byteArray,
          io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;T</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#readValue-java.io.InputStream-io.micronaut.core.type.Argument-">readValue</a></span>(java.io.InputStream&nbsp;inputStream,
          io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;T</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#readValueFromTree-io.micronaut.json.tree.JsonNode-io.micronaut.core.type.Argument-">readValueFromTree</a></span>(io.micronaut.json.tree.JsonNode&nbsp;tree,
                  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValue-java.io.OutputStream-io.micronaut.core.type.Argument-T-">writeValue</a></span>(java.io.OutputStream&nbsp;outputStream,
           io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
           T&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValue-java.io.OutputStream-java.lang.Object-">writeValue</a></span>(java.io.OutputStream&nbsp;outputStream,
           java.lang.Object&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueAsBytes-io.micronaut.core.type.Argument-T-">writeValueAsBytes</a></span>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
                  T&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueAsBytes-java.lang.Object-">writeValueAsBytes</a></span>(java.lang.Object&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;io.micronaut.json.tree.JsonNode</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueToTree-io.micronaut.core.type.Argument-T-">writeValueToTree</a></span>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
                 T&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>io.micronaut.json.tree.JsonNode</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueToTree-java.lang.Object-">writeValueToTree</a></span>(java.lang.Object&nbsp;value)</code>&nbsp;</td>
 </tr>
@@ -213,11 +221,18 @@ implements io.micronaut.json.JsonMapper</pre>
 <code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
 </ul>
 <ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.ObjectMapper">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></h3>
+<code><a href="../../../../../io/micronaut/serde/ObjectMapper.html#cloneWithFeatures-io.micronaut.json.JsonFeatures-">cloneWithFeatures</a>, <a href="../../../../../io/micronaut/serde/ObjectMapper.html#readValue-byte:A-java.lang.Class-">readValue</a>, <a href="../../../../../io/micronaut/serde/ObjectMapper.html#readValue-java.io.InputStream-java.lang.Class-">readValue</a>, <a href="../../../../../io/micronaut/serde/ObjectMapper.html#readValue-java.lang.String-java.lang.Class-">readValue</a>, <a href="../../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-">writeValueAsString</a>, <a href="../../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-io.micronaut.core.type.Argument-T-java.nio.charset.Charset-">writeValueAsString</a>, <a href="../../../../../io/micronaut/serde/ObjectMapper.html#writeValueAsString-T-">writeValueAsString</a></code></li>
+</ul>
+<ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.json.JsonMapper">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.json.JsonMapper</h3>
-<code>cloneWithFeatures, cloneWithViewClass, detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
+<code>detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
 </ul>
 </li>
 </ul>
@@ -236,10 +251,21 @@ implements io.micronaut.json.JsonMapper</pre>
 <a name="JsonStreamMapper-io.micronaut.serde.SerdeRegistry-">
 <!--   -->
 </a>
+<ul class="blockList">
+<li class="blockList">
+<h4>JsonStreamMapper</h4>
+<pre>@Inject
+public&nbsp;JsonStreamMapper(<a href="../../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</pre>
+</li>
+</ul>
+<a name="JsonStreamMapper-io.micronaut.serde.SerdeRegistry-java.lang.Class-">
+<!--   -->
+</a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>JsonStreamMapper</h4>
-<pre>public&nbsp;JsonStreamMapper(<a href="../../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</pre>
+<pre>public&nbsp;JsonStreamMapper(<a href="../../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+                        java.lang.Class&lt;?&gt;&nbsp;view)</pre>
 </li>
 </ul>
 </li>
@@ -250,6 +276,19 @@ implements io.micronaut.json.JsonMapper</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="cloneWithViewClass-java.lang.Class-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>cloneWithViewClass</h4>
+<pre>public&nbsp;io.micronaut.json.JsonMapper&nbsp;cloneWithViewClass(java.lang.Class&lt;?&gt;&nbsp;viewClass)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code>cloneWithViewClass</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+</dl>
+</li>
+</ul>
 <a name="readValueFromTree-io.micronaut.json.tree.JsonNode-io.micronaut.core.type.Argument-">
 <!--   -->
 </a>
