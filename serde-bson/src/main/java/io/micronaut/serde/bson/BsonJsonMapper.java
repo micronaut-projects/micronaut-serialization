@@ -18,7 +18,9 @@ package io.micronaut.serde.bson;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonReader;
@@ -43,8 +45,18 @@ import java.nio.charset.StandardCharsets;
 @Internal
 public final class BsonJsonMapper extends AbstractBsonMapper {
 
+    @Inject
     public BsonJsonMapper(SerdeRegistry registry) {
         super(registry);
+    }
+
+    public BsonJsonMapper(SerdeRegistry registry, Class<?> view) {
+        super(registry, view);
+    }
+
+    @Override
+    public JsonMapper cloneWithViewClass(Class<?> viewClass) {
+        return new BsonJsonMapper(registry, viewClass);
     }
 
     @Override

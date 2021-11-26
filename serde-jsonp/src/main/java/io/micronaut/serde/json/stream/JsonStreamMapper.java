@@ -29,13 +29,11 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.SerdeRegistry;
-import io.micronaut.serde.Serializer;
+import io.micronaut.serde.*;
 import io.micronaut.serde.util.JsonNodeDecoder;
 import io.micronaut.serde.util.JsonNodeEncoder;
 import io.micronaut.serde.util.BufferingJsonNodeProcessor;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
 import jakarta.json.stream.JsonGenerator;
@@ -47,11 +45,24 @@ import org.reactivestreams.Processor;
  */
 @Singleton
 @BootstrapContextCompatible
-public class JsonStreamMapper implements JsonMapper {
+public class JsonStreamMapper implements ObjectMapper {
     private final SerdeRegistry registry;
+    private final Class<?> view;
 
+    @Inject
     public JsonStreamMapper(SerdeRegistry registry) {
         this.registry = registry;
+        this.view = null;
+    }
+
+    public JsonStreamMapper(SerdeRegistry registry, Class<?> view) {
+        this.registry = registry;
+        this.view = view;
+    }
+
+    @Override
+    public JsonMapper cloneWithViewClass(Class<?> viewClass) {
+        return new JsonStreamMapper(registry, viewClass);
     }
 
     @Override
@@ -59,7 +70,7 @@ public class JsonStreamMapper implements JsonMapper {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
         return deserializer.deserialize(
                 JsonNodeDecoder.create(tree),
-                registry.newDecoderContext(null),
+                registry.newDecoderContext(view),
                 type
         );
     }
@@ -82,7 +93,7 @@ public class JsonStreamMapper implements JsonMapper {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
         return deserializer.deserialize(
                 new JsonParserDecoder(parser),
-                registry.newDecoderContext(null),
+                registry.newDecoderContext(view),
                 type
         );
     }
@@ -151,7 +162,7 @@ public class JsonStreamMapper implements JsonMapper {
         final Serializer<Object> serializer = registry.findSerializer(type);
         serializer.serialize(
                 encoder,
-                registry.newEncoderContext(null),
+                registry.newEncoderContext(view),
                 object,
                 type
         );
@@ -173,7 +184,7 @@ public class JsonStreamMapper implements JsonMapper {
 
     @Override
     public JsonStreamConfig getStreamConfig() {
-        return null;
+        return JsonStreamConfig.DEFAULT;
     }
 
 }

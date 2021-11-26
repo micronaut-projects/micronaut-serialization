@@ -16,7 +16,9 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonBinaryReader;
@@ -38,8 +40,18 @@ import java.util.Objects;
 @Internal
 public final class BsonBinaryMapper extends AbstractBsonMapper {
 
+    @Inject
     public BsonBinaryMapper(SerdeRegistry registry) {
         super(registry);
+    }
+
+    public BsonBinaryMapper(SerdeRegistry registry, Class<?> view) {
+        super(registry, view);
+    }
+
+    @Override
+    public JsonMapper cloneWithViewClass(Class<?> viewClass) {
+        return new BsonBinaryMapper(registry, viewClass);
     }
 
     @Override

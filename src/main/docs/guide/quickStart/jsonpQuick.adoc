@@ -51,3 +51,7 @@ snippet::example.Book[project-base="doc-examples/example-jsonb", source="main"]
 <1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
 <2> You can use `@JsonbProperty` from JSON-B annotations
 <3> You can use `@JsonbCreator` from JSON-B annotations
+
+Once you have a type that can be serialized and deserialized you can use the api:serde.ObjectMapper[] interface to do so:
+
+snippet::example.BookTest[project-base="doc-examples/example"]

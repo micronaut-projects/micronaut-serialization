@@ -44,10 +44,7 @@ import io.micronaut.jackson.core.tree.TreeGenerator;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.SerdeRegistry;
-import io.micronaut.serde.Serializer;
+import io.micronaut.serde.*;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
@@ -60,7 +57,7 @@ import org.reactivestreams.Subscriber;
 @Singleton
 @Primary
 @BootstrapContextCompatible
-public final class JacksonJsonMapper implements JsonMapper {
+public final class JacksonJsonMapper implements ObjectMapper {
     private static final JsonFactory FACTORY = new JsonFactory();
 
     private final SerdeRegistry registry;

@@ -1,5 +1,11 @@
 Micronaut Serialization supports a subset of the available link:{jacksonAnnotationJavadoc}/package-summary.html[Jackson Annotations].
 
+The primary difference is Micronaut Serialization uses build-time https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections], this means that only accessible getters and setters (and Java 17 records) are supported and link:{jacksonAnnotationJavadoc}/JsonAutoDetect.html[@JsonAutoDetect] cannot be used to customize mapping.
+
+TIP: You can however, enable fields to be included using `AccessKind` field. See the "Bean Fields" section of the https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections] docs.
+
+The full list of supported Jackson annotations and members is described in the able below.
+
 NOTE: If an unsupported annotation or member is used, a compilation error will result.
 
 |===
@@ -142,3 +148,38 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |N/A
 |===
 
+In addition, limited support for 3 `jackson-databind` annotations is included to allow portability for cases where both support for `jackson-databind` and Micronaut Serialization is required:
+
+
+|===
+|Annotation |Notes
+
+|https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonNaming.html[@JsonNaming]
+| Only with the built-in https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/PropertyNamingStrategies.html[naming strategies]
+
+|https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonSerialize.html[@JsonSerialize]
+| Only the `as` member
+
+|https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonDeserialize.html[@JsonDeserialize]
+| Only the `as` member
+|===
+
+Note that when using these annotations it is recommended that you make `jackson-databind` a `compileOnly` dependency since it is not needed at runtime. For example for Gradle:
+
+.`jackson-databind` as `compileOnly` scope
+[source,groovy]
+----
+compileOnly("com.fasterxml.jackson.core:jackson-databind")
+----
+
+or Maven:
+
+.`jackson-databind` as `provided` scope
+[source,xml]
+----
+<dependency>
+  <groupId>com.fasterxml.jackson.core</groupId>
+  <artifactId>jackson-databind</artifactId>
+  <scope>provided</scope>
+</dependency>
+----
