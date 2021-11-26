@@ -1,1 +1,3 @@
 The complete set of  https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations] is supported.
+
+Note that with BSON you can encode both the JSON and to BSON Binary by injecting one of api:serde.bson.BsonBinaryMapper[] (Binary) or api:serde.bson.BsonJsonMapper[] (JSON).

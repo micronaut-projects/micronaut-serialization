@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.bson;
 
-import io.micronaut.core.annotation.Internal;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
 import jakarta.inject.Inject;
