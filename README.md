@@ -11,10 +11,6 @@ See the [Documentation](https://micronaut-projects.github.io/micronaut-serializa
 
 See the [Snapshot Documentation](https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/) for the current development docs.
 
-## Examples
-
-Examples can be found in the [examples](https://github.com/micronaut-projects/micronaut-serialization/tree/master/examples) directory.
-
 ## Snapshots and Releases
 
 Snapshots are automatically published to [Sonatype Snapshots](https://s01.oss.sonatype.org/content/repositories/snapshots/io/micronaut/) using [Github Actions](https://github.com/micronaut-projects/micronaut-serialization/actions).
