@@ -1,0 +1,1 @@
+The complete set of  https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations] is supported.

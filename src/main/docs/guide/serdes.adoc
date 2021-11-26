@@ -1,0 +1,22 @@
+Custom serializers and deserializers for types can be written by implementing the api:serde.Serializer[] and api:serde.Deserializer[] interfaces respectively and defining beans capable of handling a particular type.
+
+For example given the following class:
+
+snippet::example.Point[project-base="doc-examples/example", source="main"]
+
+A custom serde (a combined serializer and deserializer) can be implemented as follows:
+
+snippet::example.PointSerde[project-base="doc-examples/example", source="main"]
+
+<1> The api:serde.Serde[] is made a bean by annotating it with `@Singleton` scope.
+<2> The api:serde.Serde[] interface is implemented for a given type.
+<3> The api:serde.Decoder[] interface is used to starting decoding an array. Note that returned decoder should be used.
+<4> The `finishStructure` method is called when array decoding is complete
+<5> The decoded object is returned
+<6> The `value` can be `null` and the decoder should handle whether `null` is allowed
+<7> The api:serde.Encoder[] interface is used to start encoding an array with the `encodeArray` method.
+<8> The returned `Encoder` should be used and finalized with the `finishStructure()` method
+
+You can now serialize and deserialize classes of type `Point`:
+
+snippet::example.PointTest[project-base="doc-examples/example"]
