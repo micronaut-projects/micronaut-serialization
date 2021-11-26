@@ -3,7 +3,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.micronaut.serialization/micronaut-serialization.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.micronaut.serialization%22%20AND%20a:%22micronaut-serialization%22)
 [![Build Status](https://github.com/micronaut-projects/micronaut-serialization/workflows/Java%20CI/badge.svg)](https://github.com/micronaut-projects/micronaut-serialization/actions)
 
-Micronaut serialization a module for Micronaut that allows built-time computation of serializers and deserializers for JSON and other formats.
+Micronaut serialization a module for Micronaut that allows build-time computation of serializers and deserializers for JSON and other formats.
 
 ## Documentation
 
