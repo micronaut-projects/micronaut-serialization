@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.bson;
 
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.SerdeRegistry;
 import jakarta.inject.Singleton;
@@ -35,7 +34,6 @@ import java.util.Objects;
  *
  * @author Denis Stepanov
  */
-@Primary
 @Singleton
 @Internal
 public final class BsonBinaryMapper extends AbstractBsonMapper {

@@ -1,1 +1,17 @@
-TODO
+Micronaut Serialization is a library that allows the serialization and deserialization of objects to common serialization formats like JSON.
+
+It does so using build-time https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections] that do not use reflection and allows using a variety of common annotation models including https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], JSON-B annotations or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations].
+
+Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on-top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.
+
+The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint.
+
+As a way of comparison Micronaut Serialization is a 380kb JAR file, compared to Jackson Databind which is well over 2mb. This results in a reduction of 5MB in terms of image size for native image builds.
+
+The elimination of reflection and smaller footprint also results in higher throughput and reduced runtime memory consumption.
+
+In addition, unlike Jackson, you cannot serialize or deserialize arbitrary objects to JSON. Allowing arbitrary serialization is often a source of security issues in modern applications. Instead with Micronaut Serialization to allow a type to be serialized or deserialized you must do one of the following:
+
+1. Declare the ann:serde.annotation.Serdeable[] annotation at the type level in your source code to allow the type to be serialized or deserialized.
+2. If you cannot modify the source code and it is an external type you can use ann:serde.annotation.SerdeImport[] to import the type. Note that with this approach only public members are considered.
+3. Define a bean of type api:serde.Serializer[] for serialization and/or a bean of type api:serde.Deserializer[] for deserialization.

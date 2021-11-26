@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
@@ -45,6 +46,7 @@ import org.reactivestreams.Processor;
  * Implementation of the {@link io.micronaut.json.JsonMapper} interface for JSON-P.
  */
 @Singleton
+@BootstrapContextCompatible
 public class JsonStreamMapper implements JsonMapper {
     private final SerdeRegistry registry;
 

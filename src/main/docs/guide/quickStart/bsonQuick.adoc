@@ -1,0 +1,46 @@
+To completely remove all dependencies on Jackson and use https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations] in your source code combined with BSON at a runtime you should exclude the `micronaut-jackson-databind` and `micronaut-jackson-core` modules from your application and replace them with `micronaut-serde-bson`.
+
+To do so in a Gradle build add the following configuration (either Groovy or Kotlin):
+
+[source,groovy,subs="attributes+"]
+----
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+        .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
+        substitute(module("io.micronaut:micronaut-jackson-core"))
+        .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
+    }
+}
+----
+
+In a Maven build you need to add the necessary transitive excludes for the `micronaut-runtime` module, and any other module that depend on `micronaut-jackson-databind` and `micronaut-jackson-core`, plus add a dependency on `micronaut-serde-bson`:
+
+[source,xml,subs="attributes+"]
+----
+<dependency>
+  <groupId>io.micronaut</groupId>
+  <artifactId>micronaut-runtime</artifactId>
+  <exclusions>
+    <exclusion>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-jackson-databind</artifactId>
+    </exclusion>
+  </exclusions>
+  <scope>compile</scope>
+</dependency>
+<dependency>
+  <groupId>io.micronaut.serde</groupId>
+  <artifactId>micronaut-serde-bson</artifactId>
+  <version>{version}</version>
+  <scope>compile</scope>
+</dependency>
+----
+
+With the correct dependencies in place you can now define an object to be serialized:
+
+snippet::example.Book[project-base="doc-examples/example-bson", source="main"]
+
+<1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
+<2> You can use `@BsonProperty` from BSON annotations
+<3> You can use `@BsonCreator` from BSON annotations

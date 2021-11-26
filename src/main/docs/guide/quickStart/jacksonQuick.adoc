@@ -1,0 +1,44 @@
+To replace Jackson Databind, but continue using https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson Annotations] as a programming model and Jackson Core as a runtime you should exclude the `micronaut-jackson-databind` module from your application and replace it with `micronaut-serde-jackson`.
+
+To do so in a Gradle build add the following configuration (either Groovy or Kotlin):
+
+[source,groovy,subs="attributes+"]
+----
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+        .using(module("io.micronaut.serde:micronaut-serde-jackson:{version}"))
+    }
+}
+----
+
+In a Maven build you need to add the necessary transitive excludes for the `micronaut-runtime` module, and any other module that depends on `micronaut-jackson-databind`, plus add a dependency on `micronaut-serde-jackson`:
+
+[source,xml,subs="attributes+"]
+----
+ <dependency>
+  <groupId>io.micronaut</groupId>
+  <artifactId>micronaut-runtime</artifactId>
+  <exclusions>
+    <exclusion>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-jackson-databind</artifactId>
+    </exclusion>
+  </exclusions>
+  <scope>compile</scope>
+</dependency>
+<dependency>
+  <groupId>io.micronaut.serde</groupId>
+  <artifactId>micronaut-serde-jackson</artifactId>
+  <version>{version}</version>
+  <scope>compile</scope>
+</dependency>
+----
+
+With the correct dependencies in place you can now define an object to be serialized:
+
+snippet::example.Book[project-base="doc-examples/example", source="main"]
+
+<1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
+<2> You can use `@JsonProperty` from Jackson annotations
+<3> You can use `@JsonCreator` from Jackson annotations
