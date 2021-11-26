@@ -18,17 +18,12 @@ package io.micronaut.serde.bson;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
-import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.SerdeRegistry;
-import io.micronaut.serde.Serializer;
+import io.micronaut.serde.*;
+import io.micronaut.serde.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.util.JsonNodeDecoder;
 import io.micronaut.serde.util.JsonNodeEncoder;
-import io.micronaut.serde.util.BufferingJsonNodeProcessor;
-import jakarta.inject.Singleton;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonReader;
 import org.reactivestreams.Processor;
@@ -47,13 +42,19 @@ import java.util.function.Consumer;
  *
  * @author Denis Stepanov
  */
-@Singleton
 @Internal
-public abstract class AbstractBsonMapper implements JsonMapper {
-    private final SerdeRegistry registry;
+public abstract class AbstractBsonMapper implements ObjectMapper {
+    protected final SerdeRegistry registry;
+    protected final Class<?> view;
 
     public AbstractBsonMapper(SerdeRegistry registry) {
         this.registry = registry;
+        this.view = null;
+    }
+
+    protected AbstractBsonMapper(SerdeRegistry registry, Class<?> view) {
+        this.registry = registry;
+        this.view = view;
     }
 
     protected abstract BsonReader createBsonReader(ByteBuffer byteBuffer);
@@ -90,7 +91,7 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree), registry.newDecoderContext(null), type);
+        return deserializer.deserialize(JsonNodeDecoder.create(tree), registry.newDecoderContext(view), type);
     }
 
     @Override
@@ -110,7 +111,7 @@ public abstract class AbstractBsonMapper implements JsonMapper {
     }
 
     private <T> T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
-        return registry.findDeserializer(type).deserialize(new BsonReaderDecoder(bsonReader), registry.newDecoderContext(null), type);
+        return registry.findDeserializer(type).deserialize(new BsonReaderDecoder(bsonReader), registry.newDecoderContext(view), type);
     }
 
     @Override
@@ -155,7 +156,7 @@ public abstract class AbstractBsonMapper implements JsonMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         final Serializer<Object> serializer = registry.findSerializer(type);
-        serializer.serialize(encoder, registry.newEncoderContext(null), object, type);
+        serializer.serialize(encoder, registry.newEncoderContext(view), object, type);
     }
 
     @Override

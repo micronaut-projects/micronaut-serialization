@@ -1,0 +1,12 @@
+Keys with JSON are always written as Strings however you can use types other than strings when serializing and deserializing `Map` instances, however you may be required to register a custom https://docs.micronaut.io/latest/api/io/micronaut/core/convert/TypeConverter.html[TypeConverter].
+
+For example given the following class:
+
+snippet::example.Location[project-base="doc-examples/example", source="main"]
+
+That defines a custom `Feature` type for keys. Micronaut Serialization won't know how to deserialize this type, so along with the type a `TypeConverter` should be defined:
+
+snippet::example.Feature[project-base="doc-examples/example", source="main"]
+
+<1> For serialization by default `toString()` is called, but you can also register a `TypeConverter` from `Feature` to `String` to customize this.
+<2> For deserialization a `TypeConverter` is necessary to convert the string key into the required type.

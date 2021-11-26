@@ -1,0 +1,185 @@
+Micronaut Serialization supports a subset of the available link:{jacksonAnnotationJavadoc}/package-summary.html[Jackson Annotations].
+
+The primary difference is Micronaut Serialization uses build-time https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections], this means that only accessible getters and setters (and Java 17 records) are supported and link:{jacksonAnnotationJavadoc}/JsonAutoDetect.html[@JsonAutoDetect] cannot be used to customize mapping.
+
+TIP: You can however, enable fields to be included using `AccessKind` field. See the "Bean Fields" section of the https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections] docs.
+
+The full list of supported Jackson annotations and members is described in the able below.
+
+NOTE: If an unsupported annotation or member is used, a compilation error will result.
+
+|===
+|Jackson Annotation |Supported |Notes
+
+|link:{jacksonAnnotationJavadoc}/JsonAlias.html[@JsonAlias]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JacksonInject.html[@JacksonInject]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonAnyGetter.html[@JsonAnyGetter]
+|✅
+|unsupported members: `enabled`
+
+|link:{jacksonAnnotationJavadoc}/JsonAnyGetter.html[@JsonAnySetter]
+|✅
+|unsupported members: `enabled`
+
+|link:{jacksonAnnotationJavadoc}/JsonAutoDetect.html[@JsonAutoDetect]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonBackReference.html[@JsonBackReference]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonClassDescription.html[@JsonClassDescription]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonCreator.html[@JsonCreator]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonEnumDefaultValue.html[@JsonEnumDefaultValue]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonFilter.html[@JsonFilter]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonFormat.html[@JsonFormat]
+|✅
+|unsupported members: `shape`, `with` & `without`
+
+|link:{jacksonAnnotationJavadoc}/JsonGetter.html[@JsonGetter]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonIdentityInfo.html[@JsonIdentityInfo]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonIdentityReference.html[@JsonIdentityReference]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonIgnore.html[@JsonIgnore]
+|✅
+|unsupported members: `enabled`
+
+|link:{jacksonAnnotationJavadoc}/JsonIgnoreProperties.html[@JsonIgnoreProperties]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonIgnoreType.html[@JsonIgnoreType]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonInclude.html[@JsonInclude]
+|✅
+|unsupported members: `content`, `contentFilter`, `valueFilter`
+
+|link:{jacksonAnnotationJavadoc}/JsonKey.html[@JsonKey]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonManagedReference.html[@JsonManagedReference]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonMerge.html[@JsonMerge]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonProperty.html[@JsonProperty]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonPropertyDescription.html[@JsonPropertyDescription]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonPropertyOrder.html[@JsonPropertyOrder]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonRawValue.html[@JsonRawValue]
+|❌
+|Not supported for security reasons
+
+|link:{jacksonAnnotationJavadoc}/JsonRootName.html[@JsonRootName]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonSetter.html[@JsonSetter]
+|✅
+|unsupported members: `null` & `contentNull`
+
+|link:{jacksonAnnotationJavadoc}/JsonSubTypes.html[@JsonSubTypes]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonTypeId.html[@JsonTypeId]
+|❌
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonTypeInfo.html[@JsonTypeInfo]
+|✅
+|Only `WRAPPER_OBJECT` & `PROPERTY` for `include` and only `CLASS` & `NAME` for `use`.
+
+|link:{jacksonAnnotationJavadoc}/JsonTypeName.html[@JsonTypeName]
+|✅
+|N/A
+
+|link:{jacksonAnnotationJavadoc}/JsonUnwrapped.html[@JsonUnwrapped]
+|✅
+|unsupported members: `enabled`
+
+|link:{jacksonAnnotationJavadoc}/JsonValue.html[@JsonValue]
+|✅
+|unsupported members: `value`
+
+|link:{jacksonAnnotationJavadoc}/JsonView.html[@JsonView]
+|✅
+|N/A
+|===
+
+In addition, limited support for 3 `jackson-databind` annotations is included to allow portability for cases where both support for `jackson-databind` and Micronaut Serialization is required:
+
+
+|===
+|Annotation |Notes
+
+|https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonNaming.html[@JsonNaming]
+| Only with the built-in https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/PropertyNamingStrategies.html[naming strategies]
+
+|https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonSerialize.html[@JsonSerialize]
+| Only the `as` member
+
+|https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonDeserialize.html[@JsonDeserialize]
+| Only the `as` member
+|===
+
+Note that when using these annotations it is recommended that you make `jackson-databind` a `compileOnly` dependency since it is not needed at runtime. For example for Gradle:
+
+.`jackson-databind` as `compileOnly` scope
+[source,groovy]
+----
+compileOnly("com.fasterxml.jackson.core:jackson-databind")
+----
+
+or Maven:
+
+.`jackson-databind` as `provided` scope
+[source,xml]
+----
+<dependency>
+  <groupId>com.fasterxml.jackson.core</groupId>
+  <artifactId>jackson-databind</artifactId>
+  <scope>provided</scope>
+</dependency>
+----

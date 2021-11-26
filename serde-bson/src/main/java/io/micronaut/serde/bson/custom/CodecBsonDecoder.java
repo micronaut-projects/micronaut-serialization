@@ -28,7 +28,7 @@ import java.io.UncheckedIOException;
  *
  * @param <T>
  */
-public class CodecBsonDecoder<T> extends AbstractBsonSerder<T> {
+public class CodecBsonDecoder<T> extends AbstractBsonSerde<T> {
 
     private static final org.bson.codecs.DecoderContext DEFAULT_DECODER_CONTEXT = org.bson.codecs.DecoderContext.builder().build();
     private static final org.bson.codecs.EncoderContext DEFAULT_ENCODER_CONTEXT = org.bson.codecs.EncoderContext.builder().build();

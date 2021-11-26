@@ -25,6 +25,13 @@ include("serde-support")
 include("serde-bson")
 include("serde-tck")
 
+// examples
+include("doc-examples:example-java")
+include("doc-examples:example-bson-java")
+include("doc-examples:example-jsonb-java")
+include("doc-examples:example-kotlin")
+include("doc-examples:example-groovy")
+
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 dependencyResolutionManagement {

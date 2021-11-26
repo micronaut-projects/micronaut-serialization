@@ -1,0 +1,35 @@
+Custom serializers and deserializers for types can be written by implementing the api:serde.Serializer[] and api:serde.Deserializer[] interfaces respectively and defining beans capable of handling a particular type.
+
+For example given the following class:
+
+snippet::example.Point[project-base="doc-examples/example", source="main"]
+
+A custom serde (a combined serializer and deserializer) can be implemented as follows:
+
+snippet::example.PointSerde[project-base="doc-examples/example", source="main"]
+
+<1> The api:serde.Serde[] is made a bean by annotating it with `@Singleton` scope.
+<2> The api:serde.Serde[] interface is implemented for a given type.
+<3> The api:serde.Decoder[] interface is used to starting decoding an array. Note that returned decoder should be used.
+<4> The `finishStructure` method is called when array decoding is complete
+<5> The decoded object is returned
+<6> The `value` can be `null` and the decoder should handle whether `null` is allowed
+<7> The api:serde.Encoder[] interface is used to start encoding an array with the `encodeArray` method.
+<8> The returned `Encoder` should be used and finalized with the `finishStructure()` method
+
+You can now serialize and deserialize classes of type `Point`:
+
+snippet::example.PointTest[project-base="doc-examples/example"]
+
+=== Serializer Selection
+
+Note that if multiple api:serde.Serializer[] beans exist you will get a `NonUniqueBeanException`, in this case you have a number of options:
+
+1. Add `@Primary` to your serializer so it is picked
+2. Add `@Order` with a higher priority value so it is picked
+
+=== Deserializer Selection
+
+It is quite common during deserialization to have multiple possible deserializer options. For example a `HashSet` can be deserialized to both a `Collection` and a `Set`.
+
+In these cases you should declare an `@Order` annotation higher priority value to control which deserializer is chosen by default.

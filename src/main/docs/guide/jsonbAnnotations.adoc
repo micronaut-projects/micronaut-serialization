@@ -1,0 +1,71 @@
+Micronaut Serialization supports a subset of the available link:{jsonbApi}/package-summary.html[JSON-B] annotations.
+
+Note that only the annotations are supported and the runtime APIs are not, hence it is recommended to include JSON-B only as a `compileOnly` dependency. For example for Gradle:
+
+.`jakarta.json.bind-api` as `compileOnly` scope
+[source,groovy]
+----
+compileOnly("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
+----
+
+or Maven:
+
+.`jakarta.json.bind-api` as `provided` scope
+[source,xml]
+----
+<dependency>
+  <groupId>jakarta.json.bind</groupId>
+  <artifactId>jakarta.json.bind-api</artifactId>
+  <version>2.0.0</version>
+  <scope>provided</scope>
+</dependency>
+----
+
+|===
+|Jackson Annotation |Supported |Notes
+
+|link:{jsonbApi}/JsonbCreator.html[@JsonbCreator]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbDateFormat.html[@JsonbDateFormat]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbNillable.html[@JsonbNillable]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbNumberFormat.html[@JsonbNumberFormat]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbProperty.html[@JsonbProperty]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbPropertyOrder.html[@JsonbPropertyOrder]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbTransient.html[@JsonbTransient]
+|✅
+|N/A
+
+|link:{jsonbApi}/JsonbTypeAdapter.html[@JsonbTypeAdapter]
+|❌
+|Exposes runtime API
+
+|link:{jsonbApi}/JsonbTypeDeserializer.html[@JsonbTypeDeserializer]
+|❌
+|Exposes runtime API
+
+|link:{jsonbApi}/JsonbTypeSerializer.html[@JsonbTypeSerializer]
+|❌
+|Exposes runtime API
+
+|link:{jsonbApi}/JsonbVisibility.html[@JsonbVisibility]
+|❌
+|Requires Reflection
+
+|===

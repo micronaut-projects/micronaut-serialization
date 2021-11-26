@@ -1,1 +1,5 @@
-TODO
+Micronaut Serialization is a library that allows the serialization and deserialization of objects to common serialization formats like JSON.
+
+It does so using build-time https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections] that do not use reflection and allows using a variety of common annotation models including https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], JSON-B annotations or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations].
+
+Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on-top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.
