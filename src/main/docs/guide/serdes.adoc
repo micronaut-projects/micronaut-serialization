@@ -20,3 +20,16 @@ snippet::example.PointSerde[project-base="doc-examples/example", source="main"]
 You can now serialize and deserialize classes of type `Point`:
 
 snippet::example.PointTest[project-base="doc-examples/example"]
+
+=== Serializer Selection
+
+Note that if multiple api:serde.Serializer[] beans exist you will get a `NonUniqueBeanException`, in this case you have a number of options:
+
+1. Add `@Primary` to your serializer so it is picked
+2. Add `@Order` with a higher priority value so it is picked
+
+=== Deserializer Selection
+
+It is quite common during deserialization to have multiple possible deserializer options. For example a `HashSet` can be deserialized to both a `Collection` and a `Set`.
+
+In these cases you should declare an `@Order` annotation higher priority value to control which deserializer is chosen by default.
