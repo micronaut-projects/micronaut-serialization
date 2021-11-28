@@ -32,7 +32,7 @@ class Test {
 
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("Invalid defaultValue [$value] specified for property [value]")
+        e.message.contains("Invalid defaultValue [$value] specified")
 
         where:
         type    | value
@@ -61,7 +61,7 @@ record Test(
 
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("Invalid defaultValue [$value] specified for property [value]")
+        e.message.contains("Invalid defaultValue [$value] specified")
 
         where:
         type      | value
