@@ -249,6 +249,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private boolean checkForErrors(Element element, VisitorContext context) {
+        if (!failOnError) {
+            return true;
+        }
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
                 context.fail("Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported", element);
@@ -259,18 +262,42 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             context.fail(error, element);
             return true;
         }
+        ClassElement propertyType = resolvePropertyType(element);
+        if (isBasicType(propertyType)) {
 
+            String defaultValue = element.stringValue(Bindable.class, "defaultValue").orElse(null);
+            if (defaultValue != null) {
+                Class t;
+                if (propertyType.isPrimitive()) {
+                    t = ClassUtils.getPrimitiveType(propertyType.getName())
+                            .map(ReflectionUtils::getWrapperType)
+                            .orElse(null);
+                } else {
+                    t =  ClassUtils.forName(propertyType.getName(), getClass().getClassLoader()).orElse(null);
+                }
+                if (t != null) {
+                    try {
+                        if (ConversionService.SHARED.canConvert(String.class, t)) {
+                            ConversionService.SHARED.convertRequired(defaultValue, t);
+                        }
+                    } catch (ConversionErrorException e) {
+                        context.fail("Invalid defaultValue [" + defaultValue + "] specified: " + e.getConversionError().getCause().getMessage(), element);
+                    
+                    }
+                }
+            }
+        }
         final String pattern = element.stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null && failOnError) {
-            ClassElement type = resolvePropertyType(element);
+            
 
-            if (isNumberType(type)) {
+            if (isNumberType(propertyType)) {
                 try {
                     new DecimalFormat(pattern);
                 } catch (Exception e) {
                     context.fail("Specified pattern [" + pattern + "] is not a valid decimal format. See the javadoc for DecimalFormat: " + e.getMessage(), element);
                 }
-            } else if (type.isAssignable(Temporal.class)) {
+            } else if (propertyType.isAssignable(Temporal.class)) {
                 try {
                     DateTimeFormatter.ofPattern(pattern);
                 } catch (Exception e) {
@@ -514,33 +541,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 handleJsonIgnoreType(context, beanProperty, t);
             }
 
-            ClassElement propertyType = beanProperty.getGenericType();
-            String name = propertyType.getName();
-            if (failOnError && (ClassUtils.isJavaBasicType(name) || (propertyType.isPrimitive() && !propertyType.isArray()))) {
-
-                String defaultValue = beanProperty.stringValue(Bindable.class, "defaultValue").orElse(null);
-                if (defaultValue != null) {
-                    Class t;
-                    if (propertyType.isPrimitive()) {
-                        t = ClassUtils.getPrimitiveType(propertyType.getName())
-                                .map(ReflectionUtils::getWrapperType)
-                                .orElse(null);
-                    } else {
-                        t =  ClassUtils.forName(name, getClass().getClassLoader()).orElse(null);
-                    }
-                    if (t != null) {
-                        try {
-                            if (ConversionService.SHARED.canConvert(String.class, t)) {
-                                ConversionService.SHARED.convertRequired(defaultValue, t);
-                            }
-                        } catch (ConversionErrorException e) {
-                            context.fail("Invalid defaultValue [" + defaultValue + "] specified for property [" + beanProperty.getName() + "]: " + e.getConversionError().getCause().getMessage(), beanProperty);
-                            return;
-                        }
-                    }
-                }
-            }
-
             final String propertyName = beanProperty.getName();
             if (namingStrategy != null) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
@@ -696,6 +696,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonAutoDetect")
                 .anyMatch(element::hasDeclaredAnnotation) ||
                 (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
+    }
+
+    private static boolean isBasicType(ClassElement propertyType) {
+        if (propertyType == null) {
+            return false;
+        }
+        String name = propertyType.getName();
+        return ClassUtils.isJavaBasicType(name) || (propertyType.isPrimitive() && !propertyType.isArray());
     }
 
     @Override
