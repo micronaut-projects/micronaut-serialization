@@ -92,6 +92,7 @@
 <hr>
 <br>
 <pre>@Introspected(indexed=@Introspected.IndexedAnnotation(annotation=<a href="../../../../io/micronaut/serde/config/annotation/SerdeConfig.SerValue.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.SerValue.class</a>))
+ @Retention(value=RUNTIME)
 public static @interface <span class="memberNameLabel">Serdeable.Serializable</span></pre>
 <div class="block">Annotation used to indicate a type is serializable.</div>
 </li>
@@ -124,7 +125,7 @@ public static @interface <span class="memberNameLabel">Serdeable.Serializable</s
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Serializable.html#serializer--">serializer</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Serializable.html#using--">using</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
@@ -165,13 +166,15 @@ public static @interface <span class="memberNameLabel">Serdeable.Serializable</s
 </li>
 </ul>
 <ul class="blockList">
-<li class="blockList"><a name="serializer--">
+<li class="blockList"><a name="using--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>serializer</h4>
-<pre>public abstract&nbsp;java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&gt;&nbsp;serializer</pre>
+<h4>using</h4>
+<pre>@AliasFor(annotation=<a href="../../../../io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.class</a>,
+          member="serializerClass")
+public abstract&nbsp;java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&gt;&nbsp;using</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The <a href="../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a> to use.</dd>

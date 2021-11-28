@@ -91,7 +91,8 @@
 <li class="blockList">
 <hr>
 <br>
-<pre>public static @interface <span class="memberNameLabel">Serdeable.Deserializable</span></pre>
+<pre>@Retention(value=RUNTIME)
+public static @interface <span class="memberNameLabel">Serdeable.Deserializable</span></pre>
 <div class="block">Annotation used to indicate a type is deserializable.</div>
 </li>
 </ul>
@@ -118,12 +119,12 @@
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#deserializer--">deserializer</a></span></code>&nbsp;</td>
-</tr>
-<tr class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#enabled--">enabled</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#using--">using</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
@@ -164,13 +165,15 @@
 </li>
 </ul>
 <ul class="blockList">
-<li class="blockList"><a name="deserializer--">
+<li class="blockList"><a name="using--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>deserializer</h4>
-<pre>public abstract&nbsp;java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&gt;&nbsp;deserializer</pre>
+<h4>using</h4>
+<pre>@AliasFor(annotation=<a href="../../../../io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.class</a>,
+          member="deserializerClass")
+public abstract&nbsp;java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&gt;&nbsp;using</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The deserializer.</dd>
