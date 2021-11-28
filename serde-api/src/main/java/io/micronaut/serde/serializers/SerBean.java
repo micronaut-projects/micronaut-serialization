@@ -118,7 +118,7 @@ final class SerBean<T> {
                     serType,
                     propertyAnnotationMetadata,
                     beanProperty::get,
-                    encoderContext.findSerializer(serType),
+                    findSerializer(encoderContext, serType),
                     null,
                     encoderContext
             );
@@ -137,7 +137,7 @@ final class SerBean<T> {
                         serMethod.getName(),
                         serType,
                         serMethod::invoke,
-                        encoderContext.findSerializer(serType),
+                        findSerializer(encoderContext, serType),
                         null,
                         encoderContext
                 );
@@ -250,7 +250,7 @@ final class SerBean<T> {
                         writeProperties.add(new SerProperty<>(this, n,
                                                               returnType,
                                                               (Function<T, Object>) jsonGetter::invoke,
-                                                              encoderContext.findSerializer(returnType),
+                                                              findSerializer(encoderContext, returnType),
                                                               null,
                                                               encoderContext
                                             )
