@@ -24,9 +24,9 @@ import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.IdentityStrategy;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * A Serde is an annotation that can be applied to type to indicate that
@@ -62,6 +62,7 @@ public @interface Serdeable {
      */
     @Introspected(indexed = @Introspected.IndexedAnnotation(annotation = SerdeConfig.SerValue.class))
     @SerdeConfig
+    @Retention(RetentionPolicy.RUNTIME)
     @interface Serializable {
         /**
          * @return Whether serialization is enabled. Defaults to true.
@@ -71,7 +72,8 @@ public @interface Serdeable {
         /**
          * @return The {@link io.micronaut.serde.Serializer} to use.
          */
-        Class<? extends Serializer> serializer() default Serializer.class;
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.SERIALIZER_CLASS) 
+        Class<? extends Serializer> using() default Serializer.class;
 
         /**
          * @return Whether build time validation should fail compilation on definition errors.
@@ -91,6 +93,7 @@ public @interface Serdeable {
      * Annotation used to indicate a type is deserializable.
      */
     @SerdeConfig
+    @Retention(RetentionPolicy.RUNTIME)
     @interface Deserializable {
         /**
          * @return Whether serialization is enabled. Defaults to true.
@@ -100,7 +103,8 @@ public @interface Serdeable {
         /**
          * @return The deserializer.
          */
-        Class<? extends Deserializer> deserializer() default Deserializer.class;
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.DESERIALIZER_CLASS) 
+        Class<? extends Deserializer> using() default Deserializer.class;
 
         /**
          * @return Whether build time validation should fail compilation on definition errors.
