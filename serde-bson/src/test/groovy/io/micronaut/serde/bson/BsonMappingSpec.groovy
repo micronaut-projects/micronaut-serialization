@@ -1,13 +1,19 @@
 package io.micronaut.serde.bson
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
+import org.bson.BsonBinaryReader
 import org.bson.BsonDocument
 import org.bson.BsonObjectId
+import org.bson.BsonType
+import org.bson.BsonValue
 import org.bson.types.ObjectId
 import spock.lang.Specification
 
+import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 @MicronautTest
@@ -18,6 +24,9 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
     @Inject
     BsonJsonMapper bsonJsonMapper
+
+    @Inject
+    SerdeRegistry serdeRegistry
 
     def "validate mapping"() {
         given:
@@ -113,5 +122,56 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             encodeAsBinaryDecodeJson(person) == expectedWriteJson
             bsonJsonMapper.readValue(readJson.getBytes(StandardCharsets.UTF_8), Argument.of(Person3)) == person
     }
+
+    def "validate parser starting at array nested level"() {
+        given:
+            def person = new Person2("12345", "John", "Smith", new Address("The home", "Downstreet", "Paris", "123456"))
+        when:
+            def bytes = bsonBinaryMapper.writeValueAsBytes(new Wrapper1(persons: [person, person, person]))
+            def reader = new BsonBinaryReader(ByteBuffer.wrap(bytes))
+            reader.readStartDocument()
+            reader.readName()
+            reader.readStartArray()
+
+            List<Person2> list = new ArrayList<BsonValue>()
+            while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
+                list.add(
+                        serdeRegistry.findDeserializer(Person2)
+                                .deserialize(new BsonReaderDecoder(reader), serdeRegistry.newDecoderContext(Person2), Argument.of(Person2))
+                )
+            }
+
+            reader.readEndArray()
+            reader.readEndDocument()
+        then:
+            list.size() == 3
+    }
+
+    def "validate parser starting at object nested level"() {
+        given:
+            def person = new Person2("12345", "John", "Smith", new Address("The home", "Downstreet", "Paris", "123456"))
+        when:
+            def bytes = bsonBinaryMapper.writeValueAsBytes(new Wrapper2(person: person))
+            def reader = new BsonBinaryReader(ByteBuffer.wrap(bytes))
+            reader.readStartDocument()
+            reader.readName()
+            def readPerson = serdeRegistry.findDeserializer(Person2)
+                    .deserialize(new BsonReaderDecoder(reader), serdeRegistry.newDecoderContext(Person2), Argument.of(Person2))
+
+            reader.readEndDocument()
+        then:
+            readPerson == person
+    }
+
+    @Serdeable
+    static class Wrapper1 {
+        List<Person2> persons
+    }
+
+    @Serdeable
+    static class Wrapper2 {
+        Person2 person
+    }
+
 
 }

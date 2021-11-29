@@ -54,8 +54,15 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
         super(Object.class);
         this.bsonReader = bsonReader;
         this.contextStack = new ArrayDeque<>();
-        this.contextStack.add(Context.TOP);
-        nextToken();
+        BsonType currentBsonType = bsonReader.getCurrentBsonType();
+        if (currentBsonType == null) {
+            this.contextStack.add(Context.TOP);
+            nextToken();
+        } else if (currentBsonType == BsonType.DOCUMENT) {
+            this.contextStack.push(Context.TOP);
+            currentToken = TokenType.START_OBJECT;
+            this.currentBsonType = BsonType.DOCUMENT;
+        }
     }
 
     private BsonReaderDecoder(BsonReaderDecoder parent) {
