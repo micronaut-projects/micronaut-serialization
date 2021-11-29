@@ -148,7 +148,7 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message) {
+    public IOException createDeserializationException(String message, Object invalidValue) {
         return new SerdeException(message + " \n at " + jsonParser.getLocation());
     }
 }

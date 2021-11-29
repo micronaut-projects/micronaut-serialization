@@ -222,6 +222,34 @@ public final class JacksonJsonMapper implements ObjectMapper {
         return new JacksonJsonMapper(registry, deserializationConfig, viewClass);
     }
 
+    @Override
+    public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
+        if (tree != null && value != null) {
+            Deserializer deserializer = registry.findDeserializer(value.getClass());
+            if (deserializer instanceof UpdatingDeserializer) {
+
+                try (JsonParser parser = treeCodec.treeAsTokens(tree)) {
+                    parser.setCodec(objectCodecImpl);
+                    @SuppressWarnings("unchecked")
+                    Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
+                    if (!parser.hasCurrentToken()) {
+                        parser.nextToken();
+                    }
+                    // for jackson compat we need to support deserializing null, but most deserializers don't support it.
+                    if (parser.currentToken() != JsonToken.VALUE_NULL) {
+                        final Decoder decoder = JacksonDecoder.create(parser, view);
+                        ((UpdatingDeserializer<Object>) deserializer).deserializeInto(
+                                decoder,
+                                decoderContext,
+                                type,
+                                value
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     private class ObjectCodecImpl extends ObjectCodec {
         @Override
         public Version version() {

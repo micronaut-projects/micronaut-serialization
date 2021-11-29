@@ -25,7 +25,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
- * Interface that represents a build-time generated deserializer.
+ * Interface that represents a deserializer.
  *
  * @param <T> The generic type that the deserializer can deserialize
  * @author Jonas Konrad

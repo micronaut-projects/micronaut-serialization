@@ -322,7 +322,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message) {
+    public IOException createDeserializationException(String message, Object invalidValue) {
         return new SerdeException(message + " \n at ");
     }
 
@@ -359,7 +359,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
      */
     public ObjectId decodeObjectId() throws IOException {
         if (currentBsonType != BsonType.OBJECT_ID) {
-            throw createDeserializationException("Cannot decode ObjectId from: " + currentBsonType);
+            throw createDeserializationException("Cannot decode ObjectId from: " + currentBsonType, decodeArbitrary());
         }
         return decodeCustom(parser -> ((BsonReaderDecoder) parser).bsonReader.readObjectId());
     }

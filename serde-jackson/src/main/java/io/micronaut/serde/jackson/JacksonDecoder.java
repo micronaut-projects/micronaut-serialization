@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
@@ -56,8 +57,12 @@ public final class JacksonDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message) {
-        return new SerdeException(message + " \n at " + parser.getCurrentLocation());
+    public IOException createDeserializationException(String message, Object invalidValue) {
+        if (invalidValue != null) {
+            return new InvalidFormatException(message + " \n at " + parser.getCurrentLocation(), null, invalidValue);
+        } else {
+            return new SerdeException(message + " \n at " + parser.getCurrentLocation());
+        }
     }
 
     @Override

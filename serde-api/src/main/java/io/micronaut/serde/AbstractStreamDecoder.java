@@ -81,7 +81,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * @return The exception that should be thrown to signify an unexpected token.
      */
     protected IOException unexpectedToken(TokenType expected) {
-        return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected);
+        return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected, null);
     }
 
     private void checkChild() {
@@ -233,7 +233,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
-                        throw createDeserializationException("Expected one string, but got array of multiple values");
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
             default:
@@ -366,7 +366,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                 String string = coerceScalarToString();
                 if (stringsAsChars) {
                     if (string.length() != 1) {
-                        throw createDeserializationException("When decoding char value, must give a single character");
+                        throw createDeserializationException("When decoding char value, must give a single character", string);
                     }
                     char c = string.charAt(0);
                     nextToken();
@@ -376,7 +376,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                     try {
                         value = Long.parseLong(string);
                     } catch (NumberFormatException e) {
-                        throw createDeserializationException("Unable to coerce string to integer");
+                        throw createDeserializationException("Unable to coerce string to integer", string);
                     }
                     nextToken();
                     return value;
@@ -396,7 +396,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
-                        throw createDeserializationException("Expected one integer, but got array of multiple values");
+                        throw createDeserializationException("Expected one integer, but got array of multiple values", null);
                     }
                 }
             default:
@@ -424,7 +424,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                 try {
                     number = Double.parseDouble(string);
                 } catch (NumberFormatException e) {
-                    throw createDeserializationException("Unable to coerce string to double");
+                    throw createDeserializationException("Unable to coerce string to double",  string);
                 }
                 nextToken();
                 return number;
@@ -438,7 +438,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
-                        throw createDeserializationException("Expected one float, but got array of multiple values");
+                        throw createDeserializationException("Expected one float, but got array of multiple values", null);
                     }
                 }
             default:
@@ -496,7 +496,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
-                        throw createDeserializationException("Expected one float, but got array of multiple values");
+                        throw createDeserializationException("Expected one float, but got array of multiple values", null);
                     }
                 }
             default:
@@ -558,7 +558,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                 decodeNull();
                 return JsonNode.nullNode();
             default:
-                throw createDeserializationException("Unexpected token " + currentToken() + ", expected value");
+                throw createDeserializationException("Unexpected token " + currentToken() + ", expected value", null);
         }
     }
 
@@ -605,7 +605,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                 decodeNull();
                 return null;
             default:
-                throw createDeserializationException("Unexpected token " + currentToken() + ", expected value");
+                throw createDeserializationException("Unexpected token " + currentToken() + ", expected value", null);
         }
     }
 

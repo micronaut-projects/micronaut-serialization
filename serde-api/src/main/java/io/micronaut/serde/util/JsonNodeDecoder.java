@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
@@ -52,7 +53,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return new Array(peeked);
         } else {
-            throw createDeserializationException("Not an array");
+            throw createDeserializationException("Not an array", null);
         }
     }
 
@@ -63,7 +64,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return new Obj(peeked);
         } else {
-            throw createDeserializationException("Not an array");
+            throw createDeserializationException("Not an array", null);
         }
     }
 
@@ -74,7 +75,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getStringValue();
         } else {
-            throw createDeserializationException("Not a string");
+            throw createDeserializationException("Not a string", toArbitrary(peekValue()));
         }
     }
 
@@ -85,7 +86,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getBooleanValue();
         } else {
-            throw createDeserializationException("Not a boolean");
+            throw createDeserializationException("Not a boolean", toArbitrary(peekValue()));
         }
     }
 
@@ -96,7 +97,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return (byte) peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -107,7 +108,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return (short) peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -118,7 +119,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return (char) peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -129,7 +130,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -140,7 +141,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getLongValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -151,7 +152,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getFloatValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -162,7 +163,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getDoubleValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -173,7 +174,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getBigIntegerValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -184,7 +185,7 @@ public abstract class JsonNodeDecoder implements Decoder {
             skipValue();
             return peeked.getBigDecimalValue();
         } else {
-            throw createDeserializationException("Not a number");
+            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
         }
     }
 
@@ -240,8 +241,12 @@ public abstract class JsonNodeDecoder implements Decoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message) {
-        return new SerdeException(message);
+    public IOException createDeserializationException(String message, Object invalidValue) {
+        if (invalidValue != null) {
+            return new InvalidFormatException(message, null, invalidValue);
+        } else {
+            return new SerdeException(message);
+        }
     }
 
     private static class Obj extends JsonNodeDecoder {
