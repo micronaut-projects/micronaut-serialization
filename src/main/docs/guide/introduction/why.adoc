@@ -9,3 +9,7 @@ In addition, unlike Jackson, you cannot serialize or deserialize arbitrary objec
 1. Declare the ann:serde.annotation.Serdeable[] annotation at the type level in your source code to allow the type to be serialized or deserialized.
 2. If you cannot modify the source code and it is an external type you can use ann:serde.annotation.SerdeImport[] to import the type. Note that with this approach only public members are considered.
 3. Define a bean of type api:serde.Serializer[] for serialization and/or a bean of type api:serde.Deserializer[] for deserialization.
+
+Finally, Jackson provides an annotation-based programming model that includes many rules developers need to be aware of and can lead to runtime exceptions if these rules are violated.
+
+Micronaut Serialization adds compile-time checking for correctness when using JSON binding annotations and decouples from the actual source code level annotation model. This means you can using the same runtime, but choose whether to use https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], link:{jsonbApi}/package-summary.html[JSON-B annotations] or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations]

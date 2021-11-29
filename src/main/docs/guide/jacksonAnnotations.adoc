@@ -13,11 +13,11 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonAlias.html[@JsonAlias]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JacksonInject.html[@JacksonInject]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonAnyGetter.html[@JsonAnyGetter]
 |✅
@@ -29,27 +29,27 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonAutoDetect.html[@JsonAutoDetect]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonBackReference.html[@JsonBackReference]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonClassDescription.html[@JsonClassDescription]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonCreator.html[@JsonCreator]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonEnumDefaultValue.html[@JsonEnumDefaultValue]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonFilter.html[@JsonFilter]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonFormat.html[@JsonFormat]
 |✅
@@ -57,15 +57,15 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonGetter.html[@JsonGetter]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityInfo.html[@JsonIdentityInfo]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonIdentityReference.html[@JsonIdentityReference]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonIgnore.html[@JsonIgnore]
 |✅
@@ -73,11 +73,11 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonIgnoreProperties.html[@JsonIgnoreProperties]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonIgnoreType.html[@JsonIgnoreType]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonInclude.html[@JsonInclude]
 |✅
@@ -85,27 +85,27 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonKey.html[@JsonKey]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonManagedReference.html[@JsonManagedReference]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonMerge.html[@JsonMerge]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonProperty.html[@JsonProperty]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonPropertyDescription.html[@JsonPropertyDescription]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonPropertyOrder.html[@JsonPropertyOrder]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonRawValue.html[@JsonRawValue]
 |❌
@@ -113,7 +113,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonRootName.html[@JsonRootName]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonSetter.html[@JsonSetter]
 |✅
@@ -121,11 +121,11 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonSubTypes.html[@JsonSubTypes]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeId.html[@JsonTypeId]
 |❌
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeInfo.html[@JsonTypeInfo]
 |✅
@@ -133,7 +133,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeName.html[@JsonTypeName]
 |✅
-|N/A
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonUnwrapped.html[@JsonUnwrapped]
 |✅
@@ -145,7 +145,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonView.html[@JsonView]
 |✅
-|N/A
+|
 |===
 
 In addition, limited support for 3 `jackson-databind` annotations is included to allow portability for cases where both support for `jackson-databind` and Micronaut Serialization is required:

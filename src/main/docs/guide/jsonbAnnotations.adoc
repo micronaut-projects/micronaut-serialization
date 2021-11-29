@@ -26,31 +26,31 @@ or Maven:
 
 |link:{jsonbApi}/JsonbCreator.html[@JsonbCreator]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbDateFormat.html[@JsonbDateFormat]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbNillable.html[@JsonbNillable]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbNumberFormat.html[@JsonbNumberFormat]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbProperty.html[@JsonbProperty]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbPropertyOrder.html[@JsonbPropertyOrder]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbTransient.html[@JsonbTransient]
 |✅
-|N/A
+|
 
 |link:{jsonbApi}/JsonbTypeAdapter.html[@JsonbTypeAdapter]
 |❌
