@@ -1,5 +1,6 @@
 io.micronaut.serde
 io.micronaut.serde.annotation
+io.micronaut.serde.bind
 io.micronaut.serde.bson
 io.micronaut.serde.bson.custom
 io.micronaut.serde.config

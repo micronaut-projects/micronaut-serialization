@@ -73,6 +73,7 @@
 <ul class="horizontal">
 <li><a href="io/micronaut/serde/package-tree.html">io.micronaut.serde</a>, </li>
 <li><a href="io/micronaut/serde/annotation/package-tree.html">io.micronaut.serde.annotation</a>, </li>
+<li><a href="io/micronaut/serde/bind/package-tree.html">io.micronaut.serde.bind</a>, </li>
 <li><a href="io/micronaut/serde/bson/package-tree.html">io.micronaut.serde.bson</a>, </li>
 <li><a href="io/micronaut/serde/bson/custom/package-tree.html">io.micronaut.serde.bson.custom</a>, </li>
 <li><a href="io/micronaut/serde/config/package-tree.html">io.micronaut.serde.config</a>, </li>
@@ -177,11 +178,12 @@
 <li type="circle">io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerCaseStrategy.html" title="class in io.micronaut.serde.config.naming"><span class="typeNameLink">LowerCaseStrategy</span></a> (implements io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>)</li>
 <li type="circle">io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerDotCaseStrategy.html" title="class in io.micronaut.serde.config.naming"><span class="typeNameLink">LowerDotCaseStrategy</span></a> (implements io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>)</li>
 <li type="circle">io.micronaut.serde.serdes.<a href="io/micronaut/serde/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.serdes"><span class="typeNameLink">ObjectArraySerde</span></a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;, io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
-<li type="circle">io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.deserializers"><span class="typeNameLink">ObjectDeserializer</span></a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)</li>
+<li type="circle">io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.deserializers"><span class="typeNameLink">ObjectDeserializer</span></a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;, io.micronaut.serde.<a href="io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;)</li>
 <li type="circle">io.micronaut.serde.serializers.<a href="io/micronaut/serde/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.serializers"><span class="typeNameLink">ObjectSerializer</span></a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;)</li>
 <li type="circle">io.micronaut.serde.serdes.<a href="io/micronaut/serde/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.serdes"><span class="typeNameLink">OffsetDateTimeSerde</span></a> (implements io.micronaut.serde.serdes.<a href="io/micronaut/serde/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.serdes">TemporalSerde</a>&lt;T&gt;)</li>
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeAnnotationUtil.html" title="class in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeAnnotationUtil</span></a></li>
 <li type="circle">io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor"><span class="typeNameLink">SerdeAnnotationVisitor</span></a> (implements io.micronaut.inject.visitor.TypeElementVisitor&lt;C,E&gt;)</li>
+<li type="circle">io.micronaut.serde.bind.<a href="io/micronaut/serde/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html" title="class in io.micronaut.serde.bind"><span class="typeNameLink">SerdeJsonBeanPropertyBinderExceptionHandler</span></a> (implements io.micronaut.json.bind.JsonBeanPropertyBinderExceptionHandler)</li>
 <li type="circle">io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.config"><span class="typeNameLink">SerdeJsonConfiguration</span></a> (implements io.micronaut.json.JsonConfiguration)</li>
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/Simple.html" title="class in io.micronaut.serde"><span class="typeNameLink">Simple</span></a></li>
 <li type="circle">io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html" title="class in io.micronaut.serde.config.naming"><span class="typeNameLink">SnakeCaseStrategy</span></a> (implements io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>)</li>
@@ -192,7 +194,15 @@
 <ul>
 <li type="circle">java.io.IOException
 <ul>
-<li type="circle">io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><span class="typeNameLink">SerdeException</span></a></li>
+<li type="circle">io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><span class="typeNameLink">SerdeException</span></a>
+<ul>
+<li type="circle">io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions"><span class="typeNameLink">InvalidFormatException</span></a>
+<ul>
+<li type="circle">io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html" title="class in io.micronaut.serde.exceptions"><span class="typeNameLink">InvalidPropertyFormatException</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -258,6 +268,7 @@
 </ul>
 </li>
 <li type="circle">io.micronaut.serde.serdes.<a href="io/micronaut/serde/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.serdes"><span class="typeNameLink">TemporalSerde</span></a>&lt;T&gt;</li>
+<li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde"><span class="typeNameLink">UpdatingDeserializer</span></a>&lt;T&gt;</li>
 </ul>
 </li>
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde"><span class="typeNameLink">DeserializerLocator</span></a>

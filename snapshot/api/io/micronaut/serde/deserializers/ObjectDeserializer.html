@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;java.lang.Object&gt;, <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.lang.Object&gt;</dd>
+<dd><a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;java.lang.Object&gt;, <a href="../../../../io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;java.lang.Object&gt;, <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.lang.Object&gt;</dd>
 </dl>
 <hr>
 <br>
@@ -115,7 +115,7 @@ var activeTableTab = "activeTableTab";
  @Primary
 public class <span class="typeNameLabel">ObjectDeserializer</span>
 extends java.lang.Object
-implements <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.lang.Object&gt;</pre>
+implements <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.lang.Object&gt;, <a href="../../../../io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;java.lang.Object&gt;</pre>
 <div class="block">Implementation for deserialization of objects that uses introspection metadata.</div>
 <dl>
 <dt><span class="simpleTagLabel">Since:</span></dt>
@@ -179,6 +179,15 @@ implements <a href="../../../../io/micronaut/serde/util/NullableDeserializer.htm
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/deserializers/ObjectDeserializer.html#allowNull--">allowNull</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/deserializers/ObjectDeserializer.html#deserializeInto-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-java.lang.Object-">deserializeInto</a></span>(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+               <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+               io.micronaut.core.type.Argument&lt;? super java.lang.Object&gt;&nbsp;type,
+               java.lang.Object&nbsp;value)</code>
+<div class="block">Deserializes from the current state of the <a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <code>T</code>.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.Object</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/deserializers/ObjectDeserializer.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a></span>(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
                   <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
@@ -186,7 +195,7 @@ implements <a href="../../../../io/micronaut/serde/util/NullableDeserializer.htm
 <div class="block">A method that is invoked when the value is known not to be null.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;io.micronaut.serde.deserializers.DeserBean&lt;T&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/deserializers/ObjectDeserializer.html#getDeserializableBean-io.micronaut.core.type.Argument-io.micronaut.serde.Deserializer.DecoderContext-">getDeserializableBean</a></span>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
                      <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext)</code>&nbsp;</td>
@@ -291,11 +300,37 @@ implements <a href="../../../../io/micronaut/serde/util/NullableDeserializer.htm
 <a name="getDeserializableBean-io.micronaut.core.type.Argument-io.micronaut.serde.Deserializer.DecoderContext-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getDeserializableBean</h4>
 <pre>public&nbsp;&lt;T&gt;&nbsp;io.micronaut.serde.deserializers.DeserBean&lt;T&gt;&nbsp;getDeserializableBean(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
                                                                                <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext)</pre>
+</li>
+</ul>
+<a name="deserializeInto-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-java.lang.Object-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>deserializeInto</h4>
+<pre>public&nbsp;void&nbsp;deserializeInto(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+                            <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+                            io.micronaut.core.type.Argument&lt;? super java.lang.Object&gt;&nbsp;type,
+                            java.lang.Object&nbsp;value)
+                     throws java.io.IOException</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../io/micronaut/serde/UpdatingDeserializer.html#deserializeInto-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-T-">UpdatingDeserializer</a></code></span></div>
+<div class="block">Deserializes from the current state of the <a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <code>T</code>.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../io/micronaut/serde/UpdatingDeserializer.html#deserializeInto-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-T-">deserializeInto</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;java.lang.Object&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>decoder</code> - The decoder, never <code>null</code></dd>
+<dd><code>decoderContext</code> - The decoder context, never <code>null</code></dd>
+<dd><code>type</code> - The generic type to be deserialized</dd>
+<dd><code>value</code> - The value</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code> - If an error occurs during deserialization of the object</dd>
+</dl>
 </li>
 </ul>
 </li>

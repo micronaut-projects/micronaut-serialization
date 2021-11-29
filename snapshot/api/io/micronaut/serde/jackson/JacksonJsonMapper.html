@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -182,31 +182,36 @@ implements <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="int
                  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#updateValueFromTree-java.lang.Object-io.micronaut.json.tree.JsonNode-">updateValueFromTree</a></span>(java.lang.Object&nbsp;value,
+                   io.micronaut.json.tree.JsonNode&nbsp;tree)</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValue-java.io.OutputStream-io.micronaut.core.type.Argument-T-">writeValue</a></span>(java.io.OutputStream&nbsp;outputStream,
           io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
           T&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValue-java.io.OutputStream-java.lang.Object-">writeValue</a></span>(java.io.OutputStream&nbsp;outputStream,
           java.lang.Object&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueAsBytes-io.micronaut.core.type.Argument-T-">writeValueAsBytes</a></span>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
                  T&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueAsBytes-java.lang.Object-">writeValueAsBytes</a></span>(java.lang.Object&nbsp;object)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;io.micronaut.json.tree.JsonNode</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueToTree-io.micronaut.core.type.Argument-T-">writeValueToTree</a></span>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
                 T&nbsp;value)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>io.micronaut.json.tree.JsonNode</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueToTree-java.lang.Object-">writeValueToTree</a></span>(java.lang.Object&nbsp;value)</code>&nbsp;</td>
 </tr>
@@ -230,7 +235,7 @@ implements <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="int
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.json.JsonMapper</h3>
-<code>detectFeatures, readValue, readValueFromTree, updateValueFromTree</code></li>
+<code>detectFeatures, readValue, readValueFromTree</code></li>
 </ul>
 </li>
 </ul>
@@ -466,7 +471,7 @@ public&nbsp;org.reactivestreams.Processor&lt;byte[],io.micronaut.json.tree.JsonN
 <a name="cloneWithViewClass-java.lang.Class-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>cloneWithViewClass</h4>
 <pre>@NonNull
@@ -475,6 +480,23 @@ public&nbsp;io.micronaut.json.JsonMapper&nbsp;cloneWithViewClass(@NonNull
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code>cloneWithViewClass</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+</dl>
+</li>
+</ul>
+<a name="updateValueFromTree-java.lang.Object-io.micronaut.json.tree.JsonNode-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>updateValueFromTree</h4>
+<pre>public&nbsp;void&nbsp;updateValueFromTree(java.lang.Object&nbsp;value,
+                                io.micronaut.json.tree.JsonNode&nbsp;tree)
+                         throws java.io.IOException</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code>updateValueFromTree</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code></dd>
 </dl>
 </li>
 </ul>

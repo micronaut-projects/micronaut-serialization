@@ -314,17 +314,17 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#createChildDecoder--">createChildDecoder()</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#createDeserializationException-java.lang.String-">createDeserializationException(String)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException(String, Object)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/Decoder.html#createDeserializationException-java.lang.String-">createDeserializationException(String)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/Decoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException(String, Object)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Creates an exception for the given message.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonDecoder.html#createDeserializationException-java.lang.String-">createDeserializationException(String)</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonDecoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException(String, Object)</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#createDeserializationException-java.lang.String-">createDeserializationException(String)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException(String, Object)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/util/JsonNodeDecoder.html#createDeserializationException-java.lang.String-">createDeserializationException(String)</a></span> - Method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.util">JsonNodeDecoder</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/util/JsonNodeDecoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException(String, Object)</a></span> - Method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.util">JsonNodeDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#createReactiveParser-java.util.function.Consumer-boolean-">createReactiveParser(Consumer&lt;Processor&lt;byte[], JsonNode&gt;&gt;, boolean)</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -573,6 +573,12 @@
 <dd>
 <div class="block">Used to store the type that will deserialize this type.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/deserializers/ObjectDeserializer.html#deserializeInto-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-java.lang.Object-">deserializeInto(Decoder, Deserializer.DecoderContext, Argument&lt;? super Object&gt;, Object)</a></span> - Method in class io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.deserializers">ObjectDeserializer</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/UpdatingDeserializer.html#deserializeInto-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-T-">deserializeInto(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;, T)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a></dt>
+<dd>
+<div class="block">Deserializes from the current state of the <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <code>T</code>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/deserializers/ObjectDeserializer.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super Object&gt;)</a></span> - Method in class io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.deserializers">ObjectDeserializer</a></dt>
@@ -605,7 +611,7 @@
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><span class="typeNameLink">Deserializer</span></a>&lt;<a href="io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&gt; - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
-<div class="block">Interface that represents a build-time generated deserializer.</div>
+<div class="block">Interface that represents a deserializer.</div>
 </dd>
 <dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde"><span class="typeNameLink">Deserializer.DecoderContext</span></a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
@@ -891,6 +897,8 @@
 <dl>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonEncoder.html#generator">generator</a></span> - Variable in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonEncoder.html" title="class in io.micronaut.serde.jackson">JacksonEncoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html#getArgument--">getArgument()</a></span> - Method in exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidPropertyFormatException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/DeserializationConfiguration.html#getArraySizeThreshold--">getArraySizeThreshold()</a></span> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/SerdeJsonConfiguration.html#getArraySizeThreshold--">getArraySizeThreshold()</a></span> - Method in class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.config">SerdeJsonConfiguration</a></dt>
@@ -950,6 +958,8 @@
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#getBoolean--">getBoolean()</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonWriterEncoder.html#getBsonWriter--">getBsonWriter()</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonWriterEncoder.html" title="class in io.micronaut.serde.bson">BsonWriterEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/exceptions/InvalidFormatException.html#getCause--">getCause()</a></span> - Method in exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidFormatException</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/util/JsonNodeEncoder.html#getCompletedValue--">getCompletedValue()</a></span> - Method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.util">JsonNodeEncoder</a></dt>
 <dd>
@@ -1106,6 +1116,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html#getOrder--">getOrder()</a></span> - Method in class io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor">SerdeAnnotationVisitor</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/exceptions/InvalidFormatException.html#getOriginalValue--">getOriginalValue()</a></span> - Method in exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidFormatException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/ConstructorArgs.html#getOther--">getOther()</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/ConstructorArgs.html" title="class in io.micronaut.serde">ConstructorArgs</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/ConstructorArgs.html#getPages--">getPages()</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/ConstructorArgs.html" title="class in io.micronaut.serde">ConstructorArgs</a></dt>
@@ -1234,9 +1246,26 @@
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/serdes/InstantSerde.html#InstantSerde-io.micronaut.serde.config.SerdeConfiguration-">InstantSerde(SerdeConfiguration)</a></span> - Constructor for class io.micronaut.serde.serdes.<a href="io/micronaut/serde/serdes/InstantSerde.html" title="class in io.micronaut.serde.serdes">InstantSerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions"><span class="typeNameLink">InvalidFormatException</span></a> - Exception in <a href="io/micronaut/serde/exceptions/package-summary.html">io.micronaut.serde.exceptions</a></dt>
+<dd>
+<div class="block">Error for when a value cannot be converted to the desired type.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/exceptions/InvalidFormatException.html#InvalidFormatException-java.lang.String-java.lang.Exception-java.lang.Object-">InvalidFormatException(String, Exception, Object)</a></span> - Constructor for exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidFormatException</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html" title="class in io.micronaut.serde.exceptions"><span class="typeNameLink">InvalidPropertyFormatException</span></a> - Exception in <a href="io/micronaut/serde/exceptions/package-summary.html">io.micronaut.serde.exceptions</a></dt>
+<dd>
+<div class="block">Extended version of <a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions"><code>InvalidFormatException</code></a> with information
+ about the property that was incorrect.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html#InvalidPropertyFormatException-io.micronaut.serde.exceptions.InvalidFormatException-io.micronaut.core.type.Argument-">InvalidPropertyFormatException(InvalidFormatException, Argument&lt;?&gt;)</a></span> - Constructor for exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidPropertyFormatException</a></dt>
+<dd>
+<div class="block">Construct a more detailed exception from the given cause.</div>
+</dd>
 <dt><a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a> - package io.micronaut.serde</dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/annotation/package-summary.html">io.micronaut.serde.annotation</a> - package io.micronaut.serde.annotation</dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/bind/package-summary.html">io.micronaut.serde.bind</a> - package io.micronaut.serde.bind</dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/package-summary.html">io.micronaut.serde.bson</a> - package io.micronaut.serde.bson</dt>
 <dd>&nbsp;</dd>
@@ -2013,6 +2042,12 @@
 <dd>
 <div class="block">Interface that abstracts the lookup for introspections usable for serialization and/or deserialization.</div>
 </dd>
+<dt><a href="io/micronaut/serde/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html" title="class in io.micronaut.serde.bind"><span class="typeNameLink">SerdeJsonBeanPropertyBinderExceptionHandler</span></a> - Class in <a href="io/micronaut/serde/bind/package-summary.html">io.micronaut.serde.bind</a></dt>
+<dd>
+<div class="block">Implementation of <code>JsonBeanPropertyBinderExceptionHandler</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html#SerdeJsonBeanPropertyBinderExceptionHandler--">SerdeJsonBeanPropertyBinderExceptionHandler()</a></span> - Constructor for class io.micronaut.serde.bind.<a href="io/micronaut/serde/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html" title="class in io.micronaut.serde.bind">SerdeJsonBeanPropertyBinderExceptionHandler</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.config"><span class="typeNameLink">SerdeJsonConfiguration</span></a> - Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
 <dd>
 <div class="block">Implementation of the <code>JsonConfiguration</code> interface
@@ -2180,6 +2215,12 @@
 <dd>
 <div class="block">A time zone to use.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html#toConversionError-java.lang.Object-java.lang.Exception-">toConversionError(Object, Exception)</a></span> - Method in class io.micronaut.serde.bind.<a href="io/micronaut/serde/bind/SerdeJsonBeanPropertyBinderExceptionHandler.html" title="class in io.micronaut.serde.bind">SerdeJsonBeanPropertyBinderExceptionHandler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/exceptions/InvalidFormatException.html#toConversionError--">toConversionError()</a></span> - Method in exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidFormatException</a></dt>
+<dd>
+<div class="block">Converts the exception to a conversion error.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonEncoder.html#toString--">toString()</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonEncoder.html" title="class in io.micronaut.serde.jackson">JacksonEncoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/processor/bson/BsonCreatorTransformer.html#transform-io.micronaut.core.annotation.AnnotationValue-io.micronaut.inject.visitor.VisitorContext-">transform(AnnotationValue&lt;Annotation&gt;, VisitorContext)</a></span> - Method in class io.micronaut.serde.processor.bson.<a href="io/micronaut/serde/processor/bson/BsonCreatorTransformer.html" title="class in io.micronaut.serde.processor.bson">BsonCreatorTransformer</a></dt>
@@ -2252,6 +2293,12 @@
 <dl>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/AbstractStreamDecoder.html#unexpectedToken-io.micronaut.serde.AbstractStreamDecoder.TokenType-">unexpectedToken(AbstractStreamDecoder.TokenType)</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#updateValueFromTree-java.lang.Object-io.micronaut.json.tree.JsonNode-">updateValueFromTree(Object, JsonNode)</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde"><span class="typeNameLink">UpdatingDeserializer</span></a>&lt;<a href="io/micronaut/serde/UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt; - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Interface that represents a deserializer capable of updating an existing object.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html#UPPER_CAMEL_CASE">UPPER_CAMEL_CASE</a></span> - Static variable in interface io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a></dt>
 <dd>
 <div class="block">upper first letter, but camel case.</div>

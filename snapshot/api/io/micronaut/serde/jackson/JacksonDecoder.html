@@ -176,7 +176,8 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>java.io.IOException</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#createDeserializationException-java.lang.String-">createDeserializationException</a></span>(java.lang.String&nbsp;message)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException</a></span>(java.lang.String&nbsp;message,
+                              java.lang.Object&nbsp;invalidValue)</code>
 <div class="block">Creates an exception for the given message.</div>
 </td>
 </tr>
@@ -302,18 +303,20 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 </dl>
 </li>
 </ul>
-<a name="createDeserializationException-java.lang.String-">
+<a name="createDeserializationException-java.lang.String-java.lang.Object-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>createDeserializationException</h4>
-<pre>public&nbsp;java.io.IOException&nbsp;createDeserializationException(java.lang.String&nbsp;message)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../io/micronaut/serde/Decoder.html#createDeserializationException-java.lang.String-">Decoder</a></code></span></div>
+<pre>public&nbsp;java.io.IOException&nbsp;createDeserializationException(java.lang.String&nbsp;message,
+                                                          java.lang.Object&nbsp;invalidValue)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../io/micronaut/serde/Decoder.html#createDeserializationException-java.lang.String-java.lang.Object-">Decoder</a></code></span></div>
 <div class="block">Creates an exception for the given message.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>message</code> - The message, never <code>null</code></dd>
+<dd><code>invalidValue</code> - The invalid value. Can be <code>null</code>.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The exception, never <code>null</code></dd>
 </dl>
