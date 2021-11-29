@@ -215,7 +215,8 @@ public interface Decoder {
     /**
      * Creates an exception for the given message.
      * @param message The message, never {@code null}
+     * @param invalidValue The invalid value. Can be {@code null}.
      * @return The exception, never {@code null}
      */
-    @NonNull IOException createDeserializationException(@NonNull String message);
+    @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue);
 }

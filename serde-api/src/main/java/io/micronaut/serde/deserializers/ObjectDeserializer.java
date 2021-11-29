@@ -28,8 +28,11 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.SerdeIntrospections;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.exceptions.InvalidFormatException;
+import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.TypeKey;
@@ -51,7 +54,7 @@ import java.util.function.BiConsumer;
  */
 @Singleton
 @Primary
-public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBeanRegistry {
+public class ObjectDeserializer implements NullableDeserializer<Object>, UpdatingDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;
     private final Map<TypeKey, DeserBean<Object>> deserBeanMap = new ConcurrentHashMap<>(50);
@@ -65,25 +68,27 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
     public Object deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
             throws IOException {
 
-        Class<? super Object> objectType;
-        DeserBean<? super Object> deserBean;
-        try {
-            deserBean = getDeserializableBean(type, decoderContext);
-            objectType = deserBean.introspection.getBeanType();
-        } catch (IntrospectionException e) {
-            throw new SerdeException("Unable to deserialize object of type: " + type, e);
-        }
+        DeserBean<? super Object> deserBean = getDeserBean(decoderContext, type);
+        Class<? super Object> objectType = deserBean.introspection.getBeanType();
 
         if (deserBean.delegating) {
             final Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> creatorParams = deserBean.creatorParams;
             if (CollectionUtils.isNotEmpty(creatorParams)) {
                 @SuppressWarnings("unchecked") final DeserBean.DerProperty<Object, Object> creator =
                         (DeserBean.DerProperty<Object, Object>) creatorParams.values().iterator().next();
-                final Object val = creator.deserializer.deserialize(
-                        decoder,
-                        decoderContext,
-                        creator.argument
-                );
+                final Object val;
+                try {
+                    val = creator.deserializer.deserialize(
+                            decoder,
+                            decoderContext,
+                            creator.argument
+                    );
+                } catch (InvalidFormatException e) {
+                    throw new InvalidPropertyFormatException(
+                            e,
+                            creator.argument
+                    );
+                }
                 return deserBean.introspection.instantiate(val);
             } else {
                 throw new IllegalStateException("At least one creator parameter expected");
@@ -193,11 +198,19 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                             continue;
                         }
                         @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
-                        final Object val = sp.deserializer.deserialize(
-                                objectDecoder,
-                                decoderContext,
-                                propertyType
-                        );
+                        final Object val;
+                        try {
+                            val = sp.deserializer.deserialize(
+                                    objectDecoder,
+                                    decoderContext,
+                                    propertyType
+                            );
+                        } catch (InvalidFormatException e) {
+                            throw new InvalidPropertyFormatException(
+                                    e,
+                                    propertyType
+                            );
+                        }
                         skipAliases(creatorParameters, sp);
                         if (sp.instrospection.getBeanType() == objectType) {
                             params[sp.index] = val;
@@ -215,11 +228,19 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                         final DeserBean.DerProperty<? super Object, ?> rp = readProperties.get(prop);
                         if (rp != null) {
                             @SuppressWarnings("unchecked") final Argument<Object> argument = (Argument<Object>) rp.argument;
-                            final Object val = rp.deserializer.deserialize(
-                                    objectDecoder,
-                                    decoderContext,
-                                    argument
-                            );
+                            final Object val;
+                            try {
+                                val = rp.deserializer.deserialize(
+                                        objectDecoder,
+                                        decoderContext,
+                                        argument
+                                );
+                            } catch (InvalidFormatException e) {
+                                throw new InvalidPropertyFormatException(
+                                        e,
+                                        argument
+                                );
+                            }
                             buffer = initBuffer(buffer, rp, prop, val);
                         } else {
                             skipOrSetAny(
@@ -361,20 +382,40 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                 }
             }
             // finish up
-            while (true) {
-                final String key = objectDecoder.decodeKey();
-                if (key == null) {
-                    break;
-                }
-                skipOrSetAny(decoderContext, objectDecoder, key, anyValues, ignoreUnknown, type);
-            }
-            if (anyValues != null) {
-                anyValues.bind(obj);
-            }
-            objectDecoder.finishStructure();
+            finalizeObjectDecoder(decoderContext, type, ignoreUnknown, objectDecoder, anyValues, obj);
 
             return obj;
         }
+    }
+
+    private void finalizeObjectDecoder(DecoderContext decoderContext,
+                           Argument<? super Object> type,
+                           boolean ignoreUnknown,
+                           Decoder objectDecoder,
+                           AnyValues<Object> anyValues,
+                           Object obj) throws IOException {
+        while (true) {
+            final String key = objectDecoder.decodeKey();
+            if (key == null) {
+                break;
+            }
+            skipOrSetAny(decoderContext, objectDecoder, key, anyValues, ignoreUnknown, type);
+        }
+        if (anyValues != null) {
+            anyValues.bind(obj);
+        }
+        objectDecoder.finishStructure();
+    }
+
+    private DeserBean<? super Object> getDeserBean(DecoderContext decoderContext, Argument<? super Object> type)
+            throws SerdeException {
+        DeserBean<? super Object> deserBean;
+        try {
+            deserBean = getDeserializableBean(type, decoderContext);
+        } catch (IntrospectionException e) {
+            throw new SerdeException("Unable to deserialize object of type: " + type, e);
+        }
+        return deserBean;
     }
 
     private void skipAliases(Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> props,
@@ -486,11 +527,19 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
                     }
                     continue;
                 }
-                final Object val = property.deserializer.deserialize(
-                        objectDecoder,
-                        decoderContext,
-                        propertyType
-                );
+                final Object val;
+                try {
+                    val = property.deserializer.deserialize(
+                            objectDecoder,
+                            decoderContext,
+                            propertyType
+                    );
+                } catch (InvalidFormatException e) {
+                    throw new InvalidPropertyFormatException(
+                            e,
+                            propertyType
+                    );
+                }
 
                 // writer is never null for properties
                 final BiConsumer<Object, Object> writer = property.writer;
@@ -675,6 +724,48 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
         return deserBean;
     }
 
+    @Override
+    public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type, Object value)
+            throws IOException {
+        DeserBean<? super Object> deserBean = getDeserBean(decoderContext, type);
+        Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties =
+                deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
+        boolean hasProperties = readProperties != null;
+        boolean ignoreUnknown = this.ignoreUnknown && deserBean.ignoreUnknown;
+        AnyValues<Object> anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
+        final Decoder objectDecoder = decoder.decodeObject(type);
+        if (hasProperties) {
+            final PropertyBuffer propertyBuffer = decodeProperties(deserBean,
+                                                                   decoderContext,
+                                                                   value,
+                                                                   objectDecoder,
+                                                                   readProperties,
+                                                                   deserBean.unwrappedProperties,
+                                                                   null,
+                                                                   anyValues,
+                                                                   ignoreUnknown,
+                                                                   type);
+            // the property buffer will be non-null if there were any unwrapped
+            // properties in which case we need to go through and materialize unwrapped
+            // from the buffer
+            applyDefaultValuesOrFail(
+                    value,
+                    readProperties,
+                    deserBean.unwrappedProperties,
+                    propertyBuffer,
+                    decoderContext
+            );
+        }
+        finalizeObjectDecoder(
+                decoderContext,
+                type,
+                ignoreUnknown,
+                objectDecoder,
+                anyValues,
+                value
+        );
+    }
+
     private static final class AnyValues<T> {
         Map<String, T> values;
         final DeserBean.AnySetter<T> anySetter;
@@ -794,22 +885,36 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, DeserBe
 
         public void set(Object obj, DecoderContext decoderContext) throws IOException {
             if (value instanceof Decoder) {
-                value = property.deserializer.deserialize(
-                        (Decoder) value,
-                        decoderContext,
-                        property.argument
-                );
+                try {
+                    value = property.deserializer.deserialize(
+                            (Decoder) value,
+                            decoderContext,
+                            property.argument
+                    );
+                } catch (InvalidFormatException e) {
+                    throw new InvalidPropertyFormatException(
+                            e,
+                            property.argument
+                    );
+                }
             }
             property.set(obj, value);
         }
 
         public void set(Object[] params, DecoderContext decoderContext) throws IOException {
             if (value instanceof Decoder) {
-                value = property.deserializer.deserialize(
-                        (Decoder) value,
-                        decoderContext,
-                        property.argument
-                );
+                try {
+                    value = property.deserializer.deserialize(
+                            (Decoder) value,
+                            decoderContext,
+                            property.argument
+                    );
+                } catch (InvalidFormatException e) {
+                    throw new InvalidPropertyFormatException(
+                            e,
+                            property.argument
+                    );
+                }
 
             }
             params[property.index] = value;

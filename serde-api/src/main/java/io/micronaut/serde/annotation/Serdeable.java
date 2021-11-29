@@ -48,7 +48,7 @@ public @interface Serdeable {
     /**
      * @return Whether build time validation should fail compilation on definition errors.
      */
-    @AliasFor(annotation = SerdeConfig.class, member =SerdeConfig.VALIDATE)
+    @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.VALIDATE)
     boolean validate() default true;
 
     /**

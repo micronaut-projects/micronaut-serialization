@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * Parent exception type for all serialization / deserialization exceptions.
  */
-public final class SerdeException extends IOException {
+public class SerdeException extends IOException {
     public SerdeException() {
     }
 

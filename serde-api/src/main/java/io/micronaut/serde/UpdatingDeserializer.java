@@ -15,15 +15,20 @@
  */
 package io.micronaut.serde;
 
+import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import java.io.IOException;
 
 /**
+ * Interface that represents a deserializer capable of updating an existing object.
  *
+ * @param <T> The generic type that the deserializer can deserialize
+ * @author Jonas Konrad
  * @author graemerocher
  */
+@Indexed(Deserializer.class)
 public interface UpdatingDeserializer<T> extends Deserializer<T> {
 
     /**
@@ -33,7 +38,6 @@ public interface UpdatingDeserializer<T> extends Deserializer<T> {
      * @param decoderContext The decoder context, never {@code null}
      * @param type The generic type to be deserialized
      * @param value The value
-     * @return The deserialized object or {@code null} only if {@link #allowNull()} returns {@code true}
      * @throws IOException If an error occurs during deserialization of the object
      */
     @Nullable
