@@ -16,9 +16,12 @@
 package io.micronaut.serde;
 
 import io.micronaut.context.BeanContext;
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -56,6 +59,7 @@ import java.util.OptionalLong;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -280,13 +284,66 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 } else if (possibles.isEmpty()) {
                     throw new SerdeException("No serializers found for type: " + type);
                 } else {
-                    throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + possibles);
+
+                    final BeanDefinition<Serializer> definition = lastChanceResolve(type, possibles);
+                    final Serializer locatedSerializer = beanContext.getBean(definition);
+                    serializerMap.put(key, locatedSerializer);
+                    return locatedSerializer;
                 }
             } else {
                 serializerMap.put(key, objectSerializer);
             }
         }
         return objectSerializer;
+    }
+
+    private  BeanDefinition<Serializer> lastChanceResolve(
+            Argument<?> type,
+            Collection<BeanDefinition<Serializer>> candidates) throws SerdeException {
+
+        if (candidates.size() > 1) {
+            List<BeanDefinition<Serializer>> primary = candidates.stream()
+                    .filter(BeanDefinition::isPrimary)
+                    .collect(Collectors.toList());
+            if (!primary.isEmpty()) {
+                candidates = primary;
+            }
+        }
+        if (candidates.size() == 1) {
+            return candidates.iterator().next();
+        } else {
+            candidates = candidates.stream().filter(candidate -> !candidate.hasDeclaredStereotype(Secondary.class)).collect(Collectors.toList());
+            if (candidates.size() == 1) {
+                return candidates.iterator().next();
+            } else {
+                if (candidates.stream().anyMatch(candidate -> candidate.hasAnnotation(Order.class))) {
+                    // pick the bean with the highest priority
+                    final Iterator<BeanDefinition<Serializer>> i = candidates.stream()
+                            .sorted((bean1, bean2) -> {
+                                int order1 = OrderUtil.getOrder(bean1.getAnnotationMetadata());
+                                int order2 = OrderUtil.getOrder(bean2.getAnnotationMetadata());
+                                return Integer.compare(order1, order2);
+                            })
+                            .iterator();
+                    if (i.hasNext()) {
+                        final BeanDefinition<Serializer> bean = i.next();
+                        if (i.hasNext()) {
+                            // check there are not 2 beans with the same order
+                            final BeanDefinition<Serializer> next = i.next();
+                            if (OrderUtil.getOrder(bean.getAnnotationMetadata()) == OrderUtil.getOrder(next.getAnnotationMetadata())) {
+                                throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + candidates);
+                            }
+                        }
+
+                        return bean;
+                    } else {
+                        throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + candidates);
+                    }
+                } else {
+                    throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + candidates);
+                }
+            }
+        }
     }
 
     @Override
