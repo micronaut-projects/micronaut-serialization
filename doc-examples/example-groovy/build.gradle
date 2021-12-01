@@ -22,3 +22,6 @@ dependencies {
 application {
     mainClass.set("example.Application")
 }
+tasks.named("nativeCompile") {
+    it.setEnabled(false)
+}
