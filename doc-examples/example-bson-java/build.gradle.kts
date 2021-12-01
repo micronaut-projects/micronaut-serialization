@@ -22,3 +22,10 @@ dependencies {
 application {
     mainClass.set("example.Application")
 }
+graalvmNative {
+    binaries {
+        named("main") {
+            buildArgs.add("--trace-class-initialization=org.bson.BsonType")
+        }
+    }
+}
