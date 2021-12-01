@@ -118,7 +118,7 @@ final class SerBean<T> {
                     serType,
                     propertyAnnotationMetadata,
                     beanProperty::get,
-                    findSerializer(encoderContext, serType),
+                    findSerializer(encoderContext, serType, propertyAnnotationMetadata),
                     null,
                     encoderContext
             );
@@ -137,7 +137,7 @@ final class SerBean<T> {
                         serMethod.getName(),
                         serType,
                         serMethod::invoke,
-                        findSerializer(encoderContext, serType),
+                        findSerializer(encoderContext, serType, serMethod.getAnnotationMetadata()),
                         null,
                         encoderContext
                 );
@@ -214,7 +214,8 @@ final class SerBean<T> {
                                                                                              unwrappedPropertyArgument,
                                                                                              combinedMetadata,
                                                                                              bean -> unwrappedProperty.get(property.get(bean)),
-                                                                                             findSerializer(encoderContext, unwrappedPropertyArgument),
+                                                                                             findSerializer(encoderContext, unwrappedPropertyArgument,
+                                                                                                            argument.getAnnotationMetadata()),
                                                                                              null,
                                                                                              encoderContext
                                 );
@@ -227,7 +228,7 @@ final class SerBean<T> {
                                 serProperty = new SerProperty<>(this, n,
                                                                 argument,
                                                                 property::get,
-                                                                findSerializer(encoderContext, argument),
+                                                                findSerializer(encoderContext, argument, propertyAnnotationMetadata),
                                                                 null,
                                                                 encoderContext
                                 );
@@ -249,8 +250,9 @@ final class SerBean<T> {
                         final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
                         writeProperties.add(new SerProperty<>(this, n,
                                                               returnType,
-                                                              (Function<T, Object>) jsonGetter::invoke,
-                                                              findSerializer(encoderContext, returnType),
+                                                              jsonGetter::invoke,
+                                                              findSerializer(encoderContext, returnType,
+                                                                             jsonGetterAnnotationMetadata),
                                                               null,
                                                               encoderContext
                                             )
@@ -269,8 +271,11 @@ final class SerBean<T> {
         return BEAN_PROPERTY_COMPARATOR;
     }
 
-    private <K> Serializer<K> findSerializer(Serializer.EncoderContext encoderContext, Argument<K> argument) throws SerdeException {
-        Class customSer = argument.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).orElse(null);
+    private <K> Serializer<K> findSerializer(Serializer.EncoderContext encoderContext,
+                                             Argument<K> argument,
+                                             AnnotationMetadata annotationMetadata) throws SerdeException {
+
+        Class customSer = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).orElse(null);
         if (customSer != null) {
             return encoderContext.findCustomSerializer(customSer);
         }
