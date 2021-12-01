@@ -27,3 +27,8 @@ application {
 tasks.named("nativeCompile") {
     it.setEnabled(false)
 }
+tasks.withType(Test).configureEach {
+    if (it.name == "testNativeImage") {
+        it.enabled = false
+    }
+}
