@@ -325,6 +325,42 @@ public class Book {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable <b class="conum">(1)</b>
+class Book {
+    final String title
+    @JsonProperty("qty") <b class="conum">(2)</b>
+    final int quantity
+
+    @JsonCreator
+    Book(String title, int quantity) { <b class="conum">(3)</b>
+        this.title = title
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable <b class="conum">(1)</b>
+data class Book (
+    val title: String, <b class="conum">(2)</b>
+    @JsonProperty("qty") val quantity: Int
+)</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -369,6 +405,56 @@ public class BookTest {
                 "The Stand", book.getTitle()
         );
         assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write book"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+        Book book = objectMapper.readValue(result, Book.class);
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        Assertions.assertEquals(
+            "The Stand", book.title
+        )
+        Assertions.assertEquals(50, book.quantity)
     }
 }</code></pre>
 </div>
@@ -512,6 +598,56 @@ public class BookTest {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write book"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+        Book book = objectMapper.readValue(result, Book.class);
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        Assertions.assertEquals(
+            "The Stand", book.title
+        )
+        Assertions.assertEquals(50, book.quantity)
+    }
+}</code></pre>
+</div>
+</div>
 
 <h2 id="bsonQuick"><a class="anchor" href="#bsonQuick"></a>3.3 BSON Annotations and BSON</h2>
 
@@ -641,6 +777,56 @@ public class BookTest {
                 "The Stand", book.getTitle()
         );
         assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write book"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+        Book book = objectMapper.readValue(result, Book.class);
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        Assertions.assertEquals(
+            "The Stand", book.title
+        )
+        Assertions.assertEquals(50, book.quantity)
     }
 }</code></pre>
 </div>
@@ -1086,6 +1272,23 @@ public final class Point {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+class Point private constructor(private val x: Int, private val y: Int) {
+    fun coords(): IntArray {
+        return intArrayOf(x, y)
+    }
+
+    companion object {
+        fun valueOf(x: Int, y: Int): Point {
+            return Point(x, y)
+        }
+    }
+}</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>A custom serde (a combined serializer and deserializer) can be implemented as follows:</p>
 </div>
@@ -1128,6 +1331,44 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
         array.encodeInt(coords[0]);
         array.encodeInt(coords[1]);
         array.finishStructure(); <b class="conum">(8)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.*
+import jakarta.inject.Singleton
+
+@Singleton <b class="conum">(1)</b>
+class PointSerde : Serde&lt;Point&gt; {
+    <b class="conum">(2)</b>
+    override fun deserialize(
+        decoder: Decoder,
+        decoderContext: Deserializer.DecoderContext,
+        type: Argument&lt;in Point&gt;
+    ): Point {
+        val array = decoder.decodeArray() <b class="conum">(3)</b>
+        val x = array.decodeInt()
+        val y = array.decodeInt()
+        array.finishStructure() <b class="conum">(4)</b>
+        return Point.valueOf(x, y) <b class="conum">(5)</b>
+    }
+
+    override fun serialize(
+        encoder: Encoder,
+        context: Serializer.EncoderContext,
+        value: Point,
+        type: Argument&lt;out Point&gt;
+    ) {
+        val coords = value.coords()
+        val array = encoder.encodeArray(type) <b class="conum">(7)</b>
+        array.encodeInt(coords[0])
+        array.encodeInt(coords[1])
+        array.finishStructure() <b class="conum">(8)</b>
     }
 }</code></pre>
 </div>
@@ -1198,6 +1439,31 @@ public class PointTest {
         int[] coords = point.coords();
         assertEquals(50, coords[0]);
         assertEquals(100, coords[1]);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class PointTest {
+    @Test
+    fun testWriteReadPoint(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(
+            Point.valueOf(50, 100)
+        )
+        val point = objectMapper.readValue(result, Point::class.java)
+        Assertions.assertNotNull(point)
+        val coords = point.coords()
+        Assertions.assertEquals(50, coords[0])
+        Assertions.assertEquals(100, coords[1])
     }
 }</code></pre>
 </div>
@@ -1292,6 +1558,47 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Secondary
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.*
+import jakarta.inject.Singleton
+import java.util.*
+
+@Singleton
+@Secondary <b class="conum">(1)</b>
+class ReversePointSerde : Serde&lt;Point&gt; {
+    override fun deserialize(
+        decoder: Decoder,
+        decoderContext: Deserializer.DecoderContext,
+        type: Argument&lt;in Point&gt;
+    ): Point {
+        val array = decoder.decodeArray()
+        val y = array.decodeInt() <b class="conum">(2)</b>
+        val x = array.decodeInt()
+        array.finishStructure()
+        return Point.valueOf(x, y)
+    }
+
+    override fun serialize(
+        encoder: Encoder,
+        context: Serializer.EncoderContext,
+        value: Point,
+        type: Argument&lt;out Point&gt;
+    ) {
+        Objects.requireNonNull(value, "Point cannot be null")
+        val coords = value.coords()
+        val array = encoder.encodeArray(type)
+        array.encodeInt(coords[1]) <b class="conum">(3)</b>
+        array.encodeInt(coords[0])
+        array.finishStructure()
+    }
+}</code></pre>
+</div>
+</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -1327,6 +1634,22 @@ public class Place {
         return point;
     }
 }</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable.Deserializable
+import io.micronaut.serde.annotation.Serdeable.Serializable
+
+@Serdeable
+data class Place(
+    @Deserializable(using = ReversePointSerde::class) <b class="conum">(1)</b>
+    @Serializable(using = ReversePointSerde::class) <b class="conum">(2)</b>
+    val point: Point
+)</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1379,6 +1702,18 @@ public class Location {
 }</code></pre>
 </div>
 </div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+data class Location(
+    val features: Map&lt;Feature, Point&gt;
+)</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>That defines a custom <code>Feature</code> type for keys. Micronaut Serialization won&#8217;t know how to deserialize this type, so along with the type a <code>TypeConverter</code> should be defined:</p>
 </div>
@@ -1414,6 +1749,34 @@ public class Feature {
         public Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
             return Optional.of(new Feature(object));
         }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.core.convert.ConversionContext
+import io.micronaut.core.convert.TypeConverter
+import jakarta.inject.Singleton
+import java.util.*
+
+class Feature(private val name: String) {
+    fun name(): String {
+        return name
+    }
+
+    override fun toString(): String { <b class="conum">(1)</b>
+        return name
+    }
+}
+
+@Singleton
+class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
+    <b class="conum">(2)</b>
+    override fun convert(value: String, targetType: Class&lt;Feature&gt;, context: ConversionContext): Optional&lt;Feature&gt; {
+        return Optional.of(Feature(value))
     }
 }</code></pre>
 </div>
