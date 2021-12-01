@@ -28,7 +28,7 @@ import java.math.BigInteger;
  *
  * @since 1.0.0
  */
-public interface Decoder {
+public interface Decoder extends AutoCloseable {
     /**
      * Start decoding an array.
      * @param type The array type
@@ -211,6 +211,11 @@ public interface Decoder {
      * @throws IOException If an unrecoverable error occurs
      */
     void finishStructure() throws IOException;
+
+    @Override
+    default void close() throws IOException {
+        finishStructure();
+    }
 
     /**
      * Creates an exception for the given message.

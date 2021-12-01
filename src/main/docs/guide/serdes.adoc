@@ -10,12 +10,10 @@ snippet::example.PointSerde[project-base="doc-examples/example", source="main"]
 
 <1> The api:serde.Serde[] is made a bean by annotating it with `@Singleton` scope.
 <2> The api:serde.Serde[] interface is implemented for a given type.
-<3> The api:serde.Decoder[] interface is used to starting decoding an array. Note that returned decoder should be used.
-<4> The `finishStructure` method is called when array decoding is complete
-<5> The decoded object is returned
-<6> The `value` can be `null` and the decoder should handle whether `null` is allowed
-<7> The api:serde.Encoder[] interface is used to start encoding an array with the `encodeArray` method.
-<8> The returned `Encoder` should be used and finalized with the `finishStructure()` method
+<3> The api:serde.Decoder[] interface is used to starting decoding an array using `try-with-resources`
+<4> The decoded object is returned
+<5> The `value` can be `null` and the decoder should handle whether `null` is allowed
+<6> The api:serde.Encoder[] interface is used to start encoding an array with the `encodeArray` method using `try-with-resources`.
 
 You can now serialize and deserialize classes of type `Point`:
 
