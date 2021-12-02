@@ -16,11 +16,11 @@ public class PointSerde implements Serde<Point> { // <2>
             Decoder decoder,
             DecoderContext decoderContext,
             Argument<? super Point> type) throws IOException {
-        Decoder array = decoder.decodeArray(); // <3>
-        int x = array.decodeInt();
-        int y = array.decodeInt();
-        array.finishStructure(); // <4>
-        return Point.valueOf(x, y); // <5>
+        try (Decoder array = decoder.decodeArray()) { // <3>
+            int x = array.decodeInt();
+            int y = array.decodeInt();
+            return Point.valueOf(x, y); // <4>
+        }
     }
 
     @Override
@@ -29,11 +29,11 @@ public class PointSerde implements Serde<Point> { // <2>
             EncoderContext context,
             Point value,
             Argument<? extends Point> type) throws IOException {
-        Objects.requireNonNull(value, "Point cannot be null"); // <6>
+        Objects.requireNonNull(value, "Point cannot be null"); // <5>
         int[] coords = value.coords();
-        Encoder array = encoder.encodeArray(type); // <7>
-        array.encodeInt(coords[0]);
-        array.encodeInt(coords[1]);
-        array.finishStructure(); // <8>
+        try (Encoder array = encoder.encodeArray(type)) { // <6>
+            array.encodeInt(coords[0]);
+            array.encodeInt(coords[1]);
+        }
     }
 }
