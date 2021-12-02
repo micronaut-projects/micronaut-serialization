@@ -57,6 +57,11 @@ public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[],
 
     private boolean onlyWhitespace = true;
 
+    /**
+     * Default constructor.
+     * @param onSubscribe The onSubscribe callback.
+     * @param streamArray Whether to stream an array.
+     */
     public BufferingJsonNodeProcessor(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                       boolean streamArray) {
         this.onSubscribe = onSubscribe;

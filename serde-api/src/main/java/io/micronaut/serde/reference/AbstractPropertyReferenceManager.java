@@ -17,12 +17,18 @@ package io.micronaut.serde.reference;
 
 import java.util.ArrayDeque;
 
+import io.micronaut.core.annotation.Nullable;
+
 /**
  * Abstract implementation of {@link io.micronaut.serde.reference.PropertyReferenceManager}.
  *
  * @since 1.0.0
  */
 public abstract class AbstractPropertyReferenceManager implements PropertyReferenceManager {
+    /**
+     * used to store current references.
+     */
+    @Nullable
     protected ArrayDeque<PropertyReference<?, ?>> refs;
 
     @Override
