@@ -34,6 +34,7 @@ import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.TypeKey;
 import jakarta.inject.Singleton;
@@ -76,19 +77,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
             if (CollectionUtils.isNotEmpty(creatorParams)) {
                 @SuppressWarnings("unchecked") final DeserBean.DerProperty<Object, Object> creator =
                         (DeserBean.DerProperty<Object, Object>) creatorParams.values().iterator().next();
-                final Object val;
-                try {
-                    val = creator.deserializer.deserialize(
-                            decoder,
-                            decoderContext,
-                            creator.argument
-                    );
-                } catch (InvalidFormatException e) {
-                    throw new InvalidPropertyFormatException(
-                            e,
-                            creator.argument
-                    );
-                }
+                final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
                 return deserBean.introspection.instantiate(val);
             } else {
                 throw new IllegalStateException("At least one creator parameter expected");
@@ -198,19 +187,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                             continue;
                         }
                         @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
-                        final Object val;
-                        try {
-                            val = sp.deserializer.deserialize(
-                                    objectDecoder,
-                                    decoderContext,
-                                    propertyType
-                            );
-                        } catch (InvalidFormatException e) {
-                            throw new InvalidPropertyFormatException(
-                                    e,
-                                    propertyType
-                            );
-                        }
+                        final Object val = deserializeValue(decoderContext, objectDecoder, sp, propertyType, null);
                         skipAliases(creatorParameters, sp);
                         if (sp.instrospection.getBeanType() == objectType) {
                             params[sp.index] = val;
@@ -228,19 +205,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                         final DeserBean.DerProperty<? super Object, ?> rp = readProperties.get(prop);
                         if (rp != null) {
                             @SuppressWarnings("unchecked") final Argument<Object> argument = (Argument<Object>) rp.argument;
-                            final Object val;
-                            try {
-                                val = rp.deserializer.deserialize(
-                                        objectDecoder,
-                                        decoderContext,
-                                        argument
-                                );
-                            } catch (InvalidFormatException e) {
-                                throw new InvalidPropertyFormatException(
-                                        e,
-                                        argument
-                                );
-                            }
+                            final Object val = deserializeValue(decoderContext, objectDecoder, rp, argument, null);
                             buffer = initBuffer(buffer, rp, prop, val);
                         } else {
                             skipOrSetAny(
@@ -281,6 +246,25 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                 if (!creatorParameters.isEmpty()) {
                     // set unsatisfied parameters to defaults or fail
                     for (DeserBean.DerProperty<? super Object, ?> sp : creatorParameters.values()) {
+                        if (sp.backRef != null) {
+                            final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
+                                    new PropertyReference<>(
+                                            sp.backRef,
+                                            sp.instrospection,
+                                            sp.argument,
+                                            null
+                                    )
+                            );
+                            if (ref != null) {
+                                final Object o = ref.getReference();
+                                if (o == null) {
+                                    sp.setDefault(params);
+                                } else {
+                                    params[sp.index] = o;
+                                }
+                                continue;
+                            }
+                        }
                         if (sp.unwrapped != null && buffer != null) {
                             final Object o = materializeFromBuffer(sp, buffer, decoderContext);
                             if (o == null) {
@@ -386,6 +370,43 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
 
             return obj;
         }
+    }
+
+    private Object deserializeValue(DecoderContext decoderContext,
+                                    Decoder objectDecoder,
+                                    DeserBean.DerProperty<? super Object, ?> derProperty,
+                                    Argument<Object> propertyType,
+                                    Object constructedBean)
+            throws IOException {
+        final Object val;
+        final boolean hasRef = constructedBean != null && derProperty.managedRef != null;
+        try {
+            if (hasRef) {
+                decoderContext.pushManagedRef(
+                        new PropertyReference<>(
+                                derProperty.managedRef,
+                                derProperty.instrospection,
+                                derProperty.argument,
+                                constructedBean
+                        )
+                );
+            }
+            val = derProperty.deserializer.deserialize(
+                    objectDecoder,
+                    decoderContext,
+                    propertyType
+            );
+        } catch (InvalidFormatException e) {
+            throw new InvalidPropertyFormatException(
+                    e,
+                    propertyType
+            );
+        } finally {
+            if (hasRef) {
+                decoderContext.popManagedRef();
+            }
+        }
+        return val;
     }
 
     private void finalizeObjectDecoder(DecoderContext decoderContext,
@@ -527,19 +548,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     }
                     continue;
                 }
-                final Object val;
-                try {
-                    val = property.deserializer.deserialize(
-                            objectDecoder,
-                            decoderContext,
-                            propertyType
-                    );
-                } catch (InvalidFormatException e) {
-                    throw new InvalidPropertyFormatException(
-                            e,
-                            propertyType
-                    );
-                }
+                final Object val = deserializeValue(decoderContext, objectDecoder, property, propertyType, obj);
 
                 // writer is never null for properties
                 final BiConsumer<Object, Object> writer = property.writer;
@@ -616,7 +625,27 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
         }
         if (!readProperties.isEmpty()) {
             for (DeserBean.DerProperty<? super Object, ?> dp : readProperties.values()) {
-                dp.setDefault(obj);
+                if (dp.backRef != null) {
+                    final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
+                            new PropertyReference<>(
+                                    dp.backRef,
+                                    dp.instrospection,
+                                    dp.argument,
+                                    null
+                            )
+                    );
+                    if (ref != null) {
+                        final Object o = ref.getReference();
+                        if (o == null) {
+                            dp.setDefault(obj);
+                        } else {
+                            //noinspection unchecked
+                            ((DeserBean.DerProperty) dp).set(obj, o);
+                        }
+                    }
+                } else {
+                    dp.setDefault(obj);
+                }
             }
         }
     }
@@ -885,6 +914,16 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
 
         public void set(Object obj, DecoderContext decoderContext) throws IOException {
             if (value instanceof Decoder) {
+                if (property.managedRef != null) {
+                    decoderContext.pushManagedRef(
+                            new PropertyReference<>(
+                                    property.managedRef,
+                                    property.instrospection,
+                                    property.argument,
+                                    obj
+                            )
+                    );
+                }
                 try {
                     value = property.deserializer.deserialize(
                             (Decoder) value,
@@ -896,6 +935,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                             e,
                             property.argument
                     );
+                } finally {
+                    decoderContext.popManagedRef();
                 }
             }
             property.set(obj, value);

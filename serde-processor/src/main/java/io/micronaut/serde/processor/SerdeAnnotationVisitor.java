@@ -29,6 +29,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
 import io.micronaut.inject.ast.Element;
+import io.micronaut.inject.ast.ElementModifier;
 import io.micronaut.inject.ast.ElementQuery;
 import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
@@ -43,6 +44,7 @@ import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
+import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
@@ -56,6 +58,7 @@ import java.util.stream.Stream;
 public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
     private boolean failOnError = true;
+    private ClassElement currentClass;
     private MethodElement anyGetterMethod;
     private MethodElement anySetterMethod;
     private FieldElement anyGetterField;
@@ -82,12 +85,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return CollectionUtils.setOf(
                 "com.fasterxml.jackson.annotation.JsonKey",
                 "com.fasterxml.jackson.annotation.JsonFilter",
-                "com.fasterxml.jackson.annotation.JsonBackReference",
                 "com.fasterxml.jackson.annotation.JsonAutoDetect",
                 "com.fasterxml.jackson.annotation.JsonMerge",
                 "com.fasterxml.jackson.annotation.JsonIdentityInfo",
-                "com.fasterxml.jackson.annotation.JsonIdentityReference",
-                "com.fasterxml.jackson.annotation.JsonManagedReference"
+                "com.fasterxml.jackson.annotation.JsonIdentityReference"
         );
     }
 
@@ -250,20 +251,22 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private boolean checkForErrors(Element element, VisitorContext context) {
         if (!failOnError) {
-            return true;
+            return false;
         }
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
                 context.fail("Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported", element);
+                return true;
             }
         }
         final String error = element.stringValue(SerdeConfig.SerdeError.class).orElse(null);
-        if (error != null && failOnError) {
+        if (error != null) {
             context.fail(error, element);
             return true;
         }
         ClassElement propertyType = resolvePropertyType(element);
-        if (isBasicType(propertyType)) {
+        final boolean isBasicType = isBasicType(propertyType);
+        if (isBasicType) {
 
             String defaultValue = element.stringValue(Bindable.class, "defaultValue").orElse(null);
             if (defaultValue != null) {
@@ -282,7 +285,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         }
                     } catch (ConversionErrorException e) {
                         context.fail("Invalid defaultValue [" + defaultValue + "] specified: " + e.getConversionError().getCause().getMessage(), element);
-                    
+                        return true;
                     }
                 }
             }
@@ -296,16 +299,176 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     new DecimalFormat(pattern);
                 } catch (Exception e) {
                     context.fail("Specified pattern [" + pattern + "] is not a valid decimal format. See the javadoc for DecimalFormat: " + e.getMessage(), element);
+                    return true;
                 }
             } else if (propertyType.isAssignable(Temporal.class)) {
                 try {
                     DateTimeFormatter.ofPattern(pattern);
                 } catch (Exception e) {
                     context.fail("Specified pattern [" + pattern + "] is not a valid date format. See the javadoc for DateTimeFormatter: " + e.getMessage(), element);
+                    return true;
+                }
+            }
+        }
+
+        if (element.hasDeclaredAnnotation(SerdeConfig.ManagedRef.class)) {
+            if (isBasicType) {
+                context.fail("Managed references cannot be declared on basic types", element);
+                return true;
+            }
+
+            final String otherSide = element.stringValue(SerdeConfig.ManagedRef.class).orElse(null);
+            if (otherSide == null) {
+                final List<TypedElement> inverseElements = resolveInverseElements(
+                        context,
+                        resolveRefType(propertyType),
+                        SerdeConfig.BackRef.class,
+                        element.getName());
+
+                final int i = inverseElements.size();
+                if (i == 0) {
+                    context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
+                    return true;
+                } else if (i > 1) {
+                    context.fail("More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association", element);
+                    return true;
+                } else {
+                    final TypedElement otherElement = inverseElements.iterator().next();
+                    if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                        context.fail("Managed reference declares an incompatible inverse property [" + otherElement + "]. The inverse side should be a map, collection, bean or array of the same type as the property.", element);
+                        return true;
+                    } else {
+
+                        element.annotate(SerdeConfig.ManagedRef.class, (builder) ->
+                                builder.value(otherElement.getName())
+                        );
+                    }
+                }
+            }
+        }
+        if (element.hasDeclaredAnnotation(SerdeConfig.BackRef.class)) {
+            if (isBasicType) {
+                context.fail("Back references cannot be declared on basic types", element);
+                return true;
+            } else if (isCollectionType(propertyType)) {
+                context.fail("Back references cannot be declared on collection, array or Map types and must be simple beans", element);
+                return true;
+            }
+            final String otherSide = element.stringValue(SerdeConfig.BackRef.class).orElse(null);
+            final List<TypedElement> inverseElements = resolveInverseElements(
+                    context,
+                    propertyType,
+                    SerdeConfig.ManagedRef.class,
+                    element.getName()
+            );
+            if (otherSide == null) {
+                final int i = inverseElements.size();
+                if (i > 1) {
+                    context.fail("More than one potential inverse property found  " + inverseElements + ", consider specifying a value to the reference to configure the association", element);
+                    return true;
+                } else if (i == 0) {
+                    context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
+                    return true;
+                } else {
+                    final TypedElement otherElement = inverseElements.iterator().next();
+                    if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                        context.fail("Back reference declares an incompatible inverse property [" + otherElement + "]. The inverse side should be a map, collection, bean or array of the same type as the property.", element);
+                        return true;
+                    }
+                    element.annotate(SerdeConfig.BackRef.class, (builder) ->
+                        builder.value(otherElement.getName())
+                    );
+                }
+            } else {
+                final TypedElement otherElement = inverseElements.stream()
+                        .filter(p -> p.getName().equals(otherSide))
+                        .findFirst().orElse(null);
+                if (otherElement == null) {
+                    context.fail("Back reference declares an inverse property [" + otherSide + "] that doesn't exist in type " + propertyType.getName(), element);
+                    return true;
+                } else if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                    context.fail("Back reference declares an incompatible inverse property [" + otherSide + "]. The inverse side should be a map, collection, bean or array of the same type as the property.", element);
+                    return true;
                 }
             }
         }
         return false;
+    }
+
+    private ClassElement resolveRefType(ClassElement propertyType) {
+        if (propertyType.isArray()) {
+            return propertyType.fromArray();
+        } else if (propertyType.isAssignable(Iterable.class)) {
+            return propertyType.getFirstTypeArgument().orElse(propertyType);
+        } else if (propertyType.isAssignable(Map.class)) {
+            final List<? extends ClassElement> boundGenericTypes = propertyType.getBoundGenericTypes();
+            if (boundGenericTypes.size() == 2) {
+                return boundGenericTypes.get(1);
+            } else {
+                return propertyType;
+            }
+        }
+        return propertyType;
+    }
+
+    private List<TypedElement> resolveInverseElements(VisitorContext context,
+                                                      ClassElement propertyType,
+                                                      Class<? extends Annotation> refType,
+                                                      String thisSide) {
+        Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
+        final List<TypedElement> otherElements = new ArrayList<>();
+        if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
+            propertyType.getBeanProperties().stream()
+                    .filter(p ->
+                       isMappedCandidate(refType, thisSide, p) &&
+                        p.hasDeclaredAnnotation(refType) &&
+                        isCompatibleInverseSide(p.getGenericType(), currentClass)
+                    ).forEach(otherElements::add);
+        }
+        if (accessKindSet.contains(Introspected.AccessKind.FIELD)) {
+            final List<FieldElement> fields = propertyType
+                    .getEnclosedElements(ElementQuery.ALL_FIELDS
+                                                 .onlyInstance()
+                                                 .annotated(ann -> isMappedCandidate(refType, thisSide, ann) && ann.hasDeclaredAnnotation(refType))
+                                                 .modifiers(m -> m.contains(ElementModifier.PUBLIC))
+                                                 .typed(t -> isCompatibleInverseSide(t.getGenericType(),
+                                                                                     currentClass)));
+            otherElements.addAll(fields);
+
+        }
+        return otherElements;
+    }
+
+    private boolean isMappedCandidate(Class<? extends Annotation> refType, String thisSide, AnnotationMetadata p) {
+        final String mappedName = p.stringValue(refType).orElse(null);
+        return mappedName == null || mappedName.equals(thisSide);
+    }
+
+    private Set<Introspected.AccessKind> resolveAccessSet(VisitorContext context, ClassElement propertyType) {
+        final Introspected.AccessKind[] accessKinds = context.getClassElement(propertyType.getName())
+                .map(t -> t.enumValues(Introspected.class,
+                                                  "accessKind",
+                                                  Introspected.AccessKind.class)).orElse(null);
+        Set<Introspected.AccessKind> accessKindSet = accessKinds != null ? CollectionUtils.setOf(accessKinds) : Collections.singleton(Introspected.AccessKind.METHOD);
+        return accessKindSet;
+    }
+
+    private boolean isCompatibleInverseSide(ClassElement genericType, ClassElement propertyType) {
+        if (genericType.isAssignable(propertyType)) {
+            return true;
+        } else if (genericType.isArray() && genericType.fromArray().isAssignable(propertyType)) {
+            return true;
+        } else if (genericType.isAssignable(Iterable.class) && genericType.getFirstTypeArgument().map(t -> t.isAssignable(propertyType)).orElse(false)) {
+            return true;
+        } else if (genericType.isAssignable(Map.class)) {
+            final List<? extends ClassElement> types = genericType.getBoundGenericTypes();
+            return types.size() == 2 && types.get(1).isAssignable(propertyType);
+        }
+        return false;
+    }
+
+    private boolean isCollectionType(ClassElement element) {
+        return element.isArray() || element.isAssignable(Iterable.class) || element.isAssignable(Map.class);
     }
 
     private boolean isNumberType(ClassElement type) {
@@ -597,6 +760,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void resetForNewClass(ClassElement element) {
+        this.currentClass = element;
         this.failOnError = element.booleanValue(SerdeConfig.class, "validate").orElse(true);
         this.creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
         this.anyGetterMethod = null;

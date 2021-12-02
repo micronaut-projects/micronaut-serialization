@@ -35,6 +35,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.config.annotation.SerdeAnnotationUtil;
+import io.micronaut.serde.util.TypeKey;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -77,10 +78,14 @@ final class SerBean<T> {
     public final SerializationConfiguration configuration;
     // CHECKSTYLE:ON
 
-    SerBean(Argument<T> definition,
+    SerBean(TypeKey typeKey,
+            Map<TypeKey, SerBean<Object>> serBeanMap,
+            Argument<T> definition,
             SerdeIntrospections introspections,
             Serializer.EncoderContext encoderContext,
             SerializationConfiguration configuration) throws SerdeException {
+        //noinspection unchecked
+        serBeanMap.put(typeKey, (SerBean<Object>) this);
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
@@ -307,6 +312,8 @@ final class SerBean<T> {
         public final Argument<P> argument;
         public final Serializer<P> serializer;
         public final Class<?>[] views;
+        public final String managedRef;
+        public final String backRef;
         public final SerdeConfig.SerInclude include;
         private final @Nullable
         P injected;
@@ -346,7 +353,10 @@ final class SerBean<T> {
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
                     .orElse(bean.configuration.getInclusion());
             this.injected = injected;
-
+            this.managedRef = annotationMetadata.stringValue(SerdeConfig.ManagedRef.class)
+                                .orElse(null);
+            this.backRef = annotationMetadata.stringValue(SerdeConfig.BackRef.class)
+                    .orElse(null);
         }
 
         public P get(B bean) {

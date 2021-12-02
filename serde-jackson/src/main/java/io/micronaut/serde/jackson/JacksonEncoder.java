@@ -16,6 +16,7 @@
 package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonStreamContext;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
@@ -92,9 +93,9 @@ public abstract class JacksonEncoder implements Encoder {
     protected abstract void finishStructureToken() throws IOException;
 
     @Override
-    public String toString() {
-        // need a common way to obtain the current output context
-        return generator.getOutputContext().pathAsPointer().toString();
+    public String currentPath() {
+        final JsonStreamContext outputContext = generator.getOutputContext();
+        return outputContext.pathAsPointer().toString();
     }
 
     @Override

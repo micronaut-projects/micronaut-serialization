@@ -139,4 +139,13 @@ public interface Encoder {
      * @throws IOException If an error occurs
      */
     void encodeNull() throws IOException;
+
+    /**
+     * Return an anaysis of the current path.
+     *
+     * @return The current path if known
+     */
+    default @NonNull String currentPath() {
+        return "";
+    }
 }

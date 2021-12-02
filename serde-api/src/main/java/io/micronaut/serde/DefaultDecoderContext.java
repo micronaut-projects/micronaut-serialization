@@ -21,6 +21,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
+import io.micronaut.serde.reference.PropertyReference;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -28,7 +30,7 @@ import io.micronaut.serde.exceptions.SerdeException;
  * @since 1.0.0
  */
 @Internal
-class DefaultDecoderContext implements Deserializer.DecoderContext {
+class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
     private final SerdeRegistry registry;
 
     DefaultDecoderContext(SerdeRegistry registry) {
@@ -49,5 +51,22 @@ class DefaultDecoderContext implements Deserializer.DecoderContext {
     @Override
     public final <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType) {
         return registry.getDeserializableSubtypes(superType);
+    }
+
+    @Override
+    public <B, P> PropertyReference<B, P> resolveReference(PropertyReference<B, P> reference) {
+        if (refs != null) {
+            final PropertyReference<?, ?> first = refs.peekFirst();
+            if (first != null) {
+                if (first.getReferenceName().equals(reference.getProperty().getName())) {
+                    final Object o = first.getReference();
+                    if (o != null) {
+                        //noinspection unchecked
+                        return (PropertyReference<B, P>) first;
+                    }
+                }
+            }
+        }
+        return reference;
     }
 }

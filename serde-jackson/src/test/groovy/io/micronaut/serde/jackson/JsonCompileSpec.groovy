@@ -15,6 +15,7 @@ import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.DefaultSerdeIntrospections
+import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.SerdeIntrospections
 import org.intellij.lang.annotations.Language
 
@@ -24,7 +25,7 @@ import java.util.stream.Collectors
 
 class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
-    JsonMapper jsonMapper
+    ObjectMapper jsonMapper
     Object beanUnderTest
     Argument<?> typeUnderTest
 
@@ -63,7 +64,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
                 buildContext(className, source, true)
 
         setupSerdeRegistry(context)
-        jsonMapper = context.getBean(JsonMapper)
+        jsonMapper = context.getBean(ObjectMapper)
 
         def t = context.classLoader
                 .loadClass(className)

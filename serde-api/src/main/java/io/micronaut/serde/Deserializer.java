@@ -18,11 +18,14 @@ package io.micronaut.serde;
 import java.io.IOException;
 
 import io.micronaut.core.annotation.Indexed;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.reference.PropertyReferenceManager;
 
 /**
  * Interface that represents a deserializer.
@@ -80,7 +83,7 @@ public interface Deserializer<T> {
     /**
      * Context object passed to the {@link #deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)} method along with the decoder.
      */
-    interface DecoderContext extends DeserializerLocator {
+    interface DecoderContext extends PropertyReferenceManager, DeserializerLocator {
 
         /**
          * @return Conversion service
@@ -97,5 +100,19 @@ public interface Deserializer<T> {
         default boolean hasView(Class<?>... views) {
             return false;
         }
+
+
+        /**
+         * Resolve a reference for the given type and value.
+         * @param reference The reference
+         * @param <B> The bean type
+         * @param <P> The generic type of the value
+         * @return The existing reference, a new one or {@code null} if serialization should be skipped
+         */
+        @Internal
+        @Nullable
+        <B, P> PropertyReference<B, P> resolveReference(
+                @NonNull PropertyReference<B, P> reference
+        );
     }
 }
