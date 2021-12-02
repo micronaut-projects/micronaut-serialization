@@ -6,6 +6,54 @@ import spock.lang.Requires
 import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
+    void "test JsonProperty on package private methods"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonIgnore
+    private String value;
+    
+    public void setValue(String value) {
+        this.value = value;
+    } 
+    public String getValue() {
+        return value;
+    }
+    
+    @JsonProperty("value")
+    protected void setValueInternal(String value) {
+        this.value = value.toLowerCase();
+    } 
+    
+    @JsonProperty("value")
+    protected String getValueInternal() {
+        return value.toUpperCase();
+    }
+}
+""", [value: 'test'])
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"value":"TEST"}'
+
+        when:
+        def bean =
+                jsonMapper.readValue(result, argumentOf(context, 'test.Test'))
+        then:
+        bean.value == 'test'
+
+        cleanup:
+        context.close()
+    }
+
     @Unroll
     void "test invalid defaultValue for #type and value #value"() {
 
