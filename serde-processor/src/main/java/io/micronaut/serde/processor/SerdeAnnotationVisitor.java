@@ -254,8 +254,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return false;
         }
 
-        if (element instanceof MethodElement && element.isPrivate()) {
-            context.fail("JSON annotations cannot be used on private methods", element);
+        if (element instanceof MethodElement && element.hasDeclaredAnnotation(SerdeConfig.class) && element.isPrivate()) {
+            context.fail("JSON annotations cannot be used on private methods and constructors", element);
             return true;
         }
         for (String annotation : getUnsupportedJacksonAnnotations()) {
