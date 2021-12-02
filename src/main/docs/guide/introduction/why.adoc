@@ -1,15 +1,27 @@
-The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint.
+The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.
 
-As a way of comparison Micronaut Serialization is a 380kb JAR file, compared to Jackson Databind which is well over 2mb. This results in a reduction of 5MB in terms of image size for native image builds.
+==== Performance
+
+Micronaut Serialization consumes less memory and has a much smaller runtime component. As a way of comparison Micronaut Serialization is a 380kb JAR file, compared to Jackson Databind which is well over 2mb. This results in a reduction of 5MB in terms of image size for native image builds.
 
 The elimination of reflection and smaller footprint also results in higher throughput and reduced runtime memory consumption.
 
-In addition, unlike Jackson, you cannot serialize or deserialize arbitrary objects to JSON. Allowing arbitrary serialization is often a source of security issues in modern applications. Instead with Micronaut Serialization to allow a type to be serialized or deserialized you must do one of the following:
+==== Security
+
+Unlike Jackson, you cannot serialize or deserialize arbitrary objects to JSON. Allowing arbitrary serialization is often a source of security issues in modern applications. Instead with Micronaut Serialization to allow a type to be serialized or deserialized you must do one of the following:
 
 1. Declare the ann:serde.annotation.Serdeable[] annotation at the type level in your source code to allow the type to be serialized or deserialized.
-2. If you cannot modify the source code and it is an external type you can use ann:serde.annotation.SerdeImport[] to import the type. Note that with this approach only public members are considered.
+2. If you cannot modify the source code and the type is an external type you can use ann:serde.annotation.SerdeImport[] to import the type. Note that with this approach only public members are considered.
 3. Define a bean of type api:serde.Serializer[] for serialization and/or a bean of type api:serde.Deserializer[] for deserialization.
 
-Finally, Jackson provides an annotation-based programming model that includes many rules developers need to be aware of and can lead to runtime exceptions if these rules are violated.
+==== Type Safety
 
-Micronaut Serialization adds compile-time checking for correctness when using JSON binding annotations and decouples from the actual source code level annotation model. This means you can using the same runtime, but choose whether to use https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], link:{jsonbApi}/package-summary.html[JSON-B annotations] or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations]
+Jackson provides an annotation-based programming model that includes many rules developers need to be aware of and can lead to runtime exceptions if these rules are violated.
+
+Micronaut Serialization adds compile-time checking for correctness when using JSON binding annotations.
+
+==== Runtime Portability
+
+Micronaut Serialization decouples the runtime the from the actual source code level annotation model whilst Jackson is coupled to Jackson annotations. This means you can use the same runtime, but choose whether to use https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], link:{jsonbApi}/package-summary.html[JSON-B annotations] or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations]
+
+This leads to less memory consumption since there is no need to have multiple JSON parsers and reflection-based meta-models if you using both JSON in your webtier plus a document database like MongoDB.
