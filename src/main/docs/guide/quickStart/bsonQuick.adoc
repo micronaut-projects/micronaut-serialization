@@ -37,6 +37,9 @@ In a Maven build you need to add the necessary transitive excludes for the `micr
 </dependency>
 ----
 
+WARNING: If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+
+
 With the correct dependencies in place you can now define an object to be serialized:
 
 snippet::example.Book[project-base="doc-examples/example-bson", source="main"]

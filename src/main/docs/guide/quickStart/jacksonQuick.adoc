@@ -35,6 +35,8 @@ In a Maven build you need to add the necessary transitive excludes for the `micr
 </dependency>
 ----
 
+WARNING: If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+
 With the correct dependencies in place you can now define an object to be serialized:
 
 snippet::example.Book[project-base="doc-examples/example", source="main"]
@@ -42,6 +44,8 @@ snippet::example.Book[project-base="doc-examples/example", source="main"]
 <1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
 <2> You can use `@JsonProperty` from Jackson annotations
 <3> You can use `@JsonCreator` from Jackson annotations
+
+TIP: If you don't want to add a Micronaut Serialization annotation then you can also add a type-level Jackson annotation like `@JsonClassDescription`, `@JsonRootName` or `@JsonTypeName`
 
 Once you have a type that can be serialized and deserialized you can use the api:serde.ObjectMapper[] interface to do so:
 
