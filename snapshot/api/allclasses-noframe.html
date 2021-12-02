@@ -13,6 +13,7 @@
 <ul>
 <li><a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></li>
 <li><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></li>
+<li><a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html" title="class in io.micronaut.serde.reference">AbstractPropertyReferenceManager</a></li>
 <li><a href="io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></li>
 <li><a href="io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a></li>
 <li><a href="io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde"><span class="interfaceName">AbstractStreamDecoder.ValueDecoder</span></a></li>
@@ -56,6 +57,7 @@
 <li><a href="io/micronaut/serde/processor/jackson/JsonAliasMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonAliasMapper</a></li>
 <li><a href="io/micronaut/serde/processor/jackson/JsonAnyGetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonAnyGetterMapper</a></li>
 <li><a href="io/micronaut/serde/processor/jackson/JsonAnySetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonAnySetterMapper</a></li>
+<li><a href="io/micronaut/serde/processor/jackson/JsonBackReferenceMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonBackReferenceMapper</a></li>
 <li><a href="io/micronaut/serde/processor/jsonb/JsonbCreatorTransformer.html" title="class in io.micronaut.serde.processor.jsonb">JsonbCreatorTransformer</a></li>
 <li><a href="io/micronaut/serde/processor/jsonb/JsonbDateFormatTransformer.html" title="class in io.micronaut.serde.processor.jsonb">JsonbDateFormatTransformer</a></li>
 <li><a href="io/micronaut/serde/processor/jsonb/JsonbNillableTransformer.html" title="class in io.micronaut.serde.processor.jsonb">JsonbNillableTransformer</a></li>
@@ -71,6 +73,7 @@
 <li><a href="io/micronaut/serde/processor/jackson/JsonIgnoreMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonIgnoreMapper</a></li>
 <li><a href="io/micronaut/serde/processor/jackson/JsonIncludeMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonIncludeMapper</a></li>
 <li><a href="io/micronaut/serde/processor/jackson/JsonIncludePropertiesMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonIncludePropertiesMapper</a></li>
+<li><a href="io/micronaut/serde/processor/jackson/JsonManagedReferenceMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonManagedReferenceMapper</a></li>
 <li><a href="io/micronaut/serde/processor/jackson/databind/JsonNamingMapper.html" title="class in io.micronaut.serde.processor.jackson.databind">JsonNamingMapper</a></li>
 <li><a href="io/micronaut/serde/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.util">JsonNodeDecoder</a></li>
 <li><a href="io/micronaut/serde/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.util">JsonNodeEncoder</a></li>
@@ -104,6 +107,8 @@
 <li><a href="io/micronaut/serde/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.serializers">ObjectSerializer</a></li>
 <li><a href="io/micronaut/serde/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.serdes">OffsetDateTimeSerde</a></li>
 <li><a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming"><span class="interfaceName">PropertyNamingStrategy</span></a></li>
+<li><a href="io/micronaut/serde/reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a></li>
+<li><a href="io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference"><span class="interfaceName">PropertyReferenceManager</span></a></li>
 <li><a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde"><span class="interfaceName">Serde</span></a></li>
 <li><a href="io/micronaut/serde/annotation/Serdeable.html" title="annotation in io.micronaut.serde.annotation">Serdeable</a></li>
 <li><a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation in io.micronaut.serde.annotation">Serdeable.Deserializable</a></li>
@@ -113,11 +118,13 @@
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.AnyGetter.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.AnyGetter</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.AnySetter.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.AnySetter</a></li>
+<li><a href="io/micronaut/serde/config/annotation/SerdeConfig.BackRef.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.BackRef</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.CreatorMode.html" title="enum in io.micronaut.serde.config.annotation">SerdeConfig.CreatorMode</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.Getter.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.Getter</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.Ignored.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.Ignored</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.Ignored.Type.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.Ignored.Type</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.Included.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.Included</a></li>
+<li><a href="io/micronaut/serde/config/annotation/SerdeConfig.ManagedRef.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.ManagedRef</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.Property.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.Property</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.PropertyOrder.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.PropertyOrder</a></li>
 <li><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerdeError.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.SerdeError</a></li>
@@ -138,6 +145,7 @@
 <li><a href="io/micronaut/serde/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.config">SerdeJsonConfiguration</a></li>
 <li><a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><span class="interfaceName">SerdeRegistry</span></a></li>
 <li><a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config"><span class="interfaceName">SerializationConfiguration</span></a></li>
+<li><a href="io/micronaut/serde/reference/SerializationReference.html" title="class in io.micronaut.serde.reference">SerializationReference</a></li>
 <li><a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><span class="interfaceName">Serializer</span></a></li>
 <li><a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde"><span class="interfaceName">Serializer.EncoderContext</span></a></li>
 <li><a href="io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde"><span class="interfaceName">SerializerLocator</span></a></li>

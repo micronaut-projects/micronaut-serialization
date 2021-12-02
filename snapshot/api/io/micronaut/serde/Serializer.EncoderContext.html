@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":18,"i1":18};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],16:["t5","Default Methods"]};
+var methods = {"i0":18,"i1":18,"i2":6};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -99,7 +99,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dd>
+<dd><a href="../../../io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dd>
 </dl>
 <dl>
 <dt>Enclosing interface:</dt>
@@ -108,7 +108,7 @@ var activeTableTab = "activeTableTab";
 <hr>
 <br>
 <pre>public static interface <span class="typeNameLabel">Serializer.EncoderContext</span>
-extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></pre>
+extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>, <a href="../../../io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></pre>
 <div class="block">Context object passes to the
  <a href="../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-"><code>Serializer.serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)</code></a>  method.</div>
 </li>
@@ -124,7 +124,7 @@ extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="inte
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t5" class="tableTab"><span><a href="javascript:show(16);">Default Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -137,6 +137,12 @@ extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="inte
 <td class="colFirst"><code>default boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Serializer.EncoderContext.html#hasView-java.lang.Class...-">hasView</a></span>(java.lang.Class&lt;?&gt;...&nbsp;views)</code>&nbsp;</td>
 </tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>&lt;B,P&gt;&nbsp;<a href="../../../io/micronaut/serde/reference/SerializationReference.html" title="class in io.micronaut.serde.reference">SerializationReference</a>&lt;B,P&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Serializer.EncoderContext.html#resolveReference-io.micronaut.serde.reference.SerializationReference-">resolveReference</a></span>(<a href="../../../io/micronaut/serde/reference/SerializationReference.html" title="class in io.micronaut.serde.reference">SerializationReference</a>&lt;B,P&gt;&nbsp;reference)</code>
+<div class="block">Resolve a reference for the given type and value.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.SerializerLocator">
@@ -144,6 +150,13 @@ extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="inte
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></h3>
 <code><a href="../../../io/micronaut/serde/SerializerLocator.html#findCustomSerializer-java.lang.Class-">findCustomSerializer</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html#findSerializer-io.micronaut.core.type.Argument-">findSerializer</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html#findSerializer-java.lang.Class-">findSerializer</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.reference.PropertyReferenceManager">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;io.micronaut.serde.reference.<a href="../../../io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></h3>
+<code><a href="../../../io/micronaut/serde/reference/PropertyReferenceManager.html#popManagedRef--">popManagedRef</a>, <a href="../../../io/micronaut/serde/reference/PropertyReferenceManager.html#pushManagedRef-io.micronaut.serde.reference.PropertyReference-">pushManagedRef</a></code></li>
 </ul>
 </li>
 </ul>
@@ -176,7 +189,7 @@ default&nbsp;io.micronaut.core.convert.ConversionService&lt;?&gt;&nbsp;getConver
 <a name="hasView-java.lang.Class...-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>hasView</h4>
 <pre>default&nbsp;boolean&nbsp;hasView(java.lang.Class&lt;?&gt;...&nbsp;views)</pre>
@@ -185,6 +198,28 @@ default&nbsp;io.micronaut.core.convert.ConversionService&lt;?&gt;&nbsp;getConver
 <dd><code>views</code> - Views to check.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>true</code> iff any of the given views is enabled.</dd>
+</dl>
+</li>
+</ul>
+<a name="resolveReference-io.micronaut.serde.reference.SerializationReference-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>resolveReference</h4>
+<pre>@Internal
+ @Nullable
+&lt;B,P&gt;&nbsp;<a href="../../../io/micronaut/serde/reference/SerializationReference.html" title="class in io.micronaut.serde.reference">SerializationReference</a>&lt;B,P&gt;&nbsp;resolveReference(@NonNull
+                                                                        <a href="../../../io/micronaut/serde/reference/SerializationReference.html" title="class in io.micronaut.serde.reference">SerializationReference</a>&lt;B,P&gt;&nbsp;reference)</pre>
+<div class="block">Resolve a reference for the given type and value.</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>B</code> - The bean type</dd>
+<dd><code>P</code> - The generic type of the value</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>reference</code> - The reference</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The existing reference, a new one or <code>null</code> if serialization should be skipped</dd>
 </dl>
 </li>
 </ul>

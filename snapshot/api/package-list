@@ -16,6 +16,7 @@ io.micronaut.serde.processor.bson
 io.micronaut.serde.processor.jackson
 io.micronaut.serde.processor.jackson.databind
 io.micronaut.serde.processor.jsonb
+io.micronaut.serde.reference
 io.micronaut.serde.serdes
 io.micronaut.serde.serializers
 io.micronaut.serde.util

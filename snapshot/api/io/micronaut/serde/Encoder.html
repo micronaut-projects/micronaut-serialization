@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":18,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6};
+var methods = {"i0":18,"i1":18,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -139,96 +139,102 @@ extends java.lang.AutoCloseable</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>default java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#currentPath--">currentPath</a></span>()</code>
+<div class="block">Return an anaysis of the current path.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeArray-io.micronaut.core.type.Argument-">encodeArray</a></span>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
 <div class="block">Encodes an array.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeBigDecimal-java.math.BigDecimal-">encodeBigDecimal</a></span>(java.math.BigDecimal&nbsp;value)</code>
 <div class="block">Encode a BigDecimal.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeBigInteger-java.math.BigInteger-">encodeBigInteger</a></span>(java.math.BigInteger&nbsp;value)</code>
 <div class="block">Encode a BigInteger.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeBoolean-boolean-">encodeBoolean</a></span>(boolean&nbsp;value)</code>
 <div class="block">Encode a boolean.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeByte-byte-">encodeByte</a></span>(byte&nbsp;value)</code>
 <div class="block">Encode a byte.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeChar-char-">encodeChar</a></span>(char&nbsp;value)</code>
 <div class="block">Encode a char.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeDouble-double-">encodeDouble</a></span>(double&nbsp;value)</code>
 <div class="block">Encode a double.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeFloat-float-">encodeFloat</a></span>(float&nbsp;value)</code>
 <div class="block">Encode a float.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeInt-int-">encodeInt</a></span>(int&nbsp;value)</code>
 <div class="block">Encode an int.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeKey-java.lang.String-">encodeKey</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Encode a key.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeLong-long-">encodeLong</a></span>(long&nbsp;value)</code>
 <div class="block">Encode a long.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeNull--">encodeNull</a></span>()</code>
 <div class="block">Encode <code>null</code>.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeObject-io.micronaut.core.type.Argument-">encodeObject</a></span>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
 <div class="block">Encodes an object.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeShort-short-">encodeShort</a></span>(short&nbsp;value)</code>
 <div class="block">Encode a short.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#encodeString-java.lang.String-">encodeString</a></span>(java.lang.String&nbsp;value)</code>
 <div class="block">Encode a string.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Encoder.html#finishStructure--">finishStructure</a></span>()</code>
 <div class="block">Finalize a previously created structure, like an array or object.</div>
@@ -534,7 +540,7 @@ extends java.lang.AutoCloseable</pre>
 <a name="encodeNull--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>encodeNull</h4>
 <pre>void&nbsp;encodeNull()
@@ -543,6 +549,21 @@ extends java.lang.AutoCloseable</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - If an error occurs</dd>
+</dl>
+</li>
+</ul>
+<a name="currentPath--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>currentPath</h4>
+<pre>@NonNull
+default&nbsp;java.lang.String&nbsp;currentPath()</pre>
+<div class="block">Return an anaysis of the current path.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The current path if known</dd>
 </dl>
 </li>
 </ul>
