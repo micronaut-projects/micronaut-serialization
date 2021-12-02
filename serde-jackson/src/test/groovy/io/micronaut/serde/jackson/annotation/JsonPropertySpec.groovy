@@ -6,7 +6,45 @@ import spock.lang.Requires
 import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
-    void "test JsonProperty on package private methods"() {
+
+    void "test JsonProperty on private methods"() {
+        when:
+        buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonIgnore
+    private String value;
+    
+    public void setValue(String value) {
+        this.value = value;
+    } 
+    public String getValue() {
+        return value;
+    }
+    
+    @JsonProperty("value")
+    private void setValueInternal(String value) {
+        this.value = value.toLowerCase();
+    } 
+    
+    @JsonProperty("value")
+    private String getValueInternal() {
+        return value.toUpperCase();
+    }
+}
+""", [value: 'test'])
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("JSON annotations cannot be used on private methods")
+    }
+
+    void "test JsonProperty on protected methods"() {
         given:
         def context = buildContext('test.Test', """
 package test;
