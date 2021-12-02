@@ -232,7 +232,12 @@
 <h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde"><span class="typeNameLink">AbstractStreamDecoder.ValueDecoder</span></a>&lt;R&gt;</li>
+<li type="circle">java.lang.AutoCloseable
+<ul>
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><span class="typeNameLink">Decoder</span></a></li>
+<li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><span class="typeNameLink">Encoder</span></a></li>
+</ul>
+</li>
 <li type="circle">io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><span class="typeNameLink">DeserializationConfiguration</span></a></li>
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><span class="typeNameLink">Deserializer</span></a>&lt;T&gt;
 <ul>
@@ -277,7 +282,6 @@
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><span class="typeNameLink">SerdeRegistry</span></a> (also extends io.micronaut.serde.<a href="io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>)</li>
 </ul>
 </li>
-<li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><span class="typeNameLink">Encoder</span></a></li>
 <li type="circle">io.micronaut.json.JsonMapper
 <ul>
 <li type="circle">io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde"><span class="typeNameLink">ObjectMapper</span></a></li>
@@ -320,11 +324,6 @@
 </ul>
 <h2 title="Annotation Type Hierarchy">Annotation Type Hierarchy</h2>
 <ul>
-<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">Serdeable</span></a> (implements java.lang.annotation.Annotation)</li>
-<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Serializable.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">Serdeable.Serializable</span></a> (implements java.lang.annotation.Annotation)</li>
-<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">Serdeable.Deserializable</span></a> (implements java.lang.annotation.Annotation)</li>
-<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/SerdeImport.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">SerdeImport</span></a> (implements java.lang.annotation.Annotation)</li>
-<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/SerdeImport.Repeated.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">SerdeImport.Repeated</span></a> (implements java.lang.annotation.Annotation)</li>
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeConfig</span></a> (implements java.lang.annotation.Annotation)</li>
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.Unwrapped.html" title="annotation in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeConfig.Unwrapped</span></a> (implements java.lang.annotation.Annotation)</li>
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.Getter.html" title="annotation in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeConfig.Getter</span></a> (implements java.lang.annotation.Annotation)</li>
@@ -340,6 +339,11 @@
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.Subtyped.html" title="annotation in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeConfig.Subtyped</span></a> (implements java.lang.annotation.Annotation)</li>
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.Subtyped.Subtype.html" title="annotation in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeConfig.Subtyped.Subtype</span></a> (implements java.lang.annotation.Annotation)</li>
 <li type="circle">io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerValue.html" title="annotation in io.micronaut.serde.config.annotation"><span class="typeNameLink">SerdeConfig.SerValue</span></a> (implements java.lang.annotation.Annotation)</li>
+<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/SerdeImport.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">SerdeImport</span></a> (implements java.lang.annotation.Annotation)</li>
+<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/SerdeImport.Repeated.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">SerdeImport.Repeated</span></a> (implements java.lang.annotation.Annotation)</li>
+<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">Serdeable</span></a> (implements java.lang.annotation.Annotation)</li>
+<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Serializable.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">Serdeable.Serializable</span></a> (implements java.lang.annotation.Annotation)</li>
+<li type="circle">io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation in io.micronaut.serde.annotation"><span class="typeNameLink">Serdeable.Deserializable</span></a> (implements java.lang.annotation.Annotation)</li>
 </ul>
 <h2 title="Enum Hierarchy">Enum Hierarchy</h2>
 <ul>

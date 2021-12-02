@@ -1274,6 +1274,28 @@ public final class Point {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+final class Point {
+    private final int x, y
+
+    private Point(int x, int y) {
+        this.x = x
+        this.y = y
+    }
+
+    int[] coords() {
+        return new int[] { x, y }
+    }
+
+    static Point valueOf(int x, int y) {
+        return new Point(x, y)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
 
 class Point private constructor(private val x: Int, private val y: Int) {
@@ -1312,11 +1334,11 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
             Decoder decoder,
             DecoderContext decoderContext,
             Argument&lt;? super Point&gt; type) throws IOException {
-        Decoder array = decoder.decodeArray(); <b class="conum">(3)</b>
-        int x = array.decodeInt();
-        int y = array.decodeInt();
-        array.finishStructure(); <b class="conum">(4)</b>
-        return Point.valueOf(x, y); <b class="conum">(5)</b>
+        try (Decoder array = decoder.decodeArray()) { <b class="conum">(3)</b>
+            int x = array.decodeInt();
+            int y = array.decodeInt();
+            return Point.valueOf(x, y); <b class="conum">(4)</b>
+        }
     }
 
     @Override
@@ -1325,12 +1347,52 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
             EncoderContext context,
             Point value,
             Argument&lt;? extends Point&gt; type) throws IOException {
-        Objects.requireNonNull(value, "Point cannot be null"); <b class="conum">(6)</b>
+        Objects.requireNonNull(value, "Point cannot be null"); <b class="conum">(5)</b>
         int[] coords = value.coords();
-        Encoder array = encoder.encodeArray(type); <b class="conum">(7)</b>
-        array.encodeInt(coords[0]);
-        array.encodeInt(coords[1]);
-        array.finishStructure(); <b class="conum">(8)</b>
+        try (Encoder array = encoder.encodeArray(type)) { <b class="conum">(6)</b>
+            array.encodeInt(coords[0]);
+            array.encodeInt(coords[1]);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.Decoder
+import io.micronaut.serde.Encoder
+import io.micronaut.serde.Serde
+import jakarta.inject.Singleton
+
+@Singleton <b class="conum">(1)</b>
+class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
+    @Override
+    Point deserialize(
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument&lt;? super Point&gt; type) throws IOException {
+        Decoder array = decoder.decodeArray() <b class="conum">(3)</b>
+        int x = array.decodeInt()
+        int y = array.decodeInt()
+        array.finishStructure() <b class="conum">(4)</b>
+        return Point.valueOf(x, y) <b class="conum">(5)</b>
+    }
+
+    @Override
+    void serialize(
+            Encoder encoder,
+            EncoderContext context,
+            Point value,
+            Argument&lt;? extends Point&gt; type) throws IOException {
+        Objects.requireNonNull(value, "Point cannot be null") <b class="conum">(6)</b>
+        int[] coords = value.coords()
+        Encoder array = encoder.encodeArray(type) <b class="conum">(7)</b>
+        array.encodeInt(coords[0])
+        array.encodeInt(coords[1])
+        array.finishStructure() <b class="conum">(8)</b>
     }
 }</code></pre>
 </div>
@@ -1344,18 +1406,17 @@ import io.micronaut.serde.*
 import jakarta.inject.Singleton
 
 @Singleton <b class="conum">(1)</b>
-class PointSerde : Serde&lt;Point&gt; {
-    <b class="conum">(2)</b>
+class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
     override fun deserialize(
         decoder: Decoder,
         decoderContext: Deserializer.DecoderContext,
         type: Argument&lt;in Point&gt;
     ): Point {
-        val array = decoder.decodeArray() <b class="conum">(3)</b>
-        val x = array.decodeInt()
-        val y = array.decodeInt()
-        array.finishStructure() <b class="conum">(4)</b>
-        return Point.valueOf(x, y) <b class="conum">(5)</b>
+        decoder.decodeArray().use { <b class="conum">(3)</b>
+            val x = it.decodeInt()
+            val y = it.decodeInt()
+            return Point.valueOf(x, y) <b class="conum">(4)</b>
+        }
     }
 
     override fun serialize(
@@ -1365,10 +1426,10 @@ class PointSerde : Serde&lt;Point&gt; {
         type: Argument&lt;out Point&gt;
     ) {
         val coords = value.coords()
-        val array = encoder.encodeArray(type) <b class="conum">(7)</b>
-        array.encodeInt(coords[0])
-        array.encodeInt(coords[1])
-        array.finishStructure() <b class="conum">(8)</b>
+        encoder.encodeArray(type).use { <b class="conum">(6)</b>
+            it.encodeInt(coords[0])
+            it.encodeInt(coords[1])
+        }
     }
 }</code></pre>
 </div>
@@ -1385,27 +1446,19 @@ class PointSerde : Serde&lt;Point&gt; {
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>The <a href="../api/io/micronaut/serde/Decoder.html">Decoder</a> interface is used to starting decoding an array. Note that returned decoder should be used.</td>
+<td>The <a href="../api/io/micronaut/serde/Decoder.html">Decoder</a> interface is used to starting decoding an array using <code>try-with-resources</code></td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The <code>finishStructure</code> method is called when array decoding is complete</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
 <td>The decoded object is returned</td>
 </tr>
 <tr>
-<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
 <td>The <code>value</code> can be <code>null</code> and the decoder should handle whether <code>null</code> is allowed</td>
 </tr>
 <tr>
-<td><i class="conum" data-value="7"></i><b>7</b></td>
-<td>The <a href="../api/io/micronaut/serde/Encoder.html">Encoder</a> interface is used to start encoding an array with the <code>encodeArray</code> method.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="8"></i><b>8</b></td>
-<td>The returned <code>Encoder</code> should be used and finalized with the <code>finishStructure()</code> method</td>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <a href="../api/io/micronaut/serde/Encoder.html">Encoder</a> interface is used to start encoding an array with the <code>encodeArray</code> method using <code>try-with-resources</code>.</td>
 </tr>
 </table>
 </div>
@@ -1439,6 +1492,35 @@ public class PointTest {
         int[] coords = point.coords();
         assertEquals(50, coords[0]);
         assertEquals(100, coords[1]);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class PointTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write point"() {
+        given:
+        String result = objectMapper.writeValueAsString(
+                Point.valueOf(50, 100)
+        )
+        Point point = objectMapper.readValue(result, Point.class)
+
+        expect:
+        point != null
+        int[] coords = point.coords()
+        coords[0] == 50
+        coords[1] == 100
     }
 }</code></pre>
 </div>
@@ -1560,6 +1642,48 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Secondary
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.Decoder
+import io.micronaut.serde.Encoder
+import io.micronaut.serde.Serde
+import jakarta.inject.Singleton
+
+@Singleton
+@Secondary <b class="conum">(1)</b>
+class ReversePointSerde implements Serde&lt;Point&gt; {
+    @Override
+    Point deserialize(
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument&lt;? super Point&gt; type) throws IOException {
+        Decoder array = decoder.decodeArray()
+        int y = array.decodeInt() <b class="conum">(2)</b>
+        int x = array.decodeInt()
+        array.finishStructure()
+        return Point.valueOf(x, y)
+    }
+
+    @Override
+    void serialize(
+            Encoder encoder,
+            EncoderContext context,
+            Point value,
+            Argument&lt;? extends Point&gt; type) throws IOException {
+        Objects.requireNonNull(value, "Point cannot be null")
+        int[] coords = value.coords()
+        Encoder array = encoder.encodeArray(type)
+        array.encodeInt(coords[1]) <b class="conum">(3)</b>
+        array.encodeInt(coords[0])
+        array.finishStructure()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
 
 import io.micronaut.context.annotation.Secondary
@@ -1638,6 +1762,24 @@ public class Place {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class Place {
+    @Serdeable.Serializable(using = ReversePointSerde.class) <b class="conum">(1)</b>
+    @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
+    final Point point
+
+    Place(Point point) {
+        this.point = point
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
 
 import io.micronaut.serde.annotation.Serdeable
@@ -1704,6 +1846,22 @@ public class Location {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class Location {
+    final Map&lt;Feature, Point&gt; features
+
+    Location(Map&lt;Feature, Point&gt; features) {
+        this.features = features
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
 
 import io.micronaut.serde.annotation.Serdeable
@@ -1748,6 +1906,40 @@ public class Feature {
         @Override
         public Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
             return Optional.of(new Feature(object));
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.core.convert.ConversionContext
+import io.micronaut.core.convert.TypeConverter
+import jakarta.inject.Singleton
+
+class Feature {
+    private final String name
+
+    Feature(String name) {
+        this.name = name
+    }
+
+    String name() {
+        return name
+    }
+
+    @Override
+    String toString() { <b class="conum">(1)</b>
+        return name
+    }
+
+    @Singleton
+    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { <b class="conum">(2)</b>
+        @Override
+        Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
+            return Optional.of(new Feature(object))
         }
     }
 }</code></pre>

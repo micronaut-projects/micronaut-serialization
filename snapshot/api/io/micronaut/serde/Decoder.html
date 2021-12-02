@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":18,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":18,"i17":6,"i18":6,"i19":6,"i20":6,"i21":6,"i22":6};
+var methods = {"i0":18,"i1":6,"i2":6,"i3":18,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6,"i16":6,"i17":18,"i18":6,"i19":6,"i20":6,"i21":6,"i22":6,"i23":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -98,12 +98,17 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <dl>
+<dt>All Superinterfaces:</dt>
+<dd>java.lang.AutoCloseable</dd>
+</dl>
+<dl>
 <dt>All Known Implementing Classes:</dt>
 <dd><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a>, <a href="../../../io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a>, <a href="../../../io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a>, <a href="../../../io/micronaut/serde/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.util">JsonNodeDecoder</a>, <a href="../../../io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dd>
 </dl>
 <hr>
 <br>
-<pre>public interface <span class="typeNameLabel">Decoder</span></pre>
+<pre>public interface <span class="typeNameLabel">Decoder</span>
+extends java.lang.AutoCloseable</pre>
 <div class="block">Core interface for decoding values from a serialized format such as JSON.</div>
 <dl>
 <dt><span class="simpleTagLabel">Since:</span></dt>
@@ -128,135 +133,141 @@ var activeTableTab = "activeTableTab";
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>default void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#close--">close</a></span>()</code>
+<div class="block">Finalize the current structure.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.io.IOException</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#createDeserializationException-java.lang.String-java.lang.Object-">createDeserializationException</a></span>(java.lang.String&nbsp;message,
                               java.lang.Object&nbsp;invalidValue)</code>
 <div class="block">Creates an exception for the given message.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.Object</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeArbitrary--">decodeArbitrary</a></span>()</code>
 <div class="block">Decodes the current state into an arbitrary object.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>default <a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeArray--">decodeArray</a></span>()</code>
 <div class="block">Start decoding an array.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeArray-io.micronaut.core.type.Argument-">decodeArray</a></span>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
 <div class="block">Start decoding an array.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.math.BigDecimal</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeBigDecimal--">decodeBigDecimal</a></span>()</code>
 <div class="block">Decodes a BigDecimal.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.math.BigInteger</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeBigInteger--">decodeBigInteger</a></span>()</code>
 <div class="block">Decodes a BigInteger.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeBoolean--">decodeBoolean</a></span>()</code>
 <div class="block">Decodes a boolean.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeBuffer--">decodeBuffer</a></span>()</code>
 <div class="block">Buffer the whole subtree of this value and return it as a new <a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>byte</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeByte--">decodeByte</a></span>()</code>
 <div class="block">Decodes a byte.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>char</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeChar--">decodeChar</a></span>()</code>
 <div class="block">Decodes a char.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeDouble--">decodeDouble</a></span>()</code>
 <div class="block">Decodes a double.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>float</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeFloat--">decodeFloat</a></span>()</code>
 <div class="block">Decodes a float.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeInt--">decodeInt</a></span>()</code>
 <div class="block">Decodes a int.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeKey--">decodeKey</a></span>()</code>
 <div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeLong--">decodeLong</a></span>()</code>
 <div class="block">Decodes a long.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeNull--">decodeNull</a></span>()</code>
 <div class="block">Attempt to decode a null value.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>default <a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeObject--">decodeObject</a></span>()</code>
 <div class="block">Decodes an object.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeObject-io.micronaut.core.type.Argument-">decodeObject</a></span>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
 <div class="block">Decodes an object.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>short</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeShort--">decodeShort</a></span>()</code>
 <div class="block">Decodes a short.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#decodeString--">decodeString</a></span>()</code>
 <div class="block">Decodes a string.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#finishStructure--">finishStructure</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#hasNextArrayValue--">hasNextArrayValue</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Decoder.html#skipValue--">skipValue</a></span>()</code>
 <div class="block">Skips the current value.</div>
@@ -670,6 +681,23 @@ java.lang.Object&nbsp;decodeArbitrary()
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalStateException</code> - If there are still elements left to consume</dd>
+<dd><code>java.io.IOException</code> - If an unrecoverable error occurs</dd>
+</dl>
+</li>
+</ul>
+<a name="close--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>close</h4>
+<pre>default&nbsp;void&nbsp;close()
+            throws java.io.IOException</pre>
+<div class="block">Finalize the current structure. Equivalent to calling <a href="../../../io/micronaut/serde/Decoder.html#finishStructure--"><code>finishStructure()</code></a>.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code>close</code>&nbsp;in interface&nbsp;<code>java.lang.AutoCloseable</code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - If an unrecoverable error occurs</dd>
 </dl>
 </li>
