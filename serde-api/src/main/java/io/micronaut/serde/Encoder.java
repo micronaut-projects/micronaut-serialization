@@ -50,6 +50,10 @@ public interface Encoder extends AutoCloseable {
      */
     void finishStructure() throws IOException;
 
+    /**
+     * Finalize the current structure. Equivalent to calling {@link #finishStructure()}.
+     * @throws IOException If an unrecoverable error occurs
+     */
     @Override
     default void close() throws IOException {
         finishStructure();
