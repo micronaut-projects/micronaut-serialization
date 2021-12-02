@@ -312,6 +312,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         if (element.hasDeclaredAnnotation(SerdeConfig.ManagedRef.class)) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                context.fail("Managed references cannot be unwrapped", element);
+                return true;
+            }
             if (isBasicType) {
                 context.fail("Managed references cannot be declared on basic types", element);
                 return true;
@@ -347,6 +351,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         }
         if (element.hasDeclaredAnnotation(SerdeConfig.BackRef.class)) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                context.fail("Managed references cannot be unwrapped", element);
+                return true;
+            }
             if (isBasicType) {
                 context.fail("Back references cannot be declared on basic types", element);
                 return true;
@@ -392,7 +400,36 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
+
+        if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (isBasicType(propertyType)) {
+                context.fail("Unwrapped cannot be declared on basic types", element);
+                return true;
+            }
+            final List<TypedElement> thatProperties = resolveProperties(context, propertyType);
+            final List<TypedElement> thisProperties = resolveProperties(context, currentClass);
+            for (TypedElement thisProperty : thisProperties) {
+                String thisName = resolveJsonName(thisProperty);
+                for (TypedElement thatProperty : thatProperties) {
+                    String thatName = resolveJsonName(thatProperty);
+                    if (thisName.equals(thatName)) {
+                        context.fail("Unwrapped property contains a property [" + thatName + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.", element);
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
+    }
+
+    private String resolveJsonName(TypedElement thisProperty) {
+        return thisProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                                      .orElseGet(() -> {
+                                          if (thisProperty instanceof MethodElement) {
+                                              return NameUtils.getPropertyNameForGetter(thisProperty.getName());
+                                          }
+                                          return thisProperty.getName();
+                                      });
     }
 
     private ClassElement resolveRefType(ClassElement propertyType) {
@@ -439,6 +476,26 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return otherElements;
     }
 
+    private List<TypedElement> resolveProperties(VisitorContext context,
+                                                  ClassElement propertyType) {
+        Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
+        final List<TypedElement> otherElements = new ArrayList<>();
+        if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
+            propertyType.getBeanProperties().stream()
+                    .filter(p -> !p.hasDeclaredAnnotation(SerdeConfig.Ignored.class)).forEach(otherElements::add);
+        }
+        if (accessKindSet.contains(Introspected.AccessKind.FIELD)) {
+            final List<FieldElement> fields = propertyType
+                    .getEnclosedElements(ElementQuery.ALL_FIELDS
+                                                 .onlyInstance()
+                                                 .annotated(ann -> !ann.hasDeclaredAnnotation(SerdeConfig.Ignored.class))
+                                                 .modifiers(m -> m.contains(ElementModifier.PUBLIC)));
+            otherElements.addAll(fields);
+
+        }
+        return otherElements;
+    }
+
     private boolean isMappedCandidate(Class<? extends Annotation> refType, String thisSide, AnnotationMetadata p) {
         final String mappedName = p.stringValue(refType).orElse(null);
         return mappedName == null || mappedName.equals(thisSide);
@@ -449,8 +506,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 .map(t -> t.enumValues(Introspected.class,
                                                   "accessKind",
                                                   Introspected.AccessKind.class)).orElse(null);
-        Set<Introspected.AccessKind> accessKindSet = accessKinds != null ? CollectionUtils.setOf(accessKinds) : Collections.singleton(Introspected.AccessKind.METHOD);
-        return accessKindSet;
+        return ArrayUtils.isNotEmpty(accessKinds) ? CollectionUtils.setOf(accessKinds) : Collections.singleton(Introspected.AccessKind.METHOD);
     }
 
     private boolean isCompatibleInverseSide(ClassElement genericType, ClassElement propertyType) {
