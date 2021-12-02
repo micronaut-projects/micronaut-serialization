@@ -18,6 +18,9 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
+import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.reference.SerializationReference;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Serializer.EncoderContext}.
@@ -25,7 +28,7 @@ import io.micronaut.serde.exceptions.SerdeException;
  * @since 1.0.0
  */
 @Internal
-class DefaultEncoderContext implements Serializer.EncoderContext {
+class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
     private final SerdeRegistry registry;
 
     DefaultEncoderContext(SerdeRegistry registry) {
@@ -41,5 +44,19 @@ class DefaultEncoderContext implements Serializer.EncoderContext {
     @Override
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
         return registry.findSerializer(forType);
+    }
+
+    @Override
+    public <B, P> SerializationReference<B, P> resolveReference(SerializationReference<B, P> reference) {
+        final Object value = reference.getReference();
+        if (refs != null) {
+            final PropertyReference<?, ?> managedReference = refs.peekFirst();
+            if (managedReference != null && managedReference.getProperty().getName().equals(reference.getReferenceName())) {
+                if (managedReference.getReference() == value) {
+                    return null;
+                }
+            }
+        }
+        return reference;
     }
 }

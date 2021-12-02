@@ -30,6 +30,8 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.reference.PropertyReference;
+import io.micronaut.serde.reference.SerializationReference;
 import io.micronaut.serde.util.TypeKey;
 import jakarta.inject.Singleton;
 
@@ -166,7 +168,9 @@ public class ObjectSerializer implements Serializer<Object> {
                 return new ObjectSerializer(introspections, configuration) {
                     @Override
                     protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
-                        final List<SerBean.SerProperty<Object, Object>> writeProperties = new ArrayList<>(super.getWriteProperties(serBean));
+                        final List<SerBean.SerProperty<Object, Object>> writeProperties =
+                                new ArrayList<>(super.getWriteProperties(
+                                serBean));
                         if (!order.isEmpty()) {
                             writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
                         }
@@ -203,6 +207,19 @@ public class ObjectSerializer implements Serializer<Object> {
 
             for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
                 final Object v = property.get(value);
+                final String backRef = property.backRef;
+                if (backRef != null) {
+                    final PropertyReference<Object, Object> ref = context.resolveReference(
+                            new SerializationReference<>(backRef,
+                                                         serBean.introspection,
+                                                         property.argument,
+                                                         v,
+                                                         property.serializer)
+                    );
+                    if (ref == null) {
+                        continue;
+                    }
+                }
                 final Serializer<Object> serializer = property.serializer;
                 switch (property.include) {
                 case NON_NULL:
@@ -230,16 +247,34 @@ public class ObjectSerializer implements Serializer<Object> {
                     continue;
                 }
 
-                childEncoder.encodeKey(property.name);
-                if (v == null) {
-                    childEncoder.encodeNull();
-                } else {
-                    serializer.serialize(
-                            childEncoder,
-                            context,
-                            v,
-                            property.argument
+                final String managedRef = property.managedRef;
+                if (managedRef != null) {
+                    context.pushManagedRef(
+                            new SerializationReference<>(
+                                    managedRef,
+                                    serBean.introspection,
+                                    property.argument,
+                                    value,
+                                    property.serializer
+                            )
                     );
+                }
+                try {
+                    childEncoder.encodeKey(property.name);
+                    if (v == null) {
+                        childEncoder.encodeNull();
+                    } else {
+                        serializer.serialize(
+                                childEncoder,
+                                context,
+                                v,
+                                property.argument
+                        );
+                    }
+                } finally {
+                    if (managedRef != null) {
+                        context.popManagedRef();
+                    }
                 }
             }
             final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
@@ -274,8 +309,13 @@ public class ObjectSerializer implements Serializer<Object> {
                 }
             }
             childEncoder.finishStructure();
+        } catch (StackOverflowError e) {
+            throw new SerdeException("Infinite recursion serializing type: " + type.getType()
+                    .getSimpleName() + " at path " + encoder.currentPath(), e);
         } catch (IntrospectionException e) {
-            throw new SerdeException("Error serializing value at path: " + encoder + ". No serializer found for type: " + type, e);
+            throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for "
+                                             + "type: " + type,
+                                     e);
         }
 
     }
@@ -285,7 +325,8 @@ public class ObjectSerializer implements Serializer<Object> {
      * @param serBean The serialization bean.
      * @return The write properties, never {@code null}
      */
-    protected @NonNull List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
+    protected @NonNull
+    List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
         return serBean.writeProperties;
     }
 
@@ -295,7 +336,7 @@ public class ObjectSerializer implements Serializer<Object> {
         SerBean<Object> serBean = serBeanMap.get(key);
         if (serBean == null) {
             try {
-                serBean = new SerBean<>((Argument<Object>) type, introspections, encoderContext, configuration);
+                serBean = new SerBean<>(key, serBeanMap, (Argument<Object>) type, introspections, encoderContext, configuration);
             } catch (IntrospectionException e) {
                 // TODO: replace with optional
                 if (value != null && value.getClass() != type.getClass()) {

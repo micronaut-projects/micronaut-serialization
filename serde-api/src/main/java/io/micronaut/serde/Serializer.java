@@ -18,11 +18,14 @@ package io.micronaut.serde;
 import java.io.IOException;
 
 import io.micronaut.core.annotation.Indexed;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.reference.PropertyReferenceManager;
+import io.micronaut.serde.reference.SerializationReference;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -83,7 +86,7 @@ public interface Serializer<T> {
      * Context object passes to the
      * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
-    interface EncoderContext extends SerializerLocator {
+    interface EncoderContext extends SerializerLocator, PropertyReferenceManager {
 
         /**
          * @return Conversion service
@@ -100,5 +103,18 @@ public interface Serializer<T> {
         default boolean hasView(Class<?>... views) {
             return false;
         }
+
+        /**
+         * Resolve a reference for the given type and value.
+         * @param reference The reference
+         * @param <B> The bean type
+         * @param <P> The generic type of the value
+         * @return The existing reference, a new one or {@code null} if serialization should be skipped
+         */
+        @Internal
+        @Nullable
+        <B, P> SerializationReference<B, P> resolveReference(
+                @NonNull SerializationReference<B, P> reference
+        );
     }
 }

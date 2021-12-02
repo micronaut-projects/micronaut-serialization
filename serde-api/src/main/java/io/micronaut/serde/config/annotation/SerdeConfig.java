@@ -216,7 +216,22 @@ public @interface SerdeConfig {
     /**
      * For case where property is defined with no name.
      */
+    @Internal
     @interface Property {
+    }
+
+    /**
+     * Managed reference.
+     */
+    @Internal
+    @interface ManagedRef {
+    }
+
+    /**
+     * Back reference.
+     */
+    @Internal
+    @interface BackRef {
     }
 
     /**

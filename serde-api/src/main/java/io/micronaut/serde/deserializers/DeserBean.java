@@ -513,6 +513,8 @@ class DeserBean<T> {
         public final @NonNull
         Deserializer<? super P> deserializer;
         public final DeserBean<P> unwrapped;
+        public final String managedRef;
+        public final String backRef;
 
         public DerProperty(BeanIntrospection<B> introspection,
                            int index,
@@ -570,7 +572,10 @@ class DeserBean<T> {
             } else {
                 this.aliases = null;
             }
-
+            this.managedRef = annotationMetadata.stringValue(SerdeConfig.ManagedRef.class)
+                    .orElse(null);
+            this.backRef = annotationMetadata.stringValue(SerdeConfig.BackRef.class)
+                    .orElse(null);
         }
 
         public void setDefault(@NonNull B bean) throws SerdeException {
