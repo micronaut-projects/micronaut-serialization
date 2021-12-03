@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.type.Argument;
@@ -39,6 +40,11 @@ public class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateT
 
     protected LocalDateTimeSerde(SerdeConfiguration configuration) {
         super(configuration);
+    }
+
+    @Override
+    protected DateTimeFormatter getDefaultFormatter() {
+        return DateTimeFormatter.ISO_DATE_TIME;
     }
 
     @Override

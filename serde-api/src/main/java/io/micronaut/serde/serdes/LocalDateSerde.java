@@ -17,23 +17,33 @@ package io.micronaut.serde.serdes;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
 
 /**
  * Local date serde.
  */
 @Singleton
-public class LocalDateSerde implements TemporalSerde<LocalDate> {
+public class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate> {
+    /**
+     * Allows configuring a default time format for temporal date/time types.
+     *
+     * @param configuration The configuration
+     */
+    protected LocalDateSerde(SerdeConfiguration configuration) {
+        super(configuration);
+    }
+
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, LocalDate value, Argument<? extends LocalDate> type)
-            throws IOException {
-        encoder.encodeLong(value.toEpochDay());
+    protected DateTimeFormatter getDefaultFormatter() {
+        return DateTimeFormatter.ISO_LOCAL_DATE;
     }
 
     @Override
@@ -42,8 +52,12 @@ public class LocalDateSerde implements TemporalSerde<LocalDate> {
     }
 
     @Override
-    public LocalDate deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDate> type)
-            throws IOException {
+    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalDate value, Argument<? extends LocalDate> type) throws IOException {
+        encoder.encodeLong(value.toEpochDay());
+    }
+
+    @Override
+    protected LocalDate deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDate> type) throws IOException {
         return LocalDate.ofEpochDay(decoder.decodeLong());
     }
 }

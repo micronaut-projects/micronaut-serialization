@@ -19,25 +19,32 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
 
 /**
  * Serde for OffsetDateTime.
  */
 @Singleton
-public class OffsetDateTimeSerde implements TemporalSerde<OffsetDateTime> {
+public class OffsetDateTimeSerde extends DefaultFormattedTemporalSerde<OffsetDateTime> {
+    /**
+     * Allows configuring a default time format for temporal date/time types.
+     *
+     * @param configuration The configuration
+     */
+    protected OffsetDateTimeSerde(SerdeConfiguration configuration) {
+        super(configuration);
+    }
+
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, OffsetDateTime value, Argument<? extends OffsetDateTime> type)
-            throws IOException {
-        encoder.encodeLong(
-                value.withOffsetSameInstant(ZoneOffset.UTC)
-                        .toInstant().toEpochMilli()
-        );
+    protected DateTimeFormatter getDefaultFormatter() {
+        return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
     }
 
     @Override
@@ -46,9 +53,15 @@ public class OffsetDateTimeSerde implements TemporalSerde<OffsetDateTime> {
     }
 
     @Override
-    public OffsetDateTime deserializeNonNull(Decoder decoder,
-                                             DecoderContext decoderContext,
-                                             Argument<? super OffsetDateTime> type) throws IOException {
+    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, OffsetDateTime value, Argument<? extends OffsetDateTime> type) throws IOException {
+        encoder.encodeLong(
+                value.withOffsetSameInstant(ZoneOffset.UTC)
+                        .toInstant().toEpochMilli()
+        );
+    }
+
+    @Override
+    protected OffsetDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super OffsetDateTime> type) throws IOException {
         return OffsetDateTime.ofInstant(
                 Instant.ofEpochMilli(decoder.decodeLong()),
                 UTC
