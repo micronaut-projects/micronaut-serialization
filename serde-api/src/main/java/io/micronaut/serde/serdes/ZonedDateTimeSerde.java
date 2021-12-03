@@ -18,6 +18,7 @@ package io.micronaut.serde.serdes;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.type.Argument;
@@ -38,6 +39,11 @@ public class ZonedDateTimeSerde
 
     protected ZonedDateTimeSerde(SerdeConfiguration configuration) {
         super(configuration);
+    }
+
+    @Override
+    protected DateTimeFormatter getDefaultFormatter() {
+        return DateTimeFormatter.ISO_ZONED_DATE_TIME;
     }
 
     @Override
