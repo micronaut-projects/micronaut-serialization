@@ -74,7 +74,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             if (object == null) {
                 bsonWriter.writeNull();
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, false);
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter);
                 serialize(encoder, object, type);
             }
             bsonWriter.flush();
@@ -143,7 +143,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             if (object == null) {
                 bsonWriter.writeNull();
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, false);
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter);
                 serialize(encoder, object);
             }
             bsonWriter.flush();

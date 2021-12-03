@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import org.bson.BsonWriter;
@@ -34,28 +35,32 @@ import java.math.BigInteger;
 public final class BsonWriterEncoder implements Encoder {
     private final BsonWriter bsonWriter;
     private final boolean isArray;
+    private final BsonWriterEncoder parent;
 
-    public BsonWriterEncoder(BsonWriter bsonWriter, boolean isArray) {
+    private String currentKey = null;
+
+    public BsonWriterEncoder(BsonWriter bsonWriter) {
         this.bsonWriter = bsonWriter;
+        this.isArray = false;
+        this.parent = null;
+    }
+
+    private BsonWriterEncoder(BsonWriterEncoder parent, boolean isArray) {
+        this.bsonWriter = parent.bsonWriter;
         this.isArray = isArray;
+        this.parent = parent;
     }
 
     @Override
     public Encoder encodeArray(Argument<?> type) {
         bsonWriter.writeStartArray();
-        if (isArray) {
-            return this;
-        }
-        return new BsonWriterEncoder(bsonWriter, true);
+        return new BsonWriterEncoder(this, true);
     }
 
     @Override
     public Encoder encodeObject(Argument<?> type) {
         bsonWriter.writeStartDocument();
-        if (!isArray) {
-            return this;
-        }
-        return new BsonWriterEncoder(bsonWriter, false);
+        return new BsonWriterEncoder(this, false);
     }
 
     @Override
@@ -69,6 +74,7 @@ public final class BsonWriterEncoder implements Encoder {
 
     @Override
     public void encodeKey(String key) {
+        this.currentKey = key;
         bsonWriter.writeName(key);
     }
 
@@ -130,6 +136,25 @@ public final class BsonWriterEncoder implements Encoder {
     @Override
     public void encodeNull() {
         bsonWriter.writeNull();
+    }
+
+    @NonNull
+    @Override
+    public String currentPath() {
+        StringBuilder builder = new StringBuilder();
+        BsonWriterEncoder enc = this;
+        while (enc != null) {
+            if (enc != this) {
+                builder.insert(0, "->");
+            }
+            if (enc.currentKey == null) {
+                builder.insert(0, '*');
+            } else {
+                builder.insert(0, enc.currentKey);
+            }
+            enc = enc.parent;
+        }
+        return builder.toString();
     }
 
     public void encodeDecimal128(Decimal128 value) {
