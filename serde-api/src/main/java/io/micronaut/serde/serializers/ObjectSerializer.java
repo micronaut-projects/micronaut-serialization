@@ -334,20 +334,23 @@ public class ObjectSerializer implements Serializer<Object> {
     private SerBean<Object> getSerBean(Argument<?> type, @Nullable Object value, EncoderContext encoderContext) {
         final TypeKey key = new TypeKey(type);
         SerBean<Object> serBean = serBeanMap.get(key);
-        if (serBean == null) {
-            try {
-                serBean = new SerBean<>(key, serBeanMap, (Argument<Object>) type, introspections, encoderContext, configuration);
-            } catch (IntrospectionException e) {
-                // TODO: replace with optional
-                if (value != null && value.getClass() != type.getClass()) {
-                    serBean = getSerBean(Argument.of(value.getClass()), null, encoderContext);
-                } else {
-                    throw e;
+        if (serBean == null || !serBean.initialized) {
+            synchronized (serBeanMap) {
+                try {
+                    serBean = serBeanMap.get(key);
+                    if (serBean == null) {
+                        serBean = new SerBean<>(key, serBeanMap, (Argument<Object>) type, introspections, encoderContext, configuration);
+                    }
+                } catch (IntrospectionException e) {
+                    if (value != null && value.getClass() != type.getClass()) {
+                        serBean = getSerBean(Argument.of(value.getClass()), null, encoderContext);
+                    } else {
+                        throw e;
+                    }
+                } catch (SerdeException e) {
+                    throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
                 }
-            } catch (SerdeException e) {
-                throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
             }
-            serBeanMap.put(key, serBean);
         }
         return serBean;
     }

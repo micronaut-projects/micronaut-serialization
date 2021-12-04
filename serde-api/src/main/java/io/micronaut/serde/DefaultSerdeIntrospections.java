@@ -100,7 +100,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                 return result;
             }
         } else {
-            throw new IntrospectionException("No serializable introspection present for type. Consider adding Serdeable.Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeMixin(" + type.getSimpleName() + ".class) to enable serialization of this type.");
+            throw new IntrospectionException("No serializable introspection present for type " + type + ". Consider adding Serdeable.Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeImport(" + type.getSimpleName() + ".class) to enable serialization of this type.");
         }
     }
 
@@ -122,7 +122,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                 return introspection;
             }
         } else {
-            throw new IntrospectionException("No deserializable introspection present for type. Consider adding Serdeable.Deserializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeMixin(" + type.getSimpleName() + ".class) to enable deserialization of this type.");
+            throw new IntrospectionException("No deserializable introspection present for type: " + type + ". Consider adding Serdeable.Deserializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeImport(" + type.getSimpleName() + ".class) to enable deserialization of this type.");
         }
     }
 
