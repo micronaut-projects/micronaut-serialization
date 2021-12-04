@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -98,7 +98,12 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
+<li><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">io.micronaut.serde.serdes.DefaultFormattedTemporalSerde</a>&lt;java.time.LocalDate&gt;</li>
+<li>
+<ul class="inheritance">
 <li>io.micronaut.serde.serdes.LocalDateSerde</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -113,7 +118,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>@Singleton
 public class <span class="typeNameLabel">LocalDateSerde</span>
-extends java.lang.Object
+extends <a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a>&lt;java.time.LocalDate&gt;
 implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.serdes">TemporalSerde</a>&lt;java.time.LocalDate&gt;</pre>
 <div class="block">Local date serde.</div>
 </li>
@@ -168,10 +173,14 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
 <caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
-<th class="colOne" scope="col">Constructor and Description</th>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#LocalDateSerde--">LocalDateSerde</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#LocalDateSerde-io.micronaut.serde.config.SerdeConfiguration-">LocalDateSerde</a></span>(<a href="../../../../io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</code>
+<div class="block">Allows configuring a default time format for temporal date/time types.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -189,27 +198,38 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.time.LocalDate</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a></span>(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
-                  <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
-                  io.micronaut.core.type.Argument&lt;? super java.time.LocalDate&gt;&nbsp;type)</code>
+<td class="colFirst"><code>protected java.time.LocalDate</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#deserializeNonNullWithoutFormat-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNullWithoutFormat</a></span>(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+                               <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+                               io.micronaut.core.type.Argument&lt;? super java.time.LocalDate&gt;&nbsp;type)</code>
 <div class="block">A method that is invoked when the value is known not to be null.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected java.time.format.DateTimeFormatter</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#getDefaultFormatter--">getDefaultFormatter</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.time.temporal.TemporalQuery&lt;java.time.LocalDate&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#query--">query</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.LocalDate-io.micronaut.core.type.Argument-">serialize</a></span>(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
-         <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
-         java.time.LocalDate&nbsp;value,
-         io.micronaut.core.type.Argument&lt;? extends java.time.LocalDate&gt;&nbsp;type)</code>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html#serializeWithoutFormat-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.LocalDate-io.micronaut.core.type.Argument-">serializeWithoutFormat</a></span>(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+                      <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+                      java.time.LocalDate&nbsp;value,
+                      io.micronaut.core.type.Argument&lt;? extends java.time.LocalDate&gt;&nbsp;type)</code>
 <div class="block">Serializes the given value using the passed <a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.serdes.DefaultFormattedTemporalSerde">
+<!--   -->
+</a>
+<h3>Methods inherited from class&nbsp;io.micronaut.serde.serdes.<a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a></h3>
+<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a>, <a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code></li>
+</ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
@@ -229,14 +249,14 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a></h3>
-<code><a href="../../../../io/micronaut/serde/Serializer.html#isAbsent-T-">isAbsent</a>, <a href="../../../../io/micronaut/serde/Serializer.html#isEmpty-T-">isEmpty</a></code></li>
+<code><a href="../../../../io/micronaut/serde/Serializer.html#isAbsent-T-">isAbsent</a>, <a href="../../../../io/micronaut/serde/Serializer.html#isEmpty-T-">isEmpty</a>, <a href="../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.util.NullableDeserializer">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.serde.util.<a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a></h3>
-<code><a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#allowNull--">allowNull</a>, <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#deserialize-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserialize</a></code></li>
+<code><a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#allowNull--">allowNull</a>, <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#deserialize-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserialize</a>, <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.Deserializer">
@@ -259,13 +279,18 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="LocalDateSerde--">
+<a name="LocalDateSerde-io.micronaut.serde.config.SerdeConfiguration-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>LocalDateSerde</h4>
-<pre>public&nbsp;LocalDateSerde()</pre>
+<pre>protected&nbsp;LocalDateSerde(<a href="../../../../io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</pre>
+<div class="block">Allows configuring a default time format for temporal date/time types.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>configuration</code> - The configuration</dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -276,29 +301,18 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.LocalDate-io.micronaut.core.type.Argument-">
+<a name="getDefaultFormatter--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>serialize</h4>
-<pre>public&nbsp;void&nbsp;serialize(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
-                      <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
-                      java.time.LocalDate&nbsp;value,
-                      io.micronaut.core.type.Argument&lt;? extends java.time.LocalDate&gt;&nbsp;type)
-               throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">Serializer</a></code></span></div>
-<div class="block">Serializes the given value using the passed <a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
+<h4>getDefaultFormatter</h4>
+<pre>protected&nbsp;java.time.format.DateTimeFormatter&nbsp;getDefaultFormatter()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.time.LocalDate&gt;</code></dd>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>encoder</code> - The encoder to use</dd>
-<dd><code>context</code> - The encoder context, never <code>null</code></dd>
-<dd><code>value</code> - The value, can be <code>null</code></dd>
-<dd><code>type</code> - Models the generic type of the value</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code> - If an error occurs during serialization</dd>
+<dd><code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#getDefaultFormatter--">getDefaultFormatter</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a>&lt;java.time.LocalDate&gt;</code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The default formatter.</dd>
 </dl>
 </li>
 </ul>
@@ -317,21 +331,47 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 </dl>
 </li>
 </ul>
-<a name="deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">
+<a name="serializeWithoutFormat-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.LocalDate-io.micronaut.core.type.Argument-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>serializeWithoutFormat</h4>
+<pre>protected&nbsp;void&nbsp;serializeWithoutFormat(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+                                      <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+                                      java.time.LocalDate&nbsp;value,
+                                      io.micronaut.core.type.Argument&lt;? extends java.time.LocalDate&gt;&nbsp;type)
+                               throws java.io.IOException</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#serializeWithoutFormat-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">DefaultFormattedTemporalSerde</a></code></span></div>
+<div class="block">Serializes the given value using the passed <a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#serializeWithoutFormat-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serializeWithoutFormat</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a>&lt;java.time.LocalDate&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>encoder</code> - The encoder to use</dd>
+<dd><code>context</code> - The encoder context, never <code>null</code></dd>
+<dd><code>value</code> - The value, can be <code>null</code></dd>
+<dd><code>type</code> - Models the generic type of the value</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code> - If an error occurs during serialization</dd>
+</dl>
+</li>
+</ul>
+<a name="deserializeNonNullWithoutFormat-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>deserializeNonNull</h4>
-<pre>public&nbsp;java.time.LocalDate&nbsp;deserializeNonNull(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
-                                              <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
-                                              io.micronaut.core.type.Argument&lt;? super java.time.LocalDate&gt;&nbsp;type)
-                                       throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">NullableDeserializer</a></code></span></div>
+<h4>deserializeNonNullWithoutFormat</h4>
+<pre>protected&nbsp;java.time.LocalDate&nbsp;deserializeNonNullWithoutFormat(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+                                                              <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+                                                              io.micronaut.core.type.Argument&lt;? super java.time.LocalDate&gt;&nbsp;type)
+                                                       throws java.io.IOException</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#deserializeNonNullWithoutFormat-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">DefaultFormattedTemporalSerde</a></code></span></div>
 <div class="block">A method that is invoked when the value is known not to be null.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.time.LocalDate&gt;</code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#deserializeNonNullWithoutFormat-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNullWithoutFormat</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a>&lt;java.time.LocalDate&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>decoder</code> - The decoder</dd>
 <dd><code>decoderContext</code> - The decoder context</dd>

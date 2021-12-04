@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":6,"i2":10,"i3":6};
+var methods = {"i0":10,"i1":6,"i2":6,"i3":10,"i4":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -115,7 +115,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <dl>
 <dt>Direct Known Subclasses:</dt>
-<dd><a href="../../../../io/micronaut/serde/serdes/InstantSerde.html" title="class in io.micronaut.serde.serdes">InstantSerde</a>, <a href="../../../../io/micronaut/serde/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.serdes">LocalDateTimeSerde</a>, <a href="../../../../io/micronaut/serde/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.serdes">ZonedDateTimeSerde</a></dd>
+<dd><a href="../../../../io/micronaut/serde/serdes/InstantSerde.html" title="class in io.micronaut.serde.serdes">InstantSerde</a>, <a href="../../../../io/micronaut/serde/serdes/LocalDateSerde.html" title="class in io.micronaut.serde.serdes">LocalDateSerde</a>, <a href="../../../../io/micronaut/serde/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.serdes">LocalDateTimeSerde</a>, <a href="../../../../io/micronaut/serde/serdes/LocalTimeSerde.html" title="class in io.micronaut.serde.serdes">LocalTimeSerde</a>, <a href="../../../../io/micronaut/serde/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.serdes">OffsetDateTimeSerde</a>, <a href="../../../../io/micronaut/serde/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.serdes">ZonedDateTimeSerde</a></dd>
 </dl>
 <hr>
 <br>
@@ -220,6 +220,10 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>protected abstract java.time.format.DateTimeFormatter</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#getDefaultFormatter--">getDefaultFormatter</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></span>(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
          <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
@@ -228,7 +232,7 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <div class="block">Serializes the given value using the passed <a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>protected abstract void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#serializeWithoutFormat-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serializeWithoutFormat</a></span>(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
                       <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
@@ -310,6 +314,20 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getDefaultFormatter--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDefaultFormatter</h4>
+<pre>@NonNull
+protected abstract&nbsp;java.time.format.DateTimeFormatter&nbsp;getDefaultFormatter()</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The default formatter.</dd>
+</dl>
+</li>
+</ul>
 <a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.temporal.TemporalAccessor-io.micronaut.core.type.Argument-">
 <!--   -->
 </a><a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":6};
+var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -163,6 +163,12 @@ public interface <span class="typeNameLabel">SerdeConfiguration</span></pre>
 <td class="colFirst"><code>java.util.Optional&lt;java.util.TimeZone&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/config/SerdeConfiguration.html#getTimeZone--">getTimeZone</a></span>()</code>&nbsp;</td>
 </tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/config/SerdeConfiguration.html#isWriteDatesAsTimestamps--">isWriteDatesAsTimestamps</a></span>()</code>
+<div class="block">Whether to write dates as time stamps.</div>
+</td>
+</tr>
 </table>
 </li>
 </ul>
@@ -210,6 +216,25 @@ public interface <span class="typeNameLabel">SerdeConfiguration</span></pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the date format to use</dd>
+</dl>
+</li>
+</ul>
+<a name="isWriteDatesAsTimestamps--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isWriteDatesAsTimestamps</h4>
+<pre>@Bindable(defaultValue="true")
+boolean&nbsp;isWriteDatesAsTimestamps()</pre>
+<div class="block">Whether to write dates as time stamps. Defaults to <code>true</code>.
+
+ <p>If set to <code>false</code> the default ISO formats will be used to format dates as strings.</p></div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Whether to write dates as timestamps</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><code>DateTimeFormatter</code></dd>
 </dl>
 </li>
 </ul>

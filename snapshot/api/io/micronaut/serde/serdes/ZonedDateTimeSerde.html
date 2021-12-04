@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -208,10 +208,14 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected java.time.format.DateTimeFormatter</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/ZonedDateTimeSerde.html#getDefaultFormatter--">getDefaultFormatter</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.time.temporal.TemporalQuery&lt;java.time.ZonedDateTime&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/ZonedDateTimeSerde.html#query--">query</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/serdes/ZonedDateTimeSerde.html#serializeWithoutFormat-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.ZonedDateTime-io.micronaut.core.type.Argument-">serializeWithoutFormat</a></span>(<a href="../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
                       <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
@@ -294,6 +298,21 @@ implements <a href="../../../../io/micronaut/serde/serdes/TemporalSerde.html" ti
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getDefaultFormatter--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDefaultFormatter</h4>
+<pre>protected&nbsp;java.time.format.DateTimeFormatter&nbsp;getDefaultFormatter()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html#getDefaultFormatter--">getDefaultFormatter</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.serdes">DefaultFormattedTemporalSerde</a>&lt;java.time.ZonedDateTime&gt;</code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The default formatter.</dd>
+</dl>
+</li>
+</ul>
 <a name="query--">
 <!--   -->
 </a>
