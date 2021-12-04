@@ -76,6 +76,7 @@ final class SerBean<T> {
     public final SerProperty<T, Object> anyGetter;
     public final SerProperty<T, Object> jsonValue;
     public final SerializationConfiguration configuration;
+    public final boolean initialized;
     // CHECKSTYLE:ON
 
     SerBean(TypeKey typeKey,
@@ -270,6 +271,7 @@ final class SerBean<T> {
                 this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             }
         }
+        initialized = true;
     }
 
     private Comparator<BeanProperty<?, Object>> getPropertyComparator() {
