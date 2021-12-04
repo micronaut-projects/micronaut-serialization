@@ -86,10 +86,10 @@ final class SerBean<T> {
             Serializer.EncoderContext encoderContext,
             SerializationConfiguration configuration) throws SerdeException {
         //noinspection unchecked
-        serBeanMap.put(typeKey, (SerBean<Object>) this);
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
+        serBeanMap.put(typeKey, (SerBean<Object>) this);
         final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanProperties().stream()
                         .filter(property -> !property.isWriteOnly() &&
