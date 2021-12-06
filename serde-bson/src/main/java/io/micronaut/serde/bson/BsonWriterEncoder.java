@@ -38,11 +38,16 @@ public final class BsonWriterEncoder implements Encoder {
     private final BsonWriterEncoder parent;
 
     private String currentKey = null;
+    private int currentIndex = 0;
 
     public BsonWriterEncoder(BsonWriter bsonWriter) {
         this.bsonWriter = bsonWriter;
         this.isArray = false;
         this.parent = null;
+    }
+
+    private void postEncodeValue() {
+        currentIndex++;
     }
 
     private BsonWriterEncoder(BsonWriterEncoder parent, boolean isArray) {
@@ -65,11 +70,15 @@ public final class BsonWriterEncoder implements Encoder {
 
     @Override
     public void finishStructure() {
+        if (parent == null) {
+            throw new IllegalStateException("Not in a structure");
+        }
         if (isArray) {
             bsonWriter.writeEndArray();
         } else {
             bsonWriter.writeEndDocument();
         }
+        parent.postEncodeValue();
     }
 
     @Override
@@ -81,61 +90,73 @@ public final class BsonWriterEncoder implements Encoder {
     @Override
     public void encodeString(String value) {
         bsonWriter.writeString(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBoolean(boolean value) {
         bsonWriter.writeBoolean(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeByte(byte value) {
         bsonWriter.writeInt32(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeShort(short value) {
         bsonWriter.writeInt32(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeChar(char value) {
         bsonWriter.writeInt32(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeInt(int value) {
         bsonWriter.writeInt32(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeLong(long value) {
         bsonWriter.writeInt64(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeFloat(float value) {
         bsonWriter.writeDouble(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeDouble(double value) {
         bsonWriter.writeDouble(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBigInteger(BigInteger value) {
         encodeBigDecimal(new BigDecimal(value));
+        postEncodeValue();
     }
 
     @Override
     public void encodeBigDecimal(BigDecimal value) {
         bsonWriter.writeDecimal128(new Decimal128(value));
+        postEncodeValue();
     }
 
     @Override
     public void encodeNull() {
         bsonWriter.writeNull();
+        postEncodeValue();
     }
 
     @NonNull
@@ -148,7 +169,9 @@ public final class BsonWriterEncoder implements Encoder {
                 builder.insert(0, "->");
             }
             if (enc.currentKey == null) {
-                builder.insert(0, '*');
+                if (enc.parent != null) {
+                    builder.insert(0, enc.currentIndex);
+                }
             } else {
                 builder.insert(0, enc.currentKey);
             }
@@ -159,10 +182,12 @@ public final class BsonWriterEncoder implements Encoder {
 
     public void encodeDecimal128(Decimal128 value) {
         bsonWriter.writeDecimal128(value);
+        postEncodeValue();
     }
 
     public void encodeObjectId(ObjectId value) {
         bsonWriter.writeObjectId(value);
+        postEncodeValue();
     }
 
     public BsonWriter getBsonWriter() {

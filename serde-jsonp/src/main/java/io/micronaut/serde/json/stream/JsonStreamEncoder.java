@@ -28,6 +28,7 @@ final class JsonStreamEncoder implements Encoder {
     private final JsonGenerator jsonGenerator;
     private final JsonStreamEncoder parent;
     private String currentKey;
+    private int currentIndex;
 
     public JsonStreamEncoder(JsonGenerator jsonGenerator) {
         this.jsonGenerator = jsonGenerator;
@@ -37,6 +38,10 @@ final class JsonStreamEncoder implements Encoder {
     private JsonStreamEncoder(JsonStreamEncoder parent) {
         this.jsonGenerator = parent.jsonGenerator;
         this.parent = parent;
+    }
+
+    private void postEncodeValue() {
+        currentIndex++;
     }
 
     @Override
@@ -53,7 +58,11 @@ final class JsonStreamEncoder implements Encoder {
 
     @Override
     public void finishStructure() throws IOException {
+        if (parent == null) {
+            throw new IllegalStateException("Not a structure");
+        }
         jsonGenerator.writeEnd();
+        parent.postEncodeValue();
     }
 
     @Override
@@ -65,61 +74,73 @@ final class JsonStreamEncoder implements Encoder {
     @Override
     public void encodeString(String value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBoolean(boolean value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeByte(byte value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeShort(short value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeChar(char value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeInt(int value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeLong(long value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeFloat(float value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeDouble(double value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBigInteger(BigInteger value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBigDecimal(BigDecimal value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeNull() throws IOException {
         jsonGenerator.writeNull();
+        postEncodeValue();
     }
 
     @NonNull
@@ -132,7 +153,9 @@ final class JsonStreamEncoder implements Encoder {
                 builder.insert(0, "->");
             }
             if (enc.currentKey == null) {
-                builder.insert(0, '*');
+                if (enc.parent != null) {
+                    builder.insert(0, enc.currentIndex);
+                }
             } else {
                 builder.insert(0, enc.currentKey);
             }

@@ -15,19 +15,19 @@ class BsonWriterEncoderSpec extends Specification {
         outer.encodeKey('foo')
         outer.encodeString('bar')
         then:
-        outer.currentPath() == '*->foo'
+        outer.currentPath() == '->foo'
 
         when:
         outer.encodeKey('')
         outer.encodeString('bar')
         then:
-        outer.currentPath() == '*->'
+        outer.currentPath() == '->'
 
         when:
         outer.encodeKey('baz')
         def array = outer.encodeArray(Argument.VOID)
         array.encodeString('foo')
         then:
-        array.currentPath() == '*->baz->*'
+        array.currentPath() == '->baz->1'
     }
 }
