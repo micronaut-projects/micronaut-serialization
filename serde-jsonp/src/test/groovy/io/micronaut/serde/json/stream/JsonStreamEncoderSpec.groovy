@@ -27,6 +27,6 @@ class JsonStreamEncoderSpec extends Specification {
         def array = outer.encodeArray(Argument.VOID)
         array.encodeString('foo')
         then:
-        array.currentPath() == '->baz->0'
+        array.currentPath() == '->baz->1'
     }
 }
