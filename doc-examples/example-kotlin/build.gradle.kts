@@ -2,7 +2,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.6.0"
     id("org.jetbrains.kotlin.kapt") version "1.6.0"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.6.0"
-    id("io.micronaut.application") version "3.0.0"
+    id("io.micronaut.application") version "3.0.1"
 }
 
 micronaut {
