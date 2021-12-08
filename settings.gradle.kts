@@ -47,3 +47,4 @@ dependencyResolutionManagement {
         }
     }
 }
+include("serde-generator")
