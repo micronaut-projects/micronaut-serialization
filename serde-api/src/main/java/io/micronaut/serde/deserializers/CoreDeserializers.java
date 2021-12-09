@@ -84,7 +84,7 @@ public class CoreDeserializers {
     /**
      * Deserializes hash sets.
      * @param <E> The element type
-     * @return The hash set deserializer, never {@link null}
+     * @return The hash set deserializer, never null
      */
     @NonNull
     @Singleton
