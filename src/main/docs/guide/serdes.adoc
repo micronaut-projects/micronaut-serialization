@@ -2,11 +2,11 @@ Custom serializers and deserializers for types can be written by implementing th
 
 For example given the following class:
 
-snippet::example.Point[project-base="doc-examples/example", source="main"]
+snippet::example.Point[source="main"]
 
 A custom serde (a combined serializer and deserializer) can be implemented as follows:
 
-snippet::example.PointSerde[project-base="doc-examples/example", source="main"]
+snippet::example.PointSerde[source="main"]
 
 <1> The api:serde.Serde[] is made a bean by annotating it with `@Singleton` scope.
 <2> The api:serde.Serde[] interface is implemented for a given type.
@@ -40,14 +40,14 @@ NOTE: Frequently in this case you will more than one serializer/deserializer for
 
 For example say you add another secondary `Serde` to store the previous `Point` example in reverse order:
 
-snippet::example.ReversePointSerde[project-base="doc-examples/example", source="main"]
+snippet::example.ReversePointSerde[source="main"]
 
 <1> This bean is made `@Secondary` so the primary `Serde` serializes by default in the correct order
 <2> The coordinates are stored in reverse order
 
 You can then define annotations at field, parameter, method etc. level to customize serialization/deserialization for just that case:
 
-snippet::example.Place[project-base="doc-examples/example", source="main"]
+snippet::example.Place[source="main"]
 
 <1> `@Serializable(using=..)` indicates to use the `ReversePointSerde` to serialize the coordinates
 <2> `@Serializable(using=..)` indicates to use the `ReversePointSerde` to deserialize the coordinates
