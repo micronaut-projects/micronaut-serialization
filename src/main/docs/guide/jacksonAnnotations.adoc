@@ -4,7 +4,7 @@ The primary difference is Micronaut Serialization uses build-time https://docs.m
 
 TIP: You can however, enable fields to be included using `AccessKind` field. See the "Bean Fields" section of the https://docs.micronaut.io/latest/guide/#introspection[Bean Introspections] docs.
 
-The full list of supported Jackson annotations and members is described in the able below.
+The full list of supported Jackson annotations and members is described in the table below.
 
 NOTE: If an unsupported annotation or member is used, a compilation error will result.
 
