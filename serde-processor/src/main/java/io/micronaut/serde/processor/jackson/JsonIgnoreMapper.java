@@ -25,7 +25,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
- * Maps the {@link com.fasterxml.jackson.annotation.JsonIgnore} annotation to {@link SerdeConfig}.
+ * Maps the {@code com.fasterxml.jackson.annotation.JsonIgnore} annotation to {@link SerdeConfig}.
  */
 public class JsonIgnoreMapper implements NamedAnnotationMapper {
     @Override

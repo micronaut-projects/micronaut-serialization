@@ -23,11 +23,13 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import jakarta.inject.Singleton;
 
 /**
  * Serializer for optional.
  * @param <T> The generic type
  */
+@Singleton
 class OptionalSerializer<T> implements Serializer<Optional<T>> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override

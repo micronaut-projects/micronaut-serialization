@@ -27,7 +27,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
- * Transformer for {@link com.fasterxml.jackson.annotation.JsonFormat}.
+ * Transformer for {@code com.fasterxml.jackson.annotation.JsonFormat}.
  *
  * @author graemerocher
  * @since 1.0.0

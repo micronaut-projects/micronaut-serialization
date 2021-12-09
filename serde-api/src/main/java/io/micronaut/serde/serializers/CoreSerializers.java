@@ -16,9 +16,7 @@
 package io.micronaut.serde.serializers;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
@@ -49,7 +47,11 @@ public class CoreSerializers {
                                   EncoderContext context,
                                   CharSequence value,
                                   Argument<? extends CharSequence> type) throws IOException {
-                encoder.encodeString(value.toString());
+                if (value instanceof String) {
+                    encoder.encodeString((String) value);
+                } else {
+                    encoder.encodeString(value.toString());
+                }
             }
 
             @Override
@@ -77,86 +79,6 @@ public class CoreSerializers {
     @Singleton
     protected Serializer<Boolean> booleanSerializer() {
         return (encoder, context, value, type) -> encoder.encodeBoolean(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Iterable}.
-     *
-     * @param <T> The element type
-     * @return An iterable serializer
-     */
-    @Singleton
-    protected <T> Serializer<Iterable<T>> iterableSerializer() {
-        return new Serializer<Iterable<T>>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  Iterable<T> value,
-                                  Argument<? extends Iterable<T>> type) throws IOException {
-                final Encoder childEncoder = encoder.encodeArray(type);
-                final Argument<?>[] generics = type.getTypeParameters();
-                final boolean hasGeneric = ArrayUtils.isNotEmpty(generics);
-                if (hasGeneric) {
-
-                    @SuppressWarnings("unchecked")
-                    final Argument<T> generic = (Argument<T>) generics[0];
-                    Serializer<? super T> componentSerializer = context.findSerializer(generic);
-                    for (T t : value) {
-                        if (t == null) {
-                            encoder.encodeNull();
-                            continue;
-                        }
-                        componentSerializer.serialize(
-                                childEncoder,
-                                context,
-                                t,
-                                generic
-                        );
-                    }
-                } else {
-                    // slow path, generic look up per element
-                    for (T t : value) {
-                        if (t == null) {
-                            encoder.encodeNull();
-                            continue;
-                        }
-                        @SuppressWarnings("unchecked")
-                        Argument<T> generic = (Argument<T>) Argument.of(t.getClass());
-                        Serializer<? super T> componentSerializer = context.findSerializer(generic);
-                        componentSerializer.serialize(
-                                childEncoder,
-                                context,
-                                t,
-                                generic
-                        );
-                    }
-                }
-                childEncoder.finishStructure();
-            }
-
-            @Override
-            public boolean isEmpty(Iterable<T> value) {
-                if (value == null) {
-                    return true;
-                }
-                if (value instanceof Collection) {
-                    return ((Collection<T>) value).isEmpty();
-                } else {
-                    return !value.iterator().hasNext();
-                }
-            }
-        };
-    }
-
-    /**
-     * A serializer for all instances of {@link java.util.Optional}.
-     *
-     * @param <T> The optional type
-     * @return An Optional serializer
-     */
-    @Singleton
-    protected <T> Serializer<Optional<T>> optionalSerializer() {
-        return new OptionalSerializer<>();
     }
 
     /**
