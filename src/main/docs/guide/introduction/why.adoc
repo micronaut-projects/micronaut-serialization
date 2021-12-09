@@ -1,10 +1,10 @@
 The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.
 
-==== Performance
+==== Memory Performance
 
 Micronaut Serialization consumes less memory and has a much smaller runtime component. As a way of comparison Micronaut Serialization is a 380kb JAR file, compared to Jackson Databind which is well over 2mb. This results in a reduction of 5MB in terms of image size for native image builds.
 
-The elimination of reflection and smaller footprint also results in higher throughput and reduced runtime memory consumption.
+The elimination of reflection and smaller footprint also results in reduced runtime memory consumption.
 
 ==== Security
 

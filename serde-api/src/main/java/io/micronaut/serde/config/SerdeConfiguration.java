@@ -62,8 +62,8 @@ public interface SerdeConfiguration {
     Optional<TimeZone> getTimeZone();
 
     /**
-     * Th packages containing introspections that should be regarded 
-     * as serializable by default without the need to add the Serdable annotation.
+     * The packages containing introspections that should be regarded
+     * as serializable by default without the need to add the {@link io.micronaut.serde.annotation.Serdeable} annotation.
      *
      * @return the packages to include
      */

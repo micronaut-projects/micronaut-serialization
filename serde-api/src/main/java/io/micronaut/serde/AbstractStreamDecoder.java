@@ -64,16 +64,61 @@ public abstract class AbstractStreamDecoder implements Decoder {
         this.view = view;
     }
 
+    /**
+     * The token type.
+     */
     protected enum TokenType {
-        START_ARRAY, END_ARRAY,
-        START_OBJECT, END_OBJECT,
+        /**
+         * Start of an array.
+         */
+        START_ARRAY,
+        /**
+         * End of an array.
+         */
+        END_ARRAY,
+        /**
+         * Start of an object.
+         */
+        START_OBJECT,
+        /**
+         * End of an object.
+         */
+        END_OBJECT,
+        /**
+         * A key.
+         */
         KEY,
-        NUMBER, STRING, BOOLEAN, NULL,
+        /**
+         * A number.
+         */
+        NUMBER,
+        /**
+         * A string.
+         */
+        STRING,
+        /**
+         * A boolean.
+         */
+        BOOLEAN,
+        /**
+         * A {@code null} value.
+         */
+        NULL,
+        /**
+         * Any other token.
+         */
         OTHER
     }
 
-    protected abstract TokenType currentToken();
+    /**
+     * @return The current token.
+     */
+    protected abstract @Nullable TokenType currentToken();
 
+    /**
+     * Move to the next token.
+     * @throws java.io.IOException if an unrecoverable error occurs
+     */
     protected abstract void nextToken() throws IOException;
 
     /**
@@ -145,6 +190,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * may hold an outdated value until {@link #nextToken()} is called, which this method does.
      *
      * @param child The now-invalid child decoder.
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected void backFromChild(AbstractStreamDecoder child) throws IOException {
         nextToken();
@@ -159,6 +205,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     /**
      * Get the current object field name. Only called for {@link TokenType#KEY}.
      * @return The current field key
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract String getCurrentKey() throws IOException;
 
@@ -212,6 +259,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     /**
      * Decode any non-null scalar value (number, string or boolean) to its string representation.
      * @return The current value, coerced to a string
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract String coerceScalarToString() throws IOException;
 
@@ -244,6 +292,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     /**
      * Decode the current {@link TokenType#BOOLEAN} value. Called for no other token type.
      * @return The boolean value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract boolean getBoolean() throws IOException;
 
@@ -307,30 +356,35 @@ public abstract class AbstractStreamDecoder implements Decoder {
     /**
      * Decode the current {@link TokenType#NUMBER} value as a long value. Called for no other token type.
      * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract long getLong() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a double value. Called for no other token type.
      * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract double getDouble() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link BigInteger} value. Called for no other token type.
      * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract BigInteger getBigInteger() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link BigDecimal} value. Called for no other token type.
      * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract BigDecimal getBigDecimal() throws IOException;
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link Number} value. Called for no other token type.
      * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract Number getBestNumber() throws IOException;
 
@@ -338,6 +392,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * Decode the current {@link TokenType#NUMBER} value as a numeric {@link JsonNode}. Called for no other token type.
      * Default implementation tries to construct a node from {@link #getBestNumber()}.
      * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected JsonNode getBestNumberNode() throws IOException {
         Number number = getBestNumber();
@@ -467,6 +522,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * @param one             The one value.
      * @param <T>             The number type.
      * @return The parsed number.
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected final <T> T decodeNumber(
             ValueDecoder<T> fromNumberToken,
@@ -512,6 +568,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * @param readFunction Function to call for reading the value. The {@link AbstractStreamDecoder} parameter to the function will just be {@code this}, but this allows subclasses to avoid capturing {@code this} to avoid an allocation.
      * @param <T> Value type
      * @return The parsed value.
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected final <T> T decodeCustom(ValueDecoder<T> readFunction) throws IOException {
         preDecodeValue();
@@ -634,6 +691,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     /**
      * If we are at a {@link TokenType#START_OBJECT} or {@link TokenType#START_ARRAY}, skip to the matching
      * {@link TokenType#END_OBJECT} or {@link TokenType#END_ARRAY}. Else, do nothing.
+     * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract void skipChildren() throws IOException;
 
@@ -655,6 +713,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
          *
          * @param target Reference to {@code this}, allows subclasses to avoid capturing {@code this} to avoid an allocation.
          * @return The decoded value
+         * @throws java.io.IOException if an unrecoverable error occurs
          */
         R decode(AbstractStreamDecoder target) throws IOException;
     }

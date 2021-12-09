@@ -62,7 +62,7 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray(Argument<?> type) throws IOException {
+    public final Encoder encodeArray(Argument<?> type) throws IOException {
         checkChild();
 
         generator.writeStartArray();
@@ -72,7 +72,7 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeObject(Argument<?> type) throws IOException {
+    public final Encoder encodeObject(Argument<?> type) throws IOException {
         checkChild();
 
         generator.writeStartObject();
@@ -82,7 +82,16 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public void finishStructure() throws IOException {
+    public final void finishStructure() throws IOException {
+        checkChild();
+        finishStructureToken();
+        if (parent != null) {
+            parent.child = null;
+        }
+    }
+
+    @Override
+    public final void close() throws IOException {
         checkChild();
         finishStructureToken();
         if (parent != null) {
@@ -99,75 +108,75 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     @Override
-    public void encodeKey(@NonNull String key) throws IOException {
+    public final void encodeKey(@NonNull String key) throws IOException {
         Objects.requireNonNull(key, "key");
         generator.writeFieldName(key);
     }
 
     @Override
-    public void encodeString(@NonNull String value) throws IOException {
+    public final void encodeString(@NonNull String value) throws IOException {
         Objects.requireNonNull(value, "value");
         generator.writeString(value);
     }
 
     @Override
-    public void encodeBoolean(boolean value) throws IOException {
+    public final void encodeBoolean(boolean value) throws IOException {
         generator.writeBoolean(value);
     }
 
     @Override
-    public void encodeByte(byte value) throws IOException {
+    public final void encodeByte(byte value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeShort(short value) throws IOException {
+    public final void encodeShort(short value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeChar(char value) throws IOException {
+    public final void encodeChar(char value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeInt(int value) throws IOException {
+    public final void encodeInt(int value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeLong(long value) throws IOException {
+    public final void encodeLong(long value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeFloat(float value) throws IOException {
+    public final void encodeFloat(float value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeDouble(double value) throws IOException {
+    public final void encodeDouble(double value) throws IOException {
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeBigInteger(@NonNull BigInteger value) throws IOException {
+    public final void encodeBigInteger(@NonNull BigInteger value) throws IOException {
         Objects.requireNonNull(value, "value");
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
+    public final void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
         Objects.requireNonNull(value, "value");
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeNull() throws IOException {
+    public final void encodeNull() throws IOException {
         generator.writeNull();
     }
 
-    private static class ArrayEncoder extends JacksonEncoder {
+    private static final class ArrayEncoder extends JacksonEncoder {
         ArrayEncoder(JacksonEncoder parent) {
             super(parent);
         }
@@ -178,7 +187,7 @@ public abstract class JacksonEncoder implements Encoder {
         }
     }
 
-    private static class ObjectEncoder extends JacksonEncoder {
+    private static final class ObjectEncoder extends JacksonEncoder {
         ObjectEncoder(JacksonEncoder parent) {
             super(parent);
         }
@@ -189,7 +198,7 @@ public abstract class JacksonEncoder implements Encoder {
         }
     }
 
-    private static class OuterEncoder extends JacksonEncoder {
+    private static final class OuterEncoder extends JacksonEncoder {
         OuterEncoder(@NonNull JsonGenerator generator) {
             super(generator);
         }
