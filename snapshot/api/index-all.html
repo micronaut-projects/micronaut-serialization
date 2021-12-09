@@ -105,7 +105,9 @@
 <div class="block">Root constructor.</div>
 </dd>
 <dt><a href="io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde"><span class="typeNameLink">AbstractStreamDecoder.TokenType</span></a> - Enum in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">The token type.</div>
+</dd>
 <dt><a href="io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde"><span class="typeNameLink">AbstractStreamDecoder.ValueDecoder</span></a>&lt;<a href="io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="type parameter in AbstractStreamDecoder.ValueDecoder">R</a>&gt; - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
 <div class="block">Decoder function for a single value.</div>
@@ -221,7 +223,9 @@
 <div class="block">Utility class for buffering and parsing JSON to support <code>JsonMapper.createReactiveParser(java.util.function.Consumer, boolean)</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/util/BufferingJsonNodeProcessor.html#BufferingJsonNodeProcessor-java.util.function.Consumer-boolean-">BufferingJsonNodeProcessor(Consumer&lt;Processor&lt;byte[], JsonNode&gt;&gt;, boolean)</a></span> - Constructor for class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.util">BufferingJsonNodeProcessor</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Default constructor.</div>
+</dd>
 </dl>
 <a name="I:C">
 <!--   -->
@@ -254,6 +258,8 @@
 <dd>
 <div class="block">Finalize the current structure.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonEncoder.html#close--">close()</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonEncoder.html" title="class in io.micronaut.serde.jackson">JacksonEncoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="class in io.micronaut.serde.bson.custom"><span class="typeNameLink">CodecBsonDecoder</span></a>&lt;<a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" title="type parameter in CodecBsonDecoder">T</a>&gt; - Class in <a href="io/micronaut/serde/bson/custom/package-summary.html">io.micronaut.serde.bson.custom</a></dt>
 <dd>
 <div class="block">Serializer/deserializer implemented by <code>Codec</code>.</div>
@@ -1051,8 +1057,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/SerdeConfiguration.html#getIncludedIntrospectionPackages--">getIncludedIntrospectionPackages()</a></span> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>
-<div class="block">Th packages containing introspections that should be regarded 
- as serializable by default without the need to add the Serdable annotation.</div>
+<div class="block">The packages containing introspections that should be regarded
+ as serializable by default without the need to add the <a href="io/micronaut/serde/annotation/Serdeable.html" title="annotation in io.micronaut.serde.annotation"><code>Serdeable</code></a> annotation.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/SerializationConfiguration.html#getInclusion--">getInclusion()</a></span> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -1376,10 +1382,6 @@
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/SerdeConfiguration.html#isWriteDatesAsTimestamps--">isWriteDatesAsTimestamps()</a></span> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>
 <div class="block">Whether to write dates as time stamps.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/serializers/CoreSerializers.html#iterableSerializer--">iterableSerializer()</a></span> - Method in class io.micronaut.serde.serializers.<a href="io/micronaut/serde/serializers/CoreSerializers.html" title="class in io.micronaut.serde.serializers">CoreSerializers</a></dt>
-<dd>
-<div class="block">A serializer for all instances of <code>Iterable</code>.</div>
 </dd>
 </dl>
 <a name="I:J">
@@ -1814,7 +1816,9 @@
 <div class="block">Creates a new encoder context.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">nextToken()</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Move to the next token.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#nextToken--">nextToken()</a></span> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/jackson/JacksonDecoder.html#nextToken--">nextToken()</a></span> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
@@ -1877,10 +1881,6 @@
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/deserializers/CoreDeserializers.html#optionalDeserializer--">optionalDeserializer()</a></span> - Method in class io.micronaut.serde.deserializers.<a href="io/micronaut/serde/deserializers/CoreDeserializers.html" title="class in io.micronaut.serde.deserializers">CoreDeserializers</a></dt>
 <dd>
 <div class="block">Deserializes optional values.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/serializers/CoreSerializers.html#optionalSerializer--">optionalSerializer()</a></span> - Method in class io.micronaut.serde.serializers.<a href="io/micronaut/serde/serializers/CoreSerializers.html" title="class in io.micronaut.serde.serializers">CoreSerializers</a></dt>
-<dd>
-<div class="block">A serializer for all instances of <code>Optional</code>.</div>
 </dd>
 </dl>
 <a name="I:P">
@@ -2003,7 +2003,9 @@
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#readValueFromTree-io.micronaut.json.tree.JsonNode-io.micronaut.core.type.Argument-">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a></span> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html#refs">refs</a></span> - Variable in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html" title="class in io.micronaut.serde.reference">AbstractPropertyReferenceManager</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">used to store current references.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#registry">registry</a></span> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/Deserializer.DecoderContext.html#resolveReference-io.micronaut.serde.reference.PropertyReference-">resolveReference(PropertyReference&lt;B, P&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>

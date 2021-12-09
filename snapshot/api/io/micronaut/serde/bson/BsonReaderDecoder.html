@@ -270,7 +270,9 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 </tr>
 <tr id="i16" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonReaderDecoder.html#nextToken--">nextToken</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/BsonReaderDecoder.html#nextToken--">nextToken</a></span>()</code>
+<div class="block">Move to the next token.</div>
+</td>
 </tr>
 <tr id="i17" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
@@ -350,7 +352,7 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>child</code> - The now-invalid child decoder.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -361,6 +363,8 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <li class="blockList">
 <h4>nextToken</h4>
 <pre>protected&nbsp;void&nbsp;nextToken()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Move to the next token.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">nextToken</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
@@ -400,7 +404,7 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The current value, coerced to a string</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -549,6 +553,8 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#currentToken--">currentToken</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The current token.</dd>
 </dl>
 </li>
 </ul>

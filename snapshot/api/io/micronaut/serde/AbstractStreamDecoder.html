@@ -140,7 +140,9 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static class&nbsp;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a></span></code>
+<div class="block">The token type.</div>
+</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>static interface&nbsp;</code></td>
@@ -387,7 +389,9 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 </tr>
 <tr id="i33" class="rowColor">
 <td class="colFirst"><code>protected abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">nextToken</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">nextToken</a></span>()</code>
+<div class="block">Move to the next token.</div>
+</td>
 </tr>
 <tr id="i34" class="altColor">
 <td class="colFirst"><code>protected abstract void</code></td>
@@ -479,7 +483,12 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 <ul class="blockList">
 <li class="blockList">
 <h4>currentToken</h4>
-<pre>protected abstract&nbsp;<a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a>&nbsp;currentToken()</pre>
+<pre>@Nullable
+protected abstract&nbsp;<a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a>&nbsp;currentToken()</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The current token.</dd>
+</dl>
 </li>
 </ul>
 <a name="nextToken--">
@@ -490,9 +499,10 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 <h4>nextToken</h4>
 <pre>protected abstract&nbsp;void&nbsp;nextToken()
                            throws java.io.IOException</pre>
+<div class="block">Move to the next token.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -542,7 +552,7 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>child</code> - The now-invalid child decoder.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -574,7 +584,7 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The current field key</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -672,7 +682,7 @@ public final&nbsp;<a href="../../../io/micronaut/serde/Decoder.html" title="inte
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The current value, coerced to a string</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -710,7 +720,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The boolean value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -847,7 +857,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -864,7 +874,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -881,7 +891,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -898,7 +908,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -915,7 +925,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -933,7 +943,7 @@ public final&nbsp;java.lang.String&nbsp;decodeString()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -1044,7 +1054,7 @@ public final&nbsp;java.math.BigDecimal&nbsp;decodeBigDecimal()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The parsed number.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -1065,7 +1075,7 @@ public final&nbsp;java.math.BigDecimal&nbsp;decodeBigDecimal()
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The parsed value.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
@@ -1156,7 +1166,7 @@ public final&nbsp;java.lang.Object&nbsp;decodeArbitrary()
  <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>. Else, do nothing.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
 </li>
 </ul>
