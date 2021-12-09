@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.micronaut.application") version "3.0.0"
+    id("io.micronaut.application") version "3.0.1"
 }
 
 micronaut {
@@ -17,7 +17,7 @@ dependencies {
     annotationProcessor(projects.serdeProcessor)
     implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
-    testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.4")
+    testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.5")
 }
 application {
     mainClass.set("example.Application")

@@ -58,9 +58,17 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
                 query()
             );
         } else {
-            this.defaultFormat = null;
+            this.defaultFormat = configuration.isWriteDatesAsTimestamps() ? null : new FormattedTemporalSerde<>(
+                    getDefaultFormatter(),
+                    query()
+            );
         }        
     }
+
+    /**
+     * @return The default formatter.
+     */
+    protected abstract @NonNull DateTimeFormatter getDefaultFormatter();
 
     @Override
     public final void serialize(Encoder encoder, EncoderContext context, T value, Argument<? extends T> type) throws IOException {

@@ -17,6 +17,7 @@ package io.micronaut.serde.serdes;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.type.Argument;
@@ -37,6 +38,11 @@ public class InstantSerde extends DefaultFormattedTemporalSerde<Instant> impleme
 
     protected InstantSerde(SerdeConfiguration configuration) {
         super(configuration);
+    }
+
+    @Override
+    protected DateTimeFormatter getDefaultFormatter() {
+        return DateTimeFormatter.ISO_INSTANT;
     }
 
     @Override

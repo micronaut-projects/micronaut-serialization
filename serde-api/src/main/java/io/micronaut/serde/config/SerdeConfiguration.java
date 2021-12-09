@@ -17,6 +17,8 @@ package io.micronaut.serde.config;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
+import io.micronaut.core.util.StringUtils;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -37,6 +39,17 @@ public interface SerdeConfiguration {
      * @return the date format to use
      */
     Optional<String> getDateFormat();
+
+    /**
+     * Whether to write dates as time stamps. Defaults to {@code true}.
+     *
+     * <p>If set to {@code false} the default ISO formats will be used to format dates as strings.</p>
+     *
+     * @see java.time.format.DateTimeFormatter
+     * @return Whether to write dates as timestamps
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    boolean isWriteDatesAsTimestamps();
 
     /**
      * @return The default locale to use.

@@ -76,6 +76,7 @@ final class SerBean<T> {
     public final SerProperty<T, Object> anyGetter;
     public final SerProperty<T, Object> jsonValue;
     public final SerializationConfiguration configuration;
+    public final boolean initialized;
     // CHECKSTYLE:ON
 
     SerBean(TypeKey typeKey,
@@ -85,10 +86,10 @@ final class SerBean<T> {
             Serializer.EncoderContext encoderContext,
             SerializationConfiguration configuration) throws SerdeException {
         //noinspection unchecked
-        serBeanMap.put(typeKey, (SerBean<Object>) this);
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
+        serBeanMap.put(typeKey, (SerBean<Object>) this);
         final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanProperties().stream()
                         .filter(property -> !property.isWriteOnly() &&
@@ -270,6 +271,7 @@ final class SerBean<T> {
                 this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             }
         }
+        initialized = true;
     }
 
     private Comparator<BeanProperty<?, Object>> getPropertyComparator() {
