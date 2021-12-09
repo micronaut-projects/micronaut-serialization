@@ -27,7 +27,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
- * Maps the {@link com.fasterxml.jackson.annotation.JsonProperty} annotation to {@link SerdeConfig}.
+ * Maps the `com.fasterxml.jackson.annotation.JsonProperty` annotation to {@link SerdeConfig}.
  */
 public class JsonPropertyMapper implements NamedAnnotationMapper {
 
