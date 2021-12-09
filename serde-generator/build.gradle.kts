@@ -14,6 +14,7 @@ dependencies {
     testImplementation(projects.serdeProcessor)
     testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
+    testImplementation(mn.micronaut.inject.groovy.test)
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)
     testImplementation(mn.jackson.annotations)
