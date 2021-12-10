@@ -38,12 +38,12 @@ final class PrimitiveSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         return CodeBlock.of("$N.encode$N($L);\n", encoderVariable, suffix(type), readExpression);
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         if (!canSerialize(type)) {
             throw new UnsupportedOperationException("This symbol can only handle primitives");
         }

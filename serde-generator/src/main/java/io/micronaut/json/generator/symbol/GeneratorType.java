@@ -18,7 +18,6 @@ package io.micronaut.json.generator.symbol;
 import com.squareup.javapoet.*;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.json.GenericTypeFactory;
 import io.micronaut.inject.ast.*;
 
 import java.lang.reflect.Type;
@@ -54,25 +53,6 @@ public class GeneratorType {
             raw = raw.withBoundGenericTypes(raw.getDeclaredGenericPlaceholders());
         }
         return new GeneratorType(raw);
-    }
-
-    public static GeneratorType ofParameterized(Class<?> raw, Class<?>... params) {
-        // null elements in the params array are allowed, those are treated as free variables
-
-        if (params.length == 0) {
-            ClassElement ele = ClassElement.of(raw);
-            return new GeneratorType(ele);
-        } else {
-            Type[] paramsMapped = new Type[params.length];
-            for (int i = 0; i < params.length; i++) {
-                if (params[i] != null) {
-                    paramsMapped[i] = params[i];
-                } else {
-                    paramsMapped[i] = raw.getTypeParameters()[i];
-                }
-            }
-            return new GeneratorType(ClassElement.of(GenericTypeFactory.makeParameterizedTypeWithOwner(null, raw, paramsMapped)));
-        }
     }
 
     public static GeneratorType fieldType(FieldElement element, Function<ClassElement, ClassElement> fold) {
@@ -256,58 +236,5 @@ public class GeneratorType {
             }
         }
         return true;
-    }
-
-    /**
-     * Create an expression that returns the equivalent {@link Type} at runtime.
-     *
-     * @param variableResolve Function to resolve type variables.
-     */
-    CodeBlock toRuntimeFactory(Function<String, CodeBlock> variableResolve) {
-        return toRuntimeFactory(classElement, variableResolve);
-    }
-
-    private static CodeBlock toRuntimeFactory(ClassElement type, Function<String, CodeBlock> variableResolve) {
-        if (type.isArray()) {
-            return CodeBlock.of("$T.makeArrayType($L)",
-                    GenericTypeFactory.class,
-                    toRuntimeFactory(type.fromArray(), variableResolve));
-        } else if (type.isWildcard()) {
-            return CodeBlock.of("$T.makeWildcardType(new $T[] {$L}, new $T[] {$L})",
-                    GenericTypeFactory.class,
-                    Type.class, toRuntimeFactoryVarargs(((WildcardElement) type).getUpperBounds(), false, variableResolve),
-                    Type.class, toRuntimeFactoryVarargs(((WildcardElement) type).getLowerBounds(), false, variableResolve));
-        } else if (type.isGenericPlaceholder()) {
-            return variableResolve.apply(((GenericPlaceholderElement) type).getVariableName());
-        } else {
-            CodeBlock block = CodeBlock.of("$T.class", PoetUtil.toTypeName(type.getRawClassElement()));
-            if (!type.getBoundGenericTypes().isEmpty()) {
-                block = CodeBlock.of("$T.makeParameterizedTypeWithOwner(null, $L$L)",
-                        GenericTypeFactory.class, block,
-                        toRuntimeFactoryVarargs(type.getBoundGenericTypes(), true, variableResolve));
-            }
-            return block;
-        }
-    }
-
-    private static CodeBlock toRuntimeFactoryVarargs(Collection<? extends ClassElement> types, boolean leadingComma, Function<String, CodeBlock> variableResolve) {
-        return varargsCodeBlock(
-                types.stream()
-                        .map(p -> toRuntimeFactory(p, variableResolve))
-                        .collect(Collectors.toList()),
-                leadingComma);
-    }
-
-    private static CodeBlock varargsCodeBlock(Collection<CodeBlock> values, boolean leadingComma) {
-        CodeBlock.Builder builder = CodeBlock.builder();
-        boolean first = true;
-        for (CodeBlock value : values) {
-            if (!first || leadingComma) {
-                builder.add(", ");
-            }
-            first = false;
-            builder.add("$L", value);
-        }
-        return builder.build();
     }
 }

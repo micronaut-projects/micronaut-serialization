@@ -18,6 +18,7 @@ package io.micronaut.json.generator.symbol;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 
@@ -59,13 +60,13 @@ final class InlineStringMapSerializerSymbol extends AbstractInlineContainerSeria
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         GeneratorType elementType = getType(type, "V");
         SerializerSymbol elementSerializer = getElementSymbol(elementType);
         String entryName = generatorContext.newLocalVariable("entry");
         String objectEncoder = generatorContext.newLocalVariable("mapEncoder");
         return CodeBlock.builder()
-                .addStatement("$T $N = $N.encodeObject()", Encoder.class, objectEncoder, encoderVariable)
+                .addStatement("$T $N = $N.encodeObject($T.OBJECT_ARGUMENT)", Encoder.class, objectEncoder, encoderVariable, Argument.class) // todo: argument
                 .beginControlFlow("for ($T $N : $L.entrySet())",
                         ParameterizedTypeName.get(
                                 ClassName.get(Map.Entry.class),
@@ -76,14 +77,14 @@ final class InlineStringMapSerializerSymbol extends AbstractInlineContainerSeria
                         readExpression
                 )
                 .addStatement("$N.encodeKey($N.getKey())", objectEncoder, entryName)
-                .add(elementSerializer.serialize(generatorContext.withSubPath("[*]"), objectEncoder, elementType, CodeBlock.of("$N.getValue()", entryName)))
+                .add(elementSerializer.serialize(generatorContext.withSubPath("[*]"), objectEncoder, encoderContextVariable, elementType, CodeBlock.of("$N.getValue()", entryName)))
                 .endControlFlow()
                 .addStatement("$N.finishStructure()", objectEncoder)
                 .build();
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         GeneratorType elementType = getType(type, "V");
         SerializerSymbol elementDeserializer = getElementSymbol(elementType);
 
@@ -104,7 +105,7 @@ final class InlineStringMapSerializerSymbol extends AbstractInlineContainerSeria
         String keyVariable = generatorContext.newLocalVariable("key");
         block.addStatement("$T $N", String.class, keyVariable);
         block.beginControlFlow("while (($N = $N.decodeKey()) != null)", keyVariable, elementDecoderVariable);
-        block.add(elementDeserializer.deserialize(generatorContext, elementDecoderVariable, elementType, expr -> CodeBlock.of("$N.put($N, $L);\n", intermediateVariable, keyVariable, expr)));
+        block.add(elementDeserializer.deserialize(generatorContext, elementDecoderVariable, decoderContextVariable, elementType, expr -> CodeBlock.of("$N.put($N, $L);\n", intermediateVariable, keyVariable, expr)));
         block.endControlFlow();
 
         block.addStatement("$N.finishStructure()", elementDecoderVariable);

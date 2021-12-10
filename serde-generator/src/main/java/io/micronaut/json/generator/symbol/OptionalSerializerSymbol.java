@@ -67,7 +67,7 @@ class OptionalSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         Optional<GeneratorType> delegateType = findDelegateType(type);
         if (!delegateType.isPresent()) {
             generatorContext.getProblemReporter().fail("Could not resolve optional type", null);
@@ -77,7 +77,7 @@ class OptionalSerializerSymbol implements SerializerSymbol {
         return CodeBlock.builder()
                 .addStatement("$T $N = $L", PoetUtil.toTypeName(type), variable, readExpression)
                 .beginControlFlow("if ($N.isPresent())", variable)
-                .add(getDelegateSerializer(delegateType.get()).serialize(generatorContext, encoderVariable, delegateType.get(), CodeBlock.of("$N.get()", variable)))
+                .add(getDelegateSerializer(delegateType.get()).serialize(generatorContext, encoderVariable, encoderContextVariable, delegateType.get(), CodeBlock.of("$N.get()", variable)))
                 .nextControlFlow("else")
                 .addStatement("$N.encodeNull()", encoderVariable)
                 .endControlFlow()
@@ -85,7 +85,7 @@ class OptionalSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         Optional<GeneratorType> delegateType = findDelegateType(type);
         if (!delegateType.isPresent()) {
             generatorContext.getProblemReporter().fail("Could not resolve optional type", null);
@@ -95,7 +95,7 @@ class OptionalSerializerSymbol implements SerializerSymbol {
                 .beginControlFlow("if ($N.decodeNull())", decoderVariable)
                 .add(setter.createSetStatement(CodeBlock.of("$T.empty()", Optional.class)))
                 .nextControlFlow("else")
-                .add(getDelegateSerializer(delegateType.get()).deserialize(generatorContext, decoderVariable,
+                .add(getDelegateSerializer(delegateType.get()).deserialize(generatorContext, decoderVariable, decoderContextVariable,
                         delegateType.get(), Setter.delegate(setter, expr -> CodeBlock.of("$T.of($L)", Optional.class, expr))))
                 .endControlFlow()
                 .build();

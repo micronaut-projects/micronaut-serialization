@@ -10,7 +10,7 @@ class GroovySupportSpec extends AbstractBeanDefinitionSpec implements Serializer
         def cl = buildClassLoader('''
 package example
 
-import io.micronaut.json.annotation.SerializableBean
+import io.micronaut.serde.annotation.SerdeGenerated
 
 @SerializableBean
 class Bean {
@@ -28,7 +28,7 @@ class Bean {
         def context = buildContext('''
 package example
 
-import io.micronaut.json.annotation.SerializableBean
+import io.micronaut.serde.annotation.SerdeGenerated
 
 @SerializableBean
 class Bean {
@@ -45,7 +45,7 @@ class Bean {
         def cl = buildClassLoader('''
 package example
 
-import io.micronaut.json.annotation.SerializableBean
+import io.micronaut.serde.annotation.SerdeGenerated
 
 class Test {
     @SerializableBean
@@ -67,7 +67,7 @@ package example
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import io.micronaut.json.annotation.SerializableBean
+import io.micronaut.serde.annotation.SerdeGenerated
 
 @SerializableBean
 class Bean {
@@ -89,7 +89,7 @@ class Bean {
         def cl = buildClassLoader('''
 package example
 
-import io.micronaut.json.annotation.SerializableBean
+import io.micronaut.serde.annotation.SerdeGenerated
 
 @SerializableBean
 class Bean {

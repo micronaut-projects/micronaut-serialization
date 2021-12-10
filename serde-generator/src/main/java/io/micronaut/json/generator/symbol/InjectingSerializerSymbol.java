@@ -52,7 +52,7 @@ public class InjectingSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         return CodeBlock.of("$L.serialize($N, $L);\n", getSerializerAccess(generatorContext, type, true), encoderVariable, readExpression);
     }
 
@@ -65,7 +65,7 @@ public class InjectingSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         return setter.createSetStatement(CodeBlock.of("$L.deserialize($N)", getSerializerAccess(generatorContext, type, false), decoderVariable));
     }
 

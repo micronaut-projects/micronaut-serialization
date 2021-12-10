@@ -45,11 +45,12 @@ public interface SerializerSymbol {
      *
      * @param generatorContext The context of the generator, e.g. declared local variables.
      * @param encoderVariable The variable name of the encoder to use for serialization
+     * @param encoderContextVariable
      * @param type The type of the value being serialized.
      * @param readExpression The expression that reads the value. Must only be evaluated once.
      * @return The code block containing statements that perform the serialization.
      */
-    CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression);
+    CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression);
 
     /**
      * Generate code that reads a value from {@code decoderVariable}.
@@ -59,11 +60,12 @@ public interface SerializerSymbol {
      *
      * @param generatorContext The context of the generator, e.g. declared local variables.
      * @param decoderVariable The variable name of the decoder to use for deserialization
+     * @param decoderContextVariable
      * @param type The type of the value being deserialized.
      * @param setter The setter to use to build the final return value.
      * @return The code that performs the deserialization.
      */
-    CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter);
+    CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter);
 
     /**
      * Get an expression giving a default value for this type. Used when deserializing a bean and a property is missing.

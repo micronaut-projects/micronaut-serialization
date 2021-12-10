@@ -20,10 +20,10 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.json.annotation.SerializableBean;
 import io.micronaut.json.generator.symbol.GeneratorType;
 import io.micronaut.json.generator.symbol.SerializerLinker;
 import io.micronaut.json.generator.symbol.SerializerSymbol;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 import java.util.Optional;
 
@@ -116,7 +116,7 @@ public class DependencyGraphChecker {
                 return;
             }
 
-            if (classDecl.get().isAnnotationPresent(SerializableBean.class)) {
+            if (classDecl.get().isAnnotationPresent(SerdeGenerated.class)) {
                 visitChild(linker.inlineBean, dependencyType, null);
             } // else, a custom serializer.
         }

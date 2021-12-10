@@ -40,7 +40,7 @@ public class InlineEnumSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         EnumDefinition enumDefinition = new EnumDefinition((EnumElement) type.getClassElement());
 
         CodeBlock.Builder builder = CodeBlock.builder();
@@ -48,9 +48,8 @@ public class InlineEnumSerializerSymbol implements SerializerSymbol {
         for (int i = 0; i < enumDefinition.constants.size(); i++) {
             builder.beginControlFlow("case $N:", enumDefinition.constants.get(i));
             builder.add(enumDefinition.valueSerializer.serialize(
-                    generatorContext, encoderVariable,
-                    enumDefinition.valueType,
-                    enumDefinition.serializedLiterals.get(i)));
+                    generatorContext, encoderVariable, encoderContextVariable,
+                    enumDefinition.valueType, enumDefinition.serializedLiterals.get(i)));
             builder.addStatement("break");
             builder.endControlFlow();
         }
@@ -65,10 +64,10 @@ public class InlineEnumSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         EnumDefinition enumDefinition = new EnumDefinition((EnumElement) type.getClassElement());
 
-        return enumDefinition.valueSerializer.deserialize(generatorContext, decoderVariable, type, new Setter() {
+        return enumDefinition.valueSerializer.deserialize(generatorContext, decoderVariable, decoderContextVariable, type, new Setter() {
             @Override
             public CodeBlock createSetStatement(CodeBlock expr) {
                 return InlineEnumSerializerSymbol.this.deserialize0(generatorContext, decoderVariable, type, setter, enumDefinition, expr);
@@ -104,7 +103,7 @@ public class InlineEnumSerializerSymbol implements SerializerSymbol {
 
         builder.beginControlFlow("default:");
         builder.addStatement(
-                "throw $N.createDeserializationException($S)",
+                "throw $N.createDeserializationException($S, null)",
                 decoderVariable,
                 "Bad enum value for field " + generatorContext.getReadablePath()
         );

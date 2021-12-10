@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.squareup.javapoet.CodeBlock;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 
@@ -51,22 +52,22 @@ abstract class InlineIterableSerializerSymbol extends AbstractInlineContainerSer
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         GeneratorType elementType = getElementType(type);
         SerializerSymbol elementSerializer = getElementSymbol(elementType);
         String itemName = generatorContext.newLocalVariable("item");
         String arrayEncoder = generatorContext.newLocalVariable("arrayEncoder");
         return CodeBlock.builder()
-                .addStatement("$T $N = $N.encodeArray()", Encoder.class, arrayEncoder, encoderVariable)
+                .addStatement("$T $N = $N.encodeArray($T.OBJECT_ARGUMENT)", Encoder.class, arrayEncoder, encoderVariable, Argument.class) // TODO: Argument
                 .beginControlFlow("for ($T $N : $L)", PoetUtil.toTypeName(elementType), itemName, readExpression)
-                .add(elementSerializer.serialize(generatorContext.withSubPath("[*]"), arrayEncoder, elementType, CodeBlock.of("$N", itemName)))
+                .add(elementSerializer.serialize(generatorContext.withSubPath("[*]"), arrayEncoder, encoderContextVariable, elementType, CodeBlock.of("$N", itemName)))
                 .endControlFlow()
                 .addStatement("$N.finishStructure()", arrayEncoder)
                 .build();
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         GeneratorType elementType = getElementType(type);
         SerializerSymbol elementDeserializer = getElementSymbol(elementType);
 
@@ -77,7 +78,7 @@ abstract class InlineIterableSerializerSymbol extends AbstractInlineContainerSer
         block.addStatement("$T $N = $N.decodeArray()", Decoder.class, elementDecoderVariable, decoderVariable);
         block.add(createIntermediate(elementType, intermediateVariable));
         block.beginControlFlow("while ($N.hasNextArrayValue())", elementDecoderVariable);
-        block.add(elementDeserializer.deserialize(generatorContext, elementDecoderVariable, elementType, expr -> CodeBlock.of("$N.add($L);\n", intermediateVariable, expr)));
+        block.add(elementDeserializer.deserialize(generatorContext, elementDecoderVariable, decoderContextVariable, elementType, expr -> CodeBlock.of("$N.add($L);\n", intermediateVariable, expr)));
         block.endControlFlow();
         block.addStatement("$N.finishStructure()", elementDecoderVariable);
         block.add(setter.createSetStatement(finishDeserialize(elementType, intermediateVariable)));

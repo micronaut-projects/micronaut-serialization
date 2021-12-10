@@ -4,7 +4,7 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.TypeName
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.inject.ast.ClassElement
-import io.micronaut.json.annotation.SerializableBean
+import io.micronaut.serde.annotation.SerdeGenerated
 import io.micronaut.json.generator.SerializerUtils
 import io.micronaut.json.generator.symbol.GeneratorType
 import io.micronaut.json.generator.symbol.ProblemReporter

@@ -18,14 +18,14 @@ package io.micronaut.json.generator.symbol.bean;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
-import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
-import io.micronaut.json.Encoder;
-import io.micronaut.json.annotation.SerializableBean;
 import io.micronaut.json.generator.symbol.*;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -35,14 +35,14 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     final SerializerLinker linker;
 
     @Nullable
-    private final AnnotationValue<SerializableBean> fixedAnnotation;
+    private final AnnotationValue<SerdeGenerated> fixedAnnotation;
 
     public InlineBeanSerializerSymbol(SerializerLinker linker) {
         this.linker = linker;
         this.fixedAnnotation = null;
     }
 
-    private InlineBeanSerializerSymbol(InlineBeanSerializerSymbol original, AnnotationValue<SerializableBean> fixedAnnotation) {
+    private InlineBeanSerializerSymbol(InlineBeanSerializerSymbol original, AnnotationValue<SerdeGenerated> fixedAnnotation) {
         this.linker = original.linker;
         this.fixedAnnotation = fixedAnnotation;
     }
@@ -51,7 +51,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
      * Create a new {@link InlineBeanSerializerSymbol} that uses the given annotation for configuration, instead of the
      * one actually declared on the class.
      */
-    public InlineBeanSerializerSymbol withFixedAnnotation(AnnotationValue<SerializableBean> fixedAnnotation) {
+    public InlineBeanSerializerSymbol withFixedAnnotation(AnnotationValue<SerdeGenerated> fixedAnnotation) {
         return new InlineBeanSerializerSymbol(this, fixedAnnotation);
     }
 
@@ -70,7 +70,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     }
 
     private boolean canSerialize(GeneratorType type, boolean inlineRole) {
-        AnnotationValue<SerializableBean> annotation = getAnnotation(type);
+        AnnotationValue<SerdeGenerated> annotation = getAnnotation(type);
         if (annotation == null) {
             return false;
         }
@@ -78,19 +78,19 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     }
 
     @Nullable
-    private AnnotationValue<SerializableBean> getAnnotation(GeneratorType type) {
+    private AnnotationValue<SerdeGenerated> getAnnotation(GeneratorType type) {
         if (fixedAnnotation != null) {
             return fixedAnnotation;
         }
-        return type.getClassLevelAnnotations().getAnnotation(SerializableBean.class);
+        return type.getClassLevelAnnotations().getAnnotation(SerdeGenerated.class);
     }
 
     /**
      * Returns {@code false} iff this direction is explicitly disabled (e.g. by
-     * {@link SerializableBean#allowDeserialization()}).
+     * {@link SerdeGenerated#allowDeserialization()}).
      */
     public boolean supportsDirection(GeneratorType type, boolean serialization) {
-        AnnotationValue<SerializableBean> annotation = getAnnotation(type);
+        AnnotationValue<SerdeGenerated> annotation = getAnnotation(type);
         if (annotation == null) {
             return true;
         }
@@ -138,12 +138,12 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         if (!supportsDirection(type, true)) {
             throw new UnsupportedOperationException();
         }
 
-        return serializeImpl(generatorContext, encoderVariable, type, readExpression, true, false);
+        return serializeImpl(generatorContext, encoderVariable, encoderContextVariable, type, readExpression, true, false);
     }
 
     /**
@@ -159,6 +159,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     private CodeBlock serializeImpl(
             GeneratorContext generatorContext,
             String encoderVariable,
+            String encoderContextVariable,
             GeneratorType type,
             CodeBlock readExpression,
             boolean copyReadExpression,
@@ -179,10 +180,9 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
             // @JsonValue
             PropWithType propWithType = PropWithType.fromContext(type, definition.valueProperty);
             return SymbolLookup.forProperty(propWithType).lookup(linker, true).serialize(
-                    generatorContext, encoderVariable,
-                    propWithType.type,
+                    generatorContext, encoderVariable, encoderContextVariable,
                     // we don't need a temp variable here, getPropertyAccessExpression only evaluates the read expression once
-                    getPropertyAccessExpression(readExpression, definition.valueProperty));
+                    propWithType.type, getPropertyAccessExpression(readExpression, definition.valueProperty));
         } else {
             CodeBlock.Builder serialize = CodeBlock.builder();
             if (copyReadExpression) {
@@ -194,7 +194,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
             if (definition.subtyping != null) {
                 if (definition.subtyping.deduce) {
                     // just serialize the value directly
-                    serializeSubTyping(generatorContext, encoderVariable, serialize, readExpression, definition.subtyping, s -> {
+                    serializeSubTyping(generatorContext, encoderVariable, encoderContextVariable, serialize, readExpression, definition.subtyping, s -> {
                     }, nakedProperties);
                 } else {
                     switch (definition.subtyping.as) {
@@ -202,13 +202,13 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                             String propertyObjectEncoder;
                             if (!nakedProperties) {
                                 propertyObjectEncoder = generatorContext.newLocalVariable("subtypeWrapperObject_" + type.getTypeName());
-                                serialize.addStatement("$T $N = $N.encodeObject()", Encoder.class, propertyObjectEncoder, encoderVariable);
+                                serialize.addStatement("$T $N = $N.encodeObject($T.OBJECT_ARGUMENT)", Encoder.class, propertyObjectEncoder, encoderVariable, Argument.class);
                             } else {
                                 propertyObjectEncoder = encoderVariable;
                             }
                             serializeSubTyping(
                                     generatorContext,
-                                    propertyObjectEncoder,
+                                    propertyObjectEncoder, encoderContextVariable,
                                     serialize,
                                     readExpression,
                                     definition.subtyping,
@@ -226,13 +226,13 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                             String wrapperObjectEncoder;
                             if (!nakedProperties) {
                                 wrapperObjectEncoder = generatorContext.newLocalVariable("subtypeWrapperObject_" + type.getTypeName());
-                                serialize.addStatement("$T $N = $N.encodeObject()", Encoder.class, wrapperObjectEncoder, encoderVariable);
+                                serialize.addStatement("$T $N = $N.encodeObject($T.OBJECT_ARGUMENT)", Encoder.class, wrapperObjectEncoder, encoderVariable, Argument.class);
                             } else {
                                 wrapperObjectEncoder = encoderVariable;
                             }
                             serializeSubTyping(
                                     generatorContext,
-                                    wrapperObjectEncoder,
+                                    wrapperObjectEncoder, encoderContextVariable,
                                     serialize,
                                     readExpression,
                                     definition.subtyping,
@@ -249,10 +249,10 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                                 return CodeBlock.of("");
                             }
                             String arrayEncoder = generatorContext.newLocalVariable("subtypeWrapperArray_" + type.getTypeName());
-                            serialize.addStatement("$T $N = $N.encodeArray()", Encoder.class, arrayEncoder, encoderVariable);
+                            serialize.addStatement("$T $N = $N.encodeArray($T.OBJECT_ARGUMENT)", Encoder.class, arrayEncoder, encoderVariable, Argument.class); // todo: argument
                             serializeSubTyping(
                                     generatorContext,
-                                    arrayEncoder,
+                                    arrayEncoder, encoderContextVariable,
                                     serialize,
                                     readExpression,
                                     definition.subtyping,
@@ -270,7 +270,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                 String propEncoder;
                 if (!nakedProperties) {
                     propEncoder = generatorContext.newLocalVariable("encoder_" + type.getTypeName());
-                    serialize.addStatement("$T $N = $N.encodeObject()", Encoder.class, propEncoder, encoderVariable);
+                    serialize.addStatement("$T $N = $N.encodeObject($T.OBJECT_ARGUMENT)", Encoder.class, propEncoder, encoderVariable, Argument.class);
                 } else {
                     propEncoder = encoderVariable;
                 }
@@ -297,7 +297,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                     }
 
                     if (prop.unwrapped) {
-                        serialize.add(serializeImpl(subGenerator, propEncoder, propWithType.type, propRead, true, true));
+                        serialize.add(serializeImpl(subGenerator, propEncoder, encoderContextVariable, propWithType.type, propRead, true, true));
                     } else if (prop.anyGetter) {
                         if (!propWithType.type.isRawTypeEquals(Map.class)) {
                             generatorContext.getProblemReporter().fail("@JsonAnyGetter must be of exact type Map", prop.getElement());
@@ -317,12 +317,12 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                                 propRead
                         );
                         serialize.addStatement("$N.encodeKey($N.getKey())", propEncoder, entryName);
-                        serialize.add(valueSerializer.serialize(subGenerator, propEncoder, valueType, CodeBlock.of("$N.getValue()", entryName)));
+                        serialize.add(valueSerializer.serialize(subGenerator, propEncoder, encoderContextVariable, valueType, CodeBlock.of("$N.getValue()", entryName)));
                         serialize.endControlFlow();
                     } else {
                         assert symbol != null;
                         serialize.addStatement("$N.encodeKey($S)", propEncoder, prop.name);
-                        serialize.add(symbol.serialize(subGenerator, propEncoder, propWithType.type, propRead));
+                        serialize.add(symbol.serialize(subGenerator, propEncoder, encoderContextVariable, propWithType.type, propRead));
                     }
 
                     if (!shouldIncludeCheck.isAlwaysTrue()) {
@@ -372,6 +372,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     private void serializeSubTyping(
             GeneratorContext generatorContext,
             String encoderVariable,
+            String encoderContextVariable,
             CodeBlock.Builder builder,
             CodeBlock readExpression,
             BeanDefinition.Subtyping subtyping,
@@ -394,7 +395,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
                 writeTag.accept(subtyping.subTypeNames.get(subType).iterator().next());
             }
 
-            builder.add(serializeImpl(generatorContext, encoderVariable, subType, CodeBlock.of("$N", castVariable), false, innerNaked));
+            builder.add(serializeImpl(generatorContext, encoderVariable, encoderContextVariable, subType, CodeBlock.of("$N", castVariable), false, innerNaked));
         }
         builder.nextControlFlow("else");
         builder.addStatement("throw new $T(\"Unrecognized subtype: \" + $L.getClass().getName())", IllegalArgumentException.class, readExpression);
@@ -412,7 +413,7 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         if (!supportsDirection(type, false)) {
             throw new UnsupportedOperationException();
         }
@@ -424,6 +425,6 @@ public class InlineBeanSerializerSymbol implements SerializerSymbol {
             return CodeBlock.of("");
         }
 
-        return entity.deserializeTopLevel(generatorContext, decoderVariable, setter);
+        return entity.deserializeTopLevel(generatorContext, decoderVariable, decoderContextVariable, setter);
     }
 }

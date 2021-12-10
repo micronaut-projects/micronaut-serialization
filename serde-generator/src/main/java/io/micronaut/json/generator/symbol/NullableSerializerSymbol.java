@@ -48,25 +48,25 @@ public class NullableSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         String variable = generatorContext.newLocalVariable("tmp");
         return CodeBlock.builder()
                 .addStatement("$T $N = $L", PoetUtil.toTypeName(type), variable, readExpression)
                 .beginControlFlow("if ($N == null)", variable)
                 .addStatement("$N.encodeNull()", encoderVariable)
                 .nextControlFlow("else")
-                .add(delegate.serialize(generatorContext, encoderVariable, type, CodeBlock.of("$N", variable)))
+                .add(delegate.serialize(generatorContext, encoderVariable, encoderContextVariable, type, CodeBlock.of("$N", variable)))
                 .endControlFlow()
                 .build();
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         return CodeBlock.builder()
                 .beginControlFlow("if ($N.decodeNull())", decoderVariable)
                 .add(setter.createSetStatement(CodeBlock.of("null")))
                 .nextControlFlow("else")
-                .add(delegate.deserialize(generatorContext, decoderVariable, type, setter))
+                .add(delegate.deserialize(generatorContext, decoderVariable, decoderContextVariable, type, setter))
                 .endControlFlow()
                 .build();
     }

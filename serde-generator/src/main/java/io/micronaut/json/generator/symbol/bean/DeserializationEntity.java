@@ -21,13 +21,13 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ConstructorElement;
-import io.micronaut.json.Decoder;
 import io.micronaut.json.generator.symbol.ConditionExpression;
 import io.micronaut.json.generator.symbol.GeneratorContext;
 import io.micronaut.json.generator.symbol.GeneratorType;
 import io.micronaut.json.generator.symbol.PoetUtil;
 import io.micronaut.json.generator.symbol.SerializerLinker;
 import io.micronaut.json.generator.symbol.SerializerSymbol;
+import io.micronaut.serde.Decoder;
 
 import java.util.*;
 import java.util.function.Function;
@@ -80,7 +80,7 @@ abstract class DeserializationEntity {
     CodeBlock deserializeTopLevel(
             GeneratorContext generatorContext,
             String decoderVariable,
-            SerializerSymbol.Setter setter
+            String decoderContextVariable, SerializerSymbol.Setter setter
     ) {
         if (!hasProperties) {
             throw new UnsupportedOperationException();
@@ -128,14 +128,14 @@ abstract class DeserializationEntity {
                 builder.add("case $S:\n", alias);
             }
             builder.indent();
-            entry.getKey().deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, elementDecoderVariable, fieldNameVariable);
+            entry.getKey().deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, elementDecoderVariable, decoderContextVariable, fieldNameVariable);
             builder.addStatement("break");
             builder.unindent();
         }
 
         // unknown properties
         builder.beginControlFlow("default:");
-        unknownPropertyHandler.deserializeProperty(generatorContext, builder, readProperties, null, elementDecoderVariable, fieldNameVariable);
+        unknownPropertyHandler.deserializeProperty(generatorContext, builder, readProperties, null, elementDecoderVariable, decoderContextVariable, fieldNameVariable);
         builder.endControlFlow();
 
         builder.endControlFlow();
@@ -149,19 +149,19 @@ abstract class DeserializationEntity {
         return builder.build();
     }
 
-    final void deserializeProperty(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+    final void deserializeProperty(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
         if (!allowDeserializationCheck.isAlwaysTrue()) {
             builder.beginControlFlow("if ($L)", allowDeserializationCheck.build(decoderVariable));
         }
-        deserializeImpl(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, fieldNameVariable);
+        deserializeImpl(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, decoderContextVariable, fieldNameVariable);
         if (!allowDeserializationCheck.isAlwaysTrue()) {
             builder.nextControlFlow("else");
-            unknownPropertyHandler.deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, fieldNameVariable);
+            unknownPropertyHandler.deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, decoderContextVariable, fieldNameVariable);
             builder.endControlFlow();
         }
     }
 
-    void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+    void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
         throw new UnsupportedOperationException();
     }
 
@@ -281,19 +281,17 @@ abstract class DeserializationEntity {
         }
 
         @Override
-        CodeBlock deserializeTopLevel(GeneratorContext generatorContext, String decoderVariable, SerializerSymbol.Setter setter) {
+        CodeBlock deserializeTopLevel(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, SerializerSymbol.Setter setter) {
             return symbol.deserialize(
-                    generatorContext, decoderVariable,
-                    prop.type,
-                    SerializerSymbol.Setter.delegate(setter, expr -> getCreatorCall(type, beanDefinition, expr)));
+                    generatorContext, decoderVariable, decoderContextVariable,
+                    prop.type, SerializerSymbol.Setter.delegate(setter, expr -> getCreatorCall(type, beanDefinition, expr)));
         }
 
         @Override
-        public void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+        public void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
             builder.add(symbol.deserialize(
-                    generatorContext, decoderVariable,
-                    prop.type,
-                    expr -> CodeBlock.of("$N = $L;\n", localVariableName, getCreatorCall(type, beanDefinition, expr))));
+                    generatorContext, decoderVariable, decoderContextVariable,
+                    prop.type, expr -> CodeBlock.of("$N = $L;\n", localVariableName, getCreatorCall(type, beanDefinition, expr))));
         }
     }
 
@@ -421,7 +419,7 @@ abstract class DeserializationEntity {
                 }
                 readProperties.onMissing(builder, required.stream().collect(Collectors.toMap(
                         req -> req,
-                        req -> CodeBlock.of("throw $N.createDeserializationException($S);\n",
+                        req -> CodeBlock.of("throw $N.createDeserializationException($S, null);\n",
                                 decoderVariable,
                                 "Missing property " + propertyNames.get(req))
                 )));
@@ -508,9 +506,9 @@ abstract class DeserializationEntity {
         }
 
         @Override
-        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
             builder.add(
-                    "if ($L) throw $N.createDeserializationException($S);\n",
+                    "if ($L) throw $N.createDeserializationException($S, null);\n",
                     readProperties.isSet(this),
                     decoderVariable,
                     "Duplicate property " + prop.property.name
@@ -518,7 +516,7 @@ abstract class DeserializationEntity {
             readProperties.set(builder, this);
 
             CodeBlock deserializationCode = symbolLookup.lookup(linker, false)
-                    .deserialize(generatorContext.withSubPath(prop.property.name), decoderVariable, prop.type, expr -> CodeBlock.of("$N = $L;\n", localVariableName, expr));
+                    .deserialize(generatorContext.withSubPath(prop.property.name), decoderVariable, decoderContextVariable, prop.type, expr -> CodeBlock.of("$N = $L;\n", localVariableName, expr));
             builder.add(deserializationCode);
         }
     }
@@ -552,9 +550,9 @@ abstract class DeserializationEntity {
         }
 
         @Override
-        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
             CodeBlock deserializationCode = valueSymbol
-                    .deserialize(generatorContext.withSubPath("[AnySetter]"), decoderVariable, valueType, expr -> CodeBlock.of("$N.put($N, $L);\n", localVariableName, fieldNameVariable, expr));
+                    .deserialize(generatorContext.withSubPath("[AnySetter]"), decoderVariable, decoderContextVariable, valueType, expr -> CodeBlock.of("$N.put($N, $L);\n", localVariableName, fieldNameVariable, expr));
             builder.add(deserializationCode);
         }
     }
@@ -577,7 +575,7 @@ abstract class DeserializationEntity {
         }
 
         @Override
-        CodeBlock deserializeTopLevel(GeneratorContext generatorContext, String decoderVariable, SerializerSymbol.Setter setter) {
+        CodeBlock deserializeTopLevel(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, SerializerSymbol.Setter setter) {
             CodeBlock.Builder builder = CodeBlock.builder();
 
             String tmpVariable;
@@ -599,7 +597,7 @@ abstract class DeserializationEntity {
             } else {
                 String tagVar = generatorContext.newLocalVariable("tag");
                 builder.addStatement("$T $N = $N.decodeKey()", String.class, tagVar, wrapperDecoder);
-                builder.addStatement("if ($N == null) throw $N.createDeserializationException(\"Expected type tag, but got object end\")", tagVar, wrapperDecoder);
+                builder.addStatement("if ($N == null) throw $N.createDeserializationException(\"Expected type tag, but got object end\", null)", tagVar, wrapperDecoder);
                 builder.beginControlFlow("switch ($N)", tagVar);
             }
             for (Map.Entry<DeserializationEntity, Collection<String>> entry : subTypes.entrySet()) {
@@ -607,13 +605,13 @@ abstract class DeserializationEntity {
                     builder.add("case $S:\n", alias);
                 }
                 builder.indent();
-                builder.add(entry.getKey().deserializeTopLevel(generatorContext, wrapperDecoder, tmpSetter));
+                builder.add(entry.getKey().deserializeTopLevel(generatorContext, wrapperDecoder, decoderContextVariable, tmpSetter));
                 builder.addStatement("break");
                 builder.unindent();
             }
             builder.add("default:\n");
             builder.indent();
-            builder.addStatement("throw $N.createDeserializationException(\"Unknown type tag\")", wrapperDecoder);
+            builder.addStatement("throw $N.createDeserializationException(\"Unknown type tag\", null)", wrapperDecoder);
             builder.unindent();
             builder.endControlFlow();
 
@@ -745,14 +743,14 @@ abstract class DeserializationEntity {
             builder.addStatement("$T $N", PoetUtil.toTypeName(superType), localVariableName);
 
             builder.beginControlFlow("if ($L > 1)", possibleTypes.bitCount());
-            builder.addStatement("throw $N.createDeserializationException(\"Ambiguous type\")", decoderVariable);
+            builder.addStatement("throw $N.createDeserializationException(\"Ambiguous type\", null)", decoderVariable);
             for (DeserializationEntity subType : subTypes) {
                 builder.nextControlFlow("else if ($L)", possibleTypes.isSet(subType));
                 subType.generateEpilogue(context, builder, readProperties, decoderVariable);
                 builder.addStatement("$N = $N", localVariableName, subType.localVariableName);
             }
             builder.nextControlFlow("else");
-            builder.addStatement("throw $N.createDeserializationException(\"No matching type candidate\")", decoderVariable);
+            builder.addStatement("throw $N.createDeserializationException(\"No matching type candidate\", null)", decoderVariable);
             builder.endControlFlow();
         }
 
@@ -794,7 +792,7 @@ abstract class DeserializationEntity {
             }
 
             @Override
-            void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+            void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
                 boolean first = true;
                 for (Path path : paths) {
                     // is this path still a candidate?
@@ -809,7 +807,7 @@ abstract class DeserializationEntity {
                     Set<DeserializationEntity> otherTypes = paths.stream().filter(p -> p != path).flatMap(p -> p.subTypes.stream()).collect(Collectors.toSet());
                     if (!otherTypes.isEmpty()) {
                         builder.addStatement(
-                                "if ($L) throw $N.createDeserializationException(\"Ambiguous property\")",
+                                "if ($L) throw $N.createDeserializationException(\"Ambiguous property\", null)",
                                 possibleTypes.anySet(otherTypes),
                                 decoderVariable
                         );
@@ -818,14 +816,14 @@ abstract class DeserializationEntity {
                     // narrow the possible types
                     possibleTypes.and(builder, path.subTypes);
 
-                    path.property.deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, fieldNameVariable);
+                    path.property.deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, decoderContextVariable, fieldNameVariable);
                 }
                 builder.nextControlFlow("else");
                 if (paths.stream().mapToInt(p -> p.subTypes.size()).sum() == subTypes.size()) {
                     // no types left
                     builder.addStatement("throw new AssertionError(\"bad type\")");
                 } else {
-                    unknownPropertyHandler.deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, fieldNameVariable);
+                    unknownPropertyHandler.deserializeProperty(generatorContext, builder, readProperties, unknownPropertyHandler, decoderVariable, decoderContextVariable, fieldNameVariable);
                 }
                 builder.endControlFlow();
             }
@@ -878,7 +876,7 @@ abstract class DeserializationEntity {
             }
 
             @Override
-            void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+            void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
                 builder.beginControlFlow("switch ($N.decodeString())", decoderVariable);
 
                 for (Map.Entry<DeserializationEntity, Collection<String>> entry : tags.entrySet()) {
@@ -893,7 +891,7 @@ abstract class DeserializationEntity {
 
                 builder.add("default:\n");
                 builder.indent();
-                builder.addStatement("throw $N.createDeserializationException(\"Unknown type tag\")", decoderVariable);
+                builder.addStatement("throw $N.createDeserializationException(\"Unknown type tag\", null)", decoderVariable);
                 builder.unindent();
                 builder.endControlFlow();
             }
@@ -902,7 +900,7 @@ abstract class DeserializationEntity {
 
     private static class IgnoreUnknownProperties extends DeserializationEntity {
         @Override
-        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
             builder.addStatement("$N.skipValue()", decoderVariable);
         }
 
@@ -921,7 +919,7 @@ abstract class DeserializationEntity {
         }
 
         @Override
-        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, @Nullable String fieldNameVariable) {
+        void deserializeImpl(GeneratorContext generatorContext, CodeBlock.Builder builder, InlineBitSet<DeserializationEntity> readProperties, DeserializationEntity unknownPropertyHandler, String decoderVariable, String decoderContextVariable, @Nullable String fieldNameVariable) {
             String msg;
             if (typeForErrorMessage != null) {
                 msg = "Unknown property for type " + typeForErrorMessage.getTypeName() + ": ";
@@ -929,7 +927,7 @@ abstract class DeserializationEntity {
                 msg = "Unknown property: ";
             }
             // todo: do we really want to output a potentially attacker-controlled field name to the logs here?
-            builder.addStatement("throw $N.createDeserializationException($S + $N)", decoderVariable, msg, fieldNameVariable);
+            builder.addStatement("throw $N.createDeserializationException($S + $N, null)", decoderVariable, msg, fieldNameVariable);
         }
 
         @Override

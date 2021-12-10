@@ -17,8 +17,8 @@ package io.micronaut.json.generator.symbol;
 
 import com.squareup.javapoet.*;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.json.Deserializer;
-import io.micronaut.json.Serializer;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Serializer;
 import jakarta.inject.Provider;
 
 import java.util.HashMap;

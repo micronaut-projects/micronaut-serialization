@@ -13,7 +13,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -52,7 +52,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -91,7 +91,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -130,7 +130,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -168,7 +168,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -211,7 +211,7 @@ package example;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -271,7 +271,7 @@ class B2 extends Base2 {
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -306,7 +306,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import java.util.*;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({
@@ -351,7 +351,7 @@ class B extends Base {
 package example;
 
 import com.fasterxml.jackson.annotation.*;
-import io.micronaut.json.annotation.SerializableBean;
+import io.micronaut.serde.annotation.SerdeGenerated;
 
 @SerializableBean
 @JsonSubTypes({

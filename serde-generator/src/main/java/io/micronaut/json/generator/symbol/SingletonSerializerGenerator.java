@@ -17,10 +17,9 @@ package io.micronaut.json.generator.symbol;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.squareup.javapoet.*;
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.GenericPlaceholderElement;
@@ -28,15 +27,11 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.SerializerLocator;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Internal
@@ -228,33 +223,19 @@ public final class SingletonSerializerGenerator {
         }
         List<String> freeVariableNames = freeVariables.stream().map(GenericPlaceholderElement::getVariableName).collect(Collectors.toList());
 
-        TypeSpec.Builder factoryType = TypeSpec.classBuilder("FactoryImpl")
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .addAnnotation(Singleton.class)
-                .addAnnotation(BootstrapContextCompatible.class)
-                .addAnnotation(AnnotationSpec.builder(Requires.class)
-                        .addMember("classes", "$T.class", PoetUtil.toTypeName(valueType.getRawClass()))
-                        .addMember("beans", "$T.class", SerializerLocator.class)
-                        .build())
-                .addField(FieldSpec.builder(Type.class, "TYPE", Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer(valueType.toRuntimeFactory(v -> CodeBlock.of("$T.class.getTypeParameters()[$L]", generatedName, freeVariableNames.indexOf(v))))
-                        .build())
-                .addMethod(MethodSpec.methodBuilder("getGenericType")
-                        .addAnnotation(Override.class)
-                        .addModifiers(Modifier.PUBLIC)
-                        .returns(Type.class)
-                        .addCode(CodeBlock.of("return TYPE;\n"))
-                        .build());
-
         MethodSpec.Builder serializerConstructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC);
         CodeBlock.Builder serializerConstructorCode = CodeBlock.builder();
 
-        CodeBlock.Builder constructorCallCode = CodeBlock.builder().add("new $T(", generatedName);
-        CodeBlock.Builder factoryConstructorCode = CodeBlock.builder();
-        MethodSpec.Builder factoryConstructor = MethodSpec.constructorBuilder()
+        CodeBlock.Builder fullConstructorCode = CodeBlock.builder();
+        MethodSpec.Builder fullConstructor = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PRIVATE);
+        MethodSpec.Builder partialConstructor = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Inject.class);
+
+        CodeBlock.Builder initialConstructorCall = CodeBlock.builder().add("this(");
+        CodeBlock.Builder specializeConstructorCall = CodeBlock.builder().add("new $T(", generatedName);
 
         boolean firstInjected = true;
         // normal serializers we need, from SerializerLocator
@@ -267,18 +248,13 @@ public final class SingletonSerializerGenerator {
             serializerConstructor.addParameter(injectable.fieldType, injected.fieldName);
             serializerConstructorCode.addStatement("this.$N = $N", injected.fieldName, injected.fieldName);
 
-            // for deserialization, we stick to invariant serializers, because we don't want to deserialize an arbitrary
-            // subtype from the classpath for security. Contravariant lookup only exposes the supertypes (few), while
-            // covariant lookup would expose all subtypes (potentially unlimited).
-            String methodName = injectable.forSerialization ? "findContravariantSerializer" : "findInvariantDeserializer";
-            if (injectable.provider) {
-                methodName += "Provider";
-            }
             if (!firstInjected) {
-                constructorCallCode.add(", ");
+                initialConstructorCall.add(", ");
+                specializeConstructorCall.add(", ");
             }
             firstInjected = false;
-            constructorCallCode.add("locator.$N($L)", methodName, injectable.type.toRuntimeFactory(v -> CodeBlock.of("getTypeParameter.apply($S)", v)));
+            initialConstructorCall.add("null");
+            specializeConstructorCall.add("null"); // TODO
         }
         // other injected beans (e.g. user-specified custom serializers)
         for (Map.Entry<TypeName, GeneratorContext.Injected> entry : classContext.getInjectedBeans().entrySet()) {
@@ -286,45 +262,28 @@ public final class SingletonSerializerGenerator {
             GeneratorContext.Injected injected = entry.getValue();
 
             builder.addField(injectable, injected.fieldName, Modifier.PRIVATE, Modifier.FINAL);
-            factoryType.addField(injectable, injected.fieldName, Modifier.PRIVATE, Modifier.FINAL);
 
             serializerConstructor.addParameter(injectable, injected.fieldName);
             serializerConstructorCode.addStatement("this.$N = $N", injected.fieldName, injected.fieldName);
 
             if (!firstInjected) {
-                constructorCallCode.add(", ");
+                initialConstructorCall.add(", ");
+                specializeConstructorCall.add(", ");
             }
             firstInjected = false;
-            constructorCallCode.add("this.$N", injected.fieldName);
+            initialConstructorCall.add("$N", injected.fieldName);
+            specializeConstructorCall.add("this.$N", injected.fieldName);
 
-            factoryConstructor.addParameter(injectable, injected.fieldName);
-            factoryConstructorCode.addStatement("this.$N = $N", injected.fieldName, injected.fieldName);
+            fullConstructor.addParameter(injectable, injected.fieldName);
+            partialConstructor.addParameter(injectable, injected.fieldName);
+            fullConstructorCode.addStatement("this.$N = $N", injected.fieldName, injected.fieldName);
         }
-        constructorCallCode.add(")");
+        initialConstructorCall.add(")");
 
         serializerConstructor.addCode(serializerConstructorCode.build());
         builder.addMethod(serializerConstructor.build());
 
-        // generate factory
-        factoryType
-                .addMethod(factoryConstructor
-                        .addCode(factoryConstructorCode.build())
-                        .build())
-                .addMethod(MethodSpec.methodBuilder("newInstance")
-                        .addAnnotation(Override.class)
-                        .addModifiers(Modifier.PUBLIC)
-                        .addParameter(SerializerLocator.class, "locator")
-                        .addParameter(ParameterizedTypeName.get(Function.class, String.class, Type.class), "getTypeParameter")
-                        .returns(generatedName)
-                        .addCode(CodeBlock.of("return $L;\n", constructorCallCode.build()))
-                        .build());
-        if (serializer) {
-            factoryType.addSuperinterface(ClassName.get(Serializer.Factory.class));
-        }
-        if (deserializer) {
-            factoryType.addSuperinterface(ClassName.get(Deserializer.Factory.class));
-        }
-        builder.addType(factoryType.build());
+
 
         JavaFile generatedFile = JavaFile.builder(generatedName.packageName(), builder.build()).build();
 
@@ -343,9 +302,11 @@ public final class SingletonSerializerGenerator {
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(Encoder.class, "encoder")
+                .addParameter(Serializer.EncoderContext.class, "context")
                 .addParameter(valueReferenceName, "value")
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Argument.class), WildcardTypeName.subtypeOf(valueReferenceName)), "type")
                 .addException(IOException.class)
-                .addCode(symbol.serialize(classContext.newMethodContext("value", "encoder"), "encoder", valueType, CodeBlock.of("value")))
+                .addCode(symbol.serialize(classContext.newMethodContext("value", "encoder", "context", "type"), "encoder", "context", valueType, CodeBlock.of("value")))
                 .build();
     }
 
@@ -355,9 +316,11 @@ public final class SingletonSerializerGenerator {
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(Decoder.class, "decoder")
+                .addParameter(Deserializer.DecoderContext.class, "context")
+                .addParameter(ParameterizedTypeName.get(ClassName.get(Argument.class), WildcardTypeName.supertypeOf(valueReferenceName)), "type")
                 .returns(valueReferenceName)
                 .addException(IOException.class)
-                .addCode(symbol.deserialize(classContext.newMethodContext("decoder"), "decoder", valueType, new SerializerSymbol.Setter() {
+                .addCode(symbol.deserialize(classContext.newMethodContext("decoder", "context", "type"), "decoder", "context", valueType, new SerializerSymbol.Setter() {
                     @Override
                     public CodeBlock createSetStatement(CodeBlock expr) {
                         return CodeBlock.of("return $L;\n", expr);

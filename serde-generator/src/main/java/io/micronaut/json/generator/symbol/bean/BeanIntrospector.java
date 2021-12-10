@@ -33,10 +33,9 @@ import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.json.annotation.CustomSerializer;
-import io.micronaut.json.annotation.RecursiveSerialization;
 import io.micronaut.json.generator.symbol.GeneratorType;
 import io.micronaut.json.generator.symbol.ProblemReporter;
+import io.micronaut.serde.annotation.RecursiveSerialization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -573,11 +572,13 @@ class BeanIntrospector {
                         .map(a -> Arrays.stream(a.annotationClassValues("value")).map(AnnotationClassValue::getName).collect(Collectors.toList()))
                         .findFirst().orElse(null);
 
+                /*
                 Optional<AnnotationValue<CustomSerializer>> customSerializerAnnotation = prop.annotatedElementsInOrder(forSerialization)
                         .map(e -> e.getAnnotation(CustomSerializer.class))
                         .filter(Objects::nonNull).findFirst();
                 prop.customSerializerFqcn = customSerializerAnnotation.flatMap(v -> v.annotationClassValue("serializer")).map(AnnotationClassValue::getName).orElse(null);
                 prop.customDeserializerFqcn = customSerializerAnnotation.flatMap(v -> v.annotationClassValue("deserializer")).map(AnnotationClassValue::getName).orElse(null);
+                 */
             }
         }
 

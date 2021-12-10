@@ -35,7 +35,7 @@ final class StringSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, GeneratorType type, CodeBlock readExpression) {
+    public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
         if (!type.isRawTypeEquals(String.class)) {
             readExpression = CodeBlock.of("$L.toString()", readExpression);
         }
@@ -43,7 +43,7 @@ final class StringSerializerSymbol implements SerializerSymbol {
     }
 
     @Override
-    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, GeneratorType type, Setter setter) {
+    public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
         return setter.createSetStatement(CodeBlock.of("$N.decodeString()", decoderVariable));
     }
 
