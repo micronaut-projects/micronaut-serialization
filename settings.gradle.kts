@@ -24,6 +24,7 @@ include("serde-jsonp")
 include("serde-support")
 include("serde-bson")
 include("serde-tck")
+include("serde-aws-events")
 
 // examples
 include("doc-examples:example-java")
