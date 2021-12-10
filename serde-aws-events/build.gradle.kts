@@ -4,6 +4,6 @@ plugins {
 
 dependencies {
     annotationProcessor(projects.serdeProcessor)
-    annotationProcessor(projects.serdeJackson)
+    implementation(projects.serdeJackson)
     implementation("com.amazonaws:aws-lambda-java-events:3.11.0")
 }
