@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.squareup.javapoet.*;
 import io.micronaut.context.BeanProvider;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument;
 
 @Internal
 public class InjectingSerializerSymbol implements SerializerSymbol {
@@ -53,7 +54,7 @@ public class InjectingSerializerSymbol implements SerializerSymbol {
 
     @Override
     public CodeBlock serialize(GeneratorContext generatorContext, String encoderVariable, String encoderContextVariable, GeneratorType type, CodeBlock readExpression) {
-        return CodeBlock.of("$L.serialize($N, $L);\n", getSerializerAccess(generatorContext, type, true), encoderVariable, readExpression);
+        return CodeBlock.of("$L.serialize($N, $N, $L, $L);\n", getSerializerAccess(generatorContext, type, true), encoderVariable, encoderContextVariable, readExpression, getType(generatorContext, type));
     }
 
     @Override
@@ -66,7 +67,7 @@ public class InjectingSerializerSymbol implements SerializerSymbol {
 
     @Override
     public CodeBlock deserialize(GeneratorContext generatorContext, String decoderVariable, String decoderContextVariable, GeneratorType type, Setter setter) {
-        return setter.createSetStatement(CodeBlock.of("$L.deserialize($N)", getSerializerAccess(generatorContext, type, false), decoderVariable));
+        return setter.createSetStatement(CodeBlock.of("$L.deserialize($N, $N, $L)", getSerializerAccess(generatorContext, type, false), decoderVariable, decoderContextVariable, getType(generatorContext, type)));
     }
 
     private CodeBlock getSerializerAccess(GeneratorContext generatorContext, GeneratorType type, boolean forSerialization) {
@@ -75,6 +76,10 @@ public class InjectingSerializerSymbol implements SerializerSymbol {
             accessExpression = CodeBlock.of("$L.get()", accessExpression);
         }
         return accessExpression;
+    }
+
+    private CodeBlock getType(GeneratorContext generatorContext, GeneratorType type) {
+        return CodeBlock.of("($T<$T>) ($T) $T.OBJECT_ARGUMENT", Argument.class, type.toPoetName(), Argument.class, Argument.class); // TODO
     }
 
     protected GeneratorContext.Injected inject(GeneratorContext generatorContext, GeneratorType type, boolean forSerialization) {

@@ -145,12 +145,12 @@ class Test {
         def compiled = buildClassLoader('example.Test', '''
 package example;
 
-import io.micronaut.json.annotation.RecursiveSerialization;
+import io.micronaut.serde.annotation.RecursiveSerialization;
 import io.micronaut.serde.annotation.SerdeGenerated;
 
 @io.micronaut.serde.annotation.SerdeGenerated
 class Test {
-    @io.micronaut.json.annotation.RecursiveSerialization public Test foo;
+    @io.micronaut.serde.annotation.RecursiveSerialization public Test foo;
 }
 ''')
 
@@ -455,15 +455,15 @@ package example;
 
 import io.micronaut.serde.annotation.SerdeGenerated;
 
-@SerializableBean
+@SerdeGenerated
 class A {
 }
 
-@SerializableBean
+@SerdeGenerated
 class B extends A {
 }
 
-@SerializableBean
+@SerdeGenerated
 class C {
     A a;
 }
@@ -480,7 +480,7 @@ package example;
 
 import io.micronaut.serde.annotation.SerdeGenerated;
 
-@SerializableBean(allowDeserialization = false)
+@SerdeGenerated(allowDeserialization = false)
 class A {
 }
 ''', true)
@@ -497,7 +497,7 @@ package example;
 
 import io.micronaut.serde.annotation.SerdeGenerated;
 
-@SerializableBean
+@SerdeGenerated
 enum Foo {
     A, B
 }
@@ -521,7 +521,7 @@ import io.micronaut.json.Encoder;
 import io.micronaut.serde.annotation.SerdeGenerated;
 import jakarta.inject.Singleton;
 
-@SerializableBean(allowDeserialization = false)
+@SerdeGenerated(allowDeserialization = false)
 class A {
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public B b;
@@ -592,7 +592,7 @@ package example;
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.serde.annotation.SerdeGenerated;
 
-@SerializableBean
+@SerdeGenerated
 @JsonView(Public.class)
 class WithViews {
     public String firstName;
@@ -661,7 +661,7 @@ package example;
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.serde.annotation.SerdeGenerated;
 
-@SerializableBean
+@SerdeGenerated
 class Outer {
     public String a;
     @JsonView(Runnable.class) @JsonUnwrapped public Nested nested;
@@ -698,7 +698,7 @@ import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.util.Locale;
 
-@SerializableBean
+@SerdeGenerated
 class Test {
     public String foo;
     @CustomSerializer(serializer = UpperCaseSer.class, deserializer = LowerCaseDeser.class)

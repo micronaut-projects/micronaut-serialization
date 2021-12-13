@@ -11,6 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface SerdeGenerated {
+    boolean inline() default false;
     boolean allowDeserialization() default true;
     boolean allowSerialization() default true;
 }
