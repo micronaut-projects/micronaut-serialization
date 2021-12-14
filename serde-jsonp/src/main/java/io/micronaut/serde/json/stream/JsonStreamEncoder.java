@@ -19,96 +19,148 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import jakarta.json.stream.JsonGenerator;
 
 final class JsonStreamEncoder implements Encoder {
     private final JsonGenerator jsonGenerator;
+    private final JsonStreamEncoder parent;
+    private String currentKey;
+    private int currentIndex;
 
     public JsonStreamEncoder(JsonGenerator jsonGenerator) {
         this.jsonGenerator = jsonGenerator;
+        this.parent = null;
+    }
+
+    private JsonStreamEncoder(JsonStreamEncoder parent) {
+        this.jsonGenerator = parent.jsonGenerator;
+        this.parent = parent;
+    }
+
+    private void postEncodeValue() {
+        currentIndex++;
     }
 
     @Override
     public Encoder encodeArray(Argument<?> type) throws IOException {
         jsonGenerator.writeStartArray();
-        return this;
+        return new JsonStreamEncoder(this);
     }
 
     @Override
     public Encoder encodeObject(Argument<?> type) throws IOException {
         jsonGenerator.writeStartObject();
-        return this;
+        return new JsonStreamEncoder(this);
     }
 
     @Override
     public void finishStructure() throws IOException {
+        if (parent == null) {
+            throw new IllegalStateException("Not a structure");
+        }
         jsonGenerator.writeEnd();
+        parent.postEncodeValue();
     }
 
     @Override
     public void encodeKey(String key) throws IOException {
         jsonGenerator.writeKey(key);
+        this.currentKey = key;
     }
 
     @Override
     public void encodeString(String value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBoolean(boolean value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeByte(byte value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeShort(short value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeChar(char value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeInt(int value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeLong(long value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeFloat(float value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeDouble(double value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBigInteger(BigInteger value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeBigDecimal(BigDecimal value) throws IOException {
         jsonGenerator.write(value);
+        postEncodeValue();
     }
 
     @Override
     public void encodeNull() throws IOException {
         jsonGenerator.writeNull();
+        postEncodeValue();
+    }
+
+    @NonNull
+    @Override
+    public String currentPath() {
+        StringBuilder builder = new StringBuilder();
+        JsonStreamEncoder enc = this;
+        while (enc != null) {
+            if (enc != this) {
+                builder.insert(0, "->");
+            }
+            if (enc.currentKey == null) {
+                if (enc.parent != null) {
+                    builder.insert(0, enc.currentIndex);
+                }
+            } else {
+                builder.insert(0, enc.currentKey);
+            }
+            enc = enc.parent;
+        }
+        return builder.toString();
     }
 }
