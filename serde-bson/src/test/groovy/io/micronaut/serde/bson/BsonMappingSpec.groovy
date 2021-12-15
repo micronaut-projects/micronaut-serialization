@@ -163,6 +163,79 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             readPerson == person
     }
 
+    def "validate convertor"() {
+        given:
+            def sale = new Sale1()
+            sale.quantity = Quantity.valueOf(123)
+        when:
+            def bytes = bsonBinaryMapper.writeValueAsBytes(sale)
+            def newSale = bsonBinaryMapper.readValue(bytes, Argument.of(Sale1))
+        then:
+            newSale.quantity.amount == 123
+        when:
+            def jsonBytes = bsonJsonMapper.writeValueAsBytes(sale)
+            def str = new String(jsonBytes)
+            def readSale = bsonJsonMapper.readValue(str, Argument.of(Sale1))
+            def newSaleBson = bsonJsonMapper.readValue(str, Argument.of(BsonDocument))
+        then:
+            readSale.quantity.amount == 123
+            newSaleBson.get('quantity').isInt32()
+    }
+
+    def "validate convertor for constructor attribute"() {
+        given:
+            def sale = new Sale2(Quantity.valueOf(123))
+        when:
+            def bytes = bsonBinaryMapper.writeValueAsBytes(sale)
+            def newSale = bsonBinaryMapper.readValue(bytes, Argument.of(Sale2))
+        then:
+            newSale.quantity.amount == 123
+        when:
+            def jsonBytes = bsonJsonMapper.writeValueAsBytes(sale)
+            def str = new String(jsonBytes)
+            def readSale = bsonJsonMapper.readValue(str, Argument.of(Sale2))
+            def newSaleBson = bsonJsonMapper.readValue(str, Argument.of(BsonDocument))
+        then:
+            readSale.quantity.amount == 123
+            newSaleBson.get('quantity').isInt32()
+    }
+
+    def "validate convertor for constructor attribute 1"() {
+        given:
+            def sale = new Sale3(Quantity.valueOf(123))
+        when:
+            def bytes = bsonBinaryMapper.writeValueAsBytes(sale)
+            def newSale = bsonBinaryMapper.readValue(bytes, Argument.of(Sale3))
+        then:
+            newSale.quantity.amount == 123
+        when:
+            def jsonBytes = bsonJsonMapper.writeValueAsBytes(sale)
+            def str = new String(jsonBytes)
+            def readSale = bsonJsonMapper.readValue(str, Argument.of(Sale3))
+            def newSaleBson = bsonJsonMapper.readValue(str, Argument.of(BsonDocument))
+        then:
+            readSale.quantity.amount == 123
+            newSaleBson.get('quantity').isInt32()
+    }
+
+    def "validate convertor for constructor attribute 2"() {
+        given:
+            def sale = new Sale4(Quantity.valueOf(123))
+        when:
+            def bytes = bsonBinaryMapper.writeValueAsBytes(sale)
+            def newSale = bsonBinaryMapper.readValue(bytes, Argument.of(Sale4))
+        then:
+            newSale.quantity.amount == 123
+        when:
+            def jsonBytes = bsonJsonMapper.writeValueAsBytes(sale)
+            def str = new String(jsonBytes)
+            def readSale = bsonJsonMapper.readValue(str, Argument.of(Sale4))
+            def newSaleBson = bsonJsonMapper.readValue(str, Argument.of(BsonDocument))
+        then:
+            readSale.quantity.amount == 123
+            newSaleBson.get('quantity').isInt32()
+    }
+
     @Serdeable
     static class Wrapper1 {
         List<Person2> persons
