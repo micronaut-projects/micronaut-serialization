@@ -120,7 +120,13 @@ class DeserBean<T> {
             }
 
             final String jsonProperty = resolveName(constructorArgument, annotationMetadata);
-            final Deserializer<?> deserializer = decoderContext.findDeserializer(constructorArgument);
+            Argument<Object> constructorWithPropertyArgument = Argument.of(
+                    constructorArgument.getType(),
+                    constructorArgument.getName(),
+                    annotationMetadata,
+                    constructorArgument.getTypeParameters()
+            );
+            final Deserializer<?> deserializer = findDeserializer(decoderContext, constructorWithPropertyArgument);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
             final DerProperty<T, ?> derProperty;
             if (isUnwrapped) {
