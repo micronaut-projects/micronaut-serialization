@@ -1816,12 +1816,28 @@ public class Place {
     @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
     private final Point point;
 
-    public Place(Point point) {
+    @Serdeable.Serializable(using = ReversePointSerde.class)
+    private final Point pointCustomSer;
+
+    @Serdeable.Deserializable(using = ReversePointSerde.class)
+    private final Point pointCustomDes;
+
+    public Place(Point point, Point pointCustomSer, Point pointCustomDes) {
         this.point = point;
+        this.pointCustomSer = pointCustomSer;
+        this.pointCustomDes = pointCustomDes;
     }
 
     public Point getPoint() {
         return point;
+    }
+
+    public Point getPointCustomSer() {
+        return pointCustomSer;
+    }
+
+    public Point getPointCustomDes() {
+        return pointCustomDes;
     }
 }</code></pre>
 </div>
@@ -1838,8 +1854,16 @@ class Place {
     @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
     final Point point
 
-    Place(Point point) {
+    @Serdeable.Serializable(using = ReversePointSerde.class)
+    final Point pointCustomSer
+
+    @Serdeable.Deserializable(using = ReversePointSerde.class)
+    final Point pointCustomDes
+
+    Place(Point point, Point pointCustomSer, Point pointCustomDes) {
         this.point = point
+        this.pointCustomSer = pointCustomSer
+        this.pointCustomDes = pointCustomDes
     }
 }</code></pre>
 </div>
@@ -1854,9 +1878,15 @@ import io.micronaut.serde.annotation.Serdeable.Serializable
 
 @Serdeable
 data class Place(
-    @Deserializable(using = ReversePointSerde::class) <b class="conum">(1)</b>
-    @Serializable(using = ReversePointSerde::class) <b class="conum">(2)</b>
-    val point: Point
+        @Deserializable(using = ReversePointSerde::class) <b class="conum">(1)</b>
+        @Serializable(using = ReversePointSerde::class) <b class="conum">(2)</b>
+        val point: Point,
+
+        @Serdeable.Serializable(using = example.ReversePointSerde::class)
+        val pointCustomSer: Point,
+
+        @Deserializable(using = ReversePointSerde::class)
+        val pointCustomDes: Point
 )</code></pre>
 </div>
 </div>
