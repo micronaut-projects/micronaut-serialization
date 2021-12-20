@@ -17,6 +17,7 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
@@ -44,6 +45,11 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
         return registry.findSerializer(forType);
+    }
+
+    @Override
+    public <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass) throws SerdeException {
+        return registry.findNamingStrategy(namingStrategyClass);
     }
 
     @Override

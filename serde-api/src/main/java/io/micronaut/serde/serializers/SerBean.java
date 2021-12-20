@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.serializers;
 
+import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -31,10 +32,11 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.config.annotation.SerdeAnnotationUtil;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.TypeKey;
 
 import java.util.AbstractMap;
@@ -89,6 +91,7 @@ final class SerBean<T> {
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
+        PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, null);
         serBeanMap.put(typeKey, (SerBean<Object>) this);
         final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanProperties().stream()
@@ -203,6 +206,7 @@ final class SerBean<T> {
                         final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
                         final String defaultPropertyName = argument.getName();
                         boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+                        PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         if (unwrapped) {
                             BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
                             for (BeanProperty<Object, Object> unwrappedProperty : propertyIntrospection.getBeanProperties()) {
@@ -210,7 +214,7 @@ final class SerBean<T> {
                                 String n = resolveName(propertyAnnotationMetadata,
                                                        unwrappedProperty.getAnnotationMetadata(),
                                                        unwrappedPropertyArgument.getName(),
-                                                       true);
+                                                       true, propertyNamingStrategy);
                                 final AnnotationMetadataHierarchy combinedMetadata =
                                         new AnnotationMetadataHierarchy(
                                                 argument.getAnnotationMetadata(),
@@ -228,7 +232,7 @@ final class SerBean<T> {
                                 writeProperties.add(serProperty);
                             }
                         } else {
-                            String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false);
+                            String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false, propertyNamingStrategy);
                             final SerProperty<T, Object> serProperty;
                             try {
                                 serProperty = new SerProperty<>(this, n,
@@ -250,9 +254,10 @@ final class SerBean<T> {
                     }
 
                     for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
+                        PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonGetter.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
                         final String propertyName = NameUtils.getPropertyNameForGetter(jsonGetter.getName());
-                        String n = resolveName(annotationMetadata, jsonGetterAnnotationMetadata, propertyName, false);
+                        String n = resolveName(annotationMetadata, jsonGetterAnnotationMetadata, propertyName, false, propertyNamingStrategy);
                         final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
                         writeProperties.add(new SerProperty<>(this, n,
                                                               returnType,
@@ -274,6 +279,14 @@ final class SerBean<T> {
         initialized = true;
     }
 
+    private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
+                                                             Serializer.EncoderContext encoderContext,
+                                                             PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                .orElse(null);
+        return namingStrategyClass == null ? defaultNamingStrategy : encoderContext.findNamingStrategy(namingStrategyClass);
+    }
+
     private Comparator<BeanProperty<?, Object>> getPropertyComparator() {
         return BEAN_PROPERTY_COMPARATOR;
     }
@@ -291,9 +304,23 @@ final class SerBean<T> {
 
     private String resolveName(AnnotationMetadata annotationMetadata,
                                AnnotationMetadata propertyAnnotationMetadata,
-                               String defaultPropertyName, boolean unwrapped) {
+                               String defaultPropertyName,
+                               boolean unwrapped,
+                               PropertyNamingStrategy propertyNamingStrategy) {
+
         String n =
-                propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
+                propertyNamingStrategy == null ? propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null) :
+                        propertyNamingStrategy.translate(new AnnotatedElement() {
+                            @Override
+                            public String getName() {
+                                return defaultPropertyName;
+                            }
+
+                            @Override
+                            public AnnotationMetadata getAnnotationMetadata() {
+                                return propertyAnnotationMetadata;
+                            }
+                        });
         if (n == null) {
             n = propertyAnnotationMetadata.stringValue(JK_PROP)
                     .orElse(defaultPropertyName);

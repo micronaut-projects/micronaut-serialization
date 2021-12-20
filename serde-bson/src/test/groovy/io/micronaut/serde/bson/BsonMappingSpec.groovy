@@ -236,6 +236,15 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             newSaleBson.get('quantity').isInt32()
     }
 
+    def "validate custom naming strategies"() {
+        given:
+            def e = new NamingStrategiesEntity(renameCompileTime: "val1", renameRunTime: "val2", "notRenamedProperty": "test")
+        when:
+            def json = bsonJsonMapper.writeValueAsString(e);
+        then:
+            json == """{"rename-compile-time": "val1", "bar yes": "val2", "notRenamedProperty": "test", "rename-compile-time": "val1"}"""
+    }
+
     @Serdeable
     static class Wrapper1 {
         List<Person2> persons
