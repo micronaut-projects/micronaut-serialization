@@ -15,14 +15,15 @@
  */
 package io.micronaut.serde;
 
-import java.util.Collection;
-
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
+
+import java.util.Collection;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -46,6 +47,11 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     @Override
     public final <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
         return registry.findDeserializer(type);
+    }
+
+    @Override
+    public <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass) throws SerdeException {
+        return registry.findNamingStrategy(namingStrategyClass);
     }
 
     @Override

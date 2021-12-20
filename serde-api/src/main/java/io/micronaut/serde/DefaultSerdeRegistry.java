@@ -28,6 +28,7 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.BeanDefinition;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.deserializers.ObjectDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.serdes.NumberSerde;
@@ -199,6 +200,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
         return beanContext.findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
+    }
+
+    @Override
+    public <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass) throws SerdeException {
+        return beanContext.findBean(namingStrategyClass).orElseThrow(() -> new SerdeException("Cannot find naming strategy: " + namingStrategyClass));
     }
 
     @Override

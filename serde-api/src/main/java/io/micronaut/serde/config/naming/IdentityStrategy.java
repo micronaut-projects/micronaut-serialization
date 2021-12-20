@@ -15,12 +15,14 @@
  */
 package io.micronaut.serde.config.naming;
 
+import io.micronaut.core.annotation.AnnotatedElement;
+
 /**
  * Property name as is without changes.
  */
 public final class IdentityStrategy implements PropertyNamingStrategy {
     @Override
-    public String translate(String name) {
-        return name;
+    public String translate(AnnotatedElement element) {
+        return element.getName();
     }
 }

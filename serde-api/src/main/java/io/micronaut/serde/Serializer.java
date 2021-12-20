@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde;
 
-import java.io.IOException;
-
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -26,6 +24,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
+
+import java.io.IOException;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -86,7 +86,7 @@ public interface Serializer<T> {
      * Context object passes to the
      * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
      */
-    interface EncoderContext extends SerializerLocator, PropertyReferenceManager {
+    interface EncoderContext extends SerializerLocator, PropertyReferenceManager, NamingStrategyLocator {
 
         /**
          * @return Conversion service
