@@ -99,7 +99,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dd>
+<dd><a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="../../../io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
@@ -108,7 +108,7 @@ var activeTableTab = "activeTableTab";
 <hr>
 <br>
 <pre>public interface <span class="typeNameLabel">SerdeRegistry</span>
-extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>, <a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></pre>
+extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>, <a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="../../../io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></pre>
 <div class="block">Represents a registry where specific serializers can be looked up.</div>
 <dl>
 <dt><span class="simpleTagLabel">Since:</span></dt>
@@ -160,6 +160,13 @@ extends <a href="../../../io/micronaut/serde/SerializerLocator.html" title="inte
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></h3>
 <code><a href="../../../io/micronaut/serde/DeserializerLocator.html#findCustomDeserializer-java.lang.Class-">findCustomDeserializer</a>, <a href="../../../io/micronaut/serde/DeserializerLocator.html#findDeserializer-io.micronaut.core.type.Argument-">findDeserializer</a>, <a href="../../../io/micronaut/serde/DeserializerLocator.html#findDeserializer-java.lang.Class-">findDeserializer</a>, <a href="../../../io/micronaut/serde/DeserializerLocator.html#getDeserializableSubtypes-java.lang.Class-">getDeserializableSubtypes</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.NamingStrategyLocator">
+<!--   -->
+</a>
+<h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></h3>
+<code><a href="../../../io/micronaut/serde/NamingStrategyLocator.html#findNamingStrategy-java.lang.Class-">findNamingStrategy</a></code></li>
 </ul>
 </li>
 </ul>

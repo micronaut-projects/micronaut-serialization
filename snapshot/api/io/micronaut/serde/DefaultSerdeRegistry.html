@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dd>
+<dd><a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="../../../io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, <a href="../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>, <a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dd>
 </dl>
 <hr>
 <br>
@@ -174,24 +174,30 @@ implements <a href="../../../io/micronaut/serde/SerdeRegistry.html" title="inter
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>&lt;D extends <a href="../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;<br>D</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/DefaultSerdeRegistry.html#findNamingStrategy-java.lang.Class-">findNamingStrategy</a></span>(java.lang.Class&lt;? extends D&gt;&nbsp;namingStrategyClass)</code>
+<div class="block">Gets a naming strategy.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;<a href="../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/DefaultSerdeRegistry.html#findSerializer-io.micronaut.core.type.Argument-">findSerializer</a></span>(io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;type)</code>
 <div class="block">Finds a serializer for the given type.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>&lt;T&gt;&nbsp;java.util.Collection&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/DefaultSerdeRegistry.html#getDeserializableSubtypes-java.lang.Class-">getDeserializableSubtypes</a></span>(java.lang.Class&lt;T&gt;&nbsp;superType)</code>
 <div class="block">Locates desrializable subtypes for the given super type.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/DefaultSerdeRegistry.html#newDecoderContext-java.lang.Class-">newDecoderContext</a></span>(java.lang.Class&lt;?&gt;&nbsp;view)</code>
 <div class="block">Creates a new decoder context.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/DefaultSerdeRegistry.html#newEncoderContext-java.lang.Class-">newEncoderContext</a></span>(java.lang.Class&lt;?&gt;&nbsp;view)</code>
 <div class="block">Creates a new encoder context.</div>
@@ -301,6 +307,30 @@ implements <a href="../../../io/micronaut/serde/SerdeRegistry.html" title="inter
 <dd>The deserializer</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - if no deserializer is found</dd>
+</dl>
+</li>
+</ul>
+<a name="findNamingStrategy-java.lang.Class-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>findNamingStrategy</h4>
+<pre>public&nbsp;&lt;D extends <a href="../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;&nbsp;D&nbsp;findNamingStrategy(java.lang.Class&lt;? extends D&gt;&nbsp;namingStrategyClass)
+                                                        throws <a href="../../../io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../io/micronaut/serde/NamingStrategyLocator.html#findNamingStrategy-java.lang.Class-">NamingStrategyLocator</a></code></span></div>
+<div class="block">Gets a naming strategy.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../io/micronaut/serde/NamingStrategyLocator.html#findNamingStrategy-java.lang.Class-">findNamingStrategy</a></code>&nbsp;in interface&nbsp;<code><a href="../../../io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></code></dd>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>D</code> - The naming strategy type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>namingStrategyClass</code> - The naming strategy class, should not be <code>null</code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The naming strategy</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - if no naming strategy is found</dd>
 </dl>
 </li>
 </ul>

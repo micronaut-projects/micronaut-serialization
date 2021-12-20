@@ -123,10 +123,14 @@ public static @interface <span class="memberNameLabel">Serdeable.Deserializable<
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#enabled--">enabled</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#naming--">naming</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#using--">using</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html#validate--">validate</a></span></code>&nbsp;</td>
 </tr>
@@ -212,7 +216,7 @@ public abstract&nbsp;boolean&nbsp;validate</pre>
 <li class="blockList"><a name="as--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>as</h4>
 <pre>@AliasFor(annotation=<a href="../../../../io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.class</a>,
@@ -226,6 +230,28 @@ public abstract&nbsp;java.lang.Class&lt;?&gt;&nbsp;as</pre>
 <dl>
 <dt>Default:</dt>
 <dd>void.class</dd>
+</dl>
+</li>
+</ul>
+</li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a name="naming--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>naming</h4>
+<pre>@AliasFor(annotation=<a href="../../../../io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.class</a>,
+          member="naming")
+public abstract&nbsp;java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;&nbsp;naming</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Naming strategy to use.</dd>
+</dl>
+<dl>
+<dt>Default:</dt>
+<dd>io.micronaut.serde.config.naming.IdentityStrategy.class</dd>
 </dl>
 </li>
 </ul>

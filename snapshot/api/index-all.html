@@ -885,6 +885,12 @@
 <dd>
 <div class="block">Resolves the deserializer.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/DefaultSerdeRegistry.html#findNamingStrategy-java.lang.Class-">findNamingStrategy(Class&lt;? extends D&gt;)</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DefaultSerdeRegistry.html" title="class in io.micronaut.serde">DefaultSerdeRegistry</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/NamingStrategyLocator.html#findNamingStrategy-java.lang.Class-">findNamingStrategy(Class&lt;? extends D&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></dt>
+<dd>
+<div class="block">Gets a naming strategy.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/DefaultSerdeRegistry.html#findSerializer-io.micronaut.core.type.Argument-">findSerializer(Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DefaultSerdeRegistry.html" title="class in io.micronaut.serde">DefaultSerdeRegistry</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/SerializerLocator.html#findSerializer-io.micronaut.core.type.Argument-">findSerializer(Argument&lt;? extends T&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></dt>
@@ -1805,6 +1811,10 @@
 <dd>
 <div class="block">Naming strategy.</div>
 </dd>
+<dt><a href="io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde"><span class="typeNameLink">NamingStrategyLocator</span></a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Locator interface for a naming strategy.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/DefaultSerdeRegistry.html#newDecoderContext-java.lang.Class-">newDecoderContext(Class&lt;?&gt;)</a></span> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DefaultSerdeRegistry.html" title="class in io.micronaut.serde">DefaultSerdeRegistry</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/SerdeRegistry.html#newDecoderContext-java.lang.Class-">newDecoderContext(Class&lt;?&gt;)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></dt>
@@ -2021,6 +2031,10 @@
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/annotation/SerdeAnnotationUtil.html#resolveViews-io.micronaut.core.annotation.AnnotationMetadata-io.micronaut.core.annotation.AnnotationMetadata-">resolveViews(AnnotationMetadata, AnnotationMetadata)</a></span> - Static method in class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeAnnotationUtil.html" title="class in io.micronaut.serde.config.annotation">SerdeAnnotationUtil</a></dt>
 <dd>
 <div class="block">Resolve json views.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#RUNTIME_NAMING">RUNTIME_NAMING</a></span> - Static variable in annotation type io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">Runtime naming strategy class.</div>
 </dd>
 </dl>
 <a name="I:S">
@@ -2371,25 +2385,25 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/processor/jsonb/JsonbTransientTransformer.html#transform-io.micronaut.core.annotation.AnnotationValue-io.micronaut.inject.visitor.VisitorContext-">transform(AnnotationValue&lt;Annotation&gt;, VisitorContext)</a></span> - Method in class io.micronaut.serde.processor.jsonb.<a href="io/micronaut/serde/processor/jsonb/JsonbTransientTransformer.html" title="class in io.micronaut.serde.processor.jsonb">JsonbTransientTransformer</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/IdentityStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/IdentityStrategy.html" title="class in io.micronaut.serde.config.naming">IdentityStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/IdentityStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/IdentityStrategy.html" title="class in io.micronaut.serde.config.naming">IdentityStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/KebabCaseStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/KebabCaseStrategy.html" title="class in io.micronaut.serde.config.naming">KebabCaseStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/KebabCaseStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/KebabCaseStrategy.html" title="class in io.micronaut.serde.config.naming">KebabCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/LowerCamelCaseStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerCamelCaseStrategy.html" title="class in io.micronaut.serde.config.naming">LowerCamelCaseStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/LowerCamelCaseStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerCamelCaseStrategy.html" title="class in io.micronaut.serde.config.naming">LowerCamelCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/LowerCaseStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerCaseStrategy.html" title="class in io.micronaut.serde.config.naming">LowerCaseStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/LowerCaseStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerCaseStrategy.html" title="class in io.micronaut.serde.config.naming">LowerCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/LowerDotCaseStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerDotCaseStrategy.html" title="class in io.micronaut.serde.config.naming">LowerDotCaseStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/LowerDotCaseStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/LowerDotCaseStrategy.html" title="class in io.micronaut.serde.config.naming">LowerDotCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in interface io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in interface io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a></dt>
 <dd>
 <div class="block">Translate the given name into the desired format.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html" title="class in io.micronaut.serde.config.naming">SnakeCaseStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html" title="class in io.micronaut.serde.config.naming">SnakeCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategy</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html#translate-java.lang.String-">translate(String)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategyWithSpaces</a></dt>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html#translate-io.micronaut.core.annotation.AnnotatedElement-">translate(AnnotatedElement)</a></span> - Method in class io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategyWithSpaces</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#TYPE_NAME">TYPE_NAME</a></span> - Static variable in annotation type io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
