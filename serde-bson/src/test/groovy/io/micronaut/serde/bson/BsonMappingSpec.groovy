@@ -238,11 +238,15 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
     def "validate custom naming strategies"() {
         given:
-            def e = new NamingStrategiesEntity(renameCompileTime: "val1", renameRunTime: "val2", "notRenamedProperty": "test")
+            def e = new NamingStrategiesEntity(renameCompileTime: "val1", renameRunTime: "val2", notRenamedProperty: "test")
         when:
             def json = bsonJsonMapper.writeValueAsString(e);
         then:
-            json == """{"rename-compile-time": "val1", "bar yes": "val2", "notRenamedProperty": "test", "rename-compile-time": "val1"}"""
+            json == """{"rename-compile-time": "val1", "bar yes": "val2", "notRenamedProperty": "test", "_xyz": null, "rename-compile-time": "val1"}"""
+        when:
+            def value = bsonJsonMapper.readValue("""{"_xyz": "abc"}""", NamingStrategiesEntity)
+        then:
+            value.deserRenameRunTime == "abc"
     }
 
     @Serdeable
@@ -254,6 +258,5 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
     static class Wrapper2 {
         Person2 person
     }
-
 
 }

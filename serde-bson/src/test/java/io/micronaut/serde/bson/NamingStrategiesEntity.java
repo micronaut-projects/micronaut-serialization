@@ -24,6 +24,10 @@ public class NamingStrategiesEntity {
 
     private String notRenamedProperty;
 
+    @MyAnn
+    @Serdeable.Serializable(naming = XyzRunTimePropertyNamingStrategy.class)
+    private String deserRenameRunTime;
+
     public String getRenameCompileTime() {
         return renameCompileTime;
     }
@@ -48,6 +52,14 @@ public class NamingStrategiesEntity {
         this.notRenamedProperty = notRenamedProperty;
     }
 
+    public String getDeserRenameRunTime() {
+        return deserRenameRunTime;
+    }
+
+    public void setDeserRenameRunTime(String deserRenameRunTime) {
+        this.deserRenameRunTime = deserRenameRunTime;
+    }
+
     @Singleton
     public static class RunTimePropertyNamingStrategy implements PropertyNamingStrategy {
 
@@ -60,6 +72,15 @@ public class NamingStrategiesEntity {
         @Override
         public String translate(AnnotatedElement element) {
             return beanContext == null ? "fail" : "bar " + (element.getAnnotationMetadata().hasAnnotation(MyAnn.class) ? "yes" : "no");
+        }
+    }
+
+    @Singleton
+    public static class XyzRunTimePropertyNamingStrategy implements PropertyNamingStrategy {
+
+        @Override
+        public String translate(AnnotatedElement element) {
+            return "_xyz";
         }
     }
 
