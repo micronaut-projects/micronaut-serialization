@@ -735,7 +735,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         String namingStrategy = element.stringValue(SerdeConfig.class, SerdeConfig.NAMING)
                 .filter(val -> !val.equals(PropertyNamingStrategy.IDENTITY.getClass().getName()))
                 .orElse(null);
-        System.out.println(element + " " + namingStrategy + " " + defaultValue);
         if (namingStrategy != null) {
             PropertyNamingStrategy propertyNamingStrategy = PropertyNamingStrategy.forName(namingStrategy).orElse(null);
             if (propertyNamingStrategy == null) {
