@@ -221,7 +221,7 @@ class DeserBean<T> {
             final HashMap<String, DerProperty<T, Object>> readProps = new HashMap<>(beanProperties.size() + jsonSetters.size());
             for (int i = 0; i < beanProperties.size(); i++) {
                 BeanProperty<T, Object> beanProperty = beanProperties.get(i);
-                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, entityPropertyNamingStrategy);
+                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
                 final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
                 if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
                     anySetterValue = new AnySetter(beanProperty, decoderContext);
