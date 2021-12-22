@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.bson.custom;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.bson.BsonReaderDecoder;
 import io.micronaut.serde.bson.BsonWriterEncoder;
@@ -28,6 +29,7 @@ import java.io.UncheckedIOException;
  *
  * @param <T>
  */
+@Internal
 public class CodecBsonDecoder<T> extends AbstractBsonSerde<T> {
 
     private static final org.bson.codecs.DecoderContext DEFAULT_DECODER_CONTEXT = org.bson.codecs.DecoderContext.builder().build();
@@ -35,7 +37,7 @@ public class CodecBsonDecoder<T> extends AbstractBsonSerde<T> {
 
     private final Codec<T> codec;
 
-    protected CodecBsonDecoder(Codec<T> codec) {
+    public CodecBsonDecoder(Codec<T> codec) {
         this.codec = codec;
     }
 
