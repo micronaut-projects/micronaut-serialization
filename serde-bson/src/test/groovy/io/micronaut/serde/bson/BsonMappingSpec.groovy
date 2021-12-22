@@ -1,15 +1,23 @@
 package io.micronaut.serde.bson
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.bson.custom.CodecBsonDecoder
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.bson.BsonBinaryReader
 import org.bson.BsonDocument
 import org.bson.BsonObjectId
+import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonValue
+import org.bson.BsonWriter
+import org.bson.codecs.Codec
+import org.bson.codecs.DecoderContext
+import org.bson.codecs.EncoderContext
 import org.bson.types.ObjectId
 import spock.lang.Specification
 
@@ -240,13 +248,26 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         given:
             def e = new NamingStrategiesEntity(renameCompileTime: "val1", renameRunTime: "val2", notRenamedProperty: "test")
         when:
-            def json = bsonJsonMapper.writeValueAsString(e);
+            def json = bsonJsonMapper.writeValueAsString(e)
         then:
             json == """{"rename-compile-time": "val1", "bar yes": "val2", "notRenamedProperty": "test", "_xyz": null, "rename-compile-time": "val1"}"""
         when:
             def value = bsonJsonMapper.readValue("""{"_xyz": "abc"}""", NamingStrategiesEntity)
         then:
             value.deserRenameRunTime == "abc"
+    }
+
+    def "test bson document parsing"() {
+        given:
+            def deserializer = serdeRegistry.findDeserializer(Address)
+            def asCodec = new MappedCodec<Address>(serdeRegistry, deserializer, Address)
+            def asDecoder = new CodecBsonDecoder<Address>(asCodec)
+
+            def bsonDocumentAddress = BsonDocument.parse("""{"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}""")
+        when:
+            Address address = asDecoder.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), serdeRegistry.newDecoderContext(null), Argument.of(Address))
+        then:
+            address.address == "The home"
     }
 
     @Serdeable
@@ -257,6 +278,41 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
     @Serdeable
     static class Wrapper2 {
         Person2 person
+    }
+
+    static class MappedCodec<T> implements Codec<T> {
+
+        protected final SerdeRegistry serdeRegistry
+        protected final Deserializer<T> deserializer
+        protected final Class<T> type
+        protected final Argument<T> argument
+
+        MappedCodec(SerdeRegistry serdeRegistry, Deserializer<T> deserializer, Class<T> type) {
+            this.serdeRegistry = serdeRegistry
+            this.deserializer = deserializer
+            this.type = type
+            this.argument = Argument.of(type)
+        }
+
+        @Override
+        T decode(BsonReader reader, DecoderContext decoderContext) {
+            try {
+                T deserialize = deserializer.deserialize(new BsonReaderDecoder(reader), serdeRegistry.newDecoderContext(type), argument)
+                return deserialize
+            } catch (IOException e) {
+                throw new SerdeException("Cannot deserialize: " + type, e)
+            }
+        }
+
+        @Override
+        void encode(BsonWriter writer, T value, EncoderContext encoderContext) {
+            throw new SerdeException("Not impl")
+        }
+
+        @Override
+        Class<T> getEncoderClass() {
+            return type
+        }
     }
 
 }
