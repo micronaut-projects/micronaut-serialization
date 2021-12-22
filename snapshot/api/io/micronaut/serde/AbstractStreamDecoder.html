@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":6,"i25":10,"i26":6,"i27":6,"i28":6,"i29":6,"i30":6,"i31":6,"i32":10,"i33":6,"i34":6,"i35":10,"i36":10};
+var methods = {"i0":10,"i1":6,"i2":6,"i3":6,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":10,"i25":6,"i26":10,"i27":6,"i28":6,"i29":6,"i30":6,"i31":6,"i32":6,"i33":10,"i34":6,"i35":6,"i36":10,"i37":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -269,42 +269,49 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 </td>
 </tr>
 <tr id="i13" class="rowColor">
+<td class="colFirst"><code>protected &lt;T&gt;&nbsp;T</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeCustom-io.micronaut.serde.AbstractStreamDecoder.ValueDecoder-boolean-">decodeCustom</a></span>(<a href="../../../io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde">AbstractStreamDecoder.ValueDecoder</a>&lt;T&gt;&nbsp;readFunction,
+            boolean&nbsp;callNext)</code>
+<div class="block">Decode a custom type.</div>
+</td>
+</tr>
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeDouble--">decodeDouble</a></span>()</code>
 <div class="block">Decodes a double.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>float</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeFloat--">decodeFloat</a></span>()</code>
 <div class="block">Decodes a float.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeInt--">decodeInt</a></span>()</code>
 <div class="block">Decodes a int.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeKey--">decodeKey</a></span>()</code>
 <div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeLong--">decodeLong</a></span>()</code>
 <div class="block">Decodes a long.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeNull--">decodeNull</a></span>()</code>
 <div class="block">Attempt to decode a null value.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>protected &lt;T&gt;&nbsp;T</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeNumber-io.micronaut.serde.AbstractStreamDecoder.ValueDecoder-java.util.function.Function-T-T-">decodeNumber</a></span>(<a href="../../../io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde">AbstractStreamDecoder.ValueDecoder</a>&lt;T&gt;&nbsp;fromNumberToken,
             java.util.function.Function&lt;java.lang.String,T&gt;&nbsp;fromString,
@@ -313,100 +320,100 @@ implements <a href="../../../io/micronaut/serde/Decoder.html" title="interface i
 <div class="block">Decode a number type, applying all necessary coercions.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code><a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeObject-io.micronaut.core.type.Argument-">decodeObject</a></span>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
 <div class="block">Decodes an object.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>short</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeShort--">decodeShort</a></span>()</code>
 <div class="block">Decodes a short.</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeString--">decodeString</a></span>()</code>
 <div class="block">Decodes a string.</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#finishStructure--">finishStructure</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>protected abstract java.lang.Number</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getBestNumber--">getBestNumber</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>Number</code> value.</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>protected io.micronaut.json.tree.JsonNode</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getBestNumberNode--">getBestNumberNode</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a numeric <code>JsonNode</code>.</div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>protected abstract java.math.BigDecimal</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getBigDecimal--">getBigDecimal</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigDecimal</code> value.</div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>protected abstract java.math.BigInteger</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getBigInteger--">getBigInteger</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigInteger</code> value.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>protected abstract boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getBoolean--">getBoolean</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value.</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>protected abstract java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getCurrentKey--">getCurrentKey</a></span>()</code>
 <div class="block">Get the current object field name.</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i31" class="rowColor">
 <td class="colFirst"><code>protected abstract double</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getDouble--">getDouble</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value.</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i32" class="altColor">
 <td class="colFirst"><code>protected abstract long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#getLong--">getLong</a></span>()</code>
 <div class="block">Decode the current <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#hasNextArrayValue--">hasNextArrayValue</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i34" class="altColor">
 <td class="colFirst"><code>protected abstract void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">nextToken</a></span>()</code>
 <div class="block">Move to the next token.</div>
 </td>
 </tr>
-<tr id="i34" class="altColor">
+<tr id="i35" class="rowColor">
 <td class="colFirst"><code>protected abstract void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#skipChildren--">skipChildren</a></span>()</code>
 <div class="block">If we are at a <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
  <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>.</div>
 </td>
 </tr>
-<tr id="i35" class="rowColor">
+<tr id="i36" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#skipValue--">skipValue</a></span>()</code>
 <div class="block">Skips the current value.</div>
 </td>
 </tr>
-<tr id="i36" class="altColor">
+<tr id="i37" class="rowColor">
 <td class="colFirst"><code>protected java.io.IOException</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html#unexpectedToken-io.micronaut.serde.AbstractStreamDecoder.TokenType-">unexpectedToken</a></span>(<a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a>&nbsp;expected)</code>&nbsp;</td>
 </tr>
@@ -1072,6 +1079,29 @@ public final&nbsp;java.math.BigDecimal&nbsp;decodeBigDecimal()
 <dd><code>T</code> - Value type</dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>readFunction</code> - Function to call for reading the value. The <a href="../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde"><code>AbstractStreamDecoder</code></a> parameter to the function will just be <code>this</code>, but this allows subclasses to avoid capturing <code>this</code> to avoid an allocation.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The parsed value.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
+</dl>
+</li>
+</ul>
+<a name="decodeCustom-io.micronaut.serde.AbstractStreamDecoder.ValueDecoder-boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>decodeCustom</h4>
+<pre>protected final&nbsp;&lt;T&gt;&nbsp;T&nbsp;decodeCustom(<a href="../../../io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde">AbstractStreamDecoder.ValueDecoder</a>&lt;T&gt;&nbsp;readFunction,
+                                   boolean&nbsp;callNext)
+                            throws java.io.IOException</pre>
+<div class="block">Decode a custom type.</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - Value type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>readFunction</code> - Function to call for reading the value. The <a href="../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde"><code>AbstractStreamDecoder</code></a> parameter to the function will just be <code>this</code>, but this allows subclasses to avoid capturing <code>this</code> to avoid an allocation.</dd>
+<dd><code>callNext</code> - Pass "true" if next token should be read after invocation</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The parsed value.</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
