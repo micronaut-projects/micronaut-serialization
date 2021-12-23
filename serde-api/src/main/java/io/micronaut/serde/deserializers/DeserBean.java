@@ -45,6 +45,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -583,7 +587,10 @@ class DeserBean<T> {
             this.instrospection = instrospection;
             this.index = index;
             this.argument = argument;
-            this.required = argument.isNonNull();
+            this.required = argument.isNonNull() || argument.isAssignableFrom(Optional.class)
+                    || argument.isAssignableFrom(OptionalLong.class)
+                    || argument.isAssignableFrom(OptionalDouble.class)
+                    || argument.isAssignableFrom(OptionalInt.class);
             this.writer = writer;
             this.deserializer = deserializer.createSpecific(argument, decoderContext);
             // compute default
@@ -594,7 +601,7 @@ class DeserBean<T> {
                 this.defaultValue = annotationMetadata
                         .stringValue(Bindable.class, "defaultValue")
                         .map(s -> ConversionService.SHARED.convertRequired(s, argument))
-                        .orElse(deserializer.getDefaultValue());
+                        .orElse(null);
             } catch (ConversionErrorException e) {
                 throw new SerdeException((index > -1 ? "Constructor Argument" : "Property") + " [" + argument + "] of type [" + instrospection.getBeanType().getName() + "] defines an invalid default value", e);
             }
@@ -613,20 +620,38 @@ class DeserBean<T> {
         }
 
         public void setDefault(@NonNull B bean) throws SerdeException {
-            if (defaultValue != null && writer != null) {
+            if (writer != null && defaultValue != null) {
                 writer.accept(bean, defaultValue);
-            } else if (required) {
-                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                        "] is not present in supplied data");
+                return;
             }
+            if (!required) {
+                return;
+            }
+            if (writer != null) {
+                P newDefaultValue = (P) deserializer.getDefaultValue();
+                if (newDefaultValue != null) {
+                    writer.accept(bean, newDefaultValue);
+                    return;
+                }
+            }
+            throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                    "] is not present in supplied data");
         }
 
         public void setDefault(@NonNull Object[] params) throws SerdeException {
             if (defaultValue != null) {
                 params[index] = defaultValue;
-            } else if (required) {
-                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
+                return;
             }
+            if (!required) {
+                return;
+            }
+            P newDefaultValue = (P) deserializer.getDefaultValue();
+            if (newDefaultValue != null) {
+                params[index] = newDefaultValue;
+                return;
+            }
+            throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
         }
 
         public void set(@NonNull B obj, @Nullable P v) throws SerdeException {

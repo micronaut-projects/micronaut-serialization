@@ -270,6 +270,41 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             address.address == "The home"
     }
 
+    def "validate default collections"() {
+        when:
+            def valueNullables = bsonJsonMapper.readValue("{}", DefaultNullableCollectionsObj)
+        then:
+            valueNullables.collection == null
+            valueNullables.arrayList == null
+            valueNullables.linkedList == null
+            valueNullables.hashSet == null
+            valueNullables.linkedHashSet == null
+            valueNullables.treeSet == null
+            valueNullables.hashMap == null
+            valueNullables.linkedHashSet == null
+            valueNullables.treeSet == null
+            valueNullables.hashMap == null
+            valueNullables.linkedHashMap == null
+            valueNullables.treeMap == null
+            !valueNullables.optional.isPresent()
+        when:
+            def valueNonNulls = bsonJsonMapper.readValue("{}", DefaultNonNullCollectionsObj)
+        then:
+            valueNonNulls.collection.isEmpty()
+            valueNonNulls.arrayList.isEmpty()
+            valueNonNulls.linkedList.isEmpty()
+            valueNonNulls.hashSet.isEmpty()
+            valueNonNulls.linkedHashSet.isEmpty()
+            valueNonNulls.treeSet.isEmpty()
+            valueNonNulls.hashMap.isEmpty()
+            valueNonNulls.linkedHashSet.isEmpty()
+            valueNonNulls.treeSet.isEmpty()
+            valueNonNulls.hashMap.isEmpty()
+            valueNonNulls.linkedHashMap.isEmpty()
+            valueNonNulls.treeMap.isEmpty()
+            !valueNonNulls.optional.isPresent()
+    }
+
     @Serdeable
     static class Wrapper1 {
         List<Person2> persons
