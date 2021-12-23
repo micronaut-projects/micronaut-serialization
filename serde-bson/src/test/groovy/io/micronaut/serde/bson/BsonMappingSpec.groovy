@@ -275,6 +275,31 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         given:
             def deserializer = serdeRegistry.findDeserializer(NestedObjAddress)
 
+            def bsonDocumentAddress = BsonDocument.parse("""{"firstName": "A", "address": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}, "lastName": "B"}""")
+            def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
+
+                @Override
+                Deserializer findDeserializer(Argument type) {
+                    if (type.getType() == Address.class) {
+                        def addressDeserializer = serdeRegistry.findDeserializer(Address)
+                        def asCodec = new MappedCodec<Address>(serdeRegistry, addressDeserializer, Address)
+                        return new CodecBsonDecoder<Address>(asCodec)
+                    }
+                    return super.findDeserializer(type)
+                }
+            }
+        when:
+            NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObjAddress))
+        then:
+            e.address.address == "The home"
+            e.lastName == "B"
+            e.firstName == "A"
+    }
+
+    def "test nested empty bson document parsing"() {
+        given:
+            def deserializer = serdeRegistry.findDeserializer(NestedObjAddress)
+
             def bsonDocumentAddress = BsonDocument.parse("""{"address": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}""")
             def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
 
@@ -292,13 +317,15 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObjAddress))
         then:
             e.address.address == "The home"
+            e.lastName == null
+            e.firstName == null
     }
 
     def "test nested bson document level2 parsing"() {
         given:
             def deserializer = serdeRegistry.findDeserializer(NestedObj2Address)
 
-            def bsonDocumentAddress = BsonDocument.parse("""{"address": {"firstName": "A", "lastName": "B", "address": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}}""")
+            def bsonDocumentAddress = BsonDocument.parse("""{"address": {"firstName": "A", "address": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}, "lastName": "B"}}""")
             def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
 
                 @Override
@@ -323,7 +350,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         given:
             def deserializer = serdeRegistry.findDeserializer(NestedArrayAddress)
 
-            def bsonDocumentAddress = BsonDocument.parse("""{"addresses": [{"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}]}""")
+            def bsonDocumentAddress = BsonDocument.parse("""{"firstName": "A", "addresses": [{"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}], "lastName": "B"}""")
             def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
 
                 @Override
@@ -339,7 +366,9 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         when:
             NestedArrayAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedArrayAddress))
         then:
+            e.lastName == "B"
             e.addresses[0].address == "The home"
+            e.firstName == "A"
     }
 
     def "validate default collections"() {
