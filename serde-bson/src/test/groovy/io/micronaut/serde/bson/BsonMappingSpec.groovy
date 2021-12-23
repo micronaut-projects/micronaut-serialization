@@ -372,10 +372,14 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
     }
 
     def "validate default collections"() {
+        given:
+            def nullValues = """{"collection":null, "list":null, "set":null, "arrayList":null, "hashMap":null}"""
         when:
             def valueNullables = bsonJsonMapper.readValue("{}", DefaultNullableCollectionsObj)
         then:
             valueNullables.collection == null
+            valueNullables.list == null
+            valueNullables.set == null
             valueNullables.arrayList == null
             valueNullables.linkedList == null
             valueNullables.hashSet == null
@@ -392,6 +396,44 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             def valueNonNulls = bsonJsonMapper.readValue("{}", DefaultNonNullCollectionsObj)
         then:
             valueNonNulls.collection.isEmpty()
+            valueNonNulls.list.isEmpty()
+            valueNonNulls.set.isEmpty()
+            valueNonNulls.arrayList.isEmpty()
+            valueNonNulls.linkedList.isEmpty()
+            valueNonNulls.hashSet.isEmpty()
+            valueNonNulls.linkedHashSet.isEmpty()
+            valueNonNulls.treeSet.isEmpty()
+            valueNonNulls.hashMap.isEmpty()
+            valueNonNulls.linkedHashSet.isEmpty()
+            valueNonNulls.treeSet.isEmpty()
+            valueNonNulls.hashMap.isEmpty()
+            valueNonNulls.linkedHashMap.isEmpty()
+            valueNonNulls.treeMap.isEmpty()
+            !valueNonNulls.optional.isPresent()
+        when:
+            def valueNullables2 = bsonJsonMapper.readValue(nullValues, DefaultNullableCollectionsObj)
+        then:
+            valueNullables.collection == null
+            valueNullables.list == null
+            valueNullables.set == null
+            valueNullables.arrayList == null
+            valueNullables.linkedList == null
+            valueNullables.hashSet == null
+            valueNullables.linkedHashSet == null
+            valueNullables.treeSet == null
+            valueNullables.hashMap == null
+            valueNullables.linkedHashSet == null
+            valueNullables.treeSet == null
+            valueNullables.hashMap == null
+            valueNullables.linkedHashMap == null
+            valueNullables.treeMap == null
+            !valueNullables.optional.isPresent()
+        when:
+            def valueNonNulls2 = bsonJsonMapper.readValue(nullValues, DefaultNonNullCollectionsObj)
+        then:
+            valueNonNulls.collection.isEmpty()
+            valueNonNulls.list.isEmpty()
+            valueNonNulls.set.isEmpty()
             valueNonNulls.arrayList.isEmpty()
             valueNonNulls.linkedList.isEmpty()
             valueNonNulls.hashSet.isEmpty()

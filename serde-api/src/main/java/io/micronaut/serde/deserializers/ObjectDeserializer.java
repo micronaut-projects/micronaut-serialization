@@ -178,8 +178,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     if (prop == null) {
                         break;
                     }
-                    final DeserBean.DerProperty<? super Object, ?> sp =
-                            creatorParameters.remove(prop);
+                    final DeserBean.DerProperty<? super Object, ?> sp = creatorParameters.remove(prop);
                     if (sp != null) {
                         if (sp.views != null && !decoderContext.hasView(sp.views)) {
                             objectDecoder.skipValue();
@@ -188,6 +187,10 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                         }
                         @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
                         final Object val = deserializeValue(decoderContext, objectDecoder, sp, propertyType, null);
+                        if (val == null) {
+                            ((Map) creatorParameters).put(prop, sp);
+                            continue;
+                        }
                         skipAliases(creatorParameters, sp);
                         if (sp.instrospection.getBeanType() == objectType) {
                             params[sp.index] = val;
