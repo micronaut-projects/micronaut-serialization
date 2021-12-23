@@ -5,6 +5,7 @@ import org.bson.codecs.pojo.annotations.BsonId;
 
 @Serdeable
 public class Sale3 {
+    @MyAnn
     private final Quantity quantity;
 
     @BsonId
