@@ -5,7 +5,8 @@ import org.bson.codecs.pojo.annotations.BsonId;
 
 @Serdeable
 public class Sale2 {
-    @MyAnn
+    @MyAnn1
+    @MyAnn2
     @Serdeable.Serializable(using = QuantityAttributeConverter.class, as = Integer.class)
     @Serdeable.Deserializable(using = QuantityAttributeConverter.class, as = Integer.class)
     private final Quantity quantity;
