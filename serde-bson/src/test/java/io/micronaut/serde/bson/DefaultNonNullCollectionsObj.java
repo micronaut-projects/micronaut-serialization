@@ -11,7 +11,9 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -19,6 +21,8 @@ import java.util.TreeSet;
 public class DefaultNonNullCollectionsObj {
 
     private final Collection<String> collection;
+    private final List<String> list;
+    private final Set<String> set;
     private final ArrayList<String> arrayList;
     private final LinkedList<String> linkedList;
     private final ArrayDeque<String> arrayDeque;
@@ -31,6 +35,8 @@ public class DefaultNonNullCollectionsObj {
     private final Optional<String> optional;
 
     public DefaultNonNullCollectionsObj(@NonNull Collection<String> collection,
+                                        @NonNull List<String> list,
+                                        @NonNull Set<String> set,
                                         @NonNull ArrayList<String> arrayList,
                                         @NonNull LinkedList<String> linkedList,
                                         @NonNull ArrayDeque<String> arrayDeque,
@@ -42,6 +48,8 @@ public class DefaultNonNullCollectionsObj {
                                         @NonNull TreeMap<String, String> treeMap,
                                         @NonNull Optional<String> optional) {
         this.collection = collection;
+        this.list = list;
+        this.set = set;
         this.arrayList = arrayList;
         this.linkedList = linkedList;
         this.arrayDeque = arrayDeque;
@@ -56,6 +64,14 @@ public class DefaultNonNullCollectionsObj {
 
     public Collection<String> getCollection() {
         return collection;
+    }
+
+    public List<String> getList() {
+        return list;
+    }
+
+    public Set<String> getSet() {
+        return set;
     }
 
     public HashSet<String> getHashSet() {
