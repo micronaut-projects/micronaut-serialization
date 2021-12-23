@@ -286,7 +286,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             valueNullables.hashMap == null
             valueNullables.linkedHashMap == null
             valueNullables.treeMap == null
-            valueNullables.optional.isPresent()
+            !valueNullables.optional.isPresent()
         when:
             def valueNonNulls = bsonJsonMapper.readValue("{}", DefaultNonNullCollectionsObj)
         then:
