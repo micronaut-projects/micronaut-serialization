@@ -374,7 +374,12 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
         currentBsonType = null;
         BsonReaderMemorized bsonReaderMemorized = new BsonReaderMemorized(bsonReader);
         T result = decodeCustom(p -> decoder.decode(bsonReaderMemorized, context), false);
-        if (bsonReaderMemorized.getCurrentBsonType() != BsonType.END_OF_DOCUMENT) {
+        BsonType lastType = bsonReaderMemorized.getCurrentBsonType();
+        Context ctx = contextStack.peek();
+        if (lastType == BsonType.END_OF_DOCUMENT && (ctx == Context.DOCUMENT || ctx == Context.TOP)) {
+            currentToken = TokenType.END_OBJECT;
+            currentBsonType = BsonType.END_OF_DOCUMENT;
+        } else {
             nextToken();
         }
         return result;

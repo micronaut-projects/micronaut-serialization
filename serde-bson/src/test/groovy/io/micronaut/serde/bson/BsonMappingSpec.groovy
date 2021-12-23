@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson
 
+
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeRegistry
@@ -270,6 +271,77 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             address.address == "The home"
     }
 
+    def "test nested bson document parsing"() {
+        given:
+            def deserializer = serdeRegistry.findDeserializer(NestedObjAddress)
+
+            def bsonDocumentAddress = BsonDocument.parse("""{"address": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}""")
+            def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
+
+                @Override
+                Deserializer findDeserializer(Argument type) {
+                    if (type.getType() == Address.class) {
+                        def addressDeserializer = serdeRegistry.findDeserializer(Address)
+                        def asCodec = new MappedCodec<Address>(serdeRegistry, addressDeserializer, Address)
+                        return new CodecBsonDecoder<Address>(asCodec)
+                    }
+                    return super.findDeserializer(type)
+                }
+            }
+        when:
+            NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObjAddress))
+        then:
+            e.address.address == "The home"
+    }
+
+    def "test nested bson document level2 parsing"() {
+        given:
+            def deserializer = serdeRegistry.findDeserializer(NestedObj2Address)
+
+            def bsonDocumentAddress = BsonDocument.parse("""{"address": {"firstName": "A", "lastName": "B", "address": {"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}}""")
+            def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
+
+                @Override
+                Deserializer findDeserializer(Argument type) {
+                    if (type.getType() == Address.class) {
+                        def addressDeserializer = serdeRegistry.findDeserializer(Address)
+                        def asCodec = new MappedCodec<Address>(serdeRegistry, addressDeserializer, Address)
+                        return new CodecBsonDecoder<Address>(asCodec)
+                    }
+                    return super.findDeserializer(type)
+                }
+            }
+        when:
+            NestedObj2Address e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObj2Address))
+        then:
+            e.address.address.address == "The home"
+            e.address.lastName == "B"
+            e.address.firstName == "A"
+    }
+
+    def "test nested array bson document parsing"() {
+        given:
+            def deserializer = serdeRegistry.findDeserializer(NestedArrayAddress)
+
+            def bsonDocumentAddress = BsonDocument.parse("""{"addresses": [{"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}]}""")
+            def decoderContext = new DelegationDecoderContext(serdeRegistry.newDecoderContext(null)) {
+
+                @Override
+                Deserializer findDeserializer(Argument type) {
+                    if (type.getType() == Address.class) {
+                        def addressDeserializer = serdeRegistry.findDeserializer(Address)
+                        def asCodec = new MappedCodec<Address>(serdeRegistry, addressDeserializer, Address)
+                        return new CodecBsonDecoder<Address>(asCodec)
+                    }
+                    return super.findDeserializer(type)
+                }
+            }
+        when:
+            NestedArrayAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedArrayAddress))
+        then:
+            e.addresses[0].address == "The home"
+    }
+
     def "validate default collections"() {
         when:
             def valueNullables = bsonJsonMapper.readValue("{}", DefaultNullableCollectionsObj)
@@ -315,39 +387,76 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         Person2 person
     }
 
-    static class MappedCodec<T> implements Codec<T> {
+}
 
-        protected final SerdeRegistry serdeRegistry
-        protected final Deserializer<T> deserializer
-        protected final Class<T> type
-        protected final Argument<T> argument
+@Serdeable
+class NestedObj2Address {
 
-        MappedCodec(SerdeRegistry serdeRegistry, Deserializer<T> deserializer, Class<T> type) {
-            this.serdeRegistry = serdeRegistry
-            this.deserializer = deserializer
-            this.type = type
-            this.argument = Argument.of(type)
-        }
+    String firstName
+    NestedObjAddress address
+    String lastName
 
-        @Override
-        T decode(BsonReader reader, DecoderContext decoderContext) {
-            try {
-                T deserialize = deserializer.deserialize(new BsonReaderDecoder(reader), serdeRegistry.newDecoderContext(type), argument)
-                return deserialize
-            } catch (IOException e) {
-                throw new SerdeException("Cannot deserialize: " + type, e)
-            }
-        }
+}
 
-        @Override
-        void encode(BsonWriter writer, T value, EncoderContext encoderContext) {
-            throw new SerdeException("Not impl")
-        }
+@Serdeable
+class NestedObjAddress {
 
-        @Override
-        Class<T> getEncoderClass() {
-            return type
+    String firstName
+    Address address
+    String lastName
+
+}
+
+@Serdeable
+class NestedArrayAddress {
+
+    String firstName
+    List<Address> addresses
+    String lastName
+
+}
+
+class DelegationDecoderContext implements Deserializer.DecoderContext {
+
+    @Delegate
+    private final Deserializer.DecoderContext delegate
+
+    DelegationDecoderContext(Deserializer.DecoderContext delegate) {
+        this.delegate = delegate
+    }
+}
+
+class MappedCodec<T> implements Codec<T> {
+
+    protected final SerdeRegistry serdeRegistry
+    protected final Deserializer<T> deserializer
+    protected final Class<T> type
+    protected final Argument<T> argument
+
+    MappedCodec(SerdeRegistry serdeRegistry, Deserializer<T> deserializer, Class<T> type) {
+        this.serdeRegistry = serdeRegistry
+        this.deserializer = deserializer
+        this.type = type
+        this.argument = Argument.of(type)
+    }
+
+    @Override
+    T decode(BsonReader reader, DecoderContext decoderContext) {
+        try {
+            T deserialize = deserializer.deserialize(new BsonReaderDecoder(reader), serdeRegistry.newDecoderContext(type), argument)
+            return deserialize
+        } catch (IOException e) {
+            throw new SerdeException("Cannot deserialize: " + type, e)
         }
     }
 
+    @Override
+    void encode(BsonWriter writer, T value, EncoderContext encoderContext) {
+        throw new SerdeException("Not impl")
+    }
+
+    @Override
+    Class<T> getEncoderClass() {
+        return type
+    }
 }
