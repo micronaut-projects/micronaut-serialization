@@ -150,7 +150,7 @@ class DeserBean<T> {
                         introspection,
                         i,
                         jsonProperty,
-                        constructorArgument,
+                        constructorWithPropertyArgument,
                         null,
                         deserializer,
                         unwrapped,
@@ -172,7 +172,7 @@ class DeserBean<T> {
                         introspection,
                         i,
                         jsonProperty,
-                        constructorArgument,
+                        constructorWithPropertyArgument,
                         null,
                         (Deserializer) deserializer,
                         unwrapped,
@@ -184,7 +184,7 @@ class DeserBean<T> {
                         introspection,
                         i,
                         jsonProperty,
-                        constructorArgument,
+                        constructorWithPropertyArgument,
                         null,
                         (Deserializer) deserializer,
                         null,
@@ -197,7 +197,6 @@ class DeserBean<T> {
             );
             handleAliases(creatorParams, derProperty);
         }
-
 
         final List<BeanProperty<T, Object>> beanProperties = introspection.getBeanProperties()
                 .stream().filter(bp -> {
