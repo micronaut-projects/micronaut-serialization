@@ -648,7 +648,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
             String deserializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
             if (deserializeAs != null) {
-                ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
+                ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {
                     context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
                     return;
