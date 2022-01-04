@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.config.naming;
 
+import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.util.StringUtils;
 
@@ -23,7 +24,8 @@ import io.micronaut.core.util.StringUtils;
  */
 public class UpperCamelCaseStrategy implements PropertyNamingStrategy {
     @Override
-    public String translate(String name) {
+    public String translate(AnnotatedElement element) {
+        String name = element.getName();
         if (StringUtils.isNotEmpty(name)) {
             return NameUtils.capitalize(name);
         }

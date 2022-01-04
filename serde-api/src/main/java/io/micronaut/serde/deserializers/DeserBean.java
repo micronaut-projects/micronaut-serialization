@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.deserializers;
 
+import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Internal;
@@ -27,16 +28,16 @@ import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.naming.NameUtils;
-import io.micronaut.core.naming.Named;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.config.annotation.SerdeAnnotationUtil;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -89,6 +94,8 @@ class DeserBean<T> {
         delegating = creatorMode == SerdeConfig.CreatorMode.DELEGATING;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
+        PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
+
         this.ignoreUnknown = introspection.booleanValue(SerdeConfig.Ignored.class, "ignoreUnknown").orElse(true);
         final Map<String, DerProperty<T, ?>> creatorParams = new HashMap<>(constructorArguments.length);
         List<DerProperty<T, ?>> creatorUnwrapped = null;
@@ -119,8 +126,15 @@ class DeserBean<T> {
                 continue;
             }
 
-            final String jsonProperty = resolveName(constructorArgument, annotationMetadata);
-            final Deserializer<?> deserializer = decoderContext.findDeserializer(constructorArgument);
+            PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
+            final String jsonProperty = resolveName(constructorArgument, annotationMetadata, propertyNamingStrategy);
+            Argument<Object> constructorWithPropertyArgument = Argument.of(
+                    constructorArgument.getType(),
+                    constructorArgument.getName(),
+                    annotationMetadata,
+                    constructorArgument.getTypeParameters()
+            );
+            final Deserializer<?> deserializer = findDeserializer(decoderContext, constructorWithPropertyArgument);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
             final DerProperty<T, ?> derProperty;
             if (isUnwrapped) {
@@ -136,7 +150,7 @@ class DeserBean<T> {
                         introspection,
                         i,
                         jsonProperty,
-                        constructorArgument,
+                        constructorWithPropertyArgument,
                         null,
                         deserializer,
                         unwrapped,
@@ -158,7 +172,7 @@ class DeserBean<T> {
                         introspection,
                         i,
                         jsonProperty,
-                        constructorArgument,
+                        constructorWithPropertyArgument,
                         null,
                         (Deserializer) deserializer,
                         unwrapped,
@@ -170,7 +184,7 @@ class DeserBean<T> {
                         introspection,
                         i,
                         jsonProperty,
-                        constructorArgument,
+                        constructorWithPropertyArgument,
                         null,
                         (Deserializer) deserializer,
                         null,
@@ -183,7 +197,6 @@ class DeserBean<T> {
             );
             handleAliases(creatorParams, derProperty);
         }
-
 
         final List<BeanProperty<T, Object>> beanProperties = introspection.getBeanProperties()
                 .stream().filter(bp -> {
@@ -211,6 +224,7 @@ class DeserBean<T> {
             final HashMap<String, DerProperty<T, Object>> readProps = new HashMap<>(beanProperties.size() + jsonSetters.size());
             for (int i = 0; i < beanProperties.size(); i++) {
                 BeanProperty<T, Object> beanProperty = beanProperties.get(i);
+                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
                 final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
                 if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
                     anySetterValue = new AnySetter(beanProperty, decoderContext);
@@ -262,7 +276,7 @@ class DeserBean<T> {
                         }
                     } else {
 
-                        final String jsonProperty = resolveName(beanProperty, annotationMetadata);
+                        final String jsonProperty = resolveName(beanProperty, annotationMetadata, propertyNamingStrategy);
                         final DerProperty<T, Object> derProperty = new DerProperty<>(
                                 introspection,
                                 i,
@@ -280,9 +294,21 @@ class DeserBean<T> {
             }
 
             for (BeanMethod<T, Object> jsonSetter : jsonSetters) {
+                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonSetter.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
                 final String property = resolveName(
-                        () -> NameUtils.getPropertyNameForSetter(jsonSetter.getName()),
-                        jsonSetter.getAnnotationMetadata()
+                        new AnnotatedElement() {
+                            @Override
+                            public String getName() {
+                                return NameUtils.getPropertyNameForSetter(jsonSetter.getName());
+                            }
+
+                            @Override
+                            public AnnotationMetadata getAnnotationMetadata() {
+                                return jsonSetter.getAnnotationMetadata();
+                            }
+                        },
+                        jsonSetter.getAnnotationMetadata(),
+                        propertyNamingStrategy
                 );
                 final Argument<Object> argument = resolveArgument((Argument<Object>) jsonSetter.getArguments()[0]);
                 final DerProperty<T, Object> derProperty = new DerProperty<>(
@@ -315,6 +341,14 @@ class DeserBean<T> {
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
+    }
+
+    private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
+                                                             Deserializer.DecoderContext decoderContext,
+                                                             PropertyNamingStrategy defaultNamingStrategy) throws SerdeException {
+        Class<? extends PropertyNamingStrategy> namingStrategyClass = annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING)
+                .orElse(null);
+        return namingStrategyClass == null ? defaultNamingStrategy : decoderContext.findNamingStrategy(namingStrategyClass);
     }
 
     private <A> Argument<A> resolveArgument(Argument<A> argument) {
@@ -399,12 +433,15 @@ class DeserBean<T> {
         }
     }
 
-    private String resolveName(Named named, AnnotationMetadata annotationMetadata) {
+    private String resolveName(AnnotatedElement annotatedElement, AnnotationMetadata annotationMetadata, PropertyNamingStrategy namingStrategy) {
+        if (namingStrategy != null) {
+            return namingStrategy.translate(annotatedElement);
+        }
         return annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                 .orElseGet(() ->
                     annotationMetadata.stringValue(JK_PROP)
-                            .orElseGet(named::getName)
+                            .orElseGet(annotatedElement::getName)
                 );
     }
 
@@ -549,7 +586,10 @@ class DeserBean<T> {
             this.instrospection = instrospection;
             this.index = index;
             this.argument = argument;
-            this.required = argument.isNonNull();
+            this.required = argument.isNonNull() || argument.isAssignableFrom(Optional.class)
+                    || argument.isAssignableFrom(OptionalLong.class)
+                    || argument.isAssignableFrom(OptionalDouble.class)
+                    || argument.isAssignableFrom(OptionalInt.class);
             this.writer = writer;
             this.deserializer = deserializer.createSpecific(argument, decoderContext);
             // compute default
@@ -560,7 +600,7 @@ class DeserBean<T> {
                 this.defaultValue = annotationMetadata
                         .stringValue(Bindable.class, "defaultValue")
                         .map(s -> ConversionService.SHARED.convertRequired(s, argument))
-                        .orElse(deserializer.getDefaultValue());
+                        .orElse(null);
             } catch (ConversionErrorException e) {
                 throw new SerdeException((index > -1 ? "Constructor Argument" : "Property") + " [" + argument + "] of type [" + instrospection.getBeanType().getName() + "] defines an invalid default value", e);
             }
@@ -579,20 +619,38 @@ class DeserBean<T> {
         }
 
         public void setDefault(@NonNull B bean) throws SerdeException {
-            if (defaultValue != null && writer != null) {
+            if (writer != null && defaultValue != null) {
                 writer.accept(bean, defaultValue);
-            } else if (required) {
-                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                        "] is not present in supplied data");
+                return;
             }
+            if (!required) {
+                return;
+            }
+            if (writer != null) {
+                P newDefaultValue = (P) deserializer.getDefaultValue();
+                if (newDefaultValue != null) {
+                    writer.accept(bean, newDefaultValue);
+                    return;
+                }
+            }
+            throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                    "] is not present in supplied data");
         }
 
         public void setDefault(@NonNull Object[] params) throws SerdeException {
             if (defaultValue != null) {
                 params[index] = defaultValue;
-            } else if (required) {
-                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
+                return;
             }
+            if (!required) {
+                return;
+            }
+            P newDefaultValue = (P) deserializer.getDefaultValue();
+            if (newDefaultValue != null) {
+                params[index] = newDefaultValue;
+                return;
+            }
+            throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
         }
 
         public void set(@NonNull B obj, @Nullable P v) throws SerdeException {

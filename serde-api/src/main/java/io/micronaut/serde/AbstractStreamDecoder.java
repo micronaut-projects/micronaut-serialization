@@ -571,9 +571,24 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected final <T> T decodeCustom(ValueDecoder<T> readFunction) throws IOException {
+        return decodeCustom(readFunction, true);
+    }
+
+    /**
+     * Decode a custom type.
+     *
+     * @param readFunction Function to call for reading the value. The {@link AbstractStreamDecoder} parameter to the function will just be {@code this}, but this allows subclasses to avoid capturing {@code this} to avoid an allocation.
+     * @param callNext     Pass "true" if next token should be read after invocation
+     * @param <T> Value type
+     * @return The parsed value.
+     * @throws java.io.IOException if an unrecoverable error occurs
+     */
+    protected final <T> T decodeCustom(ValueDecoder<T> readFunction, boolean callNext) throws IOException {
         preDecodeValue();
         T value = readFunction.decode(this);
-        nextToken();
+        if (callNext) {
+            nextToken();
+        }
         return value;
     }
 

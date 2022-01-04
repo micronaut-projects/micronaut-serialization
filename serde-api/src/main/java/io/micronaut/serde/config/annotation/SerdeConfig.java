@@ -143,6 +143,11 @@ public @interface SerdeConfig {
     String NAMING = "naming";
 
     /**
+     * Runtime naming strategy class.
+     */
+    String RUNTIME_NAMING = "runtimeNaming";
+
+    /**
      * Internal metadata type for wrapped settings.
      */
     @Internal

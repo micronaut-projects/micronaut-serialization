@@ -16,28 +16,26 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.exceptions.SerdeException;
 
 /**
- * Represents a registry where specific serializers can be looked up.
+ * Locator interface for a naming strategy.
  *
- * @author graemerocher
  * @since 1.0.0
- *
  */
-public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, NamingStrategyLocator {
+public interface NamingStrategyLocator {
 
     /**
-     * Creates a new encoder context.
-     * @param view The view
-     * @return The encoder context
+     * Gets a naming strategy.
+     *
+     * @param namingStrategyClass The naming strategy class, should not be {@code null}
+     * @param <D>                 The naming strategy type
+     * @return The naming strategy
+     * @throws SerdeException if no naming strategy is found
      */
-    @NonNull Serializer.EncoderContext newEncoderContext(@Nullable Class<?> view);
+    @NonNull
+    <D extends PropertyNamingStrategy> D findNamingStrategy(@NonNull Class<? extends D> namingStrategyClass)
+            throws SerdeException;
 
-    /**
-     * Creates a new decoder context.
-     * @param view The view
-     * @return The decoder context
-     */
-    @NonNull Deserializer.DecoderContext newDecoderContext(@Nullable Class<?> view);
 }

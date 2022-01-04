@@ -367,7 +367,13 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     public <T> T decodeCustom(org.bson.codecs.Decoder<T> decoder, DecoderContext context) throws IOException {
         currentToken = null;
         currentBsonType = null;
-        return decodeCustom(p -> decoder.decode(bsonReader, context));
+        T result = decodeCustom(p -> decoder.decode(bsonReader, context), false);
+        Context ctx = contextStack.peek();
+        if (ctx == Context.TOP) {
+            return result;
+        }
+        nextToken();
+        return result;
     }
 
     /**
