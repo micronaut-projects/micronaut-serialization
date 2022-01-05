@@ -3,13 +3,10 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
-    includeBuild("build-logic") {
-        name = "serde-build-logic"
-    }
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "4.2.6"
+    id("io.micronaut.build.shared.settings") version "5.1.0"
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -25,12 +22,11 @@ include("serde-support")
 include("serde-bson")
 include("serde-tck")
 
-// examples
-include("doc-examples:example-java")
-include("doc-examples:example-bson-java")
-include("doc-examples:example-jsonb-java")
-include("doc-examples:example-kotlin")
-include("doc-examples:example-groovy")
+include("test-suite")
+include("test-suite-bson-java")
+include("test-suite-jsonb-java")
+include("test-suite-kotlin")
+include("test-suite-groovy")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
