@@ -3,9 +3,6 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
-    includeBuild("build-logic") {
-        name = "serde-build-logic"
-    }
 }
 
 plugins {
@@ -25,7 +22,6 @@ include("serde-support")
 include("serde-bson")
 include("serde-tck")
 
-// examples
 include("doc-examples:example-java")
 include("doc-examples:example-bson-java")
 include("doc-examples:example-jsonb-java")
