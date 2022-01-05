@@ -637,7 +637,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 });
             }
 
-            String serializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
+            String serializeAs = element.getDeclaredMetadata().stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
             if (serializeAs != null) {
                 ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {
@@ -646,7 +646,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
 
-            String deserializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
+            String deserializeAs = element.getDeclaredMetadata().stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
             if (deserializeAs != null) {
                 ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {

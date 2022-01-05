@@ -87,8 +87,9 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
             }
         }
         if (result != null) {
-            Class serializeType = result.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS)
-                    .orElse(null);
+            final AnnotationMetadata declaredMetadata = result.getDeclaredMetadata();
+            Class serializeType = declaredMetadata.findDeclaredAnnotation(SerdeConfig.class)
+                    .flatMap(av -> av.classValue(SerdeConfig.SERIALIZE_AS)).orElse(null);
             if (serializeType != null && !serializeType.equals(type.getType())) {
                 Argument resolved = Argument.of(
                         serializeType,
@@ -109,8 +110,9 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
     public <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
         final BeanIntrospection<T> introspection = getBeanIntrospector().getIntrospection(type.getType());
         if (isEnabledForDeserialization(introspection, type)) {
-            Class serializeType = introspection.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS)
-                    .orElse(null);
+            final AnnotationMetadata declaredMetadata = introspection.getDeclaredMetadata();
+            Class serializeType = declaredMetadata.findDeclaredAnnotation(SerdeConfig.class)
+                    .flatMap(av -> av.classValue(SerdeConfig.DESERIALIZE_AS)).orElse(null);
             if (serializeType != null) {
                 Argument resolved = Argument.of(
                         serializeType,
@@ -118,7 +120,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                         type.getAnnotationMetadata(),
                         type.getTypeParameters()
                 );
-                return getSerializableIntrospection(resolved);
+                return getDeserializableIntrospection(resolved);
             } else {
                 return introspection;
             }
