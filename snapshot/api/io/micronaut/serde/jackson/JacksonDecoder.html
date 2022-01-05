@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li><a href="#nested.classes.inherited.from.class.io.micronaut.serde.AbstractStreamDecoder">Nested</a>&nbsp;|&nbsp;</li>
+<li><a href="#nested.classes.inherited.from.class.io.micronaut.serde.support.AbstractStreamDecoder">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">io.micronaut.serde.AbstractStreamDecoder</a></li>
+<li><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractStreamDecoder</a></li>
 <li>
 <ul class="inheritance">
 <li>io.micronaut.serde.jackson.JacksonDecoder</li>
@@ -118,7 +118,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>@Internal
 public final class <span class="typeNameLabel">JacksonDecoder</span>
-extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></pre>
+extends <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></pre>
 <div class="block">Implementation of the <a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> interface for Jackson.</div>
 </li>
 </ul>
@@ -133,11 +133,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 </a>
 <h3>Nested Class Summary</h3>
 <ul class="blockList">
-<li class="blockList"><a name="nested.classes.inherited.from.class.io.micronaut.serde.AbstractStreamDecoder">
+<li class="blockList"><a name="nested.classes.inherited.from.class.io.micronaut.serde.support.AbstractStreamDecoder">
 <!--   -->
 </a>
-<h3>Nested classes/interfaces inherited from class&nbsp;io.micronaut.serde.<a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></h3>
-<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde">AbstractStreamDecoder.ValueDecoder</a>&lt;<a href="../../../../io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="type parameter in AbstractStreamDecoder.ValueDecoder">R</a>&gt;</code></li>
+<h3>Nested classes/interfaces inherited from class&nbsp;io.micronaut.serde.support.<a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></h3>
+<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde.support">AbstractStreamDecoder.ValueDecoder</a>&lt;<a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.ValueDecoder.html" title="type parameter in AbstractStreamDecoder.ValueDecoder">R</a>&gt;</code></li>
 </ul>
 </li>
 </ul>
@@ -169,9 +169,9 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
       java.lang.Class&lt;?&gt;&nbsp;view)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#createChildDecoder--">createChildDecoder</a></span>()</code>
-<div class="block">Create a new child decoder using <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#AbstractStreamDecoder-io.micronaut.serde.AbstractStreamDecoder-"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
+<div class="block">Create a new child decoder using <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#AbstractStreamDecoder-io.micronaut.serde.support.AbstractStreamDecoder-"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
@@ -182,31 +182,31 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#currentToken--">currentToken</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>protected java.lang.Number</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getBestNumber--">getBestNumber</a></span>()</code>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>Number</code> value.</div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>Number</code> value.</div>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected java.math.BigDecimal</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getBigDecimal--">getBigDecimal</a></span>()</code>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigDecimal</code> value.</div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigDecimal</code> value.</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>protected java.math.BigInteger</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getBigInteger--">getBigInteger</a></span>()</code>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigInteger</code> value.</div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigInteger</code> value.</div>
 </td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>protected boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getBoolean--">getBoolean</a></span>()</code>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value.</div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
@@ -218,13 +218,13 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>protected double</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getDouble--">getDouble</a></span>()</code>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value.</div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value.</div>
 </td>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>protected long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getLong--">getLong</a></span>()</code>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
 </td>
 </tr>
 <tr id="i13" class="rowColor">
@@ -236,17 +236,17 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <tr id="i14" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#skipChildren--">skipChildren</a></span>()</code>
-<div class="block">If we are at a <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
- <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>.</div>
+<div class="block">If we are at a <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
+ <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>.</div>
 </td>
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.AbstractStreamDecoder">
+<li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.support.AbstractStreamDecoder">
 <!--   -->
 </a>
-<h3>Methods inherited from class&nbsp;io.micronaut.serde.<a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></h3>
-<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#backFromChild-io.micronaut.serde.AbstractStreamDecoder-">backFromChild</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeArbitrary--">decodeArbitrary</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeArray-io.micronaut.core.type.Argument-">decodeArray</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeBigDecimal--">decodeBigDecimal</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeBigInteger--">decodeBigInteger</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeBoolean--">decodeBoolean</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeBuffer--">decodeBuffer</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeByte--">decodeByte</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeChar--">decodeChar</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeCustom-io.micronaut.serde.AbstractStreamDecoder.ValueDecoder-">decodeCustom</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeCustom-io.micronaut.serde.AbstractStreamDecoder.ValueDecoder-boolean-">decodeCustom</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeDouble--">decodeDouble</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeFloat--">decodeFloat</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeInt--">decodeInt</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeKey--">decodeKey</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeLong--">decodeLong</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeNull--">decodeNull</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeNumber-io.micronaut.serde.AbstractStreamDecoder.ValueDecoder-java.util.function.Function-T-T-">decodeNumber</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeObject-io.micronaut.core.type.Argument-">decodeObject</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeShort--">decodeShort</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#decodeString--">decodeString</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#finishStructure--">finishStructure</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBestNumberNode--">getBestNumberNode</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#hasNextArrayValue--">hasNextArrayValue</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#skipValue--">skipValue</a>, <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#unexpectedToken-io.micronaut.serde.AbstractStreamDecoder.TokenType-">unexpectedToken</a></code></li>
+<h3>Methods inherited from class&nbsp;io.micronaut.serde.support.<a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></h3>
+<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#backFromChild-io.micronaut.serde.support.AbstractStreamDecoder-">backFromChild</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeArbitrary--">decodeArbitrary</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeArray-io.micronaut.core.type.Argument-">decodeArray</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBigDecimal--">decodeBigDecimal</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBigInteger--">decodeBigInteger</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBoolean--">decodeBoolean</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBuffer--">decodeBuffer</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeByte--">decodeByte</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeChar--">decodeChar</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeCustom-io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder-">decodeCustom</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeCustom-io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder-boolean-">decodeCustom</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeDouble--">decodeDouble</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeFloat--">decodeFloat</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeInt--">decodeInt</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeKey--">decodeKey</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeLong--">decodeLong</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeNull--">decodeNull</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeNumber-io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder-java.util.function.Function-T-T-">decodeNumber</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeObject-io.micronaut.core.type.Argument-">decodeObject</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeShort--">decodeShort</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#decodeString--">decodeString</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#finishStructure--">finishStructure</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBestNumberNode--">getBestNumberNode</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#hasNextArrayValue--">hasNextArrayValue</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#skipValue--">skipValue</a>, <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#unexpectedToken-io.micronaut.serde.support.AbstractStreamDecoder.TokenType-">unexpectedToken</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -330,10 +330,10 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <ul class="blockList">
 <li class="blockList">
 <h4>currentToken</h4>
-<pre>protected&nbsp;<a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a>&nbsp;currentToken()</pre>
+<pre>protected&nbsp;<a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a>&nbsp;currentToken()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#currentToken--">currentToken</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#currentToken--">currentToken</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The current token.</dd>
 </dl>
@@ -347,11 +347,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>nextToken</h4>
 <pre>protected&nbsp;void&nbsp;nextToken()
                   throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">AbstractStreamDecoder</a></code></span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#nextToken--">AbstractStreamDecoder</a></code></span></div>
 <div class="block">Move to the next token.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#nextToken--">nextToken</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#nextToken--">nextToken</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
@@ -365,11 +365,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getCurrentKey</h4>
 <pre>protected&nbsp;java.lang.String&nbsp;getCurrentKey()
                                   throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getCurrentKey--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Get the current object field name. Only called for <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#KEY"><code>AbstractStreamDecoder.TokenType.KEY</code></a>.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getCurrentKey--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Get the current object field name. Only called for <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#KEY"><code>AbstractStreamDecoder.TokenType.KEY</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getCurrentKey--">getCurrentKey</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getCurrentKey--">getCurrentKey</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The current field key</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -383,12 +383,12 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <ul class="blockList">
 <li class="blockList">
 <h4>createChildDecoder</h4>
-<pre>protected&nbsp;<a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a>&nbsp;createChildDecoder()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#createChildDecoder--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Create a new child decoder using <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#AbstractStreamDecoder-io.micronaut.serde.AbstractStreamDecoder-"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
+<pre>protected&nbsp;<a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a>&nbsp;createChildDecoder()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#createChildDecoder--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Create a new child decoder using <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#AbstractStreamDecoder-io.micronaut.serde.support.AbstractStreamDecoder-"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#createChildDecoder--">createChildDecoder</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#createChildDecoder--">createChildDecoder</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The new decoder</dd>
 </dl>
@@ -402,11 +402,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>coerceScalarToString</h4>
 <pre>protected&nbsp;java.lang.String&nbsp;coerceScalarToString()
                                          throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#coerceScalarToString--">AbstractStreamDecoder</a></code></span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#coerceScalarToString--">AbstractStreamDecoder</a></code></span></div>
 <div class="block">Decode any non-null scalar value (number, string or boolean) to its string representation.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#coerceScalarToString--">coerceScalarToString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#coerceScalarToString--">coerceScalarToString</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The current value, coerced to a string</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -422,11 +422,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getBoolean</h4>
 <pre>protected&nbsp;boolean&nbsp;getBoolean()
                       throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBoolean--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value. Called for no other token type.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBoolean--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value. Called for no other token type.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBoolean--">getBoolean</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBoolean--">getBoolean</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The boolean value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -442,11 +442,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getLong</h4>
 <pre>protected&nbsp;long&nbsp;getLong()
                 throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getLong--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value. Called for no other token type.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getLong--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value. Called for no other token type.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getLong--">getLong</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getLong--">getLong</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -462,11 +462,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getDouble</h4>
 <pre>protected&nbsp;double&nbsp;getDouble()
                     throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getDouble--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value. Called for no other token type.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getDouble--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value. Called for no other token type.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getDouble--">getDouble</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getDouble--">getDouble</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -482,11 +482,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getBigInteger</h4>
 <pre>protected&nbsp;java.math.BigInteger&nbsp;getBigInteger()
                                       throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBigInteger--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigInteger</code> value. Called for no other token type.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBigInteger--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigInteger</code> value. Called for no other token type.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBigInteger--">getBigInteger</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBigInteger--">getBigInteger</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -502,11 +502,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getBigDecimal</h4>
 <pre>protected&nbsp;java.math.BigDecimal&nbsp;getBigDecimal()
                                       throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBigDecimal--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigDecimal</code> value. Called for no other token type.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBigDecimal--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>BigDecimal</code> value. Called for no other token type.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBigDecimal--">getBigDecimal</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBigDecimal--">getBigDecimal</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -522,11 +522,11 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>getBestNumber</h4>
 <pre>protected&nbsp;java.lang.Number&nbsp;getBestNumber()
                                   throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBestNumber--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>Number</code> value. Called for no other token type.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBestNumber--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <code>Number</code> value. Called for no other token type.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#getBestNumber--">getBestNumber</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getBestNumber--">getBestNumber</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -542,12 +542,12 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <h4>skipChildren</h4>
 <pre>protected&nbsp;void&nbsp;skipChildren()
                      throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#skipChildren--">AbstractStreamDecoder</a></code></span></div>
-<div class="block">If we are at a <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
- <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>. Else, do nothing.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#skipChildren--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">If we are at a <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
+ <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>. Else, do nothing.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html#skipChildren--">skipChildren</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#skipChildren--">skipChildren</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
 </dl>
@@ -605,7 +605,7 @@ extends <a href="../../../../io/micronaut/serde/AbstractStreamDecoder.html" titl
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li><a href="#nested.classes.inherited.from.class.io.micronaut.serde.AbstractStreamDecoder">Nested</a>&nbsp;|&nbsp;</li>
+<li><a href="#nested.classes.inherited.from.class.io.micronaut.serde.support.AbstractStreamDecoder">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>

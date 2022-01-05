@@ -81,141 +81,88 @@
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde">AbstractStreamDecoder.ValueDecoder</a>&lt;R&gt;</td>
-<td class="colLast">
-<div class="block">Decoder function for a single value.</div>
-</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></td>
 <td class="colLast">
 <div class="block">Core interface for decoding values from a serialized format such as JSON.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;</td>
 <td class="colLast">
 <div class="block">Interface that represents a deserializer.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></td>
 <td class="colLast">
 <div class="block">Context object passed to the <a href="../../../io/micronaut/serde/Deserializer.html#deserialize-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-"><code>Deserializer.deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)</code></a> method along with the decoder.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></td>
 <td class="colLast">
 <div class="block">Locator strategy interface for deserializers.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></td>
 <td class="colLast">
 <div class="block">Core interface for encoding a serialization format such as JSON.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></td>
 <td class="colLast">
 <div class="block">Locator interface for a naming strategy.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></td>
 <td class="colLast">
 <div class="block">Sub-interface of <code>JsonMapper</code> with customizations.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;</td>
 <td class="colLast">
 <div class="block">Combined interface for a serializer and deserializer pair.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></td>
 <td class="colLast">
 <div class="block">Interface that abstracts the lookup for introspections usable for serialization and/or deserialization.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></td>
 <td class="colLast">
 <div class="block">Represents a registry where specific serializers can be looked up.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;</td>
 <td class="colLast">
 <div class="block">Models a build time serializer.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></td>
 <td class="colLast">
 <div class="block">Context object passes to the
  <a href="../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-"><code>Serializer.serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)</code></a>  method.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></td>
 <td class="colLast">
 <div class="block">Locator strategy interface for serializers.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</td>
 <td class="colLast">
 <div class="block">Interface that represents a deserializer capable of updating an existing object.</div>
-</td>
-</tr>
-</tbody>
-</table>
-</li>
-<li class="blockList">
-<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Class Summary table, listing classes, and an explanation">
-<caption><span>Class Summary</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Class</th>
-<th class="colLast" scope="col">Description</th>
-</tr>
-<tbody>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.html" title="class in io.micronaut.serde">AbstractStreamDecoder</a></td>
-<td class="colLast">
-<div class="block">Abstract base class for stream-based <a href="../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>s.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><a href="../../../io/micronaut/serde/DefaultSerdeIntrospections.html" title="class in io.micronaut.serde">DefaultSerdeIntrospections</a></td>
-<td class="colLast">
-<div class="block">Default implementation of the <a href="../../../io/micronaut/serde/SerdeIntrospections.html" title="interface in io.micronaut.serde"><code>SerdeIntrospections</code></a> interface
- which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
-</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../io/micronaut/serde/DefaultSerdeRegistry.html" title="class in io.micronaut.serde">DefaultSerdeRegistry</a></td>
-<td class="colLast">
-<div class="block">Default implementation of the <a href="../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> interface.</div>
-</td>
-</tr>
-</tbody>
-</table>
-</li>
-<li class="blockList">
-<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Enum Summary table, listing enums, and an explanation">
-<caption><span>Enum Summary</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Enum</th>
-<th class="colLast" scope="col">Description</th>
-</tr>
-<tbody>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../io/micronaut/serde/AbstractStreamDecoder.TokenType.html" title="enum in io.micronaut.serde">AbstractStreamDecoder.TokenType</a></td>
-<td class="colLast">
-<div class="block">The token type.</div>
 </td>
 </tr>
 </tbody>
