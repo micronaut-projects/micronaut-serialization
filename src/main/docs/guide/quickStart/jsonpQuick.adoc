@@ -47,7 +47,7 @@ WARNING: If you third-party dependencies have direct dependencies on Jackson Dat
 
 With the correct dependencies in place you can now define an object to be serialized:
 
-snippet::example.Book[project-base="test-suite-jsonb", source="main"]
+snippet::example.Book[project-base="doc-examples/example-jsonb", source="main"]
 
 <1> The type is annotated with ann:serde.annotation.Serdeable[] to enable serialization/deserialization
 <2> You can use `@JsonbProperty` from JSON-B annotations
@@ -55,4 +55,4 @@ snippet::example.Book[project-base="test-suite-jsonb", source="main"]
 
 Once you have a type that can be serialized and deserialized you can use the api:serde.ObjectMapper[] interface to do so:
 
-snippet::example.BookTest[]
+snippet::example.BookTest[project-base="doc-examples/example"]

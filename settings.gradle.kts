@@ -22,11 +22,11 @@ include("serde-support")
 include("serde-bson")
 include("serde-tck")
 
-include("test-suite")
-include("test-suite-bson-java")
-include("test-suite-jsonb-java")
-include("test-suite-kotlin")
-include("test-suite-groovy")
+include("doc-examples:example-java")
+include("doc-examples:example-bson-java")
+include("doc-examples:example-jsonb-java")
+include("doc-examples:example-kotlin")
+include("doc-examples:example-groovy")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
