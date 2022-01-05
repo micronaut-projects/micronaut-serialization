@@ -3,7 +3,10 @@ package example
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.serde.annotation.SerdeImport;
 
-@SerdeImport(Product.class) // <1>
+@SerdeImport(
+    value = Product.class,
+    mixin = ProductMixin.class
+) // <1>
 class Application {
 
     static void main(String[] args) {
