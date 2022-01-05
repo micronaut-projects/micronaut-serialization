@@ -22,3 +22,10 @@ dependencies {
 application {
     mainClass.set("example.Application")
 }
+
+//tasks {
+//    compileJava {
+//        options.isFork = true
+//        options.forkOptions.jvmArgs = listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
+//    }
+//}
