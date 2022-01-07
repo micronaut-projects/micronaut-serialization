@@ -141,10 +141,16 @@ public @interface <span class="memberNameLabel">SerdeImport</span></pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#deser--">deser</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>java.lang.Class&lt;?&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#mixin--">mixin</a></span></code>
+<div class="block">Apply a mixin type.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#naming--">naming</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code><a href="../../../../io/micronaut/serde/annotation/Serdeable.Serializable.html" title="annotation in io.micronaut.serde.annotation">Serdeable.Serializable</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#ser--">ser</a></span></code>&nbsp;</td>
 </tr>
@@ -183,6 +189,31 @@ public @interface <span class="memberNameLabel">SerdeImport</span></pre>
 </li>
 </ul>
 <!-- ============ ANNOTATION TYPE MEMBER DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="mixin--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>mixin</h4>
+<pre>public abstract&nbsp;java.lang.Class&lt;?&gt;&nbsp;mixin</pre>
+<div class="block">Apply a mixin type. This is equivalent to Jackson <code>objectMapper.addMixInAnnotations(..)</code> allowing to mixin
+ the annotations to the imported type.
+
+ <p>Any fields or methods that match fields or methods declared in the type specified to <a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#value--"><code>value()</code></a> will have
+ the annotations applied to the imported type.</p></div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The mixin type</dd>
+</dl>
+<dl>
+<dt>Default:</dt>
+<dd>void.class</dd>
+</dl>
+</li>
+</ul>
+</li>
+</ul>
 <ul class="blockList">
 <li class="blockList"><a name="naming--">
 <!--   -->

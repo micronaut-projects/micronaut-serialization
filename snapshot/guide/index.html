@@ -57,9 +57,11 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>7</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>8</strong><span>Custom Key Converters</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>8</strong><span>Enabling Serialization of External Classes</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>9</strong><span>Repository</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
                                 
                             </div>
                         </div>
@@ -112,9 +114,11 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>7</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>8</strong><span>Custom Key Converters</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>8</strong><span>Enabling Serialization of External Classes</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>9</strong><span>Repository</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
         
         </div>
     </div>
@@ -1904,7 +1908,193 @@ data class Place(
 </div>
 </div>
 
-<h1 id="keys"><a class="anchor" href="#keys"></a>8 Custom Key Converters</h1>
+<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>8 Enabling Serialization of External Classes</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/serdeImport.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Unlike Jackson, Micronaut Serialization doesn&#8217;t allow the arbitrary serialization of any type. As mentioned in the previous section on <a href="#serdes">Custom Serializers</a>, one option to serializing external types is to define a custom serializer, however it is also possible to import types during compilation using the <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> annotation.</p>
+</div>
+<div class="paragraph">
+<p>For example consider the following type:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+public class Product {
+    private final String name;
+    private final int quantity;
+
+    public Product(String name, int quantity) {
+        this.name = name;
+        this.quantity = quantity;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+class Product {
+    final String name
+    final int quantity
+
+    Product(String name, int quantity) {
+        this.name = name
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+class Product(val name: String, val quantity: Int)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are no serialization annotations present on this type and an attempt to serialize this type will result in an error.</p>
+</div>
+<div class="paragraph">
+<p>To resolve this you can add <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> to a central location in your project (typically the <code>Application</code> class):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SerdeImport(Product.class)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that if you wish to apply customizations the imported class then you can additionally supply a mixin class. For example:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public interface ProductMixin {
+    @JsonProperty("p_name")
+    String getName();
+
+    @JsonProperty("p_quantity")
+    int getQuantity();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+interface ProductMixin {
+    @JsonProperty("p_name")
+    String getName()
+
+    @JsonProperty("p_quantity")
+    int getQuantity()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+interface ProductMixin {
+    @get:JsonProperty("p_name")
+    val name: String
+
+    @get:JsonProperty("p_quantity")
+    val quantity: Int
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then the mixin can be used when declaring <code>SerdeImport</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.runtime.Micronaut;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = Product.class,
+    mixin = ProductMixin.class
+) <b class="conum">(1)</b>
+public class Application {
+
+    public static void main(String[] args) {
+        Micronaut.run(Application.class, args);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.runtime.Micronaut;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(Product.class) <b class="conum">(1)</b>
+class Application {
+
+    static void main(String[] args) {
+        Micronaut.run(Application.class, args)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.runtime.Micronaut.*
+import io.micronaut.serde.annotation.SerdeImport
+
+fun main(args: Array&lt;String&gt;) {
+    build()
+        .args(*args)
+        .packages("com.example")
+        .start()
+}
+
+@SerdeImport(
+    value = Product::class,
+    mixin = ProductMixin::class) <b class="conum">(1)</b>
+class Serdes {}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> is used to make the <code>Product</code> class serializable</td>
+</tr>
+</table>
+</div>
+
+<h1 id="keys"><a class="anchor" href="#keys"></a>9 Custom Key Converters</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/keys.adoc"'>
@@ -2082,7 +2272,7 @@ class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
 </table>
 </div>
 
-<h1 id="repository"><a class="anchor" href="#repository"></a>9 Repository</h1>
+<h1 id="repository"><a class="anchor" href="#repository"></a>10 Repository</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/repository.adoc"'>
