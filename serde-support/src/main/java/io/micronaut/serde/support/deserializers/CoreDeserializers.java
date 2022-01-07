@@ -221,7 +221,7 @@ public class CoreDeserializers {
                     map.putAll((Map) o);
                     return map;
                 } else {
-                    return getDefaultValue();
+                    throw new SerdeException("Cannot deserialize map of type [" + type + "] from value: " + o);
                 }
             } else {
 
