@@ -2056,7 +2056,10 @@ public class Application {
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.serde.annotation.SerdeImport;
 
-@SerdeImport(Product.class) <b class="conum">(1)</b>
+@SerdeImport(
+    value = Product.class,
+    mixin = ProductMixin.class
+) <b class="conum">(1)</b>
 class Application {
 
     static void main(String[] args) {
