@@ -60,7 +60,7 @@ public @interface Serdeable {
     /**
      * Annotation used to indicate a type is serializable.
      */
-    @Introspected(indexed = @Introspected.IndexedAnnotation(annotation = SerdeConfig.SerValue.class))
+    @Introspected
     @SerdeConfig
     @Retention(RetentionPolicy.RUNTIME)
     @interface Serializable {
@@ -100,6 +100,7 @@ public @interface Serdeable {
      */
     @SerdeConfig
     @Retention(RetentionPolicy.RUNTIME)
+    @Introspected
     @interface Deserializable {
         /**
          * @return Whether serialization is enabled. Defaults to true.

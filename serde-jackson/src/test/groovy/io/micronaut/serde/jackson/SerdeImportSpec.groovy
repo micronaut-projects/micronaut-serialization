@@ -1,10 +1,66 @@
 package io.micronaut.serde.jackson
 
-
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.exceptions.SerdeException
+import spock.lang.PendingFeature
 import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
+
+    @PendingFeature(reason = "Core introspections dont support executable methods on interfaces")
+    void "test import with interface"() {
+        def context = buildContext('mixintest.HttpStatusInfo','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.http.HttpStatus;import io.micronaut.serde.annotation.Serdeable;
+
+@SerdeImport(
+    value = HttpStatusInfo.class,
+    mixin = TestMixin.class,
+    deser = @Serdeable.Deserializable(as = Test.class)
+)
+class TestImport {}
+
+public interface HttpStatusInfo {
+    String name();
+    int code();
+}
+
+class Test implements HttpStatusInfo {
+    private HttpStatus status;
+    Test(int code) {
+        this.status = HttpStatus.valueOf(code);
+    }
+    @Override public String name() {
+        return status.getReason();
+    }
+    @Override public int code() { 
+        return status.getCode();
+    }
+}
+
+interface TestMixin {
+    @JsonValue
+    int code();
+}
+''')
+        def impl = argumentOf(context, 'mixintest.Test')
+        def bean = impl.type.newInstance(200)
+
+        expect:
+        writeJson(jsonMapper, bean) == '200'
+
+        def read = jsonMapper.readValue('200', typeUnderTest)
+        read.name() == 'test'
+        read.quantity() == 15
+        read.getClass().name == impl.name
+
+        cleanup:
+        context.close()
+    }
 
     @Requires({ jvm.isJava17Compatible() })
     void "test import with mixin - records"() {

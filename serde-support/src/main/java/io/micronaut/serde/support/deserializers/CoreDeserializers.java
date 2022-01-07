@@ -210,39 +210,54 @@ public class CoreDeserializers {
         @Override
         default M deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super M> type) throws IOException {
             final Argument<?>[] generics = type.getTypeParameters();
+
             if (ArrayUtils.isEmpty(generics) && generics.length != 2) {
-                throw new SerdeException("Cannot deserialize raw map");
-            }
-            @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
-            @SuppressWarnings("unchecked") final Argument<V> valueType = (Argument<V>) generics[1];
-            final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(valueType);
-            final Decoder objectDecoder = decoder.decodeObject(type);
-            String key = objectDecoder.decodeKey();
-            M map = getDefaultValue();
-            while (key != null) {
-                K k;
-                if (keyType.isInstance(key)) {
-                    k = (K) key;
+                // raw map
+                final Object o = decoder.decodeArbitrary();
+                if (type.isInstance(o)) {
+                    return (M) o;
+                } else if (o instanceof Map) {
+                    final M map = getDefaultValue();
+                    map.putAll((Map) o);
+                    return map;
                 } else {
-                    try {
-                        k = decoderContext.getConversionService().convertRequired(
-                                key,
-                                keyType
-                        );
-                    } catch (ConversionErrorException e) {
-                        throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
-                    }
+                    return getDefaultValue();
                 }
-                map.put(k, valueDeser.deserialize(
-                                objectDecoder,
-                                decoderContext,
-                                valueType
-                        )
-                );
-                key = objectDecoder.decodeKey();
+            } else {
+
+                @SuppressWarnings("unchecked")
+                final Argument<K> keyType = (Argument<K>) generics[0];
+                @SuppressWarnings("unchecked")
+                final Argument<V> valueType = (Argument<V>) generics[1];
+                final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(valueType);
+                final Decoder objectDecoder = decoder.decodeObject(type);
+                String key = objectDecoder.decodeKey();
+                M map = getDefaultValue();
+                while (key != null) {
+                    K k;
+                    if (keyType.isInstance(key)) {
+                        k = (K) key;
+                    } else {
+                        try {
+                            k = decoderContext.getConversionService().convertRequired(
+                                    key,
+                                    keyType
+                            );
+                        } catch (ConversionErrorException e) {
+                            throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
+                        }
+                    }
+                    map.put(k, valueDeser.deserialize(
+                                    objectDecoder,
+                                    decoderContext,
+                                    valueType
+                            )
+                    );
+                    key = objectDecoder.decodeKey();
+                }
+                objectDecoder.finishStructure();
+                return map;
             }
-            objectDecoder.finishStructure();
-            return map;
         }
 
         @Override
