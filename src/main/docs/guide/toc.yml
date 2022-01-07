@@ -11,6 +11,7 @@ jacksonAnnotations: Jackson Annotations
 jsonbAnnotations: JSON-B Annotations
 bsonAnnotations: BSON Annotations
 serdes: Custom Serializers & Deserializers
+serdeImport: Enabling Serialization of External Classes
 keys: Custom Key Converters
 repository: Repository
 

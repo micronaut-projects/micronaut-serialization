@@ -1,0 +1,24 @@
+Unlike Jackson, Micronaut Serialization doesn't allow the arbitrary serialization of any type. As mentioned in the previous section on <<serdes, Custom Serializers>>, one option to serializing external types is to define a custom serializer, however it is also possible to import types during compilation using the ann:serde.annotation.SerdeImport[] annotation.
+
+For example consider the following type:
+
+snippet::example.Product[project-base="doc-examples/example", source="main"]
+
+There are no serialization annotations present on this type and an attempt to serialize this type will result in an error.
+
+To resolve this you can add ann:serde.annotation.SerdeImport[] to a central location in your project (typically the `Application` class):
+
+[source,java]
+----
+@SerdeImport(Product.class)
+----
+
+Note that if you wish to apply customizations the imported class then you can additionally supply a mixin class. For example:
+
+snippet::example.ProductMixin[project-base="doc-examples/example", source="main"]
+
+Then the mixin can be used when declaring `SerdeImport`:
+
+snippet::example.Application[project-base="doc-examples/example", source="main"]
+
+<1> The ann:serde.annotation.SerdeImport[] is used to make the `Product` class serializable

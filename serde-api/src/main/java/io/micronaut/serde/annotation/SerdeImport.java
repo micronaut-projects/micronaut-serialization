@@ -47,6 +47,17 @@ public @interface SerdeImport {
     Class<?> value();
 
     /**
+     * Apply a mixin type. This is equivalent to Jackson {@code objectMapper.addMixInAnnotations(..)} allowing to mixin
+     * the annotations to the imported type.
+     *
+     * <p>Any fields or methods that match fields or methods declared in the type specified to {@link #value()} will have
+     * the annotations applied to the imported type.</p>
+     *
+     * @return The mixin type
+     */
+    Class<?> mixin() default void.class;
+
+    /**
      * @return Naming strategy to use for both serialization and deserialization.
      */
     @AliasFor(annotation = SerdeConfig.class, member = "naming")
