@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -159,48 +159,54 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>protected &lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.Set&lt;E&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#defaultSetDeserializer--">defaultSetDeserializer</a></span>()</code>
+<div class="block">Deserializes default set.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected &lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.HashSet&lt;E&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#hashSetDeserializer--">hashSetDeserializer</a></span>()</code>
 <div class="block">Deserializes hash sets.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>protected &lt;K,V&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.LinkedHashMap&lt;K,V&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#linkedHashMapDeserializer--">linkedHashMapDeserializer</a></span>()</code>
 <div class="block">Deserializes hash maps.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>protected &lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.LinkedHashSet&lt;E&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#linkedHashSetDeserializer--">linkedHashSetDeserializer</a></span>()</code>
 <div class="block">Deserializes linked hash sets.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected &lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.LinkedList&lt;E&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#linkedListDeserializer--">linkedListDeserializer</a></span>()</code>
 <div class="block">Deserializes linked lists.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected &lt;V&gt;&nbsp;<a href="../../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;java.util.Optional&lt;V&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#optionalDeserializer--">optionalDeserializer</a></span>()</code>
 <div class="block">Deserializes optional values.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#stringDeserializer--">stringDeserializer</a></span>()</code>
 <div class="block">Deserializes string types.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>protected &lt;K,V&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.TreeMap&lt;K,V&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#treeMapMapDeserializer--">treeMapMapDeserializer</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#treeMapDeserializer--">treeMapDeserializer</a></span>()</code>
 <div class="block">Deserializes hash maps.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>protected &lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.TreeSet&lt;E&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/deserializers/CoreDeserializers.html#treeSetDeserializer--">treeSetDeserializer</a></span>()</code>
 <div class="block">Deserializes linked hash sets.</div>
@@ -337,6 +343,24 @@ protected&nbsp;&lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/Nu
 </dl>
 </li>
 </ul>
+<a name="defaultSetDeserializer--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>defaultSetDeserializer</h4>
+<pre>@NonNull
+ @Singleton
+protected&nbsp;&lt;E&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.Set&lt;E&gt;&gt;&nbsp;defaultSetDeserializer()</pre>
+<div class="block">Deserializes default set.</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>E</code> - The element type</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The hash set deserializer, never null</dd>
+</dl>
+</li>
+</ul>
 <a name="linkedHashSetDeserializer--">
 <!--   -->
 </a>
@@ -395,16 +419,16 @@ protected&nbsp;&lt;K,V&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/
 </dl>
 </li>
 </ul>
-<a name="treeMapMapDeserializer--">
+<a name="treeMapDeserializer--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>treeMapMapDeserializer</h4>
+<h4>treeMapDeserializer</h4>
 <pre>@Singleton
  @NonNull
  @Order(value=1002)
-protected&nbsp;&lt;K,V&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.TreeMap&lt;K,V&gt;&gt;&nbsp;treeMapMapDeserializer()</pre>
+protected&nbsp;&lt;K,V&gt;&nbsp;<a href="../../../../../io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;java.util.TreeMap&lt;K,V&gt;&gt;&nbsp;treeMapDeserializer()</pre>
 <div class="block">Deserializes hash maps.</div>
 <dl>
 <dt><span class="paramLabel">Type Parameters:</span></dt>
