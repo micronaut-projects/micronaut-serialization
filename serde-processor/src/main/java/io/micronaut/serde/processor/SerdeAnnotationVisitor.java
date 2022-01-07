@@ -61,6 +61,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -748,12 +749,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 (e) -> e
         ));
 
-        final List<MethodElement> serdeMethods = mixinType.isRecord() ? Collections.emptyList() : mixinType.getEnclosedElements(
+        final List<MethodElement> serdeMethods = mixinType.isRecord() ? Collections.emptyList() : new ArrayList<>(mixinType.getEnclosedElements(
                 ElementQuery.ALL_METHODS
                         .onlyInstance()
                         .onlyDeclared()
                         .annotated((ann) -> ann.hasAnnotation(SerdeConfig.class))
-        );
+        ));
 
         final List<PropertyElement> beanProperties = type.getBeanProperties();
         for (PropertyElement beanProperty : beanProperties) {
@@ -768,7 +769,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (CollectionUtils.isNotEmpty(serdeMethods)) {
                 final MethodElement readMethod = beanProperty.getReadMethod().orElse(null);
                 final MethodElement writeMethod = beanProperty.getWriteMethod().orElse(null);
-                for (MethodElement serdeMethod : serdeMethods) {
+                final Iterator<MethodElement> i = serdeMethods.iterator();
+                while (i.hasNext()) {
+                    MethodElement serdeMethod = i.next();
                     final AnnotationValue<SerdeConfig> config = serdeMethod.getAnnotation(SerdeConfig.class);
                     if (config == null) {
                         continue;
@@ -776,6 +779,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     if (readMethod != null) {
                         if (serdeMethod.getName().equals(readMethod.getName())) {
                             if (Arrays.equals(serdeMethod.getParameters(), readMethod.getParameters())) {
+                                i.remove();
                                 beanProperty.annotate(config);
                             }
                         }
@@ -783,12 +787,26 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     if (writeMethod != null) {
                         if (serdeMethod.getName().equals(writeMethod.getName())) {
                             if (Arrays.equals(serdeMethod.getParameters(), writeMethod.getParameters())) {
+                                i.remove();
                                 beanProperty.annotate(config);
                             }
                         }
                     }
                 }
             }
+        }
+
+        if (!serdeMethods.isEmpty()) {
+            type.getEnclosedElements(
+                    ElementQuery.ALL_METHODS
+                            .onlyInstance()
+                            .onlyAccessible()
+                            .named(n -> serdeMethods.stream().anyMatch(m -> n.equals(m.getName())))
+                            .filter(left -> serdeMethods.stream().anyMatch(right ->
+                                left.getReturnType().equals(right.getReturnType())
+                                   && Arrays.equals(left.getParameters(), right.getParameters())
+                            ))
+            ).forEach(m -> m.annotate(Executable.class));
         }
     }
 
