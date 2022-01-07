@@ -1,10 +1,50 @@
 package io.micronaut.serde.jackson
 
-
+import com.amazonaws.services.lambda.runtime.events.SQSEvent
+import io.micronaut.context.ApplicationContext
 import io.micronaut.serde.exceptions.SerdeException
+import spock.lang.PendingFeature
 import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
+
+    @PendingFeature(reason = "Not possible to dynamically annotate inner classes due to a bug in core")
+    void "test external mixin and external class"() {
+        given:
+        def context = buildContext('''
+package externalmixin;
+
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.serialization.events.mixins.SQSEventMixin;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = SQSEvent.class,
+    mixin = SQSEventMixin.class      
+)
+@SerdeImport(
+    value = SQSEvent.SQSMessage.class,
+    mixin = SQSEventMixin.SQSMessageMixin.class      
+)
+class AddMixin {
+    
+}
+''')
+        def event = new SQSEvent()
+        def message = new SQSEvent.SQSMessage(messageId:"test", eventSourceArn: "test-arn")
+        event.records = [
+                message
+        ]
+
+        when:
+        def result = jsonMapper.writeValueAsString(event)
+
+        then:
+        result == '{"Records":[{"messageId":"test","eventSourceARN":"test-arn"}]}'
+
+        cleanup:
+        context.close()
+    }
 
     @Requires({ jvm.isJava17Compatible() })
     void "test import with mixin - records"() {
