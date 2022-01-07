@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -65,12 +66,7 @@ public class CoreDeserializers {
     @Order(-100) // prioritize over hashset
     @NonNull
     protected <E> NullableDeserializer<ArrayList<E>> arrayListDeserializer() {
-        return new CollectionNullableDeserializer<E, ArrayList<E>>() {
-            @Override
-            public ArrayList<E> getDefaultValue() {
-                return new ArrayList<>();
-            }
-        };
+        return (CollectionNullableDeserializer<E, ArrayList<E>>) ArrayList::new;
     }
 
     /**
@@ -82,12 +78,7 @@ public class CoreDeserializers {
     @Order(-99) // prioritize over hashset
     @NonNull
     protected <E> NullableDeserializer<ArrayDeque<E>> arrayDequeDeserializer() {
-        return new CollectionNullableDeserializer<E, ArrayDeque<E>>() {
-            @Override
-            public ArrayDeque<E> getDefaultValue() {
-                return new ArrayDeque<>();
-            }
-        };
+        return (CollectionNullableDeserializer<E, ArrayDeque<E>>) ArrayDeque::new;
     }
 
     /**
@@ -99,12 +90,7 @@ public class CoreDeserializers {
     @Order(-99) // prioritize over hashset
     @NonNull
     protected <E> NullableDeserializer<LinkedList<E>> linkedListDeserializer() {
-        return new CollectionNullableDeserializer<E, LinkedList<E>>() {
-            @Override
-            public LinkedList<E> getDefaultValue() {
-                return new LinkedList<>();
-            }
-        };
+        return (CollectionNullableDeserializer<E, LinkedList<E>>) LinkedList::new;
     }
 
     /**
@@ -116,12 +102,18 @@ public class CoreDeserializers {
     @Singleton
     @Order(-50) // prioritize over enumset
     protected <E> NullableDeserializer<HashSet<E>> hashSetDeserializer() {
-        return new CollectionNullableDeserializer<E, HashSet<E>>() {
-            @Override
-            public HashSet<E> getDefaultValue() {
-                return new HashSet<>();
-            }
-        };
+        return (CollectionNullableDeserializer<E, HashSet<E>>) HashSet::new;
+    }
+
+    /**
+     * Deserializes default set.
+     * @param <E> The element type
+     * @return The hash set deserializer, never null
+     */
+    @NonNull
+    @Singleton
+    protected <E> NullableDeserializer<Set<E>> defaultSetDeserializer() {
+        return (CollectionNullableDeserializer<E, Set<E>>) HashSet::new;
     }
 
     /**
@@ -133,12 +125,7 @@ public class CoreDeserializers {
     @Singleton
     @Order(-51) // prioritize over hashset
     protected <E> NullableDeserializer<LinkedHashSet<E>> linkedHashSetDeserializer() {
-        return new CollectionNullableDeserializer<E, LinkedHashSet<E>>() {
-            @Override
-            public LinkedHashSet<E> getDefaultValue() {
-                return new LinkedHashSet<>();
-            }
-        };
+        return (CollectionNullableDeserializer<E, LinkedHashSet<E>>) LinkedHashSet::new;
     }
 
     /**
@@ -150,12 +137,7 @@ public class CoreDeserializers {
     @Singleton
     @Order(-52) // prioritize over hashset
     protected <E> NullableDeserializer<TreeSet<E>> treeSetDeserializer() {
-        return new CollectionNullableDeserializer<E, TreeSet<E>>() {
-            @Override
-            public TreeSet<E> getDefaultValue() {
-                return new TreeSet<>();
-            }
-        };
+        return (CollectionNullableDeserializer<E, TreeSet<E>>) TreeSet::new;
     }
 
     /**
@@ -168,12 +150,7 @@ public class CoreDeserializers {
     @NonNull
     @Order(1001)
     protected <K, V> NullableDeserializer<LinkedHashMap<K, V>> linkedHashMapDeserializer() {
-        return new MapNullableDeserializer<K, V, LinkedHashMap<K, V>>() {
-            @Override
-            public LinkedHashMap<K, V> getDefaultValue() {
-                return new LinkedHashMap<>();
-            }
-        };
+        return (MapNullableDeserializer<K, V, LinkedHashMap<K, V>>) LinkedHashMap::new;
     }
 
     /**
@@ -185,13 +162,8 @@ public class CoreDeserializers {
     @Singleton
     @NonNull
     @Order(1002) // prioritize over linked hash map
-    protected <K, V> NullableDeserializer<TreeMap<K, V>> treeMapMapDeserializer() {
-        return new MapNullableDeserializer<K, V, TreeMap<K, V>>() {
-            @Override
-            public TreeMap<K, V> getDefaultValue() {
-                return new TreeMap<>();
-            }
-        };
+    protected <K, V> NullableDeserializer<TreeMap<K, V>> treeMapDeserializer() {
+        return (MapNullableDeserializer<K, V, TreeMap<K, V>>) TreeMap::new;
     }
 
     /**
@@ -233,10 +205,10 @@ public class CoreDeserializers {
         };
     }
 
-    private abstract static class MapNullableDeserializer<K, V, M extends Map<K, V>> implements NullableDeserializer<M> {
+    private interface MapNullableDeserializer<K, V, M extends Map<K, V>> extends NullableDeserializer<M> {
 
         @Override
-        public M deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super M> type) throws IOException {
+        default M deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super M> type) throws IOException {
             final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics) && generics.length != 2) {
                 throw new SerdeException("Cannot deserialize raw map");
@@ -275,13 +247,13 @@ public class CoreDeserializers {
 
         @Override
         @NonNull
-        public abstract M getDefaultValue();
+        M getDefaultValue();
     }
 
-    private abstract static class CollectionNullableDeserializer<E, C extends Collection<E>> implements NullableDeserializer<C> {
+    private interface CollectionNullableDeserializer<E, C extends Collection<E>> extends NullableDeserializer<C> {
 
         @Override
-        public C deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super C> type) throws IOException {
+        default C deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super C> type) throws IOException {
             final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");
@@ -304,12 +276,12 @@ public class CoreDeserializers {
         }
 
         @Override
-        public boolean allowNull() {
+        default boolean allowNull() {
             return true;
         }
 
         @Override
         @NonNull
-        public abstract C getDefaultValue();
+        C getDefaultValue();
     }
 }
