@@ -1,5 +1,5 @@
 plugins {
-    id("io.micronaut.build.internal.serde-module")
+    id("io.micronaut.build.internal.module")
 }
 
 configurations.all {

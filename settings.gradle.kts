@@ -3,13 +3,10 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
-    includeBuild("build-logic") {
-        name = "serde-build-logic"
-    }
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "4.2.6"
+    id("io.micronaut.build.shared.settings") version "5.1.0"
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -26,7 +23,6 @@ include("serde-bson")
 include("serde-tck")
 include("serde-aws-events")
 
-// examples
 include("doc-examples:example-java")
 include("doc-examples:example-bson-java")
 include("doc-examples:example-jsonb-java")

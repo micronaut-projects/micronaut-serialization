@@ -15,11 +15,6 @@
  */
 package io.micronaut.serde.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
@@ -27,6 +22,11 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.IdentityStrategy;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * A Serde is an annotation that can be applied to type to indicate that
@@ -87,6 +87,12 @@ public @interface Serdeable {
          */
         @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.SERIALIZE_AS)
         Class<?> as() default void.class;
+
+        /**
+         * @return Naming strategy to use.
+         */
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.NAMING)
+        Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
     }
 
     /**
@@ -118,5 +124,11 @@ public @interface Serdeable {
          */
         @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.DESERIALIZE_AS)
         Class<?> as() default void.class;
+
+        /**
+         * @return Naming strategy to use.
+         */
+        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.NAMING)
+        Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
     }
 }

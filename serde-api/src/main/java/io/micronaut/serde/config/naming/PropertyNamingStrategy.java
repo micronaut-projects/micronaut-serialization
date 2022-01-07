@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.config.naming;
 
+import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.util.StringUtils;
 
@@ -71,10 +72,10 @@ public interface PropertyNamingStrategy {
 
     /**
      * Translate the given name into the desired format.
-     * @param name The name to translate
+     * @param element The annotated element to translate
      * @return The translated name
      */
-    @NonNull String translate(@NonNull String name);
+    @NonNull String translate(@NonNull AnnotatedElement element);
 
     /**
      * Return an existing naming strategy for each name.

@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import io.micronaut.serde.AbstractStreamDecoder;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.json.JsonNumber;
 import jakarta.json.stream.JsonParser;

@@ -18,7 +18,7 @@ package io.micronaut.serde.jackson;
 import com.fasterxml.jackson.core.JsonParser;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.serde.AbstractStreamDecoder;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;

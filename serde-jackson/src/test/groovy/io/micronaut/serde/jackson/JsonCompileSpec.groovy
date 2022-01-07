@@ -8,13 +8,11 @@ import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.beans.BeanIntrospectionReference
 import io.micronaut.core.beans.BeanIntrospector
-import io.micronaut.core.beans.exceptions.IntrospectionException
-import io.micronaut.core.naming.NameUtils
 import io.micronaut.core.reflect.InstantiationUtils
 import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
-import io.micronaut.serde.DefaultSerdeIntrospections
+import io.micronaut.serde.support.DefaultSerdeIntrospections
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.SerdeIntrospections
 import org.intellij.lang.annotations.Language

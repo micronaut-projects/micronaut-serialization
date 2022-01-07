@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.micronaut.application") version "3.0.1"
+    id("io.micronaut.application") version "3.1.1"
 }
 
 micronaut {
@@ -22,3 +22,10 @@ dependencies {
 application {
     mainClass.set("example.Application")
 }
+
+//tasks {
+//    compileJava {
+//        options.isFork = true
+//        options.forkOptions.jvmArgs = listOf("-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
+//    }
+//}

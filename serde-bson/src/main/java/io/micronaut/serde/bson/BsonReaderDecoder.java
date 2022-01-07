@@ -16,7 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.serde.AbstractStreamDecoder;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonBinaryReader;
@@ -367,7 +367,13 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     public <T> T decodeCustom(org.bson.codecs.Decoder<T> decoder, DecoderContext context) throws IOException {
         currentToken = null;
         currentBsonType = null;
-        return decodeCustom(p -> decoder.decode(bsonReader, context));
+        T result = decodeCustom(p -> decoder.decode(bsonReader, context), false);
+        Context ctx = contextStack.peek();
+        if (ctx == Context.TOP) {
+            return result;
+        }
+        nextToken();
+        return result;
     }
 
     /**

@@ -1,8 +1,12 @@
 package example
 
+import io.micronaut.runtime.Micronaut;
+import io.micronaut.serde.annotation.SerdeImport;
 
-import io.micronaut.runtime.Micronaut
-
+@SerdeImport(
+    value = Product.class,
+    mixin = ProductMixin.class
+) // <1>
 class Application {
 
     static void main(String[] args) {

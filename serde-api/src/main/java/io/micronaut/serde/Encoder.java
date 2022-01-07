@@ -150,7 +150,7 @@ public interface Encoder extends AutoCloseable {
     void encodeNull() throws IOException;
 
     /**
-     * Return an anaysis of the current path.
+     * Return an analysis of the current path.
      *
      * @return The current path if known
      */

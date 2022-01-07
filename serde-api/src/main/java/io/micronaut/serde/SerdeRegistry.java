@@ -25,9 +25,8 @@ import io.micronaut.core.annotation.Nullable;
  * @since 1.0.0
  *
  */
-public interface SerdeRegistry
-        extends SerializerLocator,
-                DeserializerLocator {
+public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, NamingStrategyLocator {
+
     /**
      * Creates a new encoder context.
      * @param view The view

@@ -21,9 +21,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.*;
-import io.micronaut.serde.util.BufferingJsonNodeProcessor;
-import io.micronaut.serde.util.JsonNodeDecoder;
-import io.micronaut.serde.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
+import io.micronaut.serde.support.util.JsonNodeEncoder;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonReader;
 import org.reactivestreams.Processor;
@@ -74,7 +74,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             if (object == null) {
                 bsonWriter.writeNull();
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, false);
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter);
                 serialize(encoder, object, type);
             }
             bsonWriter.flush();
@@ -143,7 +143,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             if (object == null) {
                 bsonWriter.writeNull();
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, false);
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter);
                 serialize(encoder, object);
             }
             bsonWriter.flush();
