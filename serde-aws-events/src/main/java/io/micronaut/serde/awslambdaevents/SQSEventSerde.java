@@ -17,12 +17,13 @@ package io.micronaut.serde.awslambdaevents;
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import io.micronaut.serde.annotation.SerdeImport;
+import com.amazonaws.services.lambda.runtime.serialization.events.mixins.SQSEventMixin;
 
 /**
  * {@link SerdeImport} for {@link SQSEvent}.
  * @author Sergio del Amo
  * @since 1.0.0
  */
-@SerdeImport(SQSEvent.class)
+@SerdeImport(value = SQSEvent.class, mixin = SQSEventMixin.class)
 final class SQSEventSerde {
 }

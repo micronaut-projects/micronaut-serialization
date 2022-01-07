@@ -17,7 +17,6 @@ class SQSReceiveMessageSpec extends Specification {
     @Inject
     BeanContext beanContext
 
-    @PendingFeature
     void "test deserialization of sqs recieve message event"() {
         given:
         File f = new File('src/test/resources/sqs-receive-message.json')
@@ -27,6 +26,11 @@ class SQSReceiveMessageSpec extends Specification {
 
         when:
         String json = f.text
+
+        then:
+        json
+
+        when:
         SQSEvent sqsEvent = objectMapper.readValue(json, SQSEvent)
 
         then:
