@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -125,6 +126,23 @@ public class CoreDeserializers {
     }
 
     /**
+     * Deserializes default set.
+     * @param <E> The element type
+     * @return The hash set deserializer, never null
+     */
+    @NonNull
+    @Singleton
+    @Order(-10000) // prioritize over enumset
+    protected <E> NullableDeserializer<Set<E>> defaultSetDeserializer() {
+        return new CollectionNullableDeserializer<E, Set<E>>() {
+            @Override
+            public HashSet<E> getDefaultValue() {
+                return new HashSet<>();
+            }
+        };
+    }
+
+    /**
      * Deserializes linked hash sets.
      * @param <E> The element type
      * @return The linked hash set deserializer, never null
@@ -185,7 +203,7 @@ public class CoreDeserializers {
     @Singleton
     @NonNull
     @Order(1002) // prioritize over linked hash map
-    protected <K, V> NullableDeserializer<TreeMap<K, V>> treeMapMapDeserializer() {
+    protected <K, V> NullableDeserializer<TreeMap<K, V>> treeMapDeserializer() {
         return new MapNullableDeserializer<K, V, TreeMap<K, V>>() {
             @Override
             public TreeMap<K, V> getDefaultValue() {
