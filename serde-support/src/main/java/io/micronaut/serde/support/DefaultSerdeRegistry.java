@@ -16,6 +16,7 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.context.BeanContext;
+import io.micronaut.context.BeanRegistration;
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.NonNull;
@@ -222,8 +223,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (deserializer != null) {
             return (Deserializer<? extends T>) deserializer;
         } else {
-            Deserializer<?> deser = beanContext.findBean(Argument.of(Deserializer.class, type))
-                    .orElse(null);
+            final Argument<Deserializer> deserializerArgument = Argument.of(Deserializer.class, type);
+            final Collection<BeanRegistration<Deserializer>> beanRegistrations = beanContext
+                    .getBeanRegistrations(deserializerArgument, null);
+            Deserializer<?> deser = null;
+            if (beanRegistrations.size() == 1) {
+                deser = beanRegistrations.iterator().next().bean();
+            } else if (!beanRegistrations.isEmpty()) {
+                final List<BeanRegistration<Deserializer>> results = beanRegistrations.stream()
+                        .filter((r) -> {
+                            final Class<?>[] typeParameters = r.getBeanDefinition().getTypeParameters(Deserializer.class);
+                            return typeParameters.length == 1 && typeParameters[0].equals(type.getType());
+                        })
+                        .collect(Collectors.toList());
+                if (results.size() == 1) {
+                    deser = results.iterator().next().bean();
+                } else {
+                    deser = beanContext.findBean(deserializerArgument).orElse(null);
+                }
+            }
             if (deser != null) {
                 deserializerMap.put(key, deser);
                 return (Deserializer<? extends T>) deser;
