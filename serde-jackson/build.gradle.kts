@@ -19,6 +19,7 @@ dependencies {
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)
     testImplementation(mn.jackson.databind)
+    testImplementation(mn.micronaut.management)
     if (!JavaVersion.current().isJava9Compatible()) {
         testImplementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
     }

@@ -1,6 +1,8 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
+import io.micronaut.health.HealthStatus
+import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.serde.exceptions.SerdeException
 import spock.lang.PendingFeature
 import spock.lang.Requires
@@ -278,5 +280,39 @@ public class Test {
 
         then:
         def e = thrown(SerdeException)
+    }
+
+    void "test import with deserialize as"() {
+        given:
+        def context = buildContext('''
+package mixindeser;
+
+import io.micronaut.management.health.indicator.HealthResult;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(HealthResult.class)
+class Serdes {}
+''')
+
+        HealthResult hr = HealthResult.builder("db", HealthStatus.DOWN)
+                .details(Collections.singletonMap("foo", "bar"))
+                .build()
+
+        when:
+        def result = writeJson(jsonMapper, hr)
+
+        then:
+        result == '{"name":"db","status":{"name":"DOWN","operational":false,"severity":1000},"details":{"foo":"bar"}}'
+
+        when:
+        hr = jsonMapper.readValue(result, Argument.of(HealthResult))
+
+        then:
+        hr.name == 'db'
+        hr.status == HealthStatus.DOWN
+
+
+        cleanup:
+        context.close()
     }
 }
