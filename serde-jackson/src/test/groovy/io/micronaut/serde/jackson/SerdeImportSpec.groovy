@@ -8,7 +8,6 @@ import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
 
-    @PendingFeature(reason = "Not possible to dynamically annotate inner classes due to a bug in core")
     void "test external mixin and external class"() {
         given:
         def context = buildContext('''
