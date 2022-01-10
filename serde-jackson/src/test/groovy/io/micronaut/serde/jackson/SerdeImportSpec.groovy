@@ -1,6 +1,8 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
+import io.micronaut.health.HealthStatus
+import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.serde.exceptions.SerdeException
 import spock.lang.PendingFeature
 import spock.lang.Requires
@@ -15,7 +17,8 @@ package mixintest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.serde.annotation.SerdeImport;
-import io.micronaut.http.HttpStatus;import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.serde.annotation.Serdeable;
 
 @SerdeImport(
     value = HttpStatusInfo.class,
@@ -278,5 +281,40 @@ public class Test {
 
         then:
         def e = thrown(SerdeException)
+    }
+
+    @PendingFeature(reason = "core doesn't support retrieval of metadata from imported type")
+    void "test import with deserialize as"() {
+        given:
+        def context = buildContext('''
+package mixindeser;
+
+import io.micronaut.management.health.indicator.HealthResult;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(HealthResult.class)
+class Serdes {}
+''')
+
+        HealthResult hr = HealthResult.builder("db", HealthStatus.DOWN)
+                .details(Collections.singletonMap("foo", "bar"))
+                .build()
+
+        when:
+        def result = writeJson(jsonMapper, hr)
+
+        then:
+        result == '{"name":"db","status":{"name":"DOWN","operational":false,"severity":1000},"details":{"foo":"bar"}}'
+
+        when:
+        hr = jsonMapper.readValue(result, Argument.of(HealthResult))
+
+        then:
+        hr.name == 'db'
+        hr.status == HealthStatus.DOWN
+
+
+        cleanup:
+        context.close()
     }
 }

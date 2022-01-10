@@ -582,7 +582,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
+        visitClassInternal(element, context, false);
+    }
 
+    private void visitClassInternal(ClassElement element, VisitorContext context, boolean isImport) {
         List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.Subtyped.Subtype.class);
         if (!subtypes.isEmpty()) {
             final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
@@ -627,7 +630,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                 if (mixinType != null) {
                                     visitMixin(mixinType, c);
                                 } else {
-                                    visitClass(c, context);
+                                    visitClassInternal(c, context, true);
                                 }
                             }
                         });
@@ -637,7 +640,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             );
         } else if (isJsonAnnotated(element)) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
-                    !element.hasStereotype(Serdeable.Deserializable.class)) {
+                    !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
                 element.annotate(Serdeable.class);
                 element.annotate(Introspected.class, (builder) -> {
                     builder.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
@@ -649,7 +652,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (serializeAs != null) {
                 ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {
-                    context.fail("Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
+                    context.fail("Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName(),
+                                 element);
                     return;
                 }
             }
@@ -658,7 +662,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (deserializeAs != null) {
                 ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {
-                    context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
+                    context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(),
+                                 element);
                     return;
                 }
             }
@@ -669,7 +674,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class).orElse(null);
                 if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
                     if (failOnError && primaryConstructor.getParameters().length != 1) {
-                        context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.", element);
+                        context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.",
+                                     element);
                     }
                 }
             }
@@ -678,8 +684,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.PropertyOrder.class));
             Collections.reverse(order);
             final Set<Introspected.AccessKind> access = CollectionUtils.setOf(element.enumValues(Introspected.class,
-                                                                                                     "accessKind",
-                                                                                                     Introspected.AccessKind.class));
+                                                                                                 "accessKind",
+                                                                                                 Introspected.AccessKind.class));
             boolean supportFields = access.contains(Introspected.AccessKind.FIELD);
             final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
             final String[] includeProperties = element.stringValues(SerdeConfig.Included.class);

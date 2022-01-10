@@ -133,10 +133,11 @@ public class ObjectSerializer implements Serializer<Object> {
                 serBean = getSerBean(type, null, encoderContext);
             } catch (IntrospectionException e) {
                 // no introspection, create dynamic serialization case
-                return (encoder, context, value, type1) -> {
+                return (encoder, context, value, argument) -> {
+                    final Class<Object> theType = (Class<Object>) value.getClass();
                     final Argument<Object> t = Argument.of(
-                            (Class<Object>) value.getClass(),
-                            type1.getAnnotationMetadata()
+                            theType,
+                            argument.getAnnotationMetadata()
                     );
                     context.findSerializer(t)
                            .createSpecific(t, encoderContext)

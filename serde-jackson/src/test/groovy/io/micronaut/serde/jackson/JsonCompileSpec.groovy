@@ -153,9 +153,14 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
                     @Override
                     def <T> Optional<BeanIntrospection<T>> findIntrospection(@NonNull Class<T> beanType) {
-                        return findIntrospections({ ref ->
+                        def result = findIntrospections({ ref ->
                             ref.isPresent() && ref.beanType == beanType
                         }).stream().findFirst()
+                        if (result.isPresent()) {
+                            return result
+                        } else {
+                            return SHARED.findIntrospection(beanType)
+                        }
                     }
                 }
             }
