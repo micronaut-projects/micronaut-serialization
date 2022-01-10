@@ -8,6 +8,7 @@ import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
+import spock.lang.PendingFeature
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -16,6 +17,7 @@ import java.nio.charset.StandardCharsets
 class CoreTypeSerdeSpec extends Specification {
     @Inject ObjectMapper jsonMapper
 
+    @PendingFeature(reason = "core doesn't support retrieval of metadata from imported type")
     void "test read / write health result"() {
         given:
         HealthResult hr = HealthResult.builder("db", HealthStatus.DOWN)
