@@ -37,8 +37,8 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
     protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationClassValue<?> acv = annotation.annotationClassValue("as").orElse(null);
         List<AnnotationValue<?>> annotations = new ArrayList<>();
-        annotations.add(AnnotationValue.builder(Introspected.class).build());
-        annotations.add(AnnotationValue.builder(Serdeable.Deserializable.class).build());
+//        annotations.add(AnnotationValue.builder(Introspected.class).build());
+//        annotations.add(AnnotationValue.builder(Serdeable.Deserializable.class).build());
         if (acv != null) {
             annotations.add(
                     AnnotationValue.builder(SerdeConfig.class)

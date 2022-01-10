@@ -17,7 +17,8 @@ package mixintest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.serde.annotation.SerdeImport;
-import io.micronaut.http.HttpStatus;import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.serde.annotation.Serdeable;
 
 @SerdeImport(
     value = HttpStatusInfo.class,
@@ -282,6 +283,7 @@ public class Test {
         def e = thrown(SerdeException)
     }
 
+    @PendingFeature(reason = "core doesn't support retrieval of metadata from imported type")
     void "test import with deserialize as"() {
         given:
         def context = buildContext('''
