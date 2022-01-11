@@ -108,7 +108,20 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     @Override
     public <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type) {
-        final BeanIntrospection<T> introspection = getBeanIntrospector().getIntrospection(type.getType());
+        final Class<T> rawType = type.getType();
+        final BeanIntrospector beanIntrospector = getBeanIntrospector();
+        final BeanIntrospection<T> introspection = beanIntrospector.findIntrospection(rawType)
+                .orElseGet(() -> {
+                    final Serdeable.Deserializable ann = rawType.getAnnotation(Serdeable.Deserializable.class);
+                    if (ann != null) {
+                        @SuppressWarnings("unchecked") final Class<T> as = (Class<T>) ann.as();
+                        if (as != void.class) {
+                            return beanIntrospector.getIntrospection(as);
+                        }
+                    }
+                    // rewthrow original
+                    return beanIntrospector.getIntrospection(rawType);
+                });
         if (isEnabledForDeserialization(introspection, type)) {
             final AnnotationMetadata declaredMetadata = introspection.getDeclaredMetadata();
             Class serializeType = declaredMetadata.findDeclaredAnnotation(SerdeConfig.class)
