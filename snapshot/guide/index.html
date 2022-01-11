@@ -2051,25 +2051,6 @@ public class Application {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
-
-import io.micronaut.runtime.Micronaut;
-import io.micronaut.serde.annotation.SerdeImport;
-
-@SerdeImport(
-    value = Product.class,
-    mixin = ProductMixin.class
-) <b class="conum">(1)</b>
-class Application {
-
-    static void main(String[] args) {
-        Micronaut.run(Application.class, args)
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
 <pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
 
 import io.micronaut.runtime.Micronaut.*
