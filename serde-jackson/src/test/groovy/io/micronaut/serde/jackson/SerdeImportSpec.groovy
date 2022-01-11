@@ -1,5 +1,7 @@
 package io.micronaut.serde.jackson
 
+import com.amazonaws.services.lambda.runtime.events.SQSEvent
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.management.health.indicator.HealthResult
@@ -9,6 +11,43 @@ import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
 
+    void "test external mixin and external class"() {
+        given:
+        def context = buildContext('''
+package externalmixin;
+
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.serialization.events.mixins.SQSEventMixin;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = SQSEvent.class,
+    mixin = SQSEventMixin.class      
+)
+@SerdeImport(
+    value = SQSEvent.SQSMessage.class,
+    mixin = SQSEventMixin.SQSMessageMixin.class      
+)
+class AddMixin {
+    
+}
+''')
+        def event = new SQSEvent()
+        def message = new SQSEvent.SQSMessage(messageId:"test", eventSourceArn: "test-arn")
+        event.records = [
+                message
+        ]
+
+        when:
+        def result = jsonMapper.writeValueAsString(event)
+
+        then:
+        result == '{"Records":[{"messageId":"test","eventSourceARN":"test-arn"}]}'
+
+        cleanup:
+        context.close()
+    }
+  
     @PendingFeature(reason = "Core introspections dont support executable methods on interfaces")
     void "test import with interface"() {
         def context = buildContext('mixintest.HttpStatusInfo','''

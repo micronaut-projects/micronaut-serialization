@@ -787,6 +787,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (Arrays.equals(serdeMethod.getParameters(), readMethod.getParameters())) {
                                 i.remove();
                                 beanProperty.annotate(config);
+                                readMethod.annotate(config);
                             }
                         }
                     }
@@ -795,6 +796,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (Arrays.equals(serdeMethod.getParameters(), writeMethod.getParameters())) {
                                 i.remove();
                                 beanProperty.annotate(config);
+                                writeMethod.annotate(config);
                             }
                         }
                     }

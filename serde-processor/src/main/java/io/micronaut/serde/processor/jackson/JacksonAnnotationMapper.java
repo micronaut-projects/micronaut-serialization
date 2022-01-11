@@ -16,11 +16,20 @@
 package io.micronaut.serde.processor.jackson;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.io.service.ServiceDefinition;
+import io.micronaut.core.io.service.SoftServiceLoader;
+import io.micronaut.core.util.StringUtils;
+import io.micronaut.inject.annotation.AbstractAnnotationMetadataBuilder;
+import io.micronaut.inject.annotation.AnnotationMapper;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
+import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
@@ -28,6 +37,31 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
  * Maps the {@code com.fasterxml.jackson.annotation.JacksonAnnotation} stereotype to {@link SerdeConfig}.
  */
 public final class JacksonAnnotationMapper implements NamedAnnotationMapper {
+    static final Map<String, List<AnnotationMapper<?>>> JACKSON_ANNOTATION_MAPPERS = new HashMap<>(10);
+
+    static {
+        SoftServiceLoader<AnnotationMapper> serviceLoader = SoftServiceLoader.load(AnnotationMapper.class,
+                                                                                   AbstractAnnotationMetadataBuilder.class.getClassLoader());
+        for (ServiceDefinition<AnnotationMapper> definition : serviceLoader) {
+            if (definition.isPresent() && definition.getName().startsWith("io.micronaut.serde.processor.jackson.")) {
+                AnnotationMapper mapper = definition.load();
+                try {
+                    String name = null;
+                    if (mapper instanceof TypedAnnotationMapper) {
+                        name = ((TypedAnnotationMapper) mapper).annotationType().getName();
+                    } else if (mapper instanceof NamedAnnotationMapper) {
+                        name = ((NamedAnnotationMapper) mapper).getName();
+                    }
+                    if (StringUtils.isNotEmpty(name)) {
+                        JACKSON_ANNOTATION_MAPPERS.computeIfAbsent(name, s -> new ArrayList<>(2)).add(mapper);
+                    }
+                } catch (Throwable e) {
+                    // mapper, missing dependencies, continue
+                }
+            }
+        }
+    }
+
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return Collections.singletonList(AnnotationValue.builder(SerdeConfig.class).build());
