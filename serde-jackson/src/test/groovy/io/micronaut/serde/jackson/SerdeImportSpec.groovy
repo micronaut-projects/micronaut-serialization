@@ -47,7 +47,68 @@ class AddMixin {
         cleanup:
         context.close()
     }
-  
+
+    void "test mixin constructor"() {
+        def context = buildContext('mixintest.Test','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.serde.annotation.Serdeable;
+
+@SerdeImport(
+    value = Test.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+interface HttpStatusInfo {
+    String name();
+    int code();
+}
+
+public class Test implements HttpStatusInfo {
+    private HttpStatus status;
+    Test(int code) {
+        this.status = HttpStatus.valueOf(code);
+    }
+    @Override public String name() {
+        return status.getReason();
+    }
+    @Override public int code() { 
+        return status.getCode();
+    }
+}
+
+abstract class TestMixin  {
+    private HttpStatus status;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    TestMixin(int code) {
+        this.status = HttpStatus.valueOf(code);
+    }
+    
+    @JsonValue
+    abstract int code();
+}
+''')
+        def impl = argumentOf(context, 'mixintest.Test')
+        def bean = impl.type.newInstance(200)
+
+        expect:
+        writeJson(jsonMapper, bean) == '200'
+
+        def read = jsonMapper.readValue('200', typeUnderTest)
+        read.name() == 'Ok'
+        read.code() == 200
+
+        cleanup:
+        context.close()
+    }
+
     void "test import with interface"() {
         def context = buildContext('mixintest.HttpStatusInfo','''
 package mixintest;
@@ -307,7 +368,7 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @SerdeImport(
     value = Test.class,
-    deser = @Serdeable.Deserializable(enabled = false)
+    deserializable = false
 )
 class TestImport {}
 

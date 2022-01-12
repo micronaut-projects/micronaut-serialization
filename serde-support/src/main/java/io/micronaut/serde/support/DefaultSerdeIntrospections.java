@@ -189,22 +189,21 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private <T extends Annotation> boolean isMixinEnabledForDeserialization(List<AnnotationValue<T>> mixinsValues,
                                                                           Argument<?> type) {
-        return isEnabledForMixin(mixinsValues, type, Serdeable.Deserializable.class, "deser");
+        return isEnabledForMixin(mixinsValues, type, "deserializable");
     }
 
     private <T extends Annotation> boolean isMixinEnabledForSerialization(List<AnnotationValue<T>> mixinsValues,
                                                                           Argument<?> type) {
-        return isEnabledForMixin(mixinsValues, type, Serdeable.Serializable.class, "ser");
+        return isEnabledForMixin(mixinsValues, type, "serializable");
     }
 
     private <T extends Annotation> Boolean isEnabledForMixin(List<AnnotationValue<T>> mixinsValues,
                                                              Argument<?> type,
-                                                             Class<? extends Annotation> ann, String member) {
+                                                             String member) {
         return mixinsValues.stream().filter(av -> av.classValue().orElse(Object.class).equals(type.getType()))
                 .findFirst()
                 .flatMap(av ->
-                     av.getAnnotation(member, ann)
-                             .flatMap(ser -> ser.booleanValue("enabled"))
+                     av.booleanValue(member)
                 ).orElse(true);
     }
 

@@ -614,7 +614,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
-        if (element.hasDeclaredAnnotation(SerdeImport.Repeated.class)) {
+        if (element.hasDeclaredAnnotation(SerdeImport.Repeated.class) && !isImport) {
             final List<AnnotationValue<SerdeImport>> values = element.getDeclaredAnnotationValuesByType(SerdeImport.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
             for (AnnotationValue<SerdeImport> value : values) {
@@ -764,6 +764,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 (e) -> e
         ));
 
+        final MethodElement mixinCtor = mixinType.getPrimaryConstructor().orElse(null);
+        final MethodElement targetCtor = type.getPrimaryConstructor().orElse(null);
+        if (mixinCtor != null && targetCtor != null && argumentsMatch(mixinCtor, targetCtor)) {
+            replicateAnnotations(mixinCtor, targetCtor);
+        }
+
         final List<MethodElement> serdeMethods = mixinType.isRecord() ? Collections.emptyList() : new ArrayList<>(mixinType.getEnclosedElements(
                 ElementQuery.ALL_METHODS
                         .onlyInstance()
@@ -789,7 +795,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     MethodElement serdeMethod = i.next();
                     if (readMethod != null) {
                         if (serdeMethod.getName().equals(readMethod.getName())) {
-                            if (Arrays.equals(serdeMethod.getParameters(), readMethod.getParameters())) {
+                            if (argumentsMatch(serdeMethod, readMethod)) {
                                 i.remove();
                                 replicateAnnotations(serdeMethod, beanProperty);
                                 replicateAnnotations(serdeMethod, readMethod);
@@ -798,7 +804,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     }
                     if (writeMethod != null) {
                         if (serdeMethod.getName().equals(writeMethod.getName())) {
-                            if (Arrays.equals(serdeMethod.getParameters(), writeMethod.getParameters())) {
+                            if (argumentsMatch(serdeMethod, writeMethod)) {
                                 i.remove();
                                 replicateAnnotations(serdeMethod, beanProperty);
                                 replicateAnnotations(serdeMethod, writeMethod);
@@ -817,13 +823,32 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                 .onlyAccessible()
                                 .named(n -> n.equals(serdeMethod.getName()))
                                 .filter(left -> left.getReturnType().equals(serdeMethod.getReturnType())
-                                        && Arrays.equals(left.getParameters(), serdeMethod.getParameters()))
+                                        && argumentsMatch(left, serdeMethod))
                 ).ifPresent(m -> {
                     m.annotate(Executable.class);
                     replicateAnnotations(serdeMethod, m);
                 });
             }
         }
+    }
+
+    private boolean argumentsMatch(MethodElement left, MethodElement right) {
+        final ParameterElement[] lp = left.getParameters();
+        final ParameterElement[] rp = right.getParameters();
+        if (lp.length == rp.length) {
+            if (lp.length == 0) {
+                return true;
+            }
+            for (int i = 0; i < lp.length; i++) {
+                ParameterElement p1 = lp[i];
+                ParameterElement p2 = rp[i];
+                if (!p1.getType().equals(p2.getType())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     private void replicateAnnotations(Element source, Element target) {
