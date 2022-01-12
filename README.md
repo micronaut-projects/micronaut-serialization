@@ -7,7 +7,7 @@ Micronaut serialization a module for Micronaut that allows build-time computatio
 
 ## Documentation
 
-See the [Documentation](https://micronaut-projects.github.io/micronaut-serialization/latest/guide/) for more information. 
+See the [Documentation](https://micronaut-projects.github.io/micronaut-serialization/1.0.x/guide/) for more information. 
 
 See the [Snapshot Documentation](https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/) for the current development docs.
 
