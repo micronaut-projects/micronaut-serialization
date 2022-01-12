@@ -14,6 +14,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "serde-parent"
 
+include("serde-bom")
 include("serde-processor")
 include("serde-api")
 include("serde-jackson")
@@ -34,7 +35,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
-        maven(url="https://s01.oss.sonatype.org/content/repositories/snapshots/")
+//        maven(url="https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
     versionCatalogs {
         create("mn") {
