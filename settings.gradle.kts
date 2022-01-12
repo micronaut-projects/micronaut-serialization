@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "5.1.0"
+    id("io.micronaut.build.shared.settings") version "5.1.1"
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -32,8 +32,10 @@ include("doc-examples:example-groovy")
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        maven(url="https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
     versionCatalogs {
         create("mn") {

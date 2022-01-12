@@ -1,10 +1,108 @@
 package io.micronaut.serde.jackson
 
-
+import com.amazonaws.services.lambda.runtime.events.SQSEvent
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
+import io.micronaut.health.HealthStatus
+import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.serde.exceptions.SerdeException
+import spock.lang.PendingFeature
 import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
+
+    void "test external mixin and external class"() {
+        given:
+        def context = buildContext('''
+package externalmixin;
+
+import com.amazonaws.services.lambda.runtime.events.SQSEvent;
+import com.amazonaws.services.lambda.runtime.serialization.events.mixins.SQSEventMixin;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = SQSEvent.class,
+    mixin = SQSEventMixin.class      
+)
+@SerdeImport(
+    value = SQSEvent.SQSMessage.class,
+    mixin = SQSEventMixin.SQSMessageMixin.class      
+)
+class AddMixin {
+    
+}
+''')
+        def event = new SQSEvent()
+        def message = new SQSEvent.SQSMessage(messageId:"test", eventSourceArn: "test-arn")
+        event.records = [
+                message
+        ]
+
+        when:
+        def result = jsonMapper.writeValueAsString(event)
+
+        then:
+        result == '{"Records":[{"messageId":"test","eventSourceARN":"test-arn"}]}'
+
+        cleanup:
+        context.close()
+    }
+  
+    @PendingFeature(reason = "Core introspections dont support executable methods on interfaces")
+    void "test import with interface"() {
+        def context = buildContext('mixintest.HttpStatusInfo','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.serde.annotation.Serdeable;
+
+@SerdeImport(
+    value = HttpStatusInfo.class,
+    mixin = TestMixin.class,
+    deser = @Serdeable.Deserializable(as = Test.class)
+)
+class TestImport {}
+
+public interface HttpStatusInfo {
+    String name();
+    int code();
+}
+
+class Test implements HttpStatusInfo {
+    private HttpStatus status;
+    Test(int code) {
+        this.status = HttpStatus.valueOf(code);
+    }
+    @Override public String name() {
+        return status.getReason();
+    }
+    @Override public int code() { 
+        return status.getCode();
+    }
+}
+
+interface TestMixin {
+    @JsonValue
+    int code();
+}
+''')
+        def impl = argumentOf(context, 'mixintest.Test')
+        def bean = impl.type.newInstance(200)
+
+        expect:
+        writeJson(jsonMapper, bean) == '200'
+
+        def read = jsonMapper.readValue('200', typeUnderTest)
+        read.name() == 'test'
+        read.quantity() == 15
+        read.getClass().name == impl.name
+
+        cleanup:
+        context.close()
+    }
 
     @Requires({ jvm.isJava17Compatible() })
     void "test import with mixin - records"() {
@@ -222,5 +320,40 @@ public class Test {
 
         then:
         def e = thrown(SerdeException)
+    }
+
+    @PendingFeature(reason = "core doesn't support retrieval of metadata from imported type")
+    void "test import with deserialize as"() {
+        given:
+        def context = buildContext('''
+package mixindeser;
+
+import io.micronaut.management.health.indicator.HealthResult;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(HealthResult.class)
+class Serdes {}
+''')
+
+        HealthResult hr = HealthResult.builder("db", HealthStatus.DOWN)
+                .details(Collections.singletonMap("foo", "bar"))
+                .build()
+
+        when:
+        def result = writeJson(jsonMapper, hr)
+
+        then:
+        result == '{"name":"db","status":{"name":"DOWN","operational":false,"severity":1000},"details":{"foo":"bar"}}'
+
+        when:
+        hr = jsonMapper.readValue(result, Argument.of(HealthResult))
+
+        then:
+        hr.name == 'db'
+        hr.status == HealthStatus.DOWN
+
+
+        cleanup:
+        context.close()
     }
 }

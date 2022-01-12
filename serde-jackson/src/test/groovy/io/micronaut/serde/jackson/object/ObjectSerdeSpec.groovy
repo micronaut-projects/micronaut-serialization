@@ -20,6 +20,61 @@ class ObjectSerdeSpec extends JsonCompileSpec {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
     }
 
+    def "test serialize / deserialize interface impl"() {
+        given:
+        def context = buildContext('itfeimpl.Test', '''
+package itfeimpl;
+
+import com.fasterxml.jackson.annotation.JsonCreator;import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private HttpStatusInfo info = new HttpStatusInfoImpl(200);
+    public void setInfo(itfeimpl.HttpStatusInfo info) {
+        this.info = info;
+    }
+    public itfeimpl.HttpStatusInfo getInfo() {
+        return info;
+    }
+}
+
+@Serdeable.Deserializable(as = HttpStatusInfoImpl.class)
+interface HttpStatusInfo {
+    int code();
+}
+
+@Serdeable
+class HttpStatusInfoImpl implements HttpStatusInfo {
+    private final int code;
+    
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    HttpStatusInfoImpl(int code) {
+        this.code = code;
+    }
+    
+    @JsonValue
+    @Override public int code() {
+       return code;
+    }
+}
+''')
+        when:
+        def result = jsonMapper.writeValueAsString(typeUnderTest.type.newInstance())
+
+        then:
+        result == '{"info":200}'
+
+        when:
+        def bean = jsonMapper.readValue(result, typeUnderTest)
+
+        then:
+        bean.info.code() == 200
+
+        cleanup:
+        context.close()
+    }
+
     //region JsonSubTypesSpec
     @PendingFeature(reason = "Support for WRAPPER_ARRAY not implemented yet")
     def 'test JsonSubTypes with wrapper array'() {

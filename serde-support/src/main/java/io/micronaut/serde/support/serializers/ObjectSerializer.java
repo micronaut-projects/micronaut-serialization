@@ -128,7 +128,22 @@ public class ObjectSerializer implements Serializer<Object> {
             };
         } else {
 
-            final SerBean<Object> serBean = getSerBean(type, null, encoderContext);
+            final SerBean<Object> serBean;
+            try {
+                serBean = getSerBean(type, null, encoderContext);
+            } catch (IntrospectionException e) {
+                // no introspection, create dynamic serialization case
+                return (encoder, context, value, argument) -> {
+                    final Class<Object> theType = (Class<Object>) value.getClass();
+                    final Argument<Object> t = Argument.of(
+                            theType,
+                            argument.getAnnotationMetadata()
+                    );
+                    context.findSerializer(t)
+                           .createSpecific(t, encoderContext)
+                            .serialize(encoder, context, value, t);
+                };
+            }
             final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
             final SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
             if (jsonValue != null) {
