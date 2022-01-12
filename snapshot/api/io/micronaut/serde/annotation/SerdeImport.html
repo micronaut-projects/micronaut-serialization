@@ -137,8 +137,8 @@ public @interface <span class="memberNameLabel">SerdeImport</span></pre>
 <th class="colLast" scope="col">Optional Element and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code><a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation in io.micronaut.serde.annotation">Serdeable.Deserializable</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#deser--">deser</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#deserializable--">deserializable</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>java.lang.Class&lt;?&gt;</code></td>
@@ -147,12 +147,8 @@ public @interface <span class="memberNameLabel">SerdeImport</span></pre>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#naming--">naming</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code><a href="../../../../io/micronaut/serde/annotation/Serdeable.Serializable.html" title="annotation in io.micronaut.serde.annotation">Serdeable.Serializable</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#ser--">ser</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/annotation/SerdeImport.html#serializable--">serializable</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -215,62 +211,40 @@ public @interface <span class="memberNameLabel">SerdeImport</span></pre>
 </li>
 </ul>
 <ul class="blockList">
-<li class="blockList"><a name="naming--">
+<li class="blockList"><a name="serializable--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>naming</h4>
-<pre>@AliasFor(annotation=<a href="../../../../io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation in io.micronaut.serde.config.annotation">SerdeConfig.class</a>,
-          member="naming")
-public abstract&nbsp;java.lang.Class&lt;? extends <a href="../../../../io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;&nbsp;naming</pre>
+<h4>serializable</h4>
+<pre>public abstract&nbsp;boolean&nbsp;serializable</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>Naming strategy to use for both serialization and deserialization.</dd>
+<dd>Whether to import for serialization. Defaults to <code>true</code>.</dd>
 </dl>
 <dl>
 <dt>Default:</dt>
-<dd>io.micronaut.serde.config.naming.IdentityStrategy.class</dd>
+<dd>true</dd>
 </dl>
 </li>
 </ul>
 </li>
 </ul>
 <ul class="blockList">
-<li class="blockList"><a name="ser--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>ser</h4>
-<pre>public abstract&nbsp;<a href="../../../../io/micronaut/serde/annotation/Serdeable.Serializable.html" title="annotation in io.micronaut.serde.annotation">Serdeable.Serializable</a>&nbsp;ser</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Serialization configuration to use.</dd>
-</dl>
-<dl>
-<dt>Default:</dt>
-<dd>@io.micronaut.serde.annotation.Serdeable.Serializable</dd>
-</dl>
-</li>
-</ul>
-</li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="deser--">
+<li class="blockList"><a name="deserializable--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>deser</h4>
-<pre>public abstract&nbsp;<a href="../../../../io/micronaut/serde/annotation/Serdeable.Deserializable.html" title="annotation in io.micronaut.serde.annotation">Serdeable.Deserializable</a>&nbsp;deser</pre>
+<h4>deserializable</h4>
+<pre>public abstract&nbsp;boolean&nbsp;deserializable</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>Deserialization Configuration to use.</dd>
+<dd>Whether to import for deserialization. Defaults to <code>true</code>.</dd>
 </dl>
 <dl>
 <dt>Default:</dt>
-<dd>@io.micronaut.serde.annotation.Serdeable.Deserializable</dd>
+<dd>true</dd>
 </dl>
 </li>
 </ul>
