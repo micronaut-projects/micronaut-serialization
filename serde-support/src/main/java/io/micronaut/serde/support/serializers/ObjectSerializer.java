@@ -135,13 +135,17 @@ public class ObjectSerializer implements Serializer<Object> {
                 // no introspection, create dynamic serialization case
                 return (encoder, context, value, argument) -> {
                     final Class<Object> theType = (Class<Object>) value.getClass();
-                    final Argument<Object> t = Argument.of(
-                            theType,
-                            argument.getAnnotationMetadata()
-                    );
-                    context.findSerializer(t)
-                           .createSpecific(t, encoderContext)
-                            .serialize(encoder, context, value, t);
+                    if (!theType.equals(type.getType())) {
+                        final Argument<Object> t = Argument.of(
+                                theType,
+                                argument.getAnnotationMetadata()
+                        );
+                        context.findSerializer(t)
+                                .createSpecific(t, encoderContext)
+                                .serialize(encoder, context, value, t);
+                    } else {
+                        throw new SerdeException(e.getMessage(), e);
+                    }
                 };
             }
             final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
