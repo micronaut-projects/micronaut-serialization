@@ -397,7 +397,9 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         then:
             valueNonNulls.collection.isEmpty()
             valueNonNulls.list.isEmpty()
+            valueNonNulls.list instanceof ArrayList
             valueNonNulls.set.isEmpty()
+            valueNonNulls.set instanceof HashSet
             valueNonNulls.arrayList.isEmpty()
             valueNonNulls.linkedList.isEmpty()
             valueNonNulls.hashSet.isEmpty()

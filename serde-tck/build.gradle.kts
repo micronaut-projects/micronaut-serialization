@@ -1,7 +1,6 @@
 plugins {
-    id("io.micronaut.build.internal.serde-module")
+    id("groovy")
 }
-
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.serdeProcessor)
@@ -16,6 +15,7 @@ dependencies {
         implementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
     }
 }
-
-tasks["checkstyleMain"].enabled = false
-tasks["checkstyleNohttp"].enabled = false
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}

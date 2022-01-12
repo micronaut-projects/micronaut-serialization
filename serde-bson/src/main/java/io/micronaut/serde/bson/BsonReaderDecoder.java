@@ -16,7 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.serde.AbstractStreamDecoder;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonBinaryReader;

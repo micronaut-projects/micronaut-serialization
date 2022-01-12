@@ -4,8 +4,8 @@ import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.http.hateoas.JsonError
 import io.micronaut.http.hateoas.Link
-import io.micronaut.json.JsonMapper
 import io.micronaut.management.health.indicator.HealthResult
+import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 
 @MicronautTest
 class CoreTypeSerdeSpec extends Specification {
-    @Inject JsonMapper jsonMapper
+    @Inject ObjectMapper jsonMapper
 
     void "test read / write health result"() {
         given:
@@ -26,7 +26,14 @@ class CoreTypeSerdeSpec extends Specification {
         def result = writeJson(hr)
 
         then:
-        result == '{"name":"db","status":{"name":"DOWN","operational":false,"severity":1000},"details":{"foo":"bar"}}'
+        result == '{"name":"db","status":"DOWN","details":{"foo":"bar"}}'
+
+        when:
+        hr = jsonMapper.readValue(result, Argument.of(HealthResult))
+
+        then:
+        hr.name == 'db'
+        hr.status == HealthStatus.DOWN
     }
 
     void "test read / write JsonError"() {

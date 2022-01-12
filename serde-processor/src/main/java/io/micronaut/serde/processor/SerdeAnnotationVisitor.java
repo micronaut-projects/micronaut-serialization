@@ -61,11 +61,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -580,7 +582,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (checkForErrors(element, context)) {
             return;
         }
+        visitClassInternal(element, context, false);
+    }
 
+    private void visitClassInternal(ClassElement element, VisitorContext context, boolean isImport) {
         List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.Subtyped.Subtype.class);
         if (!subtypes.isEmpty()) {
             final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
@@ -609,8 +614,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
-        if (element.hasAnnotation(SerdeImport.Repeated.class)) {
-            final List<AnnotationValue<SerdeImport>> values = element.getAnnotationValuesByType(SerdeImport.class);
+        if (element.hasDeclaredAnnotation(SerdeImport.Repeated.class)) {
+            final List<AnnotationValue<SerdeImport>> values = element.getDeclaredAnnotationValuesByType(SerdeImport.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
             for (AnnotationValue<SerdeImport> value : values) {
                 value.annotationClassValue(AnnotationMetadata.VALUE_MEMBER)
@@ -620,16 +625,22 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                 context.fail("Cannot mixin non-public type: " + c.getName(), element);
                             } else {
                                 classValues.add(new AnnotationClassValue<>(c.getName()));
-                                visitClass(c, context);
+                                final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
+                                        .orElse(null);
+                                if (mixinType != null) {
+                                    visitMixin(mixinType, c);
+                                } else {
+                                    visitClassInternal(c, context, true);
+                                }
                             }
                         });
             }
             element.annotate(Introspected.class, (builder) ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
-        } else if (isJsonAnnotated(element)) {
+        } else if (isJsonAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
-                    !element.hasStereotype(Serdeable.Deserializable.class)) {
+                    !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
                 element.annotate(Serdeable.class);
                 element.annotate(Introspected.class, (builder) -> {
                     builder.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
@@ -637,20 +648,22 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 });
             }
 
-            String serializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
+            String serializeAs = element.getDeclaredMetadata().stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
             if (serializeAs != null) {
                 ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {
-                    context.fail("Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
+                    context.fail("Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName(),
+                                 element);
                     return;
                 }
             }
 
-            String deserializeAs = element.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
+            String deserializeAs = element.getDeclaredMetadata().stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
             if (deserializeAs != null) {
                 ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
                 if (thatType != null && !thatType.isAssignable(element)) {
-                    context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(), element);
+                    context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(),
+                                 element);
                     return;
                 }
             }
@@ -661,7 +674,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class).orElse(null);
                 if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
                     if (failOnError && primaryConstructor.getParameters().length != 1) {
-                        context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.", element);
+                        context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.",
+                                     element);
                     }
                 }
             }
@@ -670,8 +684,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.PropertyOrder.class));
             Collections.reverse(order);
             final Set<Introspected.AccessKind> access = CollectionUtils.setOf(element.enumValues(Introspected.class,
-                                                                                                     "accessKind",
-                                                                                                     Introspected.AccessKind.class));
+                                                                                                 "accessKind",
+                                                                                                 Introspected.AccessKind.class));
             boolean supportFields = access.contains(Introspected.AccessKind.FIELD);
             final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
             final String[] includeProperties = element.stringValues(SerdeConfig.Included.class);
@@ -730,6 +744,98 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
+    private void visitMixin(ClassElement mixinType, ClassElement type) {
+        mixinType.getAnnotationNames()
+                .stream().filter(n -> n.startsWith("io.micronaut.serde"))
+                .forEach(n -> {
+                    final AnnotationValue<Annotation> ann = mixinType.getAnnotation(n);
+                    if (ann != null) {
+                        type.annotate(ann);
+                    }
+                });
+        mixinType.findAnnotation(SerdeConfig.class).ifPresent(type::annotate);
+        final Map<String, FieldElement> serdeFields = mixinType.getEnclosedElements(
+                ElementQuery.ALL_FIELDS
+                        .onlyInstance()
+                        .onlyDeclared()
+                        .annotated((ann) -> ann.hasAnnotation(SerdeConfig.class))
+        ).stream().collect(Collectors.toMap(
+                FieldElement::getName,
+                (e) -> e
+        ));
+
+        final List<MethodElement> serdeMethods = mixinType.isRecord() ? Collections.emptyList() : new ArrayList<>(mixinType.getEnclosedElements(
+                ElementQuery.ALL_METHODS
+                        .onlyInstance()
+                        .onlyDeclared()
+                        .annotated((ann) -> ann.getAnnotationNames().stream().anyMatch(n ->
+                            n.startsWith("io.micronaut.serde.config.annotation")
+                        ))
+        ));
+
+        final List<PropertyElement> beanProperties = type.getBeanProperties();
+        for (PropertyElement beanProperty : beanProperties) {
+            final FieldElement f = serdeFields.get(beanProperty.getName());
+            if (f != null && f.getType().equals(beanProperty.getType())) {
+                replicateAnnotations(f, beanProperty);
+                continue;
+            }
+
+            if (CollectionUtils.isNotEmpty(serdeMethods)) {
+                final MethodElement readMethod = beanProperty.getReadMethod().orElse(null);
+                final MethodElement writeMethod = beanProperty.getWriteMethod().orElse(null);
+                final Iterator<MethodElement> i = serdeMethods.iterator();
+                while (i.hasNext()) {
+                    MethodElement serdeMethod = i.next();
+                    if (readMethod != null) {
+                        if (serdeMethod.getName().equals(readMethod.getName())) {
+                            if (Arrays.equals(serdeMethod.getParameters(), readMethod.getParameters())) {
+                                i.remove();
+                                replicateAnnotations(serdeMethod, beanProperty);
+                                replicateAnnotations(serdeMethod, readMethod);
+                            }
+                        }
+                    }
+                    if (writeMethod != null) {
+                        if (serdeMethod.getName().equals(writeMethod.getName())) {
+                            if (Arrays.equals(serdeMethod.getParameters(), writeMethod.getParameters())) {
+                                i.remove();
+                                replicateAnnotations(serdeMethod, beanProperty);
+                                replicateAnnotations(serdeMethod, writeMethod);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!serdeMethods.isEmpty()) {
+            for (MethodElement serdeMethod : serdeMethods) {
+                type.getEnclosedElement(
+                        ElementQuery.ALL_METHODS
+                                .onlyInstance()
+                                .onlyAccessible()
+                                .named(n -> n.equals(serdeMethod.getName()))
+                                .filter(left -> left.getReturnType().equals(serdeMethod.getReturnType())
+                                        && Arrays.equals(left.getParameters(), serdeMethod.getParameters()))
+                ).ifPresent(m -> {
+                    m.annotate(Executable.class);
+                    replicateAnnotations(serdeMethod, m);
+                });
+            }
+        }
+    }
+
+    private void replicateAnnotations(Element source, Element target) {
+        final Set<String> annotationNames = source.getAnnotationNames();
+        for (String annotationName : annotationNames) {
+            final AnnotationValue<?> config = source.getAnnotation(annotationName);
+            if (config != null) {
+                target.annotate(config);
+            }
+        }
+    }
+
     @Nullable
     private PropertyNamingStrategy getPropertyNamingStrategy(@NonNull  TypedElement element, @Nullable PropertyNamingStrategy defaultValue) {
         String namingStrategy = element.stringValue(SerdeConfig.class, SerdeConfig.NAMING)
@@ -770,11 +876,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    String[] includeProperties,
                                    boolean allowGetters,
                                    boolean allowSetters,
-                                   @Nullable PropertyNamingStrategy _namingStrategy) {
+                                   @Nullable PropertyNamingStrategy namingStrategy) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         for (TypedElement beanProperty : beanProperties) {
-            PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, _namingStrategy);
+            PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
             if (beanProperty instanceof PropertyElement) {
                 PropertyElement pm = (PropertyElement) beanProperty;

@@ -15,19 +15,17 @@
  */
 package io.micronaut.serde.processor.jackson.databind;
 
-import io.micronaut.core.annotation.AnnotationClassValue;
-import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.processor.jackson.ValidatingAnnotationMapper;
-
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import io.micronaut.core.annotation.AnnotationClassValue;
+import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.inject.visitor.VisitorContext;
+import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.processor.jackson.ValidatingAnnotationMapper;
 
 /**
  * Support for JsonDeserialize(as=MyType).
@@ -37,8 +35,6 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
     protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationClassValue<?> acv = annotation.annotationClassValue("as").orElse(null);
         List<AnnotationValue<?>> annotations = new ArrayList<>();
-        annotations.add(AnnotationValue.builder(Introspected.class).build());
-        annotations.add(AnnotationValue.builder(Serdeable.Deserializable.class).build());
         if (acv != null) {
             annotations.add(
                     AnnotationValue.builder(SerdeConfig.class)

@@ -3,13 +3,10 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
-    includeBuild("build-logic") {
-        name = "serde-build-logic"
-    }
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "4.2.6"
+    id("io.micronaut.build.shared.settings") version "5.1.1"
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -25,7 +22,6 @@ include("serde-support")
 include("serde-bson")
 include("serde-tck")
 
-// examples
 include("doc-examples:example-java")
 include("doc-examples:example-bson-java")
 include("doc-examples:example-jsonb-java")
@@ -35,8 +31,10 @@ include("doc-examples:example-groovy")
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         mavenCentral()
+        maven(url="https://s01.oss.sonatype.org/content/repositories/snapshots/")
     }
     versionCatalogs {
         create("mn") {

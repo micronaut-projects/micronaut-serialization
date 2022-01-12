@@ -1,5 +1,5 @@
 plugins {
-    id("io.micronaut.build.internal.serde-module")
+    id("io.micronaut.build.internal.module")
 }
 
 dependencies {
@@ -19,7 +19,10 @@ dependencies {
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)
     testImplementation(mn.jackson.databind)
+    testImplementation(mn.micronaut.management)
     if (!JavaVersion.current().isJava9Compatible()) {
         testImplementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
     }
+    testImplementation("com.amazonaws:aws-lambda-java-serialization:1.0.0")
+    testImplementation("com.amazonaws:aws-lambda-java-events:3.11.0")
 }
