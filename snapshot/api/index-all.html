@@ -623,6 +623,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super HealthStatus&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super Object[]&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/YearSerde.html#deserializeNonNull-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserializeNonNull(Decoder, Deserializer.DecoderContext, Argument&lt;? super Year&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/YearSerde.html" title="class in io.micronaut.serde.support.serdes">YearSerde</a></dt>
@@ -1239,6 +1241,12 @@
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/Deserializer.DecoderContext.html#hasView-java.lang.Class...-">hasView(Class&lt;?&gt;...)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/Serializer.EncoderContext.html#hasView-java.lang.Class...-">hasView(Class&lt;?&gt;...)</a></span> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes"><span class="typeNameLink">HealthStatusSerde</span></a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
+<dd>
+<div class="block">Serde for health status.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html#HealthStatusSerde--">HealthStatusSerde()</a></span> - Constructor for class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a name="I:I">
@@ -2186,6 +2194,8 @@
 <div class="block">Serializes the given value using the passed <a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize(Encoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.health.HealthStatus-io.micronaut.core.type.Argument-">serialize(Encoder, Serializer.EncoderContext, HealthStatus, Argument&lt;? extends HealthStatus&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.lang.Object:A-io.micronaut.core.type.Argument-">serialize(Encoder, Serializer.EncoderContext, Object[], Argument&lt;? extends Object[]&gt;)</a></span> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
 <dd>&nbsp;</dd>
