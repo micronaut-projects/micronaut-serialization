@@ -1,0 +1,2282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <title>Micronaut Serialization</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="../css/main.css" type="text/css" media="screen, print" title="Style" charset="utf-8" />
+    <link rel="stylesheet" href="../css/custom.css" type="text/css" media="screen, print" title="Style" charset="utf-8" />
+    <link rel="stylesheet" href="../css/pdf.css" type="text/css" media="print" title="PDF" charset="utf-8" />
+    <link rel="stylesheet" href="../css/highlight/agate.css">
+    <script src="../js/highlight.pack.js"></script>
+    <script src="../js/guide.js"></script>
+    <script src="../js/multi-language-sample.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <link rel="stylesheet" href="../css/multi-language-sample.css"/>
+    <script src="../js/docs.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.13/clipboard.min.js"></script>
+    <script type="text/javascript">
+        function addJsClass(el) {
+            var classes = document.body.className.split(" ");
+            classes.push("js");
+            document.body.className = classes.join(" ");
+        }
+    </script>
+
+</head>
+
+<body class="body" id="docs" onload="addJsClass();" onhashchange="highlightMenu()">
+
+<div id="table-of-content-nav-link" class="desktop">
+    <a id="theme-switcher" title="Switch to dark theme" href="javascript:switchTheme(true)"><i class="fa fa-moon-o"></i></a>
+    <a title="Collapse/Open Table of contents" title="Hide Table of Contents" href="javascript:hideTableOfContents();" class="button">[ + ]</a>
+</div>
+
+<div id="main">
+    <div id="navigation" class="no-print">
+        <div class="navTitle">
+            <span id="logo"><a href="http://micronaut.io" title="Go to Micronaut Website"><img src="../img/micronaut-logo-white.svg" alt="Micronaut"/></a></span>
+        </div>
+        <div class="navLinks">
+            <ul>
+                    <li><div id="nav-summary" onmouseover="toggleNavSummary(false)" onmouseout="toggleNavSummary(true)" class="desktop">
+                            <a href="../guide/index.html" class="button">Table of contents</a>
+                            <div id="nav-summary-childs" style="display:none;">
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#introduction"><strong>1</strong><span>Introduction</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#releaseHistory"><strong>2</strong><span>Release History</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#quickStart"><strong>3</strong><span>Quick Start</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Annotations</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#serdes"><strong>7</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#serdeImport"><strong>8</strong><span>Enabling Serialization of External Classes</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
+                                
+                            </div>
+                        </div>
+                    </li>
+
+                <li id="table-of-content-nav-link-mobile" class="mobile">
+                    <a title="Scroll to Table of contents" href="javascript:scrollToTop();" class="button">Toc</a>
+                </li>
+                <li class="desktop">
+                    <a title="Go to API documentation" href="../api/index.html" class="button">API Reference</a>
+                </li>
+                <li class="mobile">
+                    <a title="Go to API documentation" href="../api/index.html" class="button">API</a>
+                </li>
+                <li class="desktop">
+                    <a title="Go to Configuration Reference documentation" href="../guide/configurationreference.html" class="button">Configuration Reference</a>
+                </li>
+                <li class="mobile">
+                    <a title="Go to Configuration Reference documentation" href="../guide/configurationreference.html" class="button">Conf</a>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+    
+    <div id="table-of-content">
+        <div class="toc-content">
+
+        <h2>Table of Contents</h2>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-introduction"><a href="#introduction"><strong>1</strong><span>Introduction</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-why"><a href="#why"><strong>1.1</strong><span>Why Micronaut Serialization?</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-releaseHistory"><a href="#releaseHistory"><strong>2</strong><span>Release History</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-quickStart"><a href="#quickStart"><strong>3</strong><span>Quick Start</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-jacksonQuick"><a href="#jacksonQuick"><strong>3.1</strong><span>Jackson Annotations &amp; Jackson Core</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-jsonpQuick"><a href="#jsonpQuick"><strong>3.2</strong><span>JSON-B Annotations &amp; JSON-P</span></a></div>
+        
+        <div class="toc-item" style="margin-left:10px" id="toc-item-bsonQuick"><a href="#bsonQuick"><strong>3.3</strong><span>BSON Annotations and BSON</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-jsonbAnnotations"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Annotations</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-bsonAnnotations"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdes"><a href="#serdes"><strong>7</strong><span>Custom Serializers &amp; Deserializers</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-serdeImport"><a href="#serdeImport"><strong>8</strong><span>Enabling Serialization of External Classes</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
+        
+        </div>
+    </div>
+    
+    <div class="docs-content">
+    <div class="project">
+        <h1>Micronaut Serialization</h1>
+        <p></p>
+        <p>Enables serialization/deserialization in Micronaut applications using build time information</p>
+        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option selected='selected' value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M1/guide/index.html'>1.0.0-M1</option></select> </p>
+    </div>
+    
+<h1 id="introduction"><a class="anchor" href="#introduction"></a>1 Introduction</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/introduction.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization is a library that allows the serialization and deserialization of objects to common serialization formats like JSON.</p>
+</div>
+<div class="paragraph">
+<p>It does so using build-time <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a> that do not use reflection and allows using a variety of common annotation models including <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, JSON-B annotations or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a>.</p>
+</div>
+<div class="paragraph">
+<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on-top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.</p>
+</div>
+
+<h2 id="why"><a class="anchor" href="#why"></a>1.1 Why Micronaut Serialization?</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/introduction/why.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.</p>
+</div>
+<div class="sect3">
+<h4 id="_memory_performance">Memory Performance</h4>
+<div class="paragraph">
+<p>Micronaut Serialization consumes less memory and has a much smaller runtime component. As a way of comparison Micronaut Serialization is a 380kb JAR file, compared to Jackson Databind which is well over 2mb. This results in a reduction of 5MB in terms of image size for native image builds.</p>
+</div>
+<div class="paragraph">
+<p>The elimination of reflection and smaller footprint also results in reduced runtime memory consumption.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_security">Security</h4>
+<div class="paragraph">
+<p>Unlike Jackson, you cannot serialize or deserialize arbitrary objects to JSON. Allowing arbitrary serialization is often a source of security issues in modern applications. Instead with Micronaut Serialization to allow a type to be serialized or deserialized you must do one of the following:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Declare the <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> annotation at the type level in your source code to allow the type to be serialized or deserialized.</p>
+</li>
+<li>
+<p>If you cannot modify the source code and the type is an external type you can use <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> to import the type. Note that with this approach only public members are considered.</p>
+</li>
+<li>
+<p>Define a bean of type <a href="../api/io/micronaut/serde/Serializer.html">Serializer</a> for serialization and/or a bean of type <a href="../api/io/micronaut/serde/Deserializer.html">Deserializer</a> for deserialization.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_type_safety">Type Safety</h4>
+<div class="paragraph">
+<p>Jackson provides an annotation-based programming model that includes many rules developers need to be aware of and can lead to runtime exceptions if these rules are violated.</p>
+</div>
+<div class="paragraph">
+<p>Micronaut Serialization adds compile-time checking for correctness when using JSON binding annotations.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_runtime_portability">Runtime Portability</h4>
+<div class="paragraph">
+<p>Micronaut Serialization decouples the runtime the from the actual source code level annotation model whilst Jackson is coupled to Jackson annotations. This means you can use the same runtime, but choose whether to use <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, <a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/package-summary.html">JSON-B annotations</a> or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a></p>
+</div>
+<div class="paragraph">
+<p>This leads to less memory consumption since there is no need to have multiple JSON parsers and reflection-based meta-models if you using both JSON in your webtier plus a document database like MongoDB.</p>
+</div>
+</div>
+
+<h1 id="releaseHistory"><a class="anchor" href="#releaseHistory"></a>2 Release History</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/releaseHistory.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>For this project, you can find a list of releases (with release notes) here:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/micronaut-projects/micronaut-serialization/releases">https://github.com/micronaut-projects/micronaut-serialization/releases</a></p>
+</div>
+
+<h1 id="quickStart"><a class="anchor" href="#quickStart"></a>3 Quick Start</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/quickStart.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>There are a number of ways to use Micronaut Serialization including a choice of annotation-model and runtime.</p>
+</div>
+<div class="paragraph">
+<p>The first step however is configure the necessary annotation processor dependency:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.0.0-M1")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;annotationProcessorPaths&gt;
+    &lt;path&gt;
+        &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+        &lt;artifactId&gt;micronaut-serde-processor&lt;/artifactId&gt;
+        &lt;version&gt;1.0.0-M1&lt;/version&gt;
+    &lt;/path&gt;
+&lt;/annotationProcessorPaths&gt;</code></pre>
+</div>
+</div>
+</p>
+</div>
+<div class="paragraph">
+<p>You should then choose a combination of Annotation-based programming model and runtime implementation that you desire.</p>
+</div>
+
+<h2 id="jacksonQuick"><a class="anchor" href="#jacksonQuick"></a>3.1 Jackson Annotations & Jackson Core</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/quickStart/jacksonQuick.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>To replace Jackson Databind, but continue using <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson Annotations</a> as a programming model and Jackson Core as a runtime you should exclude the <code>micronaut-jackson-databind</code> module from your application and replace it with <code>micronaut-serde-jackson</code>.</p>
+</div>
+<div class="paragraph">
+<p>To do so in a Gradle build add the following configuration (either Groovy or Kotlin):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.0.0-M1"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depends on <code>micronaut-jackson-databind</code>, plus add a dependency on <code>micronaut-serde-jackson</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml"> &lt;dependency&gt;
+  &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+  &lt;artifactId&gt;micronaut-runtime&lt;/artifactId&gt;
+  &lt;exclusions&gt;
+    &lt;exclusion&gt;
+      &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+      &lt;artifactId&gt;micronaut-jackson-databind&lt;/artifactId&gt;
+    &lt;/exclusion&gt;
+  &lt;/exclusions&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+  &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0-M1&lt;/version&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With the correct dependencies in place you can now define an object to be serialized:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable <b class="conum">(1)</b>
+public class Book {
+    private final String title;
+    @JsonProperty("qty") <b class="conum">(2)</b>
+    private final int quantity;
+
+    @JsonCreator <b class="conum">(3)</b>
+    public Book(String title, int quantity) {
+        this.title = title;
+        this.quantity = quantity;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable <b class="conum">(1)</b>
+class Book {
+    final String title
+    @JsonProperty("qty") <b class="conum">(2)</b>
+    final int quantity
+
+    @JsonCreator
+    Book(String title, int quantity) { <b class="conum">(3)</b>
+        this.title = title
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable <b class="conum">(1)</b>
+data class Book (
+    val title: String, <b class="conum">(2)</b>
+    @JsonProperty("qty") val quantity: Int
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The type is annotated with <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> to enable serialization/deserialization</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>You can use <code>@JsonProperty</code> from Jackson annotations</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>You can use <code>@JsonCreator</code> from Jackson annotations</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you don&#8217;t want to add a Micronaut Serialization annotation then you can also add a type-level Jackson annotation like <code>@JsonClassDescription</code>, <code>@JsonRootName</code> or <code>@JsonTypeName</code>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once you have a type that can be serialized and deserialized you can use the <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> interface to do so:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@MicronautTest
+public class BookTest {
+
+    @Test
+    void testWriteReadBook(ObjectMapper objectMapper) throws IOException {
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+
+        Book book = objectMapper.readValue(result, Book.class);
+        assertNotNull(book);
+        assertEquals(
+                "The Stand", book.getTitle()
+        );
+        assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write book"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+        Book book = objectMapper.readValue(result, Book.class);
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        Assertions.assertEquals(
+            "The Stand", book.title
+        )
+        Assertions.assertEquals(50, book.quantity)
+    }
+}</code></pre>
+</div>
+</div>
+
+<h2 id="jsonpQuick"><a class="anchor" href="#jsonpQuick"></a>3.2 JSON-B Annotations & JSON-P</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/quickStart/jsonpQuick.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>To completely remove all dependencies on Jackson and use JSON-B annotations in your source code combined with JSON-P at a runtime you should exclude the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules from your application and replace them with <code>micronaut-serde-jsonp</code>.</p>
+</div>
+<div class="paragraph">
+<p>To do so in a Gradle build add the following configuration (either Groovy or Kotlin):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+            .using(module("jakarta.json.bind:jakarta.json.bind-api:2.0.0"))
+        substitute(module("io.micronaut:micronaut-jackson-core"))
+            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.0.0-M1"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depend on <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code>, plus add a dependency on <code>micronaut-serde-jackson</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml"> &lt;dependency&gt;
+  &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+  &lt;artifactId&gt;micronaut-runtime&lt;/artifactId&gt;
+  &lt;exclusions&gt;
+    &lt;exclusion&gt;
+      &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+      &lt;artifactId&gt;micronaut-jackson-databind&lt;/artifactId&gt;
+    &lt;/exclusion&gt;
+  &lt;/exclusions&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+  &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0-M1&lt;/version&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;jakarta.json.bind&lt;/groupId&gt;
+  &lt;artifactId&gt;jakarta.json.bind-api&lt;/artifactId&gt;
+  &lt;version&gt;2.0.0&lt;/version&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With the correct dependencies in place you can now define an object to be serialized:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.json.bind.annotation.JsonbCreator;
+import jakarta.json.bind.annotation.JsonbProperty;
+
+@Serdeable <b class="conum">(1)</b>
+public class Book {
+    private final String title;
+    @JsonbProperty("qty") <b class="conum">(2)</b>
+    private final int quantity;
+
+    @JsonbCreator <b class="conum">(3)</b>
+    public Book(String title, int quantity) {
+        this.title = title;
+        this.quantity = quantity;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The type is annotated with <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> to enable serialization/deserialization</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>You can use <code>@JsonbProperty</code> from JSON-B annotations</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>You can use <code>@JsonbCreator</code> from JSON-B annotations</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once you have a type that can be serialized and deserialized you can use the <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> interface to do so:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@MicronautTest
+public class BookTest {
+
+    @Test
+    void testWriteReadBook(ObjectMapper objectMapper) throws IOException {
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+
+        Book book = objectMapper.readValue(result, Book.class);
+        assertNotNull(book);
+        assertEquals(
+                "The Stand", book.getTitle()
+        );
+        assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write book"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+        Book book = objectMapper.readValue(result, Book.class);
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        Assertions.assertEquals(
+            "The Stand", book.title
+        )
+        Assertions.assertEquals(50, book.quantity)
+    }
+}</code></pre>
+</div>
+</div>
+
+<h2 id="bsonQuick"><a class="anchor" href="#bsonQuick"></a>3.3 BSON Annotations and BSON</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/quickStart/bsonQuick.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>To completely remove all dependencies on Jackson and use <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a> in your source code combined with BSON at a runtime you should exclude the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules from your application and replace them with <code>micronaut-serde-bson</code>.</p>
+</div>
+<div class="paragraph">
+<p>To do so in a Gradle build add the following configuration (either Groovy or Kotlin):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.0.0-M1"))
+        substitute(module("io.micronaut:micronaut-jackson-core"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.0.0-M1"))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depend on <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code>, plus add a dependency on <code>micronaut-serde-bson</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+  &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+  &lt;artifactId&gt;micronaut-runtime&lt;/artifactId&gt;
+  &lt;exclusions&gt;
+    &lt;exclusion&gt;
+      &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
+      &lt;artifactId&gt;micronaut-jackson-databind&lt;/artifactId&gt;
+    &lt;/exclusion&gt;
+  &lt;/exclusions&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+  &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
+  &lt;version&gt;1.0.0-M1&lt;/version&gt;
+  &lt;scope&gt;compile&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>With the correct dependencies in place you can now define an object to be serialized:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonProperty;
+
+@Serdeable <b class="conum">(1)</b>
+public class Book {
+    private final String title;
+    @BsonProperty("qty") <b class="conum">(2)</b>
+    private final int quantity;
+
+    @BsonCreator <b class="conum">(3)</b>
+    public Book(String title, int quantity) {
+        this.title = title;
+        this.quantity = quantity;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The type is annotated with <a href="../api/io/micronaut/serde/annotation/Serdeable.html">@Serdeable</a> to enable serialization/deserialization</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>You can use <code>@BsonProperty</code> from BSON annotations</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>You can use <code>@BsonCreator</code> from BSON annotations</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once you have a type that can be serialized and deserialized you can use the <a href="../api/io/micronaut/serde/ObjectMapper.html">ObjectMapper</a> interface to do so:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@MicronautTest
+public class BookTest {
+
+    @Test
+    void testWriteReadBook(ObjectMapper objectMapper) throws IOException {
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+
+        Book book = objectMapper.readValue(result, Book.class);
+        assertNotNull(book);
+        assertEquals(
+                "The Stand", book.getTitle()
+        );
+        assertEquals(50, book.getQuantity());
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class BookTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write book"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
+        Book book = objectMapper.readValue(result, Book.class);
+
+        then:
+        book != null
+        book.title == "The Stand"
+        book.quantity == 50
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class BookTest {
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        Assertions.assertEquals(
+            "The Stand", book.title
+        )
+        Assertions.assertEquals(50, book.quantity)
+    }
+}</code></pre>
+</div>
+</div>
+
+<h1 id="jacksonAnnotations"><a class="anchor" href="#jacksonAnnotations"></a>4 Jackson Annotations</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/jacksonAnnotations.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization supports a subset of the available <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson Annotations</a>.</p>
+</div>
+<div class="paragraph">
+<p>The primary difference is Micronaut Serialization uses build-time <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a>, this means that only accessible getters and setters (and Java 17 records) are supported and <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonAutoDetect.html">@JsonAutoDetect</a> cannot be used to customize mapping.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can however, enable fields to be included using <code>AccessKind</code> field. See the "Bean Fields" section of the <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a> docs.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The full list of supported Jackson annotations and members is described in the table below.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If an unsupported annotation or member is used, a compilation error will result.
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Jackson Annotation</th>
+<th class="tableblock halign-left valign-top">Supported</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonAlias.html">@JsonAlias</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JacksonInject.html">@JacksonInject</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonAnyGetter.html">@JsonAnyGetter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>enabled</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonAnyGetter.html">@JsonAnySetter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>enabled</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonAutoDetect.html">@JsonAutoDetect</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonBackReference.html">@JsonBackReference</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonClassDescription.html">@JsonClassDescription</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonCreator.html">@JsonCreator</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonEnumDefaultValue.html">@JsonEnumDefaultValue</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonFilter.html">@JsonFilter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonFormat.html">@JsonFormat</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>shape</code>, <code>with</code> &amp; <code>without</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonGetter.html">@JsonGetter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonIdentityInfo.html">@JsonIdentityInfo</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonIdentityReference.html">@JsonIdentityReference</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonIgnore.html">@JsonIgnore</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>enabled</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonIgnoreProperties.html">@JsonIgnoreProperties</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonIgnoreType.html">@JsonIgnoreType</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonInclude.html">@JsonInclude</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>content</code>, <code>contentFilter</code>, <code>valueFilter</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonKey.html">@JsonKey</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonManagedReference.html">@JsonManagedReference</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonMerge.html">@JsonMerge</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonProperty.html">@JsonProperty</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonPropertyDescription.html">@JsonPropertyDescription</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonPropertyOrder.html">@JsonPropertyOrder</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonRawValue.html">@JsonRawValue</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Not supported for security reasons</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonRootName.html">@JsonRootName</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonSetter.html">@JsonSetter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>null</code> &amp; <code>contentNull</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonSubTypes.html">@JsonSubTypes</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonTypeId.html">@JsonTypeId</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonTypeInfo.html">@JsonTypeInfo</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only <code>WRAPPER_OBJECT</code> &amp; <code>PROPERTY</code> for <code>include</code> and only <code>CLASS</code> &amp; <code>NAME</code> for <code>use</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonTypeName.html">@JsonTypeName</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonUnwrapped.html">@JsonUnwrapped</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>enabled</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonValue.html">@JsonValue</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>value</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonView.html">@JsonView</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>In addition, limited support for 3 <code>jackson-databind</code> annotations is included to allow portability for cases where both support for <code>jackson-databind</code> and Micronaut Serialization is required:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Annotation</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonNaming.html">@JsonNaming</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only with the built-in <a href="https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/PropertyNamingStrategies.html">naming strategies</a></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonSerialize.html">@JsonSerialize</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only the <code>as</code> member</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-databind/javadoc/2.13/com/fasterxml/jackson/databind/annotation/JsonDeserialize.html">@JsonDeserialize</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Only the <code>as</code> member</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Note that when using these annotations it is recommended that you make <code>jackson-databind</code> a <code>compileOnly</code> dependency since it is not needed at runtime. For example for Gradle:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>jackson-databind</code> as <code>compileOnly</code> scope</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">compileOnly("com.fasterxml.jackson.core:jackson-databind")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or Maven:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>jackson-databind</code> as <code>provided</code> scope</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+  &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+  &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+  &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+
+<h1 id="jsonbAnnotations"><a class="anchor" href="#jsonbAnnotations"></a>5 JSON-B Annotations</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/jsonbAnnotations.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Micronaut Serialization supports a subset of the available <a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/package-summary.html">JSON-B</a> annotations.</p>
+</div>
+<div class="paragraph">
+<p>Note that only the annotations are supported and the runtime APIs are not, hence it is recommended to include JSON-B only as a <code>compileOnly</code> dependency. For example for Gradle:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>jakarta.json.bind-api</code> as <code>compileOnly</code> scope</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">compileOnly("jakarta.json.bind:jakarta.json.bind-api:2.0.0")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or Maven:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>jakarta.json.bind-api</code> as <code>provided</code> scope</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
+  &lt;groupId&gt;jakarta.json.bind&lt;/groupId&gt;
+  &lt;artifactId&gt;jakarta.json.bind-api&lt;/artifactId&gt;
+  &lt;version&gt;2.0.0&lt;/version&gt;
+  &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Jackson Annotation</th>
+<th class="tableblock halign-left valign-top">Supported</th>
+<th class="tableblock halign-left valign-top">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbCreator.html">@JsonbCreator</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbDateFormat.html">@JsonbDateFormat</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbNillable.html">@JsonbNillable</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbNumberFormat.html">@JsonbNumberFormat</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbProperty.html">@JsonbProperty</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbPropertyOrder.html">@JsonbPropertyOrder</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTransient.html">@JsonbTransient</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeAdapter.html">@JsonbTypeAdapter</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes runtime API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeDeserializer.html">@JsonbTypeDeserializer</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes runtime API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbTypeSerializer.html">@JsonbTypeSerializer</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Exposes runtime API</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/JsonbVisibility.html">@JsonbVisibility</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Requires Reflection</p></td>
+</tr>
+</tbody>
+</table>
+
+<h1 id="bsonAnnotations"><a class="anchor" href="#bsonAnnotations"></a>6 BSON Annotations</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/bsonAnnotations.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>The complete set of  <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a> is supported.</p>
+</div>
+<div class="paragraph">
+<p>Note that with BSON you can encode both the JSON and to BSON Binary by injecting one of <a href="../api/io/micronaut/serde/bson/BsonBinaryMapper.html">BsonBinaryMapper</a> (Binary) or <a href="../api/io/micronaut/serde/bson/BsonJsonMapper.html">BsonJsonMapper</a> (JSON).</p>
+</div>
+
+<h1 id="serdes"><a class="anchor" href="#serdes"></a>7 Custom Serializers & Deserializers</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/serdes.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Custom serializers and deserializers for types can be written by implementing the <a href="../api/io/micronaut/serde/Serializer.html">Serializer</a> and <a href="../api/io/micronaut/serde/Deserializer.html">Deserializer</a> interfaces respectively and defining beans capable of handling a particular type.</p>
+</div>
+<div class="paragraph">
+<p>For example given the following class:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+public final class Point {
+    private final int x, y;
+
+    private Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public int[] coords() {
+        return new int[] { x, y };
+    }
+
+    public static Point valueOf(int x, int y) {
+        return new Point(x, y);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+final class Point {
+    private final int x, y
+
+    private Point(int x, int y) {
+        this.x = x
+        this.y = y
+    }
+
+    int[] coords() {
+        return new int[] { x, y }
+    }
+
+    static Point valueOf(int x, int y) {
+        return new Point(x, y)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+class Point private constructor(private val x: Int, private val y: Int) {
+    fun coords(): IntArray {
+        return intArrayOf(x, y)
+    }
+
+    companion object {
+        fun valueOf(x: Int, y: Int): Point {
+            return Point(x, y)
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A custom serde (a combined serializer and deserializer) can be implemented as follows:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
+import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.util.Objects;
+
+@Singleton <b class="conum">(1)</b>
+public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
+    @Override
+    public Point deserialize(
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument&lt;? super Point&gt; type) throws IOException {
+        try (Decoder array = decoder.decodeArray()) { <b class="conum">(3)</b>
+            int x = array.decodeInt();
+            int y = array.decodeInt();
+            return Point.valueOf(x, y); <b class="conum">(4)</b>
+        }
+    }
+
+    @Override
+    public void serialize(
+            Encoder encoder,
+            EncoderContext context,
+            Point value,
+            Argument&lt;? extends Point&gt; type) throws IOException {
+        Objects.requireNonNull(value, "Point cannot be null"); <b class="conum">(5)</b>
+        int[] coords = value.coords();
+        try (Encoder array = encoder.encodeArray(type)) { <b class="conum">(6)</b>
+            array.encodeInt(coords[0]);
+            array.encodeInt(coords[1]);
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.Decoder
+import io.micronaut.serde.Encoder
+import io.micronaut.serde.Serde
+import jakarta.inject.Singleton
+
+@Singleton <b class="conum">(1)</b>
+class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
+    @Override
+    Point deserialize(
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument&lt;? super Point&gt; type) throws IOException {
+        Decoder array = decoder.decodeArray() <b class="conum">(3)</b>
+        int x = array.decodeInt()
+        int y = array.decodeInt()
+        array.finishStructure() <b class="conum">(4)</b>
+        return Point.valueOf(x, y) <b class="conum">(5)</b>
+    }
+
+    @Override
+    void serialize(
+            Encoder encoder,
+            EncoderContext context,
+            Point value,
+            Argument&lt;? extends Point&gt; type) throws IOException {
+        Objects.requireNonNull(value, "Point cannot be null") <b class="conum">(6)</b>
+        int[] coords = value.coords()
+        Encoder array = encoder.encodeArray(type) <b class="conum">(7)</b>
+        array.encodeInt(coords[0])
+        array.encodeInt(coords[1])
+        array.finishStructure() <b class="conum">(8)</b>
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.*
+import jakarta.inject.Singleton
+
+@Singleton <b class="conum">(1)</b>
+class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
+    override fun deserialize(
+        decoder: Decoder,
+        decoderContext: Deserializer.DecoderContext,
+        type: Argument&lt;in Point&gt;
+    ): Point {
+        decoder.decodeArray().use { <b class="conum">(3)</b>
+            val x = it.decodeInt()
+            val y = it.decodeInt()
+            return Point.valueOf(x, y) <b class="conum">(4)</b>
+        }
+    }
+
+    override fun serialize(
+        encoder: Encoder,
+        context: Serializer.EncoderContext,
+        value: Point,
+        type: Argument&lt;out Point&gt;
+    ) {
+        val coords = value.coords()
+        encoder.encodeArray(type).use { <b class="conum">(6)</b>
+            it.encodeInt(coords[0])
+            it.encodeInt(coords[1])
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <a href="../api/io/micronaut/serde/Serde.html">Serde</a> is made a bean by annotating it with <code>@Singleton</code> scope.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <a href="../api/io/micronaut/serde/Serde.html">Serde</a> interface is implemented for a given type.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <a href="../api/io/micronaut/serde/Decoder.html">Decoder</a> interface is used to starting decoding an array using <code>try-with-resources</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The decoded object is returned</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>The <code>value</code> can be <code>null</code> and the decoder should handle whether <code>null</code> is allowed</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <a href="../api/io/micronaut/serde/Encoder.html">Encoder</a> interface is used to start encoding an array with the <code>encodeArray</code> method using <code>try-with-resources</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can now serialize and deserialize classes of type <code>Point</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@MicronautTest
+public class PointTest {
+
+    @Test
+    void testWriteReadPoint(ObjectMapper objectMapper) throws IOException {
+        String result = objectMapper.writeValueAsString(
+                Point.valueOf(50, 100)
+        );
+        Point point = objectMapper.readValue(result, Point.class);
+        assertNotNull(point);
+        int[] coords = point.coords();
+        assertEquals(50, coords[0]);
+        assertEquals(100, coords[1]);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class PointTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test read/write point"() {
+        given:
+        String result = objectMapper.writeValueAsString(
+                Point.valueOf(50, 100)
+        )
+        Point point = objectMapper.readValue(result, Point.class)
+
+        expect:
+        point != null
+        int[] coords = point.coords()
+        coords[0] == 50
+        coords[1] == 100
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class PointTest {
+    @Test
+    fun testWriteReadPoint(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(
+            Point.valueOf(50, 100)
+        )
+        val point = objectMapper.readValue(result, Point::class.java)
+        Assertions.assertNotNull(point)
+        val coords = point.coords()
+        Assertions.assertEquals(50, coords[0])
+        Assertions.assertEquals(100, coords[1])
+    }
+}</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_serializer_selection">Serializer Selection</h3>
+<div class="paragraph">
+<p>Note that if multiple <a href="../api/io/micronaut/serde/Serializer.html">Serializer</a> beans exist you will get a <code>NonUniqueBeanException</code>, in this case you have a number of options:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Add <code>@Primary</code> to your serializer so it is picked</p>
+</li>
+<li>
+<p>Add <code>@Order</code> with a higher priority value so it is picked</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deserializer_selection">Deserializer Selection</h3>
+<div class="paragraph">
+<p>It is quite common during deserialization to have multiple possible deserializer options. For example a <code>HashSet</code> can be deserialized to both a <code>Collection</code> and a <code>Set</code>.</p>
+</div>
+<div class="paragraph">
+<p>In these cases you should declare an <code>@Order</code> annotation higher priority value to control which deserializer is chosen by default.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_property_level_serializer_or_deserializer">Property Level Serializer or Deserializer</h3>
+<div class="paragraph">
+<p>You can also customize the serializer and/or deserializer on a per field, constructor, method etc. basis by using the <code>@Serializable(using=..)</code> and/or <code>@Deserializable(using=..)</code> annotations.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Frequently in this case you will more than one serializer/deserializer for a given type and you should use <code>@Primary</code> or <code>@Secondary</code> to customize bean property so one is selected by default.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For example say you add another secondary <code>Serde</code> to store the previous <code>Point</code> example in reverse order:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import java.io.IOException;
+import java.util.Objects;
+
+import io.micronaut.context.annotation.Secondary;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
+import jakarta.inject.Singleton;
+
+@Singleton
+@Secondary <b class="conum">(1)</b>
+public class ReversePointSerde implements Serde&lt;Point&gt; {
+    @Override
+    public Point deserialize(
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument&lt;? super Point&gt; type) throws IOException {
+        Decoder array = decoder.decodeArray();
+        int y = array.decodeInt(); <b class="conum">(2)</b>
+        int x = array.decodeInt();
+        array.finishStructure();
+        return Point.valueOf(x, y);
+    }
+
+    @Override
+    public void serialize(
+            Encoder encoder,
+            EncoderContext context,
+            Point value,
+            Argument&lt;? extends Point&gt; type) throws IOException {
+        Objects.requireNonNull(value, "Point cannot be null");
+        int[] coords = value.coords();
+        Encoder array = encoder.encodeArray(type);
+        array.encodeInt(coords[1]); <b class="conum">(3)</b>
+        array.encodeInt(coords[0]);
+        array.finishStructure();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.context.annotation.Secondary
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.Decoder
+import io.micronaut.serde.Encoder
+import io.micronaut.serde.Serde
+import jakarta.inject.Singleton
+
+@Singleton
+@Secondary <b class="conum">(1)</b>
+class ReversePointSerde implements Serde&lt;Point&gt; {
+    @Override
+    Point deserialize(
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument&lt;? super Point&gt; type) throws IOException {
+        Decoder array = decoder.decodeArray()
+        int y = array.decodeInt() <b class="conum">(2)</b>
+        int x = array.decodeInt()
+        array.finishStructure()
+        return Point.valueOf(x, y)
+    }
+
+    @Override
+    void serialize(
+            Encoder encoder,
+            EncoderContext context,
+            Point value,
+            Argument&lt;? extends Point&gt; type) throws IOException {
+        Objects.requireNonNull(value, "Point cannot be null")
+        int[] coords = value.coords()
+        Encoder array = encoder.encodeArray(type)
+        array.encodeInt(coords[1]) <b class="conum">(3)</b>
+        array.encodeInt(coords[0])
+        array.finishStructure()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Secondary
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.*
+import jakarta.inject.Singleton
+import java.util.*
+
+@Singleton
+@Secondary <b class="conum">(1)</b>
+class ReversePointSerde : Serde&lt;Point&gt; {
+    override fun deserialize(
+        decoder: Decoder,
+        decoderContext: Deserializer.DecoderContext,
+        type: Argument&lt;in Point&gt;
+    ): Point {
+        val array = decoder.decodeArray()
+        val y = array.decodeInt() <b class="conum">(2)</b>
+        val x = array.decodeInt()
+        array.finishStructure()
+        return Point.valueOf(x, y)
+    }
+
+    override fun serialize(
+        encoder: Encoder,
+        context: Serializer.EncoderContext,
+        value: Point,
+        type: Argument&lt;out Point&gt;
+    ) {
+        Objects.requireNonNull(value, "Point cannot be null")
+        val coords = value.coords()
+        val array = encoder.encodeArray(type)
+        array.encodeInt(coords[1]) <b class="conum">(3)</b>
+        array.encodeInt(coords[0])
+        array.finishStructure()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This bean is made <code>@Secondary</code> so the primary <code>Serde</code> serializes by default in the correct order</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The coordinates are stored in reverse order</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can then define annotations at field, parameter, method etc. level to customize serialization/deserialization for just that case:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+public class Place {
+    @Serdeable.Serializable(using = ReversePointSerde.class) <b class="conum">(1)</b>
+    @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
+    private final Point point;
+
+    @Serdeable.Serializable(using = ReversePointSerde.class)
+    private final Point pointCustomSer;
+
+    @Serdeable.Deserializable(using = ReversePointSerde.class)
+    private final Point pointCustomDes;
+
+    public Place(Point point, Point pointCustomSer, Point pointCustomDes) {
+        this.point = point;
+        this.pointCustomSer = pointCustomSer;
+        this.pointCustomDes = pointCustomDes;
+    }
+
+    public Point getPoint() {
+        return point;
+    }
+
+    public Point getPointCustomSer() {
+        return pointCustomSer;
+    }
+
+    public Point getPointCustomDes() {
+        return pointCustomDes;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class Place {
+    @Serdeable.Serializable(using = ReversePointSerde.class) <b class="conum">(1)</b>
+    @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
+    final Point point
+
+    @Serdeable.Serializable(using = ReversePointSerde.class)
+    final Point pointCustomSer
+
+    @Serdeable.Deserializable(using = ReversePointSerde.class)
+    final Point pointCustomDes
+
+    Place(Point point, Point pointCustomSer, Point pointCustomDes) {
+        this.point = point
+        this.pointCustomSer = pointCustomSer
+        this.pointCustomDes = pointCustomDes
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable.Deserializable
+import io.micronaut.serde.annotation.Serdeable.Serializable
+
+@Serdeable
+data class Place(
+        @Deserializable(using = ReversePointSerde::class) <b class="conum">(1)</b>
+        @Serializable(using = ReversePointSerde::class) <b class="conum">(2)</b>
+        val point: Point,
+
+        @Serdeable.Serializable(using = example.ReversePointSerde::class)
+        val pointCustomSer: Point,
+
+        @Deserializable(using = ReversePointSerde::class)
+        val pointCustomDes: Point
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>@Serializable(using=..)</code> indicates to use the <code>ReversePointSerde</code> to serialize the coordinates</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>@Serializable(using=..)</code> indicates to use the <code>ReversePointSerde</code> to deserialize the coordinates</td>
+</tr>
+</table>
+</div>
+</div>
+
+<h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>8 Enabling Serialization of External Classes</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/serdeImport.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Unlike Jackson, Micronaut Serialization doesn&#8217;t allow the arbitrary serialization of any type. As mentioned in the previous section on <a href="#serdes">Custom Serializers</a>, one option to serializing external types is to define a custom serializer, however it is also possible to import types during compilation using the <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> annotation.</p>
+</div>
+<div class="paragraph">
+<p>For example consider the following type:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+public class Product {
+    private final String name;
+    private final int quantity;
+
+    public Product(String name, int quantity) {
+        this.name = name;
+        this.quantity = quantity;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+class Product {
+    final String name
+    final int quantity
+
+    Product(String name, int quantity) {
+        this.name = name
+        this.quantity = quantity
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+class Product(val name: String, val quantity: Int)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are no serialization annotations present on this type and an attempt to serialize this type will result in an error.</p>
+</div>
+<div class="paragraph">
+<p>To resolve this you can add <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> to a central location in your project (typically the <code>Application</code> class):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">@SerdeImport(Product.class)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that if you wish to apply customizations the imported class then you can additionally supply a mixin class. For example:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public interface ProductMixin {
+    @JsonProperty("p_name")
+    String getName();
+
+    @JsonProperty("p_quantity")
+    int getQuantity();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+interface ProductMixin {
+    @JsonProperty("p_name")
+    String getName()
+
+    @JsonProperty("p_quantity")
+    int getQuantity()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+interface ProductMixin {
+    @get:JsonProperty("p_name")
+    val name: String
+
+    @get:JsonProperty("p_quantity")
+    val quantity: Int
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then the mixin can be used when declaring <code>SerdeImport</code>:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.runtime.Micronaut;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = Product.class,
+    mixin = ProductMixin.class
+) <b class="conum">(1)</b>
+public class Application {
+
+    public static void main(String[] args) {
+        Micronaut.run(Application.class, args);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.runtime.Micronaut.*
+import io.micronaut.serde.annotation.SerdeImport
+
+fun main(args: Array&lt;String&gt;) {
+    build()
+        .args(*args)
+        .packages("com.example")
+        .start()
+}
+
+@SerdeImport(
+    value = Product::class,
+    mixin = ProductMixin::class) <b class="conum">(1)</b>
+class Serdes {}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The <a href="../api/io/micronaut/serde/annotation/SerdeImport.html">@SerdeImport</a> is used to make the <code>Product</code> class serializable</td>
+</tr>
+</table>
+</div>
+
+<h1 id="keys"><a class="anchor" href="#keys"></a>9 Custom Key Converters</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/keys.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Keys with JSON are always written as Strings however you can use types other than strings when serializing and deserializing <code>Map</code> instances, however you may be required to register a custom <a href="https://docs.micronaut.io/latest/api/io/micronaut/core/convert/TypeConverter.html">TypeConverter</a>.</p>
+</div>
+<div class="paragraph">
+<p>For example given the following class:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.Map;
+
+@Serdeable
+public class Location {
+    private final Map&lt;Feature, Point&gt; features;
+
+    public Location(Map&lt;Feature, Point&gt; features) {
+        this.features = features;
+    }
+
+    public Map&lt;Feature, Point&gt; getFeatures() {
+        return features;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+class Location {
+    final Map&lt;Feature, Point&gt; features
+
+    Location(Map&lt;Feature, Point&gt; features) {
+        this.features = features
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+data class Location(
+    val features: Map&lt;Feature, Point&gt;
+)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That defines a custom <code>Feature</code> type for keys. Micronaut Serialization won&#8217;t know how to deserialize this type, so along with the type a <code>TypeConverter</code> should be defined:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">package example;
+
+import io.micronaut.core.convert.ConversionContext;
+import io.micronaut.core.convert.TypeConverter;
+import jakarta.inject.Singleton;
+
+import java.util.Optional;
+
+public class Feature {
+    private final String name;
+
+    public Feature(String name) {
+        this.name = name;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public String toString() { <b class="conum">(1)</b>
+        return name;
+    }
+
+    @Singleton
+    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { <b class="conum">(2)</b>
+        @Override
+        public Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
+            return Optional.of(new Feature(object));
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+
+import io.micronaut.core.convert.ConversionContext
+import io.micronaut.core.convert.TypeConverter
+import jakarta.inject.Singleton
+
+class Feature {
+    private final String name
+
+    Feature(String name) {
+        this.name = name
+    }
+
+    String name() {
+        return name
+    }
+
+    @Override
+    String toString() { <b class="conum">(1)</b>
+        return name
+    }
+
+    @Singleton
+    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { <b class="conum">(2)</b>
+        @Override
+        Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
+            return Optional.of(new Feature(object))
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+
+import io.micronaut.core.convert.ConversionContext
+import io.micronaut.core.convert.TypeConverter
+import jakarta.inject.Singleton
+import java.util.*
+
+class Feature(private val name: String) {
+    fun name(): String {
+        return name
+    }
+
+    override fun toString(): String { <b class="conum">(1)</b>
+        return name
+    }
+}
+
+@Singleton
+class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
+    <b class="conum">(2)</b>
+    override fun convert(value: String, targetType: Class&lt;Feature&gt;, context: ConversionContext): Optional&lt;Feature&gt; {
+        return Optional.of(Feature(value))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>For serialization by default <code>toString()</code> is called, but you can also register a <code>TypeConverter</code> from <code>Feature</code> to <code>String</code> to customize this.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>For deserialization a <code>TypeConverter</code> is necessary to convert the string key into the required type.</td>
+</tr>
+</table>
+</div>
+
+<h1 id="repository"><a class="anchor" href="#repository"></a>10 Repository</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/master/src/main/docs/guide/repository.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>You can find the source code of this project in this repository:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/micronaut-projects/micronaut-serialization">https://github.com/micronaut-projects/micronaut-serialization</a></p>
+</div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+
+</script>
+</body>
+</html>
