@@ -24,6 +24,8 @@ import com.amazonaws.services.lambda.runtime.serialization.events.mixins.SQSEven
  * @author Sergio del Amo
  * @since 1.0.0
  */
+@SerdeImport(value = SQSEvent.MessageAttribute.class)
+@SerdeImport(value = SQSEvent.SQSMessage.class, mixin = SQSEventMixin.SQSMessageMixin.class)
 @SerdeImport(value = SQSEvent.class, mixin = SQSEventMixin.class)
 final class SQSEventSerde {
 }
