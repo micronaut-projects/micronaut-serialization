@@ -48,21 +48,21 @@ class AddMixin {
         context.close()
     }
   
-    @PendingFeature(reason = "Core introspections dont support executable methods on interfaces")
     void "test import with interface"() {
         def context = buildContext('mixintest.HttpStatusInfo','''
 package mixintest;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.serde.annotation.Serdeable;
 
 @SerdeImport(
     value = HttpStatusInfo.class,
-    mixin = TestMixin.class,
-    deser = @Serdeable.Deserializable(as = Test.class)
+    mixin = TestMixin.class
 )
 class TestImport {}
 
@@ -84,9 +84,25 @@ class Test implements HttpStatusInfo {
     }
 }
 
+@Serdeable.Deserializable(as = Another.class)
 interface TestMixin {
     @JsonValue
     int code();
+}
+
+@Serdeable.Deserializable
+class Another implements HttpStatusInfo {
+    private HttpStatus status;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    Another(int code) {
+        this.status = HttpStatus.valueOf(code);
+    }
+    @Override public String name() {
+        return status.getReason();
+    }
+    @Override public int code() { 
+        return status.getCode();
+    }
 }
 ''')
         def impl = argumentOf(context, 'mixintest.Test')
@@ -96,9 +112,9 @@ interface TestMixin {
         writeJson(jsonMapper, bean) == '200'
 
         def read = jsonMapper.readValue('200', typeUnderTest)
-        read.name() == 'test'
-        read.quantity() == 15
-        read.getClass().name == impl.name
+        read.name() == 'Ok'
+        read.code() == 200
+        read.getClass().name == 'mixintest.Another'
 
         cleanup:
         context.close()
@@ -322,17 +338,12 @@ public class Test {
         def e = thrown(SerdeException)
     }
 
-    @PendingFeature(reason = "core doesn't support retrieval of metadata from imported type")
     void "test import with deserialize as"() {
         given:
         def context = buildContext('''
 package mixindeser;
 
-import io.micronaut.management.health.indicator.HealthResult;
-import io.micronaut.serde.annotation.SerdeImport;
-
-@SerdeImport(HealthResult.class)
-class Serdes {}
+class DummyContext {}
 ''')
 
         HealthResult hr = HealthResult.builder("db", HealthStatus.DOWN)
@@ -343,7 +354,7 @@ class Serdes {}
         def result = writeJson(jsonMapper, hr)
 
         then:
-        result == '{"name":"db","status":{"name":"DOWN","operational":false,"severity":1000},"details":{"foo":"bar"}}'
+        result == '{"name":"db","status":"DOWN","details":{"foo":"bar"}}'
 
         when:
         hr = jsonMapper.readValue(result, Argument.of(HealthResult))

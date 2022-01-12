@@ -638,7 +638,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             element.annotate(Introspected.class, (builder) ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
-        } else if (isJsonAnnotated(element)) {
+        } else if (isJsonAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
                 element.annotate(Serdeable.class);
@@ -745,6 +745,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void visitMixin(ClassElement mixinType, ClassElement type) {
+        mixinType.getAnnotationNames()
+                .stream().filter(n -> n.startsWith("io.micronaut.serde"))
+                .forEach(n -> {
+                    final AnnotationValue<Annotation> ann = mixinType.getAnnotation(n);
+                    if (ann != null) {
+                        type.annotate(ann);
+                    }
+                });
+        mixinType.findAnnotation(SerdeConfig.class).ifPresent(type::annotate);
         final Map<String, FieldElement> serdeFields = mixinType.getEnclosedElements(
                 ElementQuery.ALL_FIELDS
                         .onlyInstance()
@@ -759,17 +768,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ElementQuery.ALL_METHODS
                         .onlyInstance()
                         .onlyDeclared()
-                        .annotated((ann) -> ann.hasAnnotation(SerdeConfig.class))
+                        .annotated((ann) -> ann.getAnnotationNames().stream().anyMatch(n ->
+                            n.startsWith("io.micronaut.serde.config.annotation")
+                        ))
         ));
 
         final List<PropertyElement> beanProperties = type.getBeanProperties();
         for (PropertyElement beanProperty : beanProperties) {
             final FieldElement f = serdeFields.get(beanProperty.getName());
             if (f != null && f.getType().equals(beanProperty.getType())) {
-                final AnnotationValue<SerdeConfig> config = f.getAnnotation(SerdeConfig.class);
-                if (config != null) {
-                    beanProperty.annotate(config);
-                }
+                replicateAnnotations(f, beanProperty);
+                continue;
             }
 
             if (CollectionUtils.isNotEmpty(serdeMethods)) {
@@ -778,16 +787,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 final Iterator<MethodElement> i = serdeMethods.iterator();
                 while (i.hasNext()) {
                     MethodElement serdeMethod = i.next();
-                    final AnnotationValue<SerdeConfig> config = serdeMethod.getAnnotation(SerdeConfig.class);
-                    if (config == null) {
-                        continue;
-                    }
                     if (readMethod != null) {
                         if (serdeMethod.getName().equals(readMethod.getName())) {
                             if (Arrays.equals(serdeMethod.getParameters(), readMethod.getParameters())) {
                                 i.remove();
-                                beanProperty.annotate(config);
-                                readMethod.annotate(config);
+                                replicateAnnotations(serdeMethod, beanProperty);
+                                replicateAnnotations(serdeMethod, readMethod);
                             }
                         }
                     }
@@ -795,8 +800,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         if (serdeMethod.getName().equals(writeMethod.getName())) {
                             if (Arrays.equals(serdeMethod.getParameters(), writeMethod.getParameters())) {
                                 i.remove();
-                                beanProperty.annotate(config);
-                                writeMethod.annotate(config);
+                                replicateAnnotations(serdeMethod, beanProperty);
+                                replicateAnnotations(serdeMethod, writeMethod);
                             }
                         }
                     }
@@ -805,16 +810,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         if (!serdeMethods.isEmpty()) {
-            type.getEnclosedElements(
-                    ElementQuery.ALL_METHODS
-                            .onlyInstance()
-                            .onlyAccessible()
-                            .named(n -> serdeMethods.stream().anyMatch(m -> n.equals(m.getName())))
-                            .filter(left -> serdeMethods.stream().anyMatch(right ->
-                                left.getReturnType().equals(right.getReturnType())
-                                   && Arrays.equals(left.getParameters(), right.getParameters())
-                            ))
-            ).forEach(m -> m.annotate(Executable.class));
+            for (MethodElement serdeMethod : serdeMethods) {
+                type.getEnclosedElement(
+                        ElementQuery.ALL_METHODS
+                                .onlyInstance()
+                                .onlyAccessible()
+                                .named(n -> n.equals(serdeMethod.getName()))
+                                .filter(left -> left.getReturnType().equals(serdeMethod.getReturnType())
+                                        && Arrays.equals(left.getParameters(), serdeMethod.getParameters()))
+                ).ifPresent(m -> {
+                    m.annotate(Executable.class);
+                    replicateAnnotations(serdeMethod, m);
+                });
+            }
+        }
+    }
+
+    private void replicateAnnotations(Element source, Element target) {
+        final Set<String> annotationNames = source.getAnnotationNames();
+        for (String annotationName : annotationNames) {
+            final AnnotationValue<?> config = source.getAnnotation(annotationName);
+            if (config != null) {
+                target.annotate(config);
+            }
         }
     }
 

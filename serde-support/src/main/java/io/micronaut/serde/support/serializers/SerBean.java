@@ -67,6 +67,7 @@ final class SerBean<T> {
             }
     );
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
+    private static final String JACKSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
 
     // CHECKSTYLE:OFF
     @NonNull
@@ -113,7 +114,7 @@ final class SerBean<T> {
                         })
                         .collect(Collectors.toList());
         final Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
-                .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class))
+                .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class) || bp.getValue().hasAnnotation(JACKSON_VALUE))
                 .findFirst().orElse(null);
         if (serPropEntry != null) {
             wrapperProperty = null;
@@ -135,7 +136,7 @@ final class SerBean<T> {
         } else {
             final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
             final BeanMethod<T, Object> serMethod = beanMethods.stream()
-                    .filter(m -> m.isAnnotationPresent(SerdeConfig.SerValue.class))
+                    .filter(m -> m.isAnnotationPresent(SerdeConfig.SerValue.class) || m.getAnnotationMetadata().hasAnnotation(JACKSON_VALUE))
                     .findFirst().orElse(null);
             if (serMethod != null) {
                 wrapperProperty = null;

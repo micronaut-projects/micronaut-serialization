@@ -330,7 +330,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     );
                 }
             } else {
-                obj = deserBean.introspection.instantiate();
+                try {
+                    obj = deserBean.introspection.instantiate();
+                } catch (InstantiationException e) {
+                    throw new SerdeException("Unable to deserialize type [" + type + "]: " + e.getMessage(), e);
+                }
                 if (hasProperties) {
                     final PropertyBuffer existingBuffer = initFromTokenBuffer(
                             tokenBuffer,

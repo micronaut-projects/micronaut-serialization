@@ -143,7 +143,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
                             .filter(filter)
                             .filter(BeanIntrospectionReference::isPresent)
                             .map(BeanIntrospectionReference::load)
-                            .collect(Collectors.toList())
+                            .collect(Collectors.toList()) + SHARED.findIntrospections(filter)
                     }
 
                     @Override

@@ -229,7 +229,7 @@ public class CoreDeserializers {
                 final Argument<K> keyType = (Argument<K>) generics[0];
                 @SuppressWarnings("unchecked")
                 final Argument<V> valueType = (Argument<V>) generics[1];
-                final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(valueType);
+                final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(valueType);
                 final Decoder objectDecoder = decoder.decodeObject(type);
                 String key = objectDecoder.decodeKey();
                 M map = getDefaultValue();
@@ -247,12 +247,17 @@ public class CoreDeserializers {
                             throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
                         }
                     }
-                    map.put(k, valueDeser.deserialize(
-                                    objectDecoder,
-                                    decoderContext,
-                                    valueType
-                            )
-                    );
+                    if (valueDeser == null) {
+                        map.put(k, (V) objectDecoder.decodeArbitrary());
+                    } else {
+
+                        map.put(k, valueDeser.deserialize(
+                                        objectDecoder,
+                                        decoderContext,
+                                        valueType
+                                )
+                        );
+                    }
                     key = objectDecoder.decodeKey();
                 }
                 objectDecoder.finishStructure();
