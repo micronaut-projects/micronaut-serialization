@@ -39,7 +39,7 @@ public class JsonbPropertyTransformer implements NamedAnnotationTransformer {
         annotation.booleanValue("nillable")
                 .ifPresent(include -> {
             if (include) {
-                builder.member("include", SerdeConfig.SerInclude.ALWAYS);
+                builder.member("include", SerdeConfig.SerInclude.ALWAYS.name());
             }    
         });
         return Collections.singletonList(builder.build());

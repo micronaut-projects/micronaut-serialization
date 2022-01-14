@@ -35,7 +35,7 @@ public class JsonIncludeMapper implements NamedAnnotationMapper {
         if (v != null) {
             return Collections.singletonList(
                     AnnotationValue.builder(SerdeConfig.class)
-                            .member(SerdeConfig.INCLUDE, v)
+                            .member(SerdeConfig.INCLUDE, v.name())
                             .build()
             );
         }
