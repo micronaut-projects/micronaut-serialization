@@ -39,7 +39,7 @@ public class JsonbNillableTransformer implements NamedAnnotationTransformer {
         SerdeConfig.SerInclude include = includeNull ? SerdeConfig.SerInclude.ALWAYS : SerdeConfig.SerInclude.NON_ABSENT;
         return Collections.singletonList(
                 AnnotationValue.builder(SerdeConfig.class)
-                        .member(SerdeConfig.INCLUDE, include)
+                        .member(SerdeConfig.INCLUDE, include.name())
                         .build()
 
         );
