@@ -181,6 +181,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             def newSale = bsonBinaryMapper.readValue(bytes, Argument.of(Sale1))
         then:
             newSale.quantity.amount == 123
+            newSale.nullQuantity.amount == 123456
         when:
             def jsonBytes = bsonJsonMapper.writeValueAsBytes(sale)
             def str = new String(jsonBytes)
@@ -188,6 +189,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             def newSaleBson = bsonJsonMapper.readValue(str, Argument.of(BsonDocument))
         then:
             readSale.quantity.amount == 123
+            readSale.nullQuantity.amount == 123456
             newSaleBson.get('quantity').isInt32()
     }
 

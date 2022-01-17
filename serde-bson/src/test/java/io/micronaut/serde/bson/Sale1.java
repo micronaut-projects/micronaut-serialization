@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.codecs.pojo.annotations.BsonId;
 
@@ -11,6 +12,13 @@ public class Sale1 {
     @Serdeable.Deserializable(using = QuantityAttributeConverter.class, as = Integer.class)
     private Quantity quantity;
 
+    @NonNull
+    @MyAnn1
+    @MyAnn2
+    @Serdeable.Serializable(using = QuantityAttributeConverter.class, as = Integer.class)
+    @Serdeable.Deserializable(using = QuantityAttributeConverter.class, as = Integer.class)
+    private Quantity nullQuantity;
+
     @BsonId
     private String id;
 
@@ -20,6 +28,14 @@ public class Sale1 {
 
     public Quantity getQuantity() {
         return quantity;
+    }
+
+    public Quantity getNullQuantity() {
+        return nullQuantity;
+    }
+
+    public void setNullQuantity(Quantity nullQuantity) {
+        this.nullQuantity = nullQuantity;
     }
 
     public String getId() {
