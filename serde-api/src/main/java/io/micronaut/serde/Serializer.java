@@ -40,12 +40,13 @@ public interface Serializer<T> {
 
     /**
      * Create a more specific serializer for the given definition.
-     * @param encoderContext The encoder context
+     * @param context The encoder context
      * @param type The type definition including any annotation metadata
      * @return The more specific serializer
      */
     default @NonNull
-    Serializer<T> createSpecific(@NonNull Argument<? extends T> type, @NonNull EncoderContext encoderContext) throws
+    Serializer<T> createSpecific(@NonNull EncoderContext context,
+                                 @NonNull Argument<? extends T> type) throws
             SerdeException {
         return this;
     }
@@ -54,15 +55,14 @@ public interface Serializer<T> {
      * Serializes the given value using the passed {@link Encoder}.
      * @param encoder The encoder to use
      * @param context The encoder context, never {@code null}
-     * @param value The value, can be {@code null}
      * @param type Models the generic type of the value
+     * @param value The value, can be {@code null}
      * @throws IOException If an error occurs during serialization
      */
-    void serialize(
-            @NonNull Encoder encoder,
-            @NonNull EncoderContext context,
-            @NonNull T value,
-            @NonNull Argument<? extends T> type) throws IOException;
+    void serialize(@NonNull Encoder encoder,
+                   @NonNull EncoderContext context,
+                   @NonNull Argument<? extends T> type,
+                   @NonNull T value) throws IOException;
 
     /**
      * Used for {@code JsonInclude.Include#NON_EMPTY} checking.
@@ -84,7 +84,7 @@ public interface Serializer<T> {
 
     /**
      * Context object passes to the
-     * {@link #serialize(Encoder, io.micronaut.serde.Serializer.EncoderContext, Object, io.micronaut.core.type.Argument)}  method.
+     * {@link #serialize(Encoder, EncoderContext, Argument, Object)}  method.
      */
     interface EncoderContext extends SerializerLocator, PropertyReferenceManager, NamingStrategyLocator {
 

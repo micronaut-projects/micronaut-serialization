@@ -591,7 +591,7 @@ class DeserBean<T> {
                     || argument.isAssignableFrom(OptionalDouble.class)
                     || argument.isAssignableFrom(OptionalInt.class);
             this.writer = writer;
-            this.deserializer = deserializer.createSpecific(argument, decoderContext);
+            this.deserializer = deserializer.createSpecific(decoderContext, argument);
             // compute default
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument, argumentMetadata);
             this.views = SerdeAnnotationUtil.resolveViews(instrospection, annotationMetadata);

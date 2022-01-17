@@ -163,8 +163,7 @@ public class JsonStreamMapper implements ObjectMapper {
         serializer.serialize(
                 encoder,
                 registry.newEncoderContext(view),
-                object,
-                type
+                type, object
         );
     }
 

@@ -97,13 +97,12 @@ public final class JacksonJsonMapper implements ObjectMapper {
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
         gen.setCodec(objectCodecImpl);
         Serializer<? super T> serializer = registry.findSerializer(argument)
-                                                   .createSpecific(argument, encoderContext);
+                                                   .createSpecific(encoderContext, argument);
         final JacksonEncoder encoder = JacksonEncoder.create(gen);
         serializer.serialize(
                 encoder,
                 encoderContext,
-                value,
-                argument
+                argument, value
         );
     }
 

@@ -32,7 +32,7 @@ import jakarta.inject.Singleton;
 @Singleton
 public class HealthStatusSerde implements NullableSerde<HealthStatus> {
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, io.micronaut.health.HealthStatus value, Argument<? extends HealthStatus> type)
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends HealthStatus> type, HealthStatus value)
             throws IOException {
         encoder.encodeString(value.getName());
     }

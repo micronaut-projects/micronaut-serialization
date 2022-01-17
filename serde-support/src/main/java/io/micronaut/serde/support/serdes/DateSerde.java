@@ -15,10 +15,6 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.util.Date;
-
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -27,6 +23,10 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Serde for dates.
@@ -41,28 +41,26 @@ final class DateSerde implements NullableSerde<Date> {
     }
 
     @Override
-    public Serializer<Date> createSpecific(Argument<? extends Date> type, EncoderContext encoderContext) {
+    public Serializer<Date> createSpecific(EncoderContext encoderContext, Argument<? extends Date> type) {
         final Argument<Instant> argument = Argument.of(Instant.class, type.getAnnotationMetadata());
         final Serializer<Instant> specific = instantSerde.createSpecific(
-                argument,
-                encoderContext
+                encoderContext, argument
         );
         if (specific != instantSerde) {
-            return (encoder, context, value, t) -> specific.serialize(
+            return (encoder, context, t, value) -> specific.serialize(
                     encoder,
                     context,
-                    value.toInstant(),
-                    argument
+                    argument, value.toInstant()
             );
         }
         return this;
     }
 
     @Override
-    public Deserializer<Date> createSpecific(Argument<? super Date> context, DecoderContext decoderContext)
+    public Deserializer<Date> createSpecific(DecoderContext decoderContext, Argument<? super Date> context)
             throws SerdeException {
         final Argument<Instant> argument = Argument.of(Instant.class, context.getAnnotationMetadata());
-        final Deserializer<Instant> specific = instantSerde.createSpecific(argument, decoderContext);
+        final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, argument);
         if (specific != instantSerde) {
             return (decoder, subContext, type) -> {
                 final Instant i = specific.deserialize(
@@ -80,8 +78,8 @@ final class DateSerde implements NullableSerde<Date> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Date value, Argument<? extends Date> type) throws IOException {
-        instantSerde.serialize(encoder, context, value.toInstant(), INSTANT_ARGUMENT);
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Date> type, Date value) throws IOException {
+        instantSerde.serialize(encoder, context, INSTANT_ARGUMENT, value.toInstant());
     }
 
     @Override

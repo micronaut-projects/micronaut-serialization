@@ -377,7 +377,7 @@ final class SerBean<T> {
             final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
             final AnnotationMetadata hierarchy =
                     annotationMetadata.isEmpty() ? beanMetadata : new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
-            this.serializer = serializer.createSpecific(argument, encoderContext);
+            this.serializer = serializer.createSpecific(encoderContext, argument);
             this.views = SerdeAnnotationUtil.resolveViews(beanMetadata, annotationMetadata);
             this.include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)

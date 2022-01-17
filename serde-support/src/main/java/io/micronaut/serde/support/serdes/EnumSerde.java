@@ -43,7 +43,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, E value, Argument<? extends E> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends E> type, E value) throws IOException {
         encoder.encodeString(value.name());
     }
 }
@@ -56,7 +56,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
 final class EnumSetDeserializer<E extends Enum<E>> implements Deserializer<EnumSet<E>> {
 
     @Override
-    public EnumSet<E> deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super EnumSet<E>> type)
+    public EnumSet<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super EnumSet<E>> type)
             throws IOException {
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {

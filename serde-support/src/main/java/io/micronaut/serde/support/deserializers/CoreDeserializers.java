@@ -176,14 +176,14 @@ public class CoreDeserializers {
     protected <V> Deserializer<Optional<V>> optionalDeserializer() {
         return new Deserializer<Optional<V>>() {
             @Override
-            public Optional<V> deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Optional<V>> type)
+            public Optional<V> deserialize(Decoder decoder, DecoderContext context, Argument<? super Optional<V>> type)
                     throws IOException {
                 @SuppressWarnings("unchecked") final Argument<V> generic =
                         (Argument<V>) type.getFirstTypeVariable().orElse(null);
                 if (generic == null) {
                     throw new SerdeException("Cannot deserialize raw optional");
                 }
-                final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
+                final Deserializer<? extends V> deserializer = context.findDeserializer(generic);
 
                 if (decoder.decodeNull()) {
                     return Optional.empty();
@@ -191,7 +191,7 @@ public class CoreDeserializers {
                     return Optional.ofNullable(
                             deserializer.deserialize(
                                     decoder,
-                                    decoderContext,
+                                    context,
                                     generic
                             )
                     );
@@ -199,7 +199,7 @@ public class CoreDeserializers {
             }
 
             @Override
-            public Optional<V> getDefaultValue(DecoderContext decoderContext, Argument<? super Optional<V>> type) {
+            public Optional<V> getDefaultValue(DecoderContext context, Argument<? super Optional<V>> type) {
                 return Optional.empty();
             }
         };
@@ -267,7 +267,7 @@ public class CoreDeserializers {
 
         @Override
         @NonNull
-        default M getDefaultValue(DecoderContext decoderContext, Argument<? super M> type) {
+        default M getDefaultValue(DecoderContext context, Argument<? super M> type) {
             return getDefaultValue();
         }
 
@@ -307,7 +307,7 @@ public class CoreDeserializers {
 
         @Override
         @NonNull
-        default C getDefaultValue(DecoderContext decoderContext, Argument<? super C> type) {
+        default C getDefaultValue(DecoderContext context, Argument<? super C> type) {
             return getDefaultValue();
         }
 

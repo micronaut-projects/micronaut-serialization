@@ -37,7 +37,7 @@ import io.micronaut.serde.util.NullableSerde;
  */
 public class ObjectArraySerde implements NullableSerde<Object[]>, Serde<Object[]> {
     @Override
-    public Deserializer<Object[]> createSpecific(Argument<? super Object[]> context, DecoderContext decoderContext)
+    public Deserializer<Object[]> createSpecific(DecoderContext decoderContext, Argument<? super Object[]> context)
             throws SerdeException {
         final Argument<Object> componentType = getComponentType(context);
         final Deserializer<?> deserializer = findDeserializer(decoderContext, componentType);
@@ -99,7 +99,7 @@ public class ObjectArraySerde implements NullableSerde<Object[]>, Serde<Object[]
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Object[] value, Argument<? extends Object[]> type)
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object[]> type, Object[] value)
             throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
         // TODO: need better generics handling in core for arrays
@@ -110,8 +110,7 @@ public class ObjectArraySerde implements NullableSerde<Object[]>, Serde<Object[]
             componentSerializer.serialize(
                     arrayEncoder,
                     context,
-                    v,
-                    componentType
+                    componentType, v
             );
         }
         arrayEncoder.finishStructure();
