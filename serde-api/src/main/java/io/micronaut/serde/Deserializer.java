@@ -75,8 +75,10 @@ public interface Deserializer<T> {
     /**
      * Obtains a default value that can be returned from this deserializer in the case where a value is absent.
      * @return The default value
+     * @param decoderContext The decoder context, never {@code null}
+     * @param type The generic type to be deserialized
      */
-    default @Nullable T getDefaultValue() {
+    default @Nullable T getDefaultValue(@NonNull DecoderContext decoderContext, @NonNull Argument<? super T> type) {
         return null;
     }
 

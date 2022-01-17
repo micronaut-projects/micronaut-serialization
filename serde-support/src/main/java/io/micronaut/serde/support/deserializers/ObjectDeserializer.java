@@ -261,7 +261,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                             if (ref != null) {
                                 final Object o = ref.getReference();
                                 if (o == null) {
-                                    sp.setDefault(params);
+                                    sp.setDefault(decoderContext, params);
                                 } else {
                                     params[sp.index] = o;
                                 }
@@ -271,7 +271,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                         if (sp.unwrapped != null && buffer != null) {
                             final Object o = materializeFromBuffer(sp, buffer, decoderContext);
                             if (o == null) {
-                                sp.setDefault(params);
+                                sp.setDefault(decoderContext, params);
                             } else {
                                 params[sp.index] = o;
                             }
@@ -280,7 +280,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                                 anyValues.bind(params);
                                 anyValues = null;
                             } else {
-                                sp.setDefault(params);
+                                sp.setDefault(decoderContext, params);
                             }
                         }
                     }
@@ -551,7 +551,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     if (propertyType.isNullable()) {
                         property.set(obj, null);
                     } else {
-                        property.setDefault(obj);
+                        property.setDefault(decoderContext, obj);
                     }
                     continue;
                 }
@@ -644,14 +644,14 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     if (ref != null) {
                         final Object o = ref.getReference();
                         if (o == null) {
-                            dp.setDefault(obj);
+                            dp.setDefault(decoderContext, obj);
                         } else {
                             //noinspection unchecked
                             ((DeserBean.DerProperty) dp).set(obj, o);
                         }
                     }
                 } else {
-                    dp.setDefault(obj);
+                    dp.setDefault(decoderContext, obj);
                 }
             }
         }
@@ -707,7 +707,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                         }
                     }
                     if (!satisfied) {
-                        der.setDefault(object);
+                        der.setDefault(decoderContext, object);
                     }
                 }
             }

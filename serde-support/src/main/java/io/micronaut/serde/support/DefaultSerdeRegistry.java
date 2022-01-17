@@ -1142,7 +1142,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalInt getDefaultValue() {
+        public OptionalInt getDefaultValue(DecoderContext decoderContext, Argument<? super OptionalInt> type) {
             return OptionalInt.empty();
         }
 
@@ -1200,7 +1200,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalDouble getDefaultValue() {
+        public OptionalDouble getDefaultValue(DecoderContext decoderContext, Argument<? super OptionalDouble> type) {
             return OptionalDouble.empty();
         }
 
@@ -1236,7 +1236,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalLong getDefaultValue() {
+        public OptionalLong getDefaultValue(DecoderContext decoderContext, Argument<? super OptionalLong> type) {
             return OptionalLong.empty();
         }
 

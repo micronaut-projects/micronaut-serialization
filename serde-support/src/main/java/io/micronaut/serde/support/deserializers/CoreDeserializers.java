@@ -199,7 +199,7 @@ public class CoreDeserializers {
             }
 
             @Override
-            public Optional<V> getDefaultValue() {
+            public Optional<V> getDefaultValue(DecoderContext decoderContext, Argument<? super Optional<V>> type) {
                 return Optional.empty();
             }
         };
@@ -217,7 +217,7 @@ public class CoreDeserializers {
                 if (type.isInstance(o)) {
                     return (M) o;
                 } else if (o instanceof Map) {
-                    final M map = getDefaultValue();
+                    final M map = getDefaultValue(decoderContext, type);
                     map.putAll((Map) o);
                     return map;
                 } else {
@@ -232,7 +232,7 @@ public class CoreDeserializers {
                 final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(valueType);
                 final Decoder objectDecoder = decoder.decodeObject(type);
                 String key = objectDecoder.decodeKey();
-                M map = getDefaultValue();
+                M map = getDefaultValue(decoderContext, type);
                 while (key != null) {
                     K k;
                     if (keyType.isInstance(key)) {
@@ -267,6 +267,11 @@ public class CoreDeserializers {
 
         @Override
         @NonNull
+        default M getDefaultValue(DecoderContext decoderContext, Argument<? super M> type) {
+            return getDefaultValue();
+        }
+
+        @NonNull
         M getDefaultValue();
     }
 
@@ -281,7 +286,7 @@ public class CoreDeserializers {
             @SuppressWarnings("unchecked") final Argument<E> generic = (Argument<E>) generics[0];
             final Deserializer<? extends E> valueDeser = decoderContext.findDeserializer(generic);
             final Decoder arrayDecoder = decoder.decodeArray();
-            C collection = getDefaultValue();
+            C collection = getDefaultValue(decoderContext, type);
             while (arrayDecoder.hasNextArrayValue()) {
                 collection.add(
                         valueDeser.deserialize(
@@ -301,6 +306,11 @@ public class CoreDeserializers {
         }
 
         @Override
+        @NonNull
+        default C getDefaultValue(DecoderContext decoderContext, Argument<? super C> type) {
+            return getDefaultValue();
+        }
+
         @NonNull
         C getDefaultValue();
     }

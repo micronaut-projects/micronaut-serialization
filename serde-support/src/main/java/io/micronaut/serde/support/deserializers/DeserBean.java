@@ -618,7 +618,7 @@ class DeserBean<T> {
                     .orElse(null);
         }
 
-        public void setDefault(@NonNull B bean) throws SerdeException {
+        public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
             if (writer != null && defaultValue != null) {
                 writer.accept(bean, defaultValue);
                 return;
@@ -627,7 +627,7 @@ class DeserBean<T> {
                 return;
             }
             if (writer != null) {
-                P newDefaultValue = (P) deserializer.getDefaultValue();
+                P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
                 if (newDefaultValue != null) {
                     writer.accept(bean, newDefaultValue);
                     return;
@@ -637,7 +637,7 @@ class DeserBean<T> {
                     "] is not present in supplied data");
         }
 
-        public void setDefault(@NonNull Object[] params) throws SerdeException {
+        public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
             if (defaultValue != null) {
                 params[index] = defaultValue;
                 return;
@@ -645,7 +645,7 @@ class DeserBean<T> {
             if (!required) {
                 return;
             }
-            P newDefaultValue = (P) deserializer.getDefaultValue();
+            P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
             if (newDefaultValue != null) {
                 params[index] = newDefaultValue;
                 return;
