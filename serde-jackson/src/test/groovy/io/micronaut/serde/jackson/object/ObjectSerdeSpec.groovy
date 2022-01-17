@@ -1,7 +1,6 @@
 package io.micronaut.serde.jackson.object
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
-import groovy.transform.Immutable
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.exceptions.SerdeException
@@ -840,8 +839,8 @@ class B {
 class BSerializer implements Serializer<B> {
     @Override public void serialize(Encoder encoder,
                       EncoderContext context,
-                      example.B value,
-                      Argument<? extends example.B> type)throws IOException {
+                      Argument<? extends example.B> type,
+                      example.B value)throws IOException {
         encoder.encodeBoolean(value.present);    
     }
 

@@ -72,13 +72,12 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     protected abstract @NonNull DateTimeFormatter getDefaultFormatter();
 
     @Override
-    public final void serialize(Encoder encoder, EncoderContext context, T value, Argument<? extends T> type) throws IOException {
+    public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         if (defaultFormat != null) {
             defaultFormat.serialize(
                 encoder, 
-                context, 
-                value, 
-                type
+                context,
+                    type, value
             );
         } else {
             serializeWithoutFormat(

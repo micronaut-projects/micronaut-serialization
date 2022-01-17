@@ -32,8 +32,7 @@ class OptionalValuesSerializer<V> implements Serializer<OptionalValues<V>> {
 
     @Override
     public void serialize(Encoder encoder,
-                          EncoderContext context, OptionalValues<V> value,
-                          Argument<? extends OptionalValues<V>> type) throws IOException {
+                          EncoderContext context, Argument<? extends OptionalValues<V>> type, OptionalValues<V> value) throws IOException {
         Objects.requireNonNull(value, "Value cannot be null");
         final Argument<?>[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
@@ -51,8 +50,7 @@ class OptionalValuesSerializer<V> implements Serializer<OptionalValues<V>> {
                 objectEncoder.encodeKey(key.toString());
                 valueSerializer.serialize(
                         encoder,
-                        context, opt.get(),
-                        generic
+                        context, generic, opt.get()
                 );
             }
         }

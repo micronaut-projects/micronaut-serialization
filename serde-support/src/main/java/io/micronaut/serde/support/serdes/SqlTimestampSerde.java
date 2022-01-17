@@ -43,28 +43,26 @@ final class SqlTimestampSerde implements NullableSerde<Timestamp> {
     }
 
     @Override
-    public Serializer<Timestamp> createSpecific(Argument<? extends Timestamp> type, EncoderContext encoderContext) {
+    public Serializer<Timestamp> createSpecific(EncoderContext encoderContext, Argument<? extends Timestamp> type) {
         final Argument<Instant> argument = Argument.of(Instant.class, type.getAnnotationMetadata());
         final Serializer<Instant> specific = instantSerde.createSpecific(
-                argument,
-                encoderContext
+                encoderContext, argument
         );
         if (specific != instantSerde) {
-            return (encoder, context, value, t) -> specific.serialize(
+            return (encoder, context, t, value) -> specific.serialize(
                     encoder,
                     context,
-                    value.toInstant(),
-                    argument
+                    argument, value.toInstant()
             );
         }
         return this;
     }
 
     @Override
-    public Deserializer<Timestamp> createSpecific(Argument<? super Timestamp> context, DecoderContext decoderContext)
+    public Deserializer<Timestamp> createSpecific(DecoderContext decoderContext, Argument<? super Timestamp> context)
             throws SerdeException {
         final Argument<Instant> argument = Argument.of(Instant.class, context.getAnnotationMetadata());
-        final Deserializer<Instant> specific = instantSerde.createSpecific(argument, decoderContext);
+        final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, argument);
         if (specific != instantSerde) {
             return (decoder, subContext, type) -> {
                 final Instant i = specific.deserialize(
@@ -82,8 +80,8 @@ final class SqlTimestampSerde implements NullableSerde<Timestamp> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Timestamp value, Argument<? extends Timestamp> type) throws IOException {
-        instantSerde.serialize(encoder, context, value.toInstant(), INSTANT_ARGUMENT);
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Timestamp> type, Timestamp value) throws IOException {
+        instantSerde.serialize(encoder, context, INSTANT_ARGUMENT, value.toInstant());
     }
 
     @Override

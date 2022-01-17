@@ -45,12 +45,11 @@ final class SqlDateSerde implements NullableSerde<Date> {
     }
 
     @Override
-    public Deserializer<Date> createSpecific(Argument<? super Date> context, DecoderContext decoderContext)
+    public Deserializer<Date> createSpecific(DecoderContext decoderContext, Argument<? super Date> context)
             throws SerdeException {
         final Argument<LocalDate> argument = Argument.of(LocalDate.class, context.getAnnotationMetadata());
         final Deserializer<LocalDate> specific = localDateSerde.createSpecific(
-                argument,
-                decoderContext
+                decoderContext, argument
         );
         if (specific != localDateSerde) {
             return (decoder, subContext, type) -> {
@@ -69,30 +68,27 @@ final class SqlDateSerde implements NullableSerde<Date> {
     }
 
     @Override
-    public Serializer<Date> createSpecific(Argument<? extends Date> type, EncoderContext encoderContext) {
+    public Serializer<Date> createSpecific(EncoderContext encoderContext, Argument<? extends Date> type) {
         final Argument<LocalDate> argument = Argument.of(LocalDate.class, type.getAnnotationMetadata());
         final Serializer<LocalDate> specific = localDateSerde.createSpecific(
-                argument,
-                encoderContext
+                encoderContext, argument
         );
         if (specific != localDateSerde) {
-            return (encoder, context, value, t) -> specific.serialize(
+            return (encoder, context, t, value) -> specific.serialize(
                     encoder,
                     context,
-                    value.toLocalDate(),
-                    argument
+                    argument, value.toLocalDate()
             );
         }
         return this;
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Date value, Argument<? extends Date> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Date> type, Date value) throws IOException {
         localDateSerde.serialize(
                 encoder,
                 context,
-                value.toLocalDate(),
-                LOCAL_DATE_ARGUMENT
+                LOCAL_DATE_ARGUMENT, value.toLocalDate()
         );
     }
 

@@ -52,7 +52,7 @@ public class CoreSerdes {
     protected NullableSerde<Duration> durationSerde() {
         return new NullableSerde<Duration>() {
             @Override
-            public void serialize(Encoder encoder, EncoderContext context, Duration value, Argument<? extends Duration> type)
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Duration> type, Duration value)
                     throws IOException {
                 encoder.encodeLong(value.toNanos());
             }
@@ -74,7 +74,7 @@ public class CoreSerdes {
     protected NullableSerde<Period> periodSerde() {
         return new NullableSerde<Period>() {
             @Override
-            public void serialize(Encoder encoder, EncoderContext context, Period value, Argument<? extends Period> type)
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Period> type, Period value)
                     throws IOException {
                 encoder.encodeString(value.toString());
             }

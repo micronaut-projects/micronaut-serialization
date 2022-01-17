@@ -156,7 +156,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         final Serializer<Object> serializer = registry.findSerializer(type);
-        serializer.serialize(encoder, registry.newEncoderContext(view), object, type);
+        serializer.serialize(encoder, registry.newEncoderContext(view), type, object);
     }
 
     @Override

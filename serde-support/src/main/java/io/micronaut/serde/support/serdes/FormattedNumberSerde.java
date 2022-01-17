@@ -48,7 +48,7 @@ final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, N value, Argument<? extends N> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends N> type, N value) throws IOException {
         final DecimalFormat decimalFormat = createDecimalFormat(type);
         final String result = decimalFormat.format(value);
         encoder.encodeString(result);

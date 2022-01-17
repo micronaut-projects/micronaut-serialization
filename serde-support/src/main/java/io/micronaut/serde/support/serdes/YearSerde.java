@@ -33,7 +33,7 @@ import jakarta.inject.Singleton;
 @Singleton
 public class YearSerde implements TemporalSerde<Year> {
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Year value, Argument<? extends Year> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Year> type, Year value) throws IOException {
         encoder.encodeInt(value.getValue());
     }
 

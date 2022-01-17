@@ -33,7 +33,7 @@ import jakarta.inject.Singleton;
 class OptionalSerializer<T> implements Serializer<Optional<T>> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public Serializer<Optional<T>> createSpecific(Argument<? extends Optional<T>> type, EncoderContext encoderContext)
+    public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)
             throws SerdeException {
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
@@ -67,8 +67,7 @@ class OptionalSerializer<T> implements Serializer<Optional<T>> {
     @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          Optional<T> value,
-                          Argument<? extends Optional<T>> type) throws IOException {
+                          Argument<? extends Optional<T>> type, Optional<T> value) throws IOException {
         final Argument<T> generic = getGeneric(type);
         final Serializer<? super T> componentSerializer = getComponentSerializer(context, generic);
         final T o = value.orElse(null);
@@ -76,8 +75,7 @@ class OptionalSerializer<T> implements Serializer<Optional<T>> {
             componentSerializer.serialize(
                     encoder,
                     context,
-                    o,
-                    generic
+                    generic, o
             );
         } else {
             encoder.encodeNull();

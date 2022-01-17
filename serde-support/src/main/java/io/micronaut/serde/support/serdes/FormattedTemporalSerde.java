@@ -60,7 +60,7 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, T value, Argument<? extends T> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         encoder.encodeString(
                 formatter.format(value)
         );

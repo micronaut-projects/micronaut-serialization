@@ -31,13 +31,13 @@ import jakarta.inject.Singleton;
 @Singleton
 final class IterableSerializer<T> implements Serializer<Iterable<T>> {
     @Override
-    public Serializer<Iterable<T>> createSpecific(Argument<? extends Iterable<T>> type, EncoderContext encoderContext)
+    public Serializer<Iterable<T>> createSpecific(EncoderContext context, Argument<? extends Iterable<T>> type)
             throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length > 0) {
 
             @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) generics[0];
-            Serializer<? super T> componentSerializer = encoderContext.findSerializer(generic);
+            Serializer<? super T> componentSerializer = context.findSerializer(generic);
             return new InnerIterableSerializer(generic, componentSerializer);
         }
         return this;
@@ -46,8 +46,7 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
     @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          Iterable<T> value,
-                          Argument<? extends Iterable<T>> type) throws IOException {
+                          Argument<? extends Iterable<T>> type, Iterable<T> value) throws IOException {
         final Encoder childEncoder = encoder.encodeArray(type);
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length > 0) {
@@ -61,8 +60,7 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
                     componentSerializer.serialize(
                             childEncoder,
                             context,
-                            t,
-                            generic
+                            generic, t
                     );
                 }
             }
@@ -79,8 +77,7 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
                 componentSerializer.serialize(
                         childEncoder,
                         context,
-                        t,
-                        generic
+                        generic, t
                 );
             }
         }
@@ -109,7 +106,7 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, Iterable<T> value, Argument<? extends Iterable<T>> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value)
                 throws IOException {
             try (Encoder array = encoder.encodeArray(type)) {
                 for (T t : value) {
@@ -119,8 +116,7 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
                         componentSerializer.serialize(
                                 array,
                                 context,
-                                t,
-                                generic
+                                generic, t
                         );
                     }
                 }

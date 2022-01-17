@@ -45,8 +45,7 @@ public class CoreSerializers {
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
-                                  CharSequence value,
-                                  Argument<? extends CharSequence> type) throws IOException {
+                                  Argument<? extends CharSequence> type, CharSequence value) throws IOException {
                 if (value instanceof String) {
                     encoder.encodeString((String) value);
                 } else {
@@ -68,7 +67,7 @@ public class CoreSerializers {
      */
     @Singleton
     protected Serializer<Character> charSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeChar(value);
+        return (encoder, context, type, value) -> encoder.encodeChar(value);
     }
 
     /**
@@ -78,7 +77,7 @@ public class CoreSerializers {
      */
     @Singleton
     protected Serializer<Boolean> booleanSerializer() {
-        return (encoder, context, value, type) -> encoder.encodeBoolean(value);
+        return (encoder, context, type, value) -> encoder.encodeBoolean(value);
     }
 
     /**
@@ -94,8 +93,7 @@ public class CoreSerializers {
             @Override
             public void serialize(Encoder encoder,
                                   EncoderContext context,
-                                  Map<K, V> value,
-                                  Argument<? extends Map<K, V>> type) throws IOException {
+                                  Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                 final Encoder childEncoder = encoder.encodeObject(type);
                 final Argument[] generics = type.getTypeParameters();
                 final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
@@ -112,8 +110,7 @@ public class CoreSerializers {
                             valSerializer.serialize(
                                     childEncoder,
                                     context,
-                                    v,
-                                    valueGeneric
+                                    valueGeneric, v
                             );
                         }
                     }
@@ -131,8 +128,7 @@ public class CoreSerializers {
                             valSerializer.serialize(
                                     childEncoder,
                                     context,
-                                    v,
-                                    valueGeneric
+                                    valueGeneric, v
                             );
                         }
                     }

@@ -15,9 +15,9 @@ import java.util.Objects;
 public class QuantityAttributeConverter implements Serde<Object> {
 
     @Override
-    public Quantity deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
+    public Quantity deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         Objects.requireNonNull(decoder);
-        Objects.requireNonNull(decoderContext);
+        Objects.requireNonNull(context);
         if (!type.isAnnotationPresent(MyAnn1.class)) {
             throw new IllegalStateException("MyAnn1 is expected to be present");
         }
@@ -28,7 +28,7 @@ public class QuantityAttributeConverter implements Serde<Object> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Object value, Argument<? extends Object> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object> type, Object value) throws IOException {
         Objects.requireNonNull(encoder);
         Objects.requireNonNull(context);
         if (!type.isAnnotationPresent(MyAnn1.class)) {
@@ -38,8 +38,8 @@ public class QuantityAttributeConverter implements Serde<Object> {
     }
 
     @Override
-    public Object getDefaultValue(DecoderContext decoderContext, Argument<? super Object> type) {
-        Objects.requireNonNull(decoderContext);
+    public Object getDefaultValue(DecoderContext context, Argument<? super Object> type) {
+        Objects.requireNonNull(context);
         if (!type.isAnnotationPresent(MyAnn1.class)) {
             throw new IllegalStateException("MyAnn1 is expected to be present");
         }

@@ -31,7 +31,7 @@ import io.micronaut.serde.util.NullableSerde;
 public interface NumberSerde<N extends Number> extends Serde<N>, NullableSerde<N> {
 
     @Override
-    default Deserializer<N> createSpecific(Argument<? super N> context, DecoderContext decoderContext) throws SerdeException {
+    default Deserializer<N> createSpecific(DecoderContext decoderContext, Argument<? super N> context) throws SerdeException {
         final AnnotationMetadata annotationMetadata = context.getAnnotationMetadata();
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
@@ -42,7 +42,7 @@ public interface NumberSerde<N extends Number> extends Serde<N>, NullableSerde<N
     }
 
     @Override
-    default Serializer<N> createSpecific(Argument<? extends N> type, EncoderContext encoderContext) {
+    default Serializer<N> createSpecific(EncoderContext context, Argument<? extends N> type) {
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
