@@ -26,8 +26,8 @@ class TestSerializer implements Serializer<Test> {
 
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          Test value,
-                          Argument<? extends Test> type) throws IOException {
+                          Argument<? extends Test> type,
+                          Test value) throws IOException {
         Encoder array = encoder.encodeArray(type);
         array.encodeInt(value.x);
         array.encodeInt(value.y);
@@ -78,8 +78,8 @@ class FooSerializer implements Serializer<Foo> {
 
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          Foo value,
-                          Argument<? extends Foo> type) throws IOException {
+                          Argument<? extends Foo> type,
+                          Foo value) throws IOException {
         Encoder array = encoder.encodeArray(type);
         array.encodeInt(value.x);
         array.encodeInt(value.y);
@@ -93,8 +93,8 @@ class FooReverseSerializer implements Serializer<Foo> {
 
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          Foo value,
-                          Argument<? extends Foo> type) throws IOException {
+                          Argument<? extends Foo> type,
+                          Foo value) throws IOException {
         Encoder array = encoder.encodeArray(type);
         array.encodeInt(value.y);
         array.encodeInt(value.x);        
