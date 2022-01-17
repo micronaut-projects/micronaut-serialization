@@ -178,7 +178,8 @@ public interface <span class="typeNameLabel">Deserializer&lt;T&gt;</span></pre>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>default <a href="../../../io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Deserializer.html#getDefaultValue--">getDefaultValue</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../io/micronaut/serde/Deserializer.html#getDefaultValue-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">getDefaultValue</a></span>(<a href="../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+               io.micronaut.core.type.Argument&lt;? super <a href="../../../io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&gt;&nbsp;type)</code>
 <div class="block">Obtains a default value that can be returned from this deserializer in the case where a value is absent.</div>
 </td>
 </tr>
@@ -261,16 +262,22 @@ default&nbsp;<a href="../../../io/micronaut/serde/Deserializer.html" title="inte
 </dl>
 </li>
 </ul>
-<a name="getDefaultValue--">
+<a name="getDefaultValue-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getDefaultValue</h4>
 <pre>@Nullable
-default&nbsp;<a href="../../../io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&nbsp;getDefaultValue()</pre>
+default&nbsp;<a href="../../../io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&nbsp;getDefaultValue(@NonNull
+                                    <a href="../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+                                    @NonNull
+                                    io.micronaut.core.type.Argument&lt;? super <a href="../../../io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&gt;&nbsp;type)</pre>
 <div class="block">Obtains a default value that can be returned from this deserializer in the case where a value is absent.</div>
 <dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>decoderContext</code> - The decoder context, never <code>null</code></dd>
+<dd><code>type</code> - The generic type to be deserialized</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The default value</dd>
 </dl>
