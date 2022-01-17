@@ -164,7 +164,7 @@ extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interf
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>default <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/util/NullableDeserializer.html#deserialize-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserialize</a></span>(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
-           <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+           <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
            io.micronaut.core.type.Argument&lt;? super <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</code>
 <div class="block">Deserializes from the current state of the <a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <code>T</code>.</div>
 </td>
@@ -183,7 +183,7 @@ extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interf
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a></h3>
-<code><a href="../../../../io/micronaut/serde/Deserializer.html#createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Deserializer.DecoderContext-">createSpecific</a>, <a href="../../../../io/micronaut/serde/Deserializer.html#getDefaultValue-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">getDefaultValue</a></code></li>
+<code><a href="../../../../io/micronaut/serde/Deserializer.html#createSpecific-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">createSpecific</a>, <a href="../../../../io/micronaut/serde/Deserializer.html#getDefaultValue-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">getDefaultValue</a></code></li>
 </ul>
 </li>
 </ul>
@@ -206,7 +206,7 @@ extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interf
 <li class="blockList">
 <h4>deserialize</h4>
 <pre>default&nbsp;<a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&nbsp;deserialize(<a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
-                      <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+                      <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
                       io.micronaut.core.type.Argument&lt;? super <a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)
                throws java.io.IOException</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../io/micronaut/serde/Deserializer.html#deserialize-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">Deserializer</a></code></span></div>
@@ -216,7 +216,7 @@ extends <a href="../../../../io/micronaut/serde/Deserializer.html" title="interf
 <dd><code><a href="../../../../io/micronaut/serde/Deserializer.html#deserialize-io.micronaut.serde.Decoder-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">deserialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="../../../../io/micronaut/serde/util/NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>decoder</code> - The decoder, never <code>null</code></dd>
-<dd><code>decoderContext</code> - The decoder context, never <code>null</code></dd>
+<dd><code>context</code> - The decoder context, never <code>null</code></dd>
 <dd><code>type</code> - The generic type to be deserialized</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The deserialized object or <code>null</code> only if <a href="../../../../io/micronaut/serde/Deserializer.html#allowNull--"><code>Deserializer.allowNull()</code></a> returns <code>true</code></dd>

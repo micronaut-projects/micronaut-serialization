@@ -225,10 +225,10 @@ implements <a href="../../../../../io/micronaut/serde/support/serdes/TemporalSer
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></span>(<a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-T-">serialize</a></span>(<a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
          <a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
-         <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value,
-         io.micronaut.core.type.Argument&lt;? extends <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)</code>
+         io.micronaut.core.type.Argument&lt;? extends <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
+         <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value)</code>
 <div class="block">Serializes the given value using the passed <a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </td>
 </tr>
@@ -254,7 +254,7 @@ implements <a href="../../../../../io/micronaut/serde/support/serdes/TemporalSer
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;io.micronaut.serde.support.serdes.<a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a></h3>
-<code><a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Serializer.EncoderContext-">createSpecific</a>, <a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Deserializer.DecoderContext-">createSpecific</a>, <a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html#query--">query</a></code></li>
+<code><a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific-io.micronaut.serde.Deserializer.DecoderContext-io.micronaut.core.type.Argument-">createSpecific</a>, <a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-">createSpecific</a>, <a href="../../../../../io/micronaut/serde/support/serdes/TemporalSerde.html#query--">query</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.io.micronaut.serde.Serializer">
@@ -328,9 +328,9 @@ protected abstract&nbsp;java.time.format.DateTimeFormatter&nbsp;getDefaultFormat
 </dl>
 </li>
 </ul>
-<a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.time.temporal.TemporalAccessor-io.micronaut.core.type.Argument-">
+<a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-java.time.temporal.TemporalAccessor-">
 <!--   -->
-</a><a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">
+</a><a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-T-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -338,19 +338,19 @@ protected abstract&nbsp;java.time.format.DateTimeFormatter&nbsp;getDefaultFormat
 <h4>serialize</h4>
 <pre>public final&nbsp;void&nbsp;serialize(<a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
                             <a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
-                            <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value,
-                            io.micronaut.core.type.Argument&lt;? extends <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)
+                            io.micronaut.core.type.Argument&lt;? extends <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
+                            <a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value)
                      throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">Serializer</a></code></span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-T-">Serializer</a></code></span></div>
 <div class="block">Serializes the given value using the passed <a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a> extends java.time.temporal.TemporalAccessor&gt;</code></dd>
+<dd><code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-T-">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="../../../../../io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a> extends java.time.temporal.TemporalAccessor&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>encoder</code> - The encoder to use</dd>
 <dd><code>context</code> - The encoder context, never <code>null</code></dd>
-<dd><code>value</code> - The value, can be <code>null</code></dd>
 <dd><code>type</code> - Models the generic type of the value</dd>
+<dd><code>value</code> - The value, can be <code>null</code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - If an error occurs during serialization</dd>
 </dl>

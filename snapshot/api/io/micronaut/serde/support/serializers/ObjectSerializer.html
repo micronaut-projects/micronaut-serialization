@@ -179,8 +179,8 @@ implements <a href="../../../../../io/micronaut/serde/Serializer.html" title="in
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/serializers/ObjectSerializer.html#createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Serializer.EncoderContext-">createSpecific</a></span>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
-              <a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;encoderContext)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/serializers/ObjectSerializer.html#createSpecific-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-">createSpecific</a></span>(<a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;encoderContext,
+              io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
 <div class="block">Create a more specific serializer for the given definition.</div>
 </td>
 </tr>
@@ -192,10 +192,10 @@ implements <a href="../../../../../io/micronaut/serde/Serializer.html" title="in
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/serializers/ObjectSerializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.lang.Object-io.micronaut.core.type.Argument-">serialize</a></span>(<a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/serializers/ObjectSerializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-java.lang.Object-">serialize</a></span>(<a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
          <a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
-         java.lang.Object&nbsp;value,
-         io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code>
+         io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
+         java.lang.Object&nbsp;value)</code>
 <div class="block">Serializes the given value using the passed <a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </td>
 </tr>
@@ -246,28 +246,28 @@ implements <a href="../../../../../io/micronaut/serde/Serializer.html" title="in
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Serializer.EncoderContext-">
+<a name="createSpecific-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>createSpecific</h4>
-<pre>public&nbsp;<a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;&nbsp;createSpecific(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
-                                                   <a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;encoderContext)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html#createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Serializer.EncoderContext-">Serializer</a></code></span></div>
+<pre>public&nbsp;<a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;&nbsp;createSpecific(<a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;encoderContext,
+                                                   io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html#createSpecific-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-">Serializer</a></code></span></div>
 <div class="block">Create a more specific serializer for the given definition.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../io/micronaut/serde/Serializer.html#createSpecific-io.micronaut.core.type.Argument-io.micronaut.serde.Serializer.EncoderContext-">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;</code></dd>
+<dd><code><a href="../../../../../io/micronaut/serde/Serializer.html#createSpecific-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>type</code> - The type definition including any annotation metadata</dd>
 <dd><code>encoderContext</code> - The encoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The more specific serializer</dd>
 </dl>
 </li>
 </ul>
-<a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-java.lang.Object-io.micronaut.core.type.Argument-">
+<a name="serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-java.lang.Object-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -275,19 +275,19 @@ implements <a href="../../../../../io/micronaut/serde/Serializer.html" title="in
 <h4>serialize</h4>
 <pre>public final&nbsp;void&nbsp;serialize(<a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
                             <a href="../../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
-                            java.lang.Object&nbsp;value,
-                            io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)
+                            io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
+                            java.lang.Object&nbsp;value)
                      throws java.io.IOException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">Serializer</a></code></span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-T-">Serializer</a></code></span></div>
 <div class="block">Serializes the given value using the passed <a href="../../../../../io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-T-io.micronaut.core.type.Argument-">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;</code></dd>
+<dd><code><a href="../../../../../io/micronaut/serde/Serializer.html#serialize-io.micronaut.serde.Encoder-io.micronaut.serde.Serializer.EncoderContext-io.micronaut.core.type.Argument-T-">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;java.lang.Object&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>encoder</code> - The encoder to use</dd>
 <dd><code>context</code> - The encoder context, never <code>null</code></dd>
-<dd><code>value</code> - The value, can be <code>null</code></dd>
 <dd><code>type</code> - Models the generic type of the value</dd>
+<dd><code>value</code> - The value, can be <code>null</code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - If an error occurs during serialization</dd>
 </dl>
