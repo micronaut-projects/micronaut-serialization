@@ -1,6 +1,6 @@
 # Micronaut Serialization
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.micronaut.serde/micronaut-serde-core.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.micronaut.serde%22%20AND%20a:%22micronaut-serde-core%22)
+[![Maven Central](https://img.shields.io/maven-central/v/io.micronaut.serde/micronaut-serde-api.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.micronaut.serde%22%20AND%20a:%22micronaut-serde-api%22)
 [![Build Status](https://github.com/micronaut-projects/micronaut-serialization/workflows/Java%20CI/badge.svg)](https://github.com/micronaut-projects/micronaut-serialization/actions)
 
 Micronaut serialization a module for Micronaut that allows build-time computation of serializers and deserializers for JSON and other formats.
