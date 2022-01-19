@@ -24,7 +24,7 @@ import io.micronaut.serde.annotation.SerdeImport;
  * @author Sergio del Amo
  * @since 1.0.0
  */
-@SerdeImport(value = CodeCommitEvent.Record.class)
+@SerdeImport(value = CodeCommitEvent.Record.class, mixin = CodeCommitEventMixin.RecordMixin.class)
 @SerdeImport(value = CodeCommitEvent.Reference.class)
 @SerdeImport(value = CodeCommitEvent.CodeCommit.class)
 @SerdeImport(value = CodeCommitEvent.class, mixin = CodeCommitEventMixin.class)
