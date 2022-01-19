@@ -614,7 +614,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
-        if (element.hasDeclaredAnnotation(SerdeImport.Repeated.class)) {
+        if (element.hasDeclaredAnnotation(SerdeImport.Repeated.class) && !isImport) {
             final List<AnnotationValue<SerdeImport>> values = element.getDeclaredAnnotationValuesByType(SerdeImport.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
             for (AnnotationValue<SerdeImport> value : values) {
@@ -638,7 +638,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             element.annotate(Introspected.class, (builder) ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
-        } else if (isJsonAnnotated(element)) {
+        } else if (isJsonAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
                 element.annotate(Serdeable.class);
@@ -745,6 +745,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void visitMixin(ClassElement mixinType, ClassElement type) {
+        mixinType.getAnnotationNames()
+                .stream().filter(n -> n.startsWith("io.micronaut.serde"))
+                .forEach(n -> {
+                    final AnnotationValue<Annotation> ann = mixinType.getAnnotation(n);
+                    if (ann != null) {
+                        type.annotate(ann);
+                    }
+                });
+        mixinType.findAnnotation(SerdeConfig.class).ifPresent(type::annotate);
         final Map<String, FieldElement> serdeFields = mixinType.getEnclosedElements(
                 ElementQuery.ALL_FIELDS
                         .onlyInstance()
@@ -755,21 +764,27 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 (e) -> e
         ));
 
+        final MethodElement mixinCtor = mixinType.getPrimaryConstructor().orElse(null);
+        final MethodElement targetCtor = type.getPrimaryConstructor().orElse(null);
+        if (mixinCtor != null && targetCtor != null && argumentsMatch(mixinCtor, targetCtor)) {
+            replicateAnnotations(mixinCtor, targetCtor);
+        }
+
         final List<MethodElement> serdeMethods = mixinType.isRecord() ? Collections.emptyList() : new ArrayList<>(mixinType.getEnclosedElements(
                 ElementQuery.ALL_METHODS
                         .onlyInstance()
                         .onlyDeclared()
-                        .annotated((ann) -> ann.hasAnnotation(SerdeConfig.class))
+                        .annotated((ann) -> ann.getAnnotationNames().stream().anyMatch(n ->
+                            n.startsWith("io.micronaut.serde.config.annotation")
+                        ))
         ));
 
         final List<PropertyElement> beanProperties = type.getBeanProperties();
         for (PropertyElement beanProperty : beanProperties) {
             final FieldElement f = serdeFields.get(beanProperty.getName());
             if (f != null && f.getType().equals(beanProperty.getType())) {
-                final AnnotationValue<SerdeConfig> config = f.getAnnotation(SerdeConfig.class);
-                if (config != null) {
-                    beanProperty.annotate(config);
-                }
+                replicateAnnotations(f, beanProperty);
+                continue;
             }
 
             if (CollectionUtils.isNotEmpty(serdeMethods)) {
@@ -778,25 +793,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 final Iterator<MethodElement> i = serdeMethods.iterator();
                 while (i.hasNext()) {
                     MethodElement serdeMethod = i.next();
-                    final AnnotationValue<SerdeConfig> config = serdeMethod.getAnnotation(SerdeConfig.class);
-                    if (config == null) {
-                        continue;
-                    }
                     if (readMethod != null) {
                         if (serdeMethod.getName().equals(readMethod.getName())) {
-                            if (Arrays.equals(serdeMethod.getParameters(), readMethod.getParameters())) {
+                            if (argumentsMatch(serdeMethod, readMethod)) {
                                 i.remove();
-                                beanProperty.annotate(config);
-                                readMethod.annotate(config);
+                                replicateAnnotations(serdeMethod, beanProperty);
+                                replicateAnnotations(serdeMethod, readMethod);
                             }
                         }
                     }
                     if (writeMethod != null) {
                         if (serdeMethod.getName().equals(writeMethod.getName())) {
-                            if (Arrays.equals(serdeMethod.getParameters(), writeMethod.getParameters())) {
+                            if (argumentsMatch(serdeMethod, writeMethod)) {
                                 i.remove();
-                                beanProperty.annotate(config);
-                                writeMethod.annotate(config);
+                                replicateAnnotations(serdeMethod, beanProperty);
+                                replicateAnnotations(serdeMethod, writeMethod);
                             }
                         }
                     }
@@ -805,16 +816,48 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         if (!serdeMethods.isEmpty()) {
-            type.getEnclosedElements(
-                    ElementQuery.ALL_METHODS
-                            .onlyInstance()
-                            .onlyAccessible()
-                            .named(n -> serdeMethods.stream().anyMatch(m -> n.equals(m.getName())))
-                            .filter(left -> serdeMethods.stream().anyMatch(right ->
-                                left.getReturnType().equals(right.getReturnType())
-                                   && Arrays.equals(left.getParameters(), right.getParameters())
-                            ))
-            ).forEach(m -> m.annotate(Executable.class));
+            for (MethodElement serdeMethod : serdeMethods) {
+                type.getEnclosedElement(
+                        ElementQuery.ALL_METHODS
+                                .onlyInstance()
+                                .onlyAccessible()
+                                .named(n -> n.equals(serdeMethod.getName()))
+                                .filter(left -> left.getReturnType().equals(serdeMethod.getReturnType())
+                                        && argumentsMatch(left, serdeMethod))
+                ).ifPresent(m -> {
+                    m.annotate(Executable.class);
+                    replicateAnnotations(serdeMethod, m);
+                });
+            }
+        }
+    }
+
+    private boolean argumentsMatch(MethodElement left, MethodElement right) {
+        final ParameterElement[] lp = left.getParameters();
+        final ParameterElement[] rp = right.getParameters();
+        if (lp.length == rp.length) {
+            if (lp.length == 0) {
+                return true;
+            }
+            for (int i = 0; i < lp.length; i++) {
+                ParameterElement p1 = lp[i];
+                ParameterElement p2 = rp[i];
+                if (!p1.getType().equals(p2.getType())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void replicateAnnotations(Element source, Element target) {
+        final Set<String> annotationNames = source.getAnnotationNames();
+        for (String annotationName : annotationNames) {
+            final AnnotationValue<?> config = source.getAnnotation(annotationName);
+            if (config != null) {
+                target.annotate(config);
+            }
         }
     }
 

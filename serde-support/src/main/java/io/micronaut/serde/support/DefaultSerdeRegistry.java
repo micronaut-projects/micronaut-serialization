@@ -424,8 +424,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              Byte value,
-                              Argument<? extends Byte> type) throws IOException {
+                              Argument<? extends Byte> type, Byte value) throws IOException {
             encoder.encodeByte(value);
         }
 
@@ -453,8 +452,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              Double value,
-                              Argument<? extends Double> type) throws IOException {
+                              Argument<? extends Double> type, Double value) throws IOException {
             encoder.encodeDouble(value);
         }
 
@@ -482,8 +480,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              Short value,
-                              Argument<? extends Short> type) throws IOException {
+                              Argument<? extends Short> type, Short value) throws IOException {
             encoder.encodeShort(value);
         }
 
@@ -511,8 +508,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              Float value,
-                              Argument<? extends Float> type) throws IOException {
+                              Argument<? extends Float> type, Float value) throws IOException {
             encoder.encodeFloat(value);
         }
 
@@ -540,8 +536,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              Integer value,
-                              Argument<? extends Integer> type) throws IOException {
+                              Argument<? extends Integer> type, Integer value) throws IOException {
             encoder.encodeInt(value);
         }
 
@@ -569,8 +564,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              Long value,
-                              Argument<? extends Long> type) throws IOException {
+                              Argument<? extends Long> type, Long value) throws IOException {
             encoder.encodeLong(value);
         }
 
@@ -630,8 +624,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              boolean[] value,
-                              Argument<? extends boolean[]> type) throws IOException {
+                              Argument<? extends boolean[]> type, boolean[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (boolean i : value) {
                 arrayEncoder.encodeBoolean(i);
@@ -673,8 +666,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              double[] value,
-                              Argument<? extends double[]> type) throws IOException {
+                              Argument<? extends double[]> type, double[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (double i : value) {
                 arrayEncoder.encodeDouble(i);
@@ -716,8 +708,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              short[] value,
-                              Argument<? extends short[]> type) throws IOException {
+                              Argument<? extends short[]> type, short[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (short i : value) {
                 arrayEncoder.encodeShort(i);
@@ -759,8 +750,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              float[] value,
-                              Argument<? extends float[]> type) throws IOException {
+                              Argument<? extends float[]> type, float[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (float i : value) {
                 arrayEncoder.encodeFloat(i);
@@ -803,8 +793,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              long[] value,
-                              Argument<? extends long[]> type) throws IOException {
+                              Argument<? extends long[]> type, long[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (long i : value) {
                 arrayEncoder.encodeLong(i);
@@ -846,8 +835,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              char[] value,
-                              Argument<? extends char[]> type) throws IOException {
+                              Argument<? extends char[]> type, char[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (char i : value) {
                 arrayEncoder.encodeChar(i);
@@ -889,8 +877,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              byte[] value,
-                              Argument<? extends byte[]> type) throws IOException {
+                              Argument<? extends byte[]> type, byte[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (byte i : value) {
                 arrayEncoder.encodeByte(i);
@@ -932,8 +919,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              int[] value,
-                              Argument<? extends int[]> type) throws IOException {
+                              Argument<? extends int[]> type, int[] value) throws IOException {
             final Encoder arrayEncoder = encoder.encodeArray(type);
             for (int i : value) {
                 arrayEncoder.encodeInt(i);
@@ -962,7 +948,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, BigDecimal value, Argument<? extends BigDecimal> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends BigDecimal> type, BigDecimal value)
                 throws IOException {
             encoder.encodeBigDecimal(value);
         }
@@ -982,7 +968,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, URL value, Argument<? extends URL> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends URL> type, URL value)
                 throws IOException {
             encoder.encodeString(value.toString());
         }
@@ -1002,7 +988,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, URI value, Argument<? extends URI> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends URI> type, URI value)
                 throws IOException {
             encoder.encodeString(value.toString());
         }
@@ -1022,7 +1008,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, Charset value, Argument<? extends Charset> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Charset> type, Charset value)
                 throws IOException {
             encoder.encodeString(value.name());
         }
@@ -1042,7 +1028,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, TimeZone value, Argument<? extends TimeZone> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends TimeZone> type, TimeZone value)
                 throws IOException {
             encoder.encodeString(value.getID());
         }
@@ -1062,7 +1048,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, Locale value, Argument<? extends Locale> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Locale> type, Locale value)
                 throws IOException {
             encoder.encodeString(value.toLanguageTag());
         }
@@ -1082,7 +1068,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, UUID value, Argument<? extends UUID> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends UUID> type, UUID value)
                 throws IOException {
             encoder.encodeString(value.toString());
         }
@@ -1104,7 +1090,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public void serialize(Encoder encoder, EncoderContext context, BigInteger value, Argument<? extends BigInteger> type)
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends BigInteger> type, BigInteger value)
                 throws IOException {
             encoder.encodeBigInteger(value);
         }
@@ -1120,8 +1106,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              OptionalInt value,
-                              Argument<? extends OptionalInt> type) throws IOException {
+                              Argument<? extends OptionalInt> type, OptionalInt value) throws IOException {
             if (value.isPresent()) {
                 encoder.encodeInt(value.getAsInt());
             } else {
@@ -1130,7 +1115,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalInt deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalInt> type)
+        public OptionalInt deserialize(Decoder decoder, DecoderContext context, Argument<? super OptionalInt> type)
                 throws IOException {
             if (decoder.decodeNull()) {
                 return OptionalInt.empty();
@@ -1142,7 +1127,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalInt getDefaultValue() {
+        public OptionalInt getDefaultValue(DecoderContext context, Argument<? super OptionalInt> type) {
             return OptionalInt.empty();
         }
 
@@ -1166,8 +1151,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              OptionalDouble value,
-                              Argument<? extends OptionalDouble> type) throws IOException {
+                              Argument<? extends OptionalDouble> type, OptionalDouble value) throws IOException {
             if (value.isPresent()) {
                 encoder.encodeDouble(value.getAsDouble());
             } else {
@@ -1177,7 +1161,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public OptionalDouble deserialize(Decoder decoder,
-                                          DecoderContext decoderContext,
+                                          DecoderContext context,
                                           Argument<? super OptionalDouble> type)
                 throws IOException {
             if (decoder.decodeNull()) {
@@ -1200,7 +1184,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalDouble getDefaultValue() {
+        public OptionalDouble getDefaultValue(DecoderContext context, Argument<? super OptionalDouble> type) {
             return OptionalDouble.empty();
         }
 
@@ -1214,8 +1198,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
-                              OptionalLong value,
-                              Argument<? extends OptionalLong> type) throws IOException {
+                              Argument<? extends OptionalLong> type, OptionalLong value) throws IOException {
             if (value.isPresent()) {
                 encoder.encodeLong(value.getAsLong());
             } else {
@@ -1224,7 +1207,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalLong deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super OptionalLong> type)
+        public OptionalLong deserialize(Decoder decoder, DecoderContext context, Argument<? super OptionalLong> type)
                 throws IOException {
             if (decoder.decodeNull()) {
                 return OptionalLong.empty();
@@ -1236,7 +1219,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public OptionalLong getDefaultValue() {
+        public OptionalLong getDefaultValue(DecoderContext context, Argument<? super OptionalLong> type) {
             return OptionalLong.empty();
         }
 

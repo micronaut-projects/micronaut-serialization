@@ -65,11 +65,6 @@ public @interface Serdeable {
     @Retention(RetentionPolicy.RUNTIME)
     @interface Serializable {
         /**
-         * @return Whether serialization is enabled. Defaults to true.
-         */
-        boolean enabled() default true;
-
-        /**
          * @return The {@link io.micronaut.serde.Serializer} to use.
          */
         @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.SERIALIZER_CLASS) 
@@ -102,11 +97,6 @@ public @interface Serdeable {
     @Retention(RetentionPolicy.RUNTIME)
     @Introspected
     @interface Deserializable {
-        /**
-         * @return Whether serialization is enabled. Defaults to true.
-         */
-        boolean enabled() default true;
-
         /**
          * @return The deserializer.
          */

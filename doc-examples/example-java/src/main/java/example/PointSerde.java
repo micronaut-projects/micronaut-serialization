@@ -14,7 +14,7 @@ public class PointSerde implements Serde<Point> { // <2>
     @Override
     public Point deserialize(
             Decoder decoder,
-            DecoderContext decoderContext,
+            DecoderContext context,
             Argument<? super Point> type) throws IOException {
         try (Decoder array = decoder.decodeArray()) { // <3>
             int x = array.decodeInt();
@@ -27,8 +27,7 @@ public class PointSerde implements Serde<Point> { // <2>
     public void serialize(
             Encoder encoder,
             EncoderContext context,
-            Point value,
-            Argument<? extends Point> type) throws IOException {
+            Argument<? extends Point> type, Point value) throws IOException {
         Objects.requireNonNull(value, "Point cannot be null"); // <5>
         int[] coords = value.coords();
         try (Encoder array = encoder.encodeArray(type)) { // <6>

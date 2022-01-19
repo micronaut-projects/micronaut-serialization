@@ -38,7 +38,7 @@ public interface TemporalSerde<T extends TemporalAccessor> extends NullableSerde
     ZoneId UTC = ZoneId.of(ZoneOffset.UTC.getId());
 
     @Override
-    default Serializer<T> createSpecific(Argument<? extends T> type, EncoderContext encoderContext) {
+    default Serializer<T> createSpecific(EncoderContext context, Argument<? extends T> type) {
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
@@ -50,7 +50,7 @@ public interface TemporalSerde<T extends TemporalAccessor> extends NullableSerde
     }
 
     @Override
-    default Deserializer<T> createSpecific(Argument<? super T> context, DecoderContext decoderContext) throws SerdeException {
+    default Deserializer<T> createSpecific(DecoderContext decoderContext, Argument<? super T> context) throws SerdeException {
         final AnnotationMetadata annotationMetadata = context.getAnnotationMetadata();
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);

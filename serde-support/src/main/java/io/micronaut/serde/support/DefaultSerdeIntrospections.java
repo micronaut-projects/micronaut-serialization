@@ -27,6 +27,7 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.order.OrderUtil;
+import io.micronaut.core.reflect.ClassUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.SerdeIntrospections;
@@ -88,9 +89,14 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
         }
         if (result != null) {
             final AnnotationMetadata declaredMetadata = result.getDeclaredMetadata();
-            Class serializeType = declaredMetadata.findDeclaredAnnotation(SerdeConfig.class)
-                    .flatMap(av -> av.classValue(SerdeConfig.SERIALIZE_AS)).orElse(null);
-            if (serializeType != null && !serializeType.equals(type.getType())) {
+            final AnnotationValue<SerdeConfig> serdeConfig = declaredMetadata.getDeclaredAnnotation(SerdeConfig.class);
+            final Class<T> beanType = type.getType();
+            Class<?> serializeType = resolveDeserAsType(
+                    beanType,
+                    serdeConfig,
+                    SerdeConfig.SERIALIZE_AS
+            );
+            if (serializeType != null && !serializeType.equals(beanType)) {
                 Argument resolved = Argument.of(
                         serializeType,
                         type.getName(),
@@ -124,11 +130,15 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                 });
         if (isEnabledForDeserialization(introspection, type)) {
             final AnnotationMetadata declaredMetadata = introspection.getDeclaredMetadata();
-            Class serializeType = declaredMetadata.findDeclaredAnnotation(SerdeConfig.class)
-                    .flatMap(av -> av.classValue(SerdeConfig.DESERIALIZE_AS)).orElse(null);
-            if (serializeType != null) {
+            final AnnotationValue<SerdeConfig> serdeConfig = declaredMetadata.getDeclaredAnnotation(SerdeConfig.class);
+            Class<?> deserializeType = resolveDeserAsType(
+                    introspection.getBeanType(),
+                    serdeConfig,
+                    SerdeConfig.DESERIALIZE_AS
+            );
+            if (deserializeType != null) {
                 Argument resolved = Argument.of(
-                        serializeType,
+                        deserializeType,
                         type.getName(),
                         type.getAnnotationMetadata(),
                         type.getTypeParameters()
@@ -140,6 +150,22 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
         } else {
             throw new IntrospectionException("No deserializable introspection present for type: " + type + ". Consider adding Serdeable.Deserializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeImport(" + type.getSimpleName() + ".class) to enable deserialization of this type.");
         }
+    }
+
+    private <T> Class<?> resolveDeserAsType(
+                                   Class<?> beanType,
+                                   AnnotationValue<SerdeConfig> serdeConfig,
+                                   String configMember) {
+        Class<?> deserializeType = null;
+        if (serdeConfig != null) {
+            deserializeType = serdeConfig.classValue(configMember).orElse(null);
+            if (deserializeType == null) {
+                deserializeType = serdeConfig.stringValue(configMember).flatMap(n ->
+                    ClassUtils.forName(n, beanType.getClassLoader())
+                ).orElse(null);
+            }
+        }
+        return deserializeType;
     }
 
     private boolean isEnabledForDeserialization(AnnotationMetadataProvider reference, Argument<?> type) {
@@ -163,22 +189,21 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private <T extends Annotation> boolean isMixinEnabledForDeserialization(List<AnnotationValue<T>> mixinsValues,
                                                                           Argument<?> type) {
-        return isEnabledForMixin(mixinsValues, type, Serdeable.Deserializable.class, "deser");
+        return isEnabledForMixin(mixinsValues, type, "deserializable");
     }
 
     private <T extends Annotation> boolean isMixinEnabledForSerialization(List<AnnotationValue<T>> mixinsValues,
                                                                           Argument<?> type) {
-        return isEnabledForMixin(mixinsValues, type, Serdeable.Serializable.class, "ser");
+        return isEnabledForMixin(mixinsValues, type, "serializable");
     }
 
     private <T extends Annotation> Boolean isEnabledForMixin(List<AnnotationValue<T>> mixinsValues,
                                                              Argument<?> type,
-                                                             Class<? extends Annotation> ann, String member) {
+                                                             String member) {
         return mixinsValues.stream().filter(av -> av.classValue().orElse(Object.class).equals(type.getType()))
                 .findFirst()
                 .flatMap(av ->
-                     av.getAnnotation(member, ann)
-                             .flatMap(ser -> ser.booleanValue("enabled"))
+                     av.booleanValue(member)
                 ).orElse(true);
     }
 

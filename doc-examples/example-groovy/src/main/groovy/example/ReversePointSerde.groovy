@@ -13,7 +13,7 @@ class ReversePointSerde implements Serde<Point> {
     @Override
     Point deserialize(
             Decoder decoder,
-            DecoderContext decoderContext,
+            DecoderContext context,
             Argument<? super Point> type) throws IOException {
         Decoder array = decoder.decodeArray()
         int y = array.decodeInt() // <2>
@@ -26,8 +26,8 @@ class ReversePointSerde implements Serde<Point> {
     void serialize(
             Encoder encoder,
             EncoderContext context,
-            Point value,
-            Argument<? extends Point> type) throws IOException {
+            Argument<? extends Point> type,
+            Point value) throws IOException {
         Objects.requireNonNull(value, "Point cannot be null")
         int[] coords = value.coords()
         Encoder array = encoder.encodeArray(type)

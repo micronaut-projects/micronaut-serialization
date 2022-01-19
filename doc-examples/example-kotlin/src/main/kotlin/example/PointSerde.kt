@@ -7,9 +7,9 @@ import jakarta.inject.Singleton
 @Singleton // <1>
 class PointSerde : Serde<Point> { // <2>
     override fun deserialize(
-        decoder: Decoder,
-        decoderContext: Deserializer.DecoderContext,
-        type: Argument<in Point>
+            decoder: Decoder,
+            context: Deserializer.DecoderContext,
+            type: Argument<in Point>
     ): Point {
         decoder.decodeArray().use { // <3>
             val x = it.decodeInt()
@@ -19,10 +19,10 @@ class PointSerde : Serde<Point> { // <2>
     }
 
     override fun serialize(
-        encoder: Encoder,
-        context: Serializer.EncoderContext,
-        value: Point,
-        type: Argument<out Point>
+            encoder: Encoder,
+            context: Serializer.EncoderContext,
+            type: Argument<out Point>,
+            value: Point
     ) {
         val coords = value.coords()
         encoder.encodeArray(type).use { // <6>

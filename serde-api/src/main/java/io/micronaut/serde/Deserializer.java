@@ -40,13 +40,12 @@ public interface Deserializer<T> {
     /**
      * Create a new child deserializer or return this if non is necessary for the given context.
      *
-     * @param context The context, including any annotation metadata and type information to narrow the deserializer type
-     * @param decoderContext The decoder context
+     * @param context The decoder context
+     * @param type The context, including any annotation metadata and type information to narrow the deserializer type
      * @return An instance of the same type of deserializer
      */
-    default @NonNull Deserializer<T> createSpecific(
-            @NonNull Argument<? super T> context,
-            @NonNull DecoderContext decoderContext) throws SerdeException {
+    default @NonNull Deserializer<T> createSpecific(@NonNull DecoderContext context,
+                                                    @NonNull Argument<? super T> type) throws SerdeException {
         return this;
     }
 
@@ -54,7 +53,7 @@ public interface Deserializer<T> {
      * Deserializes from the current state of the {@link Decoder} an object of type {@link T}.
      *
      * @param decoder The decoder, never {@code null}
-     * @param decoderContext The decoder context, never {@code null}
+     * @param context The decoder context, never {@code null}
      * @param type The generic type to be deserialized
      * @return The deserialized object or {@code null} only if {@link #allowNull()} returns {@code true}
      * @throws IOException If an error occurs during deserialization of the object
@@ -62,7 +61,7 @@ public interface Deserializer<T> {
     @Nullable
     T deserialize(
             @NonNull Decoder decoder,
-            @NonNull DecoderContext decoderContext,
+            @NonNull DecoderContext context,
             @NonNull Argument<? super T> type) throws IOException;
 
     /**
@@ -75,8 +74,11 @@ public interface Deserializer<T> {
     /**
      * Obtains a default value that can be returned from this deserializer in the case where a value is absent.
      * @return The default value
+     * @param context The decoder context, never {@code null}
+     * @param type The generic type to be deserialized
      */
-    default @Nullable T getDefaultValue() {
+    default @Nullable T getDefaultValue(@NonNull DecoderContext context,
+                                        @NonNull Argument<? super T> type) {
         return null;
     }
 

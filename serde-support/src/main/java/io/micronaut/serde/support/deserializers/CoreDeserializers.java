@@ -176,14 +176,14 @@ public class CoreDeserializers {
     protected <V> Deserializer<Optional<V>> optionalDeserializer() {
         return new Deserializer<Optional<V>>() {
             @Override
-            public Optional<V> deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Optional<V>> type)
+            public Optional<V> deserialize(Decoder decoder, DecoderContext context, Argument<? super Optional<V>> type)
                     throws IOException {
                 @SuppressWarnings("unchecked") final Argument<V> generic =
                         (Argument<V>) type.getFirstTypeVariable().orElse(null);
                 if (generic == null) {
                     throw new SerdeException("Cannot deserialize raw optional");
                 }
-                final Deserializer<? extends V> deserializer = decoderContext.findDeserializer(generic);
+                final Deserializer<? extends V> deserializer = context.findDeserializer(generic);
 
                 if (decoder.decodeNull()) {
                     return Optional.empty();
@@ -191,7 +191,7 @@ public class CoreDeserializers {
                     return Optional.ofNullable(
                             deserializer.deserialize(
                                     decoder,
-                                    decoderContext,
+                                    context,
                                     generic
                             )
                     );
@@ -199,7 +199,7 @@ public class CoreDeserializers {
             }
 
             @Override
-            public Optional<V> getDefaultValue() {
+            public Optional<V> getDefaultValue(DecoderContext context, Argument<? super Optional<V>> type) {
                 return Optional.empty();
             }
         };
@@ -217,7 +217,7 @@ public class CoreDeserializers {
                 if (type.isInstance(o)) {
                     return (M) o;
                 } else if (o instanceof Map) {
-                    final M map = getDefaultValue();
+                    final M map = getDefaultValue(decoderContext, type);
                     map.putAll((Map) o);
                     return map;
                 } else {
@@ -229,10 +229,10 @@ public class CoreDeserializers {
                 final Argument<K> keyType = (Argument<K>) generics[0];
                 @SuppressWarnings("unchecked")
                 final Argument<V> valueType = (Argument<V>) generics[1];
-                final Deserializer<? extends V> valueDeser = decoderContext.findDeserializer(valueType);
+                final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(valueType);
                 final Decoder objectDecoder = decoder.decodeObject(type);
                 String key = objectDecoder.decodeKey();
-                M map = getDefaultValue();
+                M map = getDefaultValue(decoderContext, type);
                 while (key != null) {
                     K k;
                     if (keyType.isInstance(key)) {
@@ -247,12 +247,17 @@ public class CoreDeserializers {
                             throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
                         }
                     }
-                    map.put(k, valueDeser.deserialize(
-                                    objectDecoder,
-                                    decoderContext,
-                                    valueType
-                            )
-                    );
+                    if (valueDeser == null) {
+                        map.put(k, (V) objectDecoder.decodeArbitrary());
+                    } else {
+
+                        map.put(k, valueDeser.deserialize(
+                                        objectDecoder,
+                                        decoderContext,
+                                        valueType
+                                )
+                        );
+                    }
                     key = objectDecoder.decodeKey();
                 }
                 objectDecoder.finishStructure();
@@ -261,6 +266,11 @@ public class CoreDeserializers {
         }
 
         @Override
+        @NonNull
+        default M getDefaultValue(DecoderContext context, Argument<? super M> type) {
+            return getDefaultValue();
+        }
+
         @NonNull
         M getDefaultValue();
     }
@@ -276,7 +286,7 @@ public class CoreDeserializers {
             @SuppressWarnings("unchecked") final Argument<E> generic = (Argument<E>) generics[0];
             final Deserializer<? extends E> valueDeser = decoderContext.findDeserializer(generic);
             final Decoder arrayDecoder = decoder.decodeArray();
-            C collection = getDefaultValue();
+            C collection = getDefaultValue(decoderContext, type);
             while (arrayDecoder.hasNextArrayValue()) {
                 collection.add(
                         valueDeser.deserialize(
@@ -296,6 +306,11 @@ public class CoreDeserializers {
         }
 
         @Override
+        @NonNull
+        default C getDefaultValue(DecoderContext context, Argument<? super C> type) {
+            return getDefaultValue();
+        }
+
         @NonNull
         C getDefaultValue();
     }

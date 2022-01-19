@@ -31,11 +31,11 @@ import io.micronaut.serde.Deserializer;
 @FunctionalInterface
 public interface NullableDeserializer<T> extends Deserializer<T> {
     @Override
-    default T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+    default T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         } else {
-            return deserializeNonNull(decoder, decoderContext, type);
+            return deserializeNonNull(decoder, context, type);
         }
     }
 

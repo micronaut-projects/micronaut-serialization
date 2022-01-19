@@ -8,13 +8,16 @@ import io.micronaut.serde.Serde;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
+import java.util.Objects;
 
 // Keep Serde<Object> so it isn't pickup as Serde<Quantity>
 @Singleton
 public class QuantityAttributeConverter implements Serde<Object> {
 
     @Override
-    public Quantity deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
+    public Quantity deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
+        Objects.requireNonNull(decoder);
+        Objects.requireNonNull(context);
         if (!type.isAnnotationPresent(MyAnn1.class)) {
             throw new IllegalStateException("MyAnn1 is expected to be present");
         }
@@ -25,10 +28,24 @@ public class QuantityAttributeConverter implements Serde<Object> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Object value, Argument<? extends Object> type) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object> type, Object value) throws IOException {
+        Objects.requireNonNull(encoder);
+        Objects.requireNonNull(context);
         if (!type.isAnnotationPresent(MyAnn1.class)) {
             throw new IllegalStateException("MyAnn1 is expected to be present");
         }
         encoder.encodeInt(((Quantity) value).getAmount());
+    }
+
+    @Override
+    public Object getDefaultValue(DecoderContext context, Argument<? super Object> type) {
+        Objects.requireNonNull(context);
+        if (!type.isAnnotationPresent(MyAnn1.class)) {
+            throw new IllegalStateException("MyAnn1 is expected to be present");
+        }
+        if (!type.isAnnotationPresent(MyAnn2.class)) {
+            throw new IllegalStateException("MyAnn2 is expected to be present");
+        }
+        return new Quantity(123456);
     }
 }

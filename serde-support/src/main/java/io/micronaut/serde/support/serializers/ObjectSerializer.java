@@ -71,14 +71,14 @@ public class ObjectSerializer implements Serializer<Object> {
     }
 
     @Override
-    public Serializer<Object> createSpecific(Argument<?> type, EncoderContext encoderContext) {
+    public Serializer<Object> createSpecific(EncoderContext encoderContext, Argument<?> type) {
         if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
             // dynamic type resolving
             return new Serializer<Object>() {
                 Serializer<Object> inner;
 
                 @Override
-                public void serialize(Encoder encoder, EncoderContext context, Object value, Argument<?> type)
+                public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
                         throws IOException {
                     if (value == null) {
                         encoder.encodeNull();
@@ -89,8 +89,7 @@ public class ObjectSerializer implements Serializer<Object> {
                     inner.serialize(
                             encoder,
                             context,
-                            value,
-                            Argument.of(value.getClass())
+                            Argument.of(value.getClass()), value
                     );
                 }
 
@@ -133,15 +132,19 @@ public class ObjectSerializer implements Serializer<Object> {
                 serBean = getSerBean(type, null, encoderContext);
             } catch (IntrospectionException e) {
                 // no introspection, create dynamic serialization case
-                return (encoder, context, value, argument) -> {
+                return (encoder, context, argument, value) -> {
                     final Class<Object> theType = (Class<Object>) value.getClass();
-                    final Argument<Object> t = Argument.of(
-                            theType,
-                            argument.getAnnotationMetadata()
-                    );
-                    context.findSerializer(t)
-                           .createSpecific(t, encoderContext)
-                            .serialize(encoder, context, value, t);
+                    if (!theType.equals(type.getType())) {
+                        final Argument<Object> t = Argument.of(
+                                theType,
+                                argument.getAnnotationMetadata()
+                        );
+                        context.findSerializer(t)
+                                .createSpecific(encoderContext, t)
+                                .serialize(encoder, context, t, value);
+                    } else {
+                        throw new SerdeException(e.getMessage(), e);
+                    }
                 };
             }
             final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
@@ -150,14 +153,13 @@ public class ObjectSerializer implements Serializer<Object> {
                 final Serializer<Object> serializer = jsonValue.serializer;
                 return new Serializer<Object>() {
                     @Override
-                    public void serialize(Encoder encoder, EncoderContext context, Object value, Argument<?> type)
+                    public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
                             throws IOException {
                         final Object v = jsonValue.get(value);
                         serializer.serialize(
                                 encoder,
                                 context,
-                                v,
-                                jsonValue.argument
+                                jsonValue.argument, v
                         );
                     }
 
@@ -208,8 +210,7 @@ public class ObjectSerializer implements Serializer<Object> {
     public final void serialize(
             Encoder encoder,
             EncoderContext context,
-            Object value,
-            Argument<?> type)
+            Argument<?> type, Object value)
             throws IOException {
         try {
             final SerBean<Object> serBean = getSerBean(type, value, context);
@@ -282,8 +283,7 @@ public class ObjectSerializer implements Serializer<Object> {
                         serializer.serialize(
                                 childEncoder,
                                 context,
-                                v,
-                                property.argument
+                                property.argument, v
                         );
                     }
                 } finally {
@@ -315,8 +315,7 @@ public class ObjectSerializer implements Serializer<Object> {
                                 serializer.serialize(
                                         childEncoder,
                                         context,
-                                        v,
-                                        valueType
+                                        valueType, v
                                 );
                             }
                         }

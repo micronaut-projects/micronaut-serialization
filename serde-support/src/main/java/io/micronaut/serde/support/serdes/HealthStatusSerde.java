@@ -16,35 +16,30 @@
 package io.micronaut.serde.support.serdes;
 
 import java.io.IOException;
-import java.time.Year;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalQuery;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.health.HealthStatus;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 /**
- * Serde for year.
+ * Serde for health status.
  *
  * @since 1.0.0
  */
 @Singleton
-public class YearSerde implements TemporalSerde<Year> {
+public class HealthStatusSerde implements NullableSerde<HealthStatus> {
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Year> type, Year value) throws IOException {
-        encoder.encodeInt(value.getValue());
-    }
-
-    @Override
-    public TemporalQuery<Year> query() {
-        return temporal -> Year.of(temporal.get(ChronoField.YEAR));
-    }
-
-    @Override
-    public Year deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Year> type)
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends HealthStatus> type, HealthStatus value)
             throws IOException {
-        return Year.of(decoder.decodeInt());
+        encoder.encodeString(value.getName());
+    }
+
+    @Override
+    public HealthStatus deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super HealthStatus> type)
+            throws IOException {
+        return new HealthStatus(decoder.decodeString());
     }
 }

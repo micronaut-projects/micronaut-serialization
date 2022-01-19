@@ -10,9 +10,9 @@ import java.util.*
 @Secondary // <1>
 class ReversePointSerde : Serde<Point> {
     override fun deserialize(
-        decoder: Decoder,
-        decoderContext: Deserializer.DecoderContext,
-        type: Argument<in Point>
+            decoder: Decoder,
+            context: Deserializer.DecoderContext,
+            type: Argument<in Point>
     ): Point {
         val array = decoder.decodeArray()
         val y = array.decodeInt() // <2>
@@ -22,10 +22,10 @@ class ReversePointSerde : Serde<Point> {
     }
 
     override fun serialize(
-        encoder: Encoder,
-        context: Serializer.EncoderContext,
-        value: Point,
-        type: Argument<out Point>
+            encoder: Encoder,
+            context: Serializer.EncoderContext,
+            type: Argument<out Point>,
+            value: Point
     ) {
         Objects.requireNonNull(value, "Point cannot be null")
         val coords = value.coords()

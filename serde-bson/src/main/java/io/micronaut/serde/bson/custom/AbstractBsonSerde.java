@@ -41,7 +41,7 @@ public abstract class AbstractBsonSerde<T> implements NullableSerde<T> {
     }
 
     @Override
-    public final void serialize(Encoder encoder, EncoderContext context, T value, Argument<? extends T> type) throws IOException {
+    public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         doSerialize(asBson(encoder), context, value, type);
     }
 

@@ -44,8 +44,7 @@ final class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMulti
     @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
-                          OptionalMultiValues<V> value,
-                          Argument<? extends OptionalMultiValues<V>> type) throws IOException {
+                          Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
         Objects.requireNonNull(value, "Values can't be null");
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
@@ -66,23 +65,20 @@ final class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMulti
                     listSerializer.serialize(
                             objectEncoder,
                             context,
-                            list,
-                            listGeneric
+                            listGeneric, list
                     );
                 } else {
                     if (list.size() == 1) {
                         valueSerializer.serialize(
                                 objectEncoder,
                                 context,
-                                list.get(0),
-                                generic
+                                generic, list.get(0)
                         );
                     } else {
                         listSerializer.serialize(
                                 objectEncoder,
                                 context,
-                                list,
-                                listGeneric
+                                listGeneric, list
                         );
                     }
                 }

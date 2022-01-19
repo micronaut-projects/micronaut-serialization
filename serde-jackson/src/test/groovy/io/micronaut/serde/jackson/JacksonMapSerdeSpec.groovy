@@ -52,6 +52,7 @@ class EnumKeys {
         when:
         bean = jsonMapper.readValue(result, beanType)
 
+
         then:
         bean.statusCodes == [(HttpStatus.OK): 200]
 
