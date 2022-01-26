@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":6,"i6":10,"i7":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":6,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -178,17 +178,23 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#onSubscribe-org.reactivestreams.Subscription-">onSubscribe</a></span>(org.reactivestreams.Subscription&nbsp;s)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>protected io.micronaut.json.tree.JsonNode</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#parseOne-byte:A-">parseOne</a></span>(byte[]&nbsp;remaining)</code>
+<div class="block">Parse a single node from the given stream.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected abstract io.micronaut.json.tree.JsonNode</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#parseOne-java.io.InputStream-">parseOne</a></span>(java.io.InputStream&nbsp;is)</code>
 <div class="block">Parse a single node from the given stream.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#spread-byte:A-java.util.Collection-">spread</a></span>(byte[]&nbsp;bytes,
       java.util.Collection&lt;io.micronaut.json.tree.JsonNode&gt;&nbsp;out)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#subscribe-org.reactivestreams.Subscriber-">subscribe</a></span>(org.reactivestreams.Subscriber&lt;? super io.micronaut.json.tree.JsonNode&gt;&nbsp;s)</code>&nbsp;</td>
 </tr>
@@ -294,6 +300,27 @@ protected abstract&nbsp;io.micronaut.json.tree.JsonNode&nbsp;parseOne(@NonNull
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>is</code> - The input stream</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The node</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code> - if an error occurs</dd>
+</dl>
+</li>
+</ul>
+<a name="parseOne-byte:A-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>parseOne</h4>
+<pre>@NonNull
+protected&nbsp;io.micronaut.json.tree.JsonNode&nbsp;parseOne(@NonNull
+                                                            byte[]&nbsp;remaining)
+                                                     throws java.io.IOException</pre>
+<div class="block">Parse a single node from the given stream.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>remaining</code> - The bytes</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The node</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
