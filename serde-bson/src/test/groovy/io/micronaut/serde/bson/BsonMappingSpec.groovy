@@ -39,7 +39,13 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
     def "test read inputstream"() {
         when:
-        def map = bsonJsonMapper.readValue(new ByteArrayInputStream('{"title": "The Stand", "pages": 454}'.bytes), Map)
+        def map = bsonJsonMapper.readValue('{"title": "The Stand", "pages": 454}'.bytes, Map)
+
+        then:
+        map.size() == 2
+
+        when:
+        map = bsonJsonMapper.readValue(new ByteArrayInputStream('{"title": "The Stand", "pages": 454}'.bytes), Map)
 
         then:
         map.size() == 2

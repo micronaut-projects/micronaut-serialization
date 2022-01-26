@@ -127,6 +127,15 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
                     return writeValueToTree(o);
                 }
             }
+
+            @Override
+            protected JsonNode parseOne(byte[] remaining) throws IOException {
+                try (BsonReader bsonReader = createBsonReader(ByteBuffer.wrap(remaining))) {
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader);
+                    final Object o = decoder.decodeArbitrary();
+                    return writeValueToTree(o);
+                }
+            }
         };
     }
 
