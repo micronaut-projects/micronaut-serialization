@@ -163,7 +163,13 @@ public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[],
      */
     protected abstract @NonNull JsonNode parseOne(@NonNull InputStream is) throws IOException;
 
-    private JsonNode parseOne(byte[] remaining) throws IOException {
+    /**
+     * Parse a single node from the given stream.
+     * @param remaining The bytes
+     * @return The node
+     * @throws IOException if an error occurs
+     */
+    protected @NonNull JsonNode parseOne(@NonNull byte[] remaining) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(remaining)) {
             return parseOne(is);
         }

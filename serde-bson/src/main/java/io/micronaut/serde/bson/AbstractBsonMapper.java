@@ -33,8 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.function.Consumer;
 
 /**
@@ -127,6 +125,15 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
                     return writeValueToTree(o);
                 }
             }
+
+            @Override
+            protected JsonNode parseOne(byte[] remaining) throws IOException {
+                try (BsonReader bsonReader = createBsonReader(ByteBuffer.wrap(remaining))) {
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader);
+                    final Object o = decoder.decodeArbitrary();
+                    return writeValueToTree(o);
+                }
+            }
         };
     }
 
@@ -172,16 +179,13 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private ByteBuffer toByteBuffer(InputStream inputStream) throws IOException {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(inputStream.available());
-        ReadableByteChannel channel = Channels.newChannel(inputStream);
-        while (true) {
-            int read = channel.read(byteBuffer);
-            if (read == 0) {
-                throw new IllegalStateException("Read only 0 bytes!");
-            }
-            if (read == -1) {
-                return byteBuffer;
-            }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] byteBuffer = new byte[512];
+        int nbByteRead /* = 0*/;
+        while ((nbByteRead = inputStream.read(byteBuffer)) != -1) {
+            // appends buffer
+            baos.write(byteBuffer, 0, nbByteRead);
         }
+        return ByteBuffer.wrap(baos.toByteArray());
     }
 }

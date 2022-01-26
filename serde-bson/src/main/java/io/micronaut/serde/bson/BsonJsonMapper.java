@@ -16,7 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
 import jakarta.inject.Inject;
@@ -39,8 +39,8 @@ import java.nio.charset.StandardCharsets;
  * @author Denis Stepanov
  */
 @Singleton
-@Primary
 @BootstrapContextCompatible
+@Order(100) // lower precedence than Jackson
 public final class BsonJsonMapper extends AbstractBsonMapper {
 
     @Inject
