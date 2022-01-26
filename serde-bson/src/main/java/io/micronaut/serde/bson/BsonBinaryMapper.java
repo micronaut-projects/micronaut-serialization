@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.bson;
 
+import io.micronaut.core.annotation.Order;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
 import jakarta.inject.Inject;
@@ -36,6 +37,7 @@ import java.util.Objects;
  * @author Denis Stepanov
  */
 @Singleton
+@Order(200) // lower precedence than BsonJsonMapper
 public final class BsonBinaryMapper extends AbstractBsonMapper {
 
     @Inject

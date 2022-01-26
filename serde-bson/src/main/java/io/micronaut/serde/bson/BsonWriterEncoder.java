@@ -46,14 +46,14 @@ public final class BsonWriterEncoder implements Encoder {
         this.parent = null;
     }
 
-    private void postEncodeValue() {
-        currentIndex++;
-    }
-
     private BsonWriterEncoder(BsonWriterEncoder parent, boolean isArray) {
         this.bsonWriter = parent.bsonWriter;
         this.isArray = isArray;
         this.parent = parent;
+    }
+
+    private void postEncodeValue() {
+        currentIndex++;
     }
 
     @Override
