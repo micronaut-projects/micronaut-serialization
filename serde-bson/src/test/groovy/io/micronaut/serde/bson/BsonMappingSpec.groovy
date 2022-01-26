@@ -37,6 +37,14 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
     @Inject
     SerdeRegistry serdeRegistry
 
+    def "test read inputstream"() {
+        when:
+        def map = bsonJsonMapper.readValue(new ByteArrayInputStream('{"title": "The Stand", "pages": 454}'.bytes), Map)
+
+        then:
+        map.size() == 2
+    }
+
     def "validate mapping"() {
         given:
             def expectedJson = """{"_t": "Person", "_id": "12345", "firstName": "John", "surname": "Smith", "addr": {"_t": "Address", "address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}}"""

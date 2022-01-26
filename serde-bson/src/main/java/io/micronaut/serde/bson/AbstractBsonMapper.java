@@ -176,10 +176,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
         ReadableByteChannel channel = Channels.newChannel(inputStream);
         while (true) {
             int read = channel.read(byteBuffer);
-            if (read == 0) {
-                throw new IllegalStateException("Read only 0 bytes!");
-            }
-            if (read == -1) {
+            if (read <= 0) {
                 return byteBuffer;
             }
         }

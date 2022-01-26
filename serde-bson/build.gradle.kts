@@ -17,6 +17,7 @@ dependencies {
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)
+    testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.jackson.annotations)
     if (!JavaVersion.current().isJava9Compatible()) {
         testImplementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
