@@ -54,8 +54,8 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     @Inject
     public DefaultSerdeIntrospections(SerdeConfiguration configuration) {
-        this.serdePackages = new HashSet<>(configuration.getIncludedIntrospectionPackages());
-        this.serdePackages.add("io.micronaut");
+        final List<String> introspectionPackages = configuration.getIncludedIntrospectionPackages();
+        this.serdePackages = new HashSet<>(introspectionPackages);
     }
 
     public DefaultSerdeIntrospections() {
