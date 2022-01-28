@@ -50,12 +50,16 @@ import java.util.Set;
 @Singleton
 public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
+    public static final String PACKAGE_IO_MICRONAUT = "io.micronaut";
     private final Set<String> serdePackages;
 
     @Inject
     public DefaultSerdeIntrospections(SerdeConfiguration configuration) {
-        this.serdePackages = new HashSet<>(configuration.getIncludedIntrospectionPackages());
-        this.serdePackages.add("io.micronaut");
+        List<String> pckgs = configuration.getIncludedIntrospectionPackages();
+        this.serdePackages = pckgs == null ? new HashSet<>() : new HashSet<>(pckgs);
+        if (configuration.getIncludeIoMicronautIntrospectionPackage()) {
+            this.serdePackages.add(PACKAGE_IO_MICRONAUT);
+        }
     }
 
     public DefaultSerdeIntrospections() {

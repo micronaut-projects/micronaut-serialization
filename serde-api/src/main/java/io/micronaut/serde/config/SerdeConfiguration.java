@@ -16,6 +16,7 @@
 package io.micronaut.serde.config;
 
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 
@@ -67,6 +68,13 @@ public interface SerdeConfiguration {
      *
      * @return the packages to include
      */
-    @Bindable(defaultValue = "io.micronaut")
+    @Nullable
     List<String> getIncludedIntrospectionPackages();
+
+    /**
+     * Whether the introspections in the io.micronaut package should be regarded as serializable by default without the need to add the {@link io.micronaut.serde.annotation.Serdeable} annotation.
+     * @return Whether to include package io.micronaut introspections
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    boolean getIncludeIoMicronautIntrospectionPackage();
 }
