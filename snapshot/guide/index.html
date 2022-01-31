@@ -1402,7 +1402,7 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
     @Override
     public Point deserialize(
             Decoder decoder,
-            DecoderContext decoderContext,
+            DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
         try (Decoder array = decoder.decodeArray()) { <b class="conum">(3)</b>
             int x = array.decodeInt();
@@ -1415,8 +1415,7 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
     public void serialize(
             Encoder encoder,
             EncoderContext context,
-            Point value,
-            Argument&lt;? extends Point&gt; type) throws IOException {
+            Argument&lt;? extends Point&gt; type, Point value) throws IOException {
         Objects.requireNonNull(value, "Point cannot be null"); <b class="conum">(5)</b>
         int[] coords = value.coords();
         try (Encoder array = encoder.encodeArray(type)) { <b class="conum">(6)</b>
@@ -1442,7 +1441,7 @@ class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
     @Override
     Point deserialize(
             Decoder decoder,
-            DecoderContext decoderContext,
+            DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
         Decoder array = decoder.decodeArray() <b class="conum">(3)</b>
         int x = array.decodeInt()
@@ -1455,8 +1454,8 @@ class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
     void serialize(
             Encoder encoder,
             EncoderContext context,
-            Point value,
-            Argument&lt;? extends Point&gt; type) throws IOException {
+            Argument&lt;? extends Point&gt; type,
+            Point value) throws IOException {
         Objects.requireNonNull(value, "Point cannot be null") <b class="conum">(6)</b>
         int[] coords = value.coords()
         Encoder array = encoder.encodeArray(type) <b class="conum">(7)</b>
@@ -1478,9 +1477,9 @@ import jakarta.inject.Singleton
 @Singleton <b class="conum">(1)</b>
 class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
     override fun deserialize(
-        decoder: Decoder,
-        decoderContext: Deserializer.DecoderContext,
-        type: Argument&lt;in Point&gt;
+            decoder: Decoder,
+            context: Deserializer.DecoderContext,
+            type: Argument&lt;in Point&gt;
     ): Point {
         decoder.decodeArray().use { <b class="conum">(3)</b>
             val x = it.decodeInt()
@@ -1490,10 +1489,10 @@ class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
     }
 
     override fun serialize(
-        encoder: Encoder,
-        context: Serializer.EncoderContext,
-        value: Point,
-        type: Argument&lt;out Point&gt;
+            encoder: Encoder,
+            context: Serializer.EncoderContext,
+            type: Argument&lt;out Point&gt;,
+            value: Point
     ) {
         val coords = value.coords()
         encoder.encodeArray(type).use { <b class="conum">(6)</b>
@@ -1685,7 +1684,7 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
     @Override
     public Point deserialize(
             Decoder decoder,
-            DecoderContext decoderContext,
+            DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
         Decoder array = decoder.decodeArray();
         int y = array.decodeInt(); <b class="conum">(2)</b>
@@ -1698,8 +1697,7 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
     public void serialize(
             Encoder encoder,
             EncoderContext context,
-            Point value,
-            Argument&lt;? extends Point&gt; type) throws IOException {
+            Argument&lt;? extends Point&gt; type, Point value) throws IOException {
         Objects.requireNonNull(value, "Point cannot be null");
         int[] coords = value.coords();
         Encoder array = encoder.encodeArray(type);
@@ -1727,7 +1725,7 @@ class ReversePointSerde implements Serde&lt;Point&gt; {
     @Override
     Point deserialize(
             Decoder decoder,
-            DecoderContext decoderContext,
+            DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
         Decoder array = decoder.decodeArray()
         int y = array.decodeInt() <b class="conum">(2)</b>
@@ -1740,8 +1738,8 @@ class ReversePointSerde implements Serde&lt;Point&gt; {
     void serialize(
             Encoder encoder,
             EncoderContext context,
-            Point value,
-            Argument&lt;? extends Point&gt; type) throws IOException {
+            Argument&lt;? extends Point&gt; type,
+            Point value) throws IOException {
         Objects.requireNonNull(value, "Point cannot be null")
         int[] coords = value.coords()
         Encoder array = encoder.encodeArray(type)
@@ -1766,9 +1764,9 @@ import java.util.*
 @Secondary <b class="conum">(1)</b>
 class ReversePointSerde : Serde&lt;Point&gt; {
     override fun deserialize(
-        decoder: Decoder,
-        decoderContext: Deserializer.DecoderContext,
-        type: Argument&lt;in Point&gt;
+            decoder: Decoder,
+            context: Deserializer.DecoderContext,
+            type: Argument&lt;in Point&gt;
     ): Point {
         val array = decoder.decodeArray()
         val y = array.decodeInt() <b class="conum">(2)</b>
@@ -1778,10 +1776,10 @@ class ReversePointSerde : Serde&lt;Point&gt; {
     }
 
     override fun serialize(
-        encoder: Encoder,
-        context: Serializer.EncoderContext,
-        value: Point,
-        type: Argument&lt;out Point&gt;
+            encoder: Encoder,
+            context: Serializer.EncoderContext,
+            type: Argument&lt;out Point&gt;,
+            value: Point
     ) {
         Objects.requireNonNull(value, "Point cannot be null")
         val coords = value.coords()
