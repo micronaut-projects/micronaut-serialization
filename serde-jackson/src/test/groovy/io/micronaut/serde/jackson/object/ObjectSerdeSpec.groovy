@@ -2158,6 +2158,34 @@ class B {
         context.close()
     }
 
+    void 'generic collection member supertype'() {
+        given:
+        def compiled = buildContext('example.Sub', '''
+package example;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+class Sub extends Sup<String> {
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Sup<T> {
+    public List<T> value;
+}
+''')
+
+        expect:
+        jsonMapper.readValue('{"value":["bar"]}', typeUnderTest).value == ['bar']
+
+        cleanup:
+        compiled.close()
+    }
+
+
     void 'generic supertype'() {
         given:
         def compiled = buildContext('example.Sub', '''
