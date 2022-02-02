@@ -15,50 +15,54 @@
  */
 package io.micronaut.serde.support.serializers;
 
-import java.io.IOException;
-import java.util.Objects;
-import java.util.Optional;
-
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalValues;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
+import java.io.IOException;
+import java.util.Objects;
+import java.util.Optional;
+
 @Singleton
-class OptionalValuesSerializer<V> implements Serializer<OptionalValues<V>> {
+class OptionalValuesSerializer<V> implements CustomizableSerializer<OptionalValues<V>> {
 
     @Override
-    public void serialize(Encoder encoder,
-                          EncoderContext context, Argument<? extends OptionalValues<V>> type, OptionalValues<V> value) throws IOException {
-        Objects.requireNonNull(value, "Value cannot be null");
-        final Argument<?>[] generics = type.getTypeParameters();
+    public Serializer<OptionalValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalValues<V>> type) throws SerdeException {
+        Argument<?>[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw OptionalValues");
         }
-        Encoder objectEncoder = encoder.encodeObject(type);
+        Argument<V> generic = (Argument<V>) generics[0];
+        Serializer<V> valueSerializer = (Serializer<V>) context.findSerializer(generic).createSpecific(context, generic);
 
-        final Argument<V> generic = (Argument<V>) generics[0];
-        Serializer<V> valueSerializer = (Serializer<V>) context.findSerializer(
-                generic
-        );
-        for (CharSequence key : value) {
-            Optional<V> opt = value.get(key);
-            if (opt.isPresent()) {
-                objectEncoder.encodeKey(key.toString());
-                valueSerializer.serialize(
-                        encoder,
-                        context, generic, opt.get()
-                );
+        return new Serializer<OptionalValues<V>>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OptionalValues<V>> type, OptionalValues<V> value) throws IOException {
+                Objects.requireNonNull(value, "Value cannot be null");
+
+                Encoder objectEncoder = encoder.encodeObject(type);
+                for (CharSequence key : value) {
+                    Optional<V> opt = value.get(key);
+                    if (opt.isPresent()) {
+                        objectEncoder.encodeKey(key.toString());
+                        valueSerializer.serialize(
+                                encoder,
+                                context, generic, opt.get()
+                        );
+                    }
+                }
+                objectEncoder.finishStructure();
             }
-        }
-        objectEncoder.finishStructure();
+        };
     }
 
     @Override
-    public boolean isEmpty(OptionalValues<V> value) {
+    public boolean isEmpty(EncoderContext context, OptionalValues<V> value) {
         return value.isEmpty();
     }
 }

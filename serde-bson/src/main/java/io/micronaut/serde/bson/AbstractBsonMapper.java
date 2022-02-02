@@ -44,15 +44,18 @@ import java.util.function.Consumer;
 public abstract class AbstractBsonMapper implements ObjectMapper {
     protected final SerdeRegistry registry;
     protected final Class<?> view;
+    protected Serializer.EncoderContext encoderContext;
+    protected Deserializer.DecoderContext decoderContext;
 
     public AbstractBsonMapper(SerdeRegistry registry) {
-        this.registry = registry;
-        this.view = null;
+        this(registry, null);
     }
 
     protected AbstractBsonMapper(SerdeRegistry registry, Class<?> view) {
         this.registry = registry;
         this.view = view;
+        this.encoderContext = registry.newEncoderContext(view);
+        this.decoderContext = registry.newDecoderContext(view);
     }
 
     protected abstract BsonReader createBsonReader(ByteBuffer byteBuffer);
@@ -88,8 +91,8 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree), registry.newDecoderContext(view), type);
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(decoderContext, type);
+        return deserializer.deserialize(JsonNodeDecoder.create(tree), decoderContext, type);
     }
 
     @Override
@@ -109,7 +112,9 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private <T> T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
-        return registry.findDeserializer(type).deserialize(new BsonReaderDecoder(bsonReader), registry.newDecoderContext(view), type);
+        return registry.findDeserializer(type)
+                .createSpecific(decoderContext, type)
+                .deserialize(new BsonReaderDecoder(bsonReader), decoderContext, type);
     }
 
     @Override
@@ -162,8 +167,8 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        final Serializer<Object> serializer = registry.findSerializer(type);
-        serializer.serialize(encoder, registry.newEncoderContext(view), type, object);
+        final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(encoderContext, type);
+        serializer.serialize(encoder, encoderContext, type, object);
     }
 
     @Override

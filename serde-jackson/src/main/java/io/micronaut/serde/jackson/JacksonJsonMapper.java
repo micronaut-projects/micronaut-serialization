@@ -15,12 +15,6 @@
  */
 package io.micronaut.serde.jackson;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.function.Consumer;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -44,11 +38,23 @@ import io.micronaut.jackson.core.tree.TreeGenerator;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.*;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.UpdatingDeserializer;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
 /**
  * Implementation of the {@link io.micronaut.json.JsonMapper} interface for Jackson.
@@ -98,7 +104,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
         gen.setCodec(objectCodecImpl);
         Serializer<? super T> serializer = registry.findSerializer(argument)
                                                    .createSpecific(encoderContext, argument);
-        final JacksonEncoder encoder = JacksonEncoder.create(gen);
+        final Encoder encoder = JacksonEncoder.create(gen);
         serializer.serialize(
                 encoder,
                 encoderContext,
@@ -113,7 +119,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
         parser.setCodec(objectCodecImpl);
-        Deserializer deserializer = registry.findDeserializer(type);
+        Deserializer deserializer = registry.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
         if (!parser.hasCurrentToken()) {
             parser.nextToken();
         }
@@ -224,13 +230,12 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @Override
     public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
         if (tree != null && value != null) {
-            Deserializer deserializer = registry.findDeserializer(value.getClass());
+            Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
+            Deserializer deserializer = registry.findDeserializer(type).createSpecific(decoderContext, type);
             if (deserializer instanceof UpdatingDeserializer) {
 
                 try (JsonParser parser = treeCodec.treeAsTokens(tree)) {
                     parser.setCodec(objectCodecImpl);
-                    @SuppressWarnings("unchecked")
-                    Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
                     if (!parser.hasCurrentToken()) {
                         parser.nextToken();
                     }

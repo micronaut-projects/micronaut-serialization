@@ -2,6 +2,7 @@ package io.micronaut.serde.jackson
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
 import io.micronaut.context.ApplicationContext
+import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.management.health.indicator.HealthResult
@@ -396,7 +397,7 @@ public class Test {
         jsonMapper.readValue('{"n":"test"}', typeUnderTest).name == 'test'
 
         then:
-        def e = thrown(SerdeException)
+        def e = thrown(IntrospectionException)
     }
 
     void "test import with deserialize as"() {
