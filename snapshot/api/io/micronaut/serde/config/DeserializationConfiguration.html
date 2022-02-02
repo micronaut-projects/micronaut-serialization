@@ -140,7 +140,7 @@ public interface <span class="typeNameLabel">DeserializationConfiguration</span>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.OptionalInt</code></td>
+<td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/config/DeserializationConfiguration.html#getArraySizeThreshold--">getArraySizeThreshold</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -206,7 +206,8 @@ boolean&nbsp;isIgnoreUnknown()</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getArraySizeThreshold</h4>
-<pre>java.util.OptionalInt&nbsp;getArraySizeThreshold()</pre>
+<pre>@Bindable(defaultValue="100")
+int&nbsp;getArraySizeThreshold()</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The array size thresh hold for use in binding. Defaults to <code>100</code>.</dd>
