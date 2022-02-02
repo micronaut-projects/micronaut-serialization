@@ -18,6 +18,7 @@ package io.micronaut.serde.support.deserializers;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -49,6 +50,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes string types.
+     *
      * @return The string deserializer
      */
     @Singleton
@@ -59,6 +61,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes array lists.
+     *
      * @param <E> The element type
      * @return the array list deserializer, never {@code null}
      */
@@ -71,6 +74,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes array deque.
+     *
      * @param <E> The element type
      * @return the array list deserializer, never {@code null}
      */
@@ -83,6 +87,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes linked lists.
+     *
      * @param <E> The element type
      * @return the array list deserializer, never {@code null}
      */
@@ -95,6 +100,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes hash sets.
+     *
      * @param <E> The element type
      * @return The hash set deserializer, never null
      */
@@ -107,6 +113,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes default set.
+     *
      * @param <E> The element type
      * @return The hash set deserializer, never null
      */
@@ -118,6 +125,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes linked hash sets.
+     *
      * @param <E> The element type
      * @return The linked hash set deserializer, never null
      */
@@ -130,6 +138,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes linked hash sets.
+     *
      * @param <E> The element type
      * @return The linked hash set deserializer, never null
      */
@@ -142,6 +151,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes hash maps.
+     *
      * @param <K> The key type
      * @param <V> The value type
      * @return The hash map deserializer, never {@code null}
@@ -155,6 +165,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes hash maps.
+     *
      * @param <K> The key type
      * @param <V> The value type
      * @return The hash map deserializer, never {@code null}
@@ -168,6 +179,7 @@ public class CoreDeserializers {
 
     /**
      * Deserializes optional values.
+     *
      * @param <V> The optional type
      * @return The optional deserializer, never {@code null}
      */
@@ -208,6 +220,35 @@ public class CoreDeserializers {
     private interface MapNullableDeserializer<K, V, M extends Map<K, V>> extends NullableDeserializer<M> {
 
         @Override
+        default Deserializer<M> createSpecific(DecoderContext context, Argument<? super M> type) throws SerdeException {
+            final Argument<?>[] generics = type.getTypeParameters();
+            if (generics.length == 2) {
+                @SuppressWarnings("unchecked")
+                final Argument<K> keyType = (Argument<K>) generics[0];
+                @SuppressWarnings("unchecked")
+                final Argument<V> valueType = (Argument<V>) generics[1];
+                final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType);
+                return new MapNullableDeserializer<K, V, M>() {
+                    @Override
+                    public M deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super M> type) throws IOException {
+                        return deserialize(decoder, decoderContext, type, keyType, valueType, valueDeser);
+                    }
+
+                    @Override
+                    public M getDefaultValue(DecoderContext context, Argument<? super M> type) {
+                        return MapNullableDeserializer.this.getDefaultValue(context, type);
+                    }
+
+                    @Override
+                    public M getDefaultValue() {
+                        return MapNullableDeserializer.this.getDefaultValue();
+                    }
+                };
+            }
+            return this;
+        }
+
+        @Override
         default M deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super M> type) throws IOException {
             final Argument<?>[] generics = type.getTypeParameters();
 
@@ -224,45 +265,44 @@ public class CoreDeserializers {
                     throw new SerdeException("Cannot deserialize map of type [" + type + "] from value: " + o);
                 }
             } else {
-
                 @SuppressWarnings("unchecked")
                 final Argument<K> keyType = (Argument<K>) generics[0];
                 @SuppressWarnings("unchecked")
                 final Argument<V> valueType = (Argument<V>) generics[1];
                 final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(valueType);
-                final Decoder objectDecoder = decoder.decodeObject(type);
-                String key = objectDecoder.decodeKey();
-                M map = getDefaultValue(decoderContext, type);
-                while (key != null) {
-                    K k;
-                    if (keyType.isInstance(key)) {
-                        k = (K) key;
-                    } else {
-                        try {
-                            k = decoderContext.getConversionService().convertRequired(
-                                    key,
-                                    keyType
-                            );
-                        } catch (ConversionErrorException e) {
-                            throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
-                        }
-                    }
-                    if (valueDeser == null) {
-                        map.put(k, (V) objectDecoder.decodeArbitrary());
-                    } else {
-
-                        map.put(k, valueDeser.deserialize(
-                                        objectDecoder,
-                                        decoderContext,
-                                        valueType
-                                )
-                        );
-                    }
-                    key = objectDecoder.decodeKey();
-                }
-                objectDecoder.finishStructure();
-                return map;
+                return deserialize(decoder, decoderContext, type, keyType, valueType, valueDeser);
             }
+        }
+
+        default M deserialize(Decoder decoder, DecoderContext decoderContext,
+                                      Argument<? super M> type,
+                                      Argument<K> keyType,
+                                      Argument<V> valueType,
+                                      Deserializer<? extends V> valueDeser) throws IOException {
+            final Decoder objectDecoder = decoder.decodeObject(type);
+            String key = objectDecoder.decodeKey();
+            M map = getDefaultValue(decoderContext, type);
+            ConversionService<?> conversionService = decoderContext.getConversionService();
+            while (key != null) {
+                K k;
+                if (keyType.isInstance(key)) {
+                    k = (K) key;
+                } else {
+                    try {
+                        k = conversionService.convertRequired(key, keyType);
+                    } catch (ConversionErrorException e) {
+                        throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
+                    }
+                }
+                if (valueDeser == null) {
+                    map.put(k, (V) objectDecoder.decodeArbitrary());
+                } else {
+                    map.put(k, valueDeser.deserialize(objectDecoder, decoderContext, valueType));
+                }
+                key = objectDecoder.decodeKey();
+            }
+            objectDecoder.finishStructure();
+            return map;
         }
 
         @Override
@@ -278,21 +318,56 @@ public class CoreDeserializers {
     private interface CollectionNullableDeserializer<E, C extends Collection<E>> extends NullableDeserializer<C> {
 
         @Override
-        default C deserializeNonNull(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super C> type) throws IOException {
+        default Deserializer<C> createSpecific(DecoderContext context, Argument<? super C> type) throws SerdeException {
             final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");
             }
-            @SuppressWarnings("unchecked") final Argument<E> generic = (Argument<E>) generics[0];
-            final Deserializer<? extends E> valueDeser = decoderContext.findDeserializer(generic);
+            @SuppressWarnings("unchecked") final Argument<E> collectionItemArgument = (Argument<E>) generics[0];
+            final Deserializer<? extends E> valueDeser = context.findDeserializer(collectionItemArgument);
+            return new CollectionNullableDeserializer<E, C>() {
+
+                @Override
+                public C deserializeNonNull(Decoder decoder, DecoderContext ctx, Argument<? super C> type) throws IOException {
+                    return deserialize(decoder, ctx, type, collectionItemArgument, valueDeser);
+                }
+
+                @Override
+                public C getDefaultValue(DecoderContext context, Argument<? super C> type) {
+                    return CollectionNullableDeserializer.this.getDefaultValue(context, type);
+                }
+
+                @Override
+                public C getDefaultValue() {
+                    return CollectionNullableDeserializer.this.getDefaultValue();
+                }
+            };
+        }
+
+        @Override
+        default C deserializeNonNull(Decoder decoder, Deserializer.DecoderContext ctx, Argument<? super C> type) throws IOException {
+            final Argument[] generics = type.getTypeParameters();
+            if (ArrayUtils.isEmpty(generics)) {
+                throw new SerdeException("Cannot deserialize raw list");
+            }
+            @SuppressWarnings("unchecked") final Argument<E> collectionItemArgument = (Argument<E>) generics[0];
+            final Deserializer<? extends E> valueDeser = ctx.findDeserializer(collectionItemArgument);
+            return deserialize(decoder, ctx, type, collectionItemArgument, valueDeser);
+        }
+
+        default C deserialize(Decoder decoder,
+                              DecoderContext ctx,
+                              Argument<? super C> collectionArgument,
+                              Argument<E> collectionItemArgument,
+                              Deserializer<? extends E> valueDeser) throws IOException {
             final Decoder arrayDecoder = decoder.decodeArray();
-            C collection = getDefaultValue(decoderContext, type);
+            C collection = getDefaultValue(ctx, collectionArgument);
             while (arrayDecoder.hasNextArrayValue()) {
                 collection.add(
                         valueDeser.deserialize(
                                 arrayDecoder,
-                                decoderContext,
-                                generic
+                                ctx,
+                                collectionItemArgument
                         )
                 );
             }

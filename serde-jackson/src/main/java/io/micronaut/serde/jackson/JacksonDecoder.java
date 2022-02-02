@@ -16,6 +16,7 @@
 package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.support.AbstractStreamDecoder;
@@ -110,6 +111,9 @@ public final class JacksonDecoder extends AbstractStreamDecoder {
 
     @Override
     protected String coerceScalarToString() throws IOException {
+        if (currentToken() == TokenType.STRING) {
+            return parser.getText();
+        }
         return parser.getValueAsString();
     }
 
@@ -120,11 +124,27 @@ public final class JacksonDecoder extends AbstractStreamDecoder {
 
     @Override
     protected long getLong() throws IOException {
+        JsonToken jsonToken = parser.currentToken();
+        if (jsonToken == JsonToken.VALUE_NUMBER_INT || jsonToken == JsonToken.VALUE_NUMBER_FLOAT) {
+            return parser.getLongValue();
+        }
         return parser.getValueAsLong();
     }
 
     @Override
+    protected int getInteger() throws IOException {
+        JsonToken jsonToken = parser.currentToken();
+        if (jsonToken == JsonToken.VALUE_NUMBER_INT || jsonToken == JsonToken.VALUE_NUMBER_FLOAT) {
+            return parser.getIntValue();
+        }
+        return parser.getValueAsInt();
+    }
+
+    @Override
     protected double getDouble() throws IOException {
+        if (parser.currentToken() == JsonToken.VALUE_NUMBER_FLOAT) {
+            return parser.getDoubleValue();
+        }
         return parser.getValueAsDouble();
     }
 

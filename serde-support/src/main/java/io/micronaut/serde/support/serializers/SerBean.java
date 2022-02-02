@@ -127,7 +127,9 @@ final class SerBean<T> {
                     beanProperty.getName(),
                     serType,
                     propertyAnnotationMetadata,
-                    beanProperty::get,
+                    beanProperty,
+                    null,
+                    null,
                     findSerializer(encoderContext, serType, propertyAnnotationMetadata),
                     null,
                     encoderContext
@@ -146,7 +148,9 @@ final class SerBean<T> {
                         this,
                         serMethod.getName(),
                         serType,
-                        serMethod::invoke,
+                        null,
+                        serMethod,
+                        null,
                         findSerializer(encoderContext, serType, serMethod.getAnnotationMetadata()),
                         null,
                         encoderContext
@@ -167,7 +171,9 @@ final class SerBean<T> {
                 }
                 SerProperty<T, Object> anyGetterProperty = anyGetter != null ? new SerProperty<>(this, "any",
                                                                                                  anyGetter.getReturnType().asArgument(),
-                                                                                                 anyGetter::invoke,
+                                                                                                 null,
+                                                                                                 anyGetter,
+                                                                                                 null,
                                                                                                  encoderContext.findSerializer(anyGetter.getReturnType().asArgument()),
                                                                                                  null,
                                                                                                  encoderContext
@@ -191,6 +197,8 @@ final class SerBean<T> {
                             try {
                                 writeProperties.add(new SerProperty(this, typeProperty,
                                                                     Argument.of(String.class, typeProperty),
+                                                                    null,
+                                                                    null,
                                                                     reader,
                                                                     encoderContext.findSerializer(Argument.STRING),
                                                                     injectedValue,
@@ -224,6 +232,8 @@ final class SerBean<T> {
                                 final SerProperty<T, Object> serProperty = new SerProperty<>(this, n,
                                                                                              unwrappedPropertyArgument,
                                                                                              combinedMetadata,
+                                                                                             null,
+                                                                                             null,
                                                                                              bean -> unwrappedProperty.get(property.get(bean)),
                                                                                              findSerializer(encoderContext, unwrappedPropertyArgument,
                                                                                                             argument.getAnnotationMetadata()),
@@ -238,7 +248,9 @@ final class SerBean<T> {
                             try {
                                 serProperty = new SerProperty<>(this, n,
                                                                 argument,
-                                                                property::get,
+                                                                property,
+                                                                null,
+                                                                null,
                                                                 findSerializer(encoderContext, argument, propertyAnnotationMetadata),
                                                                 null,
                                                                 encoderContext
@@ -262,7 +274,9 @@ final class SerBean<T> {
                         final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
                         writeProperties.add(new SerProperty<>(this, n,
                                                               returnType,
-                                                              jsonGetter::invoke,
+                                                              null,
+                                                              jsonGetter,
+                                                              null,
                                                               findSerializer(encoderContext, returnType,
                                                                              jsonGetterAnnotationMetadata),
                                                               null,
@@ -347,6 +361,8 @@ final class SerBean<T> {
         public final SerdeConfig.SerInclude include;
         private final @Nullable
         P injected;
+        private final BeanProperty<B, P> beanProperty;
+        private final BeanMethod<B, P> beanMethod;
         private final Function<B, P> reader;
         // CHECKSTYLE:ON
 
@@ -354,11 +370,13 @@ final class SerBean<T> {
                 SerBean<B> bean,
                 @NonNull String name,
                 @NonNull Argument<P> argument,
+                @Nullable BeanProperty<B, P> beanProperty,
+                @Nullable BeanMethod<B, P> beanMethod,
                 @Nullable Function<B, P> reader,
                 @NonNull Serializer<P> serializer,
                 @Nullable P injected,
                 @NonNull Serializer.EncoderContext encoderContext) throws SerdeException {
-           this(bean, name, argument, argument.getAnnotationMetadata(), reader, serializer, injected, encoderContext);
+           this(bean, name, argument, argument.getAnnotationMetadata(), beanProperty, beanMethod, reader, serializer, injected, encoderContext);
         }
 
         public SerProperty(
@@ -366,6 +384,8 @@ final class SerBean<T> {
                 @NonNull String name,
                 @NonNull Argument<P> argument,
                 @NonNull AnnotationMetadata annotationMetadata,
+                @Nullable BeanProperty<B, P> beanProperty,
+                @Nullable BeanMethod<B, P> beanMethod,
                 @Nullable Function<B, P> reader,
                 @NonNull Serializer<P> serializer,
                 @Nullable P injected,
@@ -373,6 +393,8 @@ final class SerBean<T> {
             this.bean = bean;
             this.name = name;
             this.argument = argument;
+            this.beanProperty = beanProperty;
+            this.beanMethod = beanMethod;
             this.reader = reader;
             final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
             final AnnotationMetadata hierarchy =
@@ -392,8 +414,14 @@ final class SerBean<T> {
         public P get(B bean) {
             if (injected != null) {
                 return injected;
-            } else {
+            } else if (beanProperty != null) {
+                return beanProperty.get(bean);
+            } else if (beanMethod != null) {
+                return beanMethod.invoke(bean);
+            } else if (reader != null) {
                 return reader.apply(bean);
+            } else {
+                throw new IllegalStateException("The reader is missing!");
             }
         }
     }

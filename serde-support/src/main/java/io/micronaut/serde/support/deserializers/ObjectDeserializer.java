@@ -24,13 +24,12 @@ import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.UpdatingDeserializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -40,12 +39,10 @@ import io.micronaut.serde.util.NullableDeserializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -73,10 +70,9 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
         Class<? super Object> objectType = deserBean.introspection.getBeanType();
 
         if (deserBean.delegating) {
-            final Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> creatorParams = deserBean.creatorParams;
-            if (CollectionUtils.isNotEmpty(creatorParams)) {
-                @SuppressWarnings("unchecked") final DeserBean.DerProperty<Object, Object> creator =
-                        (DeserBean.DerProperty<Object, Object>) creatorParams.values().iterator().next();
+            if (deserBean.creatorParams != null) {
+                final PropertiesBag<Object>.Consumer creatorParams = deserBean.creatorParams.newConsumer();
+                final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
                 final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
                 return deserBean.introspection.instantiate(val);
             } else {
@@ -84,8 +80,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
             }
         } else {
 
-            Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties =
-                    deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
+            PropertiesBag<Object>.Consumer readProperties = deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
             boolean hasProperties = readProperties != null;
             boolean ignoreUnknown = this.ignoreUnknown && deserBean.ignoreUnknown;
 
@@ -116,8 +111,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                                     deserBean = (DeserBean<? super Object>) subtypeDeser;
                                     //noinspection unchecked
                                     objectType = (Class<? super Object>) subtypeDeser.introspection.getBeanType();
-                                    readProperties =
-                                            deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
+                                    readProperties = deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
                                     hasProperties = readProperties != null;
                                     anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
                                 }
@@ -142,8 +136,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                                 deserBean = (DeserBean<? super Object>) subtypeBean;
                                 //noinspection unchecked
                                 objectType = (Class<? super Object>) subtypeBean.introspection.getBeanType();
-                                readProperties =
-                                        deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
+                                readProperties = deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
                                 hasProperties = readProperties != null;
                             }
 
@@ -161,8 +154,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
             }
 
             if (deserBean.creatorParams != null) {
-                final Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> creatorParameters =
-                        new HashMap<>(deserBean.creatorParams);
+                final PropertiesBag<Object>.Consumer creatorParameters = deserBean.creatorParams.newConsumer();
                 int creatorSize = deserBean.creatorSize;
                 Object[] params = new Object[creatorSize];
                 PropertyBuffer buffer = initFromTokenBuffer(
@@ -178,23 +170,23 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     if (prop == null) {
                         break;
                     }
-                    final DeserBean.DerProperty<? super Object, ?> sp = creatorParameters.remove(prop);
+                    final DeserBean.DerProperty<? super Object, ?> sp = creatorParameters.findNotConsumed(prop);
                     if (sp != null) {
                         if (sp.views != null && !decoderContext.hasView(sp.views)) {
+                            creatorParameters.consume(prop);
                             objectDecoder.skipValue();
-                            skipAliases(creatorParameters, sp);
                             continue;
                         }
                         @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) sp.argument;
                         final Object val = deserializeValue(decoderContext, objectDecoder, sp, propertyType, null);
                         if (val == null) {
-                            ((Map) creatorParameters).put(prop, sp);
+                            // Skip consume
                             continue;
                         }
-                        skipAliases(creatorParameters, sp);
+                        creatorParameters.consume(prop);
                         if (sp.instrospection.getBeanType() == objectType) {
                             params[sp.index] = val;
-                            if (hasProperties && readProperties.containsKey(prop)) {
+                            if (hasProperties && readProperties.isNotConsumed(prop)) {
                                 // will need binding to properties as well
                                 buffer = initBuffer(buffer, sp, prop, val);
                             }
@@ -205,7 +197,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                             break;
                         }
                     } else if (hasProperties) {
-                        final DeserBean.DerProperty<? super Object, ?> rp = readProperties.get(prop);
+                        final DeserBean.DerProperty<? super Object, ?> rp = readProperties.findNotConsumed(prop);
                         if (rp != null) {
                             @SuppressWarnings("unchecked") final Argument<Object> argument = (Argument<Object>) rp.argument;
                             final Object val = deserializeValue(decoderContext, objectDecoder, rp, argument, null);
@@ -234,21 +226,19 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
 
                 if (buffer != null && !creatorParameters.isEmpty()) {
                     for (PropertyBuffer propertyBuffer : buffer) {
-                        final DeserBean.DerProperty<? super Object, ?> derProperty =
-                                creatorParameters.remove(propertyBuffer.name);
+                        final DeserBean.DerProperty<? super Object, ?> derProperty = creatorParameters.consume(propertyBuffer.name);
                         if (derProperty != null) {
                             propertyBuffer.set(
                                     params,
                                     decoderContext
                             );
-                            skipAliases(creatorParameters, derProperty);
                         }
                     }
                 }
 
                 if (!creatorParameters.isEmpty()) {
                     // set unsatisfied parameters to defaults or fail
-                    for (DeserBean.DerProperty<? super Object, ?> sp : creatorParameters.values()) {
+                    for (DeserBean.DerProperty<? super Object, ?> sp : creatorParameters.getNotConsumed()) {
                         if (sp.backRef != null) {
                             final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                                     new PropertyReference<>(
@@ -296,12 +286,11 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                     if (buffer != null) {
                         for (PropertyBuffer propertyBuffer : buffer) {
                             final DeserBean.DerProperty<? super Object, ?> derProperty =
-                                    readProperties.remove(propertyBuffer.name);
+                                    readProperties.consume(propertyBuffer.name);
                             if (derProperty != null) {
                                 if (derProperty.instrospection.getBeanType() == objectType) {
                                     propertyBuffer.set(obj, decoderContext);
                                 }
-                                skipAliases(readProperties, derProperty);
                             }
                         }
                     }
@@ -446,15 +435,6 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
         return deserBean;
     }
 
-    private void skipAliases(Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> props,
-                           DeserBean.DerProperty<? super Object, ?> sp) {
-        if (sp.aliases != null) {
-            for (String alias : sp.aliases) {
-                props.remove(alias);
-            }
-        }
-    }
-
     private TokenBuffer initTokenBuffer(TokenBuffer tokenBuffer, Decoder objectDecoder, String key) throws IOException {
         return tokenBuffer == null ? new TokenBuffer(
                 key,
@@ -464,25 +444,24 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
     }
 
     private @Nullable PropertyBuffer initFromTokenBuffer(@Nullable TokenBuffer tokenBuffer,
-                                                         @Nullable Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> creatorParameters,
-                                                         @Nullable Map<String, ? extends DeserBean.DerProperty<? super Object,
-                                                                 ?>> readProperties,
+                                                         @Nullable PropertiesBag<Object>.Consumer creatorParameters,
+                                                         @Nullable PropertiesBag<Object>.Consumer readProperties,
                                                          @Nullable AnyValues<?> anyValues,
                                                          DecoderContext decoderContext) throws IOException {
         if (tokenBuffer != null) {
             PropertyBuffer propertyBuffer = null;
             for (TokenBuffer buffer : tokenBuffer) {
                 final String n = buffer.name;
-                if (creatorParameters != null && creatorParameters.containsKey(n)) {
-                    final DeserBean.DerProperty<? super Object, ?> derProperty = creatorParameters.get(n);
+                if (creatorParameters != null && creatorParameters.isNotConsumed(n)) {
+                    final DeserBean.DerProperty<? super Object, ?> derProperty = creatorParameters.findNotConsumed(n);
                     propertyBuffer = initBuffer(
                             propertyBuffer,
                             derProperty,
                             n,
                             buffer.decoder
                     );
-                } else if (readProperties != null && readProperties.containsKey(n)) {
-                    final DeserBean.DerProperty<? super Object, ?> derProperty = readProperties.get(n);
+                } else if (readProperties != null && readProperties.isNotConsumed(n)) {
+                    final DeserBean.DerProperty<? super Object, ?> derProperty = readProperties.findNotConsumed(n);
                     propertyBuffer = initBuffer(
                             propertyBuffer,
                             derProperty,
@@ -524,7 +503,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
             DecoderContext decoderContext,
             Object obj,
             Decoder objectDecoder,
-            Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties,
+            PropertiesBag.Consumer readProperties,
             DeserBean.DerProperty<? super Object, Object>[] unwrappedProperties,
             PropertyBuffer propertyBuffer,
             @Nullable AnyValues<?> anyValues,
@@ -536,15 +515,13 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                 break;
             }
             @SuppressWarnings("unchecked") final DeserBean.DerProperty<Object, Object> property =
-                    (DeserBean.DerProperty<Object, Object>) readProperties.remove(prop);
-            if (property != null && property.writer != null) {
+                    (DeserBean.DerProperty<Object, Object>) readProperties.consume(prop);
+            if (property != null && (property.beanProperty != null || property.beanMethod != null)) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
                     objectDecoder.skipValue();
-                    skipAliases(readProperties, property);
                     continue;
                 }
 
-                skipAliases(readProperties, property);
                 final Argument<Object> propertyType = property.argument;
                 boolean isNull = objectDecoder.decodeNull();
                 if (isNull) {
@@ -557,10 +534,14 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                 }
                 final Object val = deserializeValue(decoderContext, objectDecoder, property, propertyType, obj);
 
-                // writer is never null for properties
-                final BiConsumer<Object, Object> writer = property.writer;
                 if (introspection.introspection == property.instrospection) {
-                    writer.accept(obj, val);
+                    if (property.beanProperty != null) {
+                        property.beanProperty.set(obj, val);
+                    } else if (property.beanMethod != null) {
+                        property.beanMethod.invoke(obj, val);
+                    } else {
+                        throw new IllegalStateException("Writer should be present!");
+                    }
                 } else {
                     propertyBuffer = initBuffer(propertyBuffer, property, prop, val);
                 }
@@ -604,7 +585,7 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
 
     private void applyDefaultValuesOrFail(
             Object obj,
-            Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties,
+            PropertiesBag<? super Object>.Consumer readProperties,
             @Nullable DeserBean.DerProperty<? super Object, Object>[] unwrappedProperties,
             @Nullable PropertyBuffer buffer,
             DecoderContext decoderContext)
@@ -624,14 +605,14 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
         }
         if (buffer != null && !readProperties.isEmpty()) {
             for (PropertyBuffer propertyBuffer : buffer) {
-                final DeserBean.DerProperty<? super Object, ?> derProperty = readProperties.remove(propertyBuffer.name);
+                final DeserBean.DerProperty<? super Object, ?> derProperty = readProperties.consume(propertyBuffer.name);
                 if (derProperty != null) {
                     propertyBuffer.set(obj, decoderContext);
                 }
             }
         }
         if (!readProperties.isEmpty()) {
-            for (DeserBean.DerProperty<? super Object, ?> dp : readProperties.values()) {
+            for (DeserBean.DerProperty<? super Object, ?> dp : readProperties.getNotConsumed()) {
                 if (dp.backRef != null) {
                     final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                             new PropertyReference<>(
@@ -664,15 +645,12 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
         @SuppressWarnings("unchecked")
         final DeserBean<Object> unwrapped = (DeserBean<Object>) property.unwrapped;
         if (unwrapped != null) {
-            final Map<String, ? extends DeserBean.DerProperty<?, ?>> creatorParams =
-                    unwrapped.creatorParams;
-            final Map<String, ? extends DeserBean.DerProperty<Object, Object>> readProperties = unwrapped.readProperties;
-
             Object object;
-            if (creatorParams != null) {
+            if (unwrapped.creatorParams != null) {
+                final PropertiesBag<Object>.Consumer creatorParams = unwrapped.creatorParams.newConsumer();
                 Object[] params = new Object[unwrapped.creatorSize];
                 // handle construction
-                for (DeserBean.DerProperty<?, ?> der : creatorParams.values()) {
+                for (DeserBean.DerProperty<?, ?> der : creatorParams.getNotConsumed()) {
                     boolean satisfied = false;
                     for (PropertyBuffer pb : buffer) {
                         if (pb.property == der) {
@@ -695,8 +673,9 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
                 object = unwrapped.introspection.instantiate();
             }
 
-            if (readProperties != null) {
-                for (DeserBean.DerProperty<Object, Object> der : readProperties.values()) {
+            if (unwrapped.readProperties != null) {
+                final PropertiesBag<Object>.Consumer readProperties = unwrapped.readProperties.newConsumer();
+                for (DeserBean.DerProperty<Object, Object> der : readProperties.getNotConsumed()) {
                     boolean satisfied = false;
                     for (PropertyBuffer pb : buffer) {
                         if (pb.property == der) {
@@ -764,8 +743,8 @@ public class ObjectDeserializer implements NullableDeserializer<Object>, Updatin
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type, Object value)
             throws IOException {
         DeserBean<? super Object> deserBean = getDeserBean(decoderContext, type);
-        Map<String, ? extends DeserBean.DerProperty<? super Object, ?>> readProperties =
-                deserBean.readProperties != null ? new HashMap<>(deserBean.readProperties) : null;
+        PropertiesBag.Consumer readProperties =
+                deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
         boolean hasProperties = readProperties != null;
         boolean ignoreUnknown = this.ignoreUnknown && deserBean.ignoreUnknown;
         AnyValues<Object> anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
