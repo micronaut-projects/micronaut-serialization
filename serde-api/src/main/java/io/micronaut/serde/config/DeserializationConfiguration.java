@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde.config;
 
-import java.util.OptionalInt;
-
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
@@ -38,5 +36,6 @@ public interface DeserializationConfiguration {
     /**
      * @return The array size thresh hold for use in binding. Defaults to {@code 100}.
      */
-    OptionalInt getArraySizeThreshold();
+    @Bindable(defaultValue = "100")
+    int getArraySizeThreshold();
 }
