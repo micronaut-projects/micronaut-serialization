@@ -30,10 +30,10 @@ import java.util.Objects;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Encoder} interface for Jackson.
- *
- * @implNote Changes must be reflected in {@link SpecializedJacksonEncoder}!
  */
 public abstract class JacksonEncoder implements Encoder {
+    // Changes must be reflected in {@link SpecializedJacksonEncoder}!
+
     protected final JsonGenerator generator;
     @Nullable
     private final JacksonEncoder parent;

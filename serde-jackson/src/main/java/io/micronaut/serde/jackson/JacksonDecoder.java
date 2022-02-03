@@ -16,7 +16,6 @@
 package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -31,11 +30,11 @@ import java.math.BigInteger;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for Jackson.
- *
- * @implNote Changes must be reflected in {@link SpecializedJacksonDecoder}!
  */
 @Internal
 public final class JacksonDecoder extends AbstractStreamDecoder {
+    // Changes must be reflected in {@link SpecializedJacksonDecoder}!
+
     @Internal
     private final JsonParser parser;
 
