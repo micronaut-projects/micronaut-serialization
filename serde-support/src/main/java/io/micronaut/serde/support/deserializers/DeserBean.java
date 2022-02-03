@@ -428,17 +428,6 @@ class DeserBean<T> {
         return Collections.emptyMap();
     }
 
-    private void handleAliases(Map creatorParams, DerProperty<T, ?> derProperty) {
-        if (derProperty.aliases != null) {
-            for (String alias : derProperty.aliases) {
-                creatorParams.put(
-                        alias,
-                        derProperty
-                );
-            }
-        }
-    }
-
     private String resolveName(AnnotatedElement annotatedElement, AnnotationMetadata annotationMetadata, PropertyNamingStrategy namingStrategy) {
         if (namingStrategy != null) {
             return namingStrategy.translate(annotatedElement);

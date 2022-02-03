@@ -22,6 +22,7 @@ import io.micronaut.core.beans.BeanIntrospection;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,6 @@ final class PropertiesBag<T> {
     private List<DeserBean.DerProperty<T, Object>> properties;
     @Nullable
     private Map<String, Integer> nameToPropertiesMapping;
-
     public PropertiesBag(BeanIntrospection<T> beanIntrospection) {
         this(beanIntrospection, beanIntrospection.getBeanProperties().size());
     }
@@ -121,16 +121,17 @@ final class PropertiesBag<T> {
      */
     public final class Consumer {
 
-        private final boolean[] consumed = new boolean[properties.size()];
+        private final BitSet consumedSet = new BitSet(properties.size());
+        private int remaining = properties.size();
 
         public boolean isNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
-            return propertyIndex != -1 && !consumed[propertyIndex];
+            return propertyIndex != -1 && !consumedSet.get(propertyIndex);
         }
 
         public DeserBean.DerProperty<T, ?> findNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || consumed[propertyIndex]) {
+            if (propertyIndex == -1 || consumedSet.get(propertyIndex)) {
                 return null;
             }
             return properties.get(propertyIndex);
@@ -138,27 +139,23 @@ final class PropertiesBag<T> {
 
         public DeserBean.DerProperty<T, ?> consume(String name) {
             int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || consumed[propertyIndex]) {
+            if (propertyIndex == -1 || consumedSet.get(propertyIndex)) {
                 return null;
             }
-            consumed[propertyIndex] = true;
+            consumedSet.set(propertyIndex);
+            remaining--;
             return properties.get(propertyIndex);
         }
 
         public List<DeserBean.DerProperty<T, Object>> getNotConsumed() {
             return IntStream.range(0, properties.size())
-                    .filter(index -> !consumed[index])
+                    .filter(index -> !consumedSet.get(index))
                     .mapToObj(index -> properties.get(index))
                     .collect(Collectors.toList());
         }
 
         public boolean isEmpty() {
-            for (boolean c : consumed) {
-                if (!c) {
-                    return false;
-                }
-            }
-            return true;
+            return remaining == 0;
         }
 
     }
