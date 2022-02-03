@@ -1,29 +1,12 @@
-/*
- * Copyright 2017-2021 original authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.serde.support.AbstractStreamDecoder;
-import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -32,35 +15,20 @@ import java.math.BigInteger;
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for Jackson.
  *
- * @implNote Changes must be reflected in {@link SpecializedJacksonDecoder}!
+ * Identical to {@link JacksonDecoder}, but specialized for {@link UTF8StreamJsonParser} for better inlining.
  */
 @Internal
-public final class JacksonDecoder extends AbstractStreamDecoder {
-    @Internal
-    private final JsonParser parser;
+final class SpecializedJacksonDecoder extends AbstractStreamDecoder {
+    private final UTF8StreamJsonParser parser;
 
-    private JacksonDecoder(@NonNull JacksonDecoder parent) {
+    private SpecializedJacksonDecoder(@NonNull SpecializedJacksonDecoder parent) {
         super(parent);
         this.parser = parent.parser;
     }
 
-    private JacksonDecoder(JsonParser parser, @NonNull Class<?> view) {
+    SpecializedJacksonDecoder(UTF8StreamJsonParser parser, @NonNull Class<?> view) {
         super(view);
         this.parser = parser;
-    }
-
-    public static Decoder create(JsonParser parser) throws IOException {
-        return create(parser, Object.class);
-    }
-
-    public static Decoder create(JsonParser parser, Class<?> view) throws IOException {
-        if (!parser.hasCurrentToken()) {
-            parser.nextToken();
-        }
-        if (parser instanceof UTF8StreamJsonParser) {
-            return new SpecializedJacksonDecoder((UTF8StreamJsonParser) parser, view);
-        }
-        return new JacksonDecoder(parser, view);
     }
 
     @Override
@@ -73,30 +41,30 @@ public final class JacksonDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected TokenType currentToken() {
+    protected AbstractStreamDecoder.TokenType currentToken() {
         switch (parser.currentToken()) {
             case START_OBJECT:
-                return TokenType.START_OBJECT;
+                return AbstractStreamDecoder.TokenType.START_OBJECT;
             case END_OBJECT:
-                return TokenType.END_OBJECT;
+                return AbstractStreamDecoder.TokenType.END_OBJECT;
             case START_ARRAY:
-                return TokenType.START_ARRAY;
+                return AbstractStreamDecoder.TokenType.START_ARRAY;
             case END_ARRAY:
-                return TokenType.END_ARRAY;
+                return AbstractStreamDecoder.TokenType.END_ARRAY;
             case FIELD_NAME:
-                return TokenType.KEY;
+                return AbstractStreamDecoder.TokenType.KEY;
             case VALUE_STRING:
-                return TokenType.STRING;
+                return AbstractStreamDecoder.TokenType.STRING;
             case VALUE_NUMBER_INT:
             case VALUE_NUMBER_FLOAT:
-                return TokenType.NUMBER;
+                return AbstractStreamDecoder.TokenType.NUMBER;
             case VALUE_TRUE:
             case VALUE_FALSE:
-                return TokenType.BOOLEAN;
+                return AbstractStreamDecoder.TokenType.BOOLEAN;
             case VALUE_NULL:
-                return TokenType.NULL;
+                return AbstractStreamDecoder.TokenType.NULL;
             default:
-                return TokenType.OTHER;
+                return AbstractStreamDecoder.TokenType.OTHER;
         }
     }
 
@@ -112,14 +80,11 @@ public final class JacksonDecoder extends AbstractStreamDecoder {
 
     @Override
     protected AbstractStreamDecoder createChildDecoder() {
-        return new JacksonDecoder(this);
+        return new SpecializedJacksonDecoder(this);
     }
 
     @Override
     protected String coerceScalarToString() throws IOException {
-        if (currentToken() == TokenType.STRING) {
-            return parser.getText();
-        }
         return parser.getValueAsString();
     }
 
@@ -140,6 +105,9 @@ public final class JacksonDecoder extends AbstractStreamDecoder {
 
     @Override
     protected double getDouble() throws IOException {
+        if (parser.currentToken() == JsonToken.VALUE_NUMBER_FLOAT) {
+            return parser.getDoubleValue();
+        }
         return parser.getValueAsDouble();
     }
 
