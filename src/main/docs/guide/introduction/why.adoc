@@ -22,6 +22,6 @@ Micronaut Serialization adds compile-time checking for correctness when using JS
 
 ==== Runtime Portability
 
-Micronaut Serialization decouples the runtime the from the actual source code level annotation model whilst Jackson is coupled to Jackson annotations. This means you can use the same runtime, but choose whether to use https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], link:{jsonbApi}/package-summary.html[JSON-B annotations] or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations]
+Micronaut Serialization decouples the runtime from the actual source code level annotation model whilst Jackson is coupled to Jackson annotations. This means you can use the same runtime, but choose whether to use https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html[Jackson annotations], link:{jsonbApi}/package-summary.html[JSON-B annotations] or https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html[BSON annotations]
 
 This leads to less memory consumption since there is no need to have multiple JSON parsers and reflection-based meta-models if you using both JSON in your webtier plus a document database like MongoDB.
