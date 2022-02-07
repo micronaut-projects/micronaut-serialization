@@ -30,11 +30,11 @@ import java.math.BigInteger;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for Jackson.
- *
- * @implNote Changes must be reflected in {@link SpecializedJacksonDecoder}!
  */
 @Internal
 public final class JacksonDecoder extends AbstractStreamDecoder {
+    // Changes must be reflected in {@link SpecializedJacksonDecoder}!
+
     @Internal
     private final JsonParser parser;
 

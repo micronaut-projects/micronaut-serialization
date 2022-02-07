@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 original authors
+ * Copyright 2017-2022 original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import io.micronaut.core.annotation.NonNull;
@@ -29,33 +28,23 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 /**
- * Implementation of the {@link io.micronaut.serde.Encoder} interface for Jackson.
+ * Identical to {@link JacksonEncoder}, but specialized for {@link UTF8JsonGenerator} for better inlining.
  */
-public abstract class JacksonEncoder implements Encoder {
-    // Changes must be reflected in {@link SpecializedJacksonEncoder}!
-
-    protected final JsonGenerator generator;
+abstract class SpecializedJacksonEncoder implements Encoder {
+    protected final UTF8JsonGenerator generator;
     @Nullable
-    private final JacksonEncoder parent;
+    private final SpecializedJacksonEncoder parent;
 
-    private JacksonEncoder child = null;
+    private SpecializedJacksonEncoder child = null;
 
-    private JacksonEncoder(@NonNull JacksonEncoder parent) {
+    private SpecializedJacksonEncoder(@NonNull SpecializedJacksonEncoder parent) {
         this.generator = parent.generator;
         this.parent = parent;
     }
 
-    private JacksonEncoder(@NonNull JsonGenerator generator) {
+    private SpecializedJacksonEncoder(@NonNull UTF8JsonGenerator generator) {
         this.generator = generator;
         this.parent = null;
-    }
-
-    public static Encoder create(@NonNull JsonGenerator generator) {
-        Objects.requireNonNull(generator, "generator");
-        if (generator instanceof UTF8JsonGenerator) {
-            return new SpecializedJacksonEncoder.OuterEncoder((UTF8JsonGenerator) generator);
-        }
-        return new OuterEncoder(generator);
     }
 
     private void checkChild() {
@@ -72,7 +61,7 @@ public abstract class JacksonEncoder implements Encoder {
         checkChild();
 
         generator.writeStartArray();
-        JacksonEncoder arrayEncoder = new ArrayEncoder(this);
+        SpecializedJacksonEncoder arrayEncoder = new ArrayEncoder(this);
         child = arrayEncoder;
         return arrayEncoder;
     }
@@ -82,7 +71,7 @@ public abstract class JacksonEncoder implements Encoder {
         checkChild();
 
         generator.writeStartObject();
-        JacksonEncoder objectEncoder = new ObjectEncoder(this);
+        SpecializedJacksonEncoder objectEncoder = new ObjectEncoder(this);
         child = objectEncoder;
         return objectEncoder;
     }
@@ -182,8 +171,8 @@ public abstract class JacksonEncoder implements Encoder {
         generator.writeNull();
     }
 
-    private static final class ArrayEncoder extends JacksonEncoder {
-        ArrayEncoder(JacksonEncoder parent) {
+    private static final class ArrayEncoder extends SpecializedJacksonEncoder {
+        ArrayEncoder(SpecializedJacksonEncoder parent) {
             super(parent);
         }
 
@@ -193,8 +182,8 @@ public abstract class JacksonEncoder implements Encoder {
         }
     }
 
-    private static final class ObjectEncoder extends JacksonEncoder {
-        ObjectEncoder(JacksonEncoder parent) {
+    private static final class ObjectEncoder extends SpecializedJacksonEncoder {
+        ObjectEncoder(SpecializedJacksonEncoder parent) {
             super(parent);
         }
 
@@ -204,8 +193,8 @@ public abstract class JacksonEncoder implements Encoder {
         }
     }
 
-    private static final class OuterEncoder extends JacksonEncoder {
-        OuterEncoder(@NonNull JsonGenerator generator) {
+    static final class OuterEncoder extends SpecializedJacksonEncoder {
+        OuterEncoder(@NonNull UTF8JsonGenerator generator) {
             super(generator);
         }
 
