@@ -29,12 +29,12 @@ import java.util.Arrays;
  * @author graemerocher
  * @since 1.0.0
  */
-public class SpecificObjectDeserializerArraySerde implements Deserializer<Object[]> {
+public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]> {
 
     private final Argument<Object> componentType;
     private final Deserializer<?> componentDeserializer;
 
-    public SpecificObjectDeserializerArraySerde(Argument<Object> componentType, Deserializer<?> deserializer) {
+    public CustomizedObjectArrayDeserializer(Argument<Object> componentType, Deserializer<?> deserializer) {
         this.componentType = componentType;
         this.componentDeserializer = deserializer;
     }

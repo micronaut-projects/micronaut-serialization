@@ -21,7 +21,7 @@ import io.micronaut.core.value.OptionalValues;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.SpecificOnlySerializer;
+import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Singleton
-class OptionalValuesSerializer<V> implements SpecificOnlySerializer<OptionalValues<V>> {
+class OptionalValuesSerializer<V> implements CustomizableSerializer<OptionalValues<V>> {
 
     @Override
     public Serializer<OptionalValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalValues<V>> type) throws SerdeException {

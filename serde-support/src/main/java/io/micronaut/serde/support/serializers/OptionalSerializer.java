@@ -20,7 +20,7 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.SpecificOnlySerializer;
+import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ import java.util.Optional;
  * @param <T> The generic type
  */
 @Singleton
-class OptionalSerializer<T> implements SpecificOnlySerializer<Optional<T>> {
+class OptionalSerializer<T> implements CustomizableSerializer<Optional<T>> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)

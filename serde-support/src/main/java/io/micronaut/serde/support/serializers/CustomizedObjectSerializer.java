@@ -43,10 +43,10 @@ import java.util.Map;
  * </ul>
  */
 @Internal
-public class SpecificObjectSerializer<T> implements Serializer<T> {
+public class CustomizedObjectSerializer<T> implements Serializer<T> {
     private final SerBean<Object> serBean;
 
-    public SpecificObjectSerializer(SerBean<Object> serBean) {
+    public CustomizedObjectSerializer(SerBean<Object> serBean) {
         this.serBean = serBean;
     }
 

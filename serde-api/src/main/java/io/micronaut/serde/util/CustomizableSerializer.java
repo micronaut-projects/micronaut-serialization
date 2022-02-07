@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.util;
 
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
@@ -27,7 +28,7 @@ import java.io.IOException;
  * @param <T> The serializer type
  * @author Denis Stepanov
  */
-public interface SpecificOnlySerializer<T> extends Serializer<T> {
+public interface CustomizableSerializer<T> extends Serializer<T> {
 
     @Override
     default void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
@@ -35,12 +36,12 @@ public interface SpecificOnlySerializer<T> extends Serializer<T> {
     }
 
     @Override
-    default boolean isEmpty(EncoderContext context, T value) {
+    default boolean isEmpty(EncoderContext context, @Nullable T value) {
         throw new IllegalStateException("Specific serializer required!");
     }
 
     @Override
-    default boolean isAbsent(EncoderContext context, T value) {
+    default boolean isAbsent(EncoderContext context, @Nullable T value) {
         throw new IllegalStateException("Specific serializer required!");
     }
 }

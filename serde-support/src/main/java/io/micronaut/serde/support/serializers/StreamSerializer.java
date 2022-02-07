@@ -20,7 +20,7 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.SpecificOnlySerializer;
+import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 @Singleton
-final class StreamSerializer<T> implements SpecificOnlySerializer<Stream<T>> {
+final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>> {
 
     @Override
     public Serializer<Stream<T>> createSpecific(EncoderContext context, Argument<? extends Stream<T>> type) throws SerdeException {

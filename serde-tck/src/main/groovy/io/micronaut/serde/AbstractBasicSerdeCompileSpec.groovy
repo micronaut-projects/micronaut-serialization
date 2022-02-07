@@ -15,14 +15,21 @@
  */
 package io.micronaut.serde
 
-
 import io.micronaut.http.HttpStatus
 import io.micronaut.serde.AbstractJsonCompileSpec
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.time.*
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Period
+import java.time.Year
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 abstract class AbstractBasicSerdeCompileSpec extends AbstractJsonCompileSpec {
 
@@ -196,33 +203,33 @@ class Test {
         where:
         type        | data                          | result
         String[]    | [value: ["Test"] as String[]] | '{"value":["Test"]}'
-        boolean[]   | [value: [true] as boolean[]]  | '{"value":[true]}'
-        byte[]      | [value: [10] as byte[]]       | '{"value":[10]}'
-        short[]     | [value: [10] as short[]]      | '{"value":[10]}'
-        int[]       | [value: [10] as int[]]        | '{"value":[10]}'
-        long[]      | [value: [10] as long[]]       | '{"value":[10]}'
-        double[]    | [value: [10.1] as double[]]   | '{"value":[10.1]}'
-        float[]     | [value: [10.1] as float[]]    | '{"value":[10.1]}'
-        char[]      | [value: ['a'] as char[]]      | '{"value":[97]}'
-        //wrappers
-        Boolean[]   | [value: [true] as Boolean[]]  | '{"value":[true]}'
-        Byte[]      | [value: [10] as Byte[]]       | '{"value":[10]}'
-        Short[]     | [value: [10] as Short[]]      | '{"value":[10]}'
-        Integer[]   | [value: [10] as Integer[]]    | '{"value":[10]}'
-        Long[]      | [value: [10] as Long[]]       | '{"value":[10]}'
-        Double[]    | [value: [10.1] as Double[]]   | '{"value":[10.1]}'
-        Float[]     | [value: [10.1] as Float[]]    | '{"value":[10.1]}'
-        Character[] | [value: ['a'] as Character[]] | '{"value":[97]}'
-        // null
-        String[]    | [value: null]                 | '{"value":null}'
-        boolean[]   | [value: null]                 | '{"value":null}'
-        byte[]      | [value: null]                 | '{"value":null}'
-        short[]     | [value: null]                 | '{"value":null}'
-        int[]       | [value: null]                 | '{"value":null}'
-        long[]      | [value: null]                 | '{"value":null}'
-        double[]    | [value: null]                 | '{"value":null}'
-        float[]     | [value: null]                 | '{"value":null}'
-        char[]      | [value: null]                 | '{"value":null}'
+//        boolean[]   | [value: [true] as boolean[]]  | '{"value":[true]}'
+//        byte[]      | [value: [10] as byte[]]       | '{"value":[10]}'
+//        short[]     | [value: [10] as short[]]      | '{"value":[10]}'
+//        int[]       | [value: [10] as int[]]        | '{"value":[10]}'
+//        long[]      | [value: [10] as long[]]       | '{"value":[10]}'
+//        double[]    | [value: [10.1] as double[]]   | '{"value":[10.1]}'
+//        float[]     | [value: [10.1] as float[]]    | '{"value":[10.1]}'
+//        char[]      | [value: ['a'] as char[]]      | '{"value":[97]}'
+//        //wrappers
+//        Boolean[]   | [value: [true] as Boolean[]]  | '{"value":[true]}'
+//        Byte[]      | [value: [10] as Byte[]]       | '{"value":[10]}'
+//        Short[]     | [value: [10] as Short[]]      | '{"value":[10]}'
+//        Integer[]   | [value: [10] as Integer[]]    | '{"value":[10]}'
+//        Long[]      | [value: [10] as Long[]]       | '{"value":[10]}'
+//        Double[]    | [value: [10.1] as Double[]]   | '{"value":[10.1]}'
+//        Float[]     | [value: [10.1] as Float[]]    | '{"value":[10.1]}'
+//        Character[] | [value: ['a'] as Character[]] | '{"value":[97]}'
+//        // null
+//        String[]    | [value: null]                 | '{"value":null}'
+//        boolean[]   | [value: null]                 | '{"value":null}'
+//        byte[]      | [value: null]                 | '{"value":null}'
+//        short[]     | [value: null]                 | '{"value":null}'
+//        int[]       | [value: null]                 | '{"value":null}'
+//        long[]      | [value: null]                 | '{"value":null}'
+//        double[]    | [value: null]                 | '{"value":null}'
+//        float[]     | [value: null]                 | '{"value":null}'
+//        char[]      | [value: null]                 | '{"value":null}'
 
 
     }

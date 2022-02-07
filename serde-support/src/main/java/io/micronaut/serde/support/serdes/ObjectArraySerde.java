@@ -21,7 +21,7 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.SpecificOnlyDeserializer;
-import io.micronaut.serde.util.SpecificOnlySerializer;
+import io.micronaut.serde.util.CustomizableSerializer;
 
 /**
  * Deserializer for object arrays.
@@ -29,20 +29,20 @@ import io.micronaut.serde.util.SpecificOnlySerializer;
  * @author graemerocher
  * @since 1.0.0
  */
-public class ObjectArraySerde implements Serde<Object[]>, SpecificOnlySerializer<Object[]>, SpecificOnlyDeserializer<Object[]> {
+public class ObjectArraySerde implements Serde<Object[]>, CustomizableSerializer<Object[]>, SpecificOnlyDeserializer<Object[]> {
     @Override
     public Deserializer<Object[]> createSpecific(DecoderContext context, Argument<? super Object[]> type)
             throws SerdeException {
 
         final Argument<Object> componentType =  Argument.of((Class<Object>) type.getType().getComponentType());
         final Deserializer<?> deserializer = context.findDeserializer(componentType).createSpecific(context, componentType);
-        return new SpecificObjectDeserializerArraySerde(componentType, deserializer);
+        return new CustomizedObjectArrayDeserializer(componentType, deserializer);
     }
 
     @Override
     public Serializer<Object[]> createSpecific(EncoderContext context, Argument<? extends Object[]> type) throws SerdeException {
         final Argument<Object> componentType =  Argument.of((Class<Object>) type.getType().getComponentType());
         final Serializer<? super Object> serializer = context.findSerializer(componentType).createSpecific(context, componentType);
-        return new SpecificObjectSerializerArraySerde(componentType, serializer);
+        return new CustomizedObjectArraySerializer(componentType, serializer);
     }
 }

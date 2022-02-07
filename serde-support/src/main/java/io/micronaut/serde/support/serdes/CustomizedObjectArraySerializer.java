@@ -28,12 +28,12 @@ import java.io.IOException;
  * @author graemerocher
  * @since 1.0.0
  */
-public class SpecificObjectSerializerArraySerde implements Serializer<Object[]> {
+public final class CustomizedObjectArraySerializer implements Serializer<Object[]> {
 
     private final Argument<Object> componentType;
     private final Serializer<Object> componentSerializer;
 
-    public SpecificObjectSerializerArraySerde(Argument<Object> componentType, Serializer<Object> componentSerializer) {
+    public CustomizedObjectArraySerializer(Argument<Object> componentType, Serializer<Object> componentSerializer) {
         this.componentType = componentType;
         this.componentSerializer = componentSerializer;
     }
@@ -43,7 +43,6 @@ public class SpecificObjectSerializerArraySerde implements Serializer<Object[]> 
             throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
         // TODO: need better generics handling in core for arrays
-        final Argument<?> componentType = Argument.of(type.getType().getComponentType());
         for (Object v : value) {
             componentSerializer.serialize(
                     arrayEncoder,

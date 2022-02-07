@@ -30,7 +30,7 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.TypeKey;
-import io.micronaut.serde.util.SpecificOnlySerializer;
+import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -58,7 +58,7 @@ import java.util.function.Supplier;
 @Internal
 @Singleton
 @Primary
-public final class ObjectSerializer implements SpecificOnlySerializer<Object> {
+public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
     private final SerializationConfiguration configuration;
     private final Map<TypeKey, Supplier<SerBean<Object>>> serBeanMap = new ConcurrentHashMap<>(50);
@@ -139,7 +139,7 @@ public final class ObjectSerializer implements SpecificOnlySerializer<Object> {
                 final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
                 Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
                 Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
-                return new SpecificObjectSerializer<Object>(serBean) {
+                return new CustomizedObjectSerializer<Object>(serBean) {
                     @Override
                     protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
                         final List<SerBean.SerProperty<Object, Object>> writeProperties =
@@ -159,7 +159,7 @@ public final class ObjectSerializer implements SpecificOnlySerializer<Object> {
 
                 };
             } else {
-                return new SpecificObjectSerializer<>(serBean);
+                return new CustomizedObjectSerializer<>(serBean);
             }
         }
     }

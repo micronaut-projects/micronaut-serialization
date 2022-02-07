@@ -82,7 +82,7 @@ final class SerBean<T> {
     private List<Initializer<SerProperty<T, Object>>> writePropertiesInitializer;
     private Initializer<SerProperty<T, Object>> jsonValueInitializer;
     private Initializer<SerProperty<T, Object>> anyGetterInitializer;
-    public boolean initialized;
+    public volatile boolean initialized;
 
     // CHECKSTYLE:ON
 
@@ -292,24 +292,28 @@ final class SerBean<T> {
 
     public synchronized void initialize() throws SerdeException {
         if (!initialized) {
-            if (writePropertiesInitializer == null) {
-                writeProperties = Collections.emptyList();
-            } else {
-                writeProperties = new ArrayList<>(writePropertiesInitializer.size());
-                for (Initializer<SerProperty<T, Object>> i : writePropertiesInitializer) {
-                    writeProperties.add(i.initialize());
+            synchronized (this) {
+                if (!initialized) {
+                    if (writePropertiesInitializer == null) {
+                        writeProperties = Collections.emptyList();
+                    } else {
+                        writeProperties = new ArrayList<>(writePropertiesInitializer.size());
+                        for (Initializer<SerProperty<T, Object>> i : writePropertiesInitializer) {
+                            writeProperties.add(i.initialize());
+                        }
+                        writePropertiesInitializer = null;
+                    }
+                    if (anyGetterInitializer != null) {
+                        anyGetter = anyGetterInitializer.initialize();
+                        anyGetterInitializer = null;
+                    }
+                    if (jsonValueInitializer != null) {
+                        jsonValue = jsonValueInitializer.initialize();
+                        jsonValueInitializer = null;
+                    }
+                    initialized = true;
                 }
-                writePropertiesInitializer = null;
             }
-            if (anyGetterInitializer != null) {
-                anyGetter = anyGetterInitializer.initialize();
-                anyGetterInitializer = null;
-            }
-            if (jsonValueInitializer != null) {
-                jsonValue = jsonValueInitializer.initialize();
-                jsonValueInitializer = null;
-            }
-            initialized = true;
         }
     }
 

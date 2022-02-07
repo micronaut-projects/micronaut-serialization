@@ -22,7 +22,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.SpecificOnlySerializer;
+import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.Optional;
  * @param <V> The value type
  */
 @Singleton
-final class OptionalMultiValuesSerializer<V> implements SpecificOnlySerializer<OptionalMultiValues<V>> {
+final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<OptionalMultiValues<V>> {
     private final boolean alwaysSerializeErrorsAsList;
 
     public OptionalMultiValuesSerializer(SerializationConfiguration jacksonConfiguration) {
