@@ -49,6 +49,7 @@ final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
             }
             componentSerializer.serialize(childEncoder, context, generic, t);
         }
+        childEncoder.finishStructure();
     }
 
     @Override
