@@ -1,6 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
-import io.micronaut.serde.exceptions.SerdeException
+import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Requires
 import spock.lang.Unroll
@@ -277,8 +277,8 @@ record Test(
         bean = jsonMapper.readValue('{"ignored":true}', argumentOf(context, 'test.Test'))
 
         then:
-        def e = thrown(SerdeException)
-        e.cause.cause.message.contains("Constructor Argument [int number] of type [test.Test] defines an invalid default value")
+        def e = thrown(IntrospectionException)
+        e.cause.message.contains("Constructor Argument [int number] of type [test.Test] defines an invalid default value")
 
         cleanup:
         context.close()
