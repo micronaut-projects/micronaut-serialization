@@ -23,9 +23,11 @@ import io.micronaut.core.type.Argument;
  */
 public final class TypeKey {
     private final Argument<?> type;
+    private final int hashCode;
 
     public TypeKey(@NonNull Argument<?> type) {
         this.type = type;
+        this.hashCode = type.typeHashCode();
     }
 
     @Override
@@ -42,7 +44,7 @@ public final class TypeKey {
 
     @Override
     public int hashCode() {
-        return type.typeHashCode();
+        return hashCode;
     }
 
     public @NonNull Argument<?> getType() {

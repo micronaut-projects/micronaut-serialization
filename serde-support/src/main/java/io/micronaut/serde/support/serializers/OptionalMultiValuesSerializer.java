@@ -22,6 +22,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SpecificOnlySerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -31,10 +32,11 @@ import java.util.Optional;
 
 /**
  * Serializer for {@link OptionalMultiValues}.
+ *
  * @param <V> The value type
  */
 @Singleton
-final class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMultiValues<V>> {
+final class OptionalMultiValuesSerializer<V> implements SpecificOnlySerializer<OptionalMultiValues<V>> {
     private final boolean alwaysSerializeErrorsAsList;
 
     public OptionalMultiValuesSerializer(SerializationConfiguration jacksonConfiguration) {
@@ -42,54 +44,58 @@ final class OptionalMultiValuesSerializer<V> implements Serializer<OptionalMulti
     }
 
     @Override
-    public void serialize(Encoder encoder,
-                          EncoderContext context,
-                          Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
-        Objects.requireNonNull(value, "Values can't be null");
+    public Serializer<OptionalMultiValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalMultiValues<V>> type) throws SerdeException {
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw OptionalMultiValues");
         }
         final Argument generic = generics[0];
         final Argument listGeneric = Argument.listOf(generic);
-        Serializer listSerializer = context.findSerializer(listGeneric);
-        Serializer valueSerializer = context.findSerializer(generic);
-        Encoder objectEncoder = encoder.encodeObject(type);
-        for (CharSequence key : value) {
-            Optional<? extends List<V>> opt = value.get(key);
-            if (opt.isPresent()) {
-                String fieldName = key.toString();
-                objectEncoder.encodeKey(fieldName);
-                List<V> list = opt.get();
-                if (alwaysSerializeErrorsAsList) {
-                    listSerializer.serialize(
-                            objectEncoder,
-                            context,
-                            listGeneric, list
-                    );
-                } else {
-                    if (list.size() == 1) {
-                        valueSerializer.serialize(
-                                objectEncoder,
-                                context,
-                                generic, list.get(0)
-                        );
-                    } else {
-                        listSerializer.serialize(
-                                objectEncoder,
-                                context,
-                                listGeneric, list
-                        );
+        Serializer listSerializer = context.findSerializer(listGeneric).createSpecific(context, listGeneric);
+        Serializer valueSerializer = context.findSerializer(generic).createSpecific(context, generic);
+        return new Serializer<OptionalMultiValues<V>>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
+                Objects.requireNonNull(value, "Values can't be null");
+
+                Encoder objectEncoder = encoder.encodeObject(type);
+                for (CharSequence key : value) {
+                    Optional<? extends List<V>> opt = value.get(key);
+                    if (opt.isPresent()) {
+                        String fieldName = key.toString();
+                        objectEncoder.encodeKey(fieldName);
+                        List<V> list = opt.get();
+                        if (alwaysSerializeErrorsAsList) {
+                            listSerializer.serialize(
+                                    objectEncoder,
+                                    context,
+                                    listGeneric, list
+                            );
+                        } else {
+                            if (list.size() == 1) {
+                                valueSerializer.serialize(
+                                        objectEncoder,
+                                        context,
+                                        generic, list.get(0)
+                                );
+                            } else {
+                                listSerializer.serialize(
+                                        objectEncoder,
+                                        context,
+                                        listGeneric, list
+                                );
+                            }
+                        }
                     }
                 }
+                objectEncoder.finishStructure();
             }
-        }
-        objectEncoder.finishStructure();
-    }
 
-    @Override
-    public boolean isEmpty(OptionalMultiValues<V> value) {
-        return value == null || value.isEmpty();
+            @Override
+            public boolean isEmpty(EncoderContext context, OptionalMultiValues<V> value) {
+                return value == null || value.isEmpty();
+            }
+        };
     }
 
 }

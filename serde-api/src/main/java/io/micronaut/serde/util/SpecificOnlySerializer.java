@@ -16,31 +16,31 @@
 package io.micronaut.serde.util;
 
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
 
 import java.io.IOException;
 
 /**
- * The type of deserializer that requires a specific implementation by calling {@link #createSpecific(DecoderContext, Argument)}.
+ * The type of serializer that requires a specific implementation by calling {@link #createSpecific(Serializer.EncoderContext, Argument)}.
  *
- * @param <T> The deserializer type
+ * @param <T> The serializer type
  * @author Denis Stepanov
  */
-public interface SpecificOnlyDeserializer<T> extends Deserializer<T> {
+public interface SpecificOnlySerializer<T> extends Serializer<T> {
 
     @Override
-    default T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
-        throw new IllegalStateException("Specific deserializer required!");
+    default void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        throw new IllegalStateException("Specific serializer required!");
     }
 
     @Override
-    default boolean allowNull() {
-        throw new IllegalStateException("Specific deserializer required!");
+    default boolean isEmpty(EncoderContext context, T value) {
+        throw new IllegalStateException("Specific serializer required!");
     }
 
     @Override
-    default T getDefaultValue(DecoderContext context, Argument<? super T> type) {
-        throw new IllegalStateException("Specific deserializer required!");
+    default boolean isAbsent(EncoderContext context, T value) {
+        throw new IllegalStateException("Specific serializer required!");
     }
 }

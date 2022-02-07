@@ -66,19 +66,23 @@ public interface Serializer<T> {
 
     /**
      * Used for {@code JsonInclude.Include#NON_EMPTY} checking.
+     *
+     * @param context The encoder context
      * @param value The check to check
      * @return Return {@code true} if the value is empty
      */
-    default boolean isEmpty(@Nullable T value) {
+    default boolean isEmpty(@NonNull EncoderContext context, @Nullable T value) {
         return value == null;
     }
 
     /**
      * Used for {@code JsonInclude.Include#NON_ABSENT} checking.
+     *
+     * @param context The encoder context
      * @param value The value to check
      * @return Return {@code true} if the value is absent
      */
-    default boolean isAbsent(T value) {
+    default boolean isAbsent(@NonNull EncoderContext context, @Nullable T value) {
         return value == null;
     }
 

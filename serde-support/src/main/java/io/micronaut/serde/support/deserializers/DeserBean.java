@@ -118,7 +118,7 @@ class DeserBean<T> {
                                 constructorArgument,
                                 null,
                                 null,
-                                decoderContext.findDeserializer(constructorArgument),
+                                findDeserializer(decoderContext, constructorArgument),
                                 null,
                                 decoderContext
                         ),
@@ -440,12 +440,12 @@ class DeserBean<T> {
                 );
     }
 
-    private Deserializer<Object> findDeserializer(Deserializer.DecoderContext decoderContext, Argument<Object> argument) throws SerdeException {
+    private static <T> Deserializer<T> findDeserializer(Deserializer.DecoderContext decoderContext, Argument<T> argument) throws SerdeException {
         Class customDeser = argument.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).orElse(null);
         if (customDeser != null) {
             return decoderContext.findCustomDeserializer(customDeser);
         }
-        return (Deserializer<Object>) decoderContext.findDeserializer(argument);
+        return (Deserializer<T>) decoderContext.findDeserializer(argument);
     }
 
     static final class AnySetter<T> {
@@ -465,7 +465,7 @@ class DeserBean<T> {
             final Argument<T> argument =
                     (Argument<T>) (singleArg ? arguments[0].getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT) : arguments[1]);
             this.valueType = argument;
-            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, argument);
             if (singleArg) {
                 this.valueSetter = null;
                 this.mapSetter = anySetter::invoke;
@@ -482,7 +482,7 @@ class DeserBean<T> {
             // otherwise we are dealing with 2 parameter variant
             final Argument<T> argument = (Argument<T>) anySetter.asArgument().getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT);
             this.valueType = argument;
-            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, argument);
             this.mapSetter = anySetter::set;
             this.valueSetter = null;
         }
@@ -495,7 +495,7 @@ class DeserBean<T> {
             // otherwise we are dealing with 2 parameter variant
             final Argument<T> argument = (Argument<T>) anySetter.getTypeVariable("V").orElse(Argument.OBJECT_ARGUMENT);
             this.valueType = argument;
-            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : decoderContext.findDeserializer(argument);
+            this.deserializer = argument.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, argument);
             this.mapSetter = (o, map) -> {
                 ((Object[]) o)[index] = map;
             };

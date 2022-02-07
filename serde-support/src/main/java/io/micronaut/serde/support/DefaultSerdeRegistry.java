@@ -633,7 +633,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(boolean[] value) {
+        public boolean isEmpty(EncoderContext context, boolean[] value) {
             return value == null || value.length == 0;
         }
 
@@ -675,7 +675,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(double[] value) {
+        public boolean isEmpty(EncoderContext context, double[] value) {
             return value == null || value.length == 0;
         }
 
@@ -717,7 +717,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(short[] value) {
+        public boolean isEmpty(EncoderContext context, short[] value) {
             return value == null || value.length == 0;
         }
 
@@ -759,7 +759,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(float[] value) {
+        public boolean isEmpty(EncoderContext context, float[] value) {
             return value == null || value.length == 0;
         }
 
@@ -802,7 +802,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(long[] value) {
+        public boolean isEmpty(EncoderContext context, long[] value) {
             return value == null || value.length == 0;
         }
 
@@ -844,7 +844,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(char[] value) {
+        public boolean isEmpty(EncoderContext context, char[] value) {
             return value == null || value.length == 0;
         }
 
@@ -886,7 +886,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(byte[] value) {
+        public boolean isEmpty(EncoderContext context, byte[] value) {
             return value == null || value.length == 0;
         }
 
@@ -928,7 +928,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(int[] value) {
+        public boolean isEmpty(EncoderContext context, int[] value) {
             return value == null || value.length == 0;
         }
 
@@ -1132,12 +1132,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(OptionalInt value) {
+        public boolean isEmpty(EncoderContext context, OptionalInt value) {
             return value == null || !value.isPresent();
         }
 
         @Override
-        public boolean isAbsent(OptionalInt value) {
+        public boolean isAbsent(EncoderContext context, OptionalInt value) {
             return value == null || !value.isPresent();
         }
 
@@ -1174,12 +1174,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(OptionalDouble value) {
+        public boolean isEmpty(EncoderContext context, OptionalDouble value) {
             return value == null || !value.isPresent();
         }
 
         @Override
-        public boolean isAbsent(OptionalDouble value) {
+        public boolean isAbsent(EncoderContext context, OptionalDouble value) {
             return value == null || !value.isPresent();
         }
 
@@ -1224,12 +1224,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEmpty(OptionalLong value) {
+        public boolean isEmpty(EncoderContext context, OptionalLong value) {
             return value == null || !value.isPresent();
         }
 
         @Override
-        public boolean isAbsent(OptionalLong value) {
+        public boolean isAbsent(EncoderContext context, OptionalLong value) {
             return value == null || !value.isPresent();
         }
 

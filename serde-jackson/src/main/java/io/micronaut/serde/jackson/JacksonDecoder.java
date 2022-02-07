@@ -16,7 +16,6 @@
 package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;

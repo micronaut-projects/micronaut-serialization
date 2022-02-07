@@ -15,11 +15,6 @@
  */
 package io.micronaut.serde.support;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationMetadataProvider;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -37,8 +32,13 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+
+import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -108,7 +108,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                 return result;
             }
         } else {
-            throw new IntrospectionException("No serializable introspection present for type " + type + ". Consider adding Serdeable.Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeImport(" + type.getSimpleName() + ".class) to enable serialization of this type.");
+            throw new IntrospectionException("No serializable introspection present for type " + type + ". Consider adding Serdeable. Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeImport(" + type.getSimpleName() + ".class) to enable serialization of this type.");
         }
     }
 

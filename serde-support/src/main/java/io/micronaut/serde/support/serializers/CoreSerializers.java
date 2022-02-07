@@ -15,10 +15,8 @@
  */
 package io.micronaut.serde.support.serializers;
 
-import java.io.IOException;
-import java.util.Map;
-
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -26,13 +24,17 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SpecificOnlySerializer;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Factory class for core serializers.
  */
 @Factory
-public class CoreSerializers {
+public final class CoreSerializers {
 
     /**
      * A serializer for all instances of {@link java.lang.CharSequence}.
@@ -54,7 +56,25 @@ public class CoreSerializers {
             }
 
             @Override
-            public boolean isEmpty(CharSequence value) {
+            public boolean isEmpty(EncoderContext context, CharSequence value) {
+                return value == null || value.length() == 0;
+            }
+        };
+    }
+
+    @Singleton
+    @Order(1000) // prioritize over character
+    protected Serializer<String> stringSerializer() {
+        return new Serializer<String>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  Argument<? extends String> type, String value) throws IOException {
+                encoder.encodeString(value);
+            }
+
+            @Override
+            public boolean isEmpty(EncoderContext context, String value) {
                 return value == null || value.length() == 0;
             }
         };
@@ -83,63 +103,78 @@ public class CoreSerializers {
     /**
      * A serializer for maps.
      *
-     * @param <K>  The key type
-     * @param <V>  The value type
+     * @param <K> The key type
+     * @param <V> The value type
      * @return A bit decimal serializer
      */
     @Singleton
     protected <K, V> Serializer<Map<K, V>> mapSerializer() {
-        return new Serializer<Map<K, V>>() {
+        return new SpecificOnlySerializer<Map<K, V>>() {
+
             @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                final Encoder childEncoder = encoder.encodeObject(type);
+            public Serializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
                 final Argument[] generics = type.getTypeParameters();
                 final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
                 if (hasGenerics) {
-
                     final Argument<V> valueGeneric = (Argument<V>) generics[1];
-                    final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
-                    for (K k : value.keySet()) {
-                        encodeMapKey(context, childEncoder, k);
-                        final V v = value.get(k);
-                        if (v == null) {
-                            childEncoder.encodeNull();
-                        } else {
-                            valSerializer.serialize(
-                                    childEncoder,
-                                    context,
-                                    valueGeneric, v
-                            );
+                    final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+                    return new Serializer<Map<K, V>>() {
+                        @Override
+                        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
+                            final Encoder childEncoder = encoder.encodeObject(type);
+                            for (K k : value.keySet()) {
+                                encodeMapKey(context, childEncoder, k);
+                                final V v = value.get(k);
+                                if (v == null) {
+                                    childEncoder.encodeNull();
+                                } else {
+                                    valSerializer.serialize(
+                                            childEncoder,
+                                            context,
+                                            valueGeneric, v
+                                    );
+                                }
+                            }
+                            childEncoder.finishStructure();
                         }
-                    }
+
+                        @Override
+                        public boolean isEmpty(EncoderContext context, Map<K, V> value) {
+                            return CollectionUtils.isEmpty(value);
+                        }
+                    };
                 } else {
-                    // slow path, lookup each value serializer
-                    for (Map.Entry<K, V> entry : value.entrySet()) {
-                        encodeMapKey(context, childEncoder, entry.getKey());
-                        final V v = entry.getValue();
-                        if (v == null) {
-                            childEncoder.encodeNull();
-                        } else {
-                            @SuppressWarnings("unchecked")
-                            final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric);
-                            valSerializer.serialize(
-                                    childEncoder,
-                                    context,
-                                    valueGeneric, v
-                            );
+                    return new Serializer<Map<K, V>>() {
+                        @Override
+                        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
+                            // slow path, lookup each value serializer
+                            final Encoder childEncoder = encoder.encodeObject(type);
+                            for (Map.Entry<K, V> entry : value.entrySet()) {
+                                encodeMapKey(context, childEncoder, entry.getKey());
+                                final V v = entry.getValue();
+                                if (v == null) {
+                                    childEncoder.encodeNull();
+                                } else {
+                                    @SuppressWarnings("unchecked") final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
+                                    final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric);
+                                    valSerializer.serialize(
+                                            childEncoder,
+                                            context,
+                                            valueGeneric, v
+                                    );
+                                }
+                            }
+                            childEncoder.finishStructure();
                         }
-                    }
+
+                        @Override
+                        public boolean isEmpty(EncoderContext context, Map<K, V> value) {
+                            return CollectionUtils.isEmpty(value);
+                        }
+                    };
                 }
-                childEncoder.finishStructure();
             }
 
-            @Override
-            public boolean isEmpty(Map<K, V> value) {
-                return CollectionUtils.isEmpty(value);
-            }
         };
     }
 

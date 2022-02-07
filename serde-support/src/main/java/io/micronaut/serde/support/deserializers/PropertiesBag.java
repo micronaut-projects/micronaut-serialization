@@ -35,6 +35,7 @@ import java.util.stream.Stream;
  * The collection of properties. Some operations are delegating to {@link BeanIntrospection} property index resolving,
  * which is using compile-time string switch instead of map.
  *
+ * @param <T> The bean type
  * @author Denis Stepanov
  * @since 1.0.0
  */
@@ -45,6 +46,7 @@ final class PropertiesBag<T> {
     private List<DeserBean.DerProperty<T, Object>> properties;
     @Nullable
     private Map<String, Integer> nameToPropertiesMapping;
+
     public PropertiesBag(BeanIntrospection<T> beanIntrospection) {
         this(beanIntrospection, beanIntrospection.getBeanProperties().size());
     }

@@ -845,7 +845,7 @@ class BSerializer implements Serializer<B> {
     }
 
     @Override
-    public boolean isEmpty(B value) {
+    public boolean isEmpty(EncoderContext context, B value) {
         return value == null || !value.present;
     }
 }
@@ -1002,7 +1002,7 @@ class UpperCaseSer implements Serializer<String> {
     }
 
     @Override
-    public boolean isEmpty(String value) {
+    public boolean isEmpty(EncoderContext context, String value) {
         return value.isEmpty();
     }
 }

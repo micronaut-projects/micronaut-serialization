@@ -63,9 +63,14 @@ public class ObjectDeserializer implements SpecificOnlyDeserializer<Object>, Des
         return (DeserBean<T>) getDeserializableBeanSupplier((Argument) type, decoderContext).get();
     }
 
-    public Supplier<DeserBean<? super Object>> getDeserializableBeanSupplier(Argument<Object> type, DecoderContext decoderContext) {
+    public final Supplier<DeserBean<? super Object>> getDeserializableBeanSupplier(Argument<Object> type, DecoderContext decoderContext) {
         TypeKey key = new TypeKey(type);
-        return deserBeanMap.computeIfAbsent(key, typeKey -> SupplierUtil.memoized(() -> createDeserBean(type, decoderContext)));
+        Supplier<DeserBean<? super Object>> deserBeanSupplier = deserBeanMap.get(key);
+        if (deserBeanSupplier == null) {
+            deserBeanSupplier = SupplierUtil.memoized(() -> createDeserBean(type, decoderContext));
+            deserBeanMap.put(key, deserBeanSupplier);
+        }
+        return deserBeanSupplier;
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type, DecoderContext decoderContext) {

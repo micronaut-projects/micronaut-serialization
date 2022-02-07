@@ -15,21 +15,22 @@
  */
 package io.micronaut.serde.support.serializers;
 
-import java.io.IOException;
-import java.util.Collection;
-
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SpecificOnlySerializer;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.util.Collection;
 
 /**
  * A serializer for any iterable.
  * @param <T> The generic type
  */
 @Singleton
-final class IterableSerializer<T> implements Serializer<Iterable<T>> {
+final class IterableSerializer<T> implements SpecificOnlySerializer<Iterable<T>> {
     @Override
     public Serializer<Iterable<T>> createSpecific(EncoderContext context, Argument<? extends Iterable<T>> type)
             throws SerdeException {
@@ -37,55 +38,46 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
         if (generics.length > 0) {
 
             @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) generics[0];
-            Serializer<? super T> componentSerializer = context.findSerializer(generic);
+            Serializer<? super T> componentSerializer = context.findSerializer(generic)
+                    .createSpecific(context, generic);
             return new InnerIterableSerializer(generic, componentSerializer);
         }
-        return this;
+        return new Serializer<Iterable<T>>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value) throws IOException {
+                // slow path, generic look up per element
+                final Encoder childEncoder = encoder.encodeArray(type);
+                Class lastValueClass = null;
+                Serializer<? super T> componentSerializer = null;
+                Argument<T> generic = null;
+                for (T t : value) {
+                    if (t == null) {
+                        encoder.encodeNull();
+                        continue;
+                    }
+                    if (lastValueClass != t.getClass()) {
+                        generic = (Argument<T>) Argument.of(t.getClass());
+                        componentSerializer = context.findSerializer(generic).createSpecific(context, generic);
+                        lastValueClass = t.getClass();
+                    }
+                    componentSerializer.serialize(childEncoder, context, generic, t);
+                }
+            }
+
+            @Override
+            public boolean isEmpty(EncoderContext context, Iterable<T> value) {
+                return IterableSerializer.this.isEmpty(context, value);
+            }
+
+            @Override
+            public boolean isAbsent(EncoderContext context, Iterable<T> value) {
+                return IterableSerializer.this.isAbsent(context, value);
+            }
+        };
     }
 
     @Override
-    public void serialize(Encoder encoder,
-                          EncoderContext context,
-                          Argument<? extends Iterable<T>> type, Iterable<T> value) throws IOException {
-        final Encoder childEncoder = encoder.encodeArray(type);
-        final Argument<?>[] generics = type.getTypeParameters();
-        if (generics.length > 0) {
-            @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) generics[0];
-            Serializer<? super T> componentSerializer = context.findSerializer(generic);
-
-            for (T t : value) {
-                if (t == null) {
-                    encoder.encodeNull();
-                } else {
-                    componentSerializer.serialize(
-                            childEncoder,
-                            context,
-                            generic, t
-                    );
-                }
-            }
-        } else {
-            // slow path, generic look up per element
-            for (T t : value) {
-                if (t == null) {
-                    encoder.encodeNull();
-                    continue;
-                }
-                @SuppressWarnings("unchecked")
-                final Argument<T> generic = (Argument<T>) Argument.of(t.getClass());
-                Serializer<? super T> componentSerializer = context.findSerializer(generic);
-                componentSerializer.serialize(
-                        childEncoder,
-                        context,
-                        generic, t
-                );
-            }
-        }
-        childEncoder.finishStructure();
-    }
-
-    @Override
-    public boolean isEmpty(Iterable<T> value) {
+    public boolean isEmpty(EncoderContext context, Iterable<T> value) {
         if (value == null) {
             return true;
         }
@@ -94,6 +86,11 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
         } else {
             return !value.iterator().hasNext();
         }
+    }
+
+    @Override
+    public boolean isAbsent(EncoderContext context, Iterable<T> value) {
+        return value == null;
     }
 
     private final class InnerIterableSerializer implements Serializer<Iterable<T>> {
@@ -124,13 +121,13 @@ final class IterableSerializer<T> implements Serializer<Iterable<T>> {
         }
 
         @Override
-        public boolean isEmpty(Iterable<T> value) {
-            return IterableSerializer.this.isEmpty(value);
+        public boolean isEmpty(EncoderContext context, Iterable<T> value) {
+            return IterableSerializer.this.isEmpty(context, value);
         }
 
         @Override
-        public boolean isAbsent(Iterable<T> value) {
-            return IterableSerializer.this.isAbsent(value);
+        public boolean isAbsent(EncoderContext context, Iterable<T> value) {
+            return IterableSerializer.this.isAbsent(context, value);
         }
     }
 }

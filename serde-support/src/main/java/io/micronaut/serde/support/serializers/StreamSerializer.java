@@ -20,6 +20,7 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.SpecificOnlySerializer;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -27,31 +28,33 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 @Singleton
-final class StreamSerializer<T> implements Serializer<Stream<T>> {
+final class StreamSerializer<T> implements SpecificOnlySerializer<Stream<T>> {
 
     @Override
-    public void serialize(Encoder encoder,
-                          EncoderContext context,
-                          Argument<? extends Stream<T>> type, Stream<T> value) throws IOException {
-        if (value == null) {
-            throw new SerdeException("Stream is required");
-        }
+    public Serializer<Stream<T>> createSpecific(EncoderContext context, Argument<? extends Stream<T>> type) throws SerdeException {
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw stream");
         }
         final Argument generic = generics[0];
-        final Serializer componentSerializer = context.findSerializer(generic);
-
-        Encoder arrayEncoder = encoder.encodeArray(type);
-        Iterator<T> itr = value.iterator();
-        while (itr.hasNext()) {
-            componentSerializer
-                    .serialize(
-                            encoder,
-                            context, generic, itr.next()
-                    );
-        }
-        arrayEncoder.finishStructure();
+        final Serializer componentSerializer = context.findSerializer(generic).createSpecific(context, type);
+        return new Serializer<Stream<T>>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Stream<T>> type, Stream<T> value) throws IOException {
+                if (value == null) {
+                    throw new SerdeException("Stream is required");
+                }
+                Encoder arrayEncoder = encoder.encodeArray(type);
+                Iterator<T> itr = value.iterator();
+                while (itr.hasNext()) {
+                    componentSerializer
+                            .serialize(
+                                    encoder,
+                                    context, generic, itr.next()
+                            );
+                }
+                arrayEncoder.finishStructure();
+            }
+        };
     }
-    }
+}
