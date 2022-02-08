@@ -250,6 +250,8 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * Overridden in {@link AbstractChildReuseStreamDecoder}.
      *
      * Create a child decoder, and transfer control of the stream to it (see {@link #checkChild()}).
+     *
+     * @return The new child decoder
      */
     AbstractStreamDecoder childDecoder() {
         return createChildDecoder();
