@@ -28,6 +28,13 @@ import java.math.BigInteger;
  * @since 1.0.0
  */
 public interface Encoder extends AutoCloseable {
+    default @NonNull void encodeArray(@NonNull EncoderOp encoderOp) throws IOException {
+    }
+
+    default @NonNull void encodeObject(@NonNull EncoderOp encoderOp) throws IOException {
+    }
+
+
     /**
      * Encodes an array.
      * @param type The array type, never {@code null}
@@ -156,5 +163,10 @@ public interface Encoder extends AutoCloseable {
      */
     default @NonNull String currentPath() {
         return "";
+    }
+
+    interface EncoderOp {
+
+        void apply(Encoder encoder) throws IOException;
     }
 }

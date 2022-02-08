@@ -34,11 +34,11 @@ final class StringArraySerializer implements Serializer<String[]> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends String[]> type, String[] strings)
             throws IOException {
-        final Encoder arrayEncoder = encoder.encodeArray(type);
-        for (String string : strings) {
-            arrayEncoder.encodeString(string);
-        }
-        arrayEncoder.finishStructure();
+        encoder.encodeArray(e -> {
+            for (String string : strings) {
+                encoder.encodeString(string);
+            }
+        });
     }
 
     @Override
