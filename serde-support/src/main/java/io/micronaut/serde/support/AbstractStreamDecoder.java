@@ -38,7 +38,7 @@ import java.util.function.Function;
 @Internal
 public abstract class AbstractStreamDecoder implements Decoder {
     @Nullable
-    private final AbstractStreamDecoder parent;
+    AbstractStreamDecoder parent;
 
     private AbstractStreamDecoder child = null;
 
@@ -130,7 +130,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
         return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected, null);
     }
 
-    private void checkChild() {
+    /**
+     * Check whether we have control of the stream. Parent decoders can't decode while their children are still valid,
+     * for example.
+     */
+    void checkChild() {
         if (child != null) {
             throw new IllegalStateException("There is still an unfinished child parser");
         }
@@ -180,9 +184,18 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
         if (parent != null) {
-            parent.child = null;
-            parent.backFromChild(this);
+            transferControlToParent();
         }
+    }
+
+    /**
+     * Overridden in {@link AbstractChildReuseStreamDecoder}.
+     *
+     * Transfer control back to the parent (for {@link #checkChild()}), and call {@link #backFromChild}.
+     */
+    void transferControlToParent() throws IOException {
+        parent.child = null;
+        parent.backFromChild(this);
     }
 
     /**
@@ -233,6 +246,15 @@ public abstract class AbstractStreamDecoder implements Decoder {
      */
     protected abstract AbstractStreamDecoder createChildDecoder();
 
+    /**
+     * Overridden in {@link AbstractChildReuseStreamDecoder}.
+     *
+     * Create a child decoder, and transfer control of the stream to it (see {@link #checkChild()}).
+     */
+    AbstractStreamDecoder childDecoder() {
+        return createChildDecoder();
+    }
+
     @NonNull
     @Override
     public final Decoder decodeArray(Argument<?> type) throws IOException {
@@ -241,7 +263,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw unexpectedToken(TokenType.START_ARRAY);
         }
         nextToken();
-        child = createChildDecoder();
+        child = childDecoder();
         return child;
     }
 
@@ -253,7 +275,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw unexpectedToken(TokenType.START_OBJECT);
         }
         nextToken();
-        child = createChildDecoder();
+        child = childDecoder();
         return child;
     }
 

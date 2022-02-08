@@ -21,6 +21,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractChildReuseStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.math.BigInteger;
  * Identical to {@link JacksonDecoder}, but specialized for {@link UTF8StreamJsonParser} for better inlining.
  */
 @Internal
-final class SpecializedJacksonDecoder extends AbstractStreamDecoder {
+final class SpecializedJacksonDecoder extends AbstractChildReuseStreamDecoder {
     private final UTF8StreamJsonParser parser;
 
     private SpecializedJacksonDecoder(@NonNull SpecializedJacksonDecoder parent) {

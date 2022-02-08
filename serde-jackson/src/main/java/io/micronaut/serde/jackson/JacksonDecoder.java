@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.support.AbstractChildReuseStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -32,7 +33,7 @@ import java.math.BigInteger;
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for Jackson.
  */
 @Internal
-public final class JacksonDecoder extends AbstractStreamDecoder {
+public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
     // Changes must be reflected in {@link SpecializedJacksonDecoder}!
 
     @Internal
