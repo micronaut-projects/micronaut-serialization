@@ -290,7 +290,7 @@ final class SerBean<T> {
         }
     }
 
-    public synchronized void initialize() throws SerdeException {
+    public void initialize() throws SerdeException {
         if (!initialized) {
             synchronized (this) {
                 if (!initialized) {
