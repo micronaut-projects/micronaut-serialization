@@ -53,12 +53,12 @@ public abstract class JacksonEncoder implements Encoder {
     public static Encoder create(@NonNull JsonGenerator generator) {
         Objects.requireNonNull(generator, "generator");
         if (generator instanceof UTF8JsonGenerator) {
-            return new SpecializedJacksonEncoder.OuterEncoder((UTF8JsonGenerator) generator);
+            return new SpecializedJacksonEncoder.ReuseChildEncoder((UTF8JsonGenerator) generator);
         }
-        return new OuterEncoder(generator);
+        return new ReuseChildEncoder(generator);
     }
 
-    private void checkChild() {
+    void checkChild() {
         if (child != null) {
             throw new IllegalStateException("There is still an unfinished child generator");
         }
@@ -67,14 +67,22 @@ public abstract class JacksonEncoder implements Encoder {
         }
     }
 
+    JacksonEncoder makeArrayChildEncoder() {
+        return new ArrayEncoder(this);
+    }
+
     @Override
     public final Encoder encodeArray(Argument<?> type) throws IOException {
         checkChild();
 
         generator.writeStartArray();
-        JacksonEncoder arrayEncoder = new ArrayEncoder(this);
+        JacksonEncoder arrayEncoder = makeArrayChildEncoder();
         child = arrayEncoder;
         return arrayEncoder;
+    }
+
+    JacksonEncoder makeObjectChildEncoder() {
+        return new ObjectEncoder(this);
     }
 
     @Override
@@ -82,7 +90,7 @@ public abstract class JacksonEncoder implements Encoder {
         checkChild();
 
         generator.writeStartObject();
-        JacksonEncoder objectEncoder = new ObjectEncoder(this);
+        JacksonEncoder objectEncoder = makeObjectChildEncoder();
         child = objectEncoder;
         return objectEncoder;
     }
@@ -98,11 +106,7 @@ public abstract class JacksonEncoder implements Encoder {
 
     @Override
     public final void close() throws IOException {
-        checkChild();
-        finishStructureToken();
-        if (parent != null) {
-            parent.child = null;
-        }
+        finishStructure();
     }
 
     protected abstract void finishStructureToken() throws IOException;
@@ -212,6 +216,55 @@ public abstract class JacksonEncoder implements Encoder {
         @Override
         protected void finishStructureToken() {
             throw new IllegalStateException("Not in structure");
+        }
+    }
+
+    private static final class ReuseChildEncoder extends JacksonEncoder {
+        private long type = 0;
+        private int depth = 0;
+
+        ReuseChildEncoder(@NonNull JsonGenerator generator) {
+            super(generator);
+        }
+
+        @Override
+        protected void finishStructureToken() throws IOException {
+            if (depth == 0) {
+                throw new IllegalStateException("Not in structure");
+            }
+            depth--;
+            if ((type & 1) == 0) {
+                generator.writeEndObject();
+            } else {
+                generator.writeEndArray();
+            }
+            type >>>= 1;
+        }
+
+        @Override
+        JacksonEncoder makeArrayChildEncoder() {
+            if (depth == 64) {
+                return super.makeArrayChildEncoder();
+            } else {
+                depth++;
+                type = (type << 1) | 1;
+                return this;
+            }
+        }
+
+        @Override
+        JacksonEncoder makeObjectChildEncoder() {
+            if (depth == 64) {
+                return super.makeObjectChildEncoder();
+            } else {
+                depth++;
+                type = type << 1;
+                return this;
+            }
+        }
+
+        @Override
+        void checkChild() {
         }
     }
 }

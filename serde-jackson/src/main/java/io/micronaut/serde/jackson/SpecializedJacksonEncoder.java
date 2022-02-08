@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.jackson;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import io.micronaut.core.annotation.NonNull;
@@ -47,7 +48,7 @@ abstract class SpecializedJacksonEncoder implements Encoder {
         this.parent = null;
     }
 
-    private void checkChild() {
+    void checkChild() {
         if (child != null) {
             throw new IllegalStateException("There is still an unfinished child generator");
         }
@@ -56,14 +57,22 @@ abstract class SpecializedJacksonEncoder implements Encoder {
         }
     }
 
+    SpecializedJacksonEncoder makeArrayChildEncoder() {
+        return new ArrayEncoder(this);
+    }
+
     @Override
     public final Encoder encodeArray(Argument<?> type) throws IOException {
         checkChild();
 
         generator.writeStartArray();
-        SpecializedJacksonEncoder arrayEncoder = new ArrayEncoder(this);
+        SpecializedJacksonEncoder arrayEncoder = makeArrayChildEncoder();
         child = arrayEncoder;
         return arrayEncoder;
+    }
+
+    SpecializedJacksonEncoder makeObjectChildEncoder() {
+        return new ObjectEncoder(this);
     }
 
     @Override
@@ -71,7 +80,7 @@ abstract class SpecializedJacksonEncoder implements Encoder {
         checkChild();
 
         generator.writeStartObject();
-        SpecializedJacksonEncoder objectEncoder = new ObjectEncoder(this);
+        SpecializedJacksonEncoder objectEncoder = makeObjectChildEncoder();
         child = objectEncoder;
         return objectEncoder;
     }
@@ -87,11 +96,7 @@ abstract class SpecializedJacksonEncoder implements Encoder {
 
     @Override
     public final void close() throws IOException {
-        checkChild();
-        finishStructureToken();
-        if (parent != null) {
-            parent.child = null;
-        }
+        finishStructure();
     }
 
     protected abstract void finishStructureToken() throws IOException;
@@ -201,6 +206,55 @@ abstract class SpecializedJacksonEncoder implements Encoder {
         @Override
         protected void finishStructureToken() {
             throw new IllegalStateException("Not in structure");
+        }
+    }
+
+    static final class ReuseChildEncoder extends SpecializedJacksonEncoder {
+        private long type = 0;
+        private int depth = 0;
+
+        ReuseChildEncoder(@NonNull UTF8JsonGenerator generator) {
+            super(generator);
+        }
+
+        @Override
+        protected void finishStructureToken() throws IOException {
+            if (depth == 0) {
+                throw new IllegalStateException("Not in structure");
+            }
+            depth--;
+            if ((type & 1) == 0) {
+                generator.writeEndObject();
+            } else {
+                generator.writeEndArray();
+            }
+            type >>>= 1;
+        }
+
+        @Override
+        SpecializedJacksonEncoder makeArrayChildEncoder() {
+            if (depth == 64) {
+                return super.makeArrayChildEncoder();
+            } else {
+                depth++;
+                type = (type << 1) | 1;
+                return this;
+            }
+        }
+
+        @Override
+        SpecializedJacksonEncoder makeObjectChildEncoder() {
+            if (depth == 64) {
+                return super.makeObjectChildEncoder();
+            } else {
+                depth++;
+                type = type << 1;
+                return this;
+            }
+        }
+
+        @Override
+        void checkChild() {
         }
     }
 }
