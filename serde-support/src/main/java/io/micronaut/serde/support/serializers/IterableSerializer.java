@@ -40,12 +40,12 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
             @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) generics[0];
             Serializer<? super T> componentSerializer = context.findSerializer(generic)
                     .createSpecific(context, generic);
-            return new InnerIterableSerializer(generic, componentSerializer);
+            return new InnerIterableSerializer<>(generic, componentSerializer);
         }
         return new CustomizedIterableSerializer<>();
     }
 
-    private final class InnerIterableSerializer implements Serializer<Iterable<T>> {
+    private final static class InnerIterableSerializer<T> implements Serializer<Iterable<T>> {
         private final Argument<T> generic;
         private final Serializer<? super T> componentSerializer;
 

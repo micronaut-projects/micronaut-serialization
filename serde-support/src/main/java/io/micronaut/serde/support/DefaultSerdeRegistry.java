@@ -197,7 +197,15 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 new BooleanArraySerde(),
                 new ByteArraySerde(),
                 new CharArraySerde()
-        ).forEach(SerdeRegistrar::register);
+        ).forEach(this::register);
+    }
+
+    private void register(SerdeRegistrar<?> serdeRegistrar) {
+        for (Argument<?> type : serdeRegistrar.getTypes()) {
+            final TypeKey typeEntry = new TypeKey(type);
+            DefaultSerdeRegistry.this.deserializerMap.put(typeEntry, serdeRegistrar);
+            DefaultSerdeRegistry.this.serializerMap.put(typeEntry, serdeRegistrar);
+        }
     }
 
     @Override
@@ -328,7 +336,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return objectSerializer;
     }
 
-    private  BeanDefinition<Serializer> lastChanceResolve(
+    private BeanDefinition<Serializer> lastChanceResolve(
             Argument<?> type,
             Collection<BeanDefinition<Serializer>> candidates) throws SerdeException {
 
@@ -413,7 +421,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return new DefaultDecoderContext(this);
     }
 
-    private final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
+    private static final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
         @Override
         public Byte deserializeNonNull(Decoder decoder,
                                        DecoderContext decoderContext,
@@ -441,7 +449,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class DoubleSerde extends SerdeRegistrar<Double> implements NumberSerde<Double> {
+    private static final class DoubleSerde extends SerdeRegistrar<Double> implements NumberSerde<Double> {
         @Override
         public Double deserializeNonNull(Decoder decoder,
                                         DecoderContext decoderContext,
@@ -469,7 +477,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class ShortSerde extends SerdeRegistrar<Short> implements NumberSerde<Short> {
+    private static final class ShortSerde extends SerdeRegistrar<Short> implements NumberSerde<Short> {
         @Override
         public Short deserializeNonNull(Decoder decoder,
                                           DecoderContext decoderContext,
@@ -497,7 +505,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class FloatSerde extends SerdeRegistrar<Float> implements NumberSerde<Float> {
+    private static final class FloatSerde extends SerdeRegistrar<Float> implements NumberSerde<Float> {
         @Override
         public Float deserializeNonNull(Decoder decoder,
                                         DecoderContext decoderContext,
@@ -525,7 +533,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class IntegerSerde extends SerdeRegistrar<Integer> implements NumberSerde<Integer> {
+    private static final class IntegerSerde extends SerdeRegistrar<Integer> implements NumberSerde<Integer> {
         @Override
         public Integer deserializeNonNull(Decoder decoder,
                                           DecoderContext decoderContext,
@@ -553,7 +561,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class LongSerde extends SerdeRegistrar<Long> implements NumberSerde<Long> {
+    private static final class LongSerde extends SerdeRegistrar<Long> implements NumberSerde<Long> {
         @Override
         public Long deserializeNonNull(Decoder decoder,
                                           DecoderContext decoderContext,
@@ -581,27 +589,18 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private abstract class SerdeRegistrar<T> implements Serde<T> {
+    private static abstract class SerdeRegistrar<T> implements Serde<T> {
         @NonNull
         abstract Argument<T> getType();
 
         @NonNull
-        protected Iterable<Argument<?>> getTypes() {
+        Iterable<Argument<?>> getTypes() {
             return Collections.singleton(getType());
         }
 
-        void register() {
-            for (Argument<?> type : getTypes()) {
-                final TypeKey typeEntry = new TypeKey(type);
-                DefaultSerdeRegistry.this.deserializerMap
-                        .put(typeEntry, this);
-                DefaultSerdeRegistry.this.serializerMap
-                        .put(typeEntry, this);
-            }
-        }
     }
 
-    private final class BooleanArraySerde extends SerdeRegistrar<boolean[]> implements NullableSerde<boolean[]> {
+    private static final class BooleanArraySerde extends SerdeRegistrar<boolean[]> implements NullableSerde<boolean[]> {
         @Override
         public boolean[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super boolean[]> type)
                 throws IOException {
@@ -643,7 +642,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class DoubleArraySerde extends SerdeRegistrar<double[]> implements NullableSerde<double[]> {
+    private static final class DoubleArraySerde extends SerdeRegistrar<double[]> implements NullableSerde<double[]> {
         @Override
         public double[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super double[]> type)
                 throws IOException {
@@ -685,7 +684,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class ShortArraySerde extends SerdeRegistrar<short[]> implements NullableSerde<short[]> {
+    private static final class ShortArraySerde extends SerdeRegistrar<short[]> implements NullableSerde<short[]> {
         @Override
         public short[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super short[]> type)
                 throws IOException {
@@ -727,7 +726,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class FloatArraySerde extends SerdeRegistrar<float[]> implements NullableSerde<float[]> {
+    private static final class FloatArraySerde extends SerdeRegistrar<float[]> implements NullableSerde<float[]> {
         @Override
         public float[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super float[]> type)
                 throws IOException {
@@ -769,7 +768,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class LongArraySerde extends SerdeRegistrar<long[]> implements NullableSerde<long[]> {
+    private static final class LongArraySerde extends SerdeRegistrar<long[]> implements NullableSerde<long[]> {
 
         @Override
         public long[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super long[]> type)
@@ -812,7 +811,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class CharArraySerde extends SerdeRegistrar<char[]> implements NullableSerde<char[]> {
+    private static final class CharArraySerde extends SerdeRegistrar<char[]> implements NullableSerde<char[]> {
         @Override
         public char[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super char[]> type)
                 throws IOException {
@@ -854,7 +853,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class ByteArraySerde extends SerdeRegistrar<byte[]> implements NullableSerde<byte[]> {
+    private static final class ByteArraySerde extends SerdeRegistrar<byte[]> implements NullableSerde<byte[]> {
         @Override
         public byte[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super byte[]> type)
                 throws IOException {
@@ -896,7 +895,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class IntArraySerde extends SerdeRegistrar<int[]> implements NullableSerde<int[]> {
+    private static final class IntArraySerde extends SerdeRegistrar<int[]> implements NullableSerde<int[]> {
         @Override
         public int[] deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super int[]> type)
                 throws IOException {
@@ -938,7 +937,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class BigDecimalSerde
+    private static final class BigDecimalSerde
             extends SerdeRegistrar<BigDecimal>
             implements NumberSerde<BigDecimal> {
 
@@ -960,7 +959,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class URLSerde extends SerdeRegistrar<URL> implements NullableSerde<URL> {
+    private static final class URLSerde extends SerdeRegistrar<URL> implements NullableSerde<URL> {
 
         @Override
         Argument<URL> getType() {
@@ -980,7 +979,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class URISerde extends SerdeRegistrar<URI> implements NullableSerde<URI> {
+    private static final class URISerde extends SerdeRegistrar<URI> implements NullableSerde<URI> {
 
         @Override
         Argument<URI> getType() {
@@ -1000,7 +999,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class CharsetSerde extends SerdeRegistrar<Charset> implements NullableSerde<Charset> {
+    private static final class CharsetSerde extends SerdeRegistrar<Charset> implements NullableSerde<Charset> {
 
         @Override
         Argument<Charset> getType() {
@@ -1020,7 +1019,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class TimeZoneSerde extends SerdeRegistrar<TimeZone> implements NullableSerde<TimeZone> {
+    private static final class TimeZoneSerde extends SerdeRegistrar<TimeZone> implements NullableSerde<TimeZone> {
 
         @Override
         Argument<TimeZone> getType() {
@@ -1040,7 +1039,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class LocaleSerde extends SerdeRegistrar<Locale> implements NullableSerde<Locale> {
+    private static final class LocaleSerde extends SerdeRegistrar<Locale> implements NullableSerde<Locale> {
 
         @Override
         Argument<Locale> getType() {
@@ -1060,7 +1059,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class UUIDSerde extends SerdeRegistrar<UUID> implements NullableSerde<UUID> {
+    private static final class UUIDSerde extends SerdeRegistrar<UUID> implements NullableSerde<UUID> {
 
         @Override
         Argument<UUID> getType() {
@@ -1080,7 +1079,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class BigIntegerSerde
+    private static final class BigIntegerSerde
             extends SerdeRegistrar<BigInteger>
             implements NumberSerde<BigInteger> {
 
@@ -1102,7 +1101,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class OptionalIntSerde extends SerdeRegistrar<OptionalInt> implements Serde<OptionalInt> {
+    private static final class OptionalIntSerde extends SerdeRegistrar<OptionalInt> implements Serde<OptionalInt> {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
@@ -1147,7 +1146,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class OptionalDoubleSerde extends SerdeRegistrar<OptionalDouble> implements Serde<OptionalDouble> {
+    private static final class OptionalDoubleSerde extends SerdeRegistrar<OptionalDouble> implements Serde<OptionalDouble> {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
@@ -1194,7 +1193,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private final class OptionalLongSerde extends SerdeRegistrar<OptionalLong> implements Serde<OptionalLong> {
+    private static final class OptionalLongSerde extends SerdeRegistrar<OptionalLong> implements Serde<OptionalLong> {
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
