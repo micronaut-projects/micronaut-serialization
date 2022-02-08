@@ -202,7 +202,7 @@
 <div class="sect3">
 <h4 id="_runtime_portability">Runtime Portability</h4>
 <div class="paragraph">
-<p>Micronaut Serialization decouples the runtime the from the actual source code level annotation model whilst Jackson is coupled to Jackson annotations. This means you can use the same runtime, but choose whether to use <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, <a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/package-summary.html">JSON-B annotations</a> or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a></p>
+<p>Micronaut Serialization decouples the runtime from the actual source code level annotation model whilst Jackson is coupled to Jackson annotations. This means you can use the same runtime, but choose whether to use <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, <a href="https://jakarta.ee/specifications/jsonb/2.0/apidocs/jakarta/json/bind/annotation/package-summary.html">JSON-B annotations</a> or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a></p>
 </div>
 <div class="paragraph">
 <p>This leads to less memory consumption since there is no need to have multiple JSON parsers and reflection-based meta-models if you using both JSON in your webtier plus a document database like MongoDB.</p>
