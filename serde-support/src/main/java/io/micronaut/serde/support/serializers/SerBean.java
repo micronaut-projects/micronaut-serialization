@@ -393,11 +393,6 @@ final class SerBean<T> {
             this.beanMethod = beanMethod;
         }
 
-        public MethodSerProperty(SerBean<B> bean, String name, Argument<P> argument, AnnotationMetadata annotationMetadata, Serializer<P> serializer, Serializer.EncoderContext encoderContext, BeanMethod<B, P> beanMethod) throws SerdeException {
-            super(bean, name, argument, annotationMetadata, serializer, encoderContext);
-            this.beanMethod = beanMethod;
-        }
-
         @Override
         public P get(B bean) {
             return beanMethod.invoke(bean);
@@ -430,11 +425,6 @@ final class SerBean<T> {
 
         public InjectedSerProperty(SerBean<B> bean, String name, Argument<P> argument, Serializer<P> serializer, Serializer.EncoderContext encoderContext, P injected) throws SerdeException {
             super(bean, name, argument, serializer, encoderContext);
-            this.injected = injected;
-        }
-
-        public InjectedSerProperty(SerBean<B> bean, String name, Argument<P> argument, AnnotationMetadata annotationMetadata, Serializer<P> serializer, Serializer.EncoderContext encoderContext, P injected) throws SerdeException {
-            super(bean, name, argument, annotationMetadata, serializer, encoderContext);
             this.injected = injected;
         }
 
