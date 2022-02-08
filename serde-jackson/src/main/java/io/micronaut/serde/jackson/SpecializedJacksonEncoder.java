@@ -62,6 +62,20 @@ abstract class SpecializedJacksonEncoder implements Encoder {
     }
 
     @Override
+    public void encodeArray(EncoderOp encoderOp) throws IOException {
+        generator.writeStartArray();
+        encoderOp.apply(this);
+        generator.writeEndArray();
+    }
+
+    @Override
+    public void encodeObject(EncoderOp encoderOp) throws IOException {
+        generator.writeStartObject();
+        encoderOp.apply(this);
+        generator.writeEndObject();
+    }
+
+    @Override
     public final Encoder encodeArray(Argument<?> type) throws IOException {
         checkChild();
 

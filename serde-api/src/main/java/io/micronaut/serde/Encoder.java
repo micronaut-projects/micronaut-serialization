@@ -29,9 +29,15 @@ import java.math.BigInteger;
  */
 public interface Encoder extends AutoCloseable {
     default @NonNull void encodeArray(@NonNull EncoderOp encoderOp) throws IOException {
+        Encoder arr = encodeArray((Argument<?>) null);
+        encoderOp.apply(arr);
+        arr.finishStructure();
     }
 
     default @NonNull void encodeObject(@NonNull EncoderOp encoderOp) throws IOException {
+        Encoder arr = encodeObject((Argument<?>) null);
+        encoderOp.apply(arr);
+        arr.finishStructure();
     }
 
 
