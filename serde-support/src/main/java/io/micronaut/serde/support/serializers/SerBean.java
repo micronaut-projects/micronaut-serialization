@@ -83,6 +83,7 @@ final class SerBean<T> {
     private Initializer<SerProperty<T, Object>> jsonValueInitializer;
     private Initializer<SerProperty<T, Object>> anyGetterInitializer;
     public volatile boolean initialized;
+    public boolean simpleBean;
 
     // CHECKSTYLE:ON
 
@@ -300,10 +301,23 @@ final class SerBean<T> {
                         jsonValue = jsonValueInitializer.initialize();
                         jsonValueInitializer = null;
                     }
+                    simpleBean = isSimpleBean();
                     initialized = true;
                 }
             }
         }
+    }
+
+    private boolean isSimpleBean() {
+        if (wrapperProperty != null || anyGetter != null) {
+            return false;
+        }
+        for (SerProperty<T, Object> property : writeProperties) {
+            if (property.backRef != null || property.include != SerdeConfig.SerInclude.ALWAYS || property.views != null || property.managedRef != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean hasJsonValue() {
