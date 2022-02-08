@@ -589,7 +589,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private static abstract class SerdeRegistrar<T> implements Serde<T> {
+    private abstract static class SerdeRegistrar<T> implements Serde<T> {
         @NonNull
         abstract Argument<T> getType();
 
