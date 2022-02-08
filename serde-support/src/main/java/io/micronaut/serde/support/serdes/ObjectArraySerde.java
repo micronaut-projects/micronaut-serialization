@@ -34,14 +34,18 @@ public class ObjectArraySerde implements Serde<Object[]>, CustomizableSerializer
     public Deserializer<Object[]> createSpecific(DecoderContext context, Argument<? super Object[]> type)
             throws SerdeException {
 
-        final Argument<Object> componentType =  Argument.of((Class<Object>) type.getType().getComponentType());
+        final Argument<Object> componentType = Argument.of((Class<Object>) type.getType().getComponentType());
         final Deserializer<?> deserializer = context.findDeserializer(componentType).createSpecific(context, componentType);
         return new CustomizedObjectArrayDeserializer(componentType, deserializer);
     }
 
     @Override
     public Serializer<Object[]> createSpecific(EncoderContext context, Argument<? extends Object[]> type) throws SerdeException {
-        final Argument<Object> componentType =  Argument.of((Class<Object>) type.getType().getComponentType());
+        Class<?> arrayItemType = type.getType().getComponentType();
+        if (arrayItemType == String.class) {
+            return (Serializer) StringArraySerializer.INSTANCE;
+        }
+        final Argument<Object> componentType = Argument.of((Class<Object>) arrayItemType);
         final Serializer<? super Object> serializer = context.findSerializer(componentType).createSpecific(context, componentType);
         return new CustomizedObjectArraySerializer(componentType, serializer);
     }

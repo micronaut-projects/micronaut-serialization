@@ -139,6 +139,9 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                 final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
                 Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
                 Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
+                if (order.isEmpty() && !hasIgnored && !hasIncluded) {
+                    return new CustomizedObjectSerializer<>(serBean);
+                }
                 return new CustomizedObjectSerializer<Object>(serBean) {
                     @Override
                     protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
