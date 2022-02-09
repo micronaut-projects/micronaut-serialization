@@ -143,6 +143,14 @@ implements <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="int
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html#decoderContext">decoderContext</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html#encoderContext">encoderContext</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/bson/AbstractBsonMapper.html#registry">registry</a></span></code>&nbsp;</td>
 </tr>
@@ -298,10 +306,28 @@ implements <a href="../../../../io/micronaut/serde/ObjectMapper.html" title="int
 <a name="view">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>view</h4>
 <pre>protected final&nbsp;java.lang.Class&lt;?&gt; view</pre>
+</li>
+</ul>
+<a name="encoderContext">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>encoderContext</h4>
+<pre>protected&nbsp;<a href="../../../../io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a> encoderContext</pre>
+</li>
+</ul>
+<a name="decoderContext">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>decoderContext</h4>
+<pre>protected&nbsp;<a href="../../../../io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a> decoderContext</pre>
 </li>
 </ul>
 </li>

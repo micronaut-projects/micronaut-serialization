@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
+var methods = {"i0":10,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -101,7 +101,12 @@ var activeTableTab = "activeTableTab";
 <li><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractStreamDecoder</a></li>
 <li>
 <ul class="inheritance">
+<li><a href="../../../../io/micronaut/serde/support/AbstractChildReuseStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractChildReuseStreamDecoder</a></li>
+<li>
+<ul class="inheritance">
 <li>io.micronaut.serde.jackson.JacksonDecoder</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -118,7 +123,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>@Internal
 public final class <span class="typeNameLabel">JacksonDecoder</span>
-extends <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></pre>
+extends <a href="../../../../io/micronaut/serde/support/AbstractChildReuseStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractChildReuseStreamDecoder</a></pre>
 <div class="block">Implementation of the <a href="../../../../io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> interface for Jackson.</div>
 </li>
 </ul>
@@ -222,18 +227,24 @@ extends <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.ht
 </td>
 </tr>
 <tr id="i12" class="altColor">
+<td class="colFirst"><code>protected int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getInteger--">getInteger</a></span>()</code>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>protected long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#getLong--">getLong</a></span>()</code>
 <div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#nextToken--">nextToken</a></span>()</code>
 <div class="block">Move to the next token.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../io/micronaut/serde/jackson/JacksonDecoder.html#skipChildren--">skipChildren</a></span>()</code>
 <div class="block">If we are at a <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
@@ -447,6 +458,26 @@ extends <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.ht
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getLong--">getLong</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The number value</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code> - if an unrecoverable error occurs</dd>
+</dl>
+</li>
+</ul>
+<a name="getInteger--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getInteger</h4>
+<pre>protected&nbsp;int&nbsp;getInteger()
+                  throws java.io.IOException</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getInteger--">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value. Called for no other token type.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html#getInteger--">getInteger</a></code>&nbsp;in class&nbsp;<code><a href="../../../../io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The number value</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
