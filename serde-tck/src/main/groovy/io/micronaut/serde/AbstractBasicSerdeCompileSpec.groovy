@@ -15,14 +15,20 @@
  */
 package io.micronaut.serde
 
-
 import io.micronaut.http.HttpStatus
-import io.micronaut.serde.AbstractJsonCompileSpec
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.time.*
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.Period
+import java.time.Year
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 abstract class AbstractBasicSerdeCompileSpec extends AbstractJsonCompileSpec {
 
@@ -223,7 +229,6 @@ class Test {
         double[]    | [value: null]                 | '{"value":null}'
         float[]     | [value: null]                 | '{"value":null}'
         char[]      | [value: null]                 | '{"value":null}'
-
 
     }
 

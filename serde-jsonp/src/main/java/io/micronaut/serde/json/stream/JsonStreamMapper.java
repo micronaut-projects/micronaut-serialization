@@ -15,6 +15,27 @@
  */
 package io.micronaut.serde.json.stream;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.json.JsonMapper;
+import io.micronaut.json.JsonStreamConfig;
+import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
+import io.micronaut.serde.support.util.JsonNodeEncoder;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import jakarta.json.Json;
+import jakarta.json.stream.JsonGenerator;
+import jakarta.json.stream.JsonParser;
+import org.reactivestreams.Processor;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,23 +43,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.type.Argument;
-import io.micronaut.json.JsonMapper;
-import io.micronaut.json.JsonStreamConfig;
-import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.*;
-import io.micronaut.serde.support.util.JsonNodeDecoder;
-import io.micronaut.serde.support.util.JsonNodeEncoder;
-import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
-import jakarta.json.Json;
-import jakarta.json.stream.JsonGenerator;
-import jakarta.json.stream.JsonParser;
-import org.reactivestreams.Processor;
 
 /**
  * Implementation of the {@link io.micronaut.json.JsonMapper} interface for JSON-P.
@@ -67,10 +71,11 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
+        Deserializer.DecoderContext context = registry.newDecoderContext(view);
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
                 JsonNodeDecoder.create(tree),
-                registry.newDecoderContext(view),
+                context,
                 type
         );
     }
@@ -90,10 +95,11 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type);
+        Deserializer.DecoderContext context = registry.newDecoderContext(view);
+        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
                 new JsonParserDecoder(parser),
-                registry.newDecoderContext(view),
+                context,
                 type
         );
     }
@@ -159,10 +165,11 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        final Serializer<Object> serializer = registry.findSerializer(type);
+        Serializer.EncoderContext context = registry.newEncoderContext(view);
+        final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
         serializer.serialize(
                 encoder,
-                registry.newEncoderContext(view),
+                context,
                 type, object
         );
     }

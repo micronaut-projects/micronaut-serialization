@@ -38,7 +38,7 @@ import java.util.function.Function;
 @Internal
 public abstract class AbstractStreamDecoder implements Decoder {
     @Nullable
-    private final AbstractStreamDecoder parent;
+    AbstractStreamDecoder parent;
 
     private AbstractStreamDecoder child = null;
 
@@ -130,7 +130,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
         return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected, null);
     }
 
-    private void checkChild() {
+    /**
+     * Check whether we have control of the stream. Parent decoders can't decode while their children are still valid,
+     * for example.
+     */
+    void checkChild() {
         if (child != null) {
             throw new IllegalStateException("There is still an unfinished child parser");
         }
@@ -180,9 +184,18 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
         if (parent != null) {
-            parent.child = null;
-            parent.backFromChild(this);
+            transferControlToParent();
         }
+    }
+
+    /**
+     * Overridden in {@link AbstractChildReuseStreamDecoder}.
+     *
+     * Transfer control back to the parent (for {@link #checkChild()}), and call {@link #backFromChild}.
+     */
+    void transferControlToParent() throws IOException {
+        parent.child = null;
+        parent.backFromChild(this);
     }
 
     /**
@@ -233,6 +246,17 @@ public abstract class AbstractStreamDecoder implements Decoder {
      */
     protected abstract AbstractStreamDecoder createChildDecoder();
 
+    /**
+     * Overridden in {@link AbstractChildReuseStreamDecoder}.
+     *
+     * Create a child decoder, and transfer control of the stream to it (see {@link #checkChild()}).
+     *
+     * @return The new child decoder
+     */
+    AbstractStreamDecoder childDecoder() {
+        return createChildDecoder();
+    }
+
     @NonNull
     @Override
     public final Decoder decodeArray(Argument<?> type) throws IOException {
@@ -241,7 +265,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw unexpectedToken(TokenType.START_ARRAY);
         }
         nextToken();
-        child = createChildDecoder();
+        child = childDecoder();
         return child;
     }
 
@@ -253,7 +277,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
             throw unexpectedToken(TokenType.START_OBJECT);
         }
         nextToken();
-        child = createChildDecoder();
+        child = childDecoder();
         return child;
     }
 
@@ -342,15 +366,19 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     @Override
     public final int decodeInt() throws IOException {
-        return (int) decodeInteger(Integer.MIN_VALUE, Integer.MAX_VALUE);
+        return decodeInteger(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     @Override
     public final long decodeLong() throws IOException {
-        return decodeInteger(Long.MIN_VALUE, Long.MAX_VALUE);
+        return decodeLong(Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
-    private long decodeInteger(long min, long max) throws IOException {
+    private long decodeLong(long min, long max) throws IOException {
+        return decodeLong(min, max, false);
+    }
+
+    private int decodeInteger(long min, long max) throws IOException {
         return decodeInteger(min, max, false);
     }
 
@@ -360,6 +388,15 @@ public abstract class AbstractStreamDecoder implements Decoder {
      * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract long getLong() throws IOException;
+
+    /**
+     * Decode the current {@link TokenType#NUMBER} value as a long value. Called for no other token type.
+     * @return The number value
+     * @throws java.io.IOException if an unrecoverable error occurs
+     */
+    protected int getInteger() throws IOException {
+        return (int) getLong();
+    }
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a double value. Called for no other token type.
@@ -415,7 +452,52 @@ public abstract class AbstractStreamDecoder implements Decoder {
         }
     }
 
-    private long decodeInteger(long min, long max, boolean stringsAsChars) throws IOException {
+    private int decodeInteger(long min, long max, boolean stringsAsChars) throws IOException {
+        preDecodeValue();
+        switch (currentToken()) {
+            case STRING:
+                String string = coerceScalarToString();
+                if (stringsAsChars) {
+                    if (string.length() != 1) {
+                        throw createDeserializationException("When decoding char value, must give a single character", string);
+                    }
+                    char c = string.charAt(0);
+                    nextToken();
+                    return c;
+                } else {
+                    int value;
+                    try {
+                        value = Integer.parseInt(string);
+                    } catch (NumberFormatException e) {
+                        throw createDeserializationException("Unable to coerce string to integer", string);
+                    }
+                    nextToken();
+                    return value;
+                }
+            case NUMBER:
+                // todo: better coercion rules
+                int number = getInteger();
+                nextToken();
+                return number;
+            case BOOLEAN:
+                boolean bool = getBoolean();
+                nextToken();
+                return bool ? 1 : 0;
+            case START_ARRAY:
+                if (beginUnwrapArray()) {
+                    int unwrapped = decodeInteger(min, max);
+                    if (endUnwrapArray()) {
+                        return unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one integer, but got array of multiple values", null);
+                    }
+                }
+            default:
+                throw unexpectedToken(TokenType.NUMBER);
+        }
+    }
+
+    private long decodeLong(long min, long max, boolean stringsAsChars) throws IOException {
         preDecodeValue();
         switch (currentToken()) {
             case STRING:
@@ -448,7 +530,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                 return bool ? 1 : 0;
             case START_ARRAY:
                 if (beginUnwrapArray()) {
-                    long unwrapped = decodeInteger(min, max);
+                    long unwrapped = decodeLong(min, max);
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
@@ -505,13 +587,73 @@ public abstract class AbstractStreamDecoder implements Decoder {
     @NonNull
     @Override
     public final BigInteger decodeBigInteger() throws IOException {
-        return decodeNumber(AbstractStreamDecoder::getBigInteger, BigInteger::new, BigInteger.ZERO, BigInteger.ONE);
+        preDecodeValue();
+        BigInteger value;
+        switch (currentToken()) {
+            case NUMBER:
+                value = getBigInteger();
+                break;
+            case STRING:
+                try {
+                    value = new BigInteger(coerceScalarToString());
+                } catch (NumberFormatException e) {
+                    // match behavior of getValueAsDouble
+                    value = BigInteger.ZERO;
+                }
+                break;
+            case BOOLEAN:
+                value = getBoolean() ? BigInteger.ONE : BigInteger.ZERO;
+                break;
+            case START_ARRAY:
+                if (beginUnwrapArray()) {
+                    BigInteger unwrapped = decodeBigInteger();
+                    if (endUnwrapArray()) {
+                        return unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one float, but got array of multiple values", null);
+                    }
+                }
+            default:
+                throw unexpectedToken(TokenType.NUMBER);
+        }
+        nextToken();
+        return value;
     }
 
     @NonNull
     @Override
     public final BigDecimal decodeBigDecimal() throws IOException {
-        return decodeNumber(AbstractStreamDecoder::getBigDecimal, BigDecimal::new, BigDecimal.ZERO, BigDecimal.ONE);
+        preDecodeValue();
+        BigDecimal value;
+        switch (currentToken()) {
+            case NUMBER:
+                value = getBigDecimal();
+                break;
+            case STRING:
+                try {
+                    value = new BigDecimal(coerceScalarToString());
+                } catch (NumberFormatException e) {
+                    // match behavior of getValueAsDouble
+                    value = BigDecimal.ZERO;
+                }
+                break;
+            case BOOLEAN:
+                value = getBoolean() ? BigDecimal.ONE : BigDecimal.ZERO;
+                break;
+            case START_ARRAY:
+                if (beginUnwrapArray()) {
+                    BigDecimal unwrapped = decodeBigDecimal();
+                    if (endUnwrapArray()) {
+                        return unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one float, but got array of multiple values", null);
+                    }
+                }
+            default:
+                throw unexpectedToken(TokenType.NUMBER);
+        }
+        nextToken();
+        return value;
     }
 
     /**

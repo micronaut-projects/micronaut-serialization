@@ -15,24 +15,21 @@
  */
 package io.micronaut.serde.support.serializers;
 
-import java.io.IOException;
-import java.util.Map;
-
 import io.micronaut.context.annotation.Factory;
-import io.micronaut.core.convert.exceptions.ConversionErrorException;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Factory class for core serializers.
  */
 @Factory
-public class CoreSerializers {
+public final class CoreSerializers {
 
     /**
      * A serializer for all instances of {@link java.lang.CharSequence}.
@@ -40,7 +37,7 @@ public class CoreSerializers {
      * @return A char sequence serializer
      */
     @Singleton
-    protected Serializer<CharSequence> charSequenceSerializer() {
+    Serializer<CharSequence> charSequenceSerializer() {
         return new Serializer<CharSequence>() {
             @Override
             public void serialize(Encoder encoder,
@@ -54,7 +51,25 @@ public class CoreSerializers {
             }
 
             @Override
-            public boolean isEmpty(CharSequence value) {
+            public boolean isEmpty(EncoderContext context, CharSequence value) {
+                return value == null || value.length() == 0;
+            }
+        };
+    }
+
+    @Singleton
+    @Order(1000) // prioritize over character
+    Serializer<String> stringSerializer() {
+        return new Serializer<String>() {
+            @Override
+            public void serialize(Encoder encoder,
+                                  EncoderContext context,
+                                  Argument<? extends String> type, String value) throws IOException {
+                encoder.encodeString(value);
+            }
+
+            @Override
+            public boolean isEmpty(EncoderContext context, String value) {
                 return value == null || value.length() == 0;
             }
         };
@@ -66,7 +81,7 @@ public class CoreSerializers {
      * @return A Character serializer
      */
     @Singleton
-    protected Serializer<Character> charSerializer() {
+    Serializer<Character> charSerializer() {
         return (encoder, context, type, value) -> encoder.encodeChar(value);
     }
 
@@ -76,89 +91,20 @@ public class CoreSerializers {
      * @return A boolean serializer
      */
     @Singleton
-    protected Serializer<Boolean> booleanSerializer() {
+    Serializer<Boolean> booleanSerializer() {
         return (encoder, context, type, value) -> encoder.encodeBoolean(value);
     }
 
     /**
      * A serializer for maps.
      *
-     * @param <K>  The key type
-     * @param <V>  The value type
+     * @param <K> The key type
+     * @param <V> The value type
      * @return A bit decimal serializer
      */
     @Singleton
-    protected <K, V> Serializer<Map<K, V>> mapSerializer() {
-        return new Serializer<Map<K, V>>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                final Encoder childEncoder = encoder.encodeObject(type);
-                final Argument[] generics = type.getTypeParameters();
-                final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
-                if (hasGenerics) {
-
-                    final Argument<V> valueGeneric = (Argument<V>) generics[1];
-                    final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric);
-                    for (K k : value.keySet()) {
-                        encodeMapKey(context, childEncoder, k);
-                        final V v = value.get(k);
-                        if (v == null) {
-                            childEncoder.encodeNull();
-                        } else {
-                            valSerializer.serialize(
-                                    childEncoder,
-                                    context,
-                                    valueGeneric, v
-                            );
-                        }
-                    }
-                } else {
-                    // slow path, lookup each value serializer
-                    for (Map.Entry<K, V> entry : value.entrySet()) {
-                        encodeMapKey(context, childEncoder, entry.getKey());
-                        final V v = entry.getValue();
-                        if (v == null) {
-                            childEncoder.encodeNull();
-                        } else {
-                            @SuppressWarnings("unchecked")
-                            final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric);
-                            valSerializer.serialize(
-                                    childEncoder,
-                                    context,
-                                    valueGeneric, v
-                            );
-                        }
-                    }
-                }
-                childEncoder.finishStructure();
-            }
-
-            @Override
-            public boolean isEmpty(Map<K, V> value) {
-                return CollectionUtils.isEmpty(value);
-            }
-        };
-    }
-
-    private <K> void encodeMapKey(Serializer.EncoderContext context, Encoder childEncoder, K k) throws IOException {
-        // relies on the key type implementing toString() correctly
-        // perhaps we should supply conversion service
-        if (k instanceof CharSequence) {
-            childEncoder.encodeKey(k.toString());
-        } else {
-            try {
-                final String result = context.getConversionService().convertRequired(
-                        k,
-                        Argument.STRING
-                );
-                childEncoder.encodeKey(result != null ? result : k.toString());
-            } catch (ConversionErrorException e) {
-                throw new SerdeException("Error converting Map key [" + k + "] to String: " + e.getMessage(), e);
-            }
-        }
+    <K, V> Serializer<Map<K, V>> mapSerializer() {
+        return new CustomizedMapSerializer<>();
     }
 
 }
