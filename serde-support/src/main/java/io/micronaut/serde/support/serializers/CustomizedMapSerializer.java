@@ -81,7 +81,8 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                             childEncoder.encodeNull();
                         } else {
                             @SuppressWarnings("unchecked") final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric);
+                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric)
+                                .createSpecific(context, valueGeneric);
                             valSerializer.serialize(
                                     childEncoder,
                                     context,
