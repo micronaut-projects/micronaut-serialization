@@ -2158,6 +2158,76 @@ class B {
         context.close()
     }
 
+    void 'generic complex collection member supertype serialize'() {
+        given:
+        def compiled = buildContext('example.Sub', '''
+package example;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Typo {
+    public String name;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Sub extends Sup<Typo> {
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Sup<T> {
+    public List<T> value;
+}
+''')
+
+        def baseClass = compiled.classLoader.loadClass('example.Sub')
+        def a = newInstance(compiled, 'example.Sub')
+        def typo = newInstance(compiled, 'example.Typo')
+        typo.name = "Bob"
+        a.value = Arrays.asList(typo);
+
+        expect:
+        serializeToString(jsonMapper, a, baseClass) == '{"value":[{"name":"Bob"}]}'
+    }
+
+    void 'generic complex collection member supertype deserialize'() {
+        given:
+        def compiled = buildContext('example.Sub', '''
+package example;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Typo {
+    public String name;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Sub extends Sup<Typo> {
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Sup<T> {
+    public List<T> value;
+}
+''')
+
+        expect:
+        def baseClass = compiled.classLoader.loadClass('example.Sub')
+        deserializeFromString(jsonMapper, baseClass, '{"value":[{"name":"Bob"}]}').value.get(0).name == 'Bob'
+    }
+
+
     void 'generic collection member supertype'() {
         given:
         def compiled = buildContext('example.Sub', '''
