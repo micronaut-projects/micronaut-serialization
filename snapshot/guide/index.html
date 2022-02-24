@@ -258,8 +258,7 @@
     &lt;/path&gt;
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
-</div>
-</p>
+</div></p>
 </div>
 <div class="paragraph">
 <p>You should then choose a combination of Annotation-based programming model and runtime implementation that you desire.</p>
@@ -331,19 +330,19 @@ If you third-party dependencies have direct dependencies on Jackson Databind it 
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
 
-@Serdeable <b class="conum">(1)</b>
+@Serdeable // <b class="conum">(1)</b>
 public class Book {
     private final String title;
-    @JsonProperty("qty") <b class="conum">(2)</b>
+    @JsonProperty("qty") // <b class="conum">(2)</b>
     private final int quantity;
 
-    @JsonCreator <b class="conum">(3)</b>
+    @JsonCreator // <b class="conum">(3)</b>
     public Book(String title, int quantity) {
         this.title = title;
         this.quantity = quantity;
@@ -361,20 +360,20 @@ public class Book {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.serde.annotation.Serdeable
 
-@Serdeable <b class="conum">(1)</b>
+@Serdeable // <b class="conum">(1)</b>
 class Book {
     final String title
-    @JsonProperty("qty") <b class="conum">(2)</b>
+    @JsonProperty("qty") // <b class="conum">(2)</b>
     final int quantity
 
     @JsonCreator
-    Book(String title, int quantity) { <b class="conum">(3)</b>
+    Book(String title, int quantity) { // <b class="conum">(3)</b>
         this.title = title
         this.quantity = quantity
     }
@@ -383,14 +382,14 @@ class Book {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.serde.annotation.Serdeable
 
-@Serdeable <b class="conum">(1)</b>
+@Serdeable // <b class="conum">(1)</b>
 data class Book (
-    val title: String, <b class="conum">(2)</b>
+    val title: String, // <b class="conum">(2)</b>
     @JsonProperty("qty") val quantity: Int
 )</code></pre>
 </div>
@@ -428,7 +427,7 @@ If you don&#8217;t want to add a Micronaut Serialization annotation then you can
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -457,7 +456,7 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -483,7 +482,7 @@ class BookTest extends Specification {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -580,19 +579,19 @@ If you third-party dependencies have direct dependencies on Jackson Databind it 
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.json.bind.annotation.JsonbCreator;
 import jakarta.json.bind.annotation.JsonbProperty;
 
-@Serdeable <b class="conum">(1)</b>
+@Serdeable // <b class="conum">(1)</b>
 public class Book {
     private final String title;
-    @JsonbProperty("qty") <b class="conum">(2)</b>
+    @JsonbProperty("qty") // <b class="conum">(2)</b>
     private final int quantity;
 
-    @JsonbCreator <b class="conum">(3)</b>
+    @JsonbCreator // <b class="conum">(3)</b>
     public Book(String title, int quantity) {
         this.title = title;
         this.quantity = quantity;
@@ -629,7 +628,7 @@ public class Book {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -658,7 +657,7 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -684,7 +683,7 @@ class BookTest extends Specification {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -775,19 +774,19 @@ If you third-party dependencies have direct dependencies on Jackson Databind it 
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
-@Serdeable <b class="conum">(1)</b>
+@Serdeable // <b class="conum">(1)</b>
 public class Book {
     private final String title;
-    @BsonProperty("qty") <b class="conum">(2)</b>
+    @BsonProperty("qty") // <b class="conum">(2)</b>
     private final int quantity;
 
-    @BsonCreator <b class="conum">(3)</b>
+    @BsonCreator // <b class="conum">(3)</b>
     public Book(String title, int quantity) {
         this.title = title;
         this.quantity = quantity;
@@ -824,7 +823,7 @@ public class Book {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -853,7 +852,7 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -879,7 +878,7 @@ class BookTest extends Specification {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -944,7 +943,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 </table>
 </div>
-<table class="tableblock frame-all grid-all spread">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -1133,7 +1132,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 <div class="paragraph">
 <p>In addition, limited support for 3 <code>jackson-databind</code> annotations is included to allow portability for cases where both support for <code>jackson-databind</code> and Micronaut Serialization is required:</p>
 </div>
-<table class="tableblock frame-all grid-all spread">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1217,7 +1216,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
-<table class="tableblock frame-all grid-all spread">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -1322,7 +1321,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 public final class Point {
     private final int x, y;
@@ -1344,7 +1343,7 @@ public final class Point {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 final class Point {
     private final int x, y
@@ -1366,7 +1365,7 @@ final class Point {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 class Point private constructor(private val x: Int, private val y: Int) {
     fun coords(): IntArray {
@@ -1386,7 +1385,7 @@ class Point private constructor(private val x: Int, private val y: Int) {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -1397,17 +1396,17 @@ import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.util.Objects;
 
-@Singleton <b class="conum">(1)</b>
-public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
+@Singleton // <b class="conum">(1)</b>
+public class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)</b>
     @Override
     public Point deserialize(
             Decoder decoder,
             DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
-        try (Decoder array = decoder.decodeArray()) { <b class="conum">(3)</b>
+        try (Decoder array = decoder.decodeArray()) { // <b class="conum">(3)</b>
             int x = array.decodeInt();
             int y = array.decodeInt();
-            return Point.valueOf(x, y); <b class="conum">(4)</b>
+            return Point.valueOf(x, y); // <b class="conum">(4)</b>
         }
     }
 
@@ -1416,9 +1415,9 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
             Encoder encoder,
             EncoderContext context,
             Argument&lt;? extends Point&gt; type, Point value) throws IOException {
-        Objects.requireNonNull(value, "Point cannot be null"); <b class="conum">(5)</b>
+        Objects.requireNonNull(value, "Point cannot be null"); // <b class="conum">(5)</b>
         int[] coords = value.coords();
-        try (Encoder array = encoder.encodeArray(type)) { <b class="conum">(6)</b>
+        try (Encoder array = encoder.encodeArray(type)) { // <b class="conum">(6)</b>
             array.encodeInt(coords[0]);
             array.encodeInt(coords[1]);
         }
@@ -1428,7 +1427,7 @@ public class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Decoder
@@ -1436,18 +1435,18 @@ import io.micronaut.serde.Encoder
 import io.micronaut.serde.Serde
 import jakarta.inject.Singleton
 
-@Singleton <b class="conum">(1)</b>
-class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
+@Singleton // <b class="conum">(1)</b>
+class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)</b>
     @Override
     Point deserialize(
             Decoder decoder,
             DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
-        Decoder array = decoder.decodeArray() <b class="conum">(3)</b>
+        Decoder array = decoder.decodeArray() // <b class="conum">(3)</b>
         int x = array.decodeInt()
         int y = array.decodeInt()
-        array.finishStructure() <b class="conum">(4)</b>
-        return Point.valueOf(x, y) <b class="conum">(5)</b>
+        array.finishStructure() // <b class="conum">(4)</b>
+        return Point.valueOf(x, y) // <b class="conum">(5)</b>
     }
 
     @Override
@@ -1456,35 +1455,35 @@ class PointSerde implements Serde&lt;Point&gt; { <b class="conum">(2)</b>
             EncoderContext context,
             Argument&lt;? extends Point&gt; type,
             Point value) throws IOException {
-        Objects.requireNonNull(value, "Point cannot be null") <b class="conum">(6)</b>
+        Objects.requireNonNull(value, "Point cannot be null") // <b class="conum">(6)</b>
         int[] coords = value.coords()
-        Encoder array = encoder.encodeArray(type) <b class="conum">(7)</b>
+        Encoder array = encoder.encodeArray(type) // <b class="conum">(7)</b>
         array.encodeInt(coords[0])
         array.encodeInt(coords[1])
-        array.finishStructure() <b class="conum">(8)</b>
+        array.finishStructure() // <b class="conum">(8)</b>
     }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.*
 import jakarta.inject.Singleton
 
-@Singleton <b class="conum">(1)</b>
-class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
+@Singleton // <b class="conum">(1)</b>
+class PointSerde : Serde&lt;Point&gt; { // <b class="conum">(2)</b>
     override fun deserialize(
             decoder: Decoder,
             context: Deserializer.DecoderContext,
             type: Argument&lt;in Point&gt;
     ): Point {
-        decoder.decodeArray().use { <b class="conum">(3)</b>
+        decoder.decodeArray().use { // <b class="conum">(3)</b>
             val x = it.decodeInt()
             val y = it.decodeInt()
-            return Point.valueOf(x, y) <b class="conum">(4)</b>
+            return Point.valueOf(x, y) // <b class="conum">(4)</b>
         }
     }
 
@@ -1495,7 +1494,7 @@ class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
             value: Point
     ) {
         val coords = value.coords()
-        encoder.encodeArray(type).use { <b class="conum">(6)</b>
+        encoder.encodeArray(type).use { // <b class="conum">(6)</b>
             it.encodeInt(coords[0])
             it.encodeInt(coords[1])
         }
@@ -1536,7 +1535,7 @@ class PointSerde : Serde&lt;Point&gt; { <b class="conum">(2)</b>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
@@ -1567,7 +1566,7 @@ public class PointTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -1596,7 +1595,7 @@ class PointTest extends Specification {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -1666,7 +1665,7 @@ Frequently in this case you will more than one serializer/deserializer for a giv
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -1679,7 +1678,7 @@ import io.micronaut.serde.Serde;
 import jakarta.inject.Singleton;
 
 @Singleton
-@Secondary <b class="conum">(1)</b>
+@Secondary // <b class="conum">(1)</b>
 public class ReversePointSerde implements Serde&lt;Point&gt; {
     @Override
     public Point deserialize(
@@ -1687,7 +1686,7 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
             DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
         Decoder array = decoder.decodeArray();
-        int y = array.decodeInt(); <b class="conum">(2)</b>
+        int y = array.decodeInt(); // <b class="conum">(2)</b>
         int x = array.decodeInt();
         array.finishStructure();
         return Point.valueOf(x, y);
@@ -1701,7 +1700,7 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
         Objects.requireNonNull(value, "Point cannot be null");
         int[] coords = value.coords();
         Encoder array = encoder.encodeArray(type);
-        array.encodeInt(coords[1]); <b class="conum">(3)</b>
+        array.encodeInt(coords[1]); // <b class="conum">(3)</b>
         array.encodeInt(coords[0]);
         array.finishStructure();
     }
@@ -1710,7 +1709,7 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.context.annotation.Secondary
 import io.micronaut.core.type.Argument
@@ -1720,7 +1719,7 @@ import io.micronaut.serde.Serde
 import jakarta.inject.Singleton
 
 @Singleton
-@Secondary <b class="conum">(1)</b>
+@Secondary // <b class="conum">(1)</b>
 class ReversePointSerde implements Serde&lt;Point&gt; {
     @Override
     Point deserialize(
@@ -1728,7 +1727,7 @@ class ReversePointSerde implements Serde&lt;Point&gt; {
             DecoderContext context,
             Argument&lt;? super Point&gt; type) throws IOException {
         Decoder array = decoder.decodeArray()
-        int y = array.decodeInt() <b class="conum">(2)</b>
+        int y = array.decodeInt() // <b class="conum">(2)</b>
         int x = array.decodeInt()
         array.finishStructure()
         return Point.valueOf(x, y)
@@ -1743,7 +1742,7 @@ class ReversePointSerde implements Serde&lt;Point&gt; {
         Objects.requireNonNull(value, "Point cannot be null")
         int[] coords = value.coords()
         Encoder array = encoder.encodeArray(type)
-        array.encodeInt(coords[1]) <b class="conum">(3)</b>
+        array.encodeInt(coords[1]) // <b class="conum">(3)</b>
         array.encodeInt(coords[0])
         array.finishStructure()
     }
@@ -1752,7 +1751,7 @@ class ReversePointSerde implements Serde&lt;Point&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.context.annotation.Secondary
 import io.micronaut.core.type.Argument
@@ -1761,7 +1760,7 @@ import jakarta.inject.Singleton
 import java.util.*
 
 @Singleton
-@Secondary <b class="conum">(1)</b>
+@Secondary // <b class="conum">(1)</b>
 class ReversePointSerde : Serde&lt;Point&gt; {
     override fun deserialize(
             decoder: Decoder,
@@ -1769,7 +1768,7 @@ class ReversePointSerde : Serde&lt;Point&gt; {
             type: Argument&lt;in Point&gt;
     ): Point {
         val array = decoder.decodeArray()
-        val y = array.decodeInt() <b class="conum">(2)</b>
+        val y = array.decodeInt() // <b class="conum">(2)</b>
         val x = array.decodeInt()
         array.finishStructure()
         return Point.valueOf(x, y)
@@ -1784,7 +1783,7 @@ class ReversePointSerde : Serde&lt;Point&gt; {
         Objects.requireNonNull(value, "Point cannot be null")
         val coords = value.coords()
         val array = encoder.encodeArray(type)
-        array.encodeInt(coords[1]) <b class="conum">(3)</b>
+        array.encodeInt(coords[1]) // <b class="conum">(3)</b>
         array.encodeInt(coords[0])
         array.finishStructure()
     }
@@ -1808,14 +1807,14 @@ class ReversePointSerde : Serde&lt;Point&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 public class Place {
-    @Serdeable.Serializable(using = ReversePointSerde.class) <b class="conum">(1)</b>
-    @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
+    @Serdeable.Serializable(using = ReversePointSerde.class) // <b class="conum">(1)</b>
+    @Serdeable.Deserializable(using = ReversePointSerde.class) // <b class="conum">(2)</b>
     private final Point point;
 
     @Serdeable.Serializable(using = ReversePointSerde.class)
@@ -1846,14 +1845,14 @@ public class Place {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.annotation.Serdeable
 
 @Serdeable
 class Place {
-    @Serdeable.Serializable(using = ReversePointSerde.class) <b class="conum">(1)</b>
-    @Serdeable.Deserializable(using = ReversePointSerde.class) <b class="conum">(2)</b>
+    @Serdeable.Serializable(using = ReversePointSerde.class) // <b class="conum">(1)</b>
+    @Serdeable.Deserializable(using = ReversePointSerde.class) // <b class="conum">(2)</b>
     final Point point
 
     @Serdeable.Serializable(using = ReversePointSerde.class)
@@ -1872,7 +1871,7 @@ class Place {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.serde.annotation.Serdeable.Deserializable
@@ -1880,8 +1879,8 @@ import io.micronaut.serde.annotation.Serdeable.Serializable
 
 @Serdeable
 data class Place(
-        @Deserializable(using = ReversePointSerde::class) <b class="conum">(1)</b>
-        @Serializable(using = ReversePointSerde::class) <b class="conum">(2)</b>
+        @Deserializable(using = ReversePointSerde::class) // <b class="conum">(1)</b>
+        @Serializable(using = ReversePointSerde::class) // <b class="conum">(2)</b>
         val point: Point,
 
         @Serdeable.Serializable(using = example.ReversePointSerde::class)
@@ -1923,7 +1922,7 @@ data class Place(
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 public class Product {
     private final String name;
@@ -1946,7 +1945,7 @@ public class Product {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 class Product {
     final String name
@@ -1961,7 +1960,7 @@ class Product {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 class Product(val name: String, val quantity: Int)</code></pre>
 </div>
@@ -1982,7 +1981,7 @@ class Product(val name: String, val quantity: Int)</code></pre>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -1997,7 +1996,7 @@ public interface ProductMixin {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
@@ -2012,7 +2011,7 @@ interface ProductMixin {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
@@ -2030,7 +2029,7 @@ interface ProductMixin {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.runtime.Micronaut;
 import io.micronaut.serde.annotation.SerdeImport;
@@ -2038,7 +2037,7 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(
     value = Product.class,
     mixin = ProductMixin.class
-) <b class="conum">(1)</b>
+) // <b class="conum">(1)</b>
 public class Application {
 
     public static void main(String[] args) {
@@ -2049,7 +2048,7 @@ public class Application {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.runtime.Micronaut.*
 import io.micronaut.serde.annotation.SerdeImport
@@ -2063,7 +2062,7 @@ fun main(args: Array&lt;String&gt;) {
 
 @SerdeImport(
     value = Product::class,
-    mixin = ProductMixin::class) <b class="conum">(1)</b>
+    mixin = ProductMixin::class) // <b class="conum">(1)</b>
 class Serdes {}</code></pre>
 </div>
 </div>
@@ -2093,7 +2092,7 @@ class Serdes {}</code></pre>
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Map;
@@ -2114,7 +2113,7 @@ public class Location {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.annotation.Serdeable
 
@@ -2130,7 +2129,7 @@ class Location {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.annotation.Serdeable
 
@@ -2145,7 +2144,7 @@ data class Location(
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-java" data-lang="java">package example;
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
 import io.micronaut.core.convert.ConversionContext;
 import io.micronaut.core.convert.TypeConverter;
@@ -2165,12 +2164,12 @@ public class Feature {
     }
 
     @Override
-    public String toString() { <b class="conum">(1)</b>
+    public String toString() { // <b class="conum">(1)</b>
         return name;
     }
 
     @Singleton
-    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { <b class="conum">(2)</b>
+    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { // <b class="conum">(2)</b>
         @Override
         public Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
             return Optional.of(new Feature(object));
@@ -2181,7 +2180,7 @@ public class Feature {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-groovy" data-lang="groovy">package example
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.core.convert.ConversionContext
 import io.micronaut.core.convert.TypeConverter
@@ -2199,12 +2198,12 @@ class Feature {
     }
 
     @Override
-    String toString() { <b class="conum">(1)</b>
+    String toString() { // <b class="conum">(1)</b>
         return name
     }
 
     @Singleton
-    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { <b class="conum">(2)</b>
+    static class FeatureConverter implements TypeConverter&lt;String, Feature&gt; { // <b class="conum">(2)</b>
         @Override
         Optional&lt;Feature&gt; convert(String object, Class&lt;Feature&gt; targetType, ConversionContext context) {
             return Optional.of(new Feature(object))
@@ -2215,7 +2214,7 @@ class Feature {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlight"><code class="language-kotlin" data-lang="kotlin">package example
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.core.convert.ConversionContext
 import io.micronaut.core.convert.TypeConverter
@@ -2227,14 +2226,14 @@ class Feature(private val name: String) {
         return name
     }
 
-    override fun toString(): String { <b class="conum">(1)</b>
+    override fun toString(): String { // <b class="conum">(1)</b>
         return name
     }
 }
 
 @Singleton
 class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
-    <b class="conum">(2)</b>
+    // <b class="conum">(2)</b>
     override fun convert(value: String, targetType: Class&lt;Feature&gt;, context: ConversionContext): Optional&lt;Feature&gt; {
         return Optional.of(Feature(value))
     }
