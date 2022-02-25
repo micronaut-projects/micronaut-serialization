@@ -191,9 +191,13 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     } else if (hasProperties) {
                         final DeserBean.DerProperty<? super Object, ?> rp = readProperties.findNotConsumed(prop);
                         if (rp != null) {
-                            @SuppressWarnings("unchecked") final Argument<Object> argument = (Argument<Object>) rp.argument;
-                            final Object val = deserializeValue(decoderContext, objectDecoder, rp, argument, null);
-                            buffer = initBuffer(buffer, rp, prop, val);
+                            if (rp.managedRef != null) {
+                                tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, prop);
+                            } else {
+                                @SuppressWarnings("unchecked") final Argument<Object> argument = (Argument<Object>) rp.argument;
+                                final Object val = deserializeValue(decoderContext, objectDecoder, rp, argument, null);
+                                buffer = initBuffer(buffer, rp, prop, val);
+                            }
                         } else {
                             skipOrSetAny(
                                     decoderContext,
@@ -274,16 +278,13 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     throw new SerdeException("Unable to deserialize type [" + type + "]: " + e.getMessage(), e);
                 }
                 if (hasProperties) {
-
                     if (buffer != null) {
-                        for (PropertyBuffer propertyBuffer : buffer) {
-                            final DeserBean.DerProperty<? super Object, ?> derProperty =
-                                    readProperties.consume(propertyBuffer.name);
-                            if (derProperty != null) {
-                                if (derProperty.instrospection.getBeanType() == objectType) {
-                                    propertyBuffer.set(obj, decoderContext);
-                                }
-                            }
+                        processPropertyBuffer(decoderContext, objectType, readProperties, obj, buffer);
+                    }
+                    if (tokenBuffer != null) {
+                        buffer = initFromTokenBuffer(tokenBuffer, creatorParameters, readProperties, anyValues, decoderContext);
+                        if (buffer != null) {
+                            processPropertyBuffer(decoderContext, objectType, readProperties, obj, buffer);
                         }
                     }
                     if (!readProperties.isAllConsumed()) {
@@ -357,6 +358,22 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
             finalizeObjectDecoder(decoderContext, type, ignoreUnknown, objectDecoder, anyValues, obj);
 
             return obj;
+        }
+    }
+
+    private void processPropertyBuffer(DecoderContext decoderContext,
+                           Class<? super Object> objectType,
+                           PropertiesBag<Object>.Consumer readProperties,
+                           Object obj,
+                           PropertyBuffer buffer) throws IOException {
+        for (PropertyBuffer propertyBuffer : buffer) {
+            final DeserBean.DerProperty<? super Object, ?> derProperty =
+                    readProperties.consume(propertyBuffer.name);
+            if (derProperty != null) {
+                if (derProperty.instrospection.getBeanType() == objectType) {
+                    propertyBuffer.set(obj, decoderContext);
+                }
+            }
         }
     }
 

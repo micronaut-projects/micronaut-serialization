@@ -271,6 +271,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (!failOnError) {
             return false;
         }
+        if (element instanceof MethodElement) {
+            if (readMethods.contains(element.getName()) && !((MethodElement) element).hasParameters()) {
+                // handled by PropertyElement
+                return false;
+            } else if (writeMethods.contains(element.getName()) && ((MethodElement) element).getParameters().length == 1) {
+                // handled by PropertyElement
+                return false;
+            }
+        }
 
         if (element instanceof MethodElement && element.hasDeclaredAnnotation(SerdeConfig.class) && element.isPrivate()) {
             context.fail("JSON annotations cannot be used on private methods and constructors", element);
@@ -288,6 +297,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return true;
         }
         ClassElement propertyType = resolvePropertyType(element);
+        if (propertyType == null) {
+            return false;
+        }
         final boolean isBasicType = isBasicType(propertyType);
         if (isBasicType) {
 
@@ -334,8 +346,98 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         }
 
-        if (element.hasDeclaredAnnotation(SerdeConfig.ManagedRef.class)) {
-            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+        if (handleManagedRef(element, context, propertyType, isBasicType)) {
+            return true;
+        }
+        if (handleBackRef(element, context, propertyType, isBasicType)) {
+            return true;
+        }
+
+        if (hasAnnotationOnElement(element, SerdeConfig.Unwrapped.class)) {
+            if (isBasicType(propertyType)) {
+                context.fail("Unwrapped cannot be declared on basic types", element);
+                return true;
+            }
+            final List<TypedElement> thatProperties = resolveProperties(context, propertyType);
+            final List<TypedElement> thisProperties = resolveProperties(context, currentClass);
+            for (TypedElement thisProperty : thisProperties) {
+                String thisName = resolveJsonName(thisProperty);
+                for (TypedElement thatProperty : thatProperties) {
+                    String thatName = resolveJsonName(thatProperty);
+                    if (thisName.equals(thatName)) {
+                        context.fail("Unwrapped property contains a property [" + thatName + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.", element);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean handleBackRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
+        if (hasAnnotationOnElement(element, SerdeConfig.BackRef.class)) {
+            if (hasAnnotationOnElement(element, SerdeConfig.Unwrapped.class)) {
+                context.fail("Managed references cannot be unwrapped", element);
+                return true;
+            }
+            if (isBasicType) {
+                context.fail("Back references cannot be declared on basic types", element);
+                return true;
+            } else if (isCollectionType(propertyType)) {
+                context.fail("Back references cannot be declared on collection, array or Map types and must be simple beans",
+                             element);
+                return true;
+            }
+            final String otherSide = element.stringValue(SerdeConfig.BackRef.class).orElse(null);
+            final List<TypedElement> inverseElements = resolveInverseElements(
+                    context,
+                    propertyType,
+                    SerdeConfig.ManagedRef.class,
+                    element.getName()
+            );
+            if (otherSide == null) {
+                final int i = inverseElements.size();
+                if (i > 1) {
+                    context.fail("More than one potential inverse property found  " + inverseElements +
+                                         ", consider specifying a value to the reference to configure the association",
+                                 element);
+                    return true;
+                } else if (i == 0) {
+                    context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
+                    return true;
+                } else {
+                    final TypedElement otherElement = inverseElements.iterator().next();
+                    if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                        context.fail("Back reference declares an incompatible inverse property [" + otherElement + "]. The "
+                                             + "inverse side should be a map, collection, bean or array of the same type as the property.",
+                                     element);
+                        return true;
+                    }
+                    element.annotate(SerdeConfig.BackRef.class, (builder) ->
+                        builder.value(otherElement.getName())
+                    );
+                }
+            } else {
+                final TypedElement otherElement = inverseElements.stream()
+                        .filter(p -> p.getName().equals(otherSide))
+                        .findFirst().orElse(null);
+                if (otherElement == null) {
+                    context.fail("Back reference declares an inverse property [" + otherSide + "] that doesn't exist in type " + propertyType.getName(),
+                                 element);
+                    return true;
+                } else if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                    context.fail("Back reference declares an incompatible inverse property [" + otherSide + "]. The inverse side should be a map, collection, bean or array of the same type as the property.",
+                                 element);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean handleManagedRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
+        if (hasAnnotationOnElement(element, SerdeConfig.ManagedRef.class)) {
+            if (hasAnnotationOnElement(element, SerdeConfig.Unwrapped.class)) {
                 context.fail("Managed references cannot be unwrapped", element);
                 return true;
             }
@@ -357,12 +459,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
                     return true;
                 } else if (i > 1) {
-                    context.fail("More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association", element);
+                    context.fail("More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association",
+                                 element);
                     return true;
                 } else {
                     final TypedElement otherElement = inverseElements.iterator().next();
                     if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                        context.fail("Managed reference declares an incompatible inverse property [" + otherElement + "]. The inverse side should be a map, collection, bean or array of the same type as the property.", element);
+                        context.fail("Managed reference declares an incompatible inverse property [" + otherElement +
+                                             "]. The inverse side should be a map, collection, bean or array of the same type as the property.",
+                                     element);
                         return true;
                     } else {
 
@@ -373,76 +478,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
-        if (element.hasDeclaredAnnotation(SerdeConfig.BackRef.class)) {
-            if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
-                context.fail("Managed references cannot be unwrapped", element);
-                return true;
-            }
-            if (isBasicType) {
-                context.fail("Back references cannot be declared on basic types", element);
-                return true;
-            } else if (isCollectionType(propertyType)) {
-                context.fail("Back references cannot be declared on collection, array or Map types and must be simple beans", element);
-                return true;
-            }
-            final String otherSide = element.stringValue(SerdeConfig.BackRef.class).orElse(null);
-            final List<TypedElement> inverseElements = resolveInverseElements(
-                    context,
-                    propertyType,
-                    SerdeConfig.ManagedRef.class,
-                    element.getName()
-            );
-            if (otherSide == null) {
-                final int i = inverseElements.size();
-                if (i > 1) {
-                    context.fail("More than one potential inverse property found  " + inverseElements + ", consider specifying a value to the reference to configure the association", element);
-                    return true;
-                } else if (i == 0) {
-                    context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
-                    return true;
-                } else {
-                    final TypedElement otherElement = inverseElements.iterator().next();
-                    if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                        context.fail("Back reference declares an incompatible inverse property [" + otherElement + "]. The inverse side should be a map, collection, bean or array of the same type as the property.", element);
-                        return true;
-                    }
-                    element.annotate(SerdeConfig.BackRef.class, (builder) ->
-                        builder.value(otherElement.getName())
-                    );
-                }
-            } else {
-                final TypedElement otherElement = inverseElements.stream()
-                        .filter(p -> p.getName().equals(otherSide))
-                        .findFirst().orElse(null);
-                if (otherElement == null) {
-                    context.fail("Back reference declares an inverse property [" + otherSide + "] that doesn't exist in type " + propertyType.getName(), element);
-                    return true;
-                } else if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                    context.fail("Back reference declares an incompatible inverse property [" + otherSide + "]. The inverse side should be a map, collection, bean or array of the same type as the property.", element);
-                    return true;
-                }
-            }
-        }
-
-        if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
-            if (isBasicType(propertyType)) {
-                context.fail("Unwrapped cannot be declared on basic types", element);
-                return true;
-            }
-            final List<TypedElement> thatProperties = resolveProperties(context, propertyType);
-            final List<TypedElement> thisProperties = resolveProperties(context, currentClass);
-            for (TypedElement thisProperty : thisProperties) {
-                String thisName = resolveJsonName(thisProperty);
-                for (TypedElement thatProperty : thatProperties) {
-                    String thatName = resolveJsonName(thatProperty);
-                    if (thisName.equals(thatName)) {
-                        context.fail("Unwrapped property contains a property [" + thatName + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.", element);
-                        return true;
-                    }
-                }
-            }
-        }
         return false;
+    }
+
+    private boolean hasAnnotationOnElement(Element element, Class<? extends Annotation> managedRefClass) {
+        return element.hasDeclaredAnnotation(managedRefClass) || (
+                element instanceof PropertyElement && element.hasAnnotation(managedRefClass));
     }
 
     private String resolveJsonName(TypedElement thisProperty) {
@@ -478,10 +519,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
         final List<TypedElement> otherElements = new ArrayList<>();
         if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
-            propertyType.getBeanProperties().stream()
+            final List<PropertyElement> beanProperties = propertyType.getBeanProperties();
+            beanProperties.stream()
                     .filter(p ->
                        isMappedCandidate(refType, thisSide, p) &&
-                        p.hasDeclaredAnnotation(refType) &&
+                        p.hasAnnotation(refType) &&
                         isCompatibleInverseSide(p.getGenericType(), currentClass)
                     ).forEach(otherElements::add);
         }
@@ -560,7 +602,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         .map(Number.class::isAssignableFrom).orElse(false));
     }
 
-    private ClassElement resolvePropertyType(Element element) {
+    private @Nullable ClassElement resolvePropertyType(Element element) {
         ClassElement type = null;
         if (element instanceof FieldElement) {
             type = ((FieldElement) element).getGenericField().getType();
@@ -571,6 +613,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else {
                 type = methodElement.getParameters()[0].getGenericType();
             }
+        } else if (element instanceof PropertyElement) {
+            return ((PropertyElement) element).getGenericType();
         }
         return type;
     }
@@ -905,6 +949,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         for (TypedElement beanProperty : beanProperties) {
+            if (checkForErrors(beanProperty, context)) {
+                continue;
+            }
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
             if (beanProperty instanceof PropertyElement) {
