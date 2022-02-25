@@ -34,7 +34,7 @@ public class JsonbPropertyOrderTransformer
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.PropertyOrder.class)
+                AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
                         .member(AnnotationMetadata.VALUE_MEMBER, annotation.stringValues())
                         .build()
         );

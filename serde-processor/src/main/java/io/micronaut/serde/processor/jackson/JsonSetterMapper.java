@@ -49,7 +49,7 @@ public final class JsonSetterMapper extends ValidatingAnnotationMapper {
         }
         values.addAll(Arrays.asList(
                 AnnotationValue.builder(Executable.class).build(),
-                AnnotationValue.builder(SerdeConfig.Setter.class).build()
+                AnnotationValue.builder(SerdeConfig.SerSetter.class).build()
         ));
         return values;
     }

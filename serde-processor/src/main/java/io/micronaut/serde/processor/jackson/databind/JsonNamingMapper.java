@@ -71,7 +71,7 @@ public class JsonNamingMapper implements NamedAnnotationMapper {
 
     private List<AnnotationValue<?>> unsupported(String className) {
         return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.SerdeError.class)
+                AnnotationValue.builder(SerdeConfig.SerError.class)
                         .value("Unsupported Databind naming strategy: " + className)
                         .build()
         );

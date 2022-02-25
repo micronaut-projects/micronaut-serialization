@@ -41,7 +41,7 @@ public abstract class ValidatingAnnotationMapper implements NamedAnnotationMappe
                 .filter(n -> !supported.contains(n.toString()))
                 .findFirst();
         return unsupportedMember.<List<AnnotationValue<?>>>map(charSequence -> Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.SerdeError.class)
+                AnnotationValue.builder(SerdeConfig.SerError.class)
                         .value(getErrorMessage(supported, charSequence))
                         .build()
         )).orElseGet(() -> mapValid(annotation, visitorContext));

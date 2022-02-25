@@ -38,6 +38,16 @@ import java.lang.annotation.Repeatable;
 @Inherited
 public @interface SerdeConfig {
     /**
+     * The meta annotation for property.
+     */
+    String META_ANNOTATION_PROPERTY = "Property";
+
+    /**
+     * The meta annotation for property order.
+     */
+    String META_ANNOTATION_PROPERTY_ORDER = "PropertyOrder";
+
+    /**
      * Used to store the type that will serialize this type.
      */
     String SERIALIZE_AS = "serAs";
@@ -151,8 +161,8 @@ public @interface SerdeConfig {
      * Internal metadata type for wrapped settings.
      */
     @Internal
-    @interface Unwrapped {
-        String NAME = Unwrapped.class.getName();
+    @interface SerUnwrapped {
+        String NAME = SerUnwrapped.class.getName();
         String PREFIX = "prefix";
         String SUFFIX = "suffix";
     }
@@ -162,21 +172,21 @@ public @interface SerdeConfig {
      */
     @Internal
     @Executable
-    @interface Getter {
+    @interface SerGetter {
     }
 
     /**
      * Ignore handling meta annotation.
      */
     @Internal
-    @interface Ignored {
-        @interface Type { }
+    @interface SerIgnored {
+        @interface SerType { }
     }
 
     /**
      * Include property meta annotation.
      */
-    @interface Included {
+    @interface SerIncluded {
     }
 
     /**
@@ -184,7 +194,7 @@ public @interface SerdeConfig {
      */
     @Internal
     @Executable
-    @interface AnyGetter {
+    @interface SerAnyGetter {
     }
 
     /**
@@ -192,7 +202,7 @@ public @interface SerdeConfig {
      */
     @Internal
     @Executable
-    @interface Setter {
+    @interface SerSetter {
     }
 
     /**
@@ -201,53 +211,39 @@ public @interface SerdeConfig {
     @Internal
     @Executable
     @SerdeConfig
-    @interface AnySetter {
+    @interface SerAnySetter {
     }
 
     /**
      * Used to store errors.
      */
     @Internal
-    @interface SerdeError {
-    }
-
-    /**
-     * Used to store order information.
-     */
-    @Internal
-    @interface PropertyOrder {
-    }
-
-    /**
-     * For case where property is defined with no name.
-     */
-    @Internal
-    @interface Property {
+    @interface SerError {
     }
 
     /**
      * Managed reference.
      */
     @Internal
-    @interface ManagedRef {
+    @interface SerManagedRef {
     }
 
     /**
      * Back reference.
      */
     @Internal
-    @interface BackRef {
+    @interface SerBackRef {
     }
 
     /**
      * Meta annotations for subtyped mapping.
      */
     @Internal
-    @interface Subtyped {
+    @interface SerSubtyped {
         /**
          * @return the subtypes
          */
-        Subtype[] value() default {};
+        SerSubtype[] value() default {};
         /**
          * The discriminator to use.
          */
@@ -274,8 +270,8 @@ public @interface SerdeConfig {
         /**
          * Meta annotation for a mapped subtype.
          */
-        @Repeatable(Subtyped.class)
-        @interface Subtype {
+        @Repeatable(SerSubtyped.class)
+        @interface SerSubtype {
         }
     }
 
@@ -330,7 +326,7 @@ public @interface SerdeConfig {
     /**
      * Creator mode used when invoking the {@link io.micronaut.core.annotation.Creator}.
      */
-    enum CreatorMode {
+    enum SerCreatorMode {
         /**
          * Use a single argument as the value.
          */

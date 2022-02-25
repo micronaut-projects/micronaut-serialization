@@ -84,8 +84,8 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                 SubtypedDeserBean<? super Object> subtypedDeserBean = (SubtypedDeserBean) deserBean;
                 final String discriminatorName = subtypedDeserBean.discriminatorName;
                 final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
-                final SerdeConfig.Subtyped.DiscriminatorType discriminatorType = subtypedDeserBean.discriminatorType;
-                if (discriminatorType == SerdeConfig.Subtyped.DiscriminatorType.PROPERTY) {
+                final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypedDeserBean.discriminatorType;
+                if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
                     while (true) {
                         final String key = objectDecoder.decodeKey();
                         if (key == null) {

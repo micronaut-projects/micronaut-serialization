@@ -38,7 +38,7 @@ public class JsonPropertyOrderMapper extends ValidatingAnnotationMapper {
     protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation,
                                                       VisitorContext visitorContext) {
         return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.PropertyOrder.class)
+                AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
                         .member(AnnotationMetadata.VALUE_MEMBER, annotation.stringValues())
                         .build()
         );

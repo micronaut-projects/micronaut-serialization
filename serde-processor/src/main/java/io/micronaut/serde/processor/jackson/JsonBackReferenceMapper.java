@@ -36,8 +36,8 @@ public class JsonBackReferenceMapper implements NamedAnnotationMapper {
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final AnnotationValueBuilder<SerdeConfig.BackRef> builder =
-                AnnotationValue.builder(SerdeConfig.BackRef.class);
+        final AnnotationValueBuilder<SerdeConfig.SerBackRef> builder =
+                AnnotationValue.builder(SerdeConfig.SerBackRef.class);
         annotation.stringValue().ifPresent(builder::value);
         return Collections.singletonList(builder.build());
     }

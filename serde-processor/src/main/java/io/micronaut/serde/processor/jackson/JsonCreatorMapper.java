@@ -34,7 +34,7 @@ public final class JsonCreatorMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<Creator> builder = AnnotationValue.builder(Creator.class);
-        annotation.enumValue("mode", SerdeConfig.CreatorMode.class)
+        annotation.enumValue("mode", SerdeConfig.SerCreatorMode.class)
                 .ifPresent(e -> builder.member("mode", e.name()));
         return Collections.singletonList(builder.build());
     }

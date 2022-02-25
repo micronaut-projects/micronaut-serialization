@@ -39,7 +39,7 @@ public class JsonPropertyMapper implements NamedAnnotationMapper {
         if (propertyName != null) {
             builder.member(SerdeConfig.PROPERTY, propertyName);
         } else {
-            values.add(AnnotationValue.builder(SerdeConfig.Property.class).build());
+            values.add(AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY).build());
         }
 
         annotation.stringValue("defaultValue")

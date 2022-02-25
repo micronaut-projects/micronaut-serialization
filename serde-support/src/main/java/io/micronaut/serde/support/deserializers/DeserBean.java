@@ -90,16 +90,16 @@ class DeserBean<T> {
             DeserBeanRegistry deserBeanRegistry)
             throws SerdeException {
         this.introspection = introspection;
-        final SerdeConfig.CreatorMode creatorMode = introspection
+        final SerdeConfig.SerCreatorMode creatorMode = introspection
                 .getConstructor().getAnnotationMetadata()
-                .enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class)
+                .enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class)
                 .orElse(null);
-        delegating = creatorMode == SerdeConfig.CreatorMode.DELEGATING;
+        delegating = creatorMode == SerdeConfig.SerCreatorMode.DELEGATING;
         final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
-        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.Ignored.class, "ignoreUnknown").orElse(true);
+        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, "ignoreUnknown").orElse(true);
         final PropertiesBag<T> creatorParams = new PropertiesBag<>(introspection, constructorArguments.length);
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter<Object> anySetterValue = null;
@@ -110,7 +110,7 @@ class DeserBean<T> {
             if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)) {
                 continue;
             }
-            if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
+            if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
                 anySetterValue = new AnySetter<>(constructorArgument, i);
                 final String n = constructorArgument.getName();
                 creatorParams.register(
@@ -137,7 +137,7 @@ class DeserBean<T> {
                     annotationMetadata,
                     constructorArgument.getTypeParameters()
             );
-            final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+            final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
             final DerProperty<T, Object> derProperty;
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
@@ -157,8 +157,8 @@ class DeserBean<T> {
                         null,
                         unwrapped
                 ));
-                String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
-                String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
+                String prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
+                String suffix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
 
                 final PropertiesBag<Object> unwrappedCreatorParams = unwrapped.creatorParams;
                 if (unwrappedCreatorParams != null) {
@@ -204,9 +204,9 @@ class DeserBean<T> {
         final List<BeanMethod<T, Object>> jsonSetters = new ArrayList<>(beanMethods.size());
         BeanMethod<T, Object> anySetter = null;
         for (BeanMethod<T, Object> method : beanMethods) {
-            if (method.isAnnotationPresent(SerdeConfig.Setter.class)) {
+            if (method.isAnnotationPresent(SerdeConfig.SerSetter.class)) {
                 jsonSetters.add(method);
-            } else if (method.isAnnotationPresent(SerdeConfig.AnySetter.class) && ArrayUtils.isNotEmpty(method.getArguments())) {
+            } else if (method.isAnnotationPresent(SerdeConfig.SerAnySetter.class) && ArrayUtils.isNotEmpty(method.getArguments())) {
                 anySetter = method;
             }
         }
@@ -221,10 +221,10 @@ class DeserBean<T> {
                 BeanProperty<T, Object> beanProperty = beanProperties.get(i);
                 PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
                 final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
-                if (annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class)) {
+                if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
                     anySetterValue = new AnySetter(beanProperty);
                 } else {
-                    final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+                    final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
                     final Argument<Object> t = resolveArgument(beanProperty.asArgument());
 
                     if (isUnwrapped) {
@@ -248,8 +248,8 @@ class DeserBean<T> {
                                 null,
                                 unwrapped
                         ));
-                        String prefix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX).orElse("");
-                        String suffix = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX).orElse("");
+                        String prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
+                        String suffix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
 
                         PropertiesBag<T> unwrappedProps = (PropertiesBag) unwrapped.readProperties;
                         if (unwrappedProps != null) {
@@ -646,16 +646,16 @@ class DeserBean<T> {
                 throw new SerdeException((index > -1 ? "Constructor Argument" : "Property") + " [" + argument + "] of type [" + instrospection.getBeanType().getName() + "] defines an invalid default value", e);
             }
             this.unwrapped = unwrapped;
-            this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.AnySetter.class);
+            this.isAnySetter = annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class);
             final String[] aliases = annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.ALIASES);
             if (ArrayUtils.isNotEmpty(aliases)) {
                 this.aliases = ArrayUtils.concat(aliases, property);
             } else {
                 this.aliases = null;
             }
-            this.managedRef = annotationMetadata.stringValue(SerdeConfig.ManagedRef.class)
+            this.managedRef = annotationMetadata.stringValue(SerdeConfig.SerManagedRef.class)
                     .orElse(null);
-            this.backRef = annotationMetadata.stringValue(SerdeConfig.BackRef.class)
+            this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
         }
 

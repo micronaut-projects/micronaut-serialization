@@ -31,13 +31,13 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 public class JsonUnwrappedMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final AnnotationValueBuilder<SerdeConfig.Unwrapped> unwrapped =
-                AnnotationValue.builder(SerdeConfig.Unwrapped.class);
-        annotation.stringValue(SerdeConfig.Unwrapped.PREFIX).ifPresent(v -> unwrapped.member(
-                SerdeConfig.Unwrapped.PREFIX, v
+        final AnnotationValueBuilder<SerdeConfig.SerUnwrapped> unwrapped =
+                AnnotationValue.builder(SerdeConfig.SerUnwrapped.class);
+        annotation.stringValue(SerdeConfig.SerUnwrapped.PREFIX).ifPresent(v -> unwrapped.member(
+                SerdeConfig.SerUnwrapped.PREFIX, v
         ));
-        annotation.stringValue(SerdeConfig.Unwrapped.SUFFIX).ifPresent(v -> unwrapped.member(
-                SerdeConfig.Unwrapped.SUFFIX, v
+        annotation.stringValue(SerdeConfig.SerUnwrapped.SUFFIX).ifPresent(v -> unwrapped.member(
+                SerdeConfig.SerUnwrapped.SUFFIX, v
         ));
         return Collections.singletonList(unwrapped.build());
     }

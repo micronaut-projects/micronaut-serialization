@@ -36,12 +36,12 @@ import java.util.List;
 public class JsonSubTypesMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = new ArrayList<>();
+        List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypes = new ArrayList<>();
         List<AnnotationValue<Annotation>> annotations = annotation.getAnnotations(AnnotationMetadata.VALUE_MEMBER);
         for (AnnotationValue<Annotation> annotationValue : annotations) {
             AnnotationClassValue<?> acv = annotationValue.annotationClassValue(AnnotationMetadata.VALUE_MEMBER).orElse(null);
             if (acv != null) {
-                AnnotationValueBuilder<SerdeConfig.Subtyped.Subtype> builder = AnnotationValue.builder(SerdeConfig.Subtyped.Subtype.class)
+                AnnotationValueBuilder<SerdeConfig.SerSubtyped.SerSubtype> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.SerSubtype.class)
                         .member(AnnotationMetadata.VALUE_MEMBER, acv);
                 String[] names = annotationValue.stringValues("names");
                 String v = annotationValue.stringValue("name").orElse(null);
@@ -56,7 +56,7 @@ public class JsonSubTypesMapper implements NamedAnnotationMapper {
         }
         if (CollectionUtils.isNotEmpty(subtypes)) {
             return Collections.singletonList(
-                    AnnotationValue.builder(SerdeConfig.Subtyped.class)
+                    AnnotationValue.builder(SerdeConfig.SerSubtyped.class)
                             .values(subtypes.toArray(new AnnotationValue[0]))
                             .build()
             );

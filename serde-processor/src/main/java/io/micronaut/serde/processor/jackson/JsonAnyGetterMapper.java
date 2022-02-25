@@ -34,7 +34,7 @@ public class JsonAnyGetterMapper extends ValidatingAnnotationMapper {
         return Arrays.asList(
                 AnnotationValue.builder(Executable.class).build(),
                 AnnotationValue.builder(SerdeConfig.class).build(),
-                AnnotationValue.builder(SerdeConfig.AnyGetter.class).build()
+                AnnotationValue.builder(SerdeConfig.SerAnyGetter.class).build()
         );
     }
 
