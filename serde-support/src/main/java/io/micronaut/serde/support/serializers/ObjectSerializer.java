@@ -200,9 +200,10 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                 throws IOException {
             if (value == null) {
                 encoder.encodeNull();
+            } else {
+                Argument<Object> arg = Argument.of((Class) value.getClass());
+                getSerializer(context, value).serialize(encoder, context, arg, value);
             }
-            Argument<Object> arg = Argument.of((Class) value.getClass());
-            getSerializer(context, value).serialize(encoder, context, arg, value);
         }
 
         @Override

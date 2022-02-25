@@ -83,7 +83,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                 if (candidates.size() == 1) {
                     result = (BeanIntrospection<T>) candidates.iterator().next();
                 } else {
-                    result = (BeanIntrospection<T>) OrderUtil.sort(candidates.stream()).findFirst().get();
+                    result = (BeanIntrospection<T>) OrderUtil.sort(candidates.stream()).findFirst().orElse(null);
                 }
             }
         }
