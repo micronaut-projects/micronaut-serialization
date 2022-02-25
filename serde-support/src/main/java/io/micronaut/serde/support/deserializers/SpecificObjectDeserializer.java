@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -790,11 +791,14 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                 }
 
                 @Override
-                public SpecificObjectDeserializer.TokenBuffer next() {
+                public SpecificObjectDeserializer.TokenBuffer next() throws NoSuchElementException {
                     if (thisBuffer == null) {
                         thisBuffer = SpecificObjectDeserializer.TokenBuffer.this;
                     } else {
                         thisBuffer = thisBuffer.next;
+                    }
+                    if (thisBuffer == null) {
+                        throw new NoSuchElementException();
                     }
                     return thisBuffer;
                 }
@@ -835,11 +839,15 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                 }
 
                 @Override
-                public SpecificObjectDeserializer.PropertyBuffer next() {
+                public SpecificObjectDeserializer.PropertyBuffer next() throws NoSuchElementException {
                     if (thisBuffer == null) {
                         thisBuffer = SpecificObjectDeserializer.PropertyBuffer.this;
                     } else {
                         thisBuffer = thisBuffer.next;
+                    }
+
+                    if (thisBuffer == null) {
+                        throw new NoSuchElementException();
                     }
                     return thisBuffer;
                 }

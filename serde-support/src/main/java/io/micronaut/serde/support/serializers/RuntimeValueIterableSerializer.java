@@ -42,7 +42,7 @@ final class RuntimeValueIterableSerializer<T> implements Serializer<Iterable<T>>
                 encoder.encodeNull();
                 continue;
             }
-            if (lastValueClass != t.getClass()) {
+            if (lastValueClass != t.getClass() || componentSerializer == null) {
                 generic = (Argument<T>) Argument.of(t.getClass());
                 componentSerializer = context.findSerializer(generic).createSpecific(context, generic);
                 lastValueClass = t.getClass();

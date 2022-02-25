@@ -397,10 +397,11 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     @Override
     public Decoder decodeBuffer() throws IOException {
         byte[] documentBytes = decodeCustom(p -> ((BsonReaderDecoder) p).copyValueToDocument());
-        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)));
-        Decoder objectDecoder = topDecoder.decodeObject();
-        objectDecoder.decodeKey(); // skip key
-        return objectDecoder;
+        try (BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)))) {
+            Decoder objectDecoder = topDecoder.decodeObject();
+            objectDecoder.decodeKey(); // skip key
+            return objectDecoder;
+        }
     }
 
     private static void transfer(BsonReader src, BsonWriter dest, BsonType type) {
