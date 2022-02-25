@@ -314,8 +314,8 @@ record Test(
                 .getSerializableIntrospection(argument)
 
         then:
-        introspection.getRequiredProperty("attributes", Map).isAnnotationPresent(SerdeConfig.AnySetter)
-        introspection.getRequiredProperty("attributes", Map).isAnnotationPresent(SerdeConfig.AnyGetter)
+        introspection.getRequiredProperty("attributes", Map).isAnnotationPresent(SerdeConfig.SerAnySetter)
+        introspection.getRequiredProperty("attributes", Map).isAnnotationPresent(SerdeConfig.SerAnyGetter)
 
         when:
         def bean = newInstance(context, 'jsongetterrecord.Test', "Fred", [foo:'bar', age: 10])

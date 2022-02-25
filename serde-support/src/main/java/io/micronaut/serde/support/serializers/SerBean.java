@@ -152,9 +152,9 @@ final class SerBean<T> {
                 final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(beanMethods.size());
                 BeanMethod<T, Object> anyGetter = null;
                 for (BeanMethod<T, Object> beanMethod : beanMethods) {
-                    if (beanMethod.isAnnotationPresent(SerdeConfig.Getter.class)) {
+                    if (beanMethod.isAnnotationPresent(SerdeConfig.SerGetter.class)) {
                         jsonGetters.add(beanMethod);
-                    } else if (beanMethod.isAnnotationPresent(SerdeConfig.AnyGetter.class)) {
+                    } else if (beanMethod.isAnnotationPresent(SerdeConfig.SerAnyGetter.class)) {
                         anyGetter = beanMethod;
                     }
                 }
@@ -204,7 +204,7 @@ final class SerBean<T> {
                         final Argument<Object> argument = property.asArgument();
                         final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
                         final String defaultPropertyName = argument.getName();
-                        boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.Unwrapped.class);
+                        boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         if (unwrapped) {
                             BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
@@ -244,7 +244,7 @@ final class SerBean<T> {
                                 }
                             });
 
-                            if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+                            if (propertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
                                 this.anyGetter = serProperty;
                             } else {
                                 writeProperties.add(serProperty);
@@ -360,8 +360,8 @@ final class SerBean<T> {
                     .orElse(defaultPropertyName);
         }
         if (unwrapped) {
-            n = annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.PREFIX)
-                    .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.Unwrapped.class, SerdeConfig.Unwrapped.SUFFIX)
+            n = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX)
+                    .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX)
                     .orElse("");
         }
         return n;
@@ -467,9 +467,9 @@ final class SerBean<T> {
             this.include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
                     .orElse(bean.configuration.getInclusion());
-            this.managedRef = annotationMetadata.stringValue(SerdeConfig.ManagedRef.class)
+            this.managedRef = annotationMetadata.stringValue(SerdeConfig.SerManagedRef.class)
                     .orElse(null);
-            this.backRef = annotationMetadata.stringValue(SerdeConfig.BackRef.class)
+            this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
             this.annotationMetadata = annotationMetadata;
         }

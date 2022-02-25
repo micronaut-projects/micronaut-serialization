@@ -45,9 +45,9 @@ public class BsonDiscriminatorTransformer implements NamedAnnotationTransformer 
         builder.member(SerdeConfig.TYPE_NAME, annotation.stringValue().orElse(SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER));
         String discriminatorPropertyName = annotation.stringValue("key").orElse(BSON_DEFAULT_DISCRIMINATOR_PROPERTY_NAME);
         builder.member(SerdeConfig.TYPE_PROPERTY, discriminatorPropertyName);
-        AnnotationValueBuilder<SerdeConfig.Subtyped> subtypedBuilder = AnnotationValue.builder(SerdeConfig.Subtyped.class);
-        subtypedBuilder.member(SerdeConfig.Subtyped.DISCRIMINATOR_VALUE, SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME.name());
-        subtypedBuilder.member(SerdeConfig.Subtyped.DISCRIMINATOR_PROP, discriminatorPropertyName);
+        AnnotationValueBuilder<SerdeConfig.SerSubtyped> subtypedBuilder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
+        subtypedBuilder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME.name());
+        subtypedBuilder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, discriminatorPropertyName);
         return Arrays.asList(builder.build(), subtypedBuilder.build());
     }
 }

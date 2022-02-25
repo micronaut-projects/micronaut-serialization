@@ -65,11 +65,11 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
         }
 
         String property = annotation.stringValue("property").orElse(null);
-        AnnotationValueBuilder<SerdeConfig.Subtyped> builder = AnnotationValue.builder(SerdeConfig.Subtyped.class);
+        AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
         switch (include) {
             case "PROPERTY":
             case "WRAPPER_OBJECT":
-                builder.member(SerdeConfig.Subtyped.DISCRIMINATOR_TYPE, include);
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
                 break;
             default:
                 return mapError("Only 'include' of type PROPERTY or WRAPPER_OBJECT are supported");
@@ -78,9 +78,9 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
         switch (use) {
             case "CLASS":
             case "NAME":
-                builder.member(SerdeConfig.Subtyped.DISCRIMINATOR_VALUE, use);
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, use);
                 property = property != null ? property : use.equals("CLASS") ? "@class" : "@type";
-                builder.member(SerdeConfig.Subtyped.DISCRIMINATOR_PROP, property);
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, property);
             break;
             default:
                 return mapError("Unsupported JsonTypeInfo use: " + use);
@@ -91,7 +91,7 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
 
     private List<AnnotationValue<?>> mapError(String message) {
         return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.SerdeError.class)
+                AnnotationValue.builder(SerdeConfig.SerError.class)
                         .value(message)
                         .build()
         );

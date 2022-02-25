@@ -42,7 +42,7 @@ public class JsonGetterMapper implements NamedAnnotationMapper {
         }
         values.addAll(Arrays.asList(
                 AnnotationValue.builder(Executable.class).build(),
-                AnnotationValue.builder(SerdeConfig.Getter.class).build()
+                AnnotationValue.builder(SerdeConfig.SerGetter.class).build()
         ));
         return values;
     }

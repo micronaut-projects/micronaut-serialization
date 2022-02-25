@@ -78,7 +78,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                     type.getAnnotationMetadata(),
                     deserializableIntrospection.getAnnotationMetadata()
             );
-            if (annotationMetadata.hasAnnotation(SerdeConfig.Subtyped.class)) {
+            if (annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
                 if (type.hasTypeVariables()) {
                     final Map<String, Argument<?>> bounds = type.getTypeVariables();
                     return new SubtypedDeserBean(annotationMetadata, deserializableIntrospection, decoderContext, this) {

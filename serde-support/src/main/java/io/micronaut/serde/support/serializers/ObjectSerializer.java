@@ -130,11 +130,11 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                         return serBean.jsonValue.serializer.isAbsent(context, serBean.jsonValue.get(value));
                     }
                 };
-            } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.Ignored.class) || annotationMetadata.isAnnotationPresent(
-                    SerdeConfig.PropertyOrder.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.Included.class)) {
-                final String[] ignored = annotationMetadata.stringValues(SerdeConfig.Ignored.class);
-                final String[] included = annotationMetadata.stringValues(SerdeConfig.Included.class);
-                List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.PropertyOrder.class));
+            } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(
+                    SerdeConfig.META_ANNOTATION_PROPERTY_ORDER) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
+                final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
+                final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
+                List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
                 final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
                 final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
                 Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;

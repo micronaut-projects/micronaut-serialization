@@ -35,7 +35,7 @@ public class JsonIncludePropertiesMapper implements NamedAnnotationMapper {
         final String[] values = annotation.stringValues();
         if (ArrayUtils.isNotEmpty(values)) {
             return Collections.singletonList(
-                    AnnotationValue.builder(SerdeConfig.Included.class)
+                    AnnotationValue.builder(SerdeConfig.SerIncluded.class)
                             .member(AnnotationMetadata.VALUE_MEMBER, values)
                             .build()
             );

@@ -36,7 +36,7 @@ public final class JacksonIgnoreTypeMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.Ignored.Type.class).build()
+                AnnotationValue.builder(SerdeConfig.SerIgnored.SerType.class).build()
 
         );
     }

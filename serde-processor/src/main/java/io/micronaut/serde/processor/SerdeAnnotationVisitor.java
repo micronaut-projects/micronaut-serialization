@@ -85,7 +85,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private FieldElement jsonValueField;
     private final Set<String> readMethods = new HashSet<>(20);
     private final Set<String> writeMethods = new HashSet<>(20);
-    private SerdeConfig.CreatorMode creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
+    private SerdeConfig.SerCreatorMode creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
 
     @Override
     public Set<String> getSupportedAnnotationNames() {
@@ -121,8 +121,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private void checkForFieldErrors(FieldElement element, VisitorContext context) {
         if (failOnError) {
 
-            if (element.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
-                if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
+                if (element.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
                     context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
                 } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
                     context.fail("A field annotated with AnyGetter cannot be a JsonValue", element);
@@ -139,10 +139,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         this.anyGetterField = element;
                     }
                 }
-            } else if (element.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
-                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+            } else if (element.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
+                if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                     context.fail("A field annotated with AnySetter cannot use DELEGATING creation", element);
-                } else if (element.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+                } else if (element.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
                     context.fail("A field annotated with AnySetter cannot be unwrapped", element);
                 } else if (!element.getGenericField().isAssignable(Map.class)) {
                     context.fail("A field annotated with AnySetter must be a Map", element);
@@ -182,7 +182,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return;
         }
         AnnotationMetadata declaredMetadata = element.getDeclaredMetadata();
-        if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Property.class) ||
+        if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY) ||
             declaredMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
             ParameterElement[] parameters = element.getParameters();
             if (element.isStatic()) {
@@ -192,18 +192,18 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     context.fail("A method annotated with JsonProperty cannot return void", element);
                 } else if (!readMethods.contains(element.getName())) {
                     element.annotate(Executable.class);
-                    element.annotate(SerdeConfig.Getter.class);
+                    element.annotate(SerdeConfig.SerGetter.class);
                 }
             } else if (parameters.length == 1) {
                 if (!writeMethods.contains(element.getName())) {
 
                     element.annotate(Executable.class);
-                    element.annotate(SerdeConfig.Setter.class);
+                    element.annotate(SerdeConfig.SerSetter.class);
                 }
             } else {
                 context.fail("A method annotated with JsonProperty must specify at most 1 argument", element);
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Getter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerGetter.class)) {
             if (element.isStatic()) {
                 context.fail("A method annotated with JsonGetter cannot be static", element);
             } else if (element.getReturnType().getName().equals("void")) {
@@ -211,7 +211,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else if (element.hasParameters()) {
                 context.fail("A method annotated with JsonGetter cannot define arguments", element);
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Setter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerSetter.class)) {
             if (element.isStatic()) {
                 context.fail("A method annotated with JsonSetter cannot be static", element);
             } else {
@@ -220,14 +220,14 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     context.fail("A method annotated with JsonSetter must specify exactly 1 argument", element);
                 }
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.AnyGetter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
             if (this.anyGetterMethod == null) {
                 this.anyGetterMethod = element;
             } else {
                 context.fail("Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true), element);
             }
 
-            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
                 context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
             } else if (element.isStatic()) {
                 context.fail("A method annotated with AnyGetter cannot be static", element);
@@ -236,13 +236,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else if (element.hasParameters()) {
                 context.fail("A method annotated with AnyGetter cannot define arguments", element);
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.AnySetter.class)) {
+        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
             if (this.anySetterMethod == null) {
                 this.anySetterMethod = element;
             } else {
                 context.fail("Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true), element);
             }
-            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.Unwrapped.class)) {
+            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
                 context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
             } else if (element.isStatic()) {
                 context.fail("A method annotated with AnySetter cannot be static", element);
@@ -291,7 +291,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 return true;
             }
         }
-        final String error = element.stringValue(SerdeConfig.SerdeError.class).orElse(null);
+        final String error = element.stringValue(SerdeConfig.SerError.class).orElse(null);
         if (error != null) {
             context.fail(error, element);
             return true;
@@ -353,7 +353,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return true;
         }
 
-        if (hasAnnotationOnElement(element, SerdeConfig.Unwrapped.class)) {
+        if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
             if (isBasicType(propertyType)) {
                 context.fail("Unwrapped cannot be declared on basic types", element);
                 return true;
@@ -375,8 +375,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private boolean handleBackRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
-        if (hasAnnotationOnElement(element, SerdeConfig.BackRef.class)) {
-            if (hasAnnotationOnElement(element, SerdeConfig.Unwrapped.class)) {
+        if (hasAnnotationOnElement(element, SerdeConfig.SerBackRef.class)) {
+            if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
                 context.fail("Managed references cannot be unwrapped", element);
                 return true;
             }
@@ -388,11 +388,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                              element);
                 return true;
             }
-            final String otherSide = element.stringValue(SerdeConfig.BackRef.class).orElse(null);
+            final String otherSide = element.stringValue(SerdeConfig.SerBackRef.class).orElse(null);
             final List<TypedElement> inverseElements = resolveInverseElements(
                     context,
                     propertyType,
-                    SerdeConfig.ManagedRef.class,
+                    SerdeConfig.SerManagedRef.class,
                     element.getName()
             );
             if (otherSide == null) {
@@ -413,7 +413,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                      element);
                         return true;
                     }
-                    element.annotate(SerdeConfig.BackRef.class, (builder) ->
+                    element.annotate(SerdeConfig.SerBackRef.class, (builder) ->
                         builder.value(otherElement.getName())
                     );
                 }
@@ -436,8 +436,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private boolean handleManagedRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
-        if (hasAnnotationOnElement(element, SerdeConfig.ManagedRef.class)) {
-            if (hasAnnotationOnElement(element, SerdeConfig.Unwrapped.class)) {
+        if (hasAnnotationOnElement(element, SerdeConfig.SerManagedRef.class)) {
+            if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
                 context.fail("Managed references cannot be unwrapped", element);
                 return true;
             }
@@ -446,12 +446,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 return true;
             }
 
-            final String otherSide = element.stringValue(SerdeConfig.ManagedRef.class).orElse(null);
+            final String otherSide = element.stringValue(SerdeConfig.SerManagedRef.class).orElse(null);
             if (otherSide == null) {
                 final List<TypedElement> inverseElements = resolveInverseElements(
                         context,
                         resolveRefType(propertyType),
-                        SerdeConfig.BackRef.class,
+                        SerdeConfig.SerBackRef.class,
                         element.getName());
 
                 final int i = inverseElements.size();
@@ -471,7 +471,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         return true;
                     } else {
 
-                        element.annotate(SerdeConfig.ManagedRef.class, (builder) ->
+                        element.annotate(SerdeConfig.SerManagedRef.class, (builder) ->
                                 builder.value(otherElement.getName())
                         );
                     }
@@ -547,13 +547,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final List<TypedElement> otherElements = new ArrayList<>();
         if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
             propertyType.getBeanProperties().stream()
-                    .filter(p -> !p.hasDeclaredAnnotation(SerdeConfig.Ignored.class)).forEach(otherElements::add);
+                    .filter(p -> !p.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class)).forEach(otherElements::add);
         }
         if (accessKindSet.contains(Introspected.AccessKind.FIELD)) {
             final List<FieldElement> fields = propertyType
                     .getEnclosedElements(ElementQuery.ALL_FIELDS
                                                  .onlyInstance()
-                                                 .annotated(ann -> !ann.hasDeclaredAnnotation(SerdeConfig.Ignored.class))
+                                                 .annotated(ann -> !ann.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class))
                                                  .modifiers(m -> m.contains(ElementModifier.PUBLIC)));
             otherElements.addAll(fields);
 
@@ -630,13 +630,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void visitClassInternal(ClassElement element, VisitorContext context, boolean isImport) {
-        List<AnnotationValue<SerdeConfig.Subtyped.Subtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.Subtyped.Subtype.class);
+        List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class);
         if (!subtypes.isEmpty()) {
-            final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
+            final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
             String typeProperty = resolveTypeProperty(element).orElseGet(() ->
-                    discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
+                    discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
             );
-            for (AnnotationValue<SerdeConfig.Subtyped.Subtype> subtype : subtypes) {
+            for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype : subtypes) {
                 String className = subtype.stringValue().orElse(null);
                 if (className != null) {
                     ClassElement subElement = context.getClassElement(className).orElse(null);
@@ -715,8 +715,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final MethodElement primaryConstructor = element.getPrimaryConstructor().orElse(null);
             if (primaryConstructor != null) {
 
-                this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.CreatorMode.class).orElse(null);
-                if (creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class).orElse(null);
+                if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                     if (failOnError && primaryConstructor.getParameters().length != 1) {
                         context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.",
                                      element);
@@ -725,17 +725,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
 
             final List<PropertyElement> beanProperties = element.getBeanProperties();
-            final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.PropertyOrder.class));
+            final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
             Collections.reverse(order);
             final Set<Introspected.AccessKind> access = CollectionUtils.setOf(element.enumValues(Introspected.class,
                                                                                                  "accessKind",
                                                                                                  Introspected.AccessKind.class));
             boolean supportFields = access.contains(Introspected.AccessKind.FIELD);
-            final String[] ignoresProperties = element.stringValues(SerdeConfig.Ignored.class);
-            final String[] includeProperties = element.stringValues(SerdeConfig.Included.class);
+            final String[] ignoresProperties = element.stringValues(SerdeConfig.SerIgnored.class);
+            final String[] includeProperties = element.stringValues(SerdeConfig.SerIncluded.class);
 
-            final boolean allowGetters = element.booleanValue(SerdeConfig.Ignored.class, "allowGetters").orElse(false);
-            final boolean allowSetters = element.booleanValue(SerdeConfig.Ignored.class, "allowSetters").orElse(false);
+            final boolean allowGetters = element.booleanValue(SerdeConfig.SerIgnored.class, "allowGetters").orElse(false);
+            final boolean allowSetters = element.booleanValue(SerdeConfig.SerIgnored.class, "allowSetters").orElse(false);
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(element, null);
             processProperties(
                     context,
@@ -765,24 +765,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final Optional<ClassElement> superType = findTypeInfo(element, false);
             if (superType.isPresent()) {
                 final ClassElement typeInfo = superType.get();
-                if (failOnError && creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+                if (failOnError && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                     context.fail("Inheritance cannot be combined with DELEGATING creation", element);
                     return;
                 }
-                final SerdeConfig.Subtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
+                final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
                 element.annotate(SerdeConfig.class, builder -> {
                     final String typeName = element.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseGet(() ->
-                          discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? element.getName() : element.getSimpleName()
+                          discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? element.getName() : element.getSimpleName()
                     );
                     String typeProperty = resolveTypeProperty(typeInfo).orElseGet(() ->
-                       discriminatorValueKind == SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
+                       discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
                     );
                     final String include = resolveInclude(typeInfo).orElse(null);
                     handleSubtypeInclude(builder, typeName, typeProperty, include);
                 });
             }
 
-            if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.Subtyped.class) && creatorMode == SerdeConfig.CreatorMode.DELEGATING) {
+            if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                 context.fail("Inheritance cannot be combined with DELEGATING creation", element);
             }
         }
@@ -1014,7 +1014,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final String typeName = t.getName();
         if (!ClassUtils.isJavaBasicType(typeName)) {
             final boolean ignoredType = context.getClassElement(typeName)
-                    .map((c) -> c.hasAnnotation(SerdeConfig.Ignored.Type.class)).orElse(false);
+                    .map((c) -> c.hasAnnotation(SerdeConfig.SerIgnored.SerType.class)).orElse(false);
             if (ignoredType) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
                         builder.member(SerdeConfig.IGNORED, true)
@@ -1026,7 +1026,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private void resetForNewClass(ClassElement element) {
         this.currentClass = element;
         this.failOnError = element.booleanValue(SerdeConfig.class, "validate").orElse(true);
-        this.creatorMode = SerdeConfig.CreatorMode.PROPERTIES;
+        this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
         this.anyGetterMethod = null;
         this.anySetterMethod = null;
         this.anyGetterField = null;
@@ -1037,17 +1037,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.writeMethods.clear();
     }
 
-    private SerdeConfig.Subtyped.DiscriminatorValueKind getDiscriminatorValueKind(ClassElement typeInfo) {
+    private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(ClassElement typeInfo) {
         return typeInfo.enumValue(
-                SerdeConfig.Subtyped.class,
-                SerdeConfig.Subtyped.DISCRIMINATOR_VALUE,
-                SerdeConfig.Subtyped.DiscriminatorValueKind.class)
-                .orElse(SerdeConfig.Subtyped.DiscriminatorValueKind.CLASS_NAME);
+                        SerdeConfig.SerSubtyped.class,
+                        SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE,
+                        SerdeConfig.SerSubtyped.DiscriminatorValueKind.class)
+                .orElse(SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
     }
 
     private Optional<ClassElement> findTypeInfo(ClassElement element, boolean includeElement) {
         // TODO: support interfaces
-        if (element.hasDeclaredAnnotation(SerdeConfig.Subtyped.class) && includeElement) {
+        if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && includeElement) {
             return Optional.of(element);
         }
 
@@ -1062,7 +1062,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         }
 
-        if (superElement.hasDeclaredAnnotation(SerdeConfig.Subtyped.class)) {
+        if (superElement.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)) {
             return Optional.of(superElement);
         } else {
             ClassElement itfe = findInDeclaredInterfaces(superElement);
@@ -1078,7 +1078,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         Collection<ClassElement> interfaces = superElement.getInterfaces();
         if (CollectionUtils.isNotEmpty(interfaces)) {
             for (ClassElement anInterface : interfaces) {
-                if (anInterface.hasDeclaredAnnotation(SerdeConfig.Subtyped.class)) {
+                if (anInterface.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)) {
                     return anInterface;
                 }
                 ClassElement e = findInDeclaredInterfaces(anInterface);
@@ -1093,7 +1093,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private Optional<String> resolveTypeProperty(@NonNull ClassElement superType) {
         ClassElement typeInfo = findTypeInfo(superType, true).orElse(null);
         if (typeInfo != null) {
-            return typeInfo.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_PROP);
+            return typeInfo.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP);
         }
         return Optional.empty();
     }
@@ -1101,7 +1101,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private Optional<String> resolveInclude(ClassElement superType) {
         ClassElement typeInfo = findTypeInfo(superType, true).orElse(null);
         if (typeInfo != null) {
-            return typeInfo.stringValue(SerdeConfig.Subtyped.class, SerdeConfig.Subtyped.DISCRIMINATOR_TYPE);
+            return typeInfo.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE);
         }
         return Optional.empty();
     }

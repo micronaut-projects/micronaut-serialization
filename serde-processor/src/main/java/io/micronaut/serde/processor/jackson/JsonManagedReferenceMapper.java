@@ -36,8 +36,8 @@ public class JsonManagedReferenceMapper implements NamedAnnotationMapper {
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final AnnotationValueBuilder<SerdeConfig.ManagedRef> builder =
-                AnnotationValue.builder(SerdeConfig.ManagedRef.class);
+        final AnnotationValueBuilder<SerdeConfig.SerManagedRef> builder =
+                AnnotationValue.builder(SerdeConfig.SerManagedRef.class);
         annotation.stringValue().ifPresent(builder::value);
         return Collections.singletonList(builder.build());
     }
