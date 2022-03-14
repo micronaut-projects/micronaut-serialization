@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.micronaut.application") version "3.2.2"
+    id("io.micronaut.application") version "3.3.0"
 }
 
 micronaut {
