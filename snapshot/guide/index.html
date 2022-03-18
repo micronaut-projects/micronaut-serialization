@@ -128,7 +128,7 @@
         <h1>Micronaut Serialization</h1>
         <p></p>
         <p>Enables serialization/deserialization in Micronaut applications using build time information</p>
-        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option selected='selected' value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC3/guide/index.html'>1.0.0-RC3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC2/guide/index.html'>1.0.0-RC2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC1/guide/index.html'>1.0.0-RC1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M7/guide/index.html'>1.0.0-M7</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M6/guide/index.html'>1.0.0-M6</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M5/guide/index.html'>1.0.0-M5</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M4/guide/index.html'>1.0.0-M4</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M3/guide/index.html'>1.0.0-M3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M2/guide/index.html'>1.0.0-M2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M1/guide/index.html'>1.0.0-M1</option></select> </p>
+        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option selected='selected' value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0/guide/index.html'>1.0.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC3/guide/index.html'>1.0.0-RC3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC2/guide/index.html'>1.0.0-RC2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC1/guide/index.html'>1.0.0-RC1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M7/guide/index.html'>1.0.0-M7</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M6/guide/index.html'>1.0.0-M6</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M5/guide/index.html'>1.0.0-M5</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M4/guide/index.html'>1.0.0-M4</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M3/guide/index.html'>1.0.0-M3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M2/guide/index.html'>1.0.0-M2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M1/guide/index.html'>1.0.0-M1</option></select> </p>
     </div>
     
 <h1 id="introduction"><a class="anchor" href="#introduction"></a>1 Introduction</h1>
@@ -244,7 +244,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.0.0-SNAPSHOT")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.0.1-SNAPSHOT")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -254,7 +254,7 @@
     &lt;path&gt;
         &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
         &lt;artifactId&gt;micronaut-serde-processor&lt;/artifactId&gt;
-        &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;1.0.1-SNAPSHOT&lt;/version&gt;
     &lt;/path&gt;
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
@@ -284,7 +284,7 @@
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.0.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.0.1-SNAPSHOT"))
     }
 }</code></pre>
 </div>
@@ -308,7 +308,7 @@
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-  &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;1.0.1-SNAPSHOT&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -527,7 +527,7 @@ class BookTest {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
             .using(module("jakarta.json.bind:jakarta.json.bind-api:2.0.0"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.0.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.0.1-SNAPSHOT"))
     }
 }</code></pre>
 </div>
@@ -551,7 +551,7 @@ class BookTest {
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-  &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;1.0.1-SNAPSHOT&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
@@ -726,9 +726,9 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:1.0.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.0.1-SNAPSHOT"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:1.0.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.0.1-SNAPSHOT"))
     }
 }</code></pre>
 </div>
@@ -752,7 +752,7 @@ class BookTest {
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-  &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;1.0.1-SNAPSHOT&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
