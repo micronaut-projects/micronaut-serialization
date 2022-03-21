@@ -260,6 +260,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
     @NonNull
     @Override
     public final Decoder decodeArray(Argument<?> type) throws IOException {
+        return decodeArray0();
+    }
+
+    // returns AbstractStreamDecoder
+    private AbstractStreamDecoder decodeArray0() throws IOException {
         preDecodeValue();
         if (currentToken() != TokenType.START_ARRAY) {
             throw unexpectedToken(TokenType.START_ARRAY);
@@ -272,6 +277,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
     @NonNull
     @Override
     public final Decoder decodeObject(Argument<?> type) throws IOException {
+        return decodeObject0();
+    }
+
+    // returns AbstractStreamDecoder
+    private AbstractStreamDecoder decodeObject0() throws IOException {
         preDecodeValue();
         if (currentToken() != TokenType.START_OBJECT) {
             throw unexpectedToken(TokenType.START_OBJECT);
@@ -309,6 +319,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.STRING);
         }
@@ -344,6 +355,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         return unwrapped;
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.BOOLEAN);
         }
@@ -492,6 +504,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one integer, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
@@ -537,6 +550,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one integer, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
@@ -579,6 +593,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one float, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
@@ -613,6 +628,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one float, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
@@ -649,6 +665,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one float, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
@@ -698,6 +715,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
                         throw createDeserializationException("Expected one float, but got array of multiple values", null);
                     }
                 }
+                // fall through
             default:
                 throw unexpectedToken(TokenType.NUMBER);
         }
@@ -802,53 +820,19 @@ public abstract class AbstractStreamDecoder implements Decoder {
     @Nullable
     @Override
     public final Object decodeArbitrary() throws IOException {
-        switch (currentToken()) {
-            case START_OBJECT:
-                return decodeArbitraryMap(decodeObject());
-            case START_ARRAY:
-                return decodeArbitraryList(decodeArray());
-            case STRING:
-                return decodeString();
-            case NUMBER:
-                preDecodeValue();
-                Number bestNumber = getBestNumber();
-                nextToken();
-                return bestNumber;
-            case BOOLEAN:
-                return decodeBoolean();
-            case NULL:
-                decodeNull();
-                return null;
-            default:
-                throw createDeserializationException("Unexpected token " + currentToken() + ", expected value", null);
+        // iterative approach to avoid stack overflows
+        RootBuilder root = new RootBuilder(this);
+        ArbitraryBuilder currentStructure = root;
+        while (currentStructure != null) {
+            currentStructure = currentStructure.proceed();
         }
-    }
-
-    private static Map<String, Object> decodeArbitraryMap(Decoder elementDecoder) throws IOException {
-        Map<String, Object> result = new LinkedHashMap<>();
-        while (true) {
-            String key = elementDecoder.decodeKey();
-            if (key == null) {
-                break;
-            }
-            result.put(key, elementDecoder.decodeArbitrary());
-        }
-        elementDecoder.finishStructure();
-        return result;
-    }
-
-    private static List<Object> decodeArbitraryList(Decoder elementDecoder) throws IOException {
-        List<Object> result = new ArrayList<>();
-        while (elementDecoder.hasNextArrayValue()) {
-            result.add(elementDecoder.decodeArbitrary());
-        }
-        elementDecoder.finishStructure();
-        return result;
+        return root.result;
     }
 
     /**
      * If we are at a {@link TokenType#START_OBJECT} or {@link TokenType#START_ARRAY}, skip to the matching
      * {@link TokenType#END_OBJECT} or {@link TokenType#END_ARRAY}. Else, do nothing.
+     *
      * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract void skipChildren() throws IOException;
@@ -874,5 +858,127 @@ public abstract class AbstractStreamDecoder implements Decoder {
          * @throws java.io.IOException if an unrecoverable error occurs
          */
         R decode(AbstractStreamDecoder target) throws IOException;
+    }
+
+    private abstract static class ArbitraryBuilder {
+        final ArbitraryBuilder parent;
+        final AbstractStreamDecoder elementDecoder;
+
+        ArbitraryBuilder(ArbitraryBuilder parent, AbstractStreamDecoder elementDecoder) {
+            this.parent = parent;
+            this.elementDecoder = elementDecoder;
+        }
+
+        // this is basically MapBuilder API, we emulate it with mock keys for RootBuilder and ListBuilder
+
+        // also calls finishStructure
+        abstract String decodeKey() throws IOException;
+
+        abstract void put(String key, Object value);
+
+        /**
+         * Consume some input. Returns the decoder responsible for further processing: Either this decoder, a new child
+         * decoder, or the parent of this decoder (possibly null).
+         */
+        ArbitraryBuilder proceed() throws IOException {
+            String key = decodeKey();
+            if (key != null) {
+                //noinspection ConstantConditions
+                switch (elementDecoder.currentToken()) {
+                    case START_OBJECT:
+                        MapBuilder map = new MapBuilder(this, elementDecoder.decodeObject0());
+                        put(key, map.items);
+                        return map;
+                    case START_ARRAY:
+                        ListBuilder list = new ListBuilder(this, elementDecoder.decodeArray0());
+                        put(key, list.items);
+                        return list;
+                    case STRING:
+                        put(key, elementDecoder.decodeString());
+                        return this;
+                    case NUMBER:
+                        elementDecoder.preDecodeValue();
+                        put(key, elementDecoder.getBestNumber());
+                        elementDecoder.nextToken();
+                        return this;
+                    case BOOLEAN:
+                        put(key, elementDecoder.decodeBoolean());
+                        return this;
+                    case NULL:
+                        elementDecoder.decodeNull();
+                        put(key, null);
+                        return this;
+                    default:
+                        throw elementDecoder.createDeserializationException("Unexpected token " + elementDecoder.currentToken() + ", expected value", null);
+                }
+            } else {
+                return parent;
+            }
+        }
+    }
+
+    private static final class RootBuilder extends ArbitraryBuilder {
+        boolean done = false;
+        Object result;
+
+        RootBuilder(AbstractStreamDecoder decoder) {
+            super(null, decoder);
+        }
+
+        @Override
+        void put(String key, Object value) {
+            result = value;
+            done = true;
+        }
+
+        @Override
+        String decodeKey() {
+            return !done ? "" : null;
+        }
+    }
+
+    private static final class ListBuilder extends ArbitraryBuilder {
+        final List<Object> items = new ArrayList<>();
+
+        ListBuilder(ArbitraryBuilder parent, AbstractStreamDecoder decoder) {
+            super(parent, decoder);
+        }
+
+        @Override
+        void put(String key, Object value) {
+            items.add(value);
+        }
+
+        @Override
+        String decodeKey() throws IOException {
+            if (elementDecoder.hasNextArrayValue()) {
+                return "";
+            } else {
+                elementDecoder.finishStructure();
+                return null;
+            }
+        }
+    }
+
+    private static final class MapBuilder extends ArbitraryBuilder {
+        final Map<String, Object> items = new LinkedHashMap<>();
+
+        MapBuilder(ArbitraryBuilder parent, AbstractStreamDecoder elementDecoder) {
+            super(parent, elementDecoder);
+        }
+
+        @Override
+        void put(String key, Object value) {
+            items.put(key, value);
+        }
+
+        @Override
+        String decodeKey() throws IOException {
+            String key = elementDecoder.decodeKey();
+            if (key == null) {
+                elementDecoder.finishStructure();
+            }
+            return key;
+        }
     }
 }
