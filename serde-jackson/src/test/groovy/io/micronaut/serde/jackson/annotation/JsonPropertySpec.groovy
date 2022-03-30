@@ -201,6 +201,7 @@ package test;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Nullable;
 
 @Serdeable
 class Test {
@@ -220,19 +221,26 @@ class Test {
         def bean =
                 jsonMapper.readValue('{}', argumentOf(ctx, 'test.Test'))
         then:
-        bean.value == 0
+        bean.value == value
 
         cleanup:
         ctx.close()
 
         where:
         type      | value
-        "byte" | (byte) 0
-        "short" | (short) 0
-        "int" | 0
-        "long" | 0L
-        "float" | 0F
-        "double" | 0D
+        "byte"    | (byte) 0
+        "short"   | (short) 0
+        "int"     | 0
+        "long"    | 0L
+        "float"   | 0F
+        "double"  | 0D
+
+        "@Nullable Byte"    | null
+        "@Nullable Short"   | null
+        "@Nullable Integer" | null
+        "@Nullable Long"    | null
+        "@Nullable Float"   | null
+        "@Nullable Double"  | null
     }
 
     @Unroll
