@@ -204,13 +204,13 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 class Test {
-    private final int value;
+    private final $type value;
     
-    Test(int value) {
+    Test($type value) {
         this.value = value;
     }
 
-    public int getValue() {
+    public $type getValue() {
         return value;
     }
 }
@@ -224,6 +224,15 @@ class Test {
 
         cleanup:
         ctx.close()
+
+        where:
+        type      | value
+        "byte" | (byte) 0
+        "short" | (short) 0
+        "int" | 0
+        "long" | 0L
+        "float" | 0F
+        "double" | 0D
     }
 
     @Unroll
