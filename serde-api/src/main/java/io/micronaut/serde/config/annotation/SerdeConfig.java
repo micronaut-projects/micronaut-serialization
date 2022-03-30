@@ -68,6 +68,11 @@ public @interface SerdeConfig {
     String PROPERTY = "property";
 
     /**
+     * Whether this property is required (must be present in the input).
+     */
+    String REQUIRED = "required";
+
+    /**
      * Is it ignored.
      */
     String IGNORED = "ignored";

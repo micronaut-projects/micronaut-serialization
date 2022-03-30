@@ -574,7 +574,8 @@ class DeserBean<T> {
         public final Argument<P> argument;
         @Nullable
         public final P defaultValue;
-        public final boolean required;
+        public final boolean mustSetField;
+        public final boolean explicitlyRequired;
         public final boolean nonNull;
         public final boolean nullable;
         public final boolean isAnySetter;
@@ -625,7 +626,7 @@ class DeserBean<T> {
             this.instrospection = instrospection;
             this.index = index;
             this.argument = argument;
-            this.required = argument.isNonNull() || argument.isAssignableFrom(Optional.class)
+            this.mustSetField = argument.isNonNull() || argument.isAssignableFrom(Optional.class)
                     || argument.isAssignableFrom(OptionalLong.class)
                     || argument.isAssignableFrom(OptionalDouble.class)
                     || argument.isAssignableFrom(OptionalInt.class);
@@ -657,35 +658,39 @@ class DeserBean<T> {
                     .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
+            this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
+                    .orElse(false);
         }
 
         public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
-            if (defaultValue != null) {
-                if (beanProperty != null) {
-                    beanProperty.setUnsafe(bean, defaultValue);
+            if (!explicitlyRequired) {
+                if (defaultValue != null) {
+                    if (beanProperty != null) {
+                        beanProperty.setUnsafe(bean, defaultValue);
+                        return;
+                    }
+                    if (beanMethod != null) {
+                        beanMethod.invoke(bean, defaultValue);
+                        return;
+                    }
+                }
+
+                if (!mustSetField) {
                     return;
+                }
+                if (beanProperty != null) {
+                    P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
+                    if (newDefaultValue != null) {
+                        beanProperty.setUnsafe(bean, newDefaultValue);
+                        return;
+                    }
                 }
                 if (beanMethod != null) {
-                    beanMethod.invoke(bean, defaultValue);
-                    return;
-                }
-            }
-
-            if (!required) {
-                return;
-            }
-            if (beanProperty != null) {
-                P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
-                if (newDefaultValue != null) {
-                    beanProperty.setUnsafe(bean, newDefaultValue);
-                    return;
-                }
-            }
-            if (beanMethod != null) {
-                P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
-                if (newDefaultValue != null) {
-                    beanMethod.invoke(bean, newDefaultValue);
-                    return;
+                    P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
+                    if (newDefaultValue != null) {
+                        beanMethod.invoke(bean, newDefaultValue);
+                        return;
+                    }
                 }
             }
             throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
@@ -693,17 +698,19 @@ class DeserBean<T> {
         }
 
         public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
-            if (defaultValue != null) {
-                params[index] = defaultValue;
-                return;
-            }
-            if (!required) {
-                return;
-            }
-            P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
-            if (newDefaultValue != null) {
-                params[index] = newDefaultValue;
-                return;
+            if (!explicitlyRequired) {
+                if (defaultValue != null) {
+                    params[index] = defaultValue;
+                    return;
+                }
+                if (!mustSetField && !argument.isPrimitive()) {
+                    return;
+                }
+                P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
+                if (newDefaultValue != null) {
+                    params[index] = newDefaultValue;
+                    return;
+                }
             }
             throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
         }

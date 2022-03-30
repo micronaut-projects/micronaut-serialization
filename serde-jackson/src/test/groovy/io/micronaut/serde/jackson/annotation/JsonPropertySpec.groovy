@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.beans.exceptions.IntrospectionException
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Requires
 import spock.lang.Unroll
@@ -123,6 +124,106 @@ class Test {
         type    | value
         Integer | 'junk'
         URL     | 'ws://junk'
+    }
+
+    void "test required primitive field"() {
+
+        given:
+        def ctx = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonProperty(required = true)
+    private int value;
+
+    Test(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+""")
+
+        when:
+        def bean =
+                jsonMapper.readValue('{}', argumentOf(ctx, 'test.Test'))
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains("Unable to deserialize type [test.Test]. Required constructor parameter [int value] at index [0] is not present or is null in the supplied data")
+
+        cleanup:
+        ctx.close()
+    }
+
+    void "test optional by default primitive field"() {
+
+        given:
+        def ctx = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private int value = 5;
+
+    public void setValue(int value) {
+        this.value = value;
+    } 
+    public int getValue() {
+        return value;
+    }
+}
+""")
+
+        when:
+        def bean =
+                jsonMapper.readValue('{}', argumentOf(ctx, 'test.Test'))
+        then:
+        bean.value == 5
+
+        cleanup:
+        ctx.close()
+    }
+
+    void "test optional by default primitive field in constructor"() {
+
+        given:
+        def ctx = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private final int value;
+    
+    Test(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+""")
+
+        when:
+        def bean =
+                jsonMapper.readValue('{}', argumentOf(ctx, 'test.Test'))
+        then:
+        bean.value == 0
+
+        cleanup:
+        ctx.close()
     }
 
     @Unroll
