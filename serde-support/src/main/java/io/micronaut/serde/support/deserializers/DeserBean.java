@@ -664,31 +664,20 @@ class DeserBean<T> {
 
         public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
             if (!explicitlyRequired) {
-                if (defaultValue != null) {
+                P def = defaultValue;
+                if (def == null) {
+                    if (!mustSetField) {
+                        return;
+                    }
+                    def = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
+                }
+                if (def != null) {
                     if (beanProperty != null) {
-                        beanProperty.setUnsafe(bean, defaultValue);
+                        beanProperty.setUnsafe(bean, def);
                         return;
                     }
                     if (beanMethod != null) {
-                        beanMethod.invoke(bean, defaultValue);
-                        return;
-                    }
-                }
-
-                if (!mustSetField) {
-                    return;
-                }
-                if (beanProperty != null) {
-                    P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
-                    if (newDefaultValue != null) {
-                        beanProperty.setUnsafe(bean, newDefaultValue);
-                        return;
-                    }
-                }
-                if (beanMethod != null) {
-                    P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
-                    if (newDefaultValue != null) {
-                        beanMethod.invoke(bean, newDefaultValue);
+                        beanMethod.invoke(bean, def);
                         return;
                     }
                 }
