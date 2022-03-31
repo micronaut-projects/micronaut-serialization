@@ -655,7 +655,7 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     if (!satisfied) {
                         if (der.defaultValue != null) {
                             params[der.index] = der.defaultValue;
-                        } else if (der.required) {
+                        } else if (der.mustSetField) {
                             throw new SerdeException("Unable to deserialize type [" + unwrapped.introspection.getBeanType() + "]. Required constructor parameter [" + der.argument + "] at index [" + der.index + "] is not present in supplied data");
 
                         }

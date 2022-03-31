@@ -20,6 +20,7 @@ import io.micronaut.context.BeanRegistration;
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.order.OrderUtil;
@@ -447,6 +448,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     getType(), Argument.BYTE
             );
         }
+
+        @Nullable
+        @Override
+        public Byte getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Byte> type) {
+            return type.isPrimitive() ? (byte) 0 : null;
+        }
     }
 
     private static final class DoubleSerde extends SerdeRegistrar<Double> implements NumberSerde<Double> {
@@ -474,6 +481,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return Arrays.asList(
                     getType(), Argument.DOUBLE
             );
+        }
+
+        @Nullable
+        @Override
+        public Double getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Double> type) {
+            return type.isPrimitive() ? 0D : null;
         }
     }
 
@@ -503,6 +516,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     getType(), Argument.SHORT
             );
         }
+
+        @Nullable
+        @Override
+        public Short getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Short> type) {
+            return type.isPrimitive() ? (short) 0 : null;
+        }
     }
 
     private static final class FloatSerde extends SerdeRegistrar<Float> implements NumberSerde<Float> {
@@ -530,6 +549,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return Arrays.asList(
                     getType(), Argument.FLOAT
             );
+        }
+
+        @Nullable
+        @Override
+        public Float getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Float> type) {
+            return type.isPrimitive() ? 0F : null;
         }
     }
 
@@ -559,6 +584,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     getType(), Argument.INT
             );
         }
+
+        @Nullable
+        @Override
+        public Integer getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Integer> type) {
+            return type.isPrimitive() ? 0 : null;
+        }
     }
 
     private static final class LongSerde extends SerdeRegistrar<Long> implements NumberSerde<Long> {
@@ -586,6 +617,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return Arrays.asList(
                     getType(), Argument.LONG
             );
+        }
+
+        @Nullable
+        @Override
+        public Long getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Long> type) {
+            return type.isPrimitive() ? 0L : null;
         }
     }
 
