@@ -7,12 +7,16 @@ To do so in a Gradle build add the following configuration (either Groovy or Kot
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
+            .using(module("jakarta.json.bind:jakarta.json.bind-api:2.0.0"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
             .using(module("io.micronaut.serde:micronaut-serde-bson:{version}"))
     }
 }
 ----
+
+Also, add the same artifact to the `dependencies` block:
+
+dependency:micronaut-serde-bson[groupId="io.micronaut.serde",scope="implementation", version="{version}"]
 
 In a Maven build you need to add the necessary transitive excludes for the `micronaut-runtime` module, and any other module that depend on `micronaut-jackson-databind` and `micronaut-jackson-core`, plus add a dependency on `micronaut-serde-bson`:
 
@@ -35,9 +39,15 @@ In a Maven build you need to add the necessary transitive excludes for the `micr
   <version>{version}</version>
   <scope>compile</scope>
 </dependency>
+<dependency>
+  <groupId>jakarta.json.bind</groupId>
+  <artifactId>jakarta.json.bind-api</artifactId>
+  <version>2.0.0</version>
+  <scope>compile</scope>
+</dependency>
 ----
 
-WARNING: If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+WARNING: If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
 
 
 With the correct dependencies in place you can now define an object to be serialized:
