@@ -290,6 +290,26 @@
 </div>
 </div>
 <div class="paragraph">
+<p>Also, add the same artifact to the <code>dependencies</code> block:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:1.0.2-SNAPSHOT")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
+    &lt;version&gt;1.0.2-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div></p>
+</div>
+<div class="paragraph">
 <p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depends on <code>micronaut-jackson-databind</code>, plus add a dependency on <code>micronaut-serde-jackson</code>:</p>
 </div>
 <div class="listingblock">
@@ -320,7 +340,7 @@
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
 </td>
 </tr>
 </table>
@@ -533,6 +553,26 @@ class BookTest {
 </div>
 </div>
 <div class="paragraph">
+<p>Also, add the same artifact to the <code>dependencies</code> block:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:1.0.2-SNAPSHOT")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
+    &lt;version&gt;1.0.2-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div></p>
+</div>
+<div class="paragraph">
 <p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depend on <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code>, plus add a dependency on <code>micronaut-serde-jackson</code>:</p>
 </div>
 <div class="listingblock">
@@ -569,7 +609,7 @@ class BookTest {
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
 </td>
 </tr>
 </table>
@@ -734,6 +774,26 @@ class BookTest {
 </div>
 </div>
 <div class="paragraph">
+<p>Also, add the same artifact to the <code>dependencies</code> block:</p>
+</div>
+<div class="paragraph">
+<p>        <div class="listingblock multi-language-sample">
+<div class="title"></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:1.0.2-SNAPSHOT")</span></code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
+    &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
+    &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
+    &lt;version&gt;1.0.2-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div></p>
+</div>
+<div class="paragraph">
 <p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depend on <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code>, plus add a dependency on <code>micronaut-serde-bson</code>:</p>
 </div>
 <div class="listingblock">
@@ -764,7 +824,7 @@ class BookTest {
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
 </td>
 </tr>
 </table>
