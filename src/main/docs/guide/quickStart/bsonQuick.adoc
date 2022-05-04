@@ -14,6 +14,10 @@ configurations.all {
 }
 ----
 
+Also, add the same artifact to the `dependencies` block:
+
+dependency:micronaut-serde-bson[groupId="io.micronaut.serde",scope="implementation", version="{version}"]
+
 In a Maven build you need to add the necessary transitive excludes for the `micronaut-runtime` module, and any other module that depend on `micronaut-jackson-databind` and `micronaut-jackson-core`, plus add a dependency on `micronaut-serde-bson`:
 
 [source,xml,subs="attributes+"]
@@ -37,7 +41,7 @@ In a Maven build you need to add the necessary transitive excludes for the `micr
 </dependency>
 ----
 
-WARNING: If you third-party dependencies have direct dependencies on Jackson Databind it may not be an option for you to exclude Jackson.
+WARNING: If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
 
 
 With the correct dependencies in place you can now define an object to be serialized:
