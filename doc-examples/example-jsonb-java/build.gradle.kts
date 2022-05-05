@@ -15,10 +15,10 @@ configurations.all {
 }
 dependencies {
     annotationProcessor(projects.serdeProcessor)
-    implementation("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
-    implementation("io.micronaut:micronaut-http-client")
-    runtimeOnly("ch.qos.logback:logback-classic")
-    testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.5")
+    implementation(libs.jakarta.json.bind.api)
+    implementation(libs.micronaut.http.client)
+    runtimeOnly(libs.logback.classic)
+    testImplementation(libs.micronaut.test.junit5)
 }
 application {
     mainClass.set("example.Application")

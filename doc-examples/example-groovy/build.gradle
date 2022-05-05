@@ -15,10 +15,10 @@ configurations.all {
 }
 dependencies {
     compileOnly(projects.serdeProcessor)
-    compileOnly("io.micronaut:micronaut-inject-groovy")
-    implementation("io.micronaut:micronaut-http-client")
-    runtimeOnly("ch.qos.logback:logback-classic")
-    testCompileOnly("io.micronaut:micronaut-inject-groovy")
+    compileOnly(libs.micronaut.inject.groovy)
+    implementation(libs.micronaut.http.client)
+    runtimeOnly(libs.logback.classic)
+    testCompileOnly(libs.micronaut.inject.groovy)
 
 }
 application {

@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "5.3.1"
+    id("io.micronaut.build.shared.settings") version "5.3.4"
 }
 
 enableFeaturePreview("VERSION_CATALOGS")
@@ -38,9 +38,6 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("mn") {
             from("io.micronaut:micronaut-bom:${micronautVersion.get()}")
-        }
-        create("libs") {
-            alias("bson").to("org.mongodb:bson:${providers.gradleProperty("bsonVersion").get()}")
         }
     }
 }

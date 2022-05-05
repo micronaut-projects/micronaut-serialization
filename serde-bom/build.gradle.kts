@@ -11,8 +11,8 @@ micronautBom {
 dependencies {
     constraints {
         api(libs.bson)
-        api("jakarta.json:jakarta.json-api:2.0.1")
-        api("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
+        api(libs.jakarta.json.api)
+        api(libs.jakarta.json.bind.api)
     }
 }
 

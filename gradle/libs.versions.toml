@@ -1,0 +1,27 @@
+[versions]
+aws-lambda-java-events = "3.11.0"
+aws-lambda-java-serialization = "1.0.0"
+jakarta-json = "2.0.1"
+jakarta-json-api = "2.0.1"
+jakarta-json-bind-api = "2.0.0"
+bson = "4.3.3"
+
+# Micronaut
+micronaut-docs-asciidoc-config-props = "2.0.0"
+micronaut-test-junit5 = "3.0.5"
+
+
+[libraries]
+# Micronaut
+micronaut-docs-asciidoc-config-props = { module = "io.micronaut.docs:micronaut-docs-asciidoc-config-props", version.ref = "micronaut-docs-asciidoc-config-props" }
+micronaut-http-client = { module = "io.micronaut:micronaut-http-client" }
+micronaut-inject-groovy = { module = "io.micronaut:micronaut-inject-groovy" }
+micronaut-test-junit5 = { module = "io.micronaut.test:micronaut-test-junit5", version.ref = "micronaut-test-junit5" }
+
+aws-lambda-java-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-java-events" }
+aws-lambda-java-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-java-serialization" }
+jakarta-json = { module = "org.glassfish:jakarta.json", version.ref = "jakarta-json" }
+jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "jakarta-json-api" }
+jakarta-json-bind-api = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "jakarta-json-bind-api" }
+logback-classic = { module = "ch.qos.logback:logback-classic" }
+bson = { module = "org.mongodb:bson", version.ref = "bson" }

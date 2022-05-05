@@ -23,6 +23,6 @@ dependencies {
     if (!JavaVersion.current().isJava9Compatible()) {
         testImplementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
     }
-    testImplementation("com.amazonaws:aws-lambda-java-serialization:1.0.0")
-    testImplementation("com.amazonaws:aws-lambda-java-events:3.11.0")
+    testImplementation(libs.aws.lambda.java.serialization)
+    testImplementation(libs.aws.lambda.java.events)
 }
