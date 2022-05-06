@@ -6,7 +6,7 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.serdeProcessor)
 
-    api(libs.bson)
+    api(libs.managed.bson)
     api(mn.micronaut.context)
     api(projects.serdeApi)
     implementation(projects.serdeSupport)
