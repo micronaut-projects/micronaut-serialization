@@ -39,8 +39,5 @@ dependencyResolutionManagement {
         create("mn") {
             from("io.micronaut:micronaut-bom:${micronautVersion.get()}")
         }
-        create("libs") {
-            alias("bson").to("org.mongodb:bson:${providers.gradleProperty("bsonVersion").get()}")
-        }
     }
 }

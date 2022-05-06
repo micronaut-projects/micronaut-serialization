@@ -11,7 +11,7 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.serdeProcessor)
 
-    api("jakarta.json:jakarta.json-api:2.0.1")
+    api(libs.managed.jakarta.json.api)
     api(mn.micronaut.context)
     api(projects.serdeApi)
     implementation(projects.serdeSupport)
@@ -22,7 +22,7 @@ dependencies {
     testAnnotationProcessor(projects.serdeProcessor)
 
     testImplementation(mn.jackson.annotations)
-    testImplementation("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
+    testImplementation(libs.managed.jakarta.json.bindApi)
     testImplementation(projects.serdeProcessor)
     testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
