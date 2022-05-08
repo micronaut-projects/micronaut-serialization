@@ -1,6 +1,6 @@
 [versions]
-managed-bson = "4.3.3"
-managed-jakarta-json-api = "2.0.1"
+managed-bson = "4.6.0"
+managed-jakarta-json-api = "2.1.0"
 managed-jakarta-json-bindApi = "2.0.0"
 
 [libraries]
