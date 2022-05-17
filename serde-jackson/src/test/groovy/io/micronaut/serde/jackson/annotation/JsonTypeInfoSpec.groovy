@@ -461,4 +461,58 @@ class Cat extends Animal {
         cleanup:
         context.close()
     }
+
+    void "test nested subtypes"() {
+        given:
+        def context = buildContext("""
+package subtypes;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME, 
+  include = JsonTypeInfo.As.PROPERTY, 
+  property = "type")
+abstract class Animal {
+    public String name;
+}
+
+@JsonTypeName("dog")
+class Dog extends Animal {
+    public final double barkVolume;
+    public Animal friend;
+    Dog(double barkVolume, Animal friend) {
+        this.barkVolume = barkVolume;
+        this.friend = friend;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat extends Animal {
+    public boolean likesCream;
+    final public int lives;
+    Cat(String name, int lives) {
+        this.name = name;
+        this.lives = lives;
+    }
+}
+""")
+
+        when:
+        def cat = newInstance(context, 'subtypes.Cat', "Joe", 9)
+        cat.likesCream = true
+        def dog = newInstance(context, 'subtypes.Dog', 1.1d, cat)
+        dog.name = "Fred"
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"type":"dog","barkVolume":1.1,"name":"Fred", "friend": {"type":"cat","likesCream":true,"lives":9,"name":"Joe"}}'
+        catJson == '{"type":"cat","likesCream":true,"lives":9,"name":"Joe"}'
+
+        cleanup:
+        context.close()
+    }
 }
