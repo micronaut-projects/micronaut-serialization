@@ -15,12 +15,16 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -29,9 +33,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import jakarta.inject.Singleton;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -53,11 +54,16 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
 
     @Override
     public Deserializer<Object> createSpecific(DecoderContext context, Argument<? super Object> type) throws SerdeException {
-        DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
-        if (deserBean.simpleBean) {
-            return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
+        try {
+            DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
+            if (deserBean.simpleBean) {
+                return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
+            }
+            return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
+        } catch (IntrospectionException e) {
+            // fallback to dynamic resolution
+            return (Decoder decoder, DecoderContext context1, Argument<? super Object> type1) -> decoder.decodeArbitrary();
         }
-        return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
     }
 
     @Override
