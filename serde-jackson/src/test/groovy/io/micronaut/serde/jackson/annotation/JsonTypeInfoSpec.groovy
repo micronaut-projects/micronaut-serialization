@@ -517,7 +517,7 @@ class Cat extends Animal {
 
         then:
         readDog.getClass().name.contains(".Dog")
-        readDog.friend.getClass().name.contains(".Cat")    
+        readDog.friend.getClass().name.contains("Cat")    
 
         cleanup:
         context.close()
