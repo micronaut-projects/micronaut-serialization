@@ -244,7 +244,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.1.0-SNAPSHOT")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.1.1-SNAPSHOT")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -254,7 +254,7 @@
     &lt;path&gt;
         &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
         &lt;artifactId&gt;micronaut-serde-processor&lt;/artifactId&gt;
-        &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+        &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
     &lt;/path&gt;
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
@@ -284,7 +284,7 @@
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.1.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.1.1-SNAPSHOT"))
     }
 }</code></pre>
 </div>
@@ -296,7 +296,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:1.1.0-SNAPSHOT")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:1.1.1-SNAPSHOT")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -304,7 +304,7 @@
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+    &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -328,7 +328,7 @@
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-  &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -547,7 +547,7 @@ class BookTest {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
             .using(module("jakarta.json.bind:jakarta.json.bind-api:2.0.0"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.1.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.1.1-SNAPSHOT"))
     }
 }</code></pre>
 </div>
@@ -559,7 +559,7 @@ class BookTest {
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:1.1.0-SNAPSHOT")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:1.1.1-SNAPSHOT")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -567,7 +567,7 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+    &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -591,7 +591,7 @@ class BookTest {
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-  &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
@@ -766,9 +766,9 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:1.1.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.1.1-SNAPSHOT"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:1.1.0-SNAPSHOT"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.1.1-SNAPSHOT"))
     }
 }</code></pre>
 </div>
@@ -780,7 +780,7 @@ class BookTest {
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:1.1.0-SNAPSHOT")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:1.1.1-SNAPSHOT")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -788,7 +788,7 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-    &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+    &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -812,7 +812,7 @@ class BookTest {
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-  &lt;version&gt;1.1.0-SNAPSHOT&lt;/version&gt;
+  &lt;version&gt;1.1.1-SNAPSHOT&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
