@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import java.lang.reflect.Modifier;
+
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
@@ -34,7 +36,6 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
@@ -50,6 +51,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import io.micronaut.serde.config.annotation.SerdeConfig;
 
 @Internal
 final class SerBean<T> {
@@ -80,6 +83,7 @@ final class SerBean<T> {
     public SerProperty<T, Object> jsonValue;
     public final SerializationConfiguration configuration;
     public final boolean simpleBean;
+    public final boolean subtyped;
 
     private volatile boolean initialized;
     private List<Initializer> initializers = new ArrayList<>();
@@ -273,6 +277,8 @@ final class SerBean<T> {
             }
         }
         simpleBean = isSimpleBean();
+        boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
+        subtyped = isAbstractIntrospection || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {

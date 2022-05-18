@@ -42,7 +42,6 @@ public final class CustomizedObjectArraySerializer implements Serializer<Object[
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object[]> type, Object[] value)
             throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
-        // TODO: need better generics handling in core for arrays
         for (Object v : value) {
             componentSerializer.serialize(
                     arrayEncoder,
