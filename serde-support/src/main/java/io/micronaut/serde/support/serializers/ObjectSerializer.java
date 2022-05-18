@@ -212,7 +212,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     private static class RuntimeTypeSerializer implements Serializer<Object> {
         private final EncoderContext encoderContext;
-        private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap();
+        private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
 
         public RuntimeTypeSerializer(EncoderContext encoderContext) {
             this.encoderContext = encoderContext;
@@ -257,7 +257,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
         private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
             try {
-                return inners.computeIfAbsent(value.getClass(), (t) -> {
+                return inners.computeIfAbsent(value.getClass(), t -> {
                     try {
                         return tryToFindSerializer(context, value);
                     } catch (SerdeException ex) {
