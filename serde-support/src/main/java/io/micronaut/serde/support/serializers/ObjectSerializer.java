@@ -18,7 +18,6 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
@@ -28,7 +27,6 @@ import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
@@ -42,6 +40,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+
+import io.micronaut.core.beans.exceptions.IntrospectionException;
+import io.micronaut.serde.exceptions.SerdeException;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
@@ -211,7 +212,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     private static class RuntimeTypeSerializer implements Serializer<Object> {
         private final EncoderContext encoderContext;
-        private Serializer<Object> inner;
+        private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap();
 
         public RuntimeTypeSerializer(EncoderContext encoderContext) {
             this.encoderContext = encoderContext;
@@ -255,10 +256,21 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
 
         private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
-            if (inner == null) {
-                inner = tryToFindSerializer(context, value);
+            try {
+                return inners.computeIfAbsent(value.getClass(), (t) -> {
+                    try {
+                        return tryToFindSerializer(context, value);
+                    } catch (SerdeException ex) {
+                        throw new IntrospectionException("No serializer found for type: " + value.getClass(), ex);
+                    }
+                });
+            } catch (IntrospectionException e) {
+                if (e.getCause() instanceof SerdeException) {
+                    throw (SerdeException) e.getCause();
+                } else {
+                    throw e;
+                }
             }
-            return inner;
         }
 
         protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
