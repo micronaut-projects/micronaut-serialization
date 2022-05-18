@@ -51,6 +51,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import io.micronaut.serde.config.annotation.SerdeConfig;
+
 @Internal
 final class SerBean<T> {
     private static final Comparator<BeanProperty<?, Object>> BEAN_PROPERTY_COMPARATOR = (o1, o2) -> OrderUtil.COMPARATOR.compare(
@@ -80,6 +82,7 @@ final class SerBean<T> {
     public SerProperty<T, Object> jsonValue;
     public final SerializationConfiguration configuration;
     public final boolean simpleBean;
+    public final boolean subtyped;
 
     private volatile boolean initialized;
     private List<Initializer> initializers = new ArrayList<>();
@@ -273,6 +276,7 @@ final class SerBean<T> {
             }
         }
         simpleBean = isSimpleBean();
+        subtyped = introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {

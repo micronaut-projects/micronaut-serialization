@@ -509,8 +509,15 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","barkVolume":1.1,"name":"Fred", "friend": {"type":"cat","likesCream":true,"lives":9,"name":"Joe"}}'
+        dogJson == '{"type":"dog","barkVolume":1.1,"friend":{"type":"cat","likesCream":true,"lives":9,"name":"Joe"},"name":"Fred"}'
         catJson == '{"type":"cat","likesCream":true,"lives":9,"name":"Joe"}'
+
+        when:
+        def readDog = jsonMapper.readValue(dogJson, argumentOf(context, 'subtypes.Animal'))
+
+        then:
+        readDog.getClass().name.contains(".Dog")
+        readDog.friend.getClass().name.contains(".Cat")    
 
         cleanup:
         context.close()

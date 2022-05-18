@@ -79,19 +79,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             try {
                 serBean = getSerBean(type, encoderContext).get();
             } catch (IntrospectionException e) {
-                // no introspection, create dynamic serialization case
-                return new RuntimeTypeSerializer(encoderContext) {
-
-                    @Override
-                    protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
-                        final Class<Object> theType = (Class<Object>) value.getClass();
-                        if (!theType.equals(type.getType())) {
-                            return super.tryToFindSerializer(context, value);
-                        } else {
-                            throw new SerdeException(e.getMessage(), e);
-                        }
-                    }
-                };
+                return createRuntimeSerializer(encoderContext, type, e);
             }
 
             final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
@@ -163,6 +151,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             }
             if (serBean.simpleBean) {
                 return new SimpleObjectSerializer<>(serBean);
+            } else if (serBean.subtyped) {
+                return new RuntimeTypeSerializer(encoderContext);        
             }
             return new CustomizedObjectSerializer<>(serBean);
         }
@@ -185,6 +175,22 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }
+    }
+
+    private Serializer<Object> createRuntimeSerializer(EncoderContext encoderContext, Argument<? extends Object> type, IntrospectionException e) {
+        // no introspection, create dynamic serialization case
+        return new RuntimeTypeSerializer(encoderContext) {
+            
+            @Override
+            protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
+                final Class<Object> theType = (Class<Object>) value.getClass();
+                if (!theType.equals(type.getType())) {
+                    return super.tryToFindSerializer(context, value);
+                } else {
+                    throw new SerdeException(e.getMessage(), e);
+                }
+            }
+        };
     }
 
     private static class RuntimeTypeSerializer implements Serializer<Object> {
