@@ -41,6 +41,8 @@ import java.util.Map;
  *     <li>When the user explicitly calls {@link io.micronaut.json.JsonMapper#writeValue}{@code (gen, }{@link Object}{@code
  *     .class)}</li>
  * </ul>
+ *
+ * @param <T> The type to serialize
  */
 @Internal
 public class CustomizedObjectSerializer<T> implements Serializer<T> {

@@ -36,7 +36,6 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
@@ -278,7 +277,8 @@ final class SerBean<T> {
             }
         }
         simpleBean = isSimpleBean();
-        subtyped = Modifier.isAbstract(introspection.getBeanType().getModifiers()) || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+        boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
+        subtyped = isAbstractIntrospection || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {

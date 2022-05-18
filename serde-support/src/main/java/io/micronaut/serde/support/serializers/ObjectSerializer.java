@@ -149,12 +149,28 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                     };
                 }
             }
+            Serializer<Object> outer;
+            if (serBean.simpleBean) {
+                outer = new SimpleObjectSerializer<>(serBean);
+            } else {
+                outer = new CustomizedObjectSerializer<>(serBean);
+            }
+            
             if (serBean.subtyped) {
-                return new RuntimeTypeSerializer(encoderContext);        
-            } else if (serBean.simpleBean) {
-                return new SimpleObjectSerializer<>(serBean);
-            } 
-            return new CustomizedObjectSerializer<>(serBean);
+                return new RuntimeTypeSerializer(encoderContext) {
+                    @Override
+                    protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
+                        if (value.getClass().equals(type.getType())) {
+                            return outer;
+                        } else {
+                            return super.tryToFindSerializer(context, value);
+                        }                        
+                    }
+
+                };        
+            } else {
+                return outer;
+            }
         }
     }
 
