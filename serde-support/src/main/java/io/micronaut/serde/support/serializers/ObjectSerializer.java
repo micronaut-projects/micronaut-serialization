@@ -149,11 +149,11 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                     };
                 }
             }
-            if (serBean.simpleBean) {
-                return new SimpleObjectSerializer<>(serBean);
-            } else if (serBean.subtyped) {
+            if (serBean.subtyped) {
                 return new RuntimeTypeSerializer(encoderContext);        
-            }
+            } else if (serBean.simpleBean) {
+                return new SimpleObjectSerializer<>(serBean);
+            } 
             return new CustomizedObjectSerializer<>(serBean);
         }
     }
