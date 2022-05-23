@@ -25,6 +25,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -56,6 +57,9 @@ public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
     public static Decoder create(JsonParser parser, Class<?> view) throws IOException {
         if (!parser.hasCurrentToken()) {
             parser.nextToken();
+            if (!parser.hasCurrentToken()) {
+                throw new EOFException("No JSON input to parse");
+            }
         }
         if (parser instanceof UTF8StreamJsonParser) {
             return new SpecializedJacksonDecoder((UTF8StreamJsonParser) parser, view);

@@ -117,4 +117,11 @@ class JacksonDecoderSpec extends Specification {
                 f4: [56, [f5: 'bar']]
         ]
     }
+
+    def "empty input"() {
+        when:
+        createDecoder('').decodeString()
+        then:
+        thrown EOFException
+    }
 }
