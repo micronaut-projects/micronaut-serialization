@@ -17,7 +17,7 @@ dependencies {
     annotationProcessor(projects.serdeProcessor)
     implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
-    testImplementation("io.micronaut.test:micronaut-test-junit5:3.0.5")
+    testImplementation("io.micronaut.test:micronaut-test-junit5:3.3.0")
 }
 application {
     mainClass.set("example.Application")
