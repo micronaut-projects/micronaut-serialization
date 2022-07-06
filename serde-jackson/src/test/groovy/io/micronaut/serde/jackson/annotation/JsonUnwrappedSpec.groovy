@@ -72,7 +72,7 @@ class Name {
     this.first = first;
   }
   public String getFirst() {
-    return first;   
+    return first;
   }
 }
 """)
@@ -134,6 +134,102 @@ class Name {
 
         when:
         def name = newInstance(context, 'unwrapped.Name', [first:"Fred", last:"Flinstone"])
+        def parent = newInstance(context, 'unwrapped.Parent', [age:10, name:name])
+
+        def result = writeJson(jsonMapper, parent)
+
+        then:
+        result == '{"age":10,"first":"Fred","last":"Flinstone"}'
+
+        when:
+        def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+        read.age == 10
+        read.name.first == 'Fred'
+        read.name.last == "Flinstone"
+
+        cleanup:
+        context.close()
+    }
+
+    void "test @JsonUnwrapped with @JsonIgnoreProperties"() {
+        given:
+        def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Parent {
+  public int age;
+  @JsonUnwrapped
+  @JsonIgnoreProperties("ignored")
+  public Name name;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Name {
+  public String first, last;
+  public String ignored;
+}
+""")
+
+        when:
+        def name = newInstance(context, 'unwrapped.Name', [first:"Fred", last:"Flinstone", ignored:"Ignored"])
+        def parent = newInstance(context, 'unwrapped.Parent', [age:10, name:name])
+
+        def result = writeJson(jsonMapper, parent)
+
+        then:
+        result == '{"age":10,"first":"Fred","last":"Flinstone"}'
+
+        when:
+        def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+        read.age == 10
+        read.name.first == 'Fred'
+        read.name.last == "Flinstone"
+
+        cleanup:
+        context.close()
+    }
+
+    void "test @JsonUnwrapped with @JsonIgnoreProperties on class"() {
+        given:
+        def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Parent {
+  public int age;
+  @JsonUnwrapped
+  public Name name;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonIgnoreProperties("ignored")
+class Name {
+  public String first, last;
+  public String ignored;
+}
+""")
+
+        when:
+        def name = newInstance(context, 'unwrapped.Name', [first:"Fred", last:"Flinstone", ignored:"Ignored"])
         def parent = newInstance(context, 'unwrapped.Parent', [age:10, name:name])
 
         def result = writeJson(jsonMapper, parent)
