@@ -49,6 +49,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -212,24 +213,29 @@ final class SerBean<T> {
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         if (unwrapped) {
                             BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
+                            Set<String> ignoredProperties = Arrays.stream(argument.getAnnotationMetadata().stringValues(SerdeConfig.SerIgnored.class)).collect(Collectors.toSet());
                             for (BeanProperty<Object, Object> unwrappedProperty : propertyIntrospection.getBeanProperties()) {
-                                Argument<Object> unwrappedPropertyArgument = unwrappedProperty.asArgument();
-                                String n = resolveName(propertyAnnotationMetadata,
+                                if (!ignoredProperties.contains(unwrappedProperty.getName())) {
+                                    Argument<Object> unwrappedPropertyArgument = unwrappedProperty.asArgument();
+                                    String n = resolveName(propertyAnnotationMetadata,
                                         unwrappedProperty.getAnnotationMetadata(),
                                         unwrappedPropertyArgument.getName(),
                                         true, propertyNamingStrategy);
-                                final AnnotationMetadataHierarchy combinedMetadata =
+                                    final AnnotationMetadataHierarchy combinedMetadata =
                                         new AnnotationMetadataHierarchy(
-                                                argument.getAnnotationMetadata(),
-                                                unwrappedProperty.getAnnotationMetadata()
+                                            argument.getAnnotationMetadata(),
+                                            unwrappedProperty.getAnnotationMetadata()
                                         );
-                                CustomSerProperty<T, Object> prop = new CustomSerProperty<>(SerBean.this, n,
-                                        unwrappedPropertyArgument,
-                                        combinedMetadata,
-                                        bean -> unwrappedProperty.get(property.get(bean))
-                                );
-                                writeProperties.add(prop);
-                                initializers.add(ctx -> initProperty(prop, ctx));
+                                    if (!combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)) {
+                                        CustomSerProperty<T, Object> prop = new CustomSerProperty<>(SerBean.this, n,
+                                            unwrappedPropertyArgument,
+                                            combinedMetadata,
+                                            bean -> unwrappedProperty.get(property.get(bean))
+                                        );
+                                        writeProperties.add(prop);
+                                        initializers.add(ctx -> initProperty(prop, ctx));
+                                    }
+                                }
                             }
                         } else {
                             String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false, propertyNamingStrategy);
