@@ -1,15 +1,14 @@
-package io.micronaut.serde.json.stream
+package io.micronaut.serde.oracle.jdbc.json
 
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 
-
 @MicronautTest
-class JsonpJsonBasicSerdeSpec extends AbstractBasicSerdeSpec {
+class OracleJdbcJsonTextBasicSerdeSpec extends AbstractBasicSerdeSpec {
 
     @Inject
-    JsonMapper jsonMapper
+    OracleJdbcJsonTextObjectMapper jsonMapper
+
 
 }
