@@ -15,6 +15,9 @@
  */
 package io.micronaut.serde.oracle.jdbc.json;
 
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.util.StringUtils;
+import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import oracle.sql.json.OracleJsonParser;
@@ -23,17 +26,24 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Implementation of the {@link io.micronaut.serde.Decoder} interface for Oracle JDBC JSON.
+ *
+ * @author Denis Stepanov
+ * @since 1.2.0
+ */
+@Internal
 final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     private final OracleJsonParser jsonParser;
     private OracleJsonParser.Event currentEvent;
 
-    public OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser) {
+    OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser) {
         super(Object.class);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }
 
-    private OracleJdbcJsonParserDecoder(OracleJdbcJsonParserDecoder parent) {
+    OracleJdbcJsonParserDecoder(OracleJdbcJsonParserDecoder parent) {
         super(parent);
         this.jsonParser = parent.jsonParser;
 
@@ -95,9 +105,9 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
                 // only allowed for string and number
                 return jsonParser.getString();
             case VALUE_TRUE:
-                return "true";
+                return StringUtils.TRUE;
             case VALUE_FALSE:
-                return "false";
+                return StringUtils.FALSE;
             default:
                 throw new IllegalStateException("Method called in wrong context " + currentEvent);
         }
@@ -158,6 +168,10 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     public IOException createDeserializationException(String message, Object invalidValue) {
-        return new SerdeException(message);
+        if (invalidValue != null) {
+            return new InvalidFormatException(message, null, invalidValue);
+        } else {
+            return new SerdeException(message);
+        }
     }
 }

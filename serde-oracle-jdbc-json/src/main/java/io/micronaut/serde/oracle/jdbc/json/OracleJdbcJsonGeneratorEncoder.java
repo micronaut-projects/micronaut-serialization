@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.oracle.jdbc.json;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
@@ -23,18 +24,25 @@ import oracle.sql.json.OracleJsonGenerator;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Implementation of the {@link Encoder} interface for Oracle JDBC JSON.
+ *
+ * @author Denis Stepanov
+ * @since 1.2.0
+ */
+@Internal
 final class OracleJdbcJsonGeneratorEncoder implements Encoder {
     private final OracleJsonGenerator jsonGenerator;
     private final OracleJdbcJsonGeneratorEncoder parent;
     private String currentKey;
     private int currentIndex;
 
-    public OracleJdbcJsonGeneratorEncoder(OracleJsonGenerator jsonGenerator) {
+    OracleJdbcJsonGeneratorEncoder(OracleJsonGenerator jsonGenerator) {
         this.jsonGenerator = jsonGenerator;
         this.parent = null;
     }
 
-    private OracleJdbcJsonGeneratorEncoder(OracleJdbcJsonGeneratorEncoder parent) {
+    OracleJdbcJsonGeneratorEncoder(OracleJdbcJsonGeneratorEncoder parent) {
         this.jsonGenerator = parent.jsonGenerator;
         this.parent = parent;
     }

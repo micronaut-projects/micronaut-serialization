@@ -28,6 +28,9 @@ import java.io.OutputStream;
 
 /**
  * Implementation of the {@link JsonMapper} interface for Oracle JDBC Binary JSON.
+ *
+ * @author Denis Stepanov
+ * @since 1.2.0
  */
 @Singleton
 @BootstrapContextCompatible

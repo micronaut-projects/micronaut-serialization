@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.oracle.jdbc.json;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
@@ -24,11 +25,14 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import oracle.sql.json.OracleJsonArray;
 import oracle.sql.json.OracleJsonFactory;
 import oracle.sql.json.OracleJsonGenerator;
+import oracle.sql.json.OracleJsonObject;
 import oracle.sql.json.OracleJsonParser;
 import org.reactivestreams.Processor;
 
@@ -42,7 +46,11 @@ import java.util.function.Consumer;
 
 /**
  * Implementation of the {@link io.micronaut.json.JsonMapper} interface for Oracle JDBC JSON parser/generator.
+ *
+ * @author Denis Stepanov
+ * @since 1.2.0
  */
+@Internal
 abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     protected final SerdeRegistry registry;
     protected final Class<?> view;
@@ -67,9 +75,9 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
-                JsonNodeDecoder.create(tree),
-                context,
-                type
+            JsonNodeDecoder.create(tree),
+            context,
+            type
         );
     }
 
@@ -88,12 +96,26 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     }
 
     private <T> T readValue(OracleJsonParser parser, Argument<T> type) throws IOException {
+        if (type.getType() == OracleJsonObject.class) {
+            OracleJsonParser.Event event = parser.next();
+            if (event != OracleJsonParser.Event.START_OBJECT) {
+                throw new SerdeException("Invalid state: " + event);
+            }
+            return (T) parser.getObject();
+        }
+        if (type.getType() == OracleJsonArray.class) {
+            OracleJsonParser.Event event = parser.next();
+            if (event != OracleJsonParser.Event.START_ARRAY) {
+                throw new SerdeException("Invalid state: " + event);
+            }
+            return (T) parser.getArray();
+        }
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
-                new OracleJdbcJsonParserDecoder(parser),
-                context,
-                type
+            new OracleJdbcJsonParserDecoder(parser),
+            context,
+            type
         );
     }
 
@@ -130,7 +152,11 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     @Override
     public void writeValue(OutputStream outputStream, Object object) throws IOException {
         try (OracleJsonGenerator generator = createJsonGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
-            if (object == null) {
+            if (object instanceof OracleJsonObject) {
+                generator.write((OracleJsonObject) object);
+            } else if (object instanceof OracleJsonArray) {
+                generator.write((OracleJsonArray) object);
+            } else if (object == null) {
                 generator.writeNull();
             } else {
                 OracleJdbcJsonGeneratorEncoder encoder = new OracleJdbcJsonGeneratorEncoder(generator);
@@ -161,9 +187,9 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         Serializer.EncoderContext context = registry.newEncoderContext(view);
         final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
         serializer.serialize(
-                encoder,
-                context,
-                type, object
+            encoder,
+            context,
+            type, object
         );
     }
 
