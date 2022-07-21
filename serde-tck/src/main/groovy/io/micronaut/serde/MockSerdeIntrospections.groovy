@@ -115,8 +115,9 @@ class MockSerdeIntrospections extends DefaultSerdeIntrospections {
             return super.getSerializableIntrospection(type)
         }
         try {
-            return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
+            BeanIntrospection<T> i = classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
                     .newInstance()
+            return resolveIntrospectionForSerialization(type, i)
         } catch (ClassNotFoundException e) {
             return super.getSerializableIntrospection(type)
         }
@@ -132,8 +133,9 @@ class MockSerdeIntrospections extends DefaultSerdeIntrospections {
             return super.getDeserializableIntrospection(type)
         }
         try {
-            return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
+            BeanIntrospection<T> i = classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
                     .newInstance()
+            return resolveIntrospectionForDeserialization(type, i)
         } catch (ClassNotFoundException e) {
             return super.getDeserializableIntrospection(type)
         }

@@ -18,6 +18,7 @@ package io.micronaut.serde.support;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationMetadataProvider;
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
@@ -93,27 +94,38 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
             }
         }
         if (result != null) {
-            final AnnotationMetadata declaredMetadata = result.getDeclaredMetadata();
-            final AnnotationValue<SerdeConfig> serdeConfig = declaredMetadata.getDeclaredAnnotation(SerdeConfig.class);
-            final Class<T> beanType = type.getType();
-            Class<?> serializeType = resolveDeserAsType(
-                    beanType,
-                    serdeConfig,
-                    SerdeConfig.SERIALIZE_AS
-            );
-            if (serializeType != null && !serializeType.equals(beanType)) {
-                Argument resolved = Argument.of(
-                        serializeType,
-                        type.getName(),
-                        type.getAnnotationMetadata(),
-                        type.getTypeParameters()
-                );
-                return getSerializableIntrospection(resolved);
-            } else {
-                return result;
-            }
+            return resolveIntrospectionForSerialization(type, result);
         } else {
             throw new IntrospectionException("No serializable introspection present for type " + type + ". Consider adding Serdeable. Serializable annotate to type " + type + ". Alternatively if you are not in control of the project's source code, you can use @SerdeImport(" + type.getSimpleName() + ".class) to enable serialization of this type.");
+        }
+    }
+
+    /**
+     * Resolves an introspection for the purpose of serialization.
+     * @param type The type
+     * @param introspection The introspection
+     * @return The resolved introspection
+     * @param <T> The generic type
+     */
+    protected @NonNull <T> BeanIntrospection<T> resolveIntrospectionForSerialization(@NonNull  Argument<T> type, @NonNull BeanIntrospection<T> introspection) {
+        final AnnotationMetadata declaredMetadata = introspection.getDeclaredMetadata();
+        final AnnotationValue<SerdeConfig> serdeConfig = declaredMetadata.getDeclaredAnnotation(SerdeConfig.class);
+        final Class<T> beanType = type.getType();
+        Class<?> serializeType = resolveDeserAsType(
+                beanType,
+                serdeConfig,
+                SerdeConfig.SERIALIZE_AS
+        );
+        if (serializeType != null && !serializeType.equals(beanType)) {
+            Argument resolved = Argument.of(
+                    serializeType,
+                    type.getName(),
+                    type.getAnnotationMetadata(),
+                    type.getTypeParameters()
+            );
+            return getSerializableIntrospection(resolved);
+        } else {
+            return introspection;
         }
     }
 
@@ -133,6 +145,17 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                     // rewthrow original
                     return beanIntrospector.getIntrospection(rawType);
                 });
+        return resolveIntrospectionForDeserialization(type, introspection);
+    }
+
+    /**
+     * Resolve an introspection.
+     * @param type The type to resolve
+     * @param introspection The introspection
+     * @return The resolved introspection
+     * @param <T> The generic type
+     */
+    protected @NonNull <T> BeanIntrospection<T> resolveIntrospectionForDeserialization(@NonNull Argument<T> type, @NonNull BeanIntrospection<T> introspection) {
         if (isEnabledForDeserialization(introspection, type)) {
             final AnnotationMetadata declaredMetadata = introspection.getDeclaredMetadata();
             final AnnotationValue<SerdeConfig> serdeConfig = declaredMetadata.getDeclaredAnnotation(SerdeConfig.class);
