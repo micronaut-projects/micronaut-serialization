@@ -273,7 +273,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         when:
             def json = bsonJsonMapper.writeValueAsString(e)
         then:
-            json == """{"rename-compile-time": "val1", "bar yes": "val2", "notRenamedProperty": "test", "_xyz": null, "rename-compile-time": "val1"}"""
+            json == """{"rename-compile-time": "val1", "bar yes": "val2", "notRenamedProperty": "test", "_xyz": null}"""
         when:
             def value = bsonJsonMapper.readValue("""{"_xyz": "abc"}""", NamingStrategiesEntity)
         then:
