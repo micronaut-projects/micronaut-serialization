@@ -5,6 +5,7 @@ managed-jakarta-json-bindApi = "2.0.0"
 managed-glassfish-jakarta-json = "2.0.1"
 
 oracle-jdbc-driver = "21.6.0.0.1"
+jetbrains-annotations = "23.0.0"
 
 [libraries]
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
@@ -14,3 +15,4 @@ managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.r
 managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "managed-jakarta-json-bindApi" }
 
 oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref = "oracle-jdbc-driver" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
