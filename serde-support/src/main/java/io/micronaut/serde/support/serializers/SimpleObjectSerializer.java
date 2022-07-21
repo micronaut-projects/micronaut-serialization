@@ -42,18 +42,22 @@ public final class SimpleObjectSerializer<T> implements Serializer<T> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         try {
-            serBean.initialize(context);
-            Encoder childEncoder = encoder.encodeObject(type);
-            for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
-                childEncoder.encodeKey(property.name);
-                Object v = property.get(value);
-                if (v == null) {
-                    childEncoder.encodeNull();
-                } else {
-                    property.serializer.serialize(childEncoder, context, property.argument, v);
+            if (value == null) {
+                encoder.encodeNull();
+            } else {
+                serBean.initialize(context);
+                Encoder childEncoder = encoder.encodeObject(type);
+                for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
+                    childEncoder.encodeKey(property.name);
+                    Object v = property.get(value);
+                    if (v == null) {
+                        childEncoder.encodeNull();
+                    } else {
+                        property.serializer.serialize(childEncoder, context, property.argument, v);
+                    }
                 }
+                childEncoder.finishStructure();
             }
-            childEncoder.finishStructure();
         } catch (StackOverflowError e) {
             throw new SerdeException("Infinite recursion serializing type: " + type.getType().getSimpleName() + " at path " + encoder.currentPath(), e);
         } catch (IntrospectionException e) {
