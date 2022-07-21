@@ -7,6 +7,7 @@ dependencies {
     annotationProcessor(projects.serdeProcessor)
     implementation(mn.micronaut.inject.java)
     implementation(projects.serdeApi)
+    implementation(projects.serdeSupport)
     implementation(projects.serdeProcessor)
     implementation(mn.micronaut.inject.java.test)
     compileOnly(mn.micronaut.inject.groovy)

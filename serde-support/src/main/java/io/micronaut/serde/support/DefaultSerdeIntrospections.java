@@ -63,6 +63,11 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
     }
 
     @Override
+    public <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(Class<T> type) {
+        return SerdeIntrospections.super.findSubtypeDeserializables(type);
+    }
+
+    @Override
     public <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type) {
         final BeanIntrospector beanIntrospector = getBeanIntrospector();
         final Optional<BeanIntrospection<T>> introspection = beanIntrospector.findIntrospection(type.getType());
