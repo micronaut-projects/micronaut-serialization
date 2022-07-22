@@ -1,7 +1,7 @@
 [versions]
 managed-bson = "4.6.1"
 managed-jakarta-json-api = "2.0.1"
-managed-jakarta-json-bindApi = "2.0.0"
+managed-jakarta-json-bindApi = "3.0.0"
 managed-glassfish-jakarta-json = "2.0.1"
 
 oracle-jdbc-driver = "21.6.0.0.1"
