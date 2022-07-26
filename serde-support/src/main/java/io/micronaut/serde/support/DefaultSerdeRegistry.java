@@ -15,38 +15,6 @@
  */
 package io.micronaut.serde.support;
 
-import io.micronaut.context.BeanContext;
-import io.micronaut.context.BeanRegistration;
-import io.micronaut.context.annotation.Secondary;
-import io.micronaut.context.exceptions.ConfigurationException;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.annotation.Order;
-import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.order.OrderUtil;
-import io.micronaut.core.reflect.ReflectionUtils;
-import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.core.util.StringUtils;
-import io.micronaut.inject.BeanDefinition;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
-import io.micronaut.serde.SerdeIntrospections;
-import io.micronaut.serde.SerdeRegistry;
-import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.naming.PropertyNamingStrategy;
-import io.micronaut.serde.support.deserializers.ObjectDeserializer;
-import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.serdes.NumberSerde;
-import io.micronaut.serde.support.serializers.ObjectSerializer;
-import io.micronaut.serde.util.NullableDeserializer;
-import io.micronaut.serde.util.NullableSerde;
-import io.micronaut.serde.support.util.TypeKey;
-import jakarta.inject.Singleton;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -72,6 +40,38 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.micronaut.context.BeanContext;
+import io.micronaut.context.BeanRegistration;
+import io.micronaut.context.annotation.Secondary;
+import io.micronaut.context.exceptions.ConfigurationException;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.annotation.Order;
+import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.order.OrderUtil;
+import io.micronaut.core.reflect.ReflectionUtils;
+import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.core.util.StringUtils;
+import io.micronaut.inject.BeanDefinition;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
+import io.micronaut.serde.SerdeIntrospections;
+import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.deserializers.ObjectDeserializer;
+import io.micronaut.serde.support.serdes.NumberSerde;
+import io.micronaut.serde.support.serializers.ObjectSerializer;
+import io.micronaut.serde.support.util.TypeKey;
+import io.micronaut.serde.util.NullableDeserializer;
+import io.micronaut.serde.util.NullableSerde;
+import jakarta.inject.Singleton;
+
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
  */
@@ -88,6 +88,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final Deserializer<Object> objectDeserializer;
     private final Serde<Object[]> objectArraySerde;
 
+    /**
+     * Default constructor.
+     * @param beanContext The bean context
+     * @param objectSerializer  The object serializer
+     * @param objectDeserializer The object deserializer
+     * @param objectArraySerde The object array Serde
+     * @param introspections The introspections
+     */
     public DefaultSerdeRegistry(
             BeanContext beanContext,
             ObjectSerializer objectSerializer,
