@@ -1,4 +1,5 @@
 [versions]
+dummy = "1.0"
 managed-bson = "4.6.1"
 managed-jakarta-json-api = "2.0.1"
 managed-jakarta-json-bindApi = "2.0.0"
