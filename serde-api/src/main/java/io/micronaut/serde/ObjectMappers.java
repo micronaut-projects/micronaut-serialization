@@ -36,8 +36,8 @@ import io.micronaut.inject.BeanDefinitionReference;
 final class ObjectMappers {
     private static volatile ObjectMapper defaultObjectMapper;
     private static volatile BeanContext beanContext;
-    private static final Object mapperLock = new Object();
-    private static final Object contextLock = new Object();
+    private static final Object MAPPER_LOCK = new Object();
+    private static final Object CONTEXT_LOCK = new Object();
 
     private ObjectMappers() {
     }
@@ -50,10 +50,11 @@ final class ObjectMappers {
     static ObjectMapper resolveDefault() {
         ObjectMapper objectMapper = defaultObjectMapper;
         if (objectMapper == null) {
-            synchronized (mapperLock) {
+            synchronized (MAPPER_LOCK) {
                 objectMapper = defaultObjectMapper;
                 if (objectMapper == null) {
-                    defaultObjectMapper = objectMapper = resolveBeanContext().getBean(ObjectMapper.class);
+                    objectMapper = resolveBeanContext().getBean(ObjectMapper.class);
+                    defaultObjectMapper = objectMapper;
                 }
             }
         }
@@ -64,10 +65,11 @@ final class ObjectMappers {
     private static BeanContext resolveBeanContext() {
         BeanContext context = beanContext;
         if (context == null) {
-            synchronized (contextLock) {
+            synchronized (CONTEXT_LOCK) {
                 context = beanContext;
                 if (context == null) {
-                    beanContext = context = new ObjectMapperContext().start();
+                    context = new ObjectMapperContext().start();
+                    beanContext = context;
                 }
             }
         }
