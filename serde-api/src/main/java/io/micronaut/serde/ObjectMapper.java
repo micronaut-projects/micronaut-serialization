@@ -118,17 +118,18 @@ public interface ObjectMapper extends JsonMapper {
     }
 
     /**
-     * Get the default ObjectMapper instance. 
+     * Get the default ObjectMapper instance.
      *
-     * <p>Note that this method returns 
-     * an ObjectMapper that does not include any custom defined serializers or deserializers 
+     * <p>Note that this method returns
+     * an ObjectMapper that does not include any custom defined serializers or deserializers
      * and in general should be avoided outside a few niche cases that require static access.</p>
      *
-     * <p>Where possible you should use dependendency injection to instead retrieve the ObjectMapper 
+     * <p>Where possible you should use dependendency injection to instead retrieve the ObjectMapper
      * from the application context.
      * </p>
      *
      * @return The default object mapper
+     * @since 1.3.0
      */
     static @NonNull ObjectMapper getDefault() {
         return ObjectMappers.resolveDefault();
