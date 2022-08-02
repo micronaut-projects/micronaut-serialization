@@ -32,12 +32,15 @@ import io.micronaut.inject.BeanDefinitionReference;
  * @author graemerocher
  * @since 1.2.2
  */
+@SuppressWarnings("java:S3077")
 final class ObjectMappers {
-    private static ObjectMapper defaultObjectMapper;
-    private static BeanContext beanContext;
+    private static volatile ObjectMapper defaultObjectMapper;
+    private static volatile BeanContext beanContext;
     private static final Object mapperLock = new Object();
     private static final Object contextLock = new Object();
 
+    private ObjectMappers() {
+    }
 
     /**
      * Resolves the default.
@@ -86,6 +89,7 @@ final class ObjectMappers {
         }
 
         @Override
+        @SuppressWarnings("java:S1874")
         public Future<Void> publishEventAsync(Object event) {
             return CompletableFuture.completedFuture(null);
         }
