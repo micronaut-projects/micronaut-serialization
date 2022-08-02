@@ -30,22 +30,45 @@ import io.micronaut.inject.BeanDefinitionReference;
 /**
  *
  * @author graemerocher
+ * @since 1.2.2
  */
 final class ObjectMappers {
     private static ObjectMapper defaultObjectMapper;
     private static BeanContext beanContext;
+    private static final Object mapperLock = new Object();
+    private static final Object contextLock = new Object();
 
+
+    /**
+     * Resolves the default.
+     * @return The object mapper
+     */
+    @SuppressWarnings("java:S2095")
     static ObjectMapper resolveDefault() {
-        if (defaultObjectMapper != null) {
-            return defaultObjectMapper;
+        ObjectMapper objectMapper = defaultObjectMapper;
+        if (objectMapper == null) {
+            synchronized (mapperLock) {
+                objectMapper = defaultObjectMapper;
+                if (objectMapper == null) {
+                    defaultObjectMapper = objectMapper = resolveBeanContext().getBean(ObjectMapper.class);
+                }
+            }
         }
-        if (beanContext == null) {
-            beanContext = new ObjectMapperContext();
-            beanContext.start();
-        }
+        return objectMapper;
+    }
 
-        defaultObjectMapper = beanContext.getBean(ObjectMapper.class);
-        return defaultObjectMapper;
+    @SuppressWarnings("java:S2095")
+    private static BeanContext resolveBeanContext() {
+        BeanContext context = beanContext;
+        if (context == null) {
+            synchronized (contextLock) {
+                context = beanContext;
+                if (context == null) {
+                    beanContext = context = new ObjectMapperContext().start();
+                }
+            }
+        }
+        return context;
     }
 
     private static class ObjectMapperContext extends DefaultApplicationContext {
@@ -54,7 +77,7 @@ final class ObjectMappers {
         protected List<BeanDefinitionReference> resolveBeanDefinitionReferences() {
             return super.resolveBeanDefinitionReferences()
                 .stream()
-                .filter(ref -> 
+                .filter(ref ->
                     ref.getBeanDefinitionName().startsWith("io.micronaut.serde") ||
                     ref.getBeanDefinitionName().startsWith("io.micronaut.aop") ||
                     ref.getBeanDefinitionName().startsWith("io.micronaut.runtime.context.env")
