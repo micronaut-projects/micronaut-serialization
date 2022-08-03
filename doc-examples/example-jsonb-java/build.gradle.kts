@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.micronaut.application") version "3.4.1"
+    id("io.micronaut.application") version "3.5.1"
 }
 
 micronaut {
@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.managed.jakarta.json.bindApi)
     implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
-    testImplementation("io.micronaut.test:micronaut-test-junit5:3.3.0")
+    testImplementation("io.micronaut.test:micronaut-test-junit5:3.4.0")
 }
 application {
     mainClass.set("example.Application")

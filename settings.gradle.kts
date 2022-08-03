@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "5.3.10"
+    id("io.micronaut.build.shared.settings") version "5.3.14"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -21,6 +21,7 @@ include("serde-jsonp")
 include("serde-support")
 include("serde-bson")
 include("serde-tck")
+include("serde-oracle-jdbc-json")
 
 include("doc-examples:example-java")
 include("doc-examples:example-bson-java")

@@ -26,4 +26,5 @@ dependencies {
     testImplementation(mn.micronaut.test.spock)
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.management)
+    testImplementation(libs.jetbrains.annotations)
 }

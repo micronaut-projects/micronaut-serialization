@@ -15,9 +15,9 @@ dependencies {
     api(mn.micronaut.context)
     api(projects.serdeApi)
     implementation(projects.serdeSupport)
-    implementation("org.glassfish:jakarta.json:2.0.1")
+    implementation(libs.managed.glassfish.jakarta.json)
     compileOnly(mn.graal)
-    compileOnly(mn.micronaut.jackson.databind)    
+    compileOnly(mn.micronaut.jackson.databind)
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.serdeProcessor)
 

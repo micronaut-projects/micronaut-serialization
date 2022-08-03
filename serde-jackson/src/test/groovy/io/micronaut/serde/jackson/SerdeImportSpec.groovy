@@ -1,13 +1,11 @@
 package io.micronaut.serde.jackson
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
-import io.micronaut.context.ApplicationContext
 import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.management.health.indicator.HealthResult
-import io.micronaut.serde.exceptions.SerdeException
-import spock.lang.PendingFeature
+import one.microstream.storage.restadapter.types.ViewerObjectDescription
 import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
@@ -425,6 +423,48 @@ class DummyContext {}
         hr.name == 'db'
         hr.status == HealthStatus.DOWN
 
+
+        cleanup:
+        context.close()
+    }
+
+    void "test import with internal array containing nulls"() {
+        def context = buildContext('importtest.Test','''
+package importtest;
+
+import io.micronaut.serde.annotation.SerdeImport;
+import one.microstream.storage.restadapter.types.ViewerObjectDescription;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@SerdeImport(
+        value = ViewerObjectDescription.class,
+         mixin = Test.ViewerObjectDescriptionMixin.class
+)
+public class Test {
+
+    // A mixin to keep showing null values and empty lists
+    @SuppressWarnings("DefaultAnnotationParam")
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    interface ViewerObjectDescriptionMixin {
+    }
+}
+''')
+
+        def bean = new ViewerObjectDescription().with(true) {
+            it.setReferences(new ViewerObjectDescription[] {
+                new ViewerObjectDescription(),
+                null
+            })
+        }
+
+        when:
+        def result = writeJson(jsonMapper, bean)
+
+        then:
+        result == '{"objectId":null,"typeId":null,"length":null,"data":null,"references":[' +
+                '{"objectId":null,"typeId":null,"length":null,"data":null,"references":null,"variableLength":null,"simplified":false},' +
+                'null' +
+                '],"variableLength":null,"simplified":false}'
 
         cleanup:
         context.close()

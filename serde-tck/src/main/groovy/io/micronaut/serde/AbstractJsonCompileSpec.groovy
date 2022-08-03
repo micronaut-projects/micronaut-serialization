@@ -20,12 +20,6 @@ import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.annotation.processing.test.JavaParser
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.ApplicationContextBuilder
-import io.micronaut.core.annotation.NonNull
-import io.micronaut.core.beans.BeanIntrospection
-import io.micronaut.core.beans.BeanIntrospectionReference
-import io.micronaut.core.beans.exceptions.IntrospectionException
-import io.micronaut.core.naming.NameUtils
-import io.micronaut.core.reflect.InstantiationUtils
 import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
@@ -74,7 +68,6 @@ abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implement
         ApplicationContext context =
                 buildContext(className, source, true)
 
-        setupSerdeRegistry(context)
         jsonMapper = context.getBean(getJsonMapperClass())
 
         def t = context.classLoader
@@ -106,59 +99,15 @@ abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implement
                 buildContext("test.Source" + System.currentTimeMillis(), source, true)
 
 
-        setupSerdeRegistry(context)
         jsonMapper = context.getBean(getJsonMapperClass())
         return context
     }
 
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
-        contextBuilder.properties("micronaut.serde.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS)
-    }
+        contextBuilder.properties(
+                "micronaut.serde.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS
+        )
 
-    protected void setupSerdeRegistry(ApplicationContext context) {
-        def classLoader = context.classLoader
-        context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {
-
-            @Override
-            def <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
-                // horrible hack this
-                def f = ReflectionUtils.getRequiredField(classLoader.getClass(), "files")
-                f.setAccessible(true)
-                def files = f.get(classLoader)
-                def resolvedTypes = files.findAll({ JavaFileObject jfo ->
-                    jfo.name.endsWith('$IntrospectionRef.class')
-                }).collect( { JavaFileObject jfo ->
-                    String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
-                    classLoader.loadClass(className)
-                })
-
-                return resolvedTypes
-                    .collect() {
-                        (BeanIntrospectionReference) InstantiationUtils.instantiate(it)
-                    }.findAll { it.beanType != type && type.isAssignableFrom(it.beanType) }
-                    .collect { it.load() }
-            }
-
-            @Override
-            def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
-                try {
-                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
-                            .newInstance()
-                } catch (ClassNotFoundException e) {
-                    throw new IntrospectionException("No introspection")
-                }
-            }
-
-            @Override
-            def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
-                try {
-                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
-                            .newInstance()
-                } catch (ClassNotFoundException e) {
-                    throw new IntrospectionException("No introspection for type $type")
-                }
-            }
-        })
     }
 }
