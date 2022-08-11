@@ -1,8 +1,8 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.6.10"
-    id("org.jetbrains.kotlin.kapt") version "1.6.10"
+    id("org.jetbrains.kotlin.jvm") version "1.7.10"
+    id("org.jetbrains.kotlin.kapt") version "1.7.10"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.6.10"
-    id("io.micronaut.application") version "3.5.0"
+    id("io.micronaut.application") version "3.5.1"
 }
 
 micronaut {
@@ -19,7 +19,7 @@ dependencies {
     annotationProcessor(projects.serdeProcessor)
     implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
-    testImplementation("io.micronaut.test:micronaut-test-junit5:3.3.0")
+    testImplementation("io.micronaut.test:micronaut-test-junit5:3.4.0")
 }
 application {
     mainClass.set("example.ApplicationKt")
