@@ -2,6 +2,11 @@ plugins {
     id("io.micronaut.build.internal.module")
 }
 
+repositories {
+    maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+    mavenCentral()
+}
+
 configurations.all {
     exclude("io.micronaut", "micronaut-jackson-databind")
     exclude("io.micronaut", "micronaut-jackson-core")
