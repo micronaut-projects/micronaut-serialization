@@ -18,6 +18,7 @@ package io.micronaut.serde.support.deserializers;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -42,6 +43,7 @@ import jakarta.inject.Singleton;
  */
 @Singleton
 @Primary
+@BootstrapContextCompatible
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;

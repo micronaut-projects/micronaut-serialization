@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.config;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.bind.annotation.Bindable;
@@ -25,6 +26,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
  * Configuration for serialization.
  */
 @ConfigurationProperties(SerializationConfiguration.PREFIX)
+@BootstrapContextCompatible
 public interface SerializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".serialization";
 
