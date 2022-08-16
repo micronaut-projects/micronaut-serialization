@@ -2,7 +2,10 @@ plugins {
     id("io.micronaut.build.internal.module")
 }
 
-
+repositories {
+    maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+    mavenCentral()
+}
 
 configurations.named("testRuntimeClasspath") {
     resolutionStrategy.dependencySubstitution {
@@ -26,4 +29,5 @@ dependencies {
     testImplementation(mn.micronaut.test.spock)
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.management)
+    testImplementation(libs.jetbrains.annotations)
 }

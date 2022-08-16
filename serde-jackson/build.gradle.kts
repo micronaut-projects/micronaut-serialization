@@ -2,6 +2,11 @@ plugins {
     id("io.micronaut.build.internal.module")
 }
 
+repositories {
+    maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+    mavenCentral()
+}
+
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.serdeProcessor)
@@ -23,6 +28,7 @@ dependencies {
     if (!JavaVersion.current().isJava9Compatible()) {
         testImplementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
     }
+    testImplementation("one.microstream:microstream-storage-restclient:07.00.00-MS-GA")
     testImplementation("com.amazonaws:aws-lambda-java-serialization:1.0.0")
     testImplementation("com.amazonaws:aws-lambda-java-events:3.11.0")
 }

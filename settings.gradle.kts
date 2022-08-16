@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "5.3.10"
+    id("io.micronaut.build.shared.settings") version "5.3.14"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -33,6 +33,7 @@ val micronautVersion = providers.gradleProperty("micronautVersion")
 
 dependencyResolutionManagement {
     repositories {
+        maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
         mavenCentral()
     }
     versionCatalogs {

@@ -61,7 +61,6 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         ApplicationContext context =
                 buildContext(className, source, true)
 
-        setupSerdeRegistry(context)
         jsonMapper = context.getBean(ObjectMapper)
 
         def t = context.classLoader
@@ -89,7 +88,6 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
                 buildContext("test.Source" + System.currentTimeMillis(), source, true)
 
 
-        setupSerdeRegistry(context)
         jsonMapper = context.getBean(JsonMapper)
         return context
     }
@@ -97,7 +95,6 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
     @Override
     ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
         def context = super.buildContext(className, cls, true)
-        setupSerdeRegistry(context)
         jsonMapper = context.getBean(JsonMapper)
         return context
     }
@@ -105,66 +102,10 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
     @Override
     ApplicationContext buildContext(String className, @Language("java") String cls) {
         def context = super.buildContext(className, cls, true)
-        setupSerdeRegistry(context)
         def t = context.classLoader
                 .loadClass(className)
         typeUnderTest = Argument.of(t)
         jsonMapper = context.getBean(JsonMapper)
         return context
-    }
-
-    protected void setupSerdeRegistry(ApplicationContext context) {
-        def classLoader = context.classLoader
-        // horrible hack this
-        def f = ReflectionUtils.getRequiredField(classLoader.getClass(), "files")
-        f.setAccessible(true)
-        def files = f.get(classLoader)
-        def resolvedTypes = files.findAll({ JavaFileObject jfo ->
-            jfo.name.contains('$IntrospectionRef')
-        }).collect( { JavaFileObject jfo ->
-            String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
-            classLoader.loadClass(className)
-        })
-
-
-        def references = resolvedTypes
-                .collect() {
-                    (BeanIntrospectionReference) InstantiationUtils.instantiate(it)
-                }
-
-        context.registerSingleton(SerdeIntrospections, new DefaultSerdeIntrospections() {
-
-            @Override
-            BeanIntrospector getBeanIntrospector() {
-                return new BeanIntrospector() {
-                    @Override
-                    Collection<BeanIntrospection<Object>> findIntrospections(@NonNull Predicate<? super BeanIntrospectionReference<?>> filter) {
-                        return references.stream()
-                            .filter(filter)
-                            .filter(BeanIntrospectionReference::isPresent)
-                            .map(BeanIntrospectionReference::load)
-                            .collect(Collectors.toList()) + SHARED.findIntrospections(filter)
-                    }
-
-                    @Override
-                    Collection<Class<?>> findIntrospectedTypes(@NonNull Predicate<? super BeanIntrospectionReference<?>> filter) {
-                        return Collections.emptySet()
-                    }
-
-                    @Override
-                    def <T> Optional<BeanIntrospection<T>> findIntrospection(@NonNull Class<T> beanType) {
-                        def result = findIntrospections({ ref ->
-                            ref.isPresent() && ref.beanType == beanType
-                        }).stream().findFirst()
-                        if (result.isPresent()) {
-                            return result
-                        } else {
-                            return SHARED.findIntrospection(beanType)
-                        }
-                    }
-                }
-            }
-
-        })
     }
 }

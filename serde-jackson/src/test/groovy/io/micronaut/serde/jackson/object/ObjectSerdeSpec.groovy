@@ -46,12 +46,12 @@ interface HttpStatusInfo {
 @Serdeable
 class HttpStatusInfoImpl implements HttpStatusInfo {
     private final int code;
-    
+
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     HttpStatusInfoImpl(int code) {
         this.code = code;
     }
-    
+
     @JsonValue
     @Override public int code() {
        return code;
@@ -406,7 +406,7 @@ class Base {
 @Serdeable
 class A extends Base {
     private Map<String, String> anySetter = new HashMap<>();
-    
+
     @JsonAnySetter
     void put(String key, String value) {
         anySetter.put(key, value);
@@ -416,7 +416,7 @@ class A extends Base {
 @Serdeable
 class B extends Base {
     private Map<String, String> anySetter = new HashMap<>();
-    
+
     @JsonAnySetter
     void put(String key, String value) {
         anySetter.put(key, value);
@@ -841,7 +841,7 @@ class BSerializer implements Serializer<B> {
                       EncoderContext context,
                       Argument<? extends example.B> type,
                       example.B value)throws IOException {
-        encoder.encodeBoolean(value.present);    
+        encoder.encodeBoolean(value.present);
     }
 
     @Override
@@ -975,74 +975,75 @@ class Nested {
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Outer"), '{"a":"a","b":"b"}', Runnable).nested.b == 'b'
     }
 
-    @PendingFeature
-    def 'custom serializer'() {
-        def ctx = buildContext('example.Test', '''
-package example;
-
-import io.micronaut.context.annotation.Bean;import io.micronaut.json.*;
-import io.micronaut.json.annotation.*;
-import jakarta.inject.Singleton;
-import java.io.IOException;
-import java.util.Locale;
-
-@Serdeable
-class Test {
-    public String foo;
-    @CustomSerializer(serializer = UpperCaseSer.class, deserializer = LowerCaseDeser.class)
-    public String bar;
-}
-
-@Singleton
-@Bean(typed = UpperCaseSer.class)
-class UpperCaseSer implements Serializer<String> {
-    @Override
-    public void serialize(Encoder encoder, String value) throws IOException {
-        encoder.encodeString(value.toUpperCase(Locale.ROOT));
-    }
-
-    @Override
-    public boolean isEmpty(EncoderContext context, String value) {
-        return value.isEmpty();
-    }
-}
-
-@Singleton
-@Bean(typed = LowerCaseDeser.class)
-class LowerCaseDeser implements Deserializer<String> {
-    @Override
-    public String deserialize(Decoder decoder) throws IOException {
-        return decoder.decodeString().toLowerCase(Locale.ROOT);
-    }
-}
-''', true)
-        def jsonMapper = ctx.getBean(JsonMapper)
-
-        def testInstance = ctx.classLoader.loadClass('example.Test').newInstance()
-
-        when:
-        testInstance.foo = 'boo'
-        testInstance.bar = 'Baz'
-        then: 'normal ser'
-        serializeToString(serializer, testInstance) == '{"foo":"boo","bar":"BAZ"}'
-
-        when:
-        testInstance.foo = 'boo'
-        testInstance.bar = ''
-        then: 'empty ser is skipped'
-        serializeToString(serializer, testInstance) == '{"foo":"boo"}'
-
-        when:
-        testInstance.foo = 'boo'
-        testInstance.bar = null
-        then: 'null ser is skipped'
-        serializeToString(serializer, testInstance) == '{"foo":"boo"}'
-
-        expect: 'deser'
-        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":"BAZ"}').foo == 'boo'
-        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":"BAZ"}').bar == 'baz'
-        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":null}').bar == null
-    }
+//    @PendingFeature
+//    def 'custom serializer'() {
+//        def ctx = buildContext('example.Test', '''
+//package example;
+//
+//import io.micronaut.context.annotation.Bean;
+//import io.micronaut.json.*;
+//import io.micronaut.json.annotation.*;
+//import jakarta.inject.Singleton;
+//import java.io.IOException;
+//import java.util.Locale;
+//
+//@Serdeable
+//class Test {
+//    public String foo;
+//    @CustomSerializer(serializer = UpperCaseSer.class, deserializer = LowerCaseDeser.class)
+//    public String bar;
+//}
+//
+//@Singleton
+//@Bean(typed = UpperCaseSer.class)
+//class UpperCaseSer implements Serializer<String> {
+//    @Override
+//    public void serialize(Encoder encoder, String value) throws IOException {
+//        encoder.encodeString(value.toUpperCase(Locale.ROOT));
+//    }
+//
+//    @Override
+//    public boolean isEmpty(EncoderContext context, String value) {
+//        return value.isEmpty();
+//    }
+//}
+//
+//@Singleton
+//@Bean(typed = LowerCaseDeser.class)
+//class LowerCaseDeser implements Deserializer<String> {
+//    @Override
+//    public String deserialize(Decoder decoder) throws IOException {
+//        return decoder.decodeString().toLowerCase(Locale.ROOT);
+//    }
+//}
+//''', true)
+//        def jsonMapper = ctx.getBean(JsonMapper)
+//
+//        def testInstance = ctx.classLoader.loadClass('example.Test').newInstance()
+//
+//        when:
+//        testInstance.foo = 'boo'
+//        testInstance.bar = 'Baz'
+//        then: 'normal ser'
+//        serializeToString(serializer, testInstance) == '{"foo":"boo","bar":"BAZ"}'
+//
+//        when:
+//        testInstance.foo = 'boo'
+//        testInstance.bar = ''
+//        then: 'empty ser is skipped'
+//        serializeToString(serializer, testInstance) == '{"foo":"boo"}'
+//
+//        when:
+//        testInstance.foo = 'boo'
+//        testInstance.bar = null
+//        then: 'null ser is skipped'
+//        serializeToString(serializer, testInstance) == '{"foo":"boo"}'
+//
+//        expect: 'deser'
+//        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":"BAZ"}').foo == 'boo'
+//        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":"BAZ"}').bar == 'baz'
+//        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Test"), '{"foo":"boo","bar":null}').bar == null
+//    }
 
     void "simple bean"() {
         given:
@@ -1056,13 +1057,13 @@ import io.micronaut.core.annotation.Introspected;
 class Test {
     public String a;
     private String b;
-    
+
     Test() {}
-    
+
     public String getB() {
         return b;
     }
-    
+
     public void setB(String b) {
         this.b = b;
     }
@@ -1119,12 +1120,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @io.micronaut.serde.annotation.Serdeable
 class Test {
     private String bar;
-    
+
     @JsonProperty("foo")
     public String getBar() {
         return bar;
     }
-    
+
     public void setBar(String bar) {
         this.bar = bar;
     }
@@ -1153,12 +1154,12 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     private boolean bar;
-    
+
     @JsonProperty("foo")
     public boolean isBar() {
         return bar;
     }
-    
+
     public void setBar(boolean bar) {
         this.bar = bar;
     }
@@ -1187,12 +1188,12 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     private String bar;
-    
+
     @JsonProperty
     public String bar() {
         return bar;
     }
-    
+
     @JsonProperty
     public void bar(String bar) {
         this.bar = bar;
@@ -1223,12 +1224,12 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @JsonProperty("foo")
     private final String bar;
-    
+
     @JsonCreator
     public Test(@JsonProperty("foo") String bar) {
         this.bar = bar;
     }
-    
+
     public String getBar() {
         return bar;
     }
@@ -1256,7 +1257,7 @@ import com.fasterxml.jackson.annotation.*;
 class Test {
     public final String foo;
     public final String bar;
-    
+
     @JsonCreator
     public Test(String foo, String bar) {
         this.foo = foo;
@@ -1284,7 +1285,7 @@ import com.fasterxml.jackson.annotation.*;
 class Test {
     public final String foo;
     public final String bar;
-    
+
     public Test(String foo, String bar) {
         this.foo = foo;
         this.bar = bar;
@@ -1310,7 +1311,7 @@ import com.fasterxml.jackson.annotation.*;
 @io.micronaut.serde.annotation.Serdeable
 class Test {
     public final String foo;
-    
+
     @JsonCreator
     public Test(String foo) {
         this.foo = foo;
@@ -1336,7 +1337,7 @@ import com.fasterxml.jackson.annotation.*;
 @io.micronaut.serde.annotation.Serdeable
 class Test {
     public final String foo;
-    
+
     @JsonCreator
     public Test(String bar) {
         this.foo = bar;
@@ -1364,12 +1365,12 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @JsonProperty("foo")
     private final String bar;
-    
+
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public Test(@JsonProperty("foo") String bar) {
         this.bar = bar;
     }
-    
+
     public String getBar() {
         return bar;
     }
@@ -1399,16 +1400,16 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @JsonProperty("foo")
     private final String bar;
-    
+
     private Test(String bar) {
         this.bar = bar;
     }
-    
+
     @JsonCreator
     public static Test create(@JsonProperty("foo") String bar) {
         return new Test(bar);
     }
-    
+
     public String getBar() {
         return bar;
     }
@@ -1437,7 +1438,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     private final String bar;
-    
+
     @JsonCreator
     public Test(@JsonProperty("foo") String bar) {
         this.bar = bar;
@@ -1491,7 +1492,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     String foo;
-    
+
     @JsonCreator
     Test(@JsonProperty(value = "foo", required = true) String foo) {
         this.foo = foo;
@@ -1519,10 +1520,10 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 class Test {
-    String v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15, 
-    v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31, 
-    v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47, 
-    v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63, 
+    String v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15,
+    v16, v17, v18, v19, v20, v21, v22, v23, v24, v25, v26, v27, v28, v29, v30, v31,
+    v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v47,
+    v48, v49, v50, v51, v52, v53, v54, v55, v56, v57, v58, v59, v60, v61, v62, v63,
     v64, v65, v66, v67, v68, v69, v70, v71, v72, v73, v74, v75, v76, v77, v78, v79;
 
     @JsonCreator
@@ -1696,7 +1697,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     private String foo;
-    
+
     public void setFoo(@Nullable String foo) {
         this.foo = foo;
     }
@@ -1786,7 +1787,7 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @JsonValue
     public final String foo;
-    
+
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public Test(String foo) {
         this.foo = foo;
@@ -1814,7 +1815,7 @@ import io.micronaut.core.annotation.Nullable;
 class Test {
     public final String foo;
     public final String bar;
-    
+
     @JsonCreator
     public Test(@Nullable @JsonProperty("foo") String foo, @JsonProperty(value = "bar", required = true) String bar) {
         this.foo = foo;
@@ -1849,13 +1850,13 @@ import com.fasterxml.jackson.annotation.*;
 @io.micronaut.serde.annotation.Serdeable
 class Test {
     public final String foo;
-    
+
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public Test(String foo) {
         this.foo = foo;
     }
-    
-    @Override 
+
+    @Override
     @JsonValue
     public String toString() {
         return foo;
@@ -1908,11 +1909,11 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @Nullable
     private String foo;
-    
+
     public Optional<String> getFoo() {
         return Optional.ofNullable(foo);
     }
-    
+
     @JsonSetter("foo")
     public void setFoo(@Nullable String foo) {
         this.foo = foo;
@@ -1950,12 +1951,12 @@ class Test {
     public String nonAbsentString;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String nonEmptyString;
-    
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public String[] nonEmptyArray;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public List<String> nonEmptyList;
-    
+
     @JsonInclude(JsonInclude.Include.NON_ABSENT)
     public Optional<String> nonAbsentOptionalString;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -2048,7 +2049,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     private Map<String, String> anySetter = new HashMap<>();
-    
+
     @JsonAnySetter
     void put(String key, String value) {
         anySetter.put(key, value);
@@ -2324,21 +2325,21 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 @io.micronaut.serde.annotation.Serdeable
 class Test {
     $declaredVisibility String field = "unchanged";
-    
+
     private String setterValue = "unchanged";
-    
+
     $declaredVisibility void setSetter(String value) {
         this.setterValue = value;
     }
-    
+
     private String getterValue = "unchanged";
-    
+
     $declaredVisibility String getGetter() {
         return getterValue;
     }
-    
+
     private String isGetterValue = "unchanged";
-    
+
     $declaredVisibility String isIsGetter() {
         return isGetterValue;
     }
@@ -2407,21 +2408,21 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 @io.micronaut.serde.annotation.Serdeable
 class Test {
     $declaredFieldVisibility String field = "unchanged";
-    
+
     private String setterValue = "unchanged";
-    
+
     $declaredSetterVisibility void setSetter(String value) {
         this.setterValue = value;
     }
-    
+
     private String getterValue = "unchanged";
-    
+
     $declaredGetterVisibility String getGetter() {
         return getterValue;
     }
-    
+
     private String isGetterValue = "unchanged";
-    
+
     $declaredIsGetterVisibility String isIsGetter() {
         return isGetterValue;
     }

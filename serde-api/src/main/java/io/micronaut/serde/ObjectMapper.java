@@ -15,17 +15,17 @@
  */
 package io.micronaut.serde;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.type.Argument;
-import io.micronaut.json.JsonFeatures;
-import io.micronaut.json.JsonMapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
+import io.micronaut.json.JsonFeatures;
+import io.micronaut.json.JsonMapper;
 
 /**
  * Sub-interface of {@link JsonMapper} with customizations.
@@ -115,5 +115,23 @@ public interface ObjectMapper extends JsonMapper {
         Objects.requireNonNull(charset, "Charset cannot be null");
         byte[] bytes = writeValueAsBytes(type, object);
         return new String(bytes, charset);
+    }
+
+    /**
+     * Get the default ObjectMapper instance.
+     *
+     * <p>Note that this method returns
+     * an ObjectMapper that does not include any custom defined serializers or deserializers
+     * and in general should be avoided outside a few niche cases that require static access.</p>
+     *
+     * <p>Where possible you should use dependendency injection to instead retrieve the ObjectMapper
+     * from the application context.
+     * </p>
+     *
+     * @return The default object mapper
+     * @since 1.3.0
+     */
+    static @NonNull ObjectMapper getDefault() {
+        return ObjectMappers.resolveDefault();
     }
 }
