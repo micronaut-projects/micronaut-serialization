@@ -33,6 +33,7 @@ val micronautVersion = providers.gradleProperty("micronautVersion")
 
 dependencyResolutionManagement {
     repositories {
+        maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
         mavenCentral()
     }
     versionCatalogs {
