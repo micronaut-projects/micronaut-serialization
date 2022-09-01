@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationMetadataProvider;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -49,6 +50,7 @@ import java.util.Set;
  * @author graemerocher
  */
 @Singleton
+@BootstrapContextCompatible
 public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private final Set<String> serdePackages;

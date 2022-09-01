@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.BeanRegistration;
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.NonNull;
@@ -76,6 +77,7 @@ import jakarta.inject.Singleton;
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
  */
 @Singleton
+@BootstrapContextCompatible
 public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private final Serializer<Object> objectSerializer;

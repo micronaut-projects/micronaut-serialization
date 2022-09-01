@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
@@ -59,6 +60,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 @Internal
 @Singleton
 @Primary
+@BootstrapContextCompatible
 public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
     private final SerializationConfiguration configuration;
@@ -156,7 +158,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             } else {
                 outer = new CustomizedObjectSerializer<>(serBean);
             }
-            
+
             if (serBean.subtyped) {
                 return new RuntimeTypeSerializer(encoderContext) {
                     @Override
@@ -165,10 +167,10 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                             return outer;
                         } else {
                             return super.tryToFindSerializer(context, value);
-                        }                        
+                        }
                     }
 
-                };        
+                };
             } else {
                 return outer;
             }
@@ -197,7 +199,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private Serializer<Object> createRuntimeSerializer(EncoderContext encoderContext, Argument<? extends Object> type, IntrospectionException e) {
         // no introspection, create dynamic serialization case
         return new RuntimeTypeSerializer(encoderContext) {
-            
+
             @Override
             protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
                 final Class<Object> theType = (Class<Object>) value.getClass();
