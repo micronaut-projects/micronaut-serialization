@@ -545,33 +545,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         @Nullable Element annotationSource) {
 
         Set<String> includeSet;
-        {
-            String[] includedSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIncluded.class);
-            String[] includedType = propertyType.stringValues(SerdeConfig.SerIncluded.class);
-            if (ArrayUtils.isEmpty(includedSource)) {
-                if (ArrayUtils.isEmpty(includedType)) {
-                    includeSet = null;
-                } else {
-                    includeSet = CollectionUtils.setOf(includedType);
-                }
+        String[] includedSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIncluded.class);
+        String[] includedType = propertyType.stringValues(SerdeConfig.SerIncluded.class);
+        if (ArrayUtils.isEmpty(includedSource)) {
+            if (ArrayUtils.isEmpty(includedType)) {
+                includeSet = null;
             } else {
-                includeSet = CollectionUtils.setOf(includedSource);
+                includeSet = CollectionUtils.setOf(includedType);
             }
+        } else {
+            includeSet = CollectionUtils.setOf(includedSource);
         }
 
         Set<String> ignoreSet;
-        {
-            String[] ignoredSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIgnored.class);
-            String[] ignoredType = propertyType.stringValues(SerdeConfig.SerIgnored.class);
-            if (ArrayUtils.isEmpty(ignoredSource)) {
-                if (ArrayUtils.isEmpty(ignoredType)) {
-                    ignoreSet = null;
-                } else {
-                    ignoreSet = CollectionUtils.setOf(ignoredType);
-                }
+        String[] ignoredSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIgnored.class);
+        String[] ignoredType = propertyType.stringValues(SerdeConfig.SerIgnored.class);
+        if (ArrayUtils.isEmpty(ignoredSource)) {
+            if (ArrayUtils.isEmpty(ignoredType)) {
+                ignoreSet = null;
             } else {
-                ignoreSet = CollectionUtils.setOf(ignoredSource);
+                ignoreSet = CollectionUtils.setOf(ignoredType);
             }
+        } else {
+            ignoreSet = CollectionUtils.setOf(ignoredSource);
         }
 
         Stream<? extends TypedElement> typeElements;
