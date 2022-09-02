@@ -327,7 +327,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
         final String pattern = element.stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null && failOnError) {
-            
+
 
             if (isNumberType(propertyType)) {
                 try {
@@ -358,14 +358,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 context.fail("Unwrapped cannot be declared on basic types", element);
                 return true;
             }
-            final List<TypedElement> thatProperties = resolveProperties(context, propertyType);
-            final List<TypedElement> thisProperties = resolveProperties(context, currentClass);
-            for (TypedElement thisProperty : thisProperties) {
-                String thisName = resolveJsonName(thisProperty);
-                for (TypedElement thatProperty : thatProperties) {
-                    String thatName = resolveJsonName(thatProperty);
-                    if (thisName.equals(thatName)) {
-                        context.fail("Unwrapped property contains a property [" + thatName + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.", element);
+            final List<String> thatProperties = resolvePropertyNames(context, propertyType, element);
+            final List<String> thisProperties = resolvePropertyNames(context, currentClass, null);
+            for (String thisProperty : thisProperties) {
+                for (String thatProperty : thatProperties) {
+                    if (thisProperty.equals(thatProperty)) {
+                        context.fail("Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.", element);
                         return true;
                     }
                 }
@@ -541,24 +539,58 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return otherElements;
     }
 
-    private List<TypedElement> resolveProperties(VisitorContext context,
-                                                  ClassElement propertyType) {
-        Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
-        final List<TypedElement> otherElements = new ArrayList<>();
-        if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
-            propertyType.getBeanProperties().stream()
-                    .filter(p -> !p.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class)).forEach(otherElements::add);
+    private List<String> resolvePropertyNames(
+        VisitorContext context,
+        ClassElement propertyType,
+        @Nullable Element annotationSource) {
+
+        Set<String> includeSet;
+        String[] includedSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIncluded.class);
+        String[] includedType = propertyType.stringValues(SerdeConfig.SerIncluded.class);
+        if (ArrayUtils.isEmpty(includedSource)) {
+            if (ArrayUtils.isEmpty(includedType)) {
+                includeSet = null;
+            } else {
+                includeSet = CollectionUtils.setOf(includedType);
+            }
+        } else {
+            includeSet = CollectionUtils.setOf(includedSource);
         }
-        if (accessKindSet.contains(Introspected.AccessKind.FIELD)) {
+
+        Set<String> ignoreSet;
+        String[] ignoredSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIgnored.class);
+        String[] ignoredType = propertyType.stringValues(SerdeConfig.SerIgnored.class);
+        if (ArrayUtils.isEmpty(ignoredSource)) {
+            if (ArrayUtils.isEmpty(ignoredType)) {
+                ignoreSet = null;
+            } else {
+                ignoreSet = CollectionUtils.setOf(ignoredType);
+            }
+        } else {
+            ignoreSet = CollectionUtils.setOf(ignoredSource);
+        }
+
+        Stream<? extends TypedElement> typeElements;
+        Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
+        if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
+            typeElements = propertyType.getBeanProperties().stream()
+                .filter(p -> !p.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class));
+        } else if (accessKindSet.contains(Introspected.AccessKind.FIELD)) {
             final List<FieldElement> fields = propertyType
                     .getEnclosedElements(ElementQuery.ALL_FIELDS
                                                  .onlyInstance()
                                                  .annotated(ann -> !ann.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class))
                                                  .modifiers(m -> m.contains(ElementModifier.PUBLIC)));
-            otherElements.addAll(fields);
-
+            typeElements = fields.stream();
+        } else {
+            typeElements = Stream.empty();
         }
-        return otherElements;
+
+        return typeElements
+            .map(this::resolveJsonName)
+            .filter(s -> (ignoreSet == null || !ignoreSet.contains(s)) &&
+                (includeSet == null || includeSet.contains(s)))
+            .collect(Collectors.toList());
     }
 
     private boolean isMappedCandidate(Class<? extends Annotation> refType, String thisSide, AnnotationMetadata p) {
