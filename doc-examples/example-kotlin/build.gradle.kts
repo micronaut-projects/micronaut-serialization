@@ -1,6 +1,6 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.7.10"
-    id("org.jetbrains.kotlin.kapt") version "1.7.10"
+    id("org.jetbrains.kotlin.kapt") version "1.7.20"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.7.10"
     id("io.micronaut.application") version "3.5.1"
 }
