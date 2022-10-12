@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "5.3.14"
+    id("io.micronaut.build.shared.settings") version "6.0.0"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -23,22 +23,21 @@ include("serde-bson")
 include("serde-tck")
 include("serde-oracle-jdbc-json")
 
-include("doc-examples:example-java")
 include("doc-examples:example-bson-java")
+include("doc-examples:example-groovy")
+include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
-include("doc-examples:example-groovy")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
+configure<io.micronaut.build.MicronautBuildSettingsExtension> {
+    importMicronautCatalog()
+}
+
 dependencyResolutionManagement {
     repositories {
-        maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
         mavenCentral()
-    }
-    versionCatalogs {
-        create("mn") {
-            from("io.micronaut:micronaut-bom:${micronautVersion.get()}")
-        }
+        maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
     }
 }

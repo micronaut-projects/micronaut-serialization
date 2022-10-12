@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.micronaut.application") version "3.5.1"
+    id("io.micronaut.build.internal.serde-examples")
 }
 
 micronaut {
