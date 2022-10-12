@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Period;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
@@ -32,6 +33,7 @@ import jakarta.inject.Singleton;
  * Factory class for core serdes.
  */
 @Factory
+@BootstrapContextCompatible
 public class CoreSerdes {
     /**
      * Serde used for object arrays.
@@ -39,6 +41,7 @@ public class CoreSerdes {
      */
     @Singleton
     @NonNull
+    @BootstrapContextCompatible
     protected Serde<Object[]> objectArraySerde() {
         return new ObjectArraySerde();
     }
@@ -49,6 +52,7 @@ public class CoreSerdes {
      */
     @Singleton
     @NonNull
+    @BootstrapContextCompatible
     protected NullableSerde<Duration> durationSerde() {
         return new NullableSerde<Duration>() {
             @Override
@@ -71,6 +75,7 @@ public class CoreSerdes {
      */
     @Singleton
     @NonNull
+    @BootstrapContextCompatible
     protected NullableSerde<Period> periodSerde() {
         return new NullableSerde<Period>() {
             @Override
