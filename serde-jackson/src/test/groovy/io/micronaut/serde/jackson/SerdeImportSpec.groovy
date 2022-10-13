@@ -6,7 +6,6 @@ import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.management.health.indicator.HealthResult
 import one.microstream.storage.restadapter.types.ViewerObjectDescription
-import spock.lang.PendingFeature
 import spock.lang.Requires
 
 class SerdeImportSpec extends JsonCompileSpec {
@@ -48,7 +47,6 @@ class AddMixin {
         context.close()
     }
 
-    @PendingFeature
     void "test mixin constructor"() {
         def context = buildContext('mixintest.Test','''
 package mixintest;
@@ -110,7 +108,6 @@ abstract class TestMixin  {
         context.close()
     }
 
-    @PendingFeature
     void "test import with interface"() {
         def context = buildContext('mixintest.HttpStatusInfo','''
 package mixintest;

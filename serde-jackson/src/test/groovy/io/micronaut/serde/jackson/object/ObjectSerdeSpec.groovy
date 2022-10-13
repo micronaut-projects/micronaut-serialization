@@ -1896,7 +1896,6 @@ class Test {
         writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar"}'
     }
 
-    @PendingFeature
     void "optional nullable mix"() {
         given:
         def context = buildContext('example.Test', '''
