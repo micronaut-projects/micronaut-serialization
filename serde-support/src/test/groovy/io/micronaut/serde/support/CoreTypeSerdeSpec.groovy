@@ -8,6 +8,7 @@ import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
+import spock.lang.PendingFeature
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
@@ -36,6 +37,7 @@ class CoreTypeSerdeSpec extends Specification {
         hr.status == HealthStatus.DOWN
     }
 
+    @PendingFeature
     void "test read / write JsonError"() {
         given:
         JsonError error = new JsonError("my error")
