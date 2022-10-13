@@ -13,12 +13,4 @@ dependencies {
     compileOnly(mn.micronaut.inject.groovy)
     implementation(mn.micronaut.test.spock)
     api(libs.jetbrains.annotations)
-
-    if (!JavaVersion.current().isJava9Compatible()) {
-        implementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
-    }
-}
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
 }

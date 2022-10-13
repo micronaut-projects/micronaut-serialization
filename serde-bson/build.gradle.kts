@@ -1,10 +1,5 @@
 plugins {
-    id("io.micronaut.build.internal.module")
-}
-
-repositories {
-    maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
-    mavenCentral()
+    id("io.micronaut.build.internal.serde-module")
 }
 
 dependencies {
@@ -25,9 +20,6 @@ dependencies {
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.jackson.annotations)
-    if (!JavaVersion.current().isJava9Compatible()) {
-        testImplementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))
-    }
 }
 
 tasks {

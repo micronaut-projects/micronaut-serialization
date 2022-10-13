@@ -1,10 +1,5 @@
 plugins {
-    id("io.micronaut.build.internal.module")
-}
-
-repositories {
-    maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
-    mavenCentral()
+    id("io.micronaut.build.internal.serde-module")
 }
 
 configurations.named("testRuntimeClasspath") {

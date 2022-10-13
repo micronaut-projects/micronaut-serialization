@@ -1,4 +1,13 @@
 [versions]
+micronaut = "4.0.0-SNAPSHOT"
+micronaut-docs = "2.0.0"
+micronaut-gradle-plugin = "3.6.2"
+micronaut-test = "3.7.0"
+
+groovy = "4.0.5"
+spock = "2.2-groovy-4.0"
+kotlin = '1.7.20'
+
 managed-bson = "4.7.1"
 managed-jakarta-json-api = "2.0.1"
 managed-jakarta-json-bindApi = "2.0.0"
@@ -16,3 +25,9 @@ managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-a
 
 oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref = "oracle-jdbc-driver" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+
+#PLUGINS
+
+gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }
+kotlin-gradle-plugin = { module = 'org.jetbrains.kotlin:kotlin-gradle-plugin', version.ref = 'kotlin' }
+kotlin-gradle-allopen = { module = 'org.jetbrains.kotlin:kotlin-allopen', version.ref = 'kotlin' }
