@@ -179,8 +179,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","barkVolume":1.1,"name":"Fred"}'
-        catJson == '{"type":"cat","likesCream":true,"lives":9,"name":"Joe"}'
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
 
         when:
         def dogClass = dog.getClass()
@@ -250,8 +250,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"dog":{"barkVolume":1.1,"name":"Fred"}}'
-        catJson == '{"cat":{"likesCream":true,"lives":9,"name":"Joe"}}'
+        dogJson == '{"dog":{"name":"Fred","barkVolume":1.1}}'
+        catJson == '{"cat":{"name":"Joe","likesCream":true,"lives":9}}'
 
         when:
         def dogClass = dog.getClass()
@@ -346,8 +346,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"@class":"subtypes.Dog","barkVolume":1.1,"name":"Fred"}'
-        catJson == '{"@class":"subtypes.Cat","likesCream":true,"lives":9,"name":"Joe"}'
+        dogJson == '{"@class":"subtypes.Dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"@class":"subtypes.Cat","name":"Joe","likesCream":true,"lives":9}'
 
         when:
         def dogClass = dog.getClass()
@@ -366,8 +366,8 @@ class Cat extends Animal {
         catBean.lives == 9
 
         when:"the buffer is used"
-        dogBean = jsonMapper.readValue('{"barkVolume":1.1,"name":"Fred","@class":"subtypes.Dog"}', argumentOf(context, 'subtypes.Animal'))
-        catBean = jsonMapper.readValue('{"likesCream":true,"lives":9,"name":"Joe","@class":"subtypes.Cat"}', argumentOf(context, 'subtypes.Animal'))
+        dogBean = jsonMapper.readValue('{"name":"Fred","barkVolume":1.1,"@class":"subtypes.Dog"}', argumentOf(context, 'subtypes.Animal'))
+        catBean = jsonMapper.readValue('{"name":"Joe","likesCream":true,"lives":9,"@class":"subtypes.Cat"}', argumentOf(context, 'subtypes.Animal'))
 
         then:
         dogClass.isInstance(dogBean)
@@ -426,8 +426,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","barkVolume":1.1,"name":"Fred"}'
-        catJson == '{"type":"cat","likesCream":true,"lives":9,"name":"Joe"}'
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
 
         when:
         def dogClass = dog.getClass()
@@ -446,8 +446,8 @@ class Cat extends Animal {
         catBean.lives == 9
 
         when:"the buffer is used"
-        dogBean = jsonMapper.readValue('{"barkVolume":1.1,"name":"Fred","type":"dog"}', argumentOf(context, 'subtypes.Animal'))
-        catBean = jsonMapper.readValue('{"likesCream":true,"lives":9,"name":"Joe","type":"cat"}', argumentOf(context, 'subtypes.Animal'))
+        dogBean = jsonMapper.readValue('{"name":"Fred","barkVolume":1.1,"type":"dog"}', argumentOf(context, 'subtypes.Animal'))
+        catBean = jsonMapper.readValue('{"name":"Joe","likesCream":true,"lives":9,"type":"cat"}', argumentOf(context, 'subtypes.Animal'))
 
         then:
         catClass.isInstance(catBean)
@@ -509,8 +509,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","barkVolume":1.1,"friend":{"type":"cat","likesCream":true,"lives":9,"name":"Joe"},"name":"Fred"}'
-        catJson == '{"type":"cat","likesCream":true,"lives":9,"name":"Joe"}'
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1,"friend":{"type":"cat","name":"Joe","likesCream":true,"lives":9}}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
 
         when:
         def readDog = jsonMapper.readValue(dogJson, argumentOf(context, 'subtypes.Animal'))
