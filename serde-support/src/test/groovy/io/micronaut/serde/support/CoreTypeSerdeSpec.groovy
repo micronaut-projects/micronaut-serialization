@@ -45,7 +45,7 @@ class CoreTypeSerdeSpec extends Specification {
         when:
         def result = writeJson(error)
         then:
-        result == '{"message":"my error","_links":{"self":[{"href":"http://test","templated":false}]},"_embedded":{"info":[{"info":"Additional Info","_links":{"self":[{"href":"http://info.com","templated":false}]}}]}}'
+        result == '{"_links":{"self":[{"href":"http://test","templated":false}]},"_embedded":{"info":[{"_links":{"self":[{"href":"http://info.com","templated":false}]},"info":"Additional Info"}]},"message":"my error"}'
 
         when:
         def read = jsonMapper.readValue(result, Argument.of(JsonError))
