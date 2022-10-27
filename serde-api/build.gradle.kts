@@ -7,6 +7,7 @@ dependencies {
 
     api(mn.micronaut.context)
     api(mn.micronaut.json.core)
+    api(mn.micronaut.core.processor)
 }
 
 tasks {
