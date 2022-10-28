@@ -6,7 +6,7 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
 
     api(mn.micronaut.context)
-    api(mn.micronaut.json.core)
+    api(mn.micronaut.json.core)    
 }
 
 tasks {

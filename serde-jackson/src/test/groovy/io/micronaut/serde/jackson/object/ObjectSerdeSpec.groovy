@@ -1896,12 +1896,14 @@ class Test {
         writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar"}'
     }
 
+    @PendingFeature(reason = 'Regression in Micronaut 4.0 when reading property values')
     void "optional nullable mix"() {
         given:
         def context = buildContext('example.Test', '''
 package example;
 
-import com.fasterxml.jackson.annotation.JsonSetter;import io.micronaut.core.annotation.Nullable;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import io.micronaut.core.annotation.Nullable;
 import java.util.Optional;
 import io.micronaut.serde.annotation.Serdeable;
 
