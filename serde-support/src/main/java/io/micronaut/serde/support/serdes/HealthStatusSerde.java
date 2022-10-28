@@ -31,7 +31,7 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-@Requires(classes=HealthStatus.class)
+@Requires(classes = HealthStatus.class)
 public class HealthStatusSerde implements NullableSerde<HealthStatus> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends HealthStatus> type, HealthStatus value)
