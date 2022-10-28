@@ -1896,7 +1896,7 @@ class Test {
         writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar"}'
     }
 
-    @PendingFeature(reason = 'Regression in Micronaut 4.0 when reading property values')
+    // @PendingFeature(reason = 'Regression in Micronaut 4.0 when reading property values')
     void "optional nullable mix"() {
         given:
         def context = buildContext('example.Test', '''
