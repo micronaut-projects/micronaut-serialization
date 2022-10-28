@@ -17,6 +17,7 @@ package io.micronaut.serde.support.serdes;
 
 import java.io.IOException;
 
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.type.Argument;
 import io.micronaut.health.HealthStatus;
 import io.micronaut.serde.Decoder;
@@ -30,6 +31,7 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
+@Requires(classes=HealthStatus.class)
 public class HealthStatusSerde implements NullableSerde<HealthStatus> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends HealthStatus> type, HealthStatus value)
