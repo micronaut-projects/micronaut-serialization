@@ -73,7 +73,7 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></code>, <code><a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></code>, <code><a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></code></dd>
+<dd><code>io.micronaut.core.convert.ConversionServiceProvider</code>, <code><a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></code>, <code><a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></code>, <code><a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></code></dd>
 </dl>
 <dl class="notes">
 <dt>All Known Implementing Classes:</dt>
@@ -81,7 +81,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">SerdeRegistry</span><span class="extends-implements">
-extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>, <a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></span></div>
+extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a>, <a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a>, <a href="NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a>, io.micronaut.core.convert.ConversionServiceProvider</span></div>
 <div class="block">Represents a registry where specific serializers can be looked up.</div>
 <dl class="notes">
 <dt>Since:</dt>
@@ -116,6 +116,9 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 </div>
 </div>
 </div>
+<div class="inherited-list">
+<h3 id="methods-inherited-from-class-io.micronaut.core.convert.ConversionServiceProvider">Methods inherited from interface&nbsp;io.micronaut.core.convert.ConversionServiceProvider</h3>
+<code>getConversionService</code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.DeserializerLocator">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></h3>
 <code><a href="DeserializerLocator.html#findCustomDeserializer(java.lang.Class)">findCustomDeserializer</a>, <a href="DeserializerLocator.html#findDeserializer(io.micronaut.core.type.Argument)">findDeserializer</a>, <a href="DeserializerLocator.html#findDeserializer(java.lang.Class)">findDeserializer</a>, <a href="DeserializerLocator.html#getDeserializableSubtypes(java.lang.Class)">getDeserializableSubtypes</a></code></div>

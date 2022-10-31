@@ -617,7 +617,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Default implementation of the <a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> interface.</div>
 </dd>
-<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections)" class="member-name-link">DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde&lt;Object[]&gt;, SerdeIntrospections)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService)" class="member-name-link">DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde&lt;Object[]&gt;, SerdeIntrospections, ConversionService)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
 <dd>
 <div class="block">Default constructor.</div>
 </dd>
@@ -970,6 +970,8 @@ loadScripts(document, 'script');</script>
 <dl class="index">
 <dt><a href="io/micronaut/serde/jackson/JacksonEncoder.html#generator" class="member-name-link">generator</a> - Variable in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonEncoder.html" title="class in io.micronaut.serde.jackson">JacksonEncoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/SerdeJsonMapperSupplier.html#get()" class="member-name-link">get()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html#getArgument()" class="member-name-link">getArgument()</a> - Method in exception io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/InvalidPropertyFormatException.html" title="class in io.micronaut.serde.exceptions">InvalidPropertyFormatException</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#getArraySizeThreshold()" class="member-name-link">getArraySizeThreshold()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
@@ -1035,6 +1037,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html#getConversionService()" class="member-name-link">getConversionService()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Serializer.EncoderContext.html#getConversionService()" class="member-name-link">getConversionService()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#getConversionService()" class="member-name-link">getConversionService()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#getCurrentKey()" class="member-name-link">getCurrentKey()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
 <dd>&nbsp;</dd>
@@ -2287,6 +2291,12 @@ loadScripts(document, 'script');</script>
  for the serialization project.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html#%3Cinit%3E(io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">SerdeJsonConfiguration(SerializationConfiguration, DeserializationConfiguration)</a> - Constructor for class io.micronaut.serde.support.config.<a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.support.config">SerdeJsonConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/SerdeJsonMapperSupplier.html" class="type-name-link" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">An implementation of the <code>JsonMapperSupplier</code> interface for Micronaut Serialization.</div>
+</dd>
+<dt><a href="io/micronaut/serde/SerdeJsonMapperSupplier.html#%3Cinit%3E()" class="member-name-link">SerdeJsonMapperSupplier()</a> - Constructor for class io.micronaut.serde.<a href="io/micronaut/serde/SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SerdeRegistry.html" class="type-name-link" title="interface in io.micronaut.serde">SerdeRegistry</a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>

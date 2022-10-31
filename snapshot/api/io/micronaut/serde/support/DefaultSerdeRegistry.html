@@ -76,7 +76,7 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></code>, <code><a href="../NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></code>, <code><a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></code>, <code><a href="../SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></code></dd>
+<dd><code>io.micronaut.core.convert.ConversionServiceProvider</code>, <code><a href="../DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></code>, <code><a href="../NamingStrategyLocator.html" title="interface in io.micronaut.serde">NamingStrategyLocator</a></code>, <code><a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></code>, <code><a href="../SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></code></dd>
 </dl>
 <hr>
 <div class="type-signature"><span class="annotations">@Singleton
@@ -95,11 +95,12 @@ implements <a href="../SerdeRegistry.html" title="interface in io.micronaut.serd
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(io.micronaut.context.BeanContext&nbsp;beanContext,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(io.micronaut.context.BeanContext&nbsp;beanContext,
  <a href="serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a>&nbsp;objectSerializer,
  <a href="deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a>&nbsp;objectDeserializer,
  <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;objectArraySerde,
- <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections)</code></div>
+ <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
+ io.micronaut.core.convert.ConversionService&nbsp;conversionService)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Default constructor.</div>
 </div>
@@ -144,19 +145,22 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Finds a serializer for the given type.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDeserializableSubtypes(java.lang.Class)" class="member-name-link">getDeserializableSubtypes</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;superType)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.core.convert.ConversionService</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDeserializableSubtypes(java.lang.Class)" class="member-name-link">getDeserializableSubtypes</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;superType)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Locates desrializable subtypes for the given super type.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newDecoderContext(java.lang.Class)" class="member-name-link">newDecoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newDecoderContext(java.lang.Class)" class="member-name-link">newDecoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates a new decoder context.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newEncoderContext(java.lang.Class)" class="member-name-link">newEncoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newEncoderContext(java.lang.Class)" class="member-name-link">newEncoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates a new encoder context.</div>
 </div>
 </div>
@@ -183,13 +187,14 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections)">
+<section class="detail" id="&lt;init&gt;(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService)">
 <h3>DefaultSerdeRegistry</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">DefaultSerdeRegistry</span><wbr><span class="parameters">(io.micronaut.context.BeanContext&nbsp;beanContext,
  <a href="serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a>&nbsp;objectSerializer,
  <a href="deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a>&nbsp;objectDeserializer,
  <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;objectArraySerde,
- <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections)</span></div>
+ <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
+ io.micronaut.core.convert.ConversionService&nbsp;conversionService)</span></div>
 <div class="block">Default constructor.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -198,6 +203,7 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <dd><code>objectDeserializer</code> - The object deserializer</dd>
 <dd><code>objectArraySerde</code> - The object array Serde</dd>
 <dd><code>introspections</code> - The introspections</dd>
+<dd><code>conversionService</code> - The conversion service</dd>
 </dl>
 </section>
 </li>
@@ -363,6 +369,16 @@ D extends <a href="../Deserializer.html" title="interface in io.micronaut.serde"
 <dd><code>view</code> - The view</dd>
 <dt>Returns:</dt>
 <dd>The decoder context</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getConversionService()">
+<h3>getConversionService</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">io.micronaut.core.convert.ConversionService</span>&nbsp;<span class="element-name">getConversionService</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>getConversionService</code>&nbsp;in interface&nbsp;<code>io.micronaut.core.convert.ConversionServiceProvider</code></dd>
 </dl>
 </section>
 </li>
