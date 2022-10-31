@@ -16,6 +16,7 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
@@ -36,6 +37,11 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
 
     DefaultEncoderContext(SerdeRegistry registry) {
         this.registry = registry;
+    }
+
+    @Override
+    public ConversionService getConversionService() {
+        return registry.getConversionService();
     }
 
     @Override

@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde;
 
+import java.io.IOException;
+
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -24,8 +26,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
-
-import java.io.IOException;
 
 /**
  * Interface that represents a deserializer.
@@ -91,7 +91,7 @@ public interface Deserializer<T> {
          * @return Conversion service
          */
         @NonNull
-        default ConversionService<?> getConversionService() {
+        default ConversionService getConversionService() {
             return ConversionService.SHARED;
         }
 
