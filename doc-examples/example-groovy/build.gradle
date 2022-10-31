@@ -7,15 +7,10 @@ micronaut {
     runtime("netty")
     testRuntime("spock")
 }
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute(module("io.micronaut:micronaut-jackson-databind"))
-                .using(project(":serde-jackson"))
-    }
-}
 dependencies {
     compileOnly(projects.serdeProcessor)
     compileOnly("io.micronaut:micronaut-inject-groovy")
+    implementation(project(":serde-jackson"))
     implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
     testCompileOnly("io.micronaut:micronaut-inject-groovy")

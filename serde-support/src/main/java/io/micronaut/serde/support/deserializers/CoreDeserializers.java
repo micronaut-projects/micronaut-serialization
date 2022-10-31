@@ -277,7 +277,7 @@ public class CoreDeserializers {
                         final Decoder objectDecoder = decoder.decodeObject(type);
                         String key = objectDecoder.decodeKey();
                         M map = getDefaultValue(decoderContext, type);
-                        ConversionService<?> conversionService = decoderContext.getConversionService();
+                        ConversionService conversionService = decoderContext.getConversionService();
                         while (key != null) {
                             K k;
                             if (keyType.isInstance(key)) {
