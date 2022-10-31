@@ -17,6 +17,7 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.convert.ConversionServiceProvider;
 
 /**
  * Represents a registry where specific serializers can be looked up.
@@ -25,7 +26,7 @@ import io.micronaut.core.annotation.Nullable;
  * @since 1.0.0
  *
  */
-public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, NamingStrategyLocator {
+public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, NamingStrategyLocator, ConversionServiceProvider {
 
     /**
      * Creates a new encoder context.

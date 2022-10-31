@@ -14,6 +14,7 @@ dependencies {
     testAnnotationProcessor(projects.serdeProcessor)
     testImplementation(projects.serdeProcessor)
     testImplementation(projects.serdeTck)
+    testImplementation(mn.micronaut.jackson.databind)
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mn.micronaut.test.spock)

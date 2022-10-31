@@ -49,6 +49,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
@@ -89,6 +90,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final SerdeIntrospections introspections;
     private final Deserializer<Object> objectDeserializer;
     private final Serde<Object[]> objectArraySerde;
+    private final ConversionService conversionService;
 
     /**
      * Default constructor.
@@ -97,13 +99,15 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param objectDeserializer The object deserializer
      * @param objectArraySerde The object array Serde
      * @param introspections The introspections
+     * @param conversionService The conversion service
      */
     public DefaultSerdeRegistry(
-            BeanContext beanContext,
-            ObjectSerializer objectSerializer,
-            ObjectDeserializer objectDeserializer,
-            Serde<Object[]> objectArraySerde,
-            SerdeIntrospections introspections) {
+        BeanContext beanContext,
+        ObjectSerializer objectSerializer,
+        ObjectDeserializer objectDeserializer,
+        Serde<Object[]> objectArraySerde,
+        SerdeIntrospections introspections,
+        ConversionService conversionService) {
         final Collection<BeanDefinition<Serializer>> serializers =
                 beanContext.getBeanDefinitions(Serializer.class);
         final Collection<BeanDefinition<Deserializer>> deserializers =
@@ -158,6 +162,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         registerPrimitiveSerdes();
         this.objectSerializer = objectSerializer;
         this.objectDeserializer = objectDeserializer;
+        this.conversionService = conversionService;
     }
 
     private void registerPrimitiveSerdes() {
@@ -430,6 +435,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             };
         }
         return new DefaultDecoderContext(this);
+    }
+
+    @Override
+    public ConversionService getConversionService() {
+        return conversionService;
     }
 
     private static final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
