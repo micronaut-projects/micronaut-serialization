@@ -140,7 +140,6 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                 if (data instanceof Map) {
                     Map<Object, Object> map = (Map<Object, Object>) data;
                     if (CollectionUtils.isNotEmpty(map)) {
-
                         for (Object k : map.keySet()) {
                             final Object v = map.get(k);
                             childEncoder.encodeKey(k.toString());
@@ -152,13 +151,10 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                                 if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
                                     valueType = Argument.of(v.getClass());
                                 }
-                                @SuppressWarnings("unchecked") final Serializer<Object> serializer =
-                                        (Serializer<Object>) context.findSerializer(valueType);
-                                serializer.serialize(
-                                        childEncoder,
-                                        context,
-                                        valueType, v
-                                );
+                                @SuppressWarnings("unchecked")
+                                Serializer<Object> foundSerializer = (Serializer<Object>) context.findSerializer(valueType);
+                                final Serializer<Object> serializer = foundSerializer.createSpecific(context, valueType);
+                                serializer.serialize(childEncoder, context, valueType, v);
                             }
                         }
                     }
