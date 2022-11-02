@@ -26,9 +26,14 @@ import org.graalvm.nativeimage.hosted.RuntimeReflection;
 public final class JsonpFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        final Class<?> c = access.findClassByName("org.glassfish.json.JsonProviderImpl");
-        if (c != null) {
-            RuntimeReflection.registerForReflectiveInstantiation(c);
+        final Class<?> glassFish = access.findClassByName("org.glassfish.json.JsonProviderImpl");
+        if (glassFish != null) {
+            RuntimeReflection.registerForReflectiveInstantiation(glassFish);
+        }
+
+        final Class<?> parssonFactory = access.findClassByName("org.eclipse.parsson.JsonProviderImpl");
+        if (parssonFactory != null) {
+            RuntimeReflection.registerForReflectiveInstantiation(parssonFactory);
         }
     }
 }

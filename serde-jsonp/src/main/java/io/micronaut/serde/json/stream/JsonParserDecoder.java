@@ -47,29 +47,18 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected TokenType currentToken() {
-        switch (currentEvent) {
-            case START_ARRAY:
-                return TokenType.START_ARRAY;
-            case START_OBJECT:
-                return TokenType.START_OBJECT;
-            case KEY_NAME:
-                return TokenType.KEY;
-            case VALUE_STRING:
-                return TokenType.STRING;
-            case VALUE_NUMBER:
-                return TokenType.NUMBER;
-            case VALUE_TRUE:
-            case VALUE_FALSE:
-                return TokenType.BOOLEAN;
-            case VALUE_NULL:
-                return TokenType.NULL;
-            case END_OBJECT:
-                return TokenType.END_OBJECT;
-            case END_ARRAY:
-                return TokenType.END_ARRAY;
-            default:
-                return TokenType.OTHER;
-        }
+        return switch (currentEvent) {
+            case START_ARRAY -> TokenType.START_ARRAY;
+            case START_OBJECT -> TokenType.START_OBJECT;
+            case KEY_NAME -> TokenType.KEY;
+            case VALUE_STRING -> TokenType.STRING;
+            case VALUE_NUMBER -> TokenType.NUMBER;
+            case VALUE_TRUE, VALUE_FALSE -> TokenType.BOOLEAN;
+            case VALUE_NULL -> TokenType.NULL;
+            case END_OBJECT -> TokenType.END_OBJECT;
+            case END_ARRAY -> TokenType.END_ARRAY;
+            default -> TokenType.OTHER;
+        };
     }
 
     @Override
@@ -89,18 +78,15 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected String coerceScalarToString() {
-        switch (currentEvent) {
-            case VALUE_STRING:
-            case VALUE_NUMBER:
+        return switch (currentEvent) {
+            case VALUE_STRING, VALUE_NUMBER ->
                 // only allowed for string and number
-                return jsonParser.getString();
-            case VALUE_TRUE:
-                return "true";
-            case VALUE_FALSE:
-                return "false";
-            default:
+                jsonParser.getString();
+            case VALUE_TRUE -> "true";
+            case VALUE_FALSE -> "false";
+            default ->
                 throw new IllegalStateException("Method called in wrong context " + currentEvent);
-        }
+        };
     }
 
     @Override
