@@ -13,7 +13,6 @@ import io.micronaut.http.client.annotation.Client
 import io.micronaut.serde.jackson.jsonanygetter.Token
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 @Property(name = "spec.name", value = "JsonAnyGetterSpec")
@@ -24,7 +23,6 @@ class JsonAnyGetterSpec extends Specification {
     @Client("/")
     HttpClient httpClient;
 
-    @PendingFeature(reason = "https://github.com/micronaut-projects/micronaut-serialization/issues/299")
     void "JsonAnyGetter works"() {
         when:
         BlockingHttpClient client = httpClient.toBlocking()
@@ -33,7 +31,7 @@ class JsonAnyGetterSpec extends Specification {
         then:
         noExceptionThrown()
         HttpStatus.OK == response.getStatus()
-        response.getBody().get().get("roles")
+        response.getBody().get().get("roles") == Collections.singletonList("ADMIN")
     }
 
     @Requires(property = "spec.name", value = "JsonAnyGetterSpec")
