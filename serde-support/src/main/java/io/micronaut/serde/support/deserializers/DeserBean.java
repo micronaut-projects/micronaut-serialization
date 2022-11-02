@@ -80,6 +80,7 @@ class DeserBean<T> {
     public final boolean ignoreUnknown;
     public final boolean delegating;
     public final boolean simpleBean;
+    public final ConversionService conversionService;
 
     private volatile boolean initialized;
     // CHECKSTYLE:ON
@@ -89,6 +90,7 @@ class DeserBean<T> {
             Deserializer.DecoderContext decoderContext,
             DeserBeanRegistry deserBeanRegistry)
             throws SerdeException {
+        this.conversionService = decoderContext.getConversionService();
         this.introspection = introspection;
         final SerdeConfig.SerCreatorMode creatorMode = introspection
                 .getConstructor().getAnnotationMetadata()
@@ -116,6 +118,7 @@ class DeserBean<T> {
                 creatorParams.register(
                         n,
                         new DerProperty<>(
+                                conversionService,
                                 introspection,
                                 i,
                                 n,
@@ -149,6 +152,7 @@ class DeserBean<T> {
                         decoderContext
                 );
                 creatorUnwrapped.add(new DerProperty(
+                        conversionService,
                         introspection,
                         i,
                         jsonProperty,
@@ -170,6 +174,7 @@ class DeserBean<T> {
                 }
 
                 derProperty = new DerProperty<>(
+                        conversionService,
                         introspection,
                         i,
                         jsonProperty,
@@ -181,6 +186,7 @@ class DeserBean<T> {
 
             } else {
                 derProperty = new DerProperty<>(
+                        conversionService,
                         introspection,
                         i,
                         jsonProperty,
@@ -239,6 +245,7 @@ class DeserBean<T> {
                                 new AnnotationMetadataHierarchy(annotationMetadata,
                                         t.getAnnotationMetadata());
                         unwrappedProperties.add(new DerProperty<>(
+                                conversionService,
                                 introspection,
                                 i,
                                 t.getName(),
@@ -272,6 +279,7 @@ class DeserBean<T> {
 
                         final String jsonProperty = resolveName(beanProperty, annotationMetadata, propertyNamingStrategy);
                         final DerProperty<T, Object> derProperty = new DerProperty<>(
+                                conversionService,
                                 introspection,
                                 i,
                                 jsonProperty,
@@ -304,6 +312,7 @@ class DeserBean<T> {
                 );
                 final Argument<Object> argument = resolveArgument((Argument<Object>) jsonSetter.getArguments()[0]);
                 final DerProperty<T, Object> derProperty = new DerProperty<>(
+                        conversionService,
                         introspection,
                         0,
                         property,
@@ -596,14 +605,15 @@ class DeserBean<T> {
         // Null when DeserBean not initialized
         public Deserializer<? super P> deserializer;
 
-        public DerProperty(BeanIntrospection<B> introspection,
+        public DerProperty(ConversionService conversionService,
+                           BeanIntrospection<B> introspection,
                            int index,
                            String property,
                            Argument<P> argument,
                            @Nullable BeanProperty<B, P> beanProperty,
                            @Nullable BeanMethod<B, P> beanMethod,
                            @Nullable DeserBean<P> unwrapped) throws SerdeException {
-            this(
+            this(   conversionService,
                     introspection,
                     index,
                     property,
@@ -615,7 +625,8 @@ class DeserBean<T> {
             );
         }
 
-        public DerProperty(BeanIntrospection<B> instrospection,
+        public DerProperty(ConversionService conversionService,
+                           BeanIntrospection<B> instrospection,
                            int index,
                            String property,
                            Argument<P> argument,
@@ -641,7 +652,7 @@ class DeserBean<T> {
             try {
                 this.defaultValue = annotationMetadata
                         .stringValue(Bindable.class, "defaultValue")
-                        .map(s -> ConversionService.SHARED.convertRequired(s, argument))
+                        .map(s -> conversionService.convertRequired(s, argument))
                         .orElse(null);
             } catch (ConversionErrorException e) {
                 throw new SerdeException((index > -1 ? "Constructor Argument" : "Property") + " [" + argument + "] of type [" + instrospection.getBeanType().getName() + "] defines an invalid default value", e);

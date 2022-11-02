@@ -23,7 +23,6 @@ import java.util.Locale;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
@@ -60,7 +59,7 @@ final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
         final DecimalFormat decimalFormat = createDecimalFormat(type);
         try {
             final Number number = decimalFormat.parse(s);
-            return (N) ConversionService.SHARED.convertRequired(number, type);
+            return (N) decoderContext.getConversionService().convertRequired(number, type);
         } catch (Exception e) {
             throw new SerdeException("Error decoding number of type " + type + " using pattern " + pattern + ":" + e.getMessage(), e);
         }
