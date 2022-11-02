@@ -9,16 +9,16 @@ spock = "2.2-groovy-4.0"
 kotlin = '1.7.20'
 
 managed-bson = "4.7.1"
-managed-jakarta-json-api = "2.0.1"
-managed-jakarta-json-bindApi = "2.0.0"
-managed-glassfish-jakarta-json = "2.0.1"
+managed-jakarta-json-api = "2.1.1"
+managed-jakarta-json-bindApi = "3.0.0"
+managed-eclipse-parsson = "1.1.1"
 
 oracle-jdbc-driver = "21.6.0.0.1"
 jetbrains-annotations = "23.0.0"
 
 [libraries]
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
-managed-glassfish-jakarta-json = { module = "org.glassfish:jakarta.json", version.ref = "managed-glassfish-jakarta-json" }
+managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
 
 managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "managed-jakarta-json-api" }
 managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "managed-jakarta-json-bindApi" }
