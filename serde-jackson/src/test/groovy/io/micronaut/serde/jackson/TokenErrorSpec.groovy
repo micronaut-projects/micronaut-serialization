@@ -9,7 +9,6 @@ import spock.lang.Specification
 class TokenErrorSpec extends Specification {
 
     @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/297")
-    @PendingFeature
     void "TokenError should be deserializable from a string"() {
         setup:
         ObjectMapper objectMapper = ObjectMapper.getDefault()
@@ -19,5 +18,11 @@ class TokenErrorSpec extends Specification {
 
         then:
         deserializationResult == TokenError.UNAUTHORIZED_CLIENT
+
+        when:
+        def value = objectMapper.writeValueAsString(TokenError.UNAUTHORIZED_CLIENT)
+
+        then:
+        value == '"unauthorized_client"'
     }
 }

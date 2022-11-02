@@ -2,7 +2,9 @@ package io.micronaut.serde.jackson.enumjsonvalue;
 
 
 import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.serde.annotation.Serdeable;
 
+@Serdeable
 public enum TokenError {
     INVALID_REQUEST("invalid_request"),
     INVALID_CLIENT("invalid_client"),
