@@ -42,7 +42,7 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
-    public ConversionService getConversionService() {
+    public final ConversionService getConversionService() {
         return registry.getConversionService();
     }
 
