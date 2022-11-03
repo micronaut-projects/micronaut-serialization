@@ -17,36 +17,12 @@ class JsonAnyGetterSpec extends Specification {
     @Inject
     ObjectMapper serdeObjectMapper
 
-    @Inject
-    com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper
-
     void "JsonAnyGetter works with object Annotated with @Serdeable with Serde Object Mapper"() {
         given:
         TokenSerdeable token = new TokenSerdeable(Collections.singletonMap("roles", Collections.singletonList("ADMIN")))
 
         when:
         String json = serdeObjectMapper.writeValueAsString(token)
-        then:
-        '{"roles":["ADMIN"]}' == json
-    }
-
-    void "JsonAnyGetter works with an object not annotated with @Introspected neither with @Serdeable with Jackson ObjectMapper"() {
-        given:
-        TokenNoIntrospection token = new TokenNoIntrospection(Collections.singletonMap("roles", Collections.singletonList("ADMIN")))
-
-        when:
-        String json = jacksonObjectMapper.writeValueAsString(token)
-        then:
-        '{"roles":["ADMIN"]}' == json
-    }
-
-    @PendingFeature
-    void "JsonAnyGetter works with an object annotated with @Introspected with Jackson ObjectMapper"() {
-        given:
-        Token token = new Token(Collections.singletonMap("roles", Collections.singletonList("ADMIN")))
-
-        when:
-        String json = jacksonObjectMapper.writeValueAsString(token)
         then:
         '{"roles":["ADMIN"]}' == json
     }
