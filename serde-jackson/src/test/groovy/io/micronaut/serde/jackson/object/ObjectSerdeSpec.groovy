@@ -20,7 +20,7 @@ class ObjectSerdeSpec extends JsonCompileSpec {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
     }
 
-    @Issue("")
+    @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/202")
     void "test generic subtype handling"() {
         given:
         def context = buildContext("""package subtypes;
