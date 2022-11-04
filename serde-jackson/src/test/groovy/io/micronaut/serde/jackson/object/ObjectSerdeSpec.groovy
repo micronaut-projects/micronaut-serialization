@@ -6,6 +6,7 @@ import io.micronaut.json.JsonMapper
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
 import org.intellij.lang.annotations.Language
+import spock.lang.Issue
 import spock.lang.PendingFeature
 
 import java.nio.charset.StandardCharsets
@@ -17,6 +18,58 @@ class ObjectSerdeSpec extends JsonCompileSpec {
 
     static <T> T deserializeFromString(JsonMapper jsonMapper, Class<T> type, @Language("json") String json, Class<?> view = Object.class) {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
+    }
+
+    @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/202")
+    void "test generic subtype handling"() {
+        given:
+        def context = buildContext("""package subtypes;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Collections;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Animal {
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Cat extends Animal {
+    final public int lives;
+    Cat(int lives) {
+        this.lives = lives;
+    }
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Holder<A extends Animal> {
+    public final Animal animalNonGeneric;
+    public final List<Animal> animalsNonGeneric;
+    public final A animal;
+    public final List<A> animals;
+    Holder(A animal) {
+        this.animal = animal;
+        this.animals = Collections.singletonList(animal);
+        this.animalNonGeneric = animal;
+        this.animalsNonGeneric = Collections.singletonList(animal);
+    }
+}
+""")
+
+        when:
+        def cat = newInstance(context, 'subtypes.Cat', 9)
+        def catHolder = newInstance(context, 'subtypes.Holder', cat)
+        def catJson = writeJson(jsonMapper, catHolder)
+
+        then:
+        catJson == '{"animalNonGeneric":{},"animalsNonGeneric":[{"lives":9}],"animal":{"lives":9},"animals":[{"lives":9}]}'
+
+        cleanup:
+        context.close()
     }
 
     def "test serialize / deserialize interface impl"() {
