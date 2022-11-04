@@ -20,6 +20,7 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.SupplierUtil;
@@ -73,107 +74,113 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     @Override
     public Serializer<Object> createSpecific(EncoderContext encoderContext, Argument<? extends Object> type) {
-        if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
+        boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
+        if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
-            return new RuntimeTypeSerializer(encoderContext);
+            Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
+            return new RuntimeTypeSerializer(encoderContext, outer);
         } else {
 
-            SerBean<Object> serBean;
-            try {
-                serBean = getSerBean(type, encoderContext).get();
-            } catch (IntrospectionException e) {
-                return createRuntimeSerializer(encoderContext, type, e);
-            }
+            return createSpecificInternal(encoderContext, type);
+        }
+    }
 
-            final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-            if (serBean.hasJsonValue()) {
-                return new Serializer<Object>() {
-                    @Override
-                    public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
-                            throws IOException {
-                        serBean.initialize(context);
-                        SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
-                        final Object v = jsonValue.get(value);
-                        serBean.jsonValue.serializer.serialize(
-                                encoder,
-                                context,
-                                jsonValue.argument, v
-                        );
-                    }
+    private Serializer<Object> createSpecificInternal(EncoderContext encoderContext, Argument<?> type) {
+        SerBean<Object> serBean;
+        try {
+            serBean = getSerBean(type, encoderContext).get();
+        } catch (IntrospectionException e) {
+            return createRuntimeSerializer(encoderContext, type, e);
+        }
 
-                    @Override
-                    public boolean isEmpty(EncoderContext context, Object value) {
-                        try {
-                            serBean.initialize(context);
-                        } catch (SerdeException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return serBean.jsonValue.serializer.isEmpty(context, serBean.jsonValue.get(value));
-                    }
-
-                    @Override
-                    public boolean isAbsent(EncoderContext context, Object value) {
-                        try {
-                            serBean.initialize(context);
-                        } catch (SerdeException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return serBean.jsonValue.serializer.isAbsent(context, serBean.jsonValue.get(value));
-                    }
-                };
-            } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(
-                    SerdeConfig.META_ANNOTATION_PROPERTY_ORDER) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
-                final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
-                final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
-                List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
-                final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
-                final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
-                Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
-                Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
-                if (!order.isEmpty() || hasIgnored || hasIncluded) {
-                    return new CustomizedObjectSerializer<Object>(serBean) {
-                        @Override
-                        protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
-                            final List<SerBean.SerProperty<Object, Object>> writeProperties =
-                                    new ArrayList<>(super.getWriteProperties(
-                                            serBean));
-                            if (!order.isEmpty()) {
-                                writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
-                            }
-                            if (hasIgnored) {
-                                writeProperties.removeIf(p -> ignoreSet.contains(p.name));
-                            }
-                            if (hasIncluded) {
-                                writeProperties.removeIf(p -> !includedSet.contains(p.name));
-                            }
-                            return writeProperties;
-                        }
-
-                    };
+        final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
+        if (serBean.hasJsonValue()) {
+            return new Serializer<Object>() {
+                @Override
+                public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
+                    throws IOException {
+                    serBean.initialize(context);
+                    SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
+                    final Object v = jsonValue.get(value);
+                    serBean.jsonValue.serializer.serialize(
+                        encoder,
+                        context,
+                        jsonValue.argument, v
+                    );
                 }
-            }
-            Serializer<Object> outer;
-            if (serBean.simpleBean) {
-                outer = new SimpleObjectSerializer<>(serBean);
-            } else {
-                outer = new CustomizedObjectSerializer<>(serBean);
-            }
 
-            if (serBean.subtyped) {
-                return new RuntimeTypeSerializer(encoderContext) {
+                @Override
+                public boolean isEmpty(EncoderContext context, Object value) {
+                    try {
+                        serBean.initialize(context);
+                    } catch (SerdeException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return serBean.jsonValue.serializer.isEmpty(context, serBean.jsonValue.get(value));
+                }
+
+                @Override
+                public boolean isAbsent(EncoderContext context, Object value) {
+                    try {
+                        serBean.initialize(context);
+                    } catch (SerdeException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return serBean.jsonValue.serializer.isAbsent(context, serBean.jsonValue.get(value));
+                }
+            };
+        } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(
+                SerdeConfig.META_ANNOTATION_PROPERTY_ORDER) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
+            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
+            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
+            List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
+            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
+            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
+            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
+            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
+            if (!order.isEmpty() || hasIgnored || hasIncluded) {
+                return new CustomizedObjectSerializer<Object>(serBean) {
                     @Override
-                    protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
-                        if (value.getClass().equals(type.getType())) {
-                            return outer;
-                        } else {
-                            return super.tryToFindSerializer(context, value);
+                    protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
+                        final List<SerBean.SerProperty<Object, Object>> writeProperties =
+                            new ArrayList<>(super.getWriteProperties(
+                                serBean));
+                        if (!order.isEmpty()) {
+                            writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
                         }
+                        if (hasIgnored) {
+                            writeProperties.removeIf(p -> ignoreSet.contains(p.name));
+                        }
+                        if (hasIncluded) {
+                            writeProperties.removeIf(p -> !includedSet.contains(p.name));
+                        }
+                        return writeProperties;
                     }
 
                 };
-            } else {
-                return outer;
             }
+        }
+        Serializer<Object> outer;
+        if (serBean.simpleBean) {
+            outer = new SimpleObjectSerializer<>(serBean);
+        } else {
+            outer = new CustomizedObjectSerializer<>(serBean);
+        }
+
+        if (serBean.subtyped) {
+            return new RuntimeTypeSerializer(encoderContext, outer) {
+                @Override
+                protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
+                    if (value.getClass().equals(type.getType())) {
+                        return outer;
+                    } else {
+                        return super.tryToFindSerializer(context, value);
+                    }
+                }
+
+            };
+        } else {
+            return outer;
         }
     }
 
@@ -198,7 +205,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     private Serializer<Object> createRuntimeSerializer(EncoderContext encoderContext, Argument<? extends Object> type, IntrospectionException e) {
         // no introspection, create dynamic serialization case
-        return new RuntimeTypeSerializer(encoderContext) {
+        return new RuntimeTypeSerializer(encoderContext, null) {
 
             @Override
             protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
@@ -215,9 +222,11 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private static class RuntimeTypeSerializer implements Serializer<Object> {
         private final EncoderContext encoderContext;
         private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
+        private final Serializer<Object> outer;
 
-        public RuntimeTypeSerializer(EncoderContext encoderContext) {
+        public RuntimeTypeSerializer(EncoderContext encoderContext, Serializer<Object> outer) {
             this.encoderContext = encoderContext;
+            this.outer = outer;
         }
 
         @Override
@@ -226,8 +235,13 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             if (value == null) {
                 encoder.encodeNull();
             } else {
-                Argument<Object> arg = Argument.of((Class) value.getClass());
-                getSerializer(context, value).serialize(encoder, context, arg, value);
+                Class<?> t = value.getClass();
+                if (outer != null && t == type.getType()) {
+                    outer.serialize(encoder, context, type, value);
+                } else {
+                    Argument<?> arg = Argument.of(t);
+                    getSerializer(context, value).serialize(encoder, context, arg, value);
+                }
             }
         }
 
