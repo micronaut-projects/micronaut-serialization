@@ -95,7 +95,6 @@ final class SerBean<T> {
             SerdeIntrospections introspections,
             Serializer.EncoderContext encoderContext,
             SerializationConfiguration configuration) throws SerdeException {
-        //noinspection unchecked
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
@@ -169,14 +168,15 @@ final class SerBean<T> {
                         anyGetter
                 ) : null;
 
-                if (this.anyGetter != null) {
-                    initializers.add(ctx -> initProperty(SerBean.this.anyGetter, ctx));
+                SerProperty<T, Object> ag = this.anyGetter;
+                if (ag != null) {
+                    initializers.add(ctx -> initProperty(ag, ctx));
                 }
 
                 if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
                     writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
                     AnnotationMetadata am = new AnnotationMetadataHierarchy(introspection, definition.getAnnotationMetadata());
-                    am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent((typeName) -> {
+                    am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(typeName -> {
                         String typeProperty = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
                         if (typeProperty != null) {
                             SerProperty<T, String> prop;
@@ -192,14 +192,11 @@ final class SerBean<T> {
                                         typeName);
                             }
                             writeProperties.add((SerProperty) prop);
-                            initializers.add(new Initializer() {
-                                @Override
-                                public void initialize(Serializer.EncoderContext context) {
-                                    try {
-                                        initProperty(prop, context);
-                                    } catch (SerdeException e) {
-                                        throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
-                                    }
+                            initializers.add(context -> {
+                                try {
+                                    initProperty(prop, context);
+                                } catch (SerdeException e) {
+                                    throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
                                 }
                             });
                         }

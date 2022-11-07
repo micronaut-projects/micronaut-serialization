@@ -20,6 +20,39 @@ class ObjectSerdeSpec extends JsonCompileSpec {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
     }
 
+    void "test find type info in record interface"() {
+        given:
+        def context = buildContext("""package recordtypeinfo;
+
+
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME, property = "type"
+)
+sealed interface RecordCommandBrokenToo {
+
+  @JsonTypeName("print")
+  record PrintCommand(String foo) implements RecordCommandBrokenToo {
+  }
+}
+
+""")
+
+        when:
+        def cmd = newInstance(context, 'recordtypeinfo.RecordCommandBrokenToo$PrintCommand', "foo")
+        def json = writeJson(jsonMapper, cmd)
+
+        then:
+        json == '{"type":"print","foo":"foo"}'
+
+        cleanup:
+        context.close()
+    }
+
     @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/202")
     void "test generic subtype handling"() {
         given:
