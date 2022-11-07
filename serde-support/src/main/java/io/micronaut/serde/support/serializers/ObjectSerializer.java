@@ -291,7 +291,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                 });
             } catch (IntrospectionException e) {
                 if (e.getCause() instanceof SerdeException serdeException) {
-                    throw (SerdeException) serdeException.getCause();
+                    throw serdeException;
                 } else {
                     throw e;
                 }
