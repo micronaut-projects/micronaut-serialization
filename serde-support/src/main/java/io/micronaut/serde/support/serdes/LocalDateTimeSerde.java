@@ -16,10 +16,7 @@
 package io.micronaut.serde.support.serdes;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
 
@@ -54,14 +51,11 @@ public class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateT
 
     @Override
     protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalDateTime value, Argument<? extends LocalDateTime> type) throws IOException {
-        encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli());
+        encoder.encodeString(getDefaultFormatter().format(value));
     }
 
     @Override
     protected LocalDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type) throws IOException {
-        return LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(decoder.decodeLong()),
-                ZoneId.from(ZoneOffset.UTC)
-        );
+        return getDefaultFormatter().parse(decoder.decodeString(), LocalDateTime::from);
     }
 }
