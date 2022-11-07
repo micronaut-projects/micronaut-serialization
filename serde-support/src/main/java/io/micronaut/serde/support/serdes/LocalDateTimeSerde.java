@@ -54,14 +54,11 @@ public class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateT
 
     @Override
     protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalDateTime value, Argument<? extends LocalDateTime> type) throws IOException {
-        encoder.encodeLong(value.toInstant(ZoneOffset.UTC).toEpochMilli());
+        encoder.encodeString(getDefaultFormatter().format(value));
     }
 
     @Override
     protected LocalDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type) throws IOException {
-        return LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(decoder.decodeLong()),
-                ZoneId.from(ZoneOffset.UTC)
-        );
+        return getDefaultFormatter().parse(decoder.decodeString(), LocalDateTime::from);
     }
 }

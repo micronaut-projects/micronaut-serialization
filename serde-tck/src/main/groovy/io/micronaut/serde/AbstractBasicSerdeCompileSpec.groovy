@@ -45,7 +45,7 @@ class Test {
     private $type.name value;
     public void setValue($type.name value) {
         this.value = value;
-    } 
+    }
     public $type.name getValue() {
         return value;
     }
@@ -106,7 +106,7 @@ class Test {
     private $type value;
     public void setValue($type value) {
         this.value = value;
-    } 
+    }
     public $type getValue() {
         return value;
     }
@@ -141,7 +141,7 @@ class Test {
     private $type.name value;
     public void setValue($type.name value) {
         this.value = value;
-    } 
+    }
     public $type.name getValue() {
         return value;
     }
@@ -185,7 +185,7 @@ class Test {
     private $type.componentType.name[] value;
     public void setValue($type.componentType.name[] value) {
         this.value = value;
-    } 
+    }
     public $type.componentType.name[] getValue() {
         return value;
     }
@@ -245,7 +245,7 @@ class Test {
     private $type.componentType.name[] value;
     public void setValue($type.componentType.name[] value) {
         this.value = value;
-    } 
+    }
     public $type.componentType.name[] getValue() {
         return value;
     }
@@ -287,7 +287,7 @@ class Test {
     private $type value;
     public void setValue($type value) {
         this.value = value;
-    } 
+    }
     public $type getValue() {
         return value;
     }
@@ -334,7 +334,7 @@ class Test {
     private $type.name value;
     public void setValue($type.name value) {
         this.value = value;
-    } 
+    }
     public $type.name getValue() {
         return value;
     }
@@ -355,6 +355,8 @@ class Test {
         Instant       | Instant.now()          | { Instant i -> i.toEpochMilli() }
         LocalTime     | LocalTime.now()        | { LocalTime i -> i.toSecondOfDay() }
         LocalDate     | LocalDate.now()        | { LocalDate d -> d }
+        LocalDateTime | LocalDateTime.MAX      | { LocalDateTime i -> LocalDateTime.MAX }
+        LocalDateTime | LocalDateTime.MIN      | { LocalDateTime i -> LocalDateTime.MIN }
         LocalDateTime | LocalDateTime.now()    | { LocalDateTime i -> i.toInstant(ZoneOffset.from(ZoneOffset.UTC)).toEpochMilli() }
         ZonedDateTime | ZonedDateTime.now()    | { ZonedDateTime i -> i.toInstant().toEpochMilli() }
         Duration      | Duration.ofSeconds(10) | { Duration d -> d.toSeconds() }
