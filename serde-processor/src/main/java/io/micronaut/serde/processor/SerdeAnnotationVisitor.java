@@ -1078,7 +1078,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private Optional<ClassElement> findTypeInfo(ClassElement element, boolean includeElement) {
-        // TODO: support interfaces
         if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && includeElement) {
             return Optional.of(element);
         }
@@ -1097,7 +1096,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (superElement.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)) {
             return Optional.of(superElement);
         } else {
-            ClassElement itfe = findInDeclaredInterfaces(superElement);
+            ClassElement itfe = findInDeclaredInterfaces(element);
+            if (itfe == null) {
+                itfe = findInDeclaredInterfaces(superElement);
+            }
+
             if (itfe != null) {
                 return Optional.of(itfe);
             } else {

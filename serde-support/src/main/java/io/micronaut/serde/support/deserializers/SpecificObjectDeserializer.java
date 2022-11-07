@@ -42,6 +42,7 @@ import java.util.NoSuchElementException;
  * @since 1.0.0
  */
 class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
+    private static final String PREFIX_UNABLE_TO_DESERIALIZE_TYPE = "Unable to deserialize type [";
     private final boolean ignoreUnknown;
     private final DeserBean<? super Object> deserBean;
 
@@ -58,31 +59,31 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
         }
 
         deserBean.initialize(decoderContext);
-        DeserBean<? super Object> deserBean = this.deserBean;
-        Class<? super Object> objectType = deserBean.introspection.getBeanType();
+        DeserBean<? super Object> db = this.deserBean;
+        Class<? super Object> objectType = db.introspection.getBeanType();
 
-        if (deserBean.delegating) {
-            if (deserBean.creatorParams != null) {
-                final PropertiesBag<Object>.Consumer creatorParams = deserBean.creatorParams.newConsumer();
+        if (db.delegating) {
+            if (db.creatorParams != null) {
+                final PropertiesBag<Object>.Consumer creatorParams = db.creatorParams.newConsumer();
                 final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
                 final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
-                return deserBean.introspection.instantiate(val);
+                return db.introspection.instantiate(val);
             } else {
                 throw new IllegalStateException("At least one creator parameter expected");
             }
         } else {
 
-            PropertiesBag<Object>.Consumer readProperties = deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
+            PropertiesBag<Object>.Consumer readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
             boolean hasProperties = readProperties != null;
 
             Decoder objectDecoder = decoder.decodeObject(type);
             TokenBuffer tokenBuffer = null;
-            AnyValues<Object> anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
+            AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
             Object obj;
 
-            if (deserBean instanceof SubtypedDeserBean) {
+            if (db instanceof SubtypedDeserBean ) {
                 // subtyped binding required
-                SubtypedDeserBean<? super Object> subtypedDeserBean = (SubtypedDeserBean) deserBean;
+                SubtypedDeserBean<? super Object> subtypedDeserBean = (SubtypedDeserBean) db;
                 final String discriminatorName = subtypedDeserBean.discriminatorName;
                 final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
                 final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypedDeserBean.discriminatorType;
@@ -99,13 +100,13 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                                 final DeserBean<?> subtypeDeser = subtypes.get(subtypeName);
                                 if (subtypeDeser != null) {
                                     //noinspection unchecked
-                                    deserBean = (DeserBean<? super Object>) subtypeDeser;
-                                    deserBean.initialize(decoderContext);
+                                    db = (DeserBean<? super Object>) subtypeDeser;
+                                    db.initialize(decoderContext);
                                     //noinspection unchecked
                                     objectType = (Class<? super Object>) subtypeDeser.introspection.getBeanType();
-                                    readProperties = deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
+                                    readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
                                     hasProperties = readProperties != null;
-                                    anyValues = deserBean.anySetter != null ? new AnyValues<>(deserBean.anySetter) : null;
+                                    anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
                                 }
                             }
                             break;
@@ -125,11 +126,11 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                         if (subtypeBean != null) {
                             if (!objectDecoder.decodeNull()) {
                                 objectDecoder = objectDecoder.decodeObject(type);
-                                deserBean = (DeserBean<? super Object>) subtypeBean;
-                                deserBean.initialize(decoderContext);
+                                db = (DeserBean<? super Object>) subtypeBean;
+                                db.initialize(decoderContext);
                                 //noinspection unchecked
                                 objectType = (Class<? super Object>) subtypeBean.introspection.getBeanType();
-                                readProperties = deserBean.readProperties != null ? deserBean.readProperties.newConsumer() : null;
+                                readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
                                 hasProperties = readProperties != null;
                             }
 
@@ -146,9 +147,9 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
 
             }
 
-            if (deserBean.creatorParams != null) {
-                final PropertiesBag<Object>.Consumer creatorParameters = deserBean.creatorParams.newConsumer();
-                int creatorSize = deserBean.creatorSize;
+            if (db.creatorParams != null) {
+                final PropertiesBag<Object>.Consumer creatorParameters = db.creatorParams.newConsumer();
+                int creatorSize = db.creatorSize;
                 Object[] params = new Object[creatorSize];
                 PropertyBuffer buffer = initFromTokenBuffer(
                         tokenBuffer,
@@ -274,9 +275,9 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                 }
 
                 try {
-                    obj = deserBean.introspection.instantiate(params);
+                    obj = db.introspection.instantiate(params);
                 } catch (InstantiationException e) {
-                    throw new SerdeException("Unable to deserialize type [" + type + "]: " + e.getMessage(), e);
+                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
                 if (hasProperties) {
                     if (buffer != null) {
@@ -291,12 +292,12 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     if (!readProperties.isAllConsumed()) {
                         // more properties still to be read
                         buffer = decodeProperties(
-                                deserBean,
+                                db,
                                 decoderContext,
                                 obj,
                                 objectDecoder,
                                 readProperties,
-                                deserBean.unwrappedProperties,
+                                db.unwrappedProperties,
                                 buffer,
                                 anyValues,
                                 ignoreUnknown,
@@ -307,16 +308,16 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     applyDefaultValuesOrFail(
                             obj,
                             readProperties,
-                            deserBean.unwrappedProperties,
+                            db.unwrappedProperties,
                             buffer,
                             decoderContext
                     );
                 }
             } else {
                 try {
-                    obj = deserBean.introspection.instantiate();
+                    obj = db.introspection.instantiate();
                 } catch (InstantiationException e) {
-                    throw new SerdeException("Unable to deserialize type [" + type + "]: " + e.getMessage(), e);
+                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
                 if (hasProperties) {
                     final PropertyBuffer existingBuffer = initFromTokenBuffer(
@@ -325,12 +326,12 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                             readProperties,
                             anyValues,
                             decoderContext);
-                    final PropertyBuffer propertyBuffer = decodeProperties(deserBean,
+                    final PropertyBuffer propertyBuffer = decodeProperties(db,
                             decoderContext,
                                                                            obj,
                                                                            objectDecoder,
                                                                            readProperties,
-                                                                           deserBean.unwrappedProperties,
+                                                                           db.unwrappedProperties,
                                                                            existingBuffer,
                                                                            anyValues,
                                                                            ignoreUnknown,
@@ -341,7 +342,7 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     applyDefaultValuesOrFail(
                             obj,
                             readProperties,
-                            deserBean.unwrappedProperties,
+                            db.unwrappedProperties,
                             propertyBuffer,
                             decoderContext
                     );
@@ -656,7 +657,7 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                         if (der.defaultValue != null) {
                             params[der.index] = der.defaultValue;
                         } else if (der.mustSetField) {
-                            throw new SerdeException("Unable to deserialize type [" + unwrapped.introspection.getBeanType() + "]. Required constructor parameter [" + der.argument + "] at index [" + der.index + "] is not present in supplied data");
+                            throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + unwrapped.introspection.getBeanType() + "]. Required constructor parameter [" + der.argument + "] at index [" + der.index + "] is not present in supplied data");
 
                         }
                     }
