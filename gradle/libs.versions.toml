@@ -6,7 +6,7 @@ micronaut-test = "3.7.0"
 
 groovy = "4.0.5"
 spock = "2.2-groovy-4.0"
-kotlin = '1.7.20'
+kotlin = '1.7.21'
 
 managed-bson = "4.7.2"
 managed-jakarta-json-api = "2.1.1"
