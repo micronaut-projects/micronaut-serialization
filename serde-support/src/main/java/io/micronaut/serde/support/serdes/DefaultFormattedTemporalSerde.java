@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
 
 /**
@@ -42,28 +44,9 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
      * @param configuration The configuration
      */
     protected DefaultFormattedTemporalSerde(@NonNull SerdeConfiguration configuration) {
-        String pattern = configuration.getDateFormat().orElse(null);
-        if (pattern != null) {
-            Locale locale = configuration
-                .getLocale()
-                .orElse(null);        
-
-            DateTimeFormatter formatter = locale != null ? DateTimeFormatter.ofPattern(pattern, locale) :
-                DateTimeFormatter.ofPattern(pattern);
-            TimeZone tz = configuration.getTimeZone().orElse(null);
-            if (tz != null) {
-                formatter = formatter.withZone(tz.toZoneId());
-            }
-            defaultFormat = new FormattedTemporalSerde<>(
-                formatter,
-                query()
-            );
-        } else {
-            this.defaultFormat = configuration.isWriteDatesAsTimestamps() ? null : new FormattedTemporalSerde<>(
-                    getDefaultFormatter(),
-                    query()
-            );
-        }        
+        this.defaultFormat = formatter(configuration)
+            .map(formatter -> new FormattedTemporalSerde<>(formatter, query()))
+            .orElseGet(() -> configuration.isWriteDatesAsTimestamps() ? null : new FormattedTemporalSerde<>(getDefaultFormatter(), query()));
     }
 
     /**
@@ -75,15 +58,15 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         if (defaultFormat != null) {
             defaultFormat.serialize(
-                encoder, 
+                encoder,
                 context,
                     type, value
             );
         } else {
             serializeWithoutFormat(
-                encoder, 
-                context, 
-                value, 
+                encoder,
+                context,
+                value,
                 type
             );
         }
@@ -93,8 +76,8 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     public final T deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         if (defaultFormat != null) {
             return defaultFormat.deserialize(
-                decoder, 
-                decoderContext, 
+                decoder,
+                decoderContext,
                 type
             );
         } else {
@@ -103,7 +86,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
                 decoderContext,
                 type
             );
-        }        
+        }
     }
 
     /**
@@ -125,5 +108,24 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
      * @throws IOException if something goes wrong during deserialization
      */
     protected abstract T deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
-    
+
+
+    @NonNull
+    private Optional<DateTimeFormatter> formatter(@NonNull SerdeConfiguration configuration) {
+        String pattern = configuration.getDateFormat().orElse(null);
+        if (pattern == null) {
+            return Optional.empty();
+        }
+        return Optional.of(formatter(pattern, configuration.getLocale().orElse(null), configuration.getTimeZone().orElse(null)));
+    }
+
+    @NonNull
+    private DateTimeFormatter formatter(@NonNull String pattern, @Nullable Locale locale, @Nullable TimeZone tz) {
+        DateTimeFormatter formatter = locale != null ? DateTimeFormatter.ofPattern(pattern, locale) :
+            DateTimeFormatter.ofPattern(pattern);
+        if (tz != null) {
+            formatter = formatter.withZone(tz.toZoneId());
+        }
+        return formatter;
+    }
 }
