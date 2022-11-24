@@ -18,6 +18,7 @@ dependencies {
     annotationProcessor("io.micronaut.docs:micronaut-docs-asciidoc-config-props:2.0.0")
 
     compileOnly(mn.micronaut.management)
+	compileOnly(libs.managed.google.cloudevent.types)
     api(projects.serdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
@@ -27,4 +28,5 @@ dependencies {
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.management)
     testImplementation(libs.jetbrains.annotations)
+    testImplementation(libs.managed.google.cloudevent.types)
 }
