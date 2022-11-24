@@ -25,6 +25,7 @@ import io.micronaut.serde.exceptions.InvalidFormatException;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.Optional;
 
 /**
  * Super class that can be used for the default date/time formatting.
@@ -96,19 +97,19 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     @NonNull
     private DateTimeFormatter getFormatter(@NonNull SerdeConfiguration configuration) {
         // Creates a custom formatter or returns the default one
-        return configuration.getDateFormat()
-            .map(format -> this.createFormatter(format, configuration))
+        return this.createFormatter(configuration)
             .orElseGet(this::getDefaultFormatter);
     }
 
     @NonNull
-    private DateTimeFormatter createFormatter(@NonNull String pattern, @NonNull SerdeConfiguration configuration) {
-        // Creates a pattern-based formatter with optional locale/zone ID
-        final DateTimeFormatter formatter = configuration.getLocale()
-            .map(locale -> DateTimeFormatter.ofPattern(pattern, locale))
-            .orElseGet(() -> DateTimeFormatter.ofPattern(pattern));
-        return configuration.getTimeZone()
-            .map(tz -> formatter.withZone(tz.toZoneId()))
-            .orElse(formatter);
+    private Optional<DateTimeFormatter> createFormatter(@NonNull SerdeConfiguration configuration) {
+        // Creates a pattern-based formatter if there is a date format configured
+        return configuration.getDateFormat()
+            .map(pattern -> configuration.getLocale()
+                    .map(locale -> DateTimeFormatter.ofPattern(pattern, locale))
+                    .orElseGet(() -> DateTimeFormatter.ofPattern(pattern)))
+            .map(formatter -> configuration.getTimeZone()
+                    .map(tz -> formatter.withZone(tz.toZoneId()))
+                    .orElse(formatter));
     }
 }
