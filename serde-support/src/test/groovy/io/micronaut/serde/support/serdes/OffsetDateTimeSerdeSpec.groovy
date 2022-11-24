@@ -5,7 +5,6 @@ import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
-import spock.lang.PendingFeature
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -17,7 +16,6 @@ class OffsetDateTimeSerdeSpec extends Specification {
     @Inject
     ObjectMapper objectMapper
 
-    @PendingFeature
     @Unroll
     void "deserialization should work by default with a String"(Object value) {
         given:
