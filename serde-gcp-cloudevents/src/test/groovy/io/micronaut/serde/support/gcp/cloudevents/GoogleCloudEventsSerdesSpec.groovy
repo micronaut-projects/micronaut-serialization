@@ -1,4 +1,4 @@
-package io.micronaut.serde.support
+package io.micronaut.serde.support.gcp.cloudevents
 
 import com.google.events.cloud.storage.v1.StorageObjectData
 import io.micronaut.context.annotation.Property

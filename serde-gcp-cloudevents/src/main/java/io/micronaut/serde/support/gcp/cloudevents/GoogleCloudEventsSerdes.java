@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support;
+package io.micronaut.serde.support.gcp.cloudevents;
 
 import com.google.events.cloud.audit.v1.Auth;
 import com.google.events.cloud.audit.v1.AuthenticationInfo;

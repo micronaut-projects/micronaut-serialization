@@ -2,8 +2,6 @@ plugins {
     id("io.micronaut.build.internal.module")
 }
 
-
-
 configurations.named("testRuntimeClasspath") {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
@@ -17,14 +15,19 @@ dependencies {
     annotationProcessor(projects.serdeProcessor)
     annotationProcessor("io.micronaut.docs:micronaut-docs-asciidoc-config-props:2.0.0")
 
-    compileOnly(mn.micronaut.management)
+	compileOnly(libs.managed.google.cloudevent.types)
     api(projects.serdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.serdeProcessor)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.test.spock)
-    testImplementation(mn.micronaut.http.server.netty)
-    testImplementation(mn.micronaut.management)
     testImplementation(libs.jetbrains.annotations)
+    testImplementation(libs.managed.google.cloudevent.types)
+}
+
+micronautBuild {
+    binaryCompatibility {
+        enabled.set(false)
+    }
 }
