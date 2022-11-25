@@ -44,7 +44,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
      */
     protected DefaultFormattedTemporalSerde(@NonNull SerdeConfiguration configuration) {
         defaultFormat = new FormattedTemporalSerde<>(getFormatter(configuration), query());
-        treatDatesAsTimestamps = configuration.isWriteDatesAsTimestamps() && configuration.getDateFormat().isEmpty();
+        treatDatesAsTimestamps = configuration.isWriteDatesAsTimestamps() && !configuration.getDateFormat().isPresent();
     }
 
     /**
