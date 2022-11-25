@@ -1,5 +1,5 @@
 [versions]
-managed-bson = "4.7.1"
+managed-bson = "4.8.0"
 managed-jakarta-json-api = "2.0.1"
 managed-jakarta-json-bindApi = "2.0.0"
 managed-glassfish-jakarta-json = "2.0.1"
