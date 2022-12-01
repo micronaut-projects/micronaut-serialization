@@ -8,5 +8,5 @@ dependencies {
     testAnnotationProcessor(mn.micronaut.inject.java)
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
-    testImplementation(mn.micronaut.test.spock)
+    testImplementation(mnTest.micronaut.test.spock)
 }

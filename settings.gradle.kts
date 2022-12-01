@@ -32,12 +32,7 @@ include("doc-examples:example-kotlin")
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 configure<io.micronaut.build.MicronautBuildSettingsExtension> {
+    addSnapshotRepository()
     importMicronautCatalog()
-}
-
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-        maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
-    }
+    importMicronautCatalog("micronaut-reactor")
 }

@@ -11,6 +11,6 @@ dependencies {
     implementation(projects.serdeProcessor)
     implementation(mn.micronaut.inject.java.test)
     compileOnly(mn.micronaut.inject.groovy)
-    implementation(mn.micronaut.test.spock)
+    implementation(mnTest.micronaut.test.spock)
     api(libs.jetbrains.annotations)
 }

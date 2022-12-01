@@ -17,7 +17,7 @@ dependencies {
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
-    testImplementation(mn.micronaut.test.spock)
+    testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.jackson.annotations)
