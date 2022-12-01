@@ -17,7 +17,7 @@ dependencies {
     testImplementation(projects.serdeTck)
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
-    testImplementation(mn.micronaut.test.spock)
+    testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mn.jackson.databind)
     testImplementation(mn.micronaut.management)
     testImplementation("one.microstream:microstream-storage-restclient:07.00.00-MS-GA")

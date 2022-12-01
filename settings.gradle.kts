@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "6.0.2"
+    id("io.micronaut.build.shared.settings") version "6.1.1"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -32,12 +32,7 @@ include("doc-examples:example-kotlin")
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 configure<io.micronaut.build.MicronautBuildSettingsExtension> {
+    addSnapshotRepository()
     importMicronautCatalog()
-}
-
-dependencyResolutionManagement {
-    repositories {
-        mavenCentral()
-        maven { setUrl("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
-    }
+    importMicronautCatalog("micronaut-reactor")
 }
