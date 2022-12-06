@@ -2,6 +2,7 @@ package io.micronaut.serde
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.annotation.Replaces
+import io.micronaut.context.annotation.Requires
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.beans.BeanIntrospectionReference
@@ -19,7 +20,9 @@ import java.util.stream.Collectors
 
 @Singleton
 @Replaces(DefaultSerdeIntrospections.class)
+@Requires(property = ENABLED, value = "true")
 class MockSerdeIntrospections extends DefaultSerdeIntrospections {
+    public static final String ENABLED = "mock.introspections.enabled"
     private final ClassLoader classLoader
     private List<BeanIntrospectionReference> references
     MockSerdeIntrospections(ApplicationContext context) {

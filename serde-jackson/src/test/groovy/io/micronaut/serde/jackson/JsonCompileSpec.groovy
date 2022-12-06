@@ -4,6 +4,7 @@ import com.sun.source.util.JavacTask
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.annotation.processing.test.JavaParser
 import io.micronaut.context.ApplicationContext
+import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.beans.BeanIntrospectionReference
@@ -12,6 +13,8 @@ import io.micronaut.core.reflect.InstantiationUtils
 import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.serde.MockSerdeIntrospections
+import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.support.DefaultSerdeIntrospections
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.SerdeIntrospections
@@ -107,5 +110,12 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         typeUnderTest = Argument.of(t)
         jsonMapper = context.getBean(JsonMapper)
         return context
+    }
+
+    @Override
+    protected void configureContext(ApplicationContextBuilder contextBuilder) {
+        contextBuilder.properties(
+            (MockSerdeIntrospections.ENABLED):true
+        )
     }
 }

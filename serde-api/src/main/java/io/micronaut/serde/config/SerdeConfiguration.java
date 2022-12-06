@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.config;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
@@ -29,13 +30,14 @@ import java.util.TimeZone;
  * @author gkrocher
  */
 @ConfigurationProperties(SerdeConfiguration.PREFIX)
+@BootstrapContextCompatible
 public interface SerdeConfiguration {
 
     String PREFIX = "micronaut.serde";
 
     /**
      * The date format to use when serializing and deserializing dates.
-     * 
+     *
      * @return the date format to use
      */
     Optional<String> getDateFormat();

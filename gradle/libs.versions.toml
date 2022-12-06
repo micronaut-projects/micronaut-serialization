@@ -3,11 +3,14 @@ micronaut = "4.0.0-SNAPSHOT"
 micronaut-docs = "2.0.0"
 micronaut-gradle-plugin = "3.6.5"
 micronaut-test = "3.7.0"
-
+micronaut-discovery = "4.0.0-SNAPSHOT"
 groovy = "4.0.5"
 spock = "2.2-groovy-4.0"
 kotlin = '1.7.21'
 graal-svm = "22.0.0.2"
+aws-lambda-events = '3.11.0'
+aws-lambda-serialization = '1.0.1'
+microstream-storage-restclient = '07.00.00-MS-GA'
 
 managed-bson = "4.8.0"
 managed-jakarta-json-api = "2.1.1"
@@ -22,7 +25,7 @@ jetbrains-annotations = "23.0.0"
 [libraries]
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
 managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
-
+micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 
 managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "managed-jakarta-json-api" }
@@ -30,8 +33,10 @@ managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-a
 
 oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref = "oracle-jdbc-driver" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
-
+aws-lambda-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-events" }
+aws-lambda-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-serialization" }
 graal-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graal-svm" }
+microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
 
 #PLUGINS
 
