@@ -7,11 +7,15 @@ import io.micronaut.context.env.BootstrapPropertySourceLocator
 import io.micronaut.context.env.Environment
 import io.micronaut.context.env.PropertySource
 import io.micronaut.context.exceptions.ConfigurationException
+import io.micronaut.core.async.publisher.Publishers
 import io.micronaut.core.type.Argument
 import io.micronaut.core.util.StringUtils
+import io.micronaut.discovery.config.ConfigurationClient
 import io.micronaut.json.JsonMapper
+import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.inject.Singleton
+import org.reactivestreams.Publisher
 import spock.lang.Specification
 import spock.util.environment.RestoreSystemProperties
 
@@ -21,7 +25,9 @@ class BootstrapContextSpec extends Specification {
     void 'mapper should be available in bootstrap context'() {
         given:
         System.setProperty(Environment.BOOTSTRAP_CONTEXT_PROPERTY, StringUtils.TRUE)
-        def ctx = ApplicationContext.run(['spec.name': 'BootstrapContextSpec'])
+        def ctx = ApplicationContext.run([
+                'spec.name': 'BootstrapContextSpec',
+                (ConfigurationClient.ENABLED): true])
 
         expect:
         ctx.getRequiredProperty('bootstrap-deser', MyBean).foo == 'bar'
@@ -33,16 +39,21 @@ class BootstrapContextSpec extends Specification {
     @Requires(property = 'spec.name', value = 'BootstrapContextSpec')
     @Singleton
     @BootstrapContextCompatible
-    static class Tester implements BootstrapPropertySourceLocator {
-        private final JsonMapper mapper
+    static class Tester implements ConfigurationClient {
+        private final ObjectMapper mapper
 
-        Tester(JsonMapper mapper) {
+        Tester(ObjectMapper mapper) {
             this.mapper = mapper
         }
 
         @Override
-        Iterable<PropertySource> findPropertySources(Environment environment) throws ConfigurationException {
-            return [PropertySource.of(['bootstrap-deser': mapper.readValue('{"foo":"bar"}', Argument.of(MyBean))])]
+        Publisher<PropertySource> getPropertySources(Environment environment) {
+            return Publishers.just(PropertySource.of(['bootstrap-deser': mapper.readValue('{"foo":"bar"}', Argument.of(MyBean))]))
+        }
+
+        @Override
+        String getDescription() {
+            return "test client"
         }
     }
 
