@@ -10,7 +10,7 @@ kotlin = '1.7.21'
 graal-svm = "22.0.0.2"
 aws-lambda-events = '3.11.0'
 aws-lambda-serialization = '1.0.1'
-microstream-storage-restclient = '07.00.00-MS-GA'
+microstream-storage-restclient = '08.00.00-MS-EA1'
 
 managed-bson = "4.8.0"
 managed-jakarta-json-api = "2.1.1"
