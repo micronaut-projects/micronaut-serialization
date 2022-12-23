@@ -12,12 +12,14 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.codehaus.groovy.runtime.StringGroovyMethods;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
 @MicronautTest
 public class CreateReactiveParserTest {
 
+    @Disabled
     @Test
     void testStreamArray(StreamClient client) {
         final List<Book> results = client.booksFlux(Flux.fromIterable(Arrays.asList(
@@ -29,6 +31,7 @@ public class CreateReactiveParserTest {
         Assertions.assertEquals(3, results.size());
     }
 
+    @Disabled
     @Test
     void testStream(StreamClient client) {
         final List<Book> results = client.booksStream(Flux.fromIterable(Arrays.asList(
@@ -40,6 +43,8 @@ public class CreateReactiveParserTest {
         Assertions.assertEquals(3, results.size());
     }
 
+
+    @Disabled
     @Test
     void testStreamBig(StreamClient client) {
         final List<Book> results = client.booksStream(Flux.fromIterable(Arrays.asList(
