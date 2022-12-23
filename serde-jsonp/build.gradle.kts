@@ -34,7 +34,7 @@ dependencies {
     )
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mnTest.micronaut.test.spock)
-    testImplementation("io.micronaut.reactor:micronaut-reactor:3.0.0-SNAPSHOT")
+    testImplementation(mnReactor.micronaut.reactor)
 }
 
 tasks {
