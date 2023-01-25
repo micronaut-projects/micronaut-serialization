@@ -29,7 +29,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
  */
 @Internal
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Repeatable(SerdeImport.Repeated.class)
 @SerdeConfig
 public @interface SerdeImport {
@@ -68,7 +68,7 @@ public @interface SerdeImport {
      * Repeated wrapper for this annotation.
      */
     @Target(ElementType.TYPE)
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(RetentionPolicy.RUNTIME)
     @interface Repeated {
         SerdeImport[] value();
     }
