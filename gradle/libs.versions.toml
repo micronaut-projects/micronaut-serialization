@@ -20,7 +20,7 @@ managed-eclipse-parsson = "1.1.1"
 micronaut-reactor = "3.0.0-SNAPSHOT"
 
 oracle-jdbc-driver = "21.6.0.0.1"
-jetbrains-annotations = "23.1.0"
+jetbrains-annotations = "24.0.0"
 
 [libraries]
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
