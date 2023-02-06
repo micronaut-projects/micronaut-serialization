@@ -48,7 +48,7 @@ class BootstrapContextSpec extends Specification {
 
         @Override
         Publisher<PropertySource> getPropertySources(Environment environment) {
-            return Publishers.just(PropertySource.of(['bootstrap-deser': mapper.readValue('{"foo":"bar"}', Argument.of(MyBean))]))
+            return Publishers.just(PropertySource.of(['bootstrap-deser': mapper.readValue('{"foo":"bar", "strings":["one", "two"]}', Argument.of(MyBean))]))
         }
 
         @Override
@@ -60,5 +60,6 @@ class BootstrapContextSpec extends Specification {
     @Serdeable
     static class MyBean {
         String foo
+        List<String> strings
     }
 }
