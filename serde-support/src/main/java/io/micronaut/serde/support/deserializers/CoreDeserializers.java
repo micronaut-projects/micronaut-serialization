@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
@@ -46,6 +47,7 @@ import java.util.TreeSet;
  * Core deserializers.
  */
 @Factory
+@BootstrapContextCompatible
 public class CoreDeserializers {
 
     /**
