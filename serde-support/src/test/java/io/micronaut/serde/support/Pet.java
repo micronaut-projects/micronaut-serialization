@@ -1,8 +1,8 @@
 package io.micronaut.serde.support;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
 
-@Serdeable
+@Introspected
 public class Pet implements IPet {
 
     private Long id;

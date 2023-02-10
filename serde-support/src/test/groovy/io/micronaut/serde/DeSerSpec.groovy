@@ -2,13 +2,11 @@
 package io.micronaut.serde
 
 
-import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.support.IPet
 import io.micronaut.serde.support.Owner
 import io.micronaut.serde.support.Pet
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 @MicronautTest
@@ -17,7 +15,6 @@ class DeSerSpec extends Specification {
     @Inject
     ObjectMapper serdeMapper
 
-    @PendingFeature
     void 'test deserialization with inner object and setter with interface'() {
         given:
         def owner = new Owner()
