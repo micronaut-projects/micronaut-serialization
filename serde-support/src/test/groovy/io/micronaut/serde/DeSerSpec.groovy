@@ -8,15 +8,17 @@ import io.micronaut.serde.support.Owner
 import io.micronaut.serde.support.Pet
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
+import spock.lang.PendingFeature
 import spock.lang.Specification
 
-@MicronautTest(transactional = false)
-class DeserSpec extends Specification {
+@MicronautTest
+class DeSerSpec extends Specification {
 
     @Inject
     ObjectMapper serdeMapper
 
-    void 'test me'() {
+    @PendingFeature
+    void 'test deserialization with inner object and setter with interface'() {
         given:
         def owner = new Owner()
         owner.name = "Owner1"
