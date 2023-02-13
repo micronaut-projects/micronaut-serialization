@@ -15,9 +15,11 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
@@ -44,6 +46,9 @@ class SubtypedDeserBean<T> extends DeserBean<T> {
     public final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValue;
     @NonNull
     public final String discriminatorName;
+
+    @Nullable
+    public final String defaultImpl;
     // CHECKSTYLE:ON
 
     SubtypedDeserBean(AnnotationMetadata annotationMetadata,
@@ -69,29 +74,31 @@ class SubtypedDeserBean<T> extends DeserBean<T> {
         final Class<T> superType = introspection.getBeanType();
         final Collection<BeanIntrospection<? extends T>> subtypeIntrospections = decoderContext.getDeserializableSubtypes(superType);
         this.subtypes = new HashMap<>(subtypeIntrospections.size());
+        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
+        String defaultDiscriminator = null;
         for (BeanIntrospection<? extends T> subtypeIntrospection : subtypeIntrospections) {
+            Class<? extends T> subBeanType = subtypeIntrospection.getBeanType();
             final DeserBean<? extends T> deserBean = deserBeanRegistry.getDeserializableBean(
-                    Argument.of(subtypeIntrospection.getBeanType()),
+                    Argument.of(subBeanType),
                     decoderContext
             );
+            final String discriminatorName;
             if (discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME) {
-                this.subtypes.put(
-                        subtypeIntrospection.getBeanType().getName(),
-                        deserBean
-                );
+                discriminatorName = subBeanType.getName();
             } else if (discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME) {
-                this.subtypes.put(
-                        subtypeIntrospection.getBeanType().getSimpleName(),
-                        deserBean
-                );
+                discriminatorName = subBeanType.getSimpleName();
             } else {
-                final String discriminatorName = deserBean.introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
+                discriminatorName = deserBean.introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
                         .orElse(deserBean.introspection.getBeanType().getSimpleName());
-                this.subtypes.put(
-                        discriminatorName,
-                        deserBean
-                );
+            }
+            this.subtypes.put(
+                discriminatorName,
+                deserBean
+            );
+            if (defaultType != null && defaultType.equals(subBeanType)) {
+                defaultDiscriminator = discriminatorName;
             }
         }
+        this.defaultImpl = defaultDiscriminator;
     }
 }

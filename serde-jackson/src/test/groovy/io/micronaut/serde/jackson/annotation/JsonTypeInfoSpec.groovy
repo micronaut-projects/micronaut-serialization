@@ -6,6 +6,190 @@ import spock.lang.Ignore
 import spock.lang.Unroll
 
 class JsonTypeInfoSpec extends JsonCompileSpec {
+    void "test default implementation - with @DefaultImplementation"() {
+        given:
+        def context = buildContext("""
+package defaultimpl;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.context.annotation.DefaultImplementation;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@DefaultImplementation(Dog.class)
+@Serdeable
+interface Animal {
+    String getName();
+}
+
+@Serdeable
+class Dog implements Animal {
+    private double barkVolume;
+    private String name;
+    @Override public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setBarkVolume(double barkVolume) {
+        this.barkVolume = barkVolume;
+    }
+    public double getBarkVolume() {
+        return barkVolume;
+    }
+}
+
+""")
+
+        when:
+        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
+        def dogJson = writeJson(jsonMapper, dog)
+
+        then:
+        dogJson == '{"name":"Fred","barkVolume":1.1}'
+
+        when:"No discriminator is used the default impl is chosen"
+        def dogClass = dog.getClass()
+        def dogBean = jsonMapper.readValue(dogJson, argumentOf(context, 'defaultimpl.Animal'))
+
+
+        then:
+        dogClass.isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        cleanup:
+        context.close()
+    }
+
+    void "test default implementation - with @Deserializable(as)"() {
+        given:
+        def context = buildContext("""
+package defaultimpl;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.context.annotation.DefaultImplementation;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable.Deserializable(as = Dog.class)
+@Serdeable.Serializable
+interface Animal {
+    String getName();
+}
+
+@Serdeable
+class Dog implements Animal {
+    private double barkVolume;
+    private String name;
+    @Override public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setBarkVolume(double barkVolume) {
+        this.barkVolume = barkVolume;
+    }
+    public double getBarkVolume() {
+        return barkVolume;
+    }
+}
+
+""")
+
+        when:
+        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
+        def dogJson = writeJson(jsonMapper, dog)
+
+        then:
+        dogJson == '{"name":"Fred","barkVolume":1.1}'
+
+        when:"No discriminator is used the default impl is chosen"
+        def dogClass = dog.getClass()
+        def dogBean = jsonMapper.readValue(dogJson, argumentOf(context, 'defaultimpl.Animal'))
+
+
+        then:
+        dogClass.isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        cleanup:
+        context.close()
+    }
+
+    void "test default implementation"() {
+        given:
+        def context = buildContext("""
+package defaultimpl;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type",
+  defaultImpl = Dog.class)
+interface Animal {
+    String getName();
+}
+
+@JsonTypeName("dog")
+class Dog implements Animal {
+    public double barkVolume;
+    private String name;
+    @Override public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat implements Animal {
+    public boolean likesCream;
+    public int lives;
+    private String name;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
+        def cat = newInstance(context, 'defaultimpl.Cat', [name:"Joe", likesCream:true, lives: 9])
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+
+        when:"No discriminator is used the default impl is chosen"
+        def dogClass = dog.getClass()
+        def catClass = cat.getClass()
+        def dogBean = jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'defaultimpl.Animal'))
+        def catBean = jsonMapper.readValue(catJson, argumentOf(context, 'defaultimpl.Animal'))
+
+
+        then:
+        catClass.isInstance(catBean)
+        dogClass.isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+
+        cleanup:
+        context.close()
+    }
 
     @Unroll
     void "test fail compilation on unsupported 'use' #use"() {
@@ -18,8 +202,8 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.${use.name()}, 
-  include = JsonTypeInfo.As.PROPERTY, 
+  use = JsonTypeInfo.Id.${use.name()},
+  include = JsonTypeInfo.As.PROPERTY,
   property = "type")
 class Test {
     public String name;
@@ -44,8 +228,8 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.CLASS, 
-  include = JsonTypeInfo.As.$include, 
+  use = JsonTypeInfo.Id.CLASS,
+  include = JsonTypeInfo.As.$include,
   property = "type")
 class Test {
     public String name;
@@ -69,7 +253,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
+  use = JsonTypeInfo.Id.NAME,
   property = "type")
 interface Animal {
     String getName();
@@ -153,8 +337,8 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.PROPERTY, 
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
   property = "type")
 class Animal {
     public String name;
@@ -224,8 +408,8 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.WRAPPER_OBJECT, 
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.WRAPPER_OBJECT,
   property = "type")
 class Animal {
     public String name;
@@ -295,7 +479,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.CLASS, 
+  use = JsonTypeInfo.Id.CLASS,
   include = JsonTypeInfo.As.PROPERTY)
 @Serdeable
 class Animal {
@@ -323,7 +507,7 @@ class Dog extends Animal {
 class Cat extends Animal {
     private boolean likesCream;
     private int lives;
-    
+
     public void setLikesCream(boolean likesCream) {
         this.likesCream = likesCream;
     }
@@ -391,8 +575,8 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.PROPERTY, 
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
   property = "type")
 class Animal {
     public String name;
@@ -472,8 +656,8 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(
-  use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.PROPERTY, 
+  use = JsonTypeInfo.Id.NAME,
+  include = JsonTypeInfo.As.PROPERTY,
   property = "type")
 abstract class Animal {
     public String name;
@@ -517,7 +701,7 @@ class Cat extends Animal {
 
         then:
         readDog.getClass().name.contains(".Dog")
-        readDog.friend.getClass().name.contains("Cat")    
+        readDog.friend.getClass().name.contains("Cat")
 
         cleanup:
         context.close()
