@@ -81,7 +81,7 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
             AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
             Object obj;
 
-            if (db instanceof SubtypedDeserBean ) {
+            if (db instanceof SubtypedDeserBean) {
                 // subtyped binding required
                 SubtypedDeserBean<? super Object> subtypedDeserBean = (SubtypedDeserBean) db;
                 final String discriminatorName = subtypedDeserBean.discriminatorName;
