@@ -16,6 +16,7 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
+import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationMetadataProvider;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -166,6 +167,11 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                     serdeConfig,
                     SerdeConfig.DESERIALIZE_AS
             );
+            if (deserializeType == null &&
+                !declaredMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class) && // subtype config will control this behaviour
+                declaredMetadata.hasDeclaredAnnotation(DefaultImplementation.class)) {
+                deserializeType = introspection.classValue(DefaultImplementation.class).orElse(null);
+            }
             if (deserializeType != null) {
                 Argument resolved = Argument.of(
                         deserializeType,

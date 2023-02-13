@@ -81,9 +81,9 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
             AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
             Object obj;
 
-            if (db instanceof SubtypedDeserBean) {
+            if (db instanceof SubtypedDeserBean subtypedDeserBean) {
                 // subtyped binding required
-                SubtypedDeserBean<? super Object> subtypedDeserBean = (SubtypedDeserBean) db;
+                final String defaultImpl = subtypedDeserBean.defaultImpl;
                 final String discriminatorName = subtypedDeserBean.discriminatorName;
                 final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
                 final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypedDeserBean.discriminatorType;
@@ -142,6 +142,19 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                                 objectDecoder.skipValue();
                             }
                         }
+                    }
+                }
+
+                if (defaultImpl != null && parent == db) {
+                    @SuppressWarnings("unchecked")
+                    DeserBean<? super Object> defaultSubType = (DeserBean<? super Object>) subtypes.get(defaultImpl);
+                    if (defaultSubType != null) {
+                        db = defaultSubType;
+                        db.initialize(decoderContext);
+                        objectType = defaultSubType.introspection.getBeanType();
+                        readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
+                        hasProperties = readProperties != null;
+
                     }
                 }
 

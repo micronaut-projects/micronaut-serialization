@@ -99,7 +99,7 @@ class Holder<A extends Animal> {
         def catJson = writeJson(jsonMapper, catHolder)
 
         then:
-        catJson == '{"animalNonGeneric":{},"animalsNonGeneric":[{"lives":9}],"animal":{"lives":9},"animals":[{"lives":9}]}'
+        catJson == '{"animalNonGeneric":{},"animalsNonGeneric":[{}],"animal":{"lives":9},"animals":[{"lives":9}]}'
 
         cleanup:
         context.close()
