@@ -24,6 +24,7 @@ import java.util.Locale;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
+import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.Executable;
 import io.micronaut.core.util.ArrayUtils;
@@ -64,6 +65,30 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
                 // throw original
                 throw e;
             }
+        }
+    }
+
+    @Override
+    public Deserializer<E> createSpecific(DecoderContext context, Argument<? super E> type) {
+        try {
+            BeanIntrospection<? super E> si = introspections.getDeserializableIntrospection(type);
+            return (decoder, context1, type1) -> {
+                String s = decoder.decodeString();
+                try {
+                    return (E) si.instantiate(s);
+                } catch (IllegalArgumentException e) {
+                    // try upper case
+                    try {
+                        Class rawType = type.getType();
+                        return (E) Enum.valueOf(rawType, s.toUpperCase(Locale.ENGLISH));
+                    } catch (Exception ex) {
+                        // throw original
+                        throw e;
+                    }
+                }
+            };
+        } catch (IntrospectionException e) {
+            return this;
         }
     }
 
