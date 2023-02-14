@@ -24,6 +24,7 @@ import java.util.Locale;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
+import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.Executable;
 import io.micronaut.core.util.ArrayUtils;
@@ -34,6 +35,7 @@ import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
@@ -45,9 +47,11 @@ import jakarta.inject.Singleton;
 @Singleton
 final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
     private final SerdeIntrospections introspections;
+    private final ObjectDeserializer objectDeserializer;
 
-    EnumSerde(SerdeIntrospections introspections) {
+    EnumSerde(SerdeIntrospections introspections, ObjectDeserializer objectDeserializer) {
         this.introspections = introspections;
+        this.objectDeserializer = objectDeserializer;
     }
 
     @Override
@@ -67,26 +71,37 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Deserializer<E> createSpecific(DecoderContext context, Argument<? super E> type) {
         try {
-            BeanIntrospection<? super E> si = introspections.getDeserializableIntrospection(type);
+            BeanIntrospection<? super E> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
+            Argument<?>[] constructorArguments = deserializableIntrospection.getConstructorArguments();
+            if (constructorArguments.length != 1) {
+                throw new SerdeException("Creator method for Enums must accept exactly 1 argument");
+            }
+            Argument<Object> argumentType = (Argument<Object>) constructorArguments[0];
+            Deserializer<Object> argumentDeserializer = (Deserializer<Object>) context.findDeserializer(argumentType);
+
             return (decoder, context1, type1) -> {
-                String s = decoder.decodeString();
+                Object v = argumentDeserializer.deserialize(decoder, context1, argumentType);
                 try {
-                    return (E) si.instantiate(s);
+                    return (E) deserializableIntrospection.instantiate(v);
                 } catch (IllegalArgumentException e) {
-                    // try upper case
-                    try {
-                        Class rawType = type.getType();
-                        return (E) Enum.valueOf(rawType, s.toUpperCase(Locale.ENGLISH));
-                    } catch (Exception ex) {
+                    if (v instanceof String str) {
+                        try {
+                            return (E) deserializableIntrospection.instantiate(str.toUpperCase(Locale.ENGLISH));
+                        } catch (IllegalArgumentException ex) {
+                            // throw original
+                            throw e;
+                        }
+                    } else {
                         // throw original
                         throw e;
                     }
                 }
             };
-        } catch (IntrospectionException e) {
+        } catch (IntrospectionException | SerdeException e) {
             return this;
         }
     }
