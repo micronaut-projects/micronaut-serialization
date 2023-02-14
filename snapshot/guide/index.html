@@ -148,7 +148,7 @@
 <p>It does so using build-time <a href="https://docs.micronaut.io/latest/guide/#introspection">Bean Introspections</a> that do not use reflection and allows using a variety of common annotation models including <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson annotations</a>, JSON-B annotations or <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a>.</p>
 </div>
 <div class="paragraph">
-<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on-top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.</p>
+<p>Micronaut Serialization can be used to replace the use of Jackson Databind in a Micronaut application and allows serialization on top of a number of different encoding runtimes including Jackson Core, JSON-P or BSON.</p>
 </div>
 
 <h2 id="why"><a class="anchor" href="#why"></a>1.1 Why Micronaut Serialization?</h2>
@@ -161,7 +161,7 @@
 
 
 <div class="paragraph">
-<p>The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.</p>
+<p>The goal of this project is to be an almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.</p>
 </div>
 <div class="sect3">
 <h4 id="_memory_performance">Memory Performance</h4>
@@ -275,23 +275,10 @@
 
 
 <div class="paragraph">
-<p>To replace Jackson Databind, but continue using <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson Annotations</a> as a programming model and Jackson Core as a runtime you should exclude the <code>micronaut-jackson-databind</code> module from your application and replace it with <code>micronaut-serde-jackson</code>.</p>
+<p>To replace Jackson Databind, but continue using <a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/package-summary.html">Jackson Annotations</a> as a programming model and Jackson Core as a runtime replace the <code>micronaut-jackson-databind</code> module in your application with <code>micronaut-serde-jackson</code>.</p>
 </div>
 <div class="paragraph">
-<p>To do so in a Gradle build add the following configuration (either Groovy or Kotlin):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-jackson:2.0.0-SNAPSHOT"))
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also, add the same artifact to the <code>dependencies</code> block:</p>
+<p>Add the following artifact to the <code>dependencies</code> block:</p>
 </div>
 <div class="paragraph">
 <p>        <div class="listingblock multi-language-sample">
@@ -309,42 +296,6 @@
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
-</div>
-<div class="paragraph">
-<p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depends on <code>micronaut-jackson-databind</code>, plus add a dependency on <code>micronaut-serde-jackson</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml"> &lt;dependency&gt;
-  &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
-  &lt;artifactId&gt;micronaut-runtime&lt;/artifactId&gt;
-  &lt;exclusions&gt;
-    &lt;exclusion&gt;
-      &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
-      &lt;artifactId&gt;micronaut-jackson-databind&lt;/artifactId&gt;
-    &lt;/exclusion&gt;
-  &lt;/exclusions&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-  &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
-  &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-  &lt;version&gt;2.0.0-SNAPSHOT&lt;/version&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>With the correct dependencies in place you can now define an object to be serialized:</p>
@@ -536,25 +487,10 @@ class BookTest {
 
 
 <div class="paragraph">
-<p>To completely remove all dependencies on Jackson and use JSON-B annotations in your source code combined with JSON-P at a runtime you should exclude the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules from your application and replace them with <code>micronaut-serde-jsonp</code>.</p>
+<p>To completely remove all dependencies on Jackson and use JSON-B annotations in your source code combined with JSON-P at a runtime replace the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules with <code>micronaut-serde-jsonp</code>.</p>
 </div>
 <div class="paragraph">
-<p>To do so in a Gradle build add the following configuration (either Groovy or Kotlin):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("jakarta.json.bind:jakarta.json.bind-api:2.0.0"))
-        substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-jsonp:2.0.0-SNAPSHOT"))
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also, add the same artifact to the <code>dependencies</code> block:</p>
+<p>Add the following artifact to the <code>dependencies</code> block:</p>
 </div>
 <div class="paragraph">
 <p>        <div class="listingblock multi-language-sample">
@@ -573,36 +509,6 @@ class BookTest {
 </div>
 </div></p>
 </div>
-<div class="paragraph">
-<p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depend on <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code>, plus add a dependency on <code>micronaut-serde-jackson</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml"> &lt;dependency&gt;
-  &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
-  &lt;artifactId&gt;micronaut-runtime&lt;/artifactId&gt;
-  &lt;exclusions&gt;
-    &lt;exclusion&gt;
-      &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
-      &lt;artifactId&gt;micronaut-jackson-databind&lt;/artifactId&gt;
-    &lt;/exclusion&gt;
-  &lt;/exclusions&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-  &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
-  &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-  &lt;version&gt;2.0.0-SNAPSHOT&lt;/version&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-  &lt;groupId&gt;jakarta.json.bind&lt;/groupId&gt;
-  &lt;artifactId&gt;jakarta.json.bind-api&lt;/artifactId&gt;
-  &lt;version&gt;2.0.0&lt;/version&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -610,7 +516,7 @@ class BookTest {
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
+If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to omit it.
 </td>
 </tr>
 </table>
@@ -757,25 +663,10 @@ class BookTest {
 
 
 <div class="paragraph">
-<p>To completely remove all dependencies on Jackson and use <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a> in your source code combined with BSON at a runtime you should exclude the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules from your application and replace them with <code>micronaut-serde-bson</code>.</p>
+<p>To completely remove all dependencies on Jackson and use <a href="https://mongodb.github.io/mongo-java-driver/3.5/javadoc/?org/bson/codecs/pojo/annotations/package-summary.html">BSON annotations</a> in your source code combined with BSON at a runtime you should replace the <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code> modules in your application with <code>micronaut-serde-bson</code>.</p>
 </div>
 <div class="paragraph">
-<p>To do so in a Gradle build add the following configuration (either Groovy or Kotlin):</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:2.0.0-SNAPSHOT"))
-        substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:2.0.0-SNAPSHOT"))
-    }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Also, add the same artifact to the <code>dependencies</code> block:</p>
+<p>Add the following artifact to the <code>dependencies</code> block:</p>
 </div>
 <div class="paragraph">
 <p>        <div class="listingblock multi-language-sample">
@@ -794,30 +685,6 @@ class BookTest {
 </div>
 </div></p>
 </div>
-<div class="paragraph">
-<p>In a Maven build you need to add the necessary transitive excludes for the <code>micronaut-runtime</code> module, and any other module that depend on <code>micronaut-jackson-databind</code> and <code>micronaut-jackson-core</code>, plus add a dependency on <code>micronaut-serde-bson</code>:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;dependency&gt;
-  &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
-  &lt;artifactId&gt;micronaut-runtime&lt;/artifactId&gt;
-  &lt;exclusions&gt;
-    &lt;exclusion&gt;
-      &lt;groupId&gt;io.micronaut&lt;/groupId&gt;
-      &lt;artifactId&gt;micronaut-jackson-databind&lt;/artifactId&gt;
-    &lt;/exclusion&gt;
-  &lt;/exclusions&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-  &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
-  &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-  &lt;version&gt;2.0.0-SNAPSHOT&lt;/version&gt;
-  &lt;scope&gt;compile&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre>
-</div>
-</div>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -825,7 +692,7 @@ class BookTest {
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to exclude it.
+If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to omit it.
 </td>
 </tr>
 </table>
