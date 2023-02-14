@@ -83,6 +83,7 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
 
             if (db instanceof SubtypedDeserBean subtypedDeserBean) {
                 // subtyped binding required
+                SubtypedDeserBean parent = subtypedDeserBean;
                 final String defaultImpl = subtypedDeserBean.defaultImpl;
                 final String discriminatorName = subtypedDeserBean.discriminatorName;
                 final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
