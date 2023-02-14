@@ -9,7 +9,7 @@ spock = "2.2-groovy-4.0"
 kotlin = '1.8.0'
 graal-svm = "22.3.0"
 aws-lambda-events = '3.11.0'
-aws-lambda-serialization = '1.0.1'
+aws-lambda-serialization = '1.0.2'
 microstream-storage-restclient = '08.00.00-MS-EA1'
 
 managed-bson = "4.9.0"
