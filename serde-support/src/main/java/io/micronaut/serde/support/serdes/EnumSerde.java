@@ -24,7 +24,6 @@ import java.util.Locale;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
-import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.Executable;
 import io.micronaut.core.util.ArrayUtils;
@@ -35,7 +34,6 @@ import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
