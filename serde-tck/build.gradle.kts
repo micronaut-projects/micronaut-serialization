@@ -1,6 +1,7 @@
 plugins {
     id("groovy")
     id("java-library")
+    id("io.micronaut.build.internal.serde-tests")
 }
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
