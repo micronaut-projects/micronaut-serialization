@@ -1,4 +1,4 @@
-The goal of this project is to be a almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.
+The goal of this project is to be an almost complete build-time replacement for Jackson Databind, that does not rely on reflection and has a smaller runtime footprint. The reasons to provide an alternative to Jackson are outlined below.
 
 ==== Memory Performance
 
