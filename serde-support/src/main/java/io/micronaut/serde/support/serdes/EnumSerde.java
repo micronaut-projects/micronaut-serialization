@@ -47,11 +47,9 @@ import jakarta.inject.Singleton;
 @Singleton
 final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
     private final SerdeIntrospections introspections;
-    private final ObjectDeserializer objectDeserializer;
 
-    EnumSerde(SerdeIntrospections introspections, ObjectDeserializer objectDeserializer) {
+    EnumSerde(SerdeIntrospections introspections) {
         this.introspections = introspections;
-        this.objectDeserializer = objectDeserializer;
     }
 
     @Override
