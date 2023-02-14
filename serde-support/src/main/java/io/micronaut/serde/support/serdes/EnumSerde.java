@@ -67,6 +67,41 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Deserializer<E> createSpecific(DecoderContext context, Argument<? super E> type) {
+        try {
+            BeanIntrospection<? super E> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
+            Argument<?>[] constructorArguments = deserializableIntrospection.getConstructorArguments();
+            if (constructorArguments.length != 1) {
+                throw new SerdeException("Creator method for Enums must accept exactly 1 argument");
+            }
+            Argument<Object> argumentType = (Argument<Object>) constructorArguments[0];
+            Deserializer<Object> argumentDeserializer = (Deserializer<Object>) context.findDeserializer(argumentType);
+
+            return (decoder, context1, type1) -> {
+                Object v = argumentDeserializer.deserialize(decoder, context1, argumentType);
+                try {
+                    return (E) deserializableIntrospection.instantiate(v);
+                } catch (IllegalArgumentException e) {
+                    if (v instanceof String str) {
+                        try {
+                            return (E) deserializableIntrospection.instantiate(str.toUpperCase(Locale.ENGLISH));
+                        } catch (IllegalArgumentException ex) {
+                            // throw original
+                            throw e;
+                        }
+                    } else {
+                        // throw original
+                        throw e;
+                    }
+                }
+            };
+        } catch (IntrospectionException | SerdeException e) {
+            return this;
+        }
+    }
+
     @Override
     public Serializer<E> createSpecific(EncoderContext context, Argument<? extends E> type) throws SerdeException {
         try {
