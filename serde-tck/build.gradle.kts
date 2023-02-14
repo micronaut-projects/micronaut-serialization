@@ -15,3 +15,7 @@ dependencies {
     implementation(mnTest.micronaut.test.spock)
     api(libs.jetbrains.annotations)
 }
+
+tasks.named("spotlessGroovyCheck").configure {
+    enabled = false
+}
