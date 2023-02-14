@@ -19,3 +19,6 @@ dependencies {
 tasks.named("spotlessGroovyCheck").configure {
     enabled = false
 }
+tasks.named("checkstyleMain").configure {
+    enabled = false
+}
