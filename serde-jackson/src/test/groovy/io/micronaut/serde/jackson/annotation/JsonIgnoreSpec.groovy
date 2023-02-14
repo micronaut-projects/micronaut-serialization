@@ -17,7 +17,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Other {
     private Test test;
-    
+
     public void setTest(test.Test test) {
         this.test = test;
     }
@@ -31,7 +31,7 @@ class Test {
     private String value = "ignored";
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
@@ -73,15 +73,15 @@ class Test {
     private boolean ignored;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     public boolean isIgnored() {
         return ignored;
     }
@@ -120,15 +120,15 @@ class Test {
     private boolean ignored;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     public boolean isIgnored() {
         return ignored;
     }
@@ -166,7 +166,7 @@ class Test {
     private String value;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
@@ -201,7 +201,7 @@ import io.micronaut.serde.annotation.Serdeable;
 class Other {
     @JsonIgnoreProperties("ignored2")
     private Test test;
-    
+
     public void setTest(test.Test test) {
         this.test = test;
     }
@@ -217,25 +217,25 @@ class Test {
     private boolean ignored2;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     public boolean isIgnored() {
         return ignored;
     }
-    
+
     public void setIgnored2(boolean ignored2) {
         this.ignored2 = ignored2;
     }
-    
+
     public boolean isIgnored2() {
-        return ignored2;    
+        return ignored2;
     }
 }
 """)
@@ -263,7 +263,7 @@ import io.micronaut.serde.annotation.Serdeable;
 class Other {
     @JsonIncludeProperties("value")
     private Test test;
-    
+
     public void setTest(test.Test test) {
         this.test = test;
     }
@@ -279,25 +279,25 @@ class Test {
     private boolean ignored2;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     public boolean isIgnored() {
         return ignored;
     }
-    
+
     public void setIgnored2(boolean ignored2) {
         this.ignored2 = ignored2;
     }
-    
+
     public boolean isIgnored2() {
-        return ignored2;    
+        return ignored2;
     }
 }
 """)
@@ -328,15 +328,15 @@ class Test {
     private boolean ignored;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     public boolean isIgnored() {
         return ignored;
     }
@@ -361,20 +361,20 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Test {
     private String value;
-    
+
     private boolean ignored;
     public void setValue(String value) {
         this.value = value;
     }
-    
+
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     @JsonIgnore
     public boolean isIgnored() {
         return ignored;
@@ -386,6 +386,99 @@ class Test {
 
         cleanup:
         context.close()
+
+    }
+
+    void "test @JsonIgnore without @Inherited on interface method is not inherited"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test implements MyInterface {
+    private String value;
+
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+
+interface MyInterface {
+
+    @JsonIgnore
+    boolean isIgnored();
+
+}
+
+
+""", [value:'test'])
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"value":"test","ignored":false}'
+
+        cleanup:
+            context.close()
+
+    }
+
+    void "test @JsonIgnore without @Inherited needs to be put on the implementation"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test implements MyInterface {
+    private String value;
+
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    @JsonIgnore
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+
+interface MyInterface {
+
+    @JsonIgnore
+    boolean isIgnored();
+
+}
+
+
+""", [value:'test'])
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
+
+        cleanup:
+            context.close()
 
     }
 
