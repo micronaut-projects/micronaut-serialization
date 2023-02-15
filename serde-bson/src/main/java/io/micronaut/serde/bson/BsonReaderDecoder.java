@@ -314,6 +314,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     @Override
     protected void skipChildren() {
         bsonReader.skipValue();
+        currentToken = null;
     }
 
     @Override
