@@ -19,7 +19,7 @@ managed-eclipse-parsson = "1.1.1"
 
 micronaut-reactor = "3.0.0-SNAPSHOT"
 
-oracle-jdbc-driver = "21.6.0.0.1"
+oracle-jdbc-driver = "21.9.0.0"
 jetbrains-annotations = "24.0.0"
 
 [libraries]
