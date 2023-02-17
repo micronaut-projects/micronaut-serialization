@@ -78,27 +78,35 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                         continue;
                     }
                 }
+
                 final Serializer<Object> serializer = property.serializer;
-                switch (property.include) {
-                case NON_NULL:
-                    if (v == null) {
+
+                if (serBean.propertyFilter != null) {
+                    if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, v)) {
                         continue;
                     }
-                    break;
-                case NON_ABSENT:
-                    if (serializer.isAbsent(context, v)) {
-                        continue;
+                } else {
+                    switch (property.include) {
+                        case NON_NULL:
+                            if (v == null) {
+                                continue;
+                            }
+                            break;
+                        case NON_ABSENT:
+                            if (serializer.isAbsent(context, v)) {
+                                continue;
+                            }
+                            break;
+                        case NON_EMPTY:
+                            if (serializer.isEmpty(context, v)) {
+                                continue;
+                            }
+                            break;
+                        case NEVER:
+                            continue;
+                        default:
+                            // fall through
                     }
-                    break;
-                case NON_EMPTY:
-                    if (serializer.isEmpty(context, v)) {
-                        continue;
-                    }
-                    break;
-                case NEVER:
-                    continue;
-                default:
-                    // fall through
                 }
 
                 if (property.views != null && !context.hasView(property.views)) {

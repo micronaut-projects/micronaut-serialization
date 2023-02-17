@@ -102,7 +102,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private Set<String> getUnsupportedJacksonAnnotations() {
         return CollectionUtils.setOf(
                 "com.fasterxml.jackson.annotation.JsonKey",
-                "com.fasterxml.jackson.annotation.JsonFilter",
                 "com.fasterxml.jackson.annotation.JsonAutoDetect",
                 "com.fasterxml.jackson.annotation.JsonMerge",
                 "com.fasterxml.jackson.annotation.JsonIdentityInfo",
