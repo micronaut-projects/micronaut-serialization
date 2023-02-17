@@ -83,6 +83,11 @@ public @interface SerdeConfig {
     String INCLUDE = "include";
 
     /**
+     * Property filter name.
+     */
+    String FILTER = "filter";
+
+    /**
      * Is this property to be used only for reading.
      */
     String READ_ONLY = "readOnly";
@@ -185,6 +190,9 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerIgnored {
+        /**
+         * Ignore handling meta annotation on type.
+         */
         @interface SerType { }
     }
 
@@ -264,10 +272,16 @@ public @interface SerdeConfig {
          */
         String DISCRIMINATOR_PROP = "dp";
 
+        /**
+         * The discriminator type.
+         */
         enum DiscriminatorType {
             PROPERTY, WRAPPER_OBJECT
         }
 
+        /**
+         * The discriminator value kind.
+         */
         enum DiscriminatorValueKind {
             CLASS_NAME, CLASS_SIMPLE_NAME, NAME
         }

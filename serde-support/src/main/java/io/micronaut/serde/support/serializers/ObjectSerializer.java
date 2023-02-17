@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.context.BeanContext;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
@@ -64,11 +65,13 @@ import io.micronaut.serde.exceptions.SerdeException;
 public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
     private final SerializationConfiguration configuration;
+    private final BeanContext beanContext;
     private final Map<TypeKey, Supplier<SerBean<Object>>> serBeanMap = new ConcurrentHashMap<>(50);
 
-    public ObjectSerializer(SerdeIntrospections introspections, SerializationConfiguration configuration) {
+    public ObjectSerializer(SerdeIntrospections introspections, SerializationConfiguration configuration, BeanContext beanContext) {
         this.introspections = introspections;
         this.configuration = configuration;
+        this.beanContext = beanContext;
     }
 
     @Override
@@ -190,7 +193,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     @SuppressWarnings("unchecked")
     private SerBean<Object> create(Argument<? extends Object> type, EncoderContext encoderContext) {
         try {
-            return new SerBean<>((Argument<Object>) type, introspections, encoderContext, configuration);
+            return new SerBean<>((Argument<Object>) type, introspections, encoderContext, configuration, beanContext);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }
