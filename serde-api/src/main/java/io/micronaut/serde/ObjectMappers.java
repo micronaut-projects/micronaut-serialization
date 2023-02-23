@@ -87,7 +87,7 @@ final class ObjectMappers {
                     ref.getBeanDefinitionName().startsWith("io.micronaut.aop") ||
                     ref.getBeanDefinitionName().startsWith("io.micronaut.runtime.context.env")
                 )
-                .collect(Collectors.toList());
+                .toList();
         }
 
         @Override

@@ -15,14 +15,12 @@
  */
 package io.micronaut.serde.json.stream.graalvm;
 
-import com.oracle.svm.core.annotate.AutomaticFeature;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
 /**
  * configures JSON-P for GraalVM.
  */
-@AutomaticFeature
 public final class JsonpFeature implements Feature {
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
