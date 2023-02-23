@@ -36,7 +36,10 @@ class DefaultObjectMapperSpec extends Specification {
 
     void "test custom object mapper"() {
         given:
-        ObjectMapper.CloseableObjectMapper om = ObjectMapper.create("custom.serde")
+        ObjectMapper.CloseableObjectMapper om = ObjectMapper.create(
+                ['micronaut.serde.date-format':"ddMMyy"],
+                "custom.serde"
+        )
 
         expect:
         om.writeValueAsString(new Simple2(name:"Fred")) == '{"nom":"FRED"}'

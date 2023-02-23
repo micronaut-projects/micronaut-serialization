@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Objects;
 
 import io.micronaut.core.annotation.NonNull;
@@ -139,12 +140,13 @@ public interface ObjectMapper extends JsonMapper {
      * Creates a new custom {@link ObjectMapper} with additional beans (serializers, deserializers etc.) loaded
      * from the given package locations.
      *
+     * @param configuration The configuration
      * @param packageNames The package names
      * @return The new object mapper
      * @since 1.5.1
      */
-    static @NonNull CloseableObjectMapper create(String... packageNames) {
-        return ObjectMappers.create(packageNames);
+    static @NonNull CloseableObjectMapper create(Map<String, Object> configuration, String... packageNames) {
+        return ObjectMappers.create(configuration, packageNames);
     }
 
     /**

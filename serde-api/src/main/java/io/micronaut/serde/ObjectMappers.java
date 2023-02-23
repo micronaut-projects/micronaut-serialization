@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -27,10 +28,11 @@ import java.util.stream.Collectors;
 
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.ApplicationContextConfiguration;
-import io.micronaut.context.BeanContext;
 import io.micronaut.context.DefaultApplicationContext;
 import io.micronaut.context.env.DefaultEnvironment;
 import io.micronaut.context.env.Environment;
+import io.micronaut.context.env.PropertySource;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinitionReference;
@@ -79,7 +81,7 @@ final class ObjectMappers {
             synchronized (CONTEXT_LOCK) {
                 context = beanContext;
                 if (context == null) {
-                    context = new ObjectMapperContext().start();
+                    context = new ObjectMapperContext(null).start();
                     beanContext = context;
                 }
             }
@@ -87,9 +89,9 @@ final class ObjectMappers {
         return context;
     }
 
-    @SuppressWarnings("java:S2085")
-    static ObjectMapper.CloseableObjectMapper create(String... packageNames) {
-        ObjectMapperContext context = new ObjectMapperContext() {
+    @SuppressWarnings("java:S2095")
+    static ObjectMapper.CloseableObjectMapper create(Map<String, Object> configuration, String... packageNames) {
+        ObjectMapperContext context = new ObjectMapperContext(configuration) {
             @Override
             protected Set<String> getIncludedPackages() {
                 Set<String> includedPackages = super.getIncludedPackages();
@@ -165,6 +167,11 @@ final class ObjectMappers {
     }
 
     private static class ObjectMapperContext extends DefaultApplicationContext {
+        private final Map<String, Object> config;
+
+        private ObjectMapperContext(@Nullable Map<String, Object> config) {
+            this.config = config;
+        }
 
         /**
          * @return The included packages.
@@ -204,6 +211,9 @@ final class ObjectMappers {
                 @Override
                 protected void readPropertySources(String name) {
                     // no-op
+                    if (config != null) {
+                        processPropertySource(PropertySource.of(config), PropertySource.PropertyConvention.JAVA_PROPERTIES);
+                    }
                 }
             };
         }
