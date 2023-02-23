@@ -25,13 +25,24 @@ import spock.lang.Specification
  * @author graemerocher
  */
 class DefaultObjectMapperSpec extends Specification {
-	
+
     void "test default object mapper"() {
         given:
         ObjectMapper om = ObjectMapper.getDefault()
 
         expect:
         om.writeValueAsString(new Simple(name:"Fred")) == '{"name":"Fred"}'
+    }
+
+    void "test custom object mapper"() {
+        given:
+        ObjectMapper.CloseableObjectMapper om = ObjectMapper.create("custom.serde")
+
+        expect:
+        om.writeValueAsString(new Simple2(name:"Fred")) == '{"nom":"FRED"}'
+
+        cleanup:
+        om.close()
     }
 }
 
@@ -40,4 +51,7 @@ class Simple {
     String name
 }
 
+class Simple2 {
+    String name
+}
 
