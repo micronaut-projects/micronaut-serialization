@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Objects;
 
 import io.micronaut.core.annotation.NonNull;
@@ -124,7 +125,7 @@ public interface ObjectMapper extends JsonMapper {
      * an ObjectMapper that does not include any custom defined serializers or deserializers
      * and in general should be avoided outside a few niche cases that require static access.</p>
      *
-     * <p>Where possible you should use dependendency injection to instead retrieve the ObjectMapper
+     * <p>Where possible you should use dependency injection to instead retrieve the ObjectMapper
      * from the application context.
      * </p>
      *
@@ -133,5 +134,28 @@ public interface ObjectMapper extends JsonMapper {
      */
     static @NonNull ObjectMapper getDefault() {
         return ObjectMappers.resolveDefault();
+    }
+
+    /**
+     * Creates a new custom {@link ObjectMapper} with additional beans (serializers, deserializers etc.) loaded
+     * from the given package locations.
+     *
+     * @param configuration The configuration
+     * @param packageNames The package names
+     * @return The new object mapper
+     * @since 1.5.1
+     */
+    static @NonNull CloseableObjectMapper create(Map<String, Object> configuration, String... packageNames) {
+        return ObjectMappers.create(configuration, packageNames);
+    }
+
+    /**
+     * A closeable object mapper.
+     *
+     * @since 1.5.1
+     */
+    interface CloseableObjectMapper extends ObjectMapper, AutoCloseable {
+        @Override
+        void close();
     }
 }
