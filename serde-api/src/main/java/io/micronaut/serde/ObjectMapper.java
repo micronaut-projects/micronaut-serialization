@@ -20,9 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.function.Consumer;
 
-import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
@@ -143,6 +141,7 @@ public interface ObjectMapper extends JsonMapper {
      *
      * @param packageNames The package names
      * @return The new object mapper
+     * @since 1.5.1
      */
     static @NonNull CloseableObjectMapper create(String... packageNames) {
         return ObjectMappers.create(packageNames);
@@ -150,6 +149,8 @@ public interface ObjectMapper extends JsonMapper {
 
     /**
      * A closeable object mapper.
+     *
+     * @since 1.5.1
      */
     interface CloseableObjectMapper extends ObjectMapper, AutoCloseable {
         @Override
