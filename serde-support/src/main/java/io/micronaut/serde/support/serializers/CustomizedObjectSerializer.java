@@ -82,7 +82,7 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                 final Serializer<Object> serializer = property.serializer;
 
                 if (serBean.propertyFilter != null) {
-                    if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, v)) {
+                    if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.argument.getName(), v)) {
                         continue;
                     }
                 } else {

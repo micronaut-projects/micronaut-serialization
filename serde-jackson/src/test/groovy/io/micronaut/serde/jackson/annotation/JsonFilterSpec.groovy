@@ -99,7 +99,47 @@ record Test (
         'List<String>' | null         | []          | '{"value":[]}'
     }
 
-    @Unroll
+    void "test @JsonFilter works with @JsonProperty correctly"() {
+        given:
+        def context = buildContext("""
+package jsonfilter;
+
+import io.micronaut.serde.PropertyFilter;
+import io.micronaut.serde.Serializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import jakarta.inject.Singleton;
+import jakarta.inject.Named;
+
+@Serdeable
+@JsonFilter("my-filter")
+record TestModel (
+    String value,
+    @JsonProperty("second-value")
+    String value2
+) {}
+
+@Singleton
+@Named("my-filter")
+class MyFilter implements PropertyFilter {
+    public boolean shouldInclude(Serializer.EncoderContext context, Serializer<Object> ser, Object bean, String name, Object val) {
+        if (bean instanceof TestModel) {
+            return name.equals("value") || name.equals("value2");
+        }
+        return true;
+    }
+}
+""")
+        def bean = newInstance(context, 'jsonfilter.TestModel', null, null)
+
+        when:
+        var json = writeJson(jsonMapper, bean)
+
+        then:
+        '{"value":null,"second-value":null}' == json
+    }
+
     void "test @JsonFilter throws error when filter not defined"() {
         given:
         def context = buildContext("""
@@ -107,7 +147,6 @@ package jsonfilter;
 
 import io.micronaut.serde.annotation.Serdeable;
 import com.fasterxml.jackson.annotation.JsonFilter;
-import java.util.List;
 
 @Serdeable
 @JsonFilter("non-existing-filter")
