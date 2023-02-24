@@ -46,60 +46,14 @@
         <div class="docs-content">
             <div class="project">
                 <h1>Configuration Reference</h1>
-                <p><strong>Version:</strong>2.0.0-SNAPSHOT</p>
+                <p><strong>Version:</strong>1.5.1-SNAPSHOT</p>
                 <p></p>
             </div>
 <div class="sect2">
 <h3 id="_serde_api_config_properties">Serde Api Config Properties</h3>
-<a id="io.micronaut.serde.config.SerdeConfiguration" href="#io.micronaut.serde.config.SerdeConfiguration">&#128279;</a>
-<table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. Configuration Properties for <a href="../api/io/micronaut/serde/config/SerdeConfiguration.html">SerdeConfiguration</a></caption>
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 33.3333%;">
-<col style="width: 33.3334%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top">Property</th>
-<th class="tableblock halign-left valign-top">Type</th>
-<th class="tableblock halign-left valign-top">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.date-format</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Optional</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The date format to use when serializing and deserializing dates.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.write-dates-as-timestamps</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Whether to write dates as time stamps. Defaults to .</p>
-<p class="tableblock"> &lt;p&gt;If set to  the default ISO formats will be used to format dates as strings.&lt;/p&gt;</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.locale</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Optional</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The default locale to use.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.time-zone</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Optional</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The default time zone to use.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.included-introspection-packages</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.List</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The packages containing introspections that should be regarded
- as serializable by default without the need to add the  annotation.</p></td>
-</tr>
-</tbody>
-</table>
-<div style="page-break-after: always;"></div>
 <a id="io.micronaut.serde.config.SerializationConfiguration" href="#io.micronaut.serde.config.SerializationConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 2. Configuration Properties for <a href="../api/io/micronaut/serde/config/SerializationConfiguration.html">SerializationConfiguration</a></caption>
+<caption class="title">Table 1. Configuration Properties for <a href="../api/io/micronaut/serde/config/SerializationConfiguration.html">SerializationConfiguration</a></caption>
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -116,12 +70,63 @@
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.serialization.inclusion</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../api/io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html">SerdeConfig$SerInclude</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The default inclusion to use. Defaults to {@link SerdeConfig.SerInclude#NON_EMPTY}.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@return The default inclusion to use. Defaults to {@link SerdeConfig.SerInclude#NON_EMPTY}.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.serialization.always-serialize-errors-as-list</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Whether to serialize errors as a list.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@return Whether to serialize errors as a list.
+ @see io.micronaut.http.hateoas.JsonError</p></td>
+</tr>
+</tbody>
+</table>
+<div style="page-break-after: always;"></div>
+<a id="io.micronaut.serde.config.SerdeConfiguration" href="#io.micronaut.serde.config.SerdeConfiguration">&#128279;</a>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. Configuration Properties for <a href="../api/io/micronaut/serde/config/SerdeConfiguration.html">SerdeConfiguration</a></caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Property</th>
+<th class="tableblock halign-left valign-top">Type</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.date-format</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Optional</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The date format to use when serializing and deserializing dates.</p>
+<p class="tableblock"> @return the date format to use</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.write-dates-as-timestamps</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Whether to write dates as time stamps. Defaults to {@code true}.</p>
+<p class="tableblock"> &lt;p&gt;If set to {@code false} the default ISO formats will be used to format dates as strings.&lt;/p&gt;</p>
+<p class="tableblock"> @see java.time.format.DateTimeFormatter
+ @return Whether to write dates as timestamps</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.locale</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Optional</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@return The default locale to use.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.time-zone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.Optional</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@return The default time zone to use.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.included-introspection-packages</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">java.util.List</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The packages containing introspections that should be regarded
+ as serializable by default without the need to add the <a href="../api/io/micronaut/serde/annotation/Serdeable.html">Serdeable</a> annotation.</p>
+<p class="tableblock"> @return the packages to include</p></td>
 </tr>
 </tbody>
 </table>
@@ -145,12 +150,13 @@
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.ignore-unknown</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Whether to ignore unknown values during deserialization.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Whether to ignore unknown values during deserialization.
+ @return True if unknown values should simply be ignored.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.array-size-threshold</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The array size thresh hold for use in binding. Defaults to {@code 100}.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">@return The array size thresh hold for use in binding. Defaults to {@code 100}.</p></td>
 </tr>
 </tbody>
 </table>
