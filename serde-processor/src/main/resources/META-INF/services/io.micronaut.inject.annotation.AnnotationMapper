@@ -22,6 +22,7 @@ io.micronaut.serde.processor.jackson.JsonTypeNameMapper
 io.micronaut.serde.processor.jackson.JsonAnySetterMapper
 io.micronaut.serde.processor.jackson.JsonFormatMapper
 io.micronaut.serde.processor.jackson.JsonIncludeMapper
+io.micronaut.serde.processor.jackson.JsonFilterMapper
 io.micronaut.serde.processor.jackson.JacksonIgnorePropertiesMapper
 io.micronaut.serde.processor.jackson.JacksonIgnoreTypeMapper
 io.micronaut.serde.processor.jackson.JsonUnwrappedMapper

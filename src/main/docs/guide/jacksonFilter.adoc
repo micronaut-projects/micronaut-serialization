@@ -1,0 +1,17 @@
+Custom property filters can be written by implementing the api:serde.PropertyFilter[]  interface.
+
+For example, given the following class:
+
+snippet::example.Person[project-base="doc-examples/example", source="main"]
+<1> Annotate with the jackson `JsonFilter` annotation to require the filter called `person-filter`.
+
+A custom property filter can be defined as follows:
+
+snippet::example.PersonFilter[project-base="doc-examples/example", source="main"]
+<1> Create a singleton with `Named` annotation matching the filter name.
+<2> Implement custom filtering for the `Person` class.
+
+The filter omits the `name` field when the `preferredName` field is set:
+
+snippet::example.PersonFilterTest[project-base="doc-examples/example"]
+

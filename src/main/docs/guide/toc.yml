@@ -7,7 +7,9 @@ quickStart:
   jacksonQuick: Jackson Annotations & Jackson Core
   jsonpQuick: JSON-B Annotations & JSON-P
   bsonQuick: BSON Annotations and BSON
-jacksonAnnotations: Jackson Annotations
+jacksonAnnotations:
+  title: Jackson Annotations
+  jacksonFilter: Custom Property Filters
 jsonbAnnotations: JSON-B Annotations
 bsonAnnotations: BSON Annotations
 serdes: Custom Serializers & Deserializers

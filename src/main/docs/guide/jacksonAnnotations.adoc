@@ -48,8 +48,8 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonFilter.html[@JsonFilter]
-|❌
-|
+|✅
+|supported only on types, implement the io.micronaut.serde.PropertyFilter interface
 
 |link:{jacksonAnnotationJavadoc}/JsonFormat.html[@JsonFormat]
 |✅
