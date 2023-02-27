@@ -772,7 +772,8 @@ public abstract class AbstractStreamDecoder implements Decoder {
         return JsonNodeDecoder.create(node);
     }
 
-    private JsonNode decodeNode() throws IOException {
+    @NonNull
+    public JsonNode decodeNode() throws IOException {
         switch (currentToken()) {
             case START_OBJECT:
                 return decodeObjectNode((AbstractStreamDecoder) decodeObject());
