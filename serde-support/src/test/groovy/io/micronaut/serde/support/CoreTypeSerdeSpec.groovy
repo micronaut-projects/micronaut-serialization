@@ -4,6 +4,7 @@ import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.http.hateoas.JsonError
 import io.micronaut.http.hateoas.Link
+import io.micronaut.json.tree.JsonNode
 import io.micronaut.management.health.indicator.HealthResult
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -60,5 +61,29 @@ class CoreTypeSerdeSpec extends Specification {
 
     private String writeJson(Object o) {
         new String(jsonMapper.writeValueAsBytes(o), StandardCharsets.UTF_8)
+    }
+
+    void "test read / write JsonNode"() {
+        given:
+        JsonNode node = JsonNode.createObjectNode([
+                'array': JsonNode.createArrayNode([
+                        JsonNode.createBooleanNode(true)
+                ]),
+                'null': JsonNode.nullNode(),
+                'int': JsonNode.createNumberNode(Integer.MAX_VALUE),
+                'double': JsonNode.createNumberNode(Double.MAX_VALUE),
+                'long': JsonNode.createNumberNode(Long.MAX_VALUE),
+                //'float': JsonNode.createNumberNode(Float.MAX_VALUE), deserialized as double by default
+                //'bd': JsonNode.createNumberNode(BigDecimal.valueOf(Double.MAX_VALUE).add(BigDecimal.valueOf(0.1))), deserialized as double by default
+                'bi': JsonNode.createNumberNode(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.ONE)),
+                'str': JsonNode.createStringNode('foo')
+        ])
+
+        when:
+        def result = writeJson(node)
+        def read = jsonMapper.readValue(result, Argument.of(JsonNode))
+
+        then:
+        read == node
     }
 }

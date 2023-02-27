@@ -18,6 +18,7 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -187,6 +188,15 @@ public interface Decoder extends AutoCloseable {
      */
     @Nullable
     Object decodeArbitrary() throws IOException;
+
+    /**
+     * Decodes the current state into a {@link JsonNode}.
+     *
+     * @return The decoded node
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @NonNull
+    JsonNode decodeNode() throws IOException;
 
     /**
      * Buffer the whole subtree of this value and return it as a new {@link Decoder}. The returned {@link Decoder} can

@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
@@ -202,9 +203,15 @@ public abstract class JsonNodeDecoder implements Decoder {
 
     @Override
     public Object decodeArbitrary() throws IOException {
-        Object result = toArbitrary(peekValue());
+        return toArbitrary(decodeNode());
+    }
+
+    @NonNull
+    @Override
+    public JsonNode decodeNode() throws IOException {
+        JsonNode node = peekValue();
         skipValue();
-        return result;
+        return node;
     }
 
     private static Object toArbitrary(JsonNode node) {
