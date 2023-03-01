@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson
 
+
 import io.micronaut.serde.Decoder
 import io.micronaut.serde.exceptions.SerdeException
 import org.bson.json.JsonReader
@@ -116,5 +117,74 @@ class BsonReaderDecoderJsonSpec extends Specification {
                 f3: true,
                 f4: [56, [f5: 'bar']]
         ]
+    }
+
+    def 'skip unknown string'() {
+        given:
+        def data = '{ "name": "Foo", "nested": "hello"}'
+        when:
+        def w = createDecoder(data).decodeObject()
+        then:
+
+        while (true) {
+            def key = w.decodeKey()
+            if (key == "nested") {
+                w.skipValue()
+                break
+            } else {
+                w.decodeString()
+            }
+        }
+    }
+
+    def 'can skip non-scalar values'() {
+        given:
+        // data has a key "nested" with an object as a value
+        def data = '{ "stringKey": "stringValue", "objectKey": {"key": "value"}, "stringKey2": "stringValue2", "arrayKey": [1,2,3], "intKey": 1}'
+        when:
+        def w = createDecoder(data).decodeObject()
+        def propCount = 0
+        def map = [:]
+        while (propCount < 5) {
+            propCount++
+            def key = w.decodeKey()
+            if (key == "objectKey" || key == "arrayKey") {
+                w.skipValue()
+            } else {
+                def val = w.decodeString()
+                map.put(key, val)
+            }
+        }
+        then:
+        map.size() == 3
+        map["objectKey"] == null
+        map["arrayKey"] == null
+        map["intKey"] == "1"
+    }
+
+    def 'can skip scalar values'() {
+        given:
+        def data = '{ "stringKey": "stringValue", "objectKey": {"key": "value"}, "stringKey2": "stringValue2", "arrayKey": [1,2,3], "intKey": 1}'
+        when:
+        def w = createDecoder(data).decodeObject()
+        def propCount = 0
+        def map = [:]
+        while (propCount < 5) {
+            propCount++
+            def key = w.decodeKey()
+            if (key == "stringKey" || key == "intKey") {
+                w.skipValue()
+            } else {
+                def val = w.decodeArbitrary()
+                map.put(key, val)
+            }
+        }
+        then:
+        map.size() == 3
+        map["objectKey"] == ["key": "value"]
+        map["arrayKey"] == [1, 2, 3]
+        map["stringKey2"] == "stringValue2"
+        map.get("intKey") == null
+        map.get("stringKey") == null
     }
 }
