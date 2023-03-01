@@ -108,6 +108,8 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-jacksonAnnotations"><a href="#jacksonAnnotations"><strong>4</strong><span>Jackson Annotations</span></a></div>
         
+        <div class="toc-item" style="margin-left:10px" id="toc-item-jacksonFilter"><a href="#jacksonFilter"><strong>4.1</strong><span>Custom Property Filters</span></a></div>
+        
         <div class="toc-item" style="margin-left:0px" id="toc-item-jsonbAnnotations"><a href="#jsonbAnnotations"><strong>5</strong><span>JSON-B Annotations</span></a></div>
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-bsonAnnotations"><a href="#bsonAnnotations"><strong>6</strong><span>BSON Annotations</span></a></div>
@@ -128,7 +130,7 @@
         <h1>Micronaut Serialization</h1>
         <p></p>
         <p>Enables serialization/deserialization in Micronaut applications using build time information</p>
-        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option value='https://micronaut-projects.github.io/micronaut-serialization/latest/guide/index.html'>LATEST</option><option selected='selected' value='https://micronaut-projects.github.io/micronaut-serialization/1.5.0/guide/index.html'>1.5.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.4.0/guide/index.html'>1.4.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.3/guide/index.html'>1.3.3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.2/guide/index.html'>1.3.2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.1/guide/index.html'>1.3.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.0/guide/index.html'>1.3.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.2.0/guide/index.html'>1.2.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.1.1/guide/index.html'>1.1.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.1.0/guide/index.html'>1.1.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.1/guide/index.html'>1.0.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0/guide/index.html'>1.0.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC3/guide/index.html'>1.0.0-RC3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC2/guide/index.html'>1.0.0-RC2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC1/guide/index.html'>1.0.0-RC1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M7/guide/index.html'>1.0.0-M7</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M6/guide/index.html'>1.0.0-M6</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M5/guide/index.html'>1.0.0-M5</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M4/guide/index.html'>1.0.0-M4</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M3/guide/index.html'>1.0.0-M3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M2/guide/index.html'>1.0.0-M2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M1/guide/index.html'>1.0.0-M1</option></select> </p>
+        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option value='https://micronaut-projects.github.io/micronaut-serialization/latest/guide/index.html'>LATEST</option><option selected='selected' value='https://micronaut-projects.github.io/micronaut-serialization/1.5.1/guide/index.html'>1.5.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.5.0/guide/index.html'>1.5.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.4.0/guide/index.html'>1.4.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.3/guide/index.html'>1.3.3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.2/guide/index.html'>1.3.2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.1/guide/index.html'>1.3.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.0/guide/index.html'>1.3.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.2.0/guide/index.html'>1.2.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.1.1/guide/index.html'>1.1.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.1.0/guide/index.html'>1.1.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.1/guide/index.html'>1.0.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0/guide/index.html'>1.0.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC3/guide/index.html'>1.0.0-RC3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC2/guide/index.html'>1.0.0-RC2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-RC1/guide/index.html'>1.0.0-RC1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M7/guide/index.html'>1.0.0-M7</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M6/guide/index.html'>1.0.0-M6</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M5/guide/index.html'>1.0.0-M5</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M4/guide/index.html'>1.0.0-M4</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M3/guide/index.html'>1.0.0-M3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M2/guide/index.html'>1.0.0-M2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0-M1/guide/index.html'>1.0.0-M1</option></select> </p>
     </div>
     
 <h1 id="introduction"><a class="anchor" href="#introduction"></a>1 Introduction</h1>
@@ -244,7 +246,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.5.0")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:1.5.1")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -254,7 +256,7 @@
     &lt;path&gt;
         &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
         &lt;artifactId&gt;micronaut-serde-processor&lt;/artifactId&gt;
-        &lt;version&gt;1.5.0&lt;/version&gt;
+        &lt;version&gt;1.5.1&lt;/version&gt;
     &lt;/path&gt;
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
@@ -284,7 +286,7 @@
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.5.0"))
+            .using(module("io.micronaut.serde:micronaut-serde-jackson:1.5.1"))
     }
 }</code></pre>
 </div>
@@ -296,7 +298,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:1.5.0")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:1.5.1")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -304,7 +306,7 @@
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;version&gt;1.5.1&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -328,7 +330,7 @@
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-  &lt;version&gt;1.5.0&lt;/version&gt;
+  &lt;version&gt;1.5.1&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -547,7 +549,7 @@ class BookTest {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
             .using(module("jakarta.json.bind:jakarta.json.bind-api:2.0.0"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.5.0"))
+            .using(module("io.micronaut.serde:micronaut-serde-jsonp:1.5.1"))
     }
 }</code></pre>
 </div>
@@ -559,7 +561,7 @@ class BookTest {
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:1.5.0")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:1.5.1")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -567,7 +569,7 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;version&gt;1.5.1&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -591,7 +593,7 @@ class BookTest {
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-  &lt;version&gt;1.5.0&lt;/version&gt;
+  &lt;version&gt;1.5.1&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
@@ -766,9 +768,9 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("io.micronaut:micronaut-jackson-databind"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:1.5.0"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.5.1"))
         substitute(module("io.micronaut:micronaut-jackson-core"))
-            .using(module("io.micronaut.serde:micronaut-serde-bson:1.5.0"))
+            .using(module("io.micronaut.serde:micronaut-serde-bson:1.5.1"))
     }
 }</code></pre>
 </div>
@@ -780,7 +782,7 @@ class BookTest {
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:1.5.0")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:1.5.1")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -788,7 +790,7 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-    &lt;version&gt;1.5.0&lt;/version&gt;
+    &lt;version&gt;1.5.1&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -812,7 +814,7 @@ class BookTest {
 &lt;dependency&gt;
   &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
   &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-  &lt;version&gt;1.5.0&lt;/version&gt;
+  &lt;version&gt;1.5.1&lt;/version&gt;
   &lt;scope&gt;compile&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
@@ -1064,8 +1066,8 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonFilter.html">@JsonFilter</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">supported only on types, implement the io.micronaut.serde.PropertyFilter interface</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonFormat.html">@JsonFormat</a></p></td>
@@ -1238,6 +1240,286 @@ If an unsupported annotation or member is used, a compilation error will result.
   &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
   &lt;scope&gt;provided&lt;/scope&gt;
 &lt;/dependency&gt;</code></pre>
+</div>
+</div>
+
+<h2 id="jacksonFilter"><a class="anchor" href="#jacksonFilter"></a>4.1 Custom Property Filters</h2>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/1.5.x/src/main/docs/guide/jacksonFilter.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>Custom property filters can be written by implementing the <a href="../api/io/micronaut/serde/PropertyFilter.html">PropertyFilter</a>  interface.</p>
+</div>
+<div class="paragraph">
+<p>For example, given the following class:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonFilter("person-filter") // <b class="conum">(1)</b>
+public class Person {
+    private final String name;
+    private final String preferredName;
+
+    public Person(String name, String preferredName) {
+        this.name = name;
+        this.preferredName = preferredName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPreferredName() {
+        return preferredName;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonFilter
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+@JsonFilter("person-filter") // <b class="conum">(1)</b>
+class Person {
+    String name
+    String preferredName
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonFilter
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+@JsonFilter("person-filter") // <b class="conum">(1)</b>
+data class Person(
+    val name: String,
+    val preferredName: String?
+)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Annotate with the jackson <code>JsonFilter</code> annotation to require the filter called <code>person-filter</code>.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A custom property filter can be defined as follows:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.PropertyFilter;
+import io.micronaut.serde.Serializer;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+
+@Singleton
+@Named("person-filter") // <b class="conum">(1)</b>
+public class PersonFilter implements PropertyFilter {
+
+    @Override
+    public boolean shouldInclude(
+        Serializer.EncoderContext encoderContext, Serializer&lt;Object&gt; propertySerializer,
+        Object bean, String propertyName, Object propertyValue
+    ) {
+        if (bean instanceof Person) { // <b class="conum">(2)</b>
+            Person person = (Person) bean;
+            if (propertyName.equals("name")) {
+                return person.getPreferredName() == null;
+            } else if (propertyName.equals("preferredName")) {
+                return person.getPreferredName() != null;
+            }
+        }
+        return true;
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.PropertyFilter
+import io.micronaut.serde.Serializer
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+@Named("person-filter") // <b class="conum">(1)</b>
+class PersonFilter implements PropertyFilter {
+
+    @Override
+    boolean shouldInclude(
+        Serializer.EncoderContext encoderContext, Serializer&lt;Object&gt; propertySerializer,
+        Object bean, String propertyName, Object propertyValue
+    ) {
+        if (bean instanceof Person) { // <b class="conum">(2)</b>
+            if (propertyName == "name") {
+                return bean.preferredName == null
+            } else if (propertyName == "preferredName") {
+                return bean.preferredName != null
+            }
+        }
+        return true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.PropertyFilter
+import io.micronaut.serde.Serializer
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+@Named("person-filter") // <b class="conum">(1)</b>
+class PersonFilter : PropertyFilter {
+
+    override fun shouldInclude(
+            encoderContext: Serializer.EncoderContext,
+            propertySerializer: Serializer&lt;Any&gt;,
+            bean: Any,
+            propertyName: String,
+            propertyValue: Any?
+    ): Boolean {
+        if (bean is Person) { // <b class="conum">(2)</b>
+            if (propertyName == "name") {
+                return bean.preferredName == null
+            } else if (propertyName == "preferredName") {
+                return bean.preferredName != null
+            }
+        }
+        return true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Create a singleton with <code>Named</code> annotation matching the filter name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Implement custom filtering for the <code>Person</code> class.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The filter omits the <code>name</code> field when the <code>preferredName</code> field is set:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
+
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@MicronautTest
+public class PersonFilterTest {
+
+    @Test
+    void testWritePersonWithoutPreferredName(ObjectMapper objectMapper) throws IOException {
+        String result = objectMapper.writeValueAsString(new Person("Adam", null));
+        assertEquals("{\"name\":\"Adam\"}", result);
+    }
+
+    @Test
+    void testWritePersonWithPreferredName(ObjectMapper objectMapper) throws IOException {
+        String result = objectMapper.writeValueAsString(new Person("Adam", "Ad"));
+        assertEquals("{\"preferredName\":\"Ad\"}", result);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.spock.annotation.MicronautTest
+import jakarta.inject.Inject
+import spock.lang.Specification
+
+@MicronautTest
+class PersonFilterTest extends Specification {
+    @Inject ObjectMapper objectMapper
+
+    void "test write person without preferred name"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Person(name: "Adam"))
+
+        then:
+        '{"name":"Adam"}' == result
+    }
+
+    void "test write person with preferred name"() {
+        when:
+        String result = objectMapper.writeValueAsString(new Person(name: "Adam", preferredName: "Ad"))
+
+        then:
+        '{"preferredName":"Ad"}' == result
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import java.io.IOException
+
+@MicronautTest
+class PersonFilterTest {
+
+    @Test
+    fun testWritePersonWithoutPreferredName(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Person("Adam", null))
+        Assertions.assertEquals("{\"name\":\"Adam\"}", result)
+    }
+
+    @Test
+    fun testWritePersonWithPreferredName(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Person("Adam", "Ad"))
+        Assertions.assertEquals("{\"preferredName\":\"Ad\"}", result)
+    }
+}</code></pre>
 </div>
 </div>
 
