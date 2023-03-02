@@ -17,6 +17,7 @@ package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
@@ -31,12 +32,15 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.io.buffer.ByteBuffer;
 import io.micronaut.core.type.Argument;
+import io.micronaut.jackson.core.parser.JacksonCoreParserFactory;
 import io.micronaut.jackson.core.parser.JacksonCoreProcessor;
 import io.micronaut.jackson.core.tree.JsonNodeTreeCodec;
 import io.micronaut.jackson.core.tree.TreeGenerator;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
+import io.micronaut.json.JsonSyntaxException;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -158,6 +162,8 @@ public final class JacksonJsonMapper implements ObjectMapper {
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
         try (JsonParser parser = FACTORY.createParser(inputStream)) {
             return readValue(parser, type);
+        } catch (JsonParseException pe) {
+            throw new JsonSyntaxException(pe);
         }
     }
 
@@ -165,6 +171,17 @@ public final class JacksonJsonMapper implements ObjectMapper {
     public <T> T readValue(@NonNull byte[] byteArray, @NonNull Argument<T> type) throws IOException {
         try (JsonParser parser = FACTORY.createParser(byteArray)) {
             return readValue(parser, type);
+        } catch (JsonParseException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    @Override
+    public <T> T readValue(@NonNull ByteBuffer<?> byteBuffer, @NonNull Argument<T> type) throws IOException {
+        try (JsonParser parser = JacksonCoreParserFactory.createJsonParser(FACTORY, byteBuffer)) {
+            return readValue(parser, type);
+        } catch (JsonParseException pe) {
+            throw new JsonSyntaxException(pe);
         }
     }
 
