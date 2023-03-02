@@ -99,8 +99,15 @@ public @interface SerdeConfig {
 
     /**
      * A type name mapping. Used for subtype binding.
+     * The type name to be used during serialization.
      */
     String TYPE_NAME = "typeName";
+
+    /**
+     * A type name mapping used for subtype binding with multiple names.
+     * All the names would be mapped to the class during deserialization.
+     */
+    String TYPE_NAMES = "typeNames";
 
     /**
      * A type name mapping. Used for subtype binding.
