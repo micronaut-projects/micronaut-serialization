@@ -19,7 +19,6 @@ import io.micronaut.context.annotation.Executable;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.annotation.NonNull;
@@ -85,6 +84,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private FieldElement jsonValueField;
     private final Set<String> readMethods = new HashSet<>(20);
     private final Set<String> writeMethods = new HashSet<>(20);
+    private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
     private SerdeConfig.SerCreatorMode creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
 
     @Override
@@ -660,35 +660,83 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         visitClassInternal(element, context, false);
     }
 
-    private void visitClassInternal(ClassElement element, VisitorContext context, boolean isImport) {
-        List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypes = element.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class);
-        if (!subtypes.isEmpty()) {
-            final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(element);
-            String typeProperty = resolveTypeProperty(element).orElseGet(() ->
-                    discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
-            );
-            for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype : subtypes) {
-                String className = subtype.stringValue().orElse(null);
-                if (className != null) {
-                    ClassElement subElement = context.getClassElement(className).orElse(null);
-                    String[] names = subtype.stringValues("names");
-                    String typeName;
+    private void visitClassSubtypes(ClassElement supertype, VisitorContext context) {
+        List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypes =
+            supertype.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class);
 
-                    if (subElement != null && !subElement.hasStereotype(SerdeConfig.class)) {
-                        if (ArrayUtils.isNotEmpty(names)) {
-                            typeName = names[0]; // TODO: support multiple
-                        } else {
-                            typeName = subElement.getSimpleName();
-                        }
-                        subElement.annotate(Serdeable.class);
-                        subElement.annotate(SerdeConfig.class, (builder) -> {
-                            String include = resolveInclude(element).orElse(null);
-                            handleSubtypeInclude(builder, typeName, typeProperty, include);
-                        });
+        for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtypeAnn : subtypes) {
+            subtypeAnn.stringValue()
+                .flatMap(context::getClassElement)
+                .ifPresent(subtype -> {
+                    if (!subtype.hasStereotype(SerdeConfig.class)) {
+                        subtype.annotate(Serdeable.class);
+                        visitSubtype(supertype, subtype, context);
                     }
+                });
+        }
+    }
+
+    private void visitSubtype(ClassElement supertype, ClassElement subtype, VisitorContext context) {
+        if (elementVisitedAsSubtype.contains(subtype.getName())) {
+            return;
+        }
+        elementVisitedAsSubtype.add(subtype.getName());
+
+        if (failOnError && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
+            context.fail("Inheritance cannot be combined with DELEGATING creation", subtype);
+            return;
+        }
+
+        final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind =
+            getDiscriminatorValueKind(supertype);
+        final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
+            getDiscriminatorType(supertype);
+        final String typeProperty = resolveTypeProperty(supertype).orElseGet(() ->
+            discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
+        );
+
+        List<String> allNames = new ArrayList<>();
+
+        if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME) {
+            subtype.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
+                .ifPresent(allNames::add);
+
+            for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> parentSubtype:
+                supertype.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class)
+            ) {
+                String parentSubtypeName = parentSubtype.stringValue().orElse(null);
+                if (subtype.getName().equals(parentSubtypeName)) {
+                    parentSubtype.stringValue("name")
+                        .ifPresent(allNames::add);
+                    Collections.addAll(allNames, parentSubtype.stringValues("names"));
                 }
             }
+
+            if (allNames.isEmpty()) {
+                // Fallback to class name
+                allNames.add(subtype.getSimpleName());
+            }
+        } else if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME) {
+            allNames.add(subtype.getSimpleName());
+        } else {
+            allNames.add(subtype.getName());
         }
+
+        subtype.annotate(SerdeConfig.class, (builder) -> {
+            builder.member(SerdeConfig.TYPE_NAME, allNames.get(0));
+            builder.member(SerdeConfig.TYPE_NAMES, allNames.toArray(new String[0]));
+
+            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
+                builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
+            } else {
+                builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+            }
+        });
+    }
+
+    private void visitClassInternal(ClassElement element, VisitorContext context, boolean isImport) {
+        visitClassSubtypes(element, context);
+
         if (element.hasDeclaredAnnotation(SerdeImport.Repeated.class) && !isImport) {
             final List<AnnotationValue<SerdeImport>> values = element.getDeclaredAnnotationValuesByType(SerdeImport.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
@@ -793,25 +841,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 );
             }
 
-            final Optional<ClassElement> superType = findTypeInfo(element, false);
-            if (superType.isPresent()) {
-                final ClassElement typeInfo = superType.get();
-                if (failOnError && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
-                    context.fail("Inheritance cannot be combined with DELEGATING creation", element);
-                    return;
-                }
-                final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind = getDiscriminatorValueKind(typeInfo);
-                element.annotate(SerdeConfig.class, builder -> {
-                    final String typeName = element.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseGet(() ->
-                          discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? element.getName() : element.getSimpleName()
-                    );
-                    String typeProperty = resolveTypeProperty(typeInfo).orElseGet(() ->
-                       discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
-                    );
-                    final String include = resolveInclude(typeInfo).orElse(null);
-                    handleSubtypeInclude(builder, typeName, typeProperty, include);
-                });
-            }
+            findTypeInfo(element, false)
+                .ifPresent(superType -> visitSubtype(superType, element, context));
 
             if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                 context.fail("Inheritance cannot be combined with DELEGATING creation", element);
@@ -957,16 +988,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return propertyNamingStrategy;
         }
         return defaultValue;
-    }
-
-    private void handleSubtypeInclude(AnnotationValueBuilder<SerdeConfig> builder, String typeName, String typeProperty, String include) {
-        if ("WRAPPER_OBJECT".equalsIgnoreCase(include)) {
-            builder.member(SerdeConfig.TYPE_NAME, typeName);
-            builder.member(SerdeConfig.WRAPPER_PROPERTY, typeName);
-        } else if (typeProperty != null) {
-            builder.member(SerdeConfig.TYPE_NAME, typeName);
-            builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
-        }
     }
 
     private void processProperties(VisitorContext context,
@@ -1129,12 +1150,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return Optional.empty();
     }
 
-    private Optional<String> resolveInclude(ClassElement superType) {
-        ClassElement typeInfo = findTypeInfo(superType, true).orElse(null);
-        if (typeInfo != null) {
-            return typeInfo.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE);
-        }
-        return Optional.empty();
+    private SerdeConfig.SerSubtyped.DiscriminatorType getDiscriminatorType(ClassElement element) {
+        return element.enumValue(
+                SerdeConfig.SerSubtyped.class,
+                SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,
+                SerdeConfig.SerSubtyped.DiscriminatorType.class
+            ).orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
     }
 
     @Override
