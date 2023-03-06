@@ -27,7 +27,8 @@ class Test {
 @Serdeable
 enum Foo {
   BAR("br"),
-  BAZ("bz");
+  BAZ("bz"),
+  BAT("BT");
 
   private final String value;
 
@@ -50,11 +51,17 @@ enum Foo {
 }
 ''')
         def test = newInstance(compiled, 'enumtest.Test')
-        def testClass = test.getClass()
+        def BAR = getEnum(compiled, 'enumtest.Foo.BAR')
+        def BAT = getEnum(compiled, 'enumtest.Foo.BAT')
 
         expect:
         jsonMapper.writeValueAsString(test) == '{"data":"bz"}'
+        jsonMapper.writeValueAsString(BAR) == '"br"'
+        jsonMapper.writeValueAsString(BAT) == '"BT"'
+
         jsonMapper.readValue('{"data":"bz"}', argumentOf(compiled, 'enumtest.Test')).data.name() == "BAZ"
+        jsonMapper.readValue('"br"', argumentOf(compiled, "enumtest.Foo")) == BAR
+        jsonMapper.readValue('"BT"', argumentOf(compiled, "enumtest.Foo")) == BAT
 
         cleanup:
         compiled.close()
@@ -93,11 +100,13 @@ enum Foo {
 }
 ''')
         def test = newInstance(compiled, 'enumtest.Test')
-        def testClass = test.getClass()
+        def BAR = getEnum(compiled, "enumtest.Foo.BAR")
 
         expect:
         jsonMapper.writeValueAsString(test) == '{"data":"BAZ"}'
-        jsonMapper.readValue('{"data":"BAR"}', argumentOf(compiled, 'enumtest.Test')).data.name() == "BAR"
+        jsonMapper.writeValueAsString(BAR) == '"BAR"'
+
+        jsonMapper.readValue('{"data":"BAR"}', argumentOf(compiled, 'enumtest.Test')).data == BAR
         jsonMapper.readValue('{"data":"baz"}', argumentOf(compiled, 'enumtest.Test')).data.name() == "BAZ"
 
         cleanup:
