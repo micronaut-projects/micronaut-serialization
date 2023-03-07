@@ -95,7 +95,17 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         }
     }
 
-    private <T> T readValue(OracleJsonParser parser, Argument<T> type) throws IOException {
+    /**
+     * Read the value using the oracle parser.
+     *
+     * @param parser The parser
+     * @param type   The argument
+     * @param <T>    The type
+     * @return The value
+     * @throws IOException
+     */
+    @NonNull
+    public <T> T readValue(@NonNull OracleJsonParser parser, @NonNull Argument<T> type) throws IOException {
         if (type.getType() == OracleJsonObject.class) {
             OracleJsonParser.Event event = parser.next();
             if (event != OracleJsonParser.Event.START_OBJECT) {
@@ -169,14 +179,27 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
         try (OracleJsonGenerator generator = createJsonGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
-            if (object == null) {
-                generator.writeNull();
-            } else {
-                OracleJdbcJsonGeneratorEncoder encoder = new OracleJdbcJsonGeneratorEncoder(generator);
-                serialize(encoder, object, type);
-            }
-            generator.flush();
+            writeValue(generator, object, type);
         }
+    }
+
+    /**
+     * Writes the value to the json generator.
+     *
+     * @param generator The generator
+     * @param value     The value
+     * @param type      The argument
+     * @param <T>       The type
+     * @throws IOException
+     */
+    public <T> void writeValue(@NonNull OracleJsonGenerator generator, @NonNull T value, @NonNull Argument<T> type) throws IOException {
+        if (value == null) {
+            generator.writeNull();
+        } else {
+            OracleJdbcJsonGeneratorEncoder encoder = new OracleJdbcJsonGeneratorEncoder(generator);
+            serialize(encoder, value, type);
+        }
+        generator.flush();
     }
 
     private void serialize(Encoder encoder, Object object) throws IOException {
