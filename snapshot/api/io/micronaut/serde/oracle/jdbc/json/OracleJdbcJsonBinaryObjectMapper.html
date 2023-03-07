@@ -169,18 +169,31 @@ loadScripts(document, 'script');</script>
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;tree,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)" class="member-name-link">readValue</a><wbr>(oracle.sql.json.OracleJsonParser&nbsp;parser,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Read the value using the oracle parser.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;T</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;tree,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
  io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  T&nbsp;object)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/OutputStream.html" title="class or interface in java.io" class="external-link">OutputStream</a>&nbsp;outputStream,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValue(oracle.sql.json.OracleJsonGenerator,T,io.micronaut.core.type.Argument)" class="member-name-link">writeValue</a><wbr>(oracle.sql.json.OracleJsonGenerator&nbsp;generator,
+ T&nbsp;value,
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Writes the value to the json generator.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;byte[]</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  T&nbsp;object)</code></div>
@@ -314,6 +327,29 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)">
+<h3>readValue</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(@NonNull
+ oracle.sql.json.OracleJsonParser&nbsp;parser,
+ @NonNull
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
+                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Read the value using the oracle parser.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><code>T</code> - The type</dd>
+<dt>Parameters:</dt>
+<dd><code>parser</code> - The parser</dd>
+<dd><code>type</code> - The argument</dd>
+<dt>Returns:</dt>
+<dd>The value</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="createReactiveParser(java.util.function.Consumer,boolean)">
 <h3>createReactiveParser</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">org.reactivestreams.Processor&lt;byte[],<wbr>io.micronaut.json.tree.JsonNode&gt;</span>&nbsp;<span class="element-name">createReactiveParser</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/Consumer.html" title="class or interface in java.util.function" class="external-link">Consumer</a>&lt;org.reactivestreams.Processor&lt;byte[],<wbr>io.micronaut.json.tree.JsonNode&gt;&gt;&nbsp;onSubscribe,
@@ -375,6 +411,29 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code>writeValue</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="writeValue(oracle.sql.json.OracleJsonGenerator,T,io.micronaut.core.type.Argument)">
+<h3 id="writeValue(oracle.sql.json.OracleJsonGenerator,java.lang.Object,io.micronaut.core.type.Argument)">writeValue</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">writeValue</span><wbr><span class="parameters">(@NonNull
+ oracle.sql.json.OracleJsonGenerator&nbsp;generator,
+ @NonNull
+ T&nbsp;value,
+ @NonNull
+ io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span>
+                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Writes the value to the json generator.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><code>T</code> - The type</dd>
+<dt>Parameters:</dt>
+<dd><code>generator</code> - The generator</dd>
+<dd><code>value</code> - The value</dd>
+<dd><code>type</code> - The argument</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
 </dl>
