@@ -83,6 +83,11 @@ public @interface SerdeConfig {
     String INCLUDE = "include";
 
     /**
+     * Property filter name.
+     */
+    String FILTER = "filter";
+
+    /**
      * Is this property to be used only for reading.
      */
     String READ_ONLY = "readOnly";
@@ -94,8 +99,15 @@ public @interface SerdeConfig {
 
     /**
      * A type name mapping. Used for subtype binding.
+     * The type name to be used during serialization.
      */
     String TYPE_NAME = "typeName";
+
+    /**
+     * A type name mapping used for subtype binding with multiple names.
+     * All the names would be mapped to the class during deserialization.
+     */
+    String TYPE_NAMES = "typeNames";
 
     /**
      * A type name mapping. Used for subtype binding.
@@ -185,6 +197,9 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerIgnored {
+        /**
+         * Ignore handling meta annotation on type.
+         */
         @interface SerType { }
     }
 
@@ -264,10 +279,16 @@ public @interface SerdeConfig {
          */
         String DISCRIMINATOR_PROP = "dp";
 
+        /**
+         * The discriminator type.
+         */
         enum DiscriminatorType {
             PROPERTY, WRAPPER_OBJECT
         }
 
+        /**
+         * The discriminator value kind.
+         */
         enum DiscriminatorValueKind {
             CLASS_NAME, CLASS_SIMPLE_NAME, NAME
         }

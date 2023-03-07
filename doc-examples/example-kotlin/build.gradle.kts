@@ -12,6 +12,7 @@ micronaut {
 dependencies {
     annotationProcessor(projects.serdeProcessor)
     implementation(project(":serde-jackson"))
+    kapt(projects.serdeProcessor)
     implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
     testImplementation("io.micronaut.test:micronaut-test-junit5")

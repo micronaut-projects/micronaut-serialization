@@ -76,4 +76,46 @@ record Test(
         NON_EMPTY  | "Map<String, String>" | ["test": "test"] | '{"test":{"test":"test"}}'
 
     }
+
+    @Unroll
+    void "test @JsonInclude(#include) on class for #type with #value"() {
+        given:
+        def context = buildContext("""
+package jsoninclude;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.*;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
+
+@Serdeable
+@JsonInclude(${include.name()})
+record Test(
+    $type test
+) {}
+""")
+        def bean = newInstance(context, 'jsoninclude.Test', value)
+        String json = writeJson(jsonMapper, bean)
+
+        expect:
+        json == result
+
+        cleanup:
+        context.close()
+
+        where:
+        include    | type                  | value            | result
+        ALWAYS     | "String"              | ""               | '{"test":""}'
+        ALWAYS     | "String"              | null             | '{"test":null}'
+        ALWAYS     | "String"              | "test"           | '{"test":"test"}'
+        NON_NULL   | "String"              | ""               | '{"test":""}'
+        NON_NULL   | "String"              | null             | '{}'
+        NON_NULL   | "String"              | "test"           | '{"test":"test"}'
+        NON_ABSENT | "String"              | ""               | '{"test":""}'
+        NON_ABSENT | "String"              | null             | '{}'
+        NON_ABSENT | "String"              | "test"           | '{"test":"test"}'
+        NON_EMPTY  | "String"              | ""               | '{}'
+        NON_EMPTY  | "String"              | null             | '{}'
+        NON_EMPTY  | "String"              | "test"           | '{"test":"test"}'
+
+    }
 }

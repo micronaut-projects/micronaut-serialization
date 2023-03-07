@@ -15,12 +15,7 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Locale;
-
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
@@ -37,6 +32,12 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Locale;
+
 /**
  * Serde for handling enums.
  * @param <E> The enum type.
@@ -51,6 +52,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
     }
 
     @Override
+    @NonNull
     public E deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super E> type) throws IOException {
         @SuppressWarnings("rawtypes") final Class t = type.getType();
         String s = decoder.decodeString();
@@ -69,7 +71,8 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Deserializer<E> createSpecific(DecoderContext context, Argument<? super E> type) {
+    @NonNull
+    public Deserializer<E> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super E> type) {
         try {
             BeanIntrospection<? super E> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
             Argument<?>[] constructorArguments = deserializableIntrospection.getConstructorArguments();
@@ -79,31 +82,15 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
             Argument<Object> argumentType = (Argument<Object>) constructorArguments[0];
             Deserializer<Object> argumentDeserializer = (Deserializer<Object>) context.findDeserializer(argumentType);
 
-            return (decoder, context1, type1) -> {
-                Object v = argumentDeserializer.deserialize(decoder, context1, argumentType);
-                try {
-                    return (E) deserializableIntrospection.instantiate(v);
-                } catch (IllegalArgumentException e) {
-                    if (v instanceof String str) {
-                        try {
-                            return (E) deserializableIntrospection.instantiate(str.toUpperCase(Locale.ENGLISH));
-                        } catch (IllegalArgumentException ex) {
-                            // throw original
-                            throw e;
-                        }
-                    } else {
-                        // throw original
-                        throw e;
-                    }
-                }
-            };
+            return new EnumCreatorDeserializer<E>(argumentType, argumentDeserializer, deserializableIntrospection);
         } catch (IntrospectionException | SerdeException e) {
             return this;
         }
     }
 
     @Override
-    public Serializer<E> createSpecific(EncoderContext context, Argument<? extends E> type) throws SerdeException {
+    @NonNull
+    public Serializer<E> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends E> type) throws SerdeException {
         try {
             BeanIntrospection<? extends E> si = introspections.getSerializableIntrospection(type);
             Collection<? extends BeanMethod<? extends E, Object>> beanMethods = si.getBeanMethods();
@@ -113,7 +100,11 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
                     Serializer<? super Object> valueSerializer = context.findSerializer(valueType);
                     return (encoder, subContext, subType, value) -> {
                         @SuppressWarnings("unchecked") Object result = ((Executable) beanMethod).invoke(value);
-                        valueSerializer.serialize(encoder, subContext, subType, result);
+                        if (result == null) {
+                            encoder.encodeNull();
+                        } else {
+                            valueSerializer.serialize(encoder, subContext, subType, result);
+                        }
                     };
                 }
             }
@@ -124,8 +115,55 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends E> type, E value) throws IOException {
+    public void serialize(Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends E> type, E value) throws IOException {
         encoder.encodeString(value.name());
+    }
+}
+
+/**
+ * Deserializer for enums with json creator.
+ * @param <E> The enum type
+ */
+final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E> {
+
+    Argument<Object> argumentType;
+    Deserializer<Object> argumentDeserializer;
+    BeanIntrospection<? super E> deserializableIntrospection;
+
+    public EnumCreatorDeserializer(
+        Argument<Object> argumentType,
+        Deserializer<Object> argumentDeserializer,
+        BeanIntrospection<? super E> deserializableIntrospection
+    ) {
+        this.argumentType = argumentType;
+        this.argumentDeserializer = argumentDeserializer;
+        this.deserializableIntrospection = deserializableIntrospection;
+    }
+
+    @Override
+    public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
+        Object v = argumentDeserializer.deserialize(decoder, context, argumentType);
+        try {
+            return (E) deserializableIntrospection.instantiate(v);
+        } catch (IllegalArgumentException e) {
+            if (v instanceof String) {
+                String string = (String) v;
+                try {
+                    return (E) deserializableIntrospection.instantiate(string.toUpperCase(Locale.ENGLISH));
+                } catch (IllegalArgumentException ex) {
+                    // throw original
+                    throw e;
+                }
+            } else {
+                // throw original
+                throw e;
+            }
+        }
+    }
+
+    @Override
+    public boolean allowNull() {
+        return argumentDeserializer.allowNull();
     }
 }
 

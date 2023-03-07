@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
+
 /**
  * Models subtype deserialization.
  *
@@ -65,14 +67,15 @@ class SubtypedDeserBean<T> extends DeserBean<T> {
                 SerdeConfig.SerSubtyped.class,
                 SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE,
                 SerdeConfig.SerSubtyped.DiscriminatorValueKind.class
-        ).orElse(SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
+        ).orElse(CLASS_NAME);
         this.discriminatorName = annotationMetadata.stringValue(
                 SerdeConfig.SerSubtyped.class,
                 SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP
-        ).orElse(discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type");
+        ).orElse(discriminatorValue == CLASS_NAME ? "@class" : "@type");
 
         final Class<T> superType = introspection.getBeanType();
-        final Collection<BeanIntrospection<? extends T>> subtypeIntrospections = decoderContext.getDeserializableSubtypes(superType);
+        final Collection<BeanIntrospection<? extends T>> subtypeIntrospections =
+            decoderContext.getDeserializableSubtypes(superType);
         this.subtypes = new HashMap<>(subtypeIntrospections.size());
         Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
         String defaultDiscriminator = null;
@@ -97,6 +100,11 @@ class SubtypedDeserBean<T> extends DeserBean<T> {
             );
             if (defaultType != null && defaultType.equals(subBeanType)) {
                 defaultDiscriminator = discriminatorName;
+            }
+
+            String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
+            for (String name: names) {
+                this.subtypes.put(name, deserBean);
             }
         }
         this.defaultImpl = defaultDiscriminator;

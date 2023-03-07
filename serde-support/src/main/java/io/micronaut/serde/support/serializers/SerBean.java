@@ -17,6 +17,9 @@ package io.micronaut.serde.support.serializers;
 
 import java.lang.reflect.Modifier;
 
+import io.micronaut.context.BeanContext;
+import io.micronaut.context.exceptions.ConfigurationException;
+import io.micronaut.context.exceptions.NoSuchBeanException;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
@@ -33,6 +36,8 @@ import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
+import io.micronaut.inject.qualifiers.Qualifiers;
+import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -85,6 +90,7 @@ final class SerBean<T> {
     public final SerializationConfiguration configuration;
     public final boolean simpleBean;
     public final boolean subtyped;
+    public final PropertyFilter propertyFilter;
 
     private volatile boolean initialized;
     private List<Initializer> initializers = new ArrayList<>();
@@ -94,10 +100,12 @@ final class SerBean<T> {
     SerBean(Argument<T> definition,
             SerdeIntrospections introspections,
             Serializer.EncoderContext encoderContext,
-            SerializationConfiguration configuration) throws SerdeException {
+            SerializationConfiguration configuration,
+            BeanContext beanContext) throws SerdeException {
         this.configuration = configuration;
         final AnnotationMetadata annotationMetadata = definition.getAnnotationMetadata();
         this.introspection = introspections.getSerializableIntrospection(definition);
+        this.propertyFilter = getPropertyFilterIfPresent(beanContext, definition.getSimpleName());
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, null);
         final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanProperties().stream()
@@ -310,6 +318,9 @@ final class SerBean<T> {
         if (wrapperProperty != null || anyGetter != null) {
             return false;
         }
+        if (propertyFilter != null) {
+            return false;
+        }
         for (SerProperty<T, Object> property : writeProperties) {
             if (property.backRef != null || property.include != SerdeConfig.SerInclude.ALWAYS || property.views != null || property.managedRef != null) {
                 return false;
@@ -374,6 +385,19 @@ final class SerBean<T> {
                     .orElse("");
         }
         return n;
+    }
+
+    private PropertyFilter getPropertyFilterIfPresent(BeanContext beanContext, String typeName) {
+        Optional<String> filterName = introspection.stringValue(SerdeConfig.class, SerdeConfig.FILTER);
+        if (filterName.isPresent() && !filterName.get().isEmpty()) {
+            try {
+                return beanContext.getBean(PropertyFilter.class, Qualifiers.byName(filterName.get()));
+            } catch (NoSuchBeanException e) {
+                throw new ConfigurationException("Json filter with name '" + filterName.get() + "' was defined on type " +
+                    typeName + " but no PropertyFilter with the name exists");
+            }
+        }
+        return null;
     }
 
     static final class PropSerProperty<B, P> extends SerProperty<B, P> {
