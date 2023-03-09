@@ -20,6 +20,7 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
+import oracle.sql.json.OracleJsonBinary;
 import oracle.sql.json.OracleJsonParser;
 
 import java.io.IOException;
@@ -102,13 +103,27 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
             case VALUE_DECIMAL:
             case VALUE_DOUBLE:
             case VALUE_FLOAT:
-                // only allowed for string and number
+            case VALUE_INTERVALDS:
+            case VALUE_INTERVALYM:
+            case VALUE_TIMESTAMPTZ:
+            case VALUE_DATE:
+                // only allowed for string, number
+                // additionally for processing string values from VALUE_INTERVALDS, VALUE_INTERVALYM, VALUE_TIMESTAMP,
+                // VALUE_TIMESTAMPTZ and VALUE_DATE
+                // in combination with custom de/serializers configured for Oracle Json parsing
                 return jsonParser.getString();
+            case VALUE_TIMESTAMP:
+                return jsonParser.getLocalDateTime().toString();
             case VALUE_TRUE:
                 return StringUtils.TRUE;
             case VALUE_FALSE:
                 return StringUtils.FALSE;
-            default:
+            case VALUE_BINARY:
+                // This is used to parse metadata _etag from Oracle Json View which is treated as binary value
+                // and getString() returns what we need.
+                OracleJsonBinary binary = jsonParser.getValue().asJsonBinary();
+                return binary.getString();
+             default:
                 throw new IllegalStateException("Method called in wrong context " + currentEvent);
         }
     }
