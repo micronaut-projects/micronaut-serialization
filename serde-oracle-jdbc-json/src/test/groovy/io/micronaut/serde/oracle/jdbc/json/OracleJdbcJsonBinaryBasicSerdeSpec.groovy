@@ -59,6 +59,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
 
     void 'test parsing various types'() {
         given:
+        def etag = UUID.randomUUID().toString()
         def uuid = UUID.randomUUID()
         def duration = Duration.ofMinutes(15)
         def period = Period.of(2, 3, 0)
@@ -73,6 +74,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         def oson = jsonFactory.createObject()
 
         // Add manually value to the object to mimic how Oracle DB would return it
+        oson.put("etag", new OracleJsonStringImpl(etag))
         oson.put("uuid", new OracleJsonStringImpl(uuid.toString()))
         oson.put("duration", new OracleJsonIntervalDSImpl(duration))
         oson.put("period", new OracleJsonIntervalYMImpl(period))
@@ -80,13 +82,12 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         oson.put("instant", new OracleJsonTimestampImpl(localDateTime))
         oson.put("offsetDateTime", new OracleJsonTimestampTZImpl(offsetDateTime))
         oson.put("date", new OracleJsonTimestampImpl(localDateTime))
-        oson.put("binary", new OracleJsonBinaryImpl("test".getBytes(Charset.defaultCharset()), false))
 
         def bytes = osonMapper.writeValueAsBytes(oson)
         when:
         def sampleData = osonMapper.readValue(bytes, SampleData)
         then:
-        !sampleData.etag
+        sampleData.etag == etag
         sampleData.uuid == uuid
         sampleData.duration == duration
         sampleData.period == period
@@ -94,6 +95,12 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         sampleData.instant == instant
         sampleData.offsetDateTime == offsetDateTime
         sampleData.date == date
+        when:
+        def json = textJsonMapper.writeValueAsString(sampleData)
+        then:
+        json != ''
+        // Just simple validation, no need to parse
+        json.contains("\"etag\":\"" + etag + "\"")
     }
 
 }
