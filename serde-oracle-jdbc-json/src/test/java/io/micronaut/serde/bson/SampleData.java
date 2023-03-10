@@ -48,8 +48,6 @@ public class SampleData {
     @Serdeable.Serializable(using = OracleJsonDurationSerde.class)
     private Duration duration;
 
-    private String binary;
-
     public LocalDateTime getLocalDateTime() {
         return localDateTime;
     }
@@ -112,13 +110,5 @@ public class SampleData {
 
     public void setDuration(Duration duration) {
         this.duration = duration;
-    }
-
-    public String getBinary() {
-        return binary;
-    }
-
-    public void setBinary(String binary) {
-        this.binary = binary;
     }
 }

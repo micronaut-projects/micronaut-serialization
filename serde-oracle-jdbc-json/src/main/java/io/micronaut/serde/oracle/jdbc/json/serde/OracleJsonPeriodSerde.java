@@ -15,7 +15,8 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
-import io.micronaut.context.annotation.Secondary;
+import io.micronaut.core.annotation.Order;
+import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.util.NullableSerde;
@@ -31,7 +32,7 @@ import java.time.Period;
  * @since 2.0.0
  */
 @Singleton
-@Secondary
+@Order(Ordered.LOWEST_PRECEDENCE)
 public class OracleJsonPeriodSerde extends OracleJsonTypeToStringSerializer<Period> implements NullableSerde<Period> {
 
     @Override
