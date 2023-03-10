@@ -63,12 +63,9 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
                 return TokenType.KEY;
             case VALUE_STRING:
                 return TokenType.STRING;
-            case VALUE_DECIMAL:
-            case VALUE_DOUBLE:
-            case VALUE_FLOAT:
+            case VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT:
                 return TokenType.NUMBER;
-            case VALUE_TRUE:
-            case VALUE_FALSE:
+            case VALUE_TRUE, VALUE_FALSE:
                 return TokenType.BOOLEAN;
             case VALUE_NULL:
                 return TokenType.NULL;
@@ -99,14 +96,8 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected String coerceScalarToString() {
         switch (currentEvent) {
-            case VALUE_STRING:
-            case VALUE_DECIMAL:
-            case VALUE_DOUBLE:
-            case VALUE_FLOAT:
-            case VALUE_INTERVALDS:
-            case VALUE_INTERVALYM:
-            case VALUE_TIMESTAMPTZ:
-            case VALUE_DATE:
+            case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS,
+                VALUE_INTERVALYM, VALUE_TIMESTAMPTZ, VALUE_DATE:
                 // only allowed for string, number
                 // additionally for processing string values from VALUE_INTERVALDS, VALUE_INTERVALYM, VALUE_TIMESTAMP,
                 // VALUE_TIMESTAMPTZ and VALUE_DATE
