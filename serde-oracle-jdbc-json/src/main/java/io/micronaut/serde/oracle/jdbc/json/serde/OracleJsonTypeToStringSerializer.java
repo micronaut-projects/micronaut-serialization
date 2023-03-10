@@ -27,6 +27,8 @@ import java.io.IOException;
  *
  * @author radovanradic
  * @since 2.0.0
+ *
+ * @param <T> the type that is to be serialized
  */
 public abstract class OracleJsonTypeToStringSerializer<T> implements Serializer<T> {
     @Override
