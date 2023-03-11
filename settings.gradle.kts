@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "6.2.2"
+    id("io.micronaut.build.shared.settings") version "6.3.5"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -32,6 +32,7 @@ include("doc-examples:example-kotlin")
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 configure<io.micronaut.build.MicronautBuildSettingsExtension> {
+    useStandardizedProjectNames.set(true)
     addSnapshotRepository()
     importMicronautCatalog()
     importMicronautCatalog("micronaut-reactor")

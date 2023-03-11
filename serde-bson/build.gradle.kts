@@ -4,16 +4,16 @@ plugins {
 
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
-    annotationProcessor(projects.serdeProcessor)
+    annotationProcessor(projects.micronautSerdeProcessor)
 
     api(libs.managed.bson)
     api(mn.micronaut.context)
-    api(projects.serdeApi)
-    implementation(projects.serdeSupport)
+    api(projects.micronautSerdeApi)
+    implementation(projects.micronautSerdeSupport)
     testAnnotationProcessor(mn.micronaut.inject.java)
-    testAnnotationProcessor(projects.serdeProcessor)
-    testImplementation(projects.serdeProcessor)
-    testImplementation(projects.serdeTck)
+    testAnnotationProcessor(projects.micronautSerdeProcessor)
+    testImplementation(projects.micronautSerdeProcessor)
+    testImplementation(projects.micronautSerdeTck)
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(mn.micronaut.inject.java.test)
     testCompileOnly(mn.micronaut.inject.groovy)
