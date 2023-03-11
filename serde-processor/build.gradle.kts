@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.serdeApi)
+    implementation(projects.micronautSerdeApi)
     api(mn.micronaut.core.processor)
     testAnnotationProcessor(mn.micronaut.inject.java)
     testImplementation(mn.micronaut.inject.java.test)

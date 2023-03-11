@@ -9,20 +9,20 @@ configurations.all {
 
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
-    annotationProcessor(projects.serdeProcessor)
+    annotationProcessor(projects.micronautSerdeProcessor)
 
     api(mn.micronaut.context)
-    api(projects.serdeApi)
-    implementation(projects.serdeSupport)
+    api(projects.micronautSerdeApi)
+    implementation(projects.micronautSerdeSupport)
     implementation(libs.oracle.jdbc.driver)
     compileOnly(libs.graal.svm)
     compileOnly(mn.micronaut.jackson.databind)
     testAnnotationProcessor(mn.micronaut.inject.java)
-    testAnnotationProcessor(projects.serdeProcessor)
+    testAnnotationProcessor(projects.micronautSerdeProcessor)
 
     testImplementation(mn.jackson.annotations)
-    testImplementation(projects.serdeProcessor)
-    testImplementation(projects.serdeTck)
+    testImplementation(projects.micronautSerdeProcessor)
+    testImplementation(projects.micronautSerdeTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.junit5)
     testImplementation(mn.micronaut.http.server.netty)

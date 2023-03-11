@@ -1,7 +1,7 @@
 [versions]
 micronaut = "4.0.0-SNAPSHOT"
 micronaut-docs = "2.0.0"
-micronaut-gradle-plugin = "3.7.0"
+micronaut-gradle-plugin = "3.7.5"
 micronaut-test = "3.7.0"
 micronaut-discovery = "4.0.0-SNAPSHOT"
 groovy = "4.0.5"

@@ -8,12 +8,12 @@ micronaut {
     testRuntime("spock")
 }
 dependencies {
-    compileOnly(projects.serdeProcessor)
-    compileOnly("io.micronaut:micronaut-inject-groovy")
-    implementation(project(":serde-jackson"))
-    implementation("io.micronaut:micronaut-http-client")
-    runtimeOnly("ch.qos.logback:logback-classic")
-    testCompileOnly("io.micronaut:micronaut-inject-groovy")
+    compileOnly(projects.micronautSerdeProcessor)
+    compileOnly(mn.micronaut.inject.groovy)
+    implementation(projects.micronautSerdeJackson)
+    implementation(mn.micronaut.http.client)
+    runtimeOnly(mn.logback.classic)
+    testCompileOnly(mn.micronaut.inject.groovy)
 
 }
 application {
