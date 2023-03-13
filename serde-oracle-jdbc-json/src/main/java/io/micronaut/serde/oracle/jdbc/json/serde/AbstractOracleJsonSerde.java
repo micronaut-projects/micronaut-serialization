@@ -15,11 +15,12 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.util.NullableSerde;
 
@@ -30,20 +31,29 @@ import java.io.IOException;
  *
  * @param <T> the type being deserialized
  */
-public abstract class AbstractOracleJsonDeserializer<T> implements NullableSerde<T> {
+@Internal
+public abstract class AbstractOracleJsonSerde<T> implements NullableSerde<T> {
 
     @Override
     @NonNull
     public final T deserializeNonNull(@NonNull Decoder decoder, @NonNull DecoderContext decoderContext, @NonNull Argument<? super T> type) throws IOException {
-        return doDeserializeNonNull(asOracleJsonDecoder(decoder), decoderContext, type);
+        if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
+            return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
+        } else {
+            return getDefault().deserializeNonNull(decoder, decoderContext, type);
+        }
     }
 
     @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, T value) throws IOException {
-        if (value == null) {
-            encoder.encodeNull();
+        if (encoder instanceof OracleJdbcJsonGeneratorEncoder oracleEncoder) {
+            if (value == null) {
+                encoder.encodeNull();
+            } else {
+                doSerializeNonNull(oracleEncoder, context, type, value);
+            }
         } else {
-            doSerializeNonNull(encoder, context, type, value);
+            getDefault().serialize(encoder, context, type, value);
         }
     }
 
@@ -69,13 +79,10 @@ public abstract class AbstractOracleJsonDeserializer<T> implements NullableSerde
      * @param value the value being serialized
      * @throws IOException if an unrecoverable error occurs
      */
-    protected abstract void doSerializeNonNull(Encoder encoder, EncoderContext context, Argument<? extends T> type, @NonNull T value) throws IOException;
+    protected abstract void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends T> type, @NonNull T value) throws IOException;
 
-    private OracleJdbcJsonParserDecoder asOracleJsonDecoder(Decoder decoder) throws SerdeException {
-        if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
-            return oracleJdbcJsonParserDecoder;
-        }
-        throw new SerdeException("Expected an instance of OracleJdbcJsonParserDecoder got: " + decoder);
-    }
-
+    /**
+     * @return The default behaviour
+     */
+    protected abstract NullableSerde<T> getDefault();
 }

@@ -106,7 +106,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
         gen.setCodec(objectCodecImpl);
-        Serializer<? super T> serializer = registry.findSerializer(argument)
+        Serializer<? super T> serializer = encoderContext.findSerializer(argument)
                                                    .createSpecific(encoderContext, argument);
         final Encoder encoder = JacksonEncoder.create(gen);
         serializer.serialize(
@@ -123,7 +123,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
         parser.setCodec(objectCodecImpl);
-        Deserializer deserializer = registry.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+        Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
         if (!parser.hasCurrentToken()) {
             parser.nextToken();
         }
@@ -248,7 +248,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
         if (tree != null && value != null) {
             Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
-            Deserializer deserializer = registry.findDeserializer(type).createSpecific(decoderContext, type);
+            Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
             if (deserializer instanceof UpdatingDeserializer) {
 
                 try (JsonParser parser = treeCodec.treeAsTokens(tree)) {

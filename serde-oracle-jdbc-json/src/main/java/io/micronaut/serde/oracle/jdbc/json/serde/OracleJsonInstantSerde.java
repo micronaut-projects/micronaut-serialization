@@ -15,18 +15,20 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import jakarta.inject.Singleton;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Order;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
+import io.micronaut.serde.support.serdes.InstantSerde;
+import io.micronaut.serde.util.NullableSerde;
+import jakarta.inject.Singleton;
 
 /**
  * Serde for {@link Instant} from Oracle JSON. It is needed since {@link oracle.sql.json.OracleJsonParser}
@@ -36,20 +38,41 @@ import java.time.ZoneId;
  * @since 2.0.0
  */
 @Singleton
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(-100)
 public class OracleJsonInstantSerde extends OracleJsonTemporalSerde<Instant> {
+
+    private final InstantSerde instantSerde;
+
+    public OracleJsonInstantSerde(InstantSerde instantSerde) {
+        this.instantSerde = instantSerde;
+    }
 
     @Override
     @NonNull
     protected Instant doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
                                            @NonNull DecoderContext decoderContext,
-                                           @NonNull Argument<? super Instant> type) {
-        LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+                                           @NonNull Argument<? super Instant> type) throws IOException {
+        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
+        if (t == OracleType.Type.TEMPORAL) {
+            LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
+            return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+        } else {
+            return getDefault().deserializeNonNull(decoder, decoderContext, type);
+        }
     }
 
     @Override
-    protected void doSerializeNonNull(Encoder encoder, EncoderContext context, Argument<? extends Instant> type, Instant value) throws IOException {
-        encoder.encodeString(LocalDateTime.ofInstant(value, ZoneId.systemDefault()).toString());
+    protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends Instant> type, Instant value) throws IOException {
+        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
+        if (t == OracleType.Type.TEMPORAL) {
+            encoder.encodeString(LocalDateTime.ofInstant(value, ZoneId.systemDefault()).toString());
+        } else {
+            getDefault().serialize(encoder, context, type, value);
+        }
+    }
+
+    @Override
+    protected NullableSerde<Instant> getDefault() {
+        return instantSerde;
     }
 }

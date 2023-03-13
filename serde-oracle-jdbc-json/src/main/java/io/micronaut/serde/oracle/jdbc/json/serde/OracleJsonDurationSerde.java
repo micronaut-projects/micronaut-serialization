@@ -15,17 +15,19 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
+import java.io.IOException;
+import java.time.Duration;
+
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.support.serdes.CoreSerdes;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
-
-import java.io.IOException;
-import java.time.Duration;
 
 /**
  * The custom serde for {@link Duration} for Oracle JSON. Needed because default serde in Micronaut expects number (nanos)
@@ -35,23 +37,31 @@ import java.time.Duration;
  * @since 2.0.0
  */
 @Singleton
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(-100)
 public class OracleJsonDurationSerde implements NullableSerde<Duration> {
 
     @Override
     @NonNull
     public Duration deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type) throws IOException {
-        String duration = decoder.decodeString();
-        return Duration.parse(duration);
+        if (decoder instanceof OracleJdbcJsonParserDecoder) {
+            String duration = decoder.decodeString();
+            return Duration.parse(duration);
+        } else {
+            return CoreSerdes.DURATION_SERDE.deserializeNonNull(decoder, decoderContext, type);
+        }
     }
 
     @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context,
                           @NonNull Argument<? extends Duration> type, Duration value) throws IOException {
-        if (value == null) {
-            encoder.encodeNull();
+        if (encoder instanceof OracleJdbcJsonGeneratorEncoder) {
+            if (value == null) {
+                encoder.encodeNull();
+            } else {
+                encoder.encodeString(value.toString());
+            }
         } else {
-            encoder.encodeString(value.toString());
+            CoreSerdes.DURATION_SERDE.serialize(encoder, context, type, value);
         }
     }
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
@@ -39,6 +40,11 @@ import jakarta.inject.Singleton;
 @Factory
 @BootstrapContextCompatible
 public class CoreSerdes {
+
+    public static final NullableSerde<Duration> DURATION_SERDE = new DurationSerde();
+    public static final NullableSerde<Period> PERIOD_SERDE = new PeriodSerde();
+    public static final CharSequenceSerde CHAR_SEQUENCE_SERDE = new CharSequenceSerde();
+
     /**
      * Serde used for object arrays.
      * @return The serde
@@ -58,19 +64,7 @@ public class CoreSerdes {
     @NonNull
     @BootstrapContextCompatible
     protected NullableSerde<Duration> durationSerde() {
-        return new NullableSerde<Duration>() {
-            @Override
-            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Duration> type, Duration value)
-                    throws IOException {
-                encoder.encodeLong(value.toNanos());
-            }
-
-            @Override
-            public Duration deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type)
-                    throws IOException {
-                return Duration.ofNanos(decoder.decodeLong());
-            }
-        };
+        return DURATION_SERDE;
     }
 
     /**
@@ -81,19 +75,19 @@ public class CoreSerdes {
     @NonNull
     @BootstrapContextCompatible
     protected NullableSerde<Period> periodSerde() {
-        return new NullableSerde<Period>() {
-            @Override
-            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Period> type, Period value)
-                    throws IOException {
-                encoder.encodeString(value.toString());
-            }
+        return PERIOD_SERDE;
+    }
 
-            @Override
-            public Period deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Period> type)
-                    throws IOException {
-                return Period.parse(decoder.decodeString());
-            }
-        };
+    /**
+     * Serde for CharSequence.
+     * @return CharSequence serde
+     */
+    @Singleton
+    @NonNull
+    @BootstrapContextCompatible
+    @Order(100) // lower priority than string
+    protected NullableSerde<CharSequence> charSequenceSerde() {
+        return CHAR_SEQUENCE_SERDE;
     }
 
     /**
@@ -163,5 +157,46 @@ public class CoreSerdes {
                 return decoder.decodeNode();
             }
         };
+    }
+
+    private static class DurationSerde implements NullableSerde<Duration> {
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Duration> type, Duration value)
+            throws IOException {
+            encoder.encodeLong(value.toNanos());
+        }
+
+        @Override
+        public Duration deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type)
+            throws IOException {
+            return Duration.ofNanos(decoder.decodeLong());
+        }
+    }
+
+    private static class PeriodSerde implements NullableSerde<Period> {
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Period> type, Period value)
+            throws IOException {
+            encoder.encodeString(value.toString());
+        }
+
+        @Override
+        public Period deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Period> type)
+            throws IOException {
+            return Period.parse(decoder.decodeString());
+        }
+    }
+
+    private static final class CharSequenceSerde
+        implements NullableSerde<CharSequence> {
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends CharSequence> type, CharSequence value) throws IOException {
+            encoder.encodeString(value.toString());
+        }
+
+        @Override
+        public CharSequence deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super CharSequence> type) throws IOException {
+            return decoder.decodeString();
+        }
     }
 }

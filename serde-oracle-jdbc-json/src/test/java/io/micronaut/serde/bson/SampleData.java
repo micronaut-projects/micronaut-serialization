@@ -1,15 +1,5 @@
 package io.micronaut.serde.bson;
 
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinaryStringSerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonDurationSerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonInstantSerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonLocaleDateSerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonLocaleDateTimeSerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonOffsetDateTimeSerde;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -18,38 +8,36 @@ import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.UUID;
 
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
+
+import static io.micronaut.serde.oracle.jdbc.json.annotation.OracleType.Type.*;
+
 @Introspected
 public class SampleData {
 
-    @Serdeable.Deserializable(using = OracleJsonLocaleDateTimeSerde.class)
-    @Serdeable.Serializable(using = OracleJsonLocaleDateTimeSerde.class)
+    @OracleType(TEMPORAL)
     private LocalDateTime localDateTime;
 
-    @Serdeable.Deserializable(using = OracleJsonOffsetDateTimeSerde.class)
-    @Serdeable.Serializable(using = OracleJsonOffsetDateTimeSerde.class)
+    @OracleType(TEMPORAL)
     private OffsetDateTime offsetDateTime;
 
-    @Serdeable.Deserializable(using = OracleJsonLocaleDateSerde.class)
-    @Serdeable.Serializable(using = OracleJsonLocaleDateSerde.class)
+    @OracleType(TEMPORAL)
     private LocalDate date;
 
-    @Serdeable.Deserializable(using = OracleJsonInstantSerde.class)
-    @Serdeable.Serializable(using = OracleJsonInstantSerde.class)
+    @OracleType(TEMPORAL)
     private Instant instant;
 
     private UUID uuid;
 
-    @Serdeable.Deserializable(using = OracleJsonBinaryStringSerde.class)
+    @OracleType(BASE16_STRING)
     private String etag;
 
-    @Serdeable.Deserializable(using = OracleJsonBinarySerde.class)
-    @Serdeable.Serializable(using = OracleJsonBinarySerde.class)
+    @OracleType(BINARY)
     private byte[] memo;
 
     private Period period;
 
-    @Serdeable.Deserializable(using = OracleJsonDurationSerde.class)
-    @Serdeable.Serializable(using = OracleJsonDurationSerde.class)
     private Duration duration;
 
     public LocalDateTime getLocalDateTime() {

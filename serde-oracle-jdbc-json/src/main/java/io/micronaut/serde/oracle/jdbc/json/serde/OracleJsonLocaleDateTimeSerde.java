@@ -16,7 +16,8 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
+import io.micronaut.serde.support.serdes.LocalDateTimeSerde;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDateTime;
@@ -28,6 +29,16 @@ import java.time.LocalDateTime;
  * @since 2.0.0
  */
 @Singleton
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(-100)
 public class OracleJsonLocaleDateTimeSerde extends OracleJsonTemporalSerde<LocalDateTime> {
+    private final LocalDateTimeSerde dateTimeSerde;
+
+    public OracleJsonLocaleDateTimeSerde(LocalDateTimeSerde dateTimeSerde) {
+        this.dateTimeSerde = dateTimeSerde;
+    }
+
+    @Override
+    protected NullableSerde<LocalDateTime> getDefault() {
+        return dateTimeSerde;
+    }
 }

@@ -21,6 +21,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectMapper;
@@ -72,7 +73,7 @@ public class JsonStreamMapper implements ObjectMapper {
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+        final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
                 JsonNodeDecoder.create(tree),
                 context,
@@ -95,10 +96,11 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
+        Decoder decoder = new JsonParserDecoder(parser);
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
+        final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
-                new JsonParserDecoder(parser),
+                decoder,
                 context,
                 type
         );
@@ -166,7 +168,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
         Serializer.EncoderContext context = registry.newEncoderContext(view);
-        final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(context, type);
+        final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
         serializer.serialize(
                 encoder,
                 context,

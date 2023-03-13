@@ -16,7 +16,8 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
+import io.micronaut.serde.support.serdes.OffsetDateTimeSerde;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.time.OffsetDateTime;
@@ -28,6 +29,16 @@ import java.time.OffsetDateTime;
  * @since 2.0.0
  */
 @Singleton
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(-100)
 public class OracleJsonOffsetDateTimeSerde extends OracleJsonTemporalSerde<OffsetDateTime> {
+    private final OffsetDateTimeSerde offsetDateTimeSerde;
+
+    public OracleJsonOffsetDateTimeSerde(OffsetDateTimeSerde offsetDateTimeSerde) {
+        this.offsetDateTimeSerde = offsetDateTimeSerde;
+    }
+
+    @Override
+    protected NullableSerde<OffsetDateTime> getDefault() {
+        return offsetDateTimeSerde;
+    }
 }

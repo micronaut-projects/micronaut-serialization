@@ -27,6 +27,7 @@ import oracle.sql.json.OracleJsonParser;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.time.temporal.Temporal;
 
 /**
@@ -114,6 +115,13 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
         return currentEvent == OracleJsonParser.Event.VALUE_TRUE;
     }
 
+    /**
+     * @return The current event.
+     */
+    public @NonNull OracleJsonParser.Event currentEvent() {
+        return currentEvent;
+    }
+
     @Override
     protected long getLong() {
         return jsonParser.getLong();
@@ -170,6 +178,11 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      * @return the byte array for Oracle JSON binary
      */
     public byte[] decodeBinary() {
+        if (currentEvent == OracleJsonParser.Event.VALUE_STRING) {
+            byte[] bytes = jsonParser.getString().getBytes(StandardCharsets.UTF_8);
+            nextToken();
+            return bytes;
+        }
         if (currentEvent != OracleJsonParser.Event.VALUE_BINARY) {
             throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
         }

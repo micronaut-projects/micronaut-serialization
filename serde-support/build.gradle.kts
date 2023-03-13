@@ -27,3 +27,8 @@ dependencies {
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(libs.jetbrains.annotations)
 }
+micronautBuild {
+    binaryCompatibility {
+        enabled.set(false)
+    }
+}

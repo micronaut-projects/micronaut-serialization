@@ -16,15 +16,17 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Encoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
+import io.micronaut.serde.support.DefaultSerdeRegistry;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Custom Oracle JSON deserializer for binary data that are represented as base16 encoded strings.
@@ -33,22 +35,47 @@ import java.io.IOException;
  * @author radovanradic
  * @since 2.0.0
  */
-@Order(Ordered.LOWEST_PRECEDENCE)
 @Singleton
-public class OracleJsonBinaryStringSerde extends AbstractOracleJsonDeserializer<String> {
+public class OracleJsonBinaryStringSerde extends AbstractOracleJsonSerde<String> {
 
     @Override
     @NonNull
     protected String doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                          @NonNull Argument<? super String> type) {
-        byte[] bytes = decoder.decodeBinary();
-        return OracleJsonBinaryImpl.getString(bytes, false);
+                                          @NonNull Argument<? super String> type) throws IOException {
+        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
+        if (t == OracleType.Type.BINARY || t == OracleType.Type.BASE16_STRING) {
+            byte[] bytes = decoder.decodeBinary();
+            return OracleJsonBinaryImpl.getString(bytes, false);
+        } else {
+            return getDefault().deserializeNonNull(
+                decoder,
+                decoderContext,
+                type
+            );
+        }
     }
 
     @Override
-    protected void doSerializeNonNull(@NonNull Encoder encoder, @NonNull EncoderContext context,
+    protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context,
                                       @NonNull Argument<? extends String> type, @NonNull String value) throws IOException {
-        encoder.encodeString(value);
+        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
+        if (t == OracleType.Type.BASE16_STRING) {
+            encoder.encodeString(value);
+        } else if (t == OracleType.Type.BINARY) {
+            encoder.encodeValue(new OracleJsonBinaryImpl(value.getBytes(StandardCharsets.UTF_8), false));
+        } else {
+            getDefault().serialize(
+                encoder,
+                context,
+                type,
+                value
+            );
+        }
+    }
+
+    @Override
+    protected NullableSerde<String> getDefault() {
+        return DefaultSerdeRegistry.STRING_SERDE;
     }
 
 }

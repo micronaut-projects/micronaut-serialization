@@ -16,7 +16,8 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.Order;
-import io.micronaut.core.order.Ordered;
+import io.micronaut.serde.support.serdes.ZonedDateTimeSerde;
+import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.time.ZonedDateTime;
@@ -28,6 +29,16 @@ import java.time.ZonedDateTime;
  * @since 2.0.0
  */
 @Singleton
-@Order(Ordered.LOWEST_PRECEDENCE)
+@Order(-100)
 public class OracleJsonZonedDateTimeSerde extends OracleJsonTemporalSerde<ZonedDateTime> {
+    private final ZonedDateTimeSerde zonedDateTimeSerde;
+
+    public OracleJsonZonedDateTimeSerde(ZonedDateTimeSerde zonedDateTimeSerde) {
+        this.zonedDateTimeSerde = zonedDateTimeSerde;
+    }
+
+    @Override
+    protected NullableSerde<ZonedDateTime> getDefault() {
+        return zonedDateTimeSerde;
+    }
 }

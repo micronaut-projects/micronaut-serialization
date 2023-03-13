@@ -17,8 +17,9 @@ package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Encoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
 import io.micronaut.serde.util.NullableSerde;
 
 import java.io.IOException;
@@ -32,20 +33,34 @@ import java.time.temporal.Temporal;
  *
  * @param <T> the temporal type to be de/serialized
  */
-public abstract class OracleJsonTemporalSerde<T extends Temporal> extends AbstractOracleJsonDeserializer<T> implements NullableSerde<T> {
+public abstract class OracleJsonTemporalSerde<T extends Temporal> extends AbstractOracleJsonSerde<T> implements NullableSerde<T> {
 
     @SuppressWarnings("unchecked")
     @Override
     @NonNull
     protected T doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                     @NonNull Argument<? super T> type) {
-        Temporal value = decoder.decodeTemporal();
-        return (T) value;
+                                     @NonNull Argument<? super T> type) throws IOException {
+        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
+        if (t == OracleType.Type.TEMPORAL) {
+            Temporal value = decoder.decodeTemporal();
+            return (T) value;
+        } else {
+            return getDefault().deserializeNonNull(decoder, decoderContext, type);
+        }
     }
 
     @Override
-    protected void doSerializeNonNull(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, @NonNull T value) throws IOException {
-        encoder.encodeString(value.toString());
+    protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, @NonNull T value) throws IOException {
+        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
+        if (t == OracleType.Type.TEMPORAL) {
+            encoder.encodeString(value.toString());
+        } else {
+            getDefault().serialize(
+                encoder,
+                context,
+                type,
+                value
+            );
+        }
     }
-
 }

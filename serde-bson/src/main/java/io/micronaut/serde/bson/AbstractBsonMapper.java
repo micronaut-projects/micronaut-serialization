@@ -91,7 +91,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(decoderContext, type);
+        final Deserializer<? extends T> deserializer = this.decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserialize(JsonNodeDecoder.create(tree), decoderContext, type);
     }
 
@@ -112,7 +112,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private <T> T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
-        return registry.findDeserializer(type)
+        return decoderContext.findDeserializer(type)
                 .createSpecific(decoderContext, type)
                 .deserialize(new BsonReaderDecoder(bsonReader), decoderContext, type);
     }
@@ -167,7 +167,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        final Serializer<Object> serializer = registry.findSerializer(type).createSpecific(encoderContext, type);
+        final Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
         serializer.serialize(encoder, encoderContext, type, object);
     }
 

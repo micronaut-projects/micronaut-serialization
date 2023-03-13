@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import oracle.sql.json.OracleJsonGenerator;
+import oracle.sql.json.OracleJsonValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,7 +32,7 @@ import java.math.BigInteger;
  * @since 1.2.0
  */
 @Internal
-final class OracleJdbcJsonGeneratorEncoder implements Encoder {
+public final class OracleJdbcJsonGeneratorEncoder implements Encoder {
     private final OracleJsonGenerator jsonGenerator;
     private final OracleJdbcJsonGeneratorEncoder parent;
     private String currentKey;
@@ -169,5 +170,9 @@ final class OracleJdbcJsonGeneratorEncoder implements Encoder {
             enc = enc.parent;
         }
         return builder.toString();
+    }
+
+    public void encodeValue(OracleJsonValue value) {
+        jsonGenerator.write(value);
     }
 }

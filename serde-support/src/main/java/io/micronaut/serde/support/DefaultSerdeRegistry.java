@@ -38,7 +38,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.BeanRegistration;
@@ -70,7 +69,6 @@ import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.serdes.NumberSerde;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
-import io.micronaut.serde.util.NullableDeserializer;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
@@ -81,6 +79,66 @@ import jakarta.inject.Singleton;
 @BootstrapContextCompatible
 public class DefaultSerdeRegistry implements SerdeRegistry {
 
+    public static final IntegerSerde INTEGER_SERDE = new IntegerSerde();
+    public static final LongSerde LONG_SERDE = new LongSerde();
+    public static final ShortSerde SHORT_SERDE = new ShortSerde();
+    public static final FloatSerde FLOAT_SERDE = new FloatSerde();
+    public static final ByteSerde BYTE_SERDE = new ByteSerde();
+    public static final DoubleSerde DOUBLE_SERDE = new DoubleSerde();
+    public static final OptionalIntSerde OPTIONAL_INT_SERDE = new OptionalIntSerde();
+    public static final OptionalDoubleSerde OPTIONAL_DOUBLE_SERDE = new OptionalDoubleSerde();
+    public static final OptionalLongSerde OPTIONAL_LONG_SERDE = new OptionalLongSerde();
+    public static final BigDecimalSerde BIG_DECIMAL_SERDE = new BigDecimalSerde();
+    public static final BigIntegerSerde BIG_INTEGER_SERDE = new BigIntegerSerde();
+    public static final UUIDSerde UUID_SERDE = new UUIDSerde();
+    public static final URLSerde URL_SERDE = new URLSerde();
+    public static final URISerde URI_SERDE = new URISerde();
+    public static final CharsetSerde CHARSET_SERDE = new CharsetSerde();
+    public static final TimeZoneSerde TIME_ZONE_SERDE = new TimeZoneSerde();
+    public static final LocaleSerde LOCALE_SERDE = new LocaleSerde();
+    public static final IntArraySerde INT_ARRAY_SERDE = new IntArraySerde();
+    public static final LongArraySerde LONG_ARRAY_SERDE = new LongArraySerde();
+    public static final FloatArraySerde FLOAT_ARRAY_SERDE = new FloatArraySerde();
+    public static final ShortArraySerde SHORT_ARRAY_SERDE = new ShortArraySerde();
+    public static final DoubleArraySerde DOUBLE_ARRAY_SERDE = new DoubleArraySerde();
+    public static final BooleanArraySerde BOOLEAN_ARRAY_SERDE = new BooleanArraySerde();
+    public static final ByteArraySerde BYTE_ARRAY_SERDE = new ByteArraySerde();
+    public static final CharArraySerde CHAR_ARRAY_SERDE = new CharArraySerde();
+
+    public static final StringSerde STRING_SERDE = new StringSerde();
+
+    public static final BooleanSerde BOOLEAN_SERDE = new BooleanSerde();
+    public static final CharSerde CHAR_SERDE = new CharSerde();
+    public static final List<SerdeRegistrar<?>> DEFAULT_SERDES = List.of(
+        BOOLEAN_SERDE,
+        BYTE_SERDE,
+        CHAR_SERDE,
+        DOUBLE_SERDE,
+        FLOAT_SERDE,
+        INTEGER_SERDE,
+        LONG_SERDE,
+        SHORT_SERDE,
+        STRING_SERDE,
+        OPTIONAL_INT_SERDE,
+        OPTIONAL_DOUBLE_SERDE,
+        OPTIONAL_LONG_SERDE,
+        BIG_DECIMAL_SERDE,
+        BIG_INTEGER_SERDE,
+        UUID_SERDE,
+        URL_SERDE,
+        URI_SERDE,
+        CHARSET_SERDE,
+        TIME_ZONE_SERDE,
+        LOCALE_SERDE,
+        INT_ARRAY_SERDE,
+        LONG_ARRAY_SERDE,
+        FLOAT_ARRAY_SERDE,
+        SHORT_ARRAY_SERDE,
+        DOUBLE_ARRAY_SERDE,
+        BOOLEAN_ARRAY_SERDE,
+        BYTE_ARRAY_SERDE,
+        CHAR_ARRAY_SERDE
+    );
     private final Serializer<Object> objectSerializer;
     private final Map<Class<?>, List<BeanDefinition<Serializer>>> serializerDefMap;
     private final Map<Class<?>, List<BeanDefinition<Deserializer>>> deserializerDefMap;
@@ -159,68 +217,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         registerBuiltInSerdes();
-        registerPrimitiveSerdes();
         this.objectSerializer = objectSerializer;
         this.objectDeserializer = objectDeserializer;
         this.conversionService = conversionService;
     }
 
-    private void registerPrimitiveSerdes() {
-        this.deserializerMap.put(
-                new TypeKey(Argument.BOOLEAN),
-                (decoder, decoderContext, type) -> decoder.decodeBoolean()
-        );
-        this.deserializerMap.put(
-                new TypeKey(Argument.of(Boolean.class)),
-                (NullableDeserializer<Boolean>) (decoder, decoderContext, type) -> decoder.decodeBoolean()
-        );
-        this.deserializerMap.put(
-                new TypeKey(Argument.CHAR),
-                (decoder, decoderContext, type) -> decoder.decodeChar()
-        );
-        this.deserializerMap.put(
-                new TypeKey(Argument.of(Character.class)),
-                (NullableDeserializer<Character>) (decoder, decoderContext, type) -> decoder.decodeChar()
-        );
-    }
-
     private void registerBuiltInSerdes() {
-        this.deserializerMap.put(new TypeKey(Argument.STRING),
-                                 (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
-        Stream.of(
-                new IntegerSerde(),
-                new LongSerde(),
-                new ShortSerde(),
-                new FloatSerde(),
-                new ByteSerde(),
-                new DoubleSerde(),
-                new OptionalIntSerde(),
-                new OptionalDoubleSerde(),
-                new OptionalLongSerde(),
-                new BigDecimalSerde(),
-                new BigIntegerSerde(),
-                new UUIDSerde(),
-                new URLSerde(),
-                new URISerde(),
-                new CharsetSerde(),
-                new TimeZoneSerde(),
-                new LocaleSerde(),
-                new IntArraySerde(),
-                new LongArraySerde(),
-                new FloatArraySerde(),
-                new ShortArraySerde(),
-                new DoubleArraySerde(),
-                new BooleanArraySerde(),
-                new ByteArraySerde(),
-                new CharArraySerde()
-        ).forEach(this::register);
+        DEFAULT_SERDES.forEach(this::register);
     }
 
     private void register(SerdeRegistrar<?> serdeRegistrar) {
         for (Argument<?> type : serdeRegistrar.getTypes()) {
             final TypeKey typeEntry = new TypeKey(type);
-            DefaultSerdeRegistry.this.deserializerMap.put(typeEntry, serdeRegistrar);
-            DefaultSerdeRegistry.this.serializerMap.put(typeEntry, serdeRegistrar);
+            // if it hasn't been overridden by a bean
+            if (!deserializerDefMap.containsKey(type.getType())) {
+                DefaultSerdeRegistry.this.deserializerMap.put(typeEntry, serdeRegistrar);
+            }
+            if (!serializerDefMap.containsKey(type.getType())) {
+                DefaultSerdeRegistry.this.serializerMap.put(typeEntry, serdeRegistrar);
+            }
         }
     }
 
@@ -609,6 +624,74 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public Integer getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Integer> type) {
             return type.isPrimitive() ? 0 : null;
+        }
+    }
+
+    private static final class CharSerde extends SerdeRegistrar<Character> implements NullableSerde<Character> {
+        @Override
+        public Character deserializeNonNull(Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super Character> type) throws IOException {
+            return decoder.decodeChar();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends Character> type, Character value) throws IOException {
+            encoder.encodeChar(value);
+        }
+
+        @Override
+        Argument<Character> getType() {
+            return Argument.of(Character.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                getType(), Argument.CHAR
+            );
+        }
+
+        @Nullable
+        @Override
+        public Character getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Character> type) {
+            return type.isPrimitive() ? (char) 0 : null;
+        }
+    }
+
+    private static final class BooleanSerde extends SerdeRegistrar<Boolean> implements NullableSerde<Boolean> {
+        @Override
+        public Boolean deserializeNonNull(Decoder decoder,
+                                          DecoderContext decoderContext,
+                                          Argument<? super Boolean> type) throws IOException {
+            return decoder.decodeBoolean();
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends Boolean> type, Boolean value) throws IOException {
+            encoder.encodeBoolean(value);
+        }
+
+        @Override
+        Argument<Boolean> getType() {
+            return Argument.of(Boolean.class);
+        }
+
+        @Override
+        protected Iterable<Argument<?>> getTypes() {
+            return Arrays.asList(
+                getType(), Argument.BOOLEAN
+            );
+        }
+
+        @Nullable
+        @Override
+        public Boolean getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) {
+            return type.isPrimitive() ? false : null;
         }
     }
 
@@ -1013,6 +1096,28 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public BigDecimal deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super BigDecimal> type)
                 throws IOException {
             return decoder.decodeBigDecimal();
+        }
+    }
+
+    private static final class StringSerde
+        extends SerdeRegistrar<String>
+        implements NullableSerde<String> {
+
+        @Override
+        Argument<String> getType() {
+            return Argument.of(String.class);
+        }
+
+        @Override
+        public void serialize(Encoder encoder, EncoderContext context, Argument<? extends String> type, String value)
+            throws IOException {
+            encoder.encodeString(value);
+        }
+
+        @Override
+        public String deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super String> type)
+            throws IOException {
+            return decoder.decodeString();
         }
     }
 
