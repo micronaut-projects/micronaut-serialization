@@ -389,7 +389,7 @@ class Test {
 
     }
 
-    void "test @JsonIgnore without @Inherited on interface method is not inherited"() {
+    void "test @JsonIgnore without @Inherited on interface method is inherited"() {
         given:
             def context = buildContext('test.Test', """
 package test;
