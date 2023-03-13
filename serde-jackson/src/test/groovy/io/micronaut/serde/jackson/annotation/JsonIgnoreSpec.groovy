@@ -428,7 +428,7 @@ interface MyInterface {
 
 """, [value:'test'])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"value":"test","ignored":false}'
+            writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
 
         cleanup:
             context.close()
