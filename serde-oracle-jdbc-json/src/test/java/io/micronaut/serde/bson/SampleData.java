@@ -1,11 +1,11 @@
 package io.micronaut.serde.bson;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.Period;
+import java.util.List;
 import java.util.UUID;
 
 import io.micronaut.core.annotation.Introspected;
@@ -25,9 +25,6 @@ public class SampleData {
     @OracleType(TEMPORAL)
     private LocalDate date;
 
-    @OracleType(TEMPORAL)
-    private Instant instant;
-
     private UUID uuid;
 
     @OracleType(BASE16_STRING)
@@ -39,6 +36,20 @@ public class SampleData {
     private Period period;
 
     private Duration duration;
+
+    private String description;
+
+    private int grade;
+
+    private Double rating;
+
+    private List<Float> rates;
+
+    private Address address;
+
+    private Person person;
+
+    private boolean active;
 
     public LocalDateTime getLocalDateTime() {
         return localDateTime;
@@ -62,14 +73,6 @@ public class SampleData {
 
     public void setDate(LocalDate date) {
         this.date = date;
-    }
-
-    public Instant getInstant() {
-        return instant;
-    }
-
-    public void setInstant(Instant instant) {
-        this.instant = instant;
     }
 
     public UUID getUuid() {
@@ -110,5 +113,61 @@ public class SampleData {
 
     public void setDuration(Duration duration) {
         this.duration = duration;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getGrade() {
+        return grade;
+    }
+
+    public void setGrade(int grade) {
+        this.grade = grade;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public List<Float> getRates() {
+        return rates;
+    }
+
+    public void setRates(List<Float> rates) {
+        this.rates = rates;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Person getPerson() {
+        return person;
+    }
+
+    public void setPerson(Person person) {
+        this.person = person;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
