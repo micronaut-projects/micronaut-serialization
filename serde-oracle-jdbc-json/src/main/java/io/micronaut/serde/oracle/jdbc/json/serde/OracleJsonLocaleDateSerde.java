@@ -15,19 +15,32 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.order.Ordered;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import jakarta.inject.Singleton;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Serde for {@link LocalDateTime} from Oracle JSON.
+ * Serde for {@link LocalDate} from Oracle JSON.
  *
  * @author radovanradic
  * @since 2.0.0
  */
 @Singleton
 @Order(Ordered.LOWEST_PRECEDENCE)
-public class OracleJsonLocaleDateTimeSerde extends OracleJsonTemporalSerde<LocalDateTime> {
+public class OracleJsonLocaleDateSerde extends OracleJsonTemporalSerde<LocalDate> {
+
+    @Override
+    @NonNull
+    protected LocalDate doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
+                                           @NonNull DecoderContext decoderContext,
+                                           @NonNull Argument<? super LocalDate> type) {
+        LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
+        return localDateTime.toLocalDate();
+    }
 }

@@ -22,34 +22,33 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import jakarta.inject.Singleton;
+import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
- * Serde for {@link Instant} from Oracle JSON. It is needed since {@link oracle.sql.json.OracleJsonParser}
- * does not return {@link Instant} so we need to convert it from {@link LocalDateTime}.
+ * Custom Oracle JSON deserializer for binary data that are represented as base16 encoded strings.
+ * This deserializer can be used for metadata etag field for example.
  *
  * @author radovanradic
  * @since 2.0.0
  */
-@Singleton
 @Order(Ordered.LOWEST_PRECEDENCE)
-public class OracleJsonInstantSerde extends OracleJsonTemporalSerde<Instant> {
+@Singleton
+public class OracleJsonBinaryStringSerde extends AbstractOracleJsonDeserializer<String> {
 
     @Override
     @NonNull
-    protected Instant doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
-                                           @NonNull DecoderContext decoderContext,
-                                           @NonNull Argument<? super Instant> type) {
-        LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+    protected String doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
+                                          @NonNull Argument<? super String> type) {
+        byte[] bytes = decoder.decodeBinary();
+        return OracleJsonBinaryImpl.getString(bytes, false);
     }
 
     @Override
-    protected void doSerializeNonNull(Encoder encoder, EncoderContext context, Argument<? extends Instant> type, Instant value) throws IOException {
-        encoder.encodeString(LocalDateTime.ofInstant(value, ZoneId.systemDefault()).toString());
+    protected void doSerializeNonNull(@NonNull Encoder encoder, @NonNull EncoderContext context,
+                                      @NonNull Argument<? extends String> type, @NonNull String value) throws IOException {
+        encoder.encodeString(value);
     }
+
 }
