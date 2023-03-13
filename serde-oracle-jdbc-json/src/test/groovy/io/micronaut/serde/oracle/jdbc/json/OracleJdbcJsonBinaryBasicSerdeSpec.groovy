@@ -7,6 +7,7 @@ import io.micronaut.serde.bson.SampleData
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl
+import oracle.jdbc.driver.json.tree.OracleJsonDateImpl
 import oracle.jdbc.driver.json.tree.OracleJsonIntervalDSImpl
 import oracle.jdbc.driver.json.tree.OracleJsonIntervalYMImpl
 import oracle.jdbc.driver.json.tree.OracleJsonStringImpl
@@ -60,6 +61,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
     void 'test parsing various types'() {
         given:
         def etag = UUID.randomUUID().toString()
+        def memo = "some long content"
         def uuid = UUID.randomUUID()
         def duration = Duration.ofMinutes(15)
         def period = Period.of(2, 3, 0)
@@ -68,39 +70,40 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         def instant = Instant.now()
         def localDateTime = LocalDateTime.ofInstant(instant, zoneId)
         def offsetDateTime = OffsetDateTime.ofInstant(instant, zoneId)
-        def date = Date.from(instant)
 
         def jsonFactory = new OracleJsonFactory()
         def oson = jsonFactory.createObject()
 
         // Add manually value to the object to mimic how Oracle DB would return it
-        oson.put("etag", new OracleJsonStringImpl(etag))
+        oson.put("etag", new OracleJsonBinaryImpl(etag.getBytes(Charset.defaultCharset()), false))
+        oson.put("memo", new OracleJsonBinaryImpl(memo.getBytes(Charset.defaultCharset()), false))
         oson.put("uuid", new OracleJsonStringImpl(uuid.toString()))
         oson.put("duration", new OracleJsonIntervalDSImpl(duration))
         oson.put("period", new OracleJsonIntervalYMImpl(period))
         oson.put("localDateTime", new OracleJsonTimestampImpl(localDateTime))
         oson.put("instant", new OracleJsonTimestampImpl(localDateTime))
         oson.put("offsetDateTime", new OracleJsonTimestampTZImpl(offsetDateTime))
-        oson.put("date", new OracleJsonTimestampImpl(localDateTime))
+        oson.put("date", new OracleJsonDateImpl(localDateTime))
 
         def bytes = osonMapper.writeValueAsBytes(oson)
         when:
         def sampleData = osonMapper.readValue(bytes, SampleData)
         then:
-        sampleData.etag == etag
+        sampleData.etag == OracleJsonBinaryImpl.getString(etag.getBytes(Charset.defaultCharset()), false)
+        sampleData.memo == memo.getBytes(Charset.defaultCharset())
         sampleData.uuid == uuid
         sampleData.duration == duration
         sampleData.period == period
         sampleData.localDateTime == localDateTime
         sampleData.instant == instant
         sampleData.offsetDateTime == offsetDateTime
-        sampleData.date == date
+        sampleData.date == localDateTime.toLocalDate()
         when:
         def json = textJsonMapper.writeValueAsString(sampleData)
         then:
         json != ''
         // Just simple validation, no need to parse
-        json.contains("\"etag\":\"" + etag + "\"")
+        json.contains("\"etag\":\"" + OracleJsonBinaryImpl.getString(etag.getBytes(Charset.defaultCharset()), false) + "\"")
     }
 
 }

@@ -22,34 +22,33 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import jakarta.inject.Singleton;
+import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
- * Serde for {@link Instant} from Oracle JSON. It is needed since {@link oracle.sql.json.OracleJsonParser}
- * does not return {@link Instant} so we need to convert it from {@link LocalDateTime}.
+ * The custom serde for binary values for Oracle JSON.
  *
  * @author radovanradic
  * @since 2.0.0
  */
 @Singleton
 @Order(Ordered.LOWEST_PRECEDENCE)
-public class OracleJsonInstantSerde extends OracleJsonTemporalSerde<Instant> {
+public class OracleJsonBinarySerde extends AbstractOracleJsonDeserializer<byte[]> {
 
     @Override
     @NonNull
-    protected Instant doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
-                                           @NonNull DecoderContext decoderContext,
-                                           @NonNull Argument<? super Instant> type) {
-        LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
-        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+    protected byte[] doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
+                                          @NonNull Argument<? super byte[]> type) {
+        return decoder.decodeBinary();
     }
 
     @Override
-    protected void doSerializeNonNull(Encoder encoder, EncoderContext context, Argument<? extends Instant> type, Instant value) throws IOException {
-        encoder.encodeString(LocalDateTime.ofInstant(value, ZoneId.systemDefault()).toString());
+    protected void doSerializeNonNull(@NonNull Encoder encoder, @NonNull EncoderContext context,
+                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) throws IOException {
+        // Expects to be base16 encoded when writing to the db
+        String strValue = OracleJsonBinaryImpl.getString(value, false);
+        encoder.encodeString(strValue);
     }
+
 }
