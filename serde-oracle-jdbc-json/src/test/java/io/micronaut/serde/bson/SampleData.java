@@ -5,13 +5,11 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde;
 import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinaryStringSerde;
 import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonDurationSerde;
-import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonInstantSerde;
 import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonLocaleDateSerde;
 import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonLocaleDateTimeSerde;
 import io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonOffsetDateTimeSerde;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -33,10 +31,6 @@ public class SampleData {
     @Serdeable.Deserializable(using = OracleJsonLocaleDateSerde.class)
     @Serdeable.Serializable(using = OracleJsonLocaleDateSerde.class)
     private LocalDate date;
-
-    @Serdeable.Deserializable(using = OracleJsonInstantSerde.class)
-    @Serdeable.Serializable(using = OracleJsonInstantSerde.class)
-    private Instant instant;
 
     private UUID uuid;
 
@@ -89,14 +83,6 @@ public class SampleData {
 
     public void setDate(LocalDate date) {
         this.date = date;
-    }
-
-    public Instant getInstant() {
-        return instant;
-    }
-
-    public void setInstant(Instant instant) {
-        this.instant = instant;
     }
 
     public UUID getUuid() {

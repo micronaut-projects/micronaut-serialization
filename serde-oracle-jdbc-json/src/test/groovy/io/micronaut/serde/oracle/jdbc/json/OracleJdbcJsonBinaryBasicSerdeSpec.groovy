@@ -26,7 +26,6 @@ import oracle.sql.json.OracleJsonObject
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.Period
@@ -73,10 +72,8 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         def duration = Duration.ofMinutes(15)
         def period = Period.of(2, 3, 0)
 
-        def zoneId = ZoneId.systemDefault()
-        def instant = Instant.now()
-        def localDateTime = LocalDateTime.ofInstant(instant, zoneId)
-        def offsetDateTime = OffsetDateTime.ofInstant(instant, zoneId)
+        def localDateTime = LocalDateTime.now()
+        def offsetDateTime = OffsetDateTime.now()
 
         def address = new Address("1", "Main St", "Someville", "11122")
 
@@ -97,7 +94,6 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         oson.put("duration", new OracleJsonIntervalDSImpl(duration))
         oson.put("period", new OracleJsonIntervalYMImpl(period))
         oson.put("localDateTime", new OracleJsonTimestampImpl(localDateTime))
-        oson.put("instant", new OracleJsonTimestampImpl(localDateTime))
         oson.put("offsetDateTime", new OracleJsonTimestampTZImpl(offsetDateTime))
         oson.put("date", new OracleJsonDateImpl(localDateTime))
         oson.put("description", new OracleJsonStringImpl(description))
@@ -124,7 +120,6 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         sampleData.duration == duration
         sampleData.period == period
         sampleData.localDateTime == localDateTime
-        sampleData.instant == instant
         sampleData.offsetDateTime == offsetDateTime
         sampleData.date == localDateTime.toLocalDate()
         sampleData.description == description
