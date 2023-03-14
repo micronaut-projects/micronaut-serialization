@@ -197,6 +197,12 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
             nextToken();
             return bytes;
         }
+        if (currentEvent == OracleJsonParser.Event.VALUE_STRING) {
+            String str = jsonParser.getString();
+            nextToken();
+            // string binary representation is Base16 encoded so we should decode it
+            return decodeBase16(str);
+        }
         throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
     }
 
@@ -262,5 +268,21 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
             };
         nextToken();
         return value;
+    }
+
+    private static byte[] decodeBase16(CharSequence cs) {
+        final int numCh = cs.length();
+        if ((numCh & 1) != 0) {
+            throw new IllegalArgumentException("Encoded string must have an even length");
+        }
+        byte[] array = new byte[numCh >> 1];
+        for (int p = 0; p < numCh; p += 2) {
+            int hi = Character.digit(cs.charAt(p), 16), lo = Character.digit(cs.charAt(p + 1), 16);
+            if ((hi | lo) < 0) {
+                throw new IllegalArgumentException("Encoded string " + cs + " contains non-hex characters");
+            }
+            array[p >> 1] = (byte) (hi << 4 | lo);
+        }
+        return array;
     }
 }

@@ -23,6 +23,7 @@ import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.support.DefaultSerdeRegistry;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
+import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 
 import java.io.IOException;
 
@@ -46,7 +47,7 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
     @Override
     protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context,
                                       @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) throws IOException {
-        getDefault().serialize(encoder, context, type, value);
+        encoder.encodeString(OracleJsonBinaryImpl.getString(value, false));
     }
 
     @Override
