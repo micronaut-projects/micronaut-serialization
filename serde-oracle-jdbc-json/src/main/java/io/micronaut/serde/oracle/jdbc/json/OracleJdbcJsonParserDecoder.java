@@ -27,7 +27,6 @@ import oracle.sql.json.OracleJsonParser;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.time.temporal.Temporal;
 
 /**
@@ -98,6 +97,10 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
                 // in combination with custom de/serializers configured for Oracle Json parsing
                 // which is needed to transform from VALUE_INTERVALDS to java.time.Duration
                 jsonParser.getString();
+            case VALUE_BINARY ->
+                // VALUE_BINARY will return Base16 encoded string and when serializing just write back the same string value
+                // which should work fine
+                jsonParser.getValue().asJsonBinary().getString();
             case VALUE_TRUE -> StringUtils.TRUE;
             case VALUE_FALSE -> StringUtils.FALSE;
             default ->
@@ -113,13 +116,6 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected boolean getBoolean() {
         return currentEvent == OracleJsonParser.Event.VALUE_TRUE;
-    }
-
-    /**
-     * @return The current event.
-     */
-    public @NonNull OracleJsonParser.Event currentEvent() {
-        return currentEvent;
     }
 
     @Override
@@ -178,11 +174,6 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      * @return the byte array for Oracle JSON binary
      */
     public byte[] decodeBinary() {
-        if (currentEvent == OracleJsonParser.Event.VALUE_STRING) {
-            byte[] bytes = jsonParser.getString().getBytes(StandardCharsets.UTF_8);
-            nextToken();
-            return bytes;
-        }
         if (currentEvent != OracleJsonParser.Event.VALUE_BINARY) {
             throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
         }

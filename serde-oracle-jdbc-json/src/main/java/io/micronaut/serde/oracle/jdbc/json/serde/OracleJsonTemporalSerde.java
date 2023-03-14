@@ -19,10 +19,8 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
 import io.micronaut.serde.util.NullableSerde;
 
-import java.io.IOException;
 import java.time.temporal.Temporal;
 
 /**
@@ -39,28 +37,13 @@ public abstract class OracleJsonTemporalSerde<T extends Temporal> extends Abstra
     @Override
     @NonNull
     protected T doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                     @NonNull Argument<? super T> type) throws IOException {
-        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
-        if (t == OracleType.Type.TEMPORAL) {
-            Temporal value = decoder.decodeTemporal();
-            return (T) value;
-        } else {
-            return getDefault().deserializeNonNull(decoder, decoderContext, type);
-        }
+                                     @NonNull Argument<? super T> type) {
+        Temporal value = decoder.decodeTemporal();
+        return (T) value;
     }
 
     @Override
-    protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, @NonNull T value) throws IOException {
-        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
-        if (t == OracleType.Type.TEMPORAL) {
-            encoder.encodeString(value.toString());
-        } else {
-            getDefault().serialize(
-                encoder,
-                context,
-                type,
-                value
-            );
-        }
+    protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, @NonNull T value) {
+        encoder.encodeString(value.toString());
     }
 }
