@@ -9,28 +9,20 @@ import java.util.List;
 import java.util.UUID;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
-
-import static io.micronaut.serde.oracle.jdbc.json.annotation.OracleType.Type.*;
 
 @Introspected
 public class SampleData {
 
-    @OracleType(TEMPORAL)
     private LocalDateTime localDateTime;
 
-    @OracleType(TEMPORAL)
     private OffsetDateTime offsetDateTime;
 
-    @OracleType(TEMPORAL)
     private LocalDate date;
 
     private UUID uuid;
 
-    @OracleType(BASE16_STRING)
     private String etag;
 
-    @OracleType(BINARY)
     private byte[] memo;
 
     private Period period;

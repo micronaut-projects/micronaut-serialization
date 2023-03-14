@@ -1,7 +1,6 @@
 package io.micronaut.serde.oracle.jdbc.json
 
 import io.micronaut.core.type.Argument
-import io.micronaut.core.util.StringUtils
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
 import io.micronaut.serde.bson.Address
@@ -11,12 +10,9 @@ import jakarta.inject.Inject
 import oracle.jdbc.driver.json.tree.OracleJsonArrayImpl
 import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl
 import oracle.jdbc.driver.json.tree.OracleJsonDateImpl
-import oracle.jdbc.driver.json.tree.OracleJsonDecimalImpl
 import oracle.jdbc.driver.json.tree.OracleJsonDoubleImpl
 import oracle.jdbc.driver.json.tree.OracleJsonIntervalDSImpl
 import oracle.jdbc.driver.json.tree.OracleJsonIntervalYMImpl
-import oracle.jdbc.driver.json.tree.OracleJsonNumberImpl
-import oracle.jdbc.driver.json.tree.OracleJsonObjectImpl
 import oracle.jdbc.driver.json.tree.OracleJsonStringImpl
 import oracle.jdbc.driver.json.tree.OracleJsonTimestampImpl
 import oracle.jdbc.driver.json.tree.OracleJsonTimestampTZImpl
@@ -29,7 +25,6 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.Period
-import java.time.ZoneId
 
 @MicronautTest
 class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
@@ -97,7 +92,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         oson.put("offsetDateTime", new OracleJsonTimestampTZImpl(offsetDateTime))
         oson.put("date", new OracleJsonDateImpl(localDateTime))
         oson.put("description", new OracleJsonStringImpl(description))
-        oson.put("grade", new OracleJsonDecimalImpl(grade))
+        oson.put("grade", new OracleJsonDoubleImpl(grade))
         oson.put("rating", new OracleJsonDoubleImpl(rating))
         def oracleJsonArrayRates = new OracleJsonArrayImpl()
         rates.forEach {oracleJsonArrayRates.add(it.doubleValue())}
@@ -108,7 +103,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         oracleJsonObjectAddress.put("postcode", address.getPostcode())
         oracleJsonObjectAddress.put("town", address.getTown())
         oson.put("address", oracleJsonObjectAddress)
-        oson.put("active", new OracleJsonStringImpl(StringUtils.TRUE))
+        oson.put("active", new OracleJsonStringImpl(active.toString()))
 
         def bytes = osonMapper.writeValueAsBytes(oson)
         when:
@@ -128,7 +123,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         sampleData.rates == rates
         sampleData.address == address
         !sampleData.person
-        sampleData.active
+        sampleData.active == active
         when:
         def json = textJsonMapper.writeValueAsString(sampleData)
         then:

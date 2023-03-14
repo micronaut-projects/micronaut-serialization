@@ -15,14 +15,11 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
-import java.io.IOException;
-
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
 import io.micronaut.serde.support.DefaultSerdeRegistry;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
@@ -41,31 +38,16 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
     @Override
     @NonNull
     protected byte[] doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                          @NonNull Argument<? super byte[]> type) throws IOException {
-
-        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
-        if (t == OracleType.Type.BINARY) {
-            return decoder.decodeBinary();
-        } else {
-            return getDefault().deserializeNonNull(decoder, decoderContext, type);
-        }
+                                          @NonNull Argument<? super byte[]> type) {
+        return decoder.decodeBinary();
     }
 
     @Override
     protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context,
-                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) throws IOException {
-        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
-        if (t == OracleType.Type.BINARY) {
-            encoder.encodeValue(new OracleJsonBinaryImpl(value, false));
-        } else {
-            getDefault().serialize(
-                encoder,
-                context,
-                type,
-                value
-            );
-        }
-
+                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) {
+        // Expects to be base16 encoded when writing to the db
+        String strValue = OracleJsonBinaryImpl.getString(value, false);
+        encoder.encodeString(strValue);
     }
 
     @Override

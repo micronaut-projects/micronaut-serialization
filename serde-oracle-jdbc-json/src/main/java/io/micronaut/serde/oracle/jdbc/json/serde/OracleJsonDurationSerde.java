@@ -23,9 +23,6 @@ import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
-import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.support.serdes.CoreSerdes;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
@@ -43,25 +40,17 @@ public class OracleJsonDurationSerde implements NullableSerde<Duration> {
     @Override
     @NonNull
     public Duration deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type) throws IOException {
-        if (decoder instanceof OracleJdbcJsonParserDecoder) {
-            String duration = decoder.decodeString();
-            return Duration.parse(duration);
-        } else {
-            return CoreSerdes.DURATION_SERDE.deserializeNonNull(decoder, decoderContext, type);
-        }
+        String duration = decoder.decodeString();
+        return Duration.parse(duration);
     }
 
     @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context,
                           @NonNull Argument<? extends Duration> type, Duration value) throws IOException {
-        if (encoder instanceof OracleJdbcJsonGeneratorEncoder) {
-            if (value == null) {
-                encoder.encodeNull();
-            } else {
-                encoder.encodeString(value.toString());
-            }
+        if (value == null) {
+            encoder.encodeNull();
         } else {
-            CoreSerdes.DURATION_SERDE.serialize(encoder, context, type, value);
+            encoder.encodeString(value.toString());
         }
     }
 }

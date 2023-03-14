@@ -19,12 +19,10 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.oracle.jdbc.json.annotation.OracleType;
 import io.micronaut.serde.support.serdes.LocalDateSerde;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -48,18 +46,9 @@ public class OracleJsonLocaleDateSerde extends OracleJsonTemporalSerde<LocalDate
     @NonNull
     protected LocalDate doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
                                            @NonNull DecoderContext decoderContext,
-                                           @NonNull Argument<? super LocalDate> type) throws IOException {
-        OracleType.Type t = type.getAnnotationMetadata().enumValue(OracleType.class, OracleType.Type.class).orElse(null);
-        if (t == OracleType.Type.TEMPORAL) {
-            LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
-            return localDateTime.toLocalDate();
-        } else {
-            return getDefault().deserializeNonNull(
-                decoder,
-                decoderContext,
-                type
-            );
-        }
+                                           @NonNull Argument<? super LocalDate> type) {
+        LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
+        return localDateTime.toLocalDate();
     }
 
     @Override

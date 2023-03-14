@@ -98,6 +98,10 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
                 // in combination with custom de/serializers configured for Oracle Json parsing
                 // which is needed to transform from VALUE_INTERVALDS to java.time.Duration
                 jsonParser.getString();
+            case VALUE_BINARY ->
+                // VALUE_BINARY will return Base16 encoded string and when serializing just write back the same string value
+                // which should work fine
+                jsonParser.getValue().asJsonBinary().getString();
             case VALUE_TRUE -> StringUtils.TRUE;
             case VALUE_FALSE -> StringUtils.FALSE;
             default ->
