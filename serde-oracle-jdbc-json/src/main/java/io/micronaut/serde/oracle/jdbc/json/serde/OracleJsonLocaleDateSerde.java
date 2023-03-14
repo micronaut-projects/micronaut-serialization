@@ -18,13 +18,13 @@ package io.micronaut.serde.oracle.jdbc.json.serde;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.support.serdes.LocalDateSerde;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Serde for {@link LocalDate} from Oracle JSON.
@@ -34,7 +34,7 @@ import java.time.LocalDateTime;
  */
 @Singleton
 @Order(-100)
-public class OracleJsonLocaleDateSerde extends OracleJsonTemporalSerde<LocalDate> {
+public class OracleJsonLocaleDateSerde extends AbstractOracleJsonSerde<LocalDate> {
 
     private final LocalDateSerde localDateSerde;
 
@@ -47,8 +47,12 @@ public class OracleJsonLocaleDateSerde extends OracleJsonTemporalSerde<LocalDate
     protected LocalDate doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
                                            @NonNull DecoderContext decoderContext,
                                            @NonNull Argument<? super LocalDate> type) {
-        LocalDateTime localDateTime = (LocalDateTime) decoder.decodeTemporal();
-        return localDateTime.toLocalDate();
+        return decoder.decodeLocalDate();
+    }
+
+    @Override
+    protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends LocalDate> type, LocalDate value) {
+        encoder.encodeString(value.toString());
     }
 
     @Override

@@ -16,6 +16,9 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.Order;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.support.serdes.OffsetDateTimeSerde;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
@@ -30,11 +33,21 @@ import java.time.OffsetDateTime;
  */
 @Singleton
 @Order(-100)
-public class OracleJsonOffsetDateTimeSerde extends OracleJsonTemporalSerde<OffsetDateTime> {
+public class OracleJsonOffsetDateTimeSerde extends AbstractOracleJsonSerde<OffsetDateTime> {
     private final OffsetDateTimeSerde offsetDateTimeSerde;
 
     public OracleJsonOffsetDateTimeSerde(OffsetDateTimeSerde offsetDateTimeSerde) {
         this.offsetDateTimeSerde = offsetDateTimeSerde;
+    }
+
+    @Override
+    protected OffsetDateTime doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext, Argument<? super OffsetDateTime> type) {
+        return decoder.decodeOffsetDateTime();
+    }
+
+    @Override
+    protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends OffsetDateTime> type, OffsetDateTime value) {
+        encoder.encodeString(value.toString());
     }
 
     @Override

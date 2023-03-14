@@ -22,12 +22,16 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
+import oracle.sql.json.OracleJsonArray;
 import oracle.sql.json.OracleJsonParser;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.temporal.Temporal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for Oracle JDBC JSON.
@@ -174,28 +178,89 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      * @return the byte array for Oracle JSON binary
      */
     public byte[] decodeBinary() {
-        if (currentEvent != OracleJsonParser.Event.VALUE_BINARY) {
-            throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+        if (currentEvent == OracleJsonParser.Event.VALUE_BINARY) {
+            byte[] bytes = jsonParser.getBytes();
+            nextToken();
+            return bytes;
         }
-        byte[] bytes = jsonParser.getBytes();
-        nextToken();
-        return bytes;
+        if (currentEvent == OracleJsonParser.Event.START_ARRAY) {
+            OracleJsonArray oracleJsonArray = jsonParser.getArray();
+            int size = oracleJsonArray.size();
+            byte[] bytes = new byte[size];
+            for (int i = 0; i < size; i++) {
+                if (oracleJsonArray.isNull(i)) {
+                    bytes[i] = 0;
+                } else {
+                    bytes[i] = (byte) oracleJsonArray.getInt(i);
+                }
+            }
+            nextToken();
+            return bytes;
+        }
+        throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
     }
 
     /**
-     * Decodes Oracle JSON value as {@link Temporal}.
+     * Decodes Oracle JSON value as {@link LocalDate}.
      *
-     * @return the {@link Temporal} value being decoded
+     * @return the {@link LocalDate} value being decoded
      */
-    public Temporal decodeTemporal() {
-        Temporal value =
+    public LocalDate decodeLocalDate() {
+        LocalDate value =
             switch (currentEvent) {
-                case VALUE_DATE, VALUE_TIMESTAMP -> jsonParser.getLocalDateTime();
-                case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime();
+                case VALUE_DATE -> jsonParser.getLocalDateTime().toLocalDate();
+                case VALUE_STRING -> LocalDate.parse(jsonParser.getString());
                 default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
             };
         nextToken();
         return value;
+    }
 
+    /**
+     * Decodes Oracle JSON value as {@link LocalDateTime}.
+     *
+     * @return the {@link LocalDateTime} value being decoded
+     */
+    public LocalDateTime decodeLocalDateTime() {
+        LocalDateTime value =
+            switch (currentEvent) {
+                case VALUE_DATE, VALUE_TIMESTAMP -> jsonParser.getLocalDateTime();
+                case VALUE_STRING -> LocalDateTime.parse(jsonParser.getString());
+                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+            };
+        nextToken();
+        return value;
+    }
+
+    /**
+     * Decodes Oracle JSON value as {@link OffsetDateTime}.
+     *
+     * @return the {@link OffsetDateTime} value being decoded
+     */
+    public OffsetDateTime decodeOffsetDateTime() {
+        OffsetDateTime value =
+            switch (currentEvent) {
+                case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime();
+                case VALUE_STRING -> OffsetDateTime.parse(jsonParser.getString());
+                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+            };
+        nextToken();
+        return value;
+    }
+
+    /**
+     * Decodes Oracle JSON value as {@link ZonedDateTime}.
+     *
+     * @return the {@link ZonedDateTime} value being decoded
+     */
+    public ZonedDateTime decodeZonedDateTime() {
+        ZonedDateTime value =
+            switch (currentEvent) {
+                case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime().toZonedDateTime();
+                case VALUE_STRING -> ZonedDateTime.parse(jsonParser.getString());
+                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+            };
+        nextToken();
+        return value;
     }
 }

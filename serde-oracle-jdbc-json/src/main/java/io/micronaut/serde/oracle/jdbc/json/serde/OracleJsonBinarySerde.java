@@ -23,7 +23,8 @@ import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.support.DefaultSerdeRegistry;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
-import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
+
+import java.io.IOException;
 
 /**
  * The custom serde for binary values for Oracle JSON.
@@ -44,10 +45,8 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
 
     @Override
     protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context,
-                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) {
-        // Expects to be base16 encoded when writing to the db
-        String strValue = OracleJsonBinaryImpl.getString(value, false);
-        encoder.encodeString(strValue);
+                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) throws IOException {
+        getDefault().serialize(encoder, context, type, value);
     }
 
     @Override

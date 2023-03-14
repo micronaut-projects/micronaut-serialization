@@ -16,6 +16,9 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.Order;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
+import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.support.serdes.ZonedDateTimeSerde;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
@@ -30,11 +33,21 @@ import java.time.ZonedDateTime;
  */
 @Singleton
 @Order(-100)
-public class OracleJsonZonedDateTimeSerde extends OracleJsonTemporalSerde<ZonedDateTime> {
+public class OracleJsonZonedDateTimeSerde extends AbstractOracleJsonSerde<ZonedDateTime> {
     private final ZonedDateTimeSerde zonedDateTimeSerde;
 
     public OracleJsonZonedDateTimeSerde(ZonedDateTimeSerde zonedDateTimeSerde) {
         this.zonedDateTimeSerde = zonedDateTimeSerde;
+    }
+
+    @Override
+    protected ZonedDateTime doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext, Argument<? super ZonedDateTime> type) {
+        return decoder.decodeZonedDateTime();
+    }
+
+    @Override
+    protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends ZonedDateTime> type, ZonedDateTime value) {
+        encoder.encodeString(value.toString());
     }
 
     @Override

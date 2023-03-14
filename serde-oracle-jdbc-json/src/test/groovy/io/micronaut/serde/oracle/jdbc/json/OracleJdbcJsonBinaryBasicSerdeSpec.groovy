@@ -4,6 +4,7 @@ import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
 import io.micronaut.serde.bson.Address
+import io.micronaut.serde.bson.Metadata
 import io.micronaut.serde.bson.SampleData
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
@@ -132,4 +133,24 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         json.contains("\"etag\":\"" + OracleJsonBinaryImpl.getString(etag.getBytes(Charset.defaultCharset()), false) + "\"")
     }
 
+    void "test metadata object parsing"() {
+        given:
+        def etag = UUID.randomUUID().toString()
+        def asof = "asofrandom"
+        def jsonFactory = new OracleJsonFactory()
+        def oson = jsonFactory.createObject()
+        oson.put("etag", new OracleJsonBinaryImpl(etag.getBytes(Charset.defaultCharset()), false))
+        oson.put("asof", new OracleJsonBinaryImpl(asof.getBytes(Charset.defaultCharset()), false))
+        def bytes = osonMapper.writeValueAsBytes(oson)
+        when:
+        def metadata = osonMapper.readValue(bytes, Metadata)
+        then:
+        metadata.etag == etag.getBytes(Charset.defaultCharset())
+        metadata.asof == asof.getBytes(Charset.defaultCharset())
+        when:
+        def json = textJsonMapper.writeValueAsString(metadata)
+        then:
+        json == '{"etag":"' + OracleJsonBinaryImpl.getString(metadata.etag, false) + '","asof":"' +
+                OracleJsonBinaryImpl.getString(metadata.asof, false) + '"}'
+    }
 }
