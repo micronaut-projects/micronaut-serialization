@@ -145,12 +145,11 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         when:
         def metadata = osonMapper.readValue(bytes, Metadata)
         then:
-        metadata.etag == etag.getBytes(Charset.defaultCharset())
-        metadata.asof == asof.getBytes(Charset.defaultCharset())
+        metadata.etag == OracleJsonBinaryImpl.getString(etag.getBytes(Charset.defaultCharset()), false)
+        metadata.asof == OracleJsonBinaryImpl.getString(asof.getBytes(Charset.defaultCharset()), false)
         when:
         def json = textJsonMapper.writeValueAsString(metadata)
         then:
-        json == '{"etag":"' + OracleJsonBinaryImpl.getString(metadata.etag, false) + '","asof":"' +
-                OracleJsonBinaryImpl.getString(metadata.asof, false) + '"}'
+        json == '{"etag":"' + metadata.etag + '","asof":"' + metadata.asof + '"}'
     }
 }

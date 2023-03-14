@@ -1,24 +1,27 @@
 package io.micronaut.serde.bson;
 
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
 public class Metadata {
 
-    private byte[] etag;
+    private String etag;
 
-    private byte[] asof;
+    private String asof;
 
-    public byte[] getEtag() {
+    public String getEtag() {
         return etag;
     }
 
-    public void setEtag(byte[] etag) {
+    public void setEtag(String etag) {
         this.etag = etag;
     }
 
-    public byte[] getAsof() {
+    public String getAsof() {
         return asof;
     }
 
-    public void setAsof(byte[] asof) {
+    public void setAsof(String asof) {
         this.asof = asof;
     }
 }
