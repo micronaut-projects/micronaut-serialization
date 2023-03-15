@@ -25,7 +25,6 @@ import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 
-import java.io.IOException;
 
 /**
  * The custom serde for binary values for Oracle JSON.
@@ -46,7 +45,7 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
 
     @Override
     protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context,
-                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) throws IOException {
+                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) {
         encoder.encodeString(OracleJsonBinaryImpl.getString(value, false));
     }
 

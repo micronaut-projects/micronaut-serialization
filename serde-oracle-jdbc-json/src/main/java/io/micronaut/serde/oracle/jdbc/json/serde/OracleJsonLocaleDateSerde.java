@@ -25,7 +25,6 @@ import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Serde for {@link LocalDate} from Oracle JSON.
