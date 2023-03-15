@@ -47,7 +47,7 @@ public class OracleJsonLocaleDateTimeSerde extends AbstractOracleJsonSerde<Local
 
     @Override
     protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends LocalDateTime> type, LocalDateTime value) {
-        encoder.encodeString(value.toString());
+        encoder.encodeLocalDateTime(value);
     }
 
     @Override

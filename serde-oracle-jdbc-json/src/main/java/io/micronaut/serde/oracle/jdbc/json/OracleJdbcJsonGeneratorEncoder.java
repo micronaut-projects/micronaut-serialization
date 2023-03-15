@@ -20,10 +20,11 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import oracle.sql.json.OracleJsonGenerator;
-import oracle.sql.json.OracleJsonValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Implementation of the {@link Encoder} interface for Oracle JDBC JSON.
@@ -172,7 +173,23 @@ public final class OracleJdbcJsonGeneratorEncoder implements Encoder {
         return builder.toString();
     }
 
-    public void encodeValue(OracleJsonValue value) {
-        jsonGenerator.write(value);
+    /**
+     * Encodes local date time.
+     *
+     * @param localDateTime the local date time
+     */
+    public void encodeLocalDateTime(LocalDateTime localDateTime) {
+        jsonGenerator.write(localDateTime.toString());
+        postEncodeValue();
+    }
+
+    /**
+     * Encodes offset date time.
+     *
+     * @param offsetDateTime the offset date time
+     */
+    public void encodeOffsetDateTime(OffsetDateTime offsetDateTime) {
+        jsonGenerator.write(offsetDateTime.toString());
+        postEncodeValue();
     }
 }

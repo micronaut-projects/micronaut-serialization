@@ -47,7 +47,7 @@ public class OracleJsonZonedDateTimeSerde extends AbstractOracleJsonSerde<ZonedD
 
     @Override
     protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends ZonedDateTime> type, ZonedDateTime value) {
-        encoder.encodeString(value.toString());
+        encoder.encodeOffsetDateTime(value.toOffsetDateTime());
     }
 
     @Override

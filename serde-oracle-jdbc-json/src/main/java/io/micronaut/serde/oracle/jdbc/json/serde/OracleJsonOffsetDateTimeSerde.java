@@ -47,7 +47,7 @@ public class OracleJsonOffsetDateTimeSerde extends AbstractOracleJsonSerde<Offse
 
     @Override
     protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends OffsetDateTime> type, OffsetDateTime value) {
-        encoder.encodeString(value.toString());
+        encoder.encodeOffsetDateTime(value);
     }
 
     @Override

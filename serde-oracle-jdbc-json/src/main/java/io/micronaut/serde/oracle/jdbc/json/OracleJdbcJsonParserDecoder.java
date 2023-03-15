@@ -28,7 +28,6 @@ import oracle.sql.json.OracleJsonParser;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
@@ -200,26 +199,10 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
         if (currentEvent == OracleJsonParser.Event.VALUE_STRING) {
             String str = jsonParser.getString();
             nextToken();
-            // string binary representation is Base16 encoded so we should decode it
+            // string binary representation is Base16 encoded, so we should decode it
             return decodeBase16(str);
         }
         throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
-    }
-
-    /**
-     * Decodes Oracle JSON value as {@link LocalDate}.
-     *
-     * @return the {@link LocalDate} value being decoded
-     */
-    public LocalDate decodeLocalDate() {
-        LocalDate value =
-            switch (currentEvent) {
-                case VALUE_DATE -> jsonParser.getLocalDateTime().toLocalDate();
-                case VALUE_STRING -> LocalDate.parse(jsonParser.getString());
-                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
-            };
-        nextToken();
-        return value;
     }
 
     /**
