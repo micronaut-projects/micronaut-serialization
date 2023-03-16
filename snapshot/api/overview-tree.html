@@ -62,6 +62,7 @@ loadScripts(document, 'script');</script>
 <li><a href="io/micronaut/serde/json/stream/package-tree.html">io.micronaut.serde.json.stream</a>, </li>
 <li><a href="io/micronaut/serde/json/stream/graalvm/package-tree.html">io.micronaut.serde.json.stream.graalvm</a>, </li>
 <li><a href="io/micronaut/serde/oracle/jdbc/json/package-tree.html">io.micronaut.serde.oracle.jdbc.json</a>, </li>
+<li><a href="io/micronaut/serde/oracle/jdbc/json/serde/package-tree.html">io.micronaut.serde.oracle.jdbc.json.serde</a>, </li>
 <li><a href="io/micronaut/serde/processor/package-tree.html">io.micronaut.serde.processor</a>, </li>
 <li><a href="io/micronaut/serde/processor/bson/package-tree.html">io.micronaut.serde.processor.bson</a>, </li>
 <li><a href="io/micronaut/serde/processor/jackson/package-tree.html">io.micronaut.serde.processor.jackson</a>, </li>
@@ -95,6 +96,15 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" class="type-name-link" title="class in io.micronaut.serde.bson.custom">CodecBsonDecoder</a>&lt;T&gt;</li>
 </ul>
 </li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a>&lt;T&gt; (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)
+<ul>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonBinarySerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonBinarySerde</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonLocaleDateSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleDateSerde</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonLocaleDateTimeSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleDateTimeSerde</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonOffsetDateTimeSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonOffsetDateTimeSerde</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonZonedDateTimeSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonZonedDateTimeSerde</a></li>
+</ul>
+</li>
 <li class="circle">io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html" class="type-name-link" title="class in io.micronaut.serde.reference">AbstractPropertyReferenceManager</a> (implements io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a>)</li>
 <li class="circle">io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" class="type-name-link" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>)
 <ul>
@@ -105,6 +115,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li class="circle">io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" class="type-name-link" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></li>
 <li class="circle">io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" class="type-name-link" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="io/micronaut/serde/AllTypesBean.html" class="type-name-link" title="class in io.micronaut.serde">AllTypesBean</a></li>
@@ -179,7 +190,9 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" class="type-name-link" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.support.serializers.<a href="io/micronaut/serde/support/serializers/ObjectSerializer.html" class="type-name-link" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>)</li>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonDurationSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonDurationSerde</a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReference.html" class="type-name-link" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>T&gt;
 <ul>
 <li class="circle">io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/SerializationReference.html" class="type-name-link" title="class in io.micronaut.serde.reference">SerializationReference</a>&lt;B,<wbr>T&gt;</li>

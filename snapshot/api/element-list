@@ -10,6 +10,7 @@ io.micronaut.serde.jackson
 io.micronaut.serde.json.stream
 io.micronaut.serde.json.stream.graalvm
 io.micronaut.serde.oracle.jdbc.json
+io.micronaut.serde.oracle.jdbc.json.serde
 io.micronaut.serde.processor
 io.micronaut.serde.processor.bson
 io.micronaut.serde.processor.jackson
