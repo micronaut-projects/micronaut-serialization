@@ -51,17 +51,6 @@ import java.util.TreeSet;
 public class CoreDeserializers {
 
     /**
-     * Deserializes string types.
-     *
-     * @return The string deserializer
-     */
-    @Singleton
-    @NonNull
-    protected Deserializer<String> stringDeserializer() {
-        return new StringDeserializer();
-    }
-
-    /**
      * Deserializes array lists.
      *
      * @param <E> The element type
@@ -189,22 +178,6 @@ public class CoreDeserializers {
     @NonNull
     protected <V> Deserializer<Optional<V>> optionalDeserializer() {
         return new OptionalDeserializer<>();
-    }
-
-    private static class StringDeserializer implements Deserializer<String> {
-
-        @Override
-        public String deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super String> type) throws IOException {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return decoder.decodeString();
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
-        }
     }
 
     private static class OptionalDeserializer<V> implements CustomizableDeserializer<Optional<V>> {

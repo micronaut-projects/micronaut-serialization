@@ -23,6 +23,8 @@ import oracle.sql.json.OracleJsonGenerator;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Implementation of the {@link Encoder} interface for Oracle JDBC JSON.
@@ -31,7 +33,7 @@ import java.math.BigInteger;
  * @since 1.2.0
  */
 @Internal
-final class OracleJdbcJsonGeneratorEncoder implements Encoder {
+public final class OracleJdbcJsonGeneratorEncoder implements Encoder {
     private final OracleJsonGenerator jsonGenerator;
     private final OracleJdbcJsonGeneratorEncoder parent;
     private String currentKey;
@@ -169,5 +171,25 @@ final class OracleJdbcJsonGeneratorEncoder implements Encoder {
             enc = enc.parent;
         }
         return builder.toString();
+    }
+
+    /**
+     * Encodes local date time.
+     *
+     * @param localDateTime the local date time
+     */
+    public void encodeLocalDateTime(LocalDateTime localDateTime) {
+        jsonGenerator.write(localDateTime.toString());
+        postEncodeValue();
+    }
+
+    /**
+     * Encodes offset date time.
+     *
+     * @param offsetDateTime the offset date time
+     */
+    public void encodeOffsetDateTime(OffsetDateTime offsetDateTime) {
+        jsonGenerator.write(offsetDateTime.toString());
+        postEncodeValue();
     }
 }

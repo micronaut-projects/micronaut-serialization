@@ -389,7 +389,7 @@ class Test {
 
     }
 
-    void "test @JsonIgnore without @Inherited on interface method is not inherited"() {
+    void "test @JsonIgnore without @Inherited on interface method is inherited"() {
         given:
             def context = buildContext('test.Test', """
 package test;
@@ -428,7 +428,7 @@ interface MyInterface {
 
 """, [value:'test'])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"value":"test","ignored":false}'
+            writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
 
         cleanup:
             context.close()

@@ -16,15 +16,21 @@
 package io.micronaut.serde.oracle.jdbc.json;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
+import oracle.sql.json.OracleJsonArray;
 import oracle.sql.json.OracleJsonParser;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for Oracle JDBC JSON.
@@ -33,7 +39,10 @@ import java.math.BigInteger;
  * @since 1.2.0
  */
 @Internal
-final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
+public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
+
+    private static final String METHOD_CALLED_IN_WRONG_CONTEXT = "Method called in wrong context ";
+
     private final OracleJsonParser jsonParser;
     private OracleJsonParser.Event currentEvent;
 
@@ -53,31 +62,18 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected TokenType currentToken() {
-        switch (currentEvent) {
-            case START_ARRAY:
-                return TokenType.START_ARRAY;
-            case START_OBJECT:
-                return TokenType.START_OBJECT;
-            case KEY_NAME:
-                return TokenType.KEY;
-            case VALUE_STRING:
-                return TokenType.STRING;
-            case VALUE_DECIMAL:
-            case VALUE_DOUBLE:
-            case VALUE_FLOAT:
-                return TokenType.NUMBER;
-            case VALUE_TRUE:
-            case VALUE_FALSE:
-                return TokenType.BOOLEAN;
-            case VALUE_NULL:
-                return TokenType.NULL;
-            case END_OBJECT:
-                return TokenType.END_OBJECT;
-            case END_ARRAY:
-                return TokenType.END_ARRAY;
-            default:
-                return TokenType.OTHER;
-        }
+        return switch (currentEvent) {
+            case START_ARRAY -> TokenType.START_ARRAY;
+            case START_OBJECT -> TokenType.START_OBJECT;
+            case KEY_NAME -> TokenType.KEY;
+            case VALUE_STRING -> TokenType.STRING;
+            case VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT -> TokenType.NUMBER;
+            case VALUE_TRUE, VALUE_FALSE -> TokenType.BOOLEAN;
+            case VALUE_NULL -> TokenType.NULL;
+            case END_OBJECT -> TokenType.END_OBJECT;
+            case END_ARRAY -> TokenType.END_ARRAY;
+            default -> TokenType.OTHER;
+        };
     }
 
     @Override
@@ -97,20 +93,22 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected String coerceScalarToString() {
-        switch (currentEvent) {
-            case VALUE_STRING:
-            case VALUE_DECIMAL:
-            case VALUE_DOUBLE:
-            case VALUE_FLOAT:
-                // only allowed for string and number
-                return jsonParser.getString();
-            case VALUE_TRUE:
-                return StringUtils.TRUE;
-            case VALUE_FALSE:
-                return StringUtils.FALSE;
-            default:
-                throw new IllegalStateException("Method called in wrong context " + currentEvent);
-        }
+        return switch (currentEvent) {
+            case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS, VALUE_INTERVALYM ->
+                // only allowed for string, number
+                // additionally for processing string values from VALUE_INTERVALDS, VALUE_INTERVALYM
+                // in combination with custom de/serializers configured for Oracle Json parsing
+                // which is needed to transform from VALUE_INTERVALDS to java.time.Duration
+                jsonParser.getString();
+            case VALUE_BINARY ->
+                // VALUE_BINARY will return Base16 encoded string and when serializing just write back the same string value
+                // which should work fine
+                jsonParser.getValue().asJsonBinary().getString();
+            case VALUE_TRUE -> StringUtils.TRUE;
+            case VALUE_FALSE -> StringUtils.FALSE;
+            default ->
+                throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+        };
     }
 
     @Override
@@ -145,16 +143,13 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected Number getBestNumber() {
-        switch (currentEvent) {
-            case VALUE_DECIMAL:
-                return jsonParser.getLong();
-            case VALUE_DOUBLE:
-                return jsonParser.getDouble();
-            case VALUE_FLOAT:
-                return jsonParser.getFloat();
-            default:
-                throw new IllegalStateException("Method called in wrong context " + currentEvent);
-        }
+        return switch (currentEvent) {
+            case VALUE_DECIMAL -> jsonParser.getLong();
+            case VALUE_DOUBLE -> jsonParser.getDouble();
+            case VALUE_FLOAT -> jsonParser.getFloat();
+            default ->
+                throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+        };
     }
 
     @Override
@@ -167,11 +162,111 @@ final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message, Object invalidValue) {
+    @NonNull
+    public IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
         if (invalidValue != null) {
             return new InvalidFormatException(message, null, invalidValue);
         } else {
             return new SerdeException(message);
         }
+    }
+
+    /**
+     * Decodes Oracle JSON binary data as byte array.
+     *
+     * @return the byte array for Oracle JSON binary
+     */
+    public byte[] decodeBinary() {
+        if (currentEvent == OracleJsonParser.Event.VALUE_BINARY) {
+            byte[] bytes = jsonParser.getBytes();
+            nextToken();
+            return bytes;
+        }
+        if (currentEvent == OracleJsonParser.Event.START_ARRAY) {
+            OracleJsonArray oracleJsonArray = jsonParser.getArray();
+            int size = oracleJsonArray.size();
+            byte[] bytes = new byte[size];
+            for (int i = 0; i < size; i++) {
+                if (oracleJsonArray.isNull(i)) {
+                    bytes[i] = 0;
+                } else {
+                    bytes[i] = (byte) oracleJsonArray.getInt(i);
+                }
+            }
+            nextToken();
+            return bytes;
+        }
+        if (currentEvent == OracleJsonParser.Event.VALUE_STRING) {
+            String str = jsonParser.getString();
+            nextToken();
+            // string binary representation is Base16 encoded, so we should decode it
+            return decodeBase16(str);
+        }
+        throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+    }
+
+    /**
+     * Decodes Oracle JSON value as {@link LocalDateTime}.
+     *
+     * @return the {@link LocalDateTime} value being decoded
+     */
+    public LocalDateTime decodeLocalDateTime() {
+        LocalDateTime value =
+            switch (currentEvent) {
+                case VALUE_DATE, VALUE_TIMESTAMP -> jsonParser.getLocalDateTime();
+                case VALUE_STRING -> LocalDateTime.parse(jsonParser.getString());
+                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+            };
+        nextToken();
+        return value;
+    }
+
+    /**
+     * Decodes Oracle JSON value as {@link OffsetDateTime}.
+     *
+     * @return the {@link OffsetDateTime} value being decoded
+     */
+    public OffsetDateTime decodeOffsetDateTime() {
+        OffsetDateTime value =
+            switch (currentEvent) {
+                case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime();
+                case VALUE_STRING -> OffsetDateTime.parse(jsonParser.getString());
+                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+            };
+        nextToken();
+        return value;
+    }
+
+    /**
+     * Decodes Oracle JSON value as {@link ZonedDateTime}.
+     *
+     * @return the {@link ZonedDateTime} value being decoded
+     */
+    public ZonedDateTime decodeZonedDateTime() {
+        ZonedDateTime value =
+            switch (currentEvent) {
+                case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime().toZonedDateTime();
+                case VALUE_STRING -> ZonedDateTime.parse(jsonParser.getString());
+                default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
+            };
+        nextToken();
+        return value;
+    }
+
+    private static byte[] decodeBase16(CharSequence cs) {
+        final int len = cs.length();
+        if ((len % 2) != 0) {
+            throw new IllegalArgumentException("Encoded string must have an even length");
+        }
+        byte[] bytes = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            int hi = Character.digit(cs.charAt(i), 16);
+            int lo = Character.digit(cs.charAt(i + 1), 16);
+            if ((hi | lo) < 0) {
+                throw new IllegalArgumentException("Encoded string " + cs + " contains non-hex characters");
+            }
+            bytes[i / 2] = (byte) (hi << 4 | lo);
+        }
+        return bytes;
     }
 }
