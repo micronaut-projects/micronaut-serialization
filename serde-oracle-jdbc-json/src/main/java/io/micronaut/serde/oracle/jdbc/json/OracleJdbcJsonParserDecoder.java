@@ -254,19 +254,19 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     private static byte[] decodeBase16(CharSequence cs) {
-        final int numCh = cs.length();
-        if ((numCh % 2) != 0) {
+        final int len = cs.length();
+        if ((len % 2) != 0) {
             throw new IllegalArgumentException("Encoded string must have an even length");
         }
-        byte[] array = new byte[numCh / 2];
-        for (int p = 0; p < numCh; p += 2) {
-            int hi = Character.digit(cs.charAt(p), 16);
-            int lo = Character.digit(cs.charAt(p + 1), 16);
+        byte[] bytes = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            int hi = Character.digit(cs.charAt(i), 16);
+            int lo = Character.digit(cs.charAt(i + 1), 16);
             if ((hi | lo) < 0) {
                 throw new IllegalArgumentException("Encoded string " + cs + " contains non-hex characters");
             }
-            array[p / 2] = (byte) (hi << 4 | lo);
+            bytes[i / 2] = (byte) (hi << 4 | lo);
         }
-        return array;
+        return bytes;
     }
 }
