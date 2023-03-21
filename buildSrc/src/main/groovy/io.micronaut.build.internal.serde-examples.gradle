@@ -2,3 +2,8 @@ plugins {
     id("io.micronaut.build.internal.serde-base")
     id("io.micronaut.application")
 }
+
+micronaut {
+   // Do not build examples against M1 since the platform is not released
+   version = "4.0.0-SNAPSHOT"
+}
