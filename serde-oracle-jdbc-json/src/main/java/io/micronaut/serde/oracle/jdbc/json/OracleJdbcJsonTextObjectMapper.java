@@ -34,7 +34,7 @@ import java.io.OutputStream;
  */
 @Singleton
 @BootstrapContextCompatible
-@Order(200) // lower precedence than Jackson
+@Order(199) // lower precedence than Jackson but higher than OracleJdbcJsonBinaryObjectMapper
 public final class OracleJdbcJsonTextObjectMapper extends AbstractOracleJdbcJsonObjectMapper {
 
     public OracleJdbcJsonTextObjectMapper(SerdeRegistry registry) {
