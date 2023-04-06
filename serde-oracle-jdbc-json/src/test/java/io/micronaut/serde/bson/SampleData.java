@@ -3,6 +3,7 @@ package io.micronaut.serde.bson;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.Period;
 import java.util.List;
@@ -18,6 +19,8 @@ public class SampleData {
     private OffsetDateTime offsetDateTime;
 
     private LocalDate date;
+
+    private LocalTime time;
 
     private UUID uuid;
 
@@ -61,6 +64,14 @@ public class SampleData {
 
     public LocalDate getDate() {
         return date;
+    }
+
+    public LocalTime getTime() {
+        return time;
+    }
+
+    public void setTime(LocalTime time) {
+        this.time = time;
     }
 
     public void setDate(LocalDate date) {

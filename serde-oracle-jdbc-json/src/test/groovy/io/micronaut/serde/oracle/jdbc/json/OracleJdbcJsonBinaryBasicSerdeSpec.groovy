@@ -91,6 +91,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         oson.put("localDateTime", new OracleJsonTimestampImpl(localDateTime))
         oson.put("offsetDateTime", new OracleJsonTimestampTZImpl(offsetDateTime))
         oson.put("date", new OracleJsonDateImpl(localDateTime))
+        oson.put("time", new OracleJsonTimestampImpl(localDateTime))
         oson.put("description", new OracleJsonStringImpl(description))
         oson.put("grade", new OracleJsonDoubleImpl(grade))
         oson.put("rating", new OracleJsonDoubleImpl(rating))
@@ -117,6 +118,7 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         sampleData.localDateTime == localDateTime
         sampleData.offsetDateTime == offsetDateTime
         sampleData.date == localDateTime.toLocalDate()
+        sampleData.time == localDateTime.toLocalTime()
         sampleData.description == description
         sampleData.grade == grade
         sampleData.rating == rating
