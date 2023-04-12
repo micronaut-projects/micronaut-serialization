@@ -13,7 +13,6 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(mn.micronaut.graal)
     annotationProcessor(projects.micronautSerdeProcessor)
-    annotationProcessor("io.micronaut.docs:micronaut-docs-asciidoc-config-props:2.0.0")
 
     compileOnly(mn.micronaut.management)
     api(projects.micronautSerdeApi)
