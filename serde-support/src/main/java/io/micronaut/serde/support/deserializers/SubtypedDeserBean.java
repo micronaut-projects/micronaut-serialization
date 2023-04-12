@@ -109,4 +109,9 @@ class SubtypedDeserBean<T> extends DeserBean<T> {
         }
         this.defaultImpl = defaultDiscriminator;
     }
+
+    @Override
+    public boolean isSubtyped() {
+        return true;
+    }
 }

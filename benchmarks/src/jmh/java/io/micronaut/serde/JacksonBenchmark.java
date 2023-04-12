@@ -22,22 +22,77 @@ import java.util.concurrent.TimeUnit;
 public class JacksonBenchmark {
 
     private static final Argument<Input> INPUT_ARGUMENT = Argument.of(Input.class);
+    private static final Argument<SimpleString> SIMPLE_STRING_ARGUMENT = Argument.of(SimpleString.class);
+    private static final Argument<SimpleStringArray> SIMPLE_STRING_ARRAY_ARGUMENT = Argument.of(SimpleStringArray.class);
+    private static final Argument<SimpleStringList> SIMPLE_STRING_LIST_ARGUMENT = Argument.of(SimpleStringList.class);
+    private static final Argument<SimpleInteger> SIMPLE_INTEGER_ARGUMENT = Argument.of(SimpleInteger.class);
+    private static final Argument<SimpleInt> SIMPLE_INT_ARGUMENT = Argument.of(SimpleInt.class);
+    private static final Argument<SimpleIntegerArray> SIMPLE_INTEGER_ARRAY_ARGUMENT = Argument.of(SimpleIntegerArray.class);
 
     @Benchmark
-    public Object test(Holder holder) throws IOException {
+    public Object simpleInput(Holder holder) throws IOException {
         return holder.jsonMapper.readValue(
             "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
             INPUT_ARGUMENT
         );
     }
 
+    @Benchmark
+    public Object testSimpleString(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"str\":\"myString\"}",
+            SIMPLE_STRING_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object testSimpleStringArray(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"strs\":[\"myString1\",\"myString2\"]}",
+            SIMPLE_STRING_ARRAY_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object testSimpleStringList(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"strs\":[\"myString1\",\"myString2\"]}",
+            SIMPLE_STRING_LIST_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object testSimpleInteger(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"integer\":123}",
+            SIMPLE_INTEGER_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object testSimpleIntegerArray(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"integers\":[123, 456]}",
+            SIMPLE_INTEGER_ARRAY_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object testSimpleInt(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"integer\":123}",
+            SIMPLE_INT_ARGUMENT
+        );
+    }
+
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
             .include(JacksonBenchmark.class.getName() + ".*")
-            .warmupIterations(1)
-            .measurementIterations(1)
+            .warmupIterations(5)
+            .measurementIterations(10)
             .mode(Mode.AverageTime)
             .timeUnit(TimeUnit.NANOSECONDS)
+//            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
 //            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
 //            .addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
             .forks(1)
@@ -47,9 +102,24 @@ public class JacksonBenchmark {
         new Runner(opt).run();
     }
 
+//    public static void mainx(String[] args) throws Exception {
+//        ApplicationContext ctx = ApplicationContext.run();
+//
+//        JsonMapper jsonMapper = ctx.getBean(JacksonDatabindMapper.class);
+//
+//
+//        jsonMapper.readValue(
+//            "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
+//            INPUT_ARGUMENT
+//        );
+//    }
+
     @State(Scope.Thread)
     public static class Holder {
-        @Param({"SERDE_JACKSON"})
+        @Param({
+            "JACKSON_DATABIND",
+            "SERDE_JACKSON"
+        })
         Stack stack = Stack.SERDE_JACKSON;
 
         JsonMapper jsonMapper;
@@ -57,7 +127,7 @@ public class JacksonBenchmark {
 
         @Setup
         public void setUp() {
-            ApplicationContext ctx = ApplicationContext.run();
+            ctx = ApplicationContext.run();
 
             if (stack == Stack.SERDE_JACKSON) {
                 jsonMapper = ctx.getBean(JacksonJsonMapper.class);
@@ -67,7 +137,7 @@ public class JacksonBenchmark {
         }
 
         @TearDown
-        public void tearDown() throws Exception {
+        public void tearDown() {
             ctx.close();
         }
     }

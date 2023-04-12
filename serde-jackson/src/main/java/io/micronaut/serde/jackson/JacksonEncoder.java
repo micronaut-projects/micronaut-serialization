@@ -17,7 +17,6 @@ package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.core.json.UTF8JsonGenerator;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
@@ -52,9 +51,6 @@ public abstract class JacksonEncoder implements Encoder {
 
     public static Encoder create(@NonNull JsonGenerator generator) {
         Objects.requireNonNull(generator, "generator");
-        if (generator instanceof UTF8JsonGenerator) {
-            return new SpecializedJacksonEncoder.ReuseChildEncoder((UTF8JsonGenerator) generator);
-        }
         return new ReuseChildEncoder(generator);
     }
 

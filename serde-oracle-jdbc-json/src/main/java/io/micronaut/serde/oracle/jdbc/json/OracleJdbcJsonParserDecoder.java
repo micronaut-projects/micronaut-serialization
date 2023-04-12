@@ -92,7 +92,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() {
+    protected String coerceScalarToString(TokenType currentToken) {
         return switch (currentEvent) {
             case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS, VALUE_INTERVALYM ->
                 // only allowed for string, number

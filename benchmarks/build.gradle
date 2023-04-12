@@ -7,12 +7,13 @@ plugins {
 
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
+    annotationProcessor(mn.micronaut.inject.java)
     jmhAnnotationProcessor(libs.jmh.generator.annprocess)
+    jmhAnnotationProcessor(mn.micronaut.inject.java)
 
     implementation(projects.micronautSerdeJackson)
-    implementation(mn.micronaut.jackson.databind) {
-        transitive false
-    }
+    implementation(projects.micronautSerdeSupport)
+    implementation(mn.micronaut.jackson.databind)
 
     implementation(mn.micronaut.runtime)
 
@@ -36,7 +37,3 @@ configurations {
         }
     }
 }
-
-//jmhJar {
-//    mergeServiceFiles()
-//}

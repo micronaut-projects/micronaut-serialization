@@ -356,7 +356,7 @@ public class CoreDeserializers {
     private static class ArrayListCollectionDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, ArrayList<E>> {
         @Override
         public ArrayList<E> getDefaultValue() {
-            return new ArrayList<>();
+            return new ArrayList<>(20);
         }
     }
 

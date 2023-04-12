@@ -15,14 +15,14 @@
  */
 package io.micronaut.serde.json.stream;
 
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractStreamDecoder;
+import jakarta.json.JsonNumber;
+import jakarta.json.stream.JsonParser;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import io.micronaut.serde.support.AbstractStreamDecoder;
-import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.json.JsonNumber;
-import jakarta.json.stream.JsonParser;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for JSON-P.
@@ -77,7 +77,7 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() {
+    protected String coerceScalarToString(TokenType currentToken) {
         return switch (currentEvent) {
             case VALUE_STRING, VALUE_NUMBER ->
                 // only allowed for string and number

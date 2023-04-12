@@ -184,7 +184,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() throws IOException {
+    protected String coerceScalarToString(TokenType currentToken) throws IOException {
         switch (currentBsonType) {
             case DOUBLE:
                 return String.valueOf(bsonReader.readDouble());
@@ -349,7 +349,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
      * @throws IOException
      */
     public Decimal128 decodeDecimal128() throws IOException {
-        return decodeNumber(decoder -> ((BsonReaderDecoder) decoder).getDecimal128(), Decimal128::parse, Decimal128.POSITIVE_ZERO, new Decimal128(1));
+        return decodeNumber(currentToken(), decoder -> ((BsonReaderDecoder) decoder).getDecimal128(), Decimal128::parse, Decimal128.POSITIVE_ZERO, new Decimal128(1));
     }
 
     /**

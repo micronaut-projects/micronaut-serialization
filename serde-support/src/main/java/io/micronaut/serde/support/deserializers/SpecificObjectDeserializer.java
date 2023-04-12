@@ -41,7 +41,7 @@ import java.util.NoSuchElementException;
  * @author graemerocher
  * @since 1.0.0
  */
-class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
+final class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private static final String PREFIX_UNABLE_TO_DESERIALIZE_TYPE = "Unable to deserialize type [";
     private final boolean ignoreUnknown;
     private final DeserBean<? super Object> deserBean;
@@ -81,9 +81,8 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
             AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
             Object obj;
 
-            if (db instanceof SubtypedDeserBean subtypedDeserBean) {
+            if (db.isSubtyped() && db instanceof SubtypedDeserBean subtypedDeserBean) {
                 // subtyped binding required
-                SubtypedDeserBean parent = subtypedDeserBean;
                 final String defaultImpl = subtypedDeserBean.defaultImpl;
                 final String discriminatorName = subtypedDeserBean.discriminatorName;
                 final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
@@ -146,7 +145,7 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                     }
                 }
 
-                if (defaultImpl != null && parent == db) {
+                if (defaultImpl != null && subtypedDeserBean == db) {
                     @SuppressWarnings("unchecked")
                     DeserBean<? super Object> defaultSubType = (DeserBean<? super Object>) subtypes.get(defaultImpl);
                     if (defaultSubType != null) {
@@ -436,17 +435,21 @@ class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeseri
                            Decoder objectDecoder,
                            AnyValues<Object> anyValues,
                            Object obj) throws IOException {
-        while (true) {
-            final String key = objectDecoder.decodeKey();
-            if (key == null) {
-                break;
+        if (anyValues == null && ignoreUnknown) {
+            objectDecoder.finishStructure(true);
+        } else {
+            while (true) {
+                final String key = objectDecoder.decodeKey();
+                if (key == null) {
+                    break;
+                }
+                skipOrSetAny(decoderContext, objectDecoder, key, anyValues, ignoreUnknown, type);
             }
-            skipOrSetAny(decoderContext, objectDecoder, key, anyValues, ignoreUnknown, type);
+            if (anyValues != null) {
+                anyValues.bind(obj);
+            }
+            objectDecoder.finishStructure();
         }
-        if (anyValues != null) {
-            anyValues.bind(obj);
-        }
-        objectDecoder.finishStructure();
     }
 
     private TokenBuffer initTokenBuffer(TokenBuffer tokenBuffer, Decoder objectDecoder, String key) throws IOException {

@@ -220,7 +220,16 @@ public interface Decoder extends AutoCloseable {
      * @throws IllegalStateException If there are still elements left to consume
      * @throws IOException If an unrecoverable error occurs
      */
-    void finishStructure() throws IOException;
+    default void finishStructure() throws IOException {
+        finishStructure(false);
+    }
+
+    /**
+     * @param consumeLeftElements True to consume left elements
+     * @throws IllegalStateException If there are still elements left to consume and consumeLeftElements is false
+     * @throws IOException If an unrecoverable error occurs
+     */
+    void finishStructure(boolean consumeLeftElements) throws IOException;
 
     /**
      * Finalize the current structure. Equivalent to calling {@link #finishStructure()}.

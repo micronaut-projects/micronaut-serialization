@@ -16,14 +16,14 @@
 package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.json.UTF8StreamJsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.serde.support.AbstractChildReuseStreamDecoder;
-import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractChildReuseStreamDecoder;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -36,6 +36,14 @@ import java.math.BigInteger;
 @Internal
 public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
     // Changes must be reflected in {@link SpecializedJacksonDecoder}!
+
+    static final AbstractStreamDecoder.TokenType[] REMAPPED = new TokenType[JsonToken.values().length];
+
+    static {
+        for (JsonToken value : JsonToken.values()) {
+            REMAPPED[value.ordinal()] = remapToken(value);
+        }
+    }
 
     @Internal
     private final JsonParser parser;
@@ -50,6 +58,21 @@ public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
         this.parser = parser;
     }
 
+    public static TokenType remapToken(JsonToken jsonToken) {
+        return switch (jsonToken) {
+            case START_OBJECT -> TokenType.START_OBJECT;
+            case END_OBJECT -> TokenType.END_OBJECT;
+            case START_ARRAY -> TokenType.START_ARRAY;
+            case END_ARRAY -> TokenType.END_ARRAY;
+            case FIELD_NAME -> TokenType.KEY;
+            case VALUE_STRING -> TokenType.STRING;
+            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> TokenType.NUMBER;
+            case VALUE_TRUE, VALUE_FALSE -> TokenType.BOOLEAN;
+            case VALUE_NULL -> TokenType.NULL;
+            default -> TokenType.OTHER;
+        };
+    }
+
     public static Decoder create(JsonParser parser) throws IOException {
         return create(parser, Object.class);
     }
@@ -60,9 +83,6 @@ public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
             if (!parser.hasCurrentToken()) {
                 throw new EOFException("No JSON input to parse");
             }
-        }
-        if (parser instanceof UTF8StreamJsonParser) {
-            return new SpecializedJacksonDecoder((UTF8StreamJsonParser) parser, view);
         }
         return new JacksonDecoder(parser, view);
     }
@@ -78,30 +98,8 @@ public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
 
     @Override
     protected TokenType currentToken() {
-        switch (parser.currentToken()) {
-            case START_OBJECT:
-                return TokenType.START_OBJECT;
-            case END_OBJECT:
-                return TokenType.END_OBJECT;
-            case START_ARRAY:
-                return TokenType.START_ARRAY;
-            case END_ARRAY:
-                return TokenType.END_ARRAY;
-            case FIELD_NAME:
-                return TokenType.KEY;
-            case VALUE_STRING:
-                return TokenType.STRING;
-            case VALUE_NUMBER_INT:
-            case VALUE_NUMBER_FLOAT:
-                return TokenType.NUMBER;
-            case VALUE_TRUE:
-            case VALUE_FALSE:
-                return TokenType.BOOLEAN;
-            case VALUE_NULL:
-                return TokenType.NULL;
-            default:
-                return TokenType.OTHER;
-        }
+        JsonToken jsonToken = parser.currentToken();
+        return JacksonDecoder.REMAPPED[jsonToken.ordinal()];
     }
 
     @Override
@@ -120,8 +118,8 @@ public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() throws IOException {
-        if (currentToken() == TokenType.STRING) {
+    protected String coerceScalarToString(TokenType currentToken) throws IOException {
+        if (currentToken == TokenType.STRING) {
             return parser.getText();
         }
         return parser.getValueAsString();
