@@ -178,19 +178,31 @@ public abstract class AbstractStreamDecoder implements Decoder {
     }
 
     @Override
-    public final void finishStructure(boolean consumeLeftElements) throws IOException {
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
         checkChild();
         TokenType currentToken = currentToken();
         if (consumeLeftElements) {
-            while (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
-                nextToken();
-                currentToken = currentToken();
-            }
+            consumeLeftElements(currentToken);
         } else if (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
         if (parent != null) {
             transferControlToParent();
+        }
+    }
+
+    /**
+     * Consumes left elements.
+     * @param currentToken The current token
+     * @throws IOException
+     */
+    protected void consumeLeftElements(TokenType currentToken) throws IOException {
+        while (true) {
+            final String key = decodeKey();
+            if (key == null) {
+                break;
+            }
+            skipValue();
         }
     }
 

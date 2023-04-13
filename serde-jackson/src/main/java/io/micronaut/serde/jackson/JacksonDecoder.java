@@ -165,4 +165,12 @@ public final class JacksonDecoder extends AbstractChildReuseStreamDecoder {
     protected void skipChildren() throws IOException {
         parser.skipChildren();
     }
+
+    @Override
+    protected void consumeLeftElements(TokenType currentToken) throws IOException {
+        while (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
+            nextToken();
+            currentToken = currentToken();
+        }
+    }
 }

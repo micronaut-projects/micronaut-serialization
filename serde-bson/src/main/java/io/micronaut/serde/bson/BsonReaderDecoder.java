@@ -90,27 +90,25 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     protected void nextToken() {
         if (currentToken != null) {
             switch (currentToken) {
-                case START_ARRAY:
+                case START_ARRAY -> {
                     contextStack.push(Context.ARRAY);
                     bsonReader.readStartArray();
-                    break;
-                case START_OBJECT:
+                }
+                case START_OBJECT -> {
                     contextStack.push(Context.DOCUMENT);
                     bsonReader.readStartDocument();
-                    break;
-                case END_ARRAY:
+                }
+                case END_ARRAY -> {
                     contextStack.pop();
                     bsonReader.readEndArray();
-                    break;
-                case END_OBJECT:
+                }
+                case END_OBJECT -> {
                     contextStack.pop();
                     bsonReader.readEndDocument();
-                    break;
-                case NULL:
-                    bsonReader.readNull();
-                    break;
-                default:
-                    break;
+                }
+                case NULL -> bsonReader.readNull();
+                default -> {
+                }
             }
         }
 
