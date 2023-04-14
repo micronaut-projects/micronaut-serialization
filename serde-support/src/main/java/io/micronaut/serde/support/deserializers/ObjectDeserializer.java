@@ -65,7 +65,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
             }
             if (deserBean.recordLikeBean) {
-                return new SimpleRecordLikeObjectDeserializer(deserBean);
+                return new ImmutableRecordLikeObjectDeserializer(deserBean);
             }
             return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
 

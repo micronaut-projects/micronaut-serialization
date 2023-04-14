@@ -27,14 +27,14 @@ import io.micronaut.serde.exceptions.SerdeException;
 import java.io.IOException;
 
 /**
- * A simple bean (all-args constructor and only properties) implementation for deserialization of objects that uses introspection metadata.
+ * A simple immutable bean (all-args constructor and no setter properties) implementation for deserialization of objects that uses introspection metadata.
  *
  * @author Denis Stepanov
  */
-final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
+final class ImmutableRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final DeserBean<? super Object> deserBean;
 
-    public SimpleRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
+    public ImmutableRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
         this.deserBean = deserBean;
     }
 
