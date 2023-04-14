@@ -27,14 +27,14 @@ import io.micronaut.serde.exceptions.SerdeException;
 import java.io.IOException;
 
 /**
- * A simple immutable bean (all-args constructor and no setter properties) implementation for deserialization of objects that uses introspection metadata.
+ * A simple all-args constructor and no setter properties implementation for deserialization of objects that uses introspection metadata.
  *
  * @author Denis Stepanov
  */
-final class ImmutableRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
+final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final DeserBean<? super Object> deserBean;
 
-    public ImmutableRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
+    public SimpleRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
         this.deserBean = deserBean;
     }
 
@@ -49,30 +49,29 @@ final class ImmutableRecordLikeObjectDeserializer implements Deserializer<Object
         Decoder objectDecoder = decoder.decodeObject(beanType);
         final PropertiesBag<Object>.Consumer creatorParameters = deserBean.creatorParams.newConsumer();
         Object[] params = new Object[deserBean.creatorSize];
-        boolean allConsumed = params.length == 0;
+        boolean allConsumed = deserBean.creatorSize == 0;
         while (!allConsumed) {
-            final String prop = objectDecoder.decodeKey();
-            if (prop == null) {
+            final String propertyName = objectDecoder.decodeKey();
+            if (propertyName == null) {
                 break;
             }
-            final DeserBean.DerProperty<? super Object, ?> derProperty = creatorParameters.consume(prop);
+            final DeserBean.DerProperty<Object, Object> derProperty = creatorParameters.consume(propertyName);
             if (derProperty != null) {
-                @SuppressWarnings("unchecked") final Argument<Object> propertyType = (Argument<Object>) derProperty.argument;
                 try {
-                    Object value = derProperty.deserializer.deserialize(objectDecoder, decoderContext, propertyType);
+                    Object value = derProperty.deserializer.deserialize(objectDecoder, decoderContext, derProperty.argument);
                     if (value == null) {
                         derProperty.setDefault(decoderContext, params);
                     } else {
                         params[derProperty.index] = value;
                     }
                 } catch (InvalidFormatException e) {
-                    throw new InvalidPropertyFormatException(e, propertyType);
+                    throw new InvalidPropertyFormatException(e, derProperty.argument);
                 }
                 allConsumed = creatorParameters.isAllConsumed();
             }
         }
         if (!allConsumed) {
-            for (DeserBean.DerProperty<? super Object, ?> sp : creatorParameters.getNotConsumed()) {
+            for (DeserBean.DerProperty<Object, Object> sp : creatorParameters.getNotConsumed()) {
                 sp.setDefault(decoderContext, params);
             }
         }
