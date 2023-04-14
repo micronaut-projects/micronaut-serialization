@@ -74,7 +74,6 @@ public final class JacksonJsonMapper implements ObjectMapper {
     private final JsonStreamConfig deserializationConfig;
     private final JsonNodeTreeCodec treeCodec;
     private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
-    private final Class<?> view;
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
 
@@ -82,7 +81,6 @@ public final class JacksonJsonMapper implements ObjectMapper {
         this.registry = registry;
         this.deserializationConfig = deserializationConfig;
         this.treeCodec = JsonNodeTreeCodec.getInstance().withConfig(deserializationConfig);
-        this.view = view;
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
     }
@@ -133,7 +131,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
                 return null;
             }
         }
-        final Decoder decoder = JacksonDecoder.create(parser, view);
+        final Decoder decoder = JacksonDecoder.create(parser);
         return (T) deserializer.deserialize(
                 decoder,
                 decoderContext,
@@ -260,7 +258,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
                     }
                     // for jackson compat we need to support deserializing null, but most deserializers don't support it.
                     if (parser.currentToken() != JsonToken.VALUE_NULL) {
-                        final Decoder decoder = JacksonDecoder.create(parser, view);
+                        final Decoder decoder = JacksonDecoder.create(parser);
                         ((UpdatingDeserializer<Object>) deserializer).deserializeInto(
                                 decoder,
                                 decoderContext,

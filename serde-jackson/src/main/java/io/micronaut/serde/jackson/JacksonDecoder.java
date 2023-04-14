@@ -38,6 +38,8 @@ import java.util.Map;
 
 /**
  * Implementation of the {@link Decoder} interface for Jackson.
+ *
+ * @author Denis Stepanov
  */
 @Internal
 public final class JacksonDecoder implements Decoder {
@@ -49,7 +51,7 @@ public final class JacksonDecoder implements Decoder {
     private boolean currentlyUnwrappingArray;
     private int depth = 0;
 
-    private JacksonDecoder(JsonParser parser, @NonNull Class<?> view) throws IOException {
+    private JacksonDecoder(JsonParser parser) throws IOException {
         this.parser = parser;
         if (!parser.hasCurrentToken()) {
             currentToken = parser.nextToken();
@@ -62,11 +64,7 @@ public final class JacksonDecoder implements Decoder {
     }
 
     public static Decoder create(JsonParser parser) throws IOException {
-        return create(parser, Object.class);
-    }
-
-    public static Decoder create(JsonParser parser, Class<?> view) throws IOException {
-        return new JacksonDecoder(parser, view);
+        return new JacksonDecoder(parser);
     }
 
     @Override
@@ -176,11 +174,12 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public String decodeString() throws IOException {
         switch (currentToken) {
-            case VALUE_STRING:
+            case VALUE_STRING -> {
                 String value = parser.getText();
                 nextToken();
                 return value;
-            case START_ARRAY:
+            }
+            case START_ARRAY -> {
                 if (beginUnwrapArray(currentToken)) {
                     String unwrapped = decodeString();
                     if (endUnwrapArray()) {
@@ -189,8 +188,9 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                // fall through
-            default: {
+                throw unexpectedToken(JsonToken.VALUE_STRING);
+            }
+            default -> {
                 String def = parser.getValueAsString();
                 nextToken();
                 return def;
@@ -321,13 +321,15 @@ public final class JacksonDecoder implements Decoder {
                 nextToken();
                 return value;
             }
+            default -> {
+                char[] value = parser.getText().toCharArray();
+                if (value.length == 0) {
+                    throw new IllegalStateException("Not characters!");
+                }
+                nextToken();
+                return value[0];
+            }
         }
-        char[] value = parser.getText().toCharArray();
-        if (value.length == 0) {
-            throw new IllegalStateException("Not characters!");
-        }
-        nextToken();
-        return value[0];
     }
 
     @Override
@@ -421,7 +423,6 @@ public final class JacksonDecoder implements Decoder {
             }
         }
     }
-
 
     @Override
     public float decodeFloat() throws IOException {

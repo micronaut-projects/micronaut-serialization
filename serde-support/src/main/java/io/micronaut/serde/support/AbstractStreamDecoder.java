@@ -38,10 +38,10 @@ import java.util.function.Function;
 @Internal
 public abstract class AbstractStreamDecoder implements Decoder {
 
-    private boolean currentlyUnwrappingArray = false;
-
     @NonNull
     final Class<?> view;
+
+    private boolean currentlyUnwrappingArray = false;
 
     /**
      * Root constructor.
@@ -745,6 +745,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     }
 
     @NonNull
+    @Override
     public JsonNode decodeNode() throws IOException {
         TokenType currentToken = currentToken();
         switch (currentToken) {
