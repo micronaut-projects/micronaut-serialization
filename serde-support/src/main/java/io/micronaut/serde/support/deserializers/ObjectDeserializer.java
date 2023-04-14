@@ -15,9 +15,6 @@
  */
 package io.micronaut.serde.support.deserializers;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
@@ -34,6 +31,9 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import jakarta.inject.Singleton;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -63,6 +63,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
             if (deserBean.simpleBean) {
                 return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
+            }
+            if (deserBean.recordLikeBean) {
+                return new SimpleRecordLikeObjectDeserializer(deserBean);
             }
             return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
 

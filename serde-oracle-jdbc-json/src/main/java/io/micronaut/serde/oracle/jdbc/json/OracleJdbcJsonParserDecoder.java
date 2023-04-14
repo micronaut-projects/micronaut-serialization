@@ -21,6 +21,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import oracle.sql.json.OracleJsonArray;
 import oracle.sql.json.OracleJsonParser;
@@ -39,7 +40,7 @@ import java.time.ZonedDateTime;
  * @since 1.2.0
  */
 @Internal
-public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
+public final class OracleJdbcJsonParserDecoder extends AbstractDecoderPerStructureStreamDecoder {
 
     private static final String METHOD_CALLED_IN_WRONG_CONTEXT = "Method called in wrong context ";
 
@@ -119,6 +120,11 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected boolean getBoolean() {
         return currentEvent == OracleJsonParser.Event.VALUE_TRUE;
+    }
+
+    @Override
+    protected String getString() throws IOException {
+        return jsonParser.getString();
     }
 
     @Override

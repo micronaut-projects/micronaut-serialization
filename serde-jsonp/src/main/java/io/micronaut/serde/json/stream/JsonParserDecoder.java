@@ -16,6 +16,7 @@
 package io.micronaut.serde.json.stream;
 
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import jakarta.json.JsonNumber;
 import jakarta.json.stream.JsonParser;
@@ -27,7 +28,7 @@ import java.math.BigInteger;
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for JSON-P.
  */
-public class JsonParserDecoder extends AbstractStreamDecoder {
+public class JsonParserDecoder extends AbstractDecoderPerStructureStreamDecoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;
 
@@ -92,6 +93,11 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected AbstractStreamDecoder createChildDecoder() {
         return new JsonParserDecoder(this);
+    }
+
+    @Override
+    protected String getString() {
+        return jsonParser.getString();
     }
 
     @Override

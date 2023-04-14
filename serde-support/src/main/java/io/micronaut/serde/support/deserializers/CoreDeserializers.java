@@ -354,9 +354,10 @@ public class CoreDeserializers {
     }
 
     private static class ArrayListCollectionDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, ArrayList<E>> {
+
         @Override
         public ArrayList<E> getDefaultValue() {
-            return new ArrayList<>(20);
+            return new ArrayList<>();
         }
     }
 
@@ -364,6 +365,10 @@ public class CoreDeserializers {
 
         @Override
         public Deserializer<C> createSpecific(DecoderContext context, Argument<? super C> type) throws SerdeException {
+            if (type.getType().isAssignableFrom(ArrayList.class) && type.getFirstTypeVariable().orElse(Argument.OBJECT_ARGUMENT).getType().equals(String.class)) {
+                return (Deserializer) new StringListDeserializer();
+            }
+
             final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");

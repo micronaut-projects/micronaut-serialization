@@ -2,9 +2,11 @@ package io.micronaut.serde.jackson.annotation
 
 
 import io.micronaut.serde.jackson.JsonCompileSpec
+import spock.lang.Unroll
 
 class JsonBasicSerdeSpec extends JsonCompileSpec {
 
+    @Unroll
     void "test basic collection type #type with include NON_ABSENT"() {
         given:
         def context = buildContext('test.Test', """
@@ -19,7 +21,7 @@ class Test {
     private $type value;
     public void setValue($type value) {
         this.value = value;
-    } 
+    }
     public $type getValue() {
         return value;
     }

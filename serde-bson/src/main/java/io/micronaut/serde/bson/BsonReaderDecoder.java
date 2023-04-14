@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -43,7 +44,7 @@ import java.util.Deque;
  * @author Denis Stepanov
  */
 @Internal
-public final class BsonReaderDecoder extends AbstractStreamDecoder {
+public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDecoder {
     private final BsonReader bsonReader;
     private final Deque<Context> contextStack;
 
@@ -222,6 +223,11 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     @Override
     protected AbstractStreamDecoder createChildDecoder() {
         return new BsonReaderDecoder(this);
+    }
+
+    @Override
+    protected String getString() {
+        return bsonReader.readString();
     }
 
     @Override

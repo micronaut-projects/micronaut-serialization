@@ -10,7 +10,7 @@ class JacksonDecoderSpec extends Specification {
     private static Decoder createDecoder(@Language('json') String json) {
         return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json))
     }
-    
+
     def "unwrap arrays normal"() {
         expect:
         createDecoder('["a"]').decodeString() == 'a'

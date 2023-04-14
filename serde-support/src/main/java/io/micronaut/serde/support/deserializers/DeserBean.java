@@ -79,6 +79,7 @@ class DeserBean<T> {
     public final boolean ignoreUnknown;
     public final boolean delegating;
     public final boolean simpleBean;
+    public final boolean recordLikeBean;
     public final ConversionService conversionService;
 
     private volatile boolean initialized;
@@ -335,6 +336,7 @@ class DeserBean<T> {
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
         simpleBean = isSimpleBean();
+        recordLikeBean = isRecordLikeBean();
     }
 
     public boolean isSubtyped() {
@@ -381,6 +383,21 @@ class DeserBean<T> {
             for (Map.Entry<String, DerProperty<T, Object>> e : readProperties.getProperties()) {
                 DerProperty<T, Object> property = e.getValue();
                 if (property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.instrospection || property.backRef != null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isRecordLikeBean() {
+        if (delegating || this instanceof SubtypedDeserBean || readProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+            return false;
+        }
+        if (creatorParams != null) {
+            for (Map.Entry<String, DerProperty<T, Object>> e : creatorParams.getProperties()) {
+                DerProperty<T, Object> property = e.getValue();
+                if (property.beanProperty != null && !property.beanProperty.isReadOnly() || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.instrospection || property.backRef != null) {
                     return false;
                 }
             }

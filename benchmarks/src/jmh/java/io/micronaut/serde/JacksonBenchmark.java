@@ -88,8 +88,8 @@ public class JacksonBenchmark {
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
             .include(JacksonBenchmark.class.getName() + ".*")
-            .warmupIterations(5)
-            .measurementIterations(10)
+            .warmupIterations(10)
+            .measurementIterations(15)
             .mode(Mode.AverageTime)
             .timeUnit(TimeUnit.NANOSECONDS)
 //            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
@@ -102,17 +102,16 @@ public class JacksonBenchmark {
         new Runner(opt).run();
     }
 
-//    public static void mainx(String[] args) throws Exception {
-//        ApplicationContext ctx = ApplicationContext.run();
-//
-//        JsonMapper jsonMapper = ctx.getBean(JacksonDatabindMapper.class);
-//
-//
-//        jsonMapper.readValue(
-//            "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
-//            INPUT_ARGUMENT
-//        );
-//    }
+    public static void mainx(String[] args) throws Exception {
+        ApplicationContext ctx = ApplicationContext.run();
+
+        JsonMapper jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+
+        jsonMapper.readValue(
+            "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
+            INPUT_ARGUMENT
+        );
+    }
 
     @State(Scope.Thread)
     public static class Holder {

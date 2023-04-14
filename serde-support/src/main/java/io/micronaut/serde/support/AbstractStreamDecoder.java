@@ -37,31 +37,17 @@ import java.util.function.Function;
  */
 @Internal
 public abstract class AbstractStreamDecoder implements Decoder {
-    @Nullable
-    AbstractStreamDecoder parent;
-
-    private AbstractStreamDecoder child = null;
 
     private boolean currentlyUnwrappingArray = false;
 
     @NonNull
-    private final Class<?> view;
-
-    /**
-     * Child constructor. Should inherit the parser from the parent.
-     * @param parent The parent decoder.
-     */
-    protected AbstractStreamDecoder(@NonNull AbstractStreamDecoder parent) {
-        this.parent = parent;
-        this.view = parent.view;
-    }
+    final Class<?> view;
 
     /**
      * Root constructor.
      * @param view The selected view class.
      */
     protected AbstractStreamDecoder(@NonNull Class<?> view) {
-        this.parent = null;
         this.view = view;
     }
 
@@ -131,25 +117,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
     }
 
     /**
-     * Check whether we have control of the stream. Parent decoders can't decode while their children are still valid,
-     * for example.
-     */
-    void checkChild() {
-        if (child != null) {
-            throw new IllegalStateException("There is still an unfinished child parser");
-        }
-        if (parent != null && parent.child != this) {
-            throw new IllegalStateException("This child parser has already completed");
-        }
-    }
-
-    /**
      * Should be called before attempting to decode a value. Has basic sanity checks, such as confirming we're not
      * currently in a {@link TokenType#KEY} and that there's no child decoder currently running.
      * @param currentToken The current token
      */
     protected void preDecodeValue(TokenType currentToken) {
-        checkChild();
         if (currentToken == TokenType.KEY) {
             throw new IllegalStateException("Haven't parsed field name yet");
         }
@@ -179,15 +151,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
-        checkChild();
         TokenType currentToken = currentToken();
         if (consumeLeftElements) {
             consumeLeftElements(currentToken);
         } else if (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
             throw new IllegalStateException("Not all elements have been consumed yet");
-        }
-        if (parent != null) {
-            transferControlToParent();
         }
     }
 
@@ -206,31 +174,8 @@ public abstract class AbstractStreamDecoder implements Decoder {
         }
     }
 
-    /**
-     * Overridden in {@link AbstractChildReuseStreamDecoder}.
-     *
-     * Transfer control back to the parent (for {@link #checkChild()}), and call {@link #backFromChild}.
-     */
-    void transferControlToParent() throws IOException {
-        parent.child = null;
-        parent.backFromChild(this);
-    }
-
-    /**
-     * Called when the old child has finished processing and returns control of the stream to the parent. Current token
-     * is assumed to be {@link TokenType#END_ARRAY} or {@link TokenType#END_OBJECT}. However we {@link #currentToken()}
-     * may hold an outdated value until {@link #nextToken()} is called, which this method does.
-     *
-     * @param child The now-invalid child decoder.
-     * @throws java.io.IOException if an unrecoverable error occurs
-     */
-    protected void backFromChild(AbstractStreamDecoder child) throws IOException {
-        nextToken();
-    }
-
     @Override
-    public final boolean hasNextArrayValue() {
-        checkChild();
+    public boolean hasNextArrayValue() {
         return currentToken() != TokenType.END_ARRAY;
     }
 
@@ -243,8 +188,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
 
     @Nullable
     @Override
-    public final String decodeKey() throws IOException {
-        checkChild();
+    public String decodeKey() throws IOException {
         TokenType currentToken = currentToken();
         if (currentToken == TokenType.END_OBJECT) {
             // stay on the end token, will be handled in finishStructure
@@ -258,38 +202,25 @@ public abstract class AbstractStreamDecoder implements Decoder {
         return fieldName;
     }
 
-    /**
-     * Create a new child decoder using {@link AbstractStreamDecoder#AbstractStreamDecoder(AbstractStreamDecoder)}.
-     * @return The new decoder
-     */
-    protected abstract AbstractStreamDecoder createChildDecoder();
-
-    /**
-     * Overridden in {@link AbstractChildReuseStreamDecoder}.
-     *
-     * Create a child decoder, and transfer control of the stream to it (see {@link #checkChild()}).
-     *
-     * @return The new child decoder
-     */
-    AbstractStreamDecoder childDecoder() {
-        return createChildDecoder();
-    }
-
     @NonNull
     @Override
     public final Decoder decodeArray(Argument<?> type) throws IOException {
         return decodeArray0(currentToken());
     }
 
-    // returns AbstractStreamDecoder
-    private AbstractStreamDecoder decodeArray0(TokenType currentToken) throws IOException {
+    /**
+     * Decodes the array.
+     * @param currentToken The current token
+     * @return The decoder
+     * @throws IOException The exception
+     */
+    protected AbstractStreamDecoder decodeArray0(TokenType currentToken) throws IOException {
         preDecodeValue(currentToken);
         if (currentToken != TokenType.START_ARRAY) {
             throw unexpectedToken(TokenType.START_ARRAY);
         }
         nextToken();
-        child = childDecoder();
-        return child;
+        return this;
     }
 
     @NonNull
@@ -298,15 +229,19 @@ public abstract class AbstractStreamDecoder implements Decoder {
         return decodeObject0(currentToken());
     }
 
-    // returns AbstractStreamDecoder
-    private AbstractStreamDecoder decodeObject0(TokenType currentToken) throws IOException {
+    /**
+     * Decodes the object.
+     * @param currentToken The current token
+     * @return The decoder
+     * @throws IOException The exception
+     */
+    protected AbstractStreamDecoder decodeObject0(TokenType currentToken) throws IOException {
         preDecodeValue(currentToken);
         if (currentToken != TokenType.START_OBJECT) {
             throw unexpectedToken(TokenType.START_OBJECT);
         }
         nextToken();
-        child = childDecoder();
-        return child;
+        return this;
     }
 
     /**
@@ -323,8 +258,11 @@ public abstract class AbstractStreamDecoder implements Decoder {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
         switch (currentToken) {
-            case NUMBER:
             case STRING:
+                String text = getString();
+                nextToken();
+                return text;
+            case NUMBER:
             case BOOLEAN:
             case OTHER:
                 String value = coerceScalarToString(currentToken);
@@ -344,6 +282,13 @@ public abstract class AbstractStreamDecoder implements Decoder {
                 throw unexpectedToken(TokenType.STRING);
         }
     }
+
+    /**
+     * Decode the current {@link TokenType#STRING} value. Called for no other token type.
+     * @return The String value
+     * @throws java.io.IOException if an unrecoverable error occurs
+     */
+    protected abstract String getString() throws IOException;
 
     /**
      * Decode the current {@link TokenType#BOOLEAN} value. Called for no other token type.

@@ -124,12 +124,14 @@ public final class JacksonJsonMapper implements ObjectMapper {
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
         parser.setCodec(objectCodecImpl);
         Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-        if (!parser.hasCurrentToken()) {
-            parser.nextToken();
-        }
-        // for jackson compat we need to support deserializing null, but most deserializers don't support it.
-        if (parser.currentToken() == JsonToken.VALUE_NULL && !deserializer.allowNull()) {
-            return null;
+        if (!deserializer.allowNull()) {
+            if (!parser.hasCurrentToken()) {
+                parser.nextToken();
+            }
+            // for jackson compat we need to support deserializing null, but most deserializers don't support it.
+            if (parser.currentToken() == JsonToken.VALUE_NULL) {
+                return null;
+            }
         }
         final Decoder decoder = JacksonDecoder.create(parser, view);
         return (T) deserializer.deserialize(
