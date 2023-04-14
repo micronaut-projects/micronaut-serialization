@@ -16,7 +16,6 @@
 package io.micronaut.serde.json.stream;
 
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import jakarta.json.JsonNumber;
 import jakarta.json.stream.JsonParser;
@@ -28,22 +27,19 @@ import java.math.BigInteger;
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for JSON-P.
  */
-public class JsonParserDecoder extends AbstractDecoderPerStructureStreamDecoder {
+public class JsonParserDecoder extends AbstractStreamDecoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;
 
     public JsonParserDecoder(JsonParser jsonParser) {
-        super(Object.class);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }
 
-    private JsonParserDecoder(JsonParserDecoder parent) {
-        super(parent);
-        this.jsonParser = parent.jsonParser;
-
-        this.currentEvent = parent.currentEvent;
-        parent.currentEvent = null;
+    @Override
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        nextToken();
     }
 
     @Override
@@ -88,11 +84,6 @@ public class JsonParserDecoder extends AbstractDecoderPerStructureStreamDecoder 
             default ->
                 throw new IllegalStateException("Method called in wrong context " + currentEvent);
         };
-    }
-
-    @Override
-    protected AbstractStreamDecoder createChildDecoder() {
-        return new JsonParserDecoder(this);
     }
 
     @Override

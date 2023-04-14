@@ -21,7 +21,6 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import oracle.sql.json.OracleJsonArray;
 import oracle.sql.json.OracleJsonParser;
@@ -40,7 +39,7 @@ import java.time.ZonedDateTime;
  * @since 1.2.0
  */
 @Internal
-public final class OracleJdbcJsonParserDecoder extends AbstractDecoderPerStructureStreamDecoder {
+public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     private static final String METHOD_CALLED_IN_WRONG_CONTEXT = "Method called in wrong context ";
 
@@ -48,17 +47,14 @@ public final class OracleJdbcJsonParserDecoder extends AbstractDecoderPerStructu
     private OracleJsonParser.Event currentEvent;
 
     OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser) {
-        super(Object.class);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }
 
-    OracleJdbcJsonParserDecoder(OracleJdbcJsonParserDecoder parent) {
-        super(parent);
-        this.jsonParser = parent.jsonParser;
-
-        this.currentEvent = parent.currentEvent;
-        parent.currentEvent = null;
+    @Override
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        nextToken();
     }
 
     @Override
@@ -113,17 +109,12 @@ public final class OracleJdbcJsonParserDecoder extends AbstractDecoderPerStructu
     }
 
     @Override
-    protected AbstractStreamDecoder createChildDecoder() {
-        return new OracleJdbcJsonParserDecoder(this);
-    }
-
-    @Override
     protected boolean getBoolean() {
         return currentEvent == OracleJsonParser.Event.VALUE_TRUE;
     }
 
     @Override
-    protected String getString() throws IOException {
+    protected String getString() {
         return jsonParser.getString();
     }
 

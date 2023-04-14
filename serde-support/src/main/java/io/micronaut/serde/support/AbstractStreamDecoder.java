@@ -38,18 +38,7 @@ import java.util.function.Function;
 @Internal
 public abstract class AbstractStreamDecoder implements Decoder {
 
-    @NonNull
-    final Class<?> view;
-
     private boolean currentlyUnwrappingArray = false;
-
-    /**
-     * Root constructor.
-     * @param view The selected view class.
-     */
-    protected AbstractStreamDecoder(@NonNull Class<?> view) {
-        this.view = view;
-    }
 
     /**
      * The token type.

@@ -35,16 +35,13 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      * @param parent The parent decoder.
      */
     protected AbstractDecoderPerStructureStreamDecoder(@NonNull AbstractDecoderPerStructureStreamDecoder parent) {
-        super(parent.view);
         this.parent = parent;
     }
 
     /**
      * Root constructor.
-     * @param view The selected view class.
      */
-    protected AbstractDecoderPerStructureStreamDecoder(@NonNull Class<?> view) {
-        super(view);
+    protected AbstractDecoderPerStructureStreamDecoder() {
     }
 
     /**

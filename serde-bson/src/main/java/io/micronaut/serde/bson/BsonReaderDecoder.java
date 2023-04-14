@@ -52,7 +52,6 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     private TokenType currentToken;
 
     public BsonReaderDecoder(BsonReader bsonReader) {
-        super(Object.class);
         this.bsonReader = bsonReader;
         this.contextStack = new ArrayDeque<>();
         BsonType currentBsonType = bsonReader.getCurrentBsonType();
