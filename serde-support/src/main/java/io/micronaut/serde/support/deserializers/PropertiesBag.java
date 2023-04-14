@@ -101,7 +101,7 @@ final class PropertiesBag<T> {
             return propertyIndex != -1 && !consumedSet.get(propertyIndex);
         }
 
-        public DeserBean.DerProperty<T, ?> findNotConsumed(String name) {
+        public DeserBean.DerProperty<T, Object> findNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
             if (propertyIndex == -1 || consumedSet.get(propertyIndex)) {
                 return null;
@@ -109,7 +109,7 @@ final class PropertiesBag<T> {
             return properties[propertyIndex];
         }
 
-        public DeserBean.DerProperty<T, ?> consume(String name) {
+        public DeserBean.DerProperty<T, Object> consume(String name) {
             int propertyIndex = propertyIndexOf(name);
             if (propertyIndex == -1 || consumedSet.get(propertyIndex)) {
                 return null;
