@@ -4,6 +4,19 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.type.Argument;
 import io.micronaut.jackson.databind.JacksonDatabindMapper;
 import io.micronaut.json.JsonMapper;
+import io.micronaut.serde.data.InputConstructor;
+import io.micronaut.serde.data.InputField;
+import io.micronaut.serde.data.IntArrayConstructor;
+import io.micronaut.serde.data.IntArrayField;
+import io.micronaut.serde.data.IntConstructor;
+import io.micronaut.serde.data.IntegerConstructor;
+import io.micronaut.serde.data.IntegerField;
+import io.micronaut.serde.data.StringArrayConstructor;
+import io.micronaut.serde.data.StringArrayField;
+import io.micronaut.serde.data.StringConstructor;
+import io.micronaut.serde.data.StringField;
+import io.micronaut.serde.data.StringListConstructor;
+import io.micronaut.serde.data.StringListField;
 import io.micronaut.serde.jackson.JacksonJsonMapper;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Mode;
@@ -12,6 +25,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.profile.AsyncProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -21,78 +35,147 @@ import java.util.concurrent.TimeUnit;
 
 public class JacksonBenchmark {
 
-    private static final Argument<Input> INPUT_ARGUMENT = Argument.of(Input.class);
-    private static final Argument<SimpleString> SIMPLE_STRING_ARGUMENT = Argument.of(SimpleString.class);
-    private static final Argument<SimpleStringArray> SIMPLE_STRING_ARRAY_ARGUMENT = Argument.of(SimpleStringArray.class);
-    private static final Argument<SimpleStringList> SIMPLE_STRING_LIST_ARGUMENT = Argument.of(SimpleStringList.class);
-    private static final Argument<SimpleInteger> SIMPLE_INTEGER_ARGUMENT = Argument.of(SimpleInteger.class);
-    private static final Argument<SimpleInt> SIMPLE_INT_ARGUMENT = Argument.of(SimpleInt.class);
-    private static final Argument<SimpleIntegerArray> SIMPLE_INTEGER_ARRAY_ARGUMENT = Argument.of(SimpleIntegerArray.class);
+    private static final Argument<InputConstructor> INPUT_CONSTRUCTOR_ARGUMENT = Argument.of(InputConstructor.class);
+    private static final Argument<InputField> INPUT_FIELD_ARGUMENT = Argument.of(InputField.class);
+
+    private static final Argument<StringConstructor> STRING_CONSTRUCTOR_ARGUMENT = Argument.of(StringConstructor.class);
+    private static final Argument<StringField> STRING_FIELD_ARGUMENT = Argument.of(StringField.class);
+
+    private static final Argument<StringArrayConstructor> STRING_ARRAY_CONSTRUCTOR_ARGUMENT = Argument.of(StringArrayConstructor.class);
+    private static final Argument<StringArrayField> STRING_ARRAY_FIELD_ARGUMENT = Argument.of(StringArrayField.class);
+
+    private static final Argument<StringListConstructor> STRING_LIST_CONSTRUCTOR_ARGUMENT = Argument.of(StringListConstructor.class);
+    private static final Argument<StringListField> STRING_LIST_FIELD_ARGUMENT = Argument.of(StringListField.class);
+
+    private static final Argument<IntegerConstructor> INTEGER_CONSTRUCTOR_ARGUMENT = Argument.of(IntegerConstructor.class);
+    private static final Argument<IntegerField> INTEGER_FIELD_ARGUMENT = Argument.of(IntegerField.class);
+
+    private static final Argument<IntConstructor> INT_CONSTRUCTOR_ARGUMENT = Argument.of(IntConstructor.class);
+    private static final Argument<IntegerField> INT_FIELD_ARGUMENT = Argument.of(IntegerField.class);
+
+    private static final Argument<IntArrayConstructor> INTEGER_ARRAY_CONSTRUCTOR_ARGUMENT = Argument.of(IntArrayConstructor.class);
+    private static final Argument<IntArrayField> INTEGER_ARRAY_FIELD_ARGUMENT = Argument.of(IntArrayField.class);
+
+//    @Benchmark
+//    public Object decodeInputConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
+//            INPUT_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
 
     @Benchmark
-    public Object simpleInput(Holder holder) throws IOException {
+    public Object decodeInputField(Holder holder) throws IOException {
         return holder.jsonMapper.readValue(
             "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
-            INPUT_ARGUMENT
+            INPUT_FIELD_ARGUMENT
         );
     }
 
-    @Benchmark
-    public Object testSimpleString(Holder holder) throws IOException {
-        return holder.jsonMapper.readValue(
-            "{\"str\":\"myString\"}",
-            SIMPLE_STRING_ARGUMENT
-        );
-    }
-
-    @Benchmark
-    public Object testSimpleStringArray(Holder holder) throws IOException {
-        return holder.jsonMapper.readValue(
-            "{\"strs\":[\"myString1\",\"myString2\"]}",
-            SIMPLE_STRING_ARRAY_ARGUMENT
-        );
-    }
-
-    @Benchmark
-    public Object testSimpleStringList(Holder holder) throws IOException {
-        return holder.jsonMapper.readValue(
-            "{\"strs\":[\"myString1\",\"myString2\"]}",
-            SIMPLE_STRING_LIST_ARGUMENT
-        );
-    }
-
-    @Benchmark
-    public Object testSimpleInteger(Holder holder) throws IOException {
-        return holder.jsonMapper.readValue(
-            "{\"integer\":123}",
-            SIMPLE_INTEGER_ARGUMENT
-        );
-    }
-
-    @Benchmark
-    public Object testSimpleIntegerArray(Holder holder) throws IOException {
-        return holder.jsonMapper.readValue(
-            "{\"integers\":[123, 456]}",
-            SIMPLE_INTEGER_ARRAY_ARGUMENT
-        );
-    }
-
-    @Benchmark
-    public Object testSimpleInt(Holder holder) throws IOException {
-        return holder.jsonMapper.readValue(
-            "{\"integer\":123}",
-            SIMPLE_INT_ARGUMENT
-        );
-    }
+//    @Benchmark
+//    public Object decodeStringConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"str\":\"myString\"}",
+//            STRING_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeStringField(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"str\":\"myString\"}",
+//            STRING_FIELD_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeStringArrayConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"strs\":[\"myString1\",\"myString2\"]}",
+//            STRING_ARRAY_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeStringArrayField(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"strs\":[\"myString1\",\"myString2\"]}",
+//            STRING_ARRAY_FIELD_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeStringListConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"strs\":[\"myString1\",\"myString2\"]}",
+//            STRING_LIST_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeStringListField(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"strs\":[\"myString1\",\"myString2\"]}",
+//            STRING_LIST_FIELD_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeIntegerConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"integer\":123}",
+//            INTEGER_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeIntegerField(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"integer\":123}",
+//            INTEGER_FIELD_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeIntegerArrayConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"integers\":[123, 456]}",
+//            INTEGER_ARRAY_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeIntegerArrayField(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"integers\":[123, 456]}",
+//            INTEGER_ARRAY_FIELD_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeIntConstructor(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"integer\":123}",
+//            INT_CONSTRUCTOR_ARGUMENT
+//        );
+//    }
+//
+//    @Benchmark
+//    public Object decodeIntField(Holder holder) throws IOException {
+//        return holder.jsonMapper.readValue(
+//            "{\"integer\":123}",
+//            INT_FIELD_ARGUMENT
+//        );
+//    }
 
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
             .include(JacksonBenchmark.class.getName() + ".*")
-            .warmupIterations(10)
-            .measurementIterations(15)
+            .warmupIterations(5)
+            .measurementIterations(10)
             .mode(Mode.AverageTime)
             .timeUnit(TimeUnit.NANOSECONDS)
-//            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
+            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
 //            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
 //            .addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
             .forks(1)
@@ -105,18 +188,19 @@ public class JacksonBenchmark {
     public static void mainx(String[] args) throws Exception {
         ApplicationContext ctx = ApplicationContext.run();
 
-        JsonMapper jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+        JsonMapper jsonMapper = new JacksonDatabindMapper();
 
         jsonMapper.readValue(
             "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
-            INPUT_ARGUMENT
+            INPUT_CONSTRUCTOR_ARGUMENT
         );
     }
 
     @State(Scope.Thread)
     public static class Holder {
         @Param({
-            "JACKSON_DATABIND",
+//            "JACKSON_DATABIND_INTROSPECTION",
+//            "JACKSON_DATABIND_REFLECTION",
             "SERDE_JACKSON"
         })
         Stack stack = Stack.SERDE_JACKSON;
@@ -130,8 +214,10 @@ public class JacksonBenchmark {
 
             if (stack == Stack.SERDE_JACKSON) {
                 jsonMapper = ctx.getBean(JacksonJsonMapper.class);
-            } else if (stack == Stack.JACKSON_DATABIND) {
+            } else if (stack == Stack.JACKSON_DATABIND_INTROSPECTION) {
                 jsonMapper = ctx.getBean(JacksonDatabindMapper.class);
+            } else if (stack == Stack.JACKSON_DATABIND_REFLECTION) {
+                jsonMapper = new JacksonDatabindMapper();
             }
         }
 
@@ -143,7 +229,8 @@ public class JacksonBenchmark {
 
     public enum Stack {
         SERDE_JACKSON,
-        JACKSON_DATABIND
+        JACKSON_DATABIND_INTROSPECTION,
+        JACKSON_DATABIND_REFLECTION
     }
 
 }

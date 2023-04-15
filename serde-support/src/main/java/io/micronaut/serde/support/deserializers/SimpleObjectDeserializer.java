@@ -70,18 +70,16 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     private void readProperties(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object obj) throws IOException {
         Decoder objectDecoder = decoder.decodeObject(beanType);
 
-        if (deserBean.readProperties == null) {
-            skipUnknownProperties(objectDecoder, beanType);
-        } else {
-            PropertiesBag<? super Object>.Consumer readProperties = deserBean.readProperties.newConsumer();
+        if (deserBean.readProperties != null) {
+            PropertiesBag<Object>.Consumer readProperties = deserBean.readProperties.newConsumer();
 
-            while (true) {
+            boolean allConsumed = false;
+            while (!allConsumed) {
                 final String prop = objectDecoder.decodeKey();
                 if (prop == null) {
                     break;
                 }
-                @SuppressWarnings("unchecked") final DeserBean.DerProperty<Object, Object> consumedProperty =
-                        (DeserBean.DerProperty<Object, Object>) readProperties.consume(prop);
+                final DeserBean.DerProperty<Object, Object> consumedProperty = readProperties.consume(prop);
                 if (consumedProperty != null) {
                     boolean isNull = objectDecoder.decodeNull();
                     if (isNull) {
@@ -94,10 +92,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
                         Object val;
                         Argument<Object> argument = consumedProperty.argument;
                         try {
-                            val = consumedProperty
-                                .deserializer
-                                .createSpecific(decoderContext, argument)
-                                .deserialize(objectDecoder, decoderContext, argument);
+                            val = consumedProperty.deserializer.deserialize(objectDecoder, decoderContext, argument);
                         } catch (InvalidFormatException e) {
                             throw new InvalidPropertyFormatException(e, argument);
                         } catch (Exception e) {
@@ -105,33 +100,34 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
                         }
 
                         consumedProperty.set(obj, val);
-                        if (readProperties.isAllConsumed()) {
-                            skipUnknownProperties(objectDecoder, beanType);
-                            break;
-                        }
                     }
+
+                    allConsumed = readProperties.isAllConsumed();
+
                 } else {
                     skipUnknown(objectDecoder, beanType, prop);
                 }
             }
 
-            if (!readProperties.isAllConsumed()) {
-                for (DeserBean.DerProperty<? super Object, ?> dp : readProperties.getNotConsumed()) {
+            if (!allConsumed) {
+                for (DeserBean.DerProperty<Object, Object> dp : readProperties.getNotConsumed()) {
                     dp.setDefault(decoderContext, obj);
                 }
             }
         }
-        objectDecoder.finishStructure();
-    }
 
-    private void skipUnknownProperties(Decoder decoder, Argument<? super Object> beanType) throws IOException {
-        while (true) {
-            String unknownProp = decoder.decodeKey();
-            if (unknownProp == null) {
-                break;
-            } else {
-                skipUnknown(decoder, beanType, unknownProp);
+        if (ignoreUnknown) {
+            objectDecoder.finishStructure(true);
+        } else {
+            while (true) {
+                String unknownProp = objectDecoder.decodeKey();
+                if (unknownProp == null) {
+                    break;
+                } else {
+                    skipUnknown(objectDecoder, beanType, unknownProp);
+                }
             }
+            objectDecoder.finishStructure();
         }
     }
 

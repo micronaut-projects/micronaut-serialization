@@ -26,6 +26,10 @@ jmh {
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+shadowJar {
+    mergeServiceFiles()
+}
+
 configurations {
     configureEach {
         resolutionStrategy {
