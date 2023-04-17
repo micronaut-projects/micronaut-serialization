@@ -47,17 +47,14 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     private OracleJsonParser.Event currentEvent;
 
     OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser) {
-        super(Object.class);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }
 
-    OracleJdbcJsonParserDecoder(OracleJdbcJsonParserDecoder parent) {
-        super(parent);
-        this.jsonParser = parent.jsonParser;
-
-        this.currentEvent = parent.currentEvent;
-        parent.currentEvent = null;
+    @Override
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        nextToken();
     }
 
     @Override
@@ -92,7 +89,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() {
+    protected String coerceScalarToString(TokenType currentToken) {
         return switch (currentEvent) {
             case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS, VALUE_INTERVALYM ->
                 // only allowed for string, number
@@ -112,13 +109,13 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected AbstractStreamDecoder createChildDecoder() {
-        return new OracleJdbcJsonParserDecoder(this);
+    protected boolean getBoolean() {
+        return currentEvent == OracleJsonParser.Event.VALUE_TRUE;
     }
 
     @Override
-    protected boolean getBoolean() {
-        return currentEvent == OracleJsonParser.Event.VALUE_TRUE;
+    protected String getString() {
+        return jsonParser.getString();
     }
 
     @Override

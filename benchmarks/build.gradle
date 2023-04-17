@@ -1,0 +1,43 @@
+plugins {
+    id("io.micronaut.build.internal.serde-base")
+    id("java")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("me.champeau.jmh") version "0.7.0"
+}
+
+dependencies {
+    annotationProcessor(projects.micronautSerdeProcessor)
+    annotationProcessor(mn.micronaut.inject.java)
+    jmhAnnotationProcessor(libs.jmh.generator.annprocess)
+    jmhAnnotationProcessor(mn.micronaut.inject.java)
+
+    implementation(projects.micronautSerdeJackson)
+    implementation(projects.micronautSerdeSupport)
+    implementation(mn.micronaut.jackson.databind)
+
+    implementation(mn.micronaut.runtime)
+
+    jmh(libs.jmh.core)
+    runtimeOnly(mn.logback.classic)
+}
+
+jmh {
+    includes = ["io.micronaut.serde.JacksonBenchmark"]
+    duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+configurations {
+    configureEach {
+        resolutionStrategy {
+            eachDependency { details ->
+                if (details.requested.group == "io.micronaut") {
+                    details.useVersion("4.0.0-M1")
+                }
+            }
+        }
+    }
+}

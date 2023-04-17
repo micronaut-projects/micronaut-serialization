@@ -15,17 +15,6 @@
  */
 package io.micronaut.serde;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.ApplicationContextConfiguration;
 import io.micronaut.context.DefaultApplicationContext;
@@ -39,6 +28,16 @@ import io.micronaut.inject.BeanDefinitionReference;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import org.reactivestreams.Processor;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 /**
  *

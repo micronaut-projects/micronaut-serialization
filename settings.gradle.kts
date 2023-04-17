@@ -29,6 +29,8 @@ include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
 
+include("benchmarks")
+
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
 configure<io.micronaut.build.MicronautBuildSettingsExtension> {

@@ -16,6 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -43,7 +44,7 @@ import java.util.Deque;
  * @author Denis Stepanov
  */
 @Internal
-public final class BsonReaderDecoder extends AbstractStreamDecoder {
+public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDecoder {
     private final BsonReader bsonReader;
     private final Deque<Context> contextStack;
 
@@ -51,7 +52,6 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     private TokenType currentToken;
 
     public BsonReaderDecoder(BsonReader bsonReader) {
-        super(Object.class);
         this.bsonReader = bsonReader;
         this.contextStack = new ArrayDeque<>();
         BsonType currentBsonType = bsonReader.getCurrentBsonType();
@@ -90,27 +90,25 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     protected void nextToken() {
         if (currentToken != null) {
             switch (currentToken) {
-                case START_ARRAY:
+                case START_ARRAY -> {
                     contextStack.push(Context.ARRAY);
                     bsonReader.readStartArray();
-                    break;
-                case START_OBJECT:
+                }
+                case START_OBJECT -> {
                     contextStack.push(Context.DOCUMENT);
                     bsonReader.readStartDocument();
-                    break;
-                case END_ARRAY:
+                }
+                case END_ARRAY -> {
                     contextStack.pop();
                     bsonReader.readEndArray();
-                    break;
-                case END_OBJECT:
+                }
+                case END_OBJECT -> {
                     contextStack.pop();
                     bsonReader.readEndDocument();
-                    break;
-                case NULL:
-                    bsonReader.readNull();
-                    break;
-                default:
-                    break;
+                }
+                case NULL -> bsonReader.readNull();
+                default -> {
+                }
             }
         }
 
@@ -184,7 +182,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() throws IOException {
+    protected String coerceScalarToString(TokenType currentToken) throws IOException {
         switch (currentBsonType) {
             case DOUBLE:
                 return String.valueOf(bsonReader.readDouble());
@@ -224,6 +222,11 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
     @Override
     protected AbstractStreamDecoder createChildDecoder() {
         return new BsonReaderDecoder(this);
+    }
+
+    @Override
+    protected String getString() {
+        return bsonReader.readString();
     }
 
     @Override
@@ -349,7 +352,7 @@ public final class BsonReaderDecoder extends AbstractStreamDecoder {
      * @throws IOException
      */
     public Decimal128 decodeDecimal128() throws IOException {
-        return decodeNumber(decoder -> ((BsonReaderDecoder) decoder).getDecimal128(), Decimal128::parse, Decimal128.POSITIVE_ZERO, new Decimal128(1));
+        return decodeNumber(currentToken(), decoder -> ((BsonReaderDecoder) decoder).getDecimal128(), Decimal128::parse, Decimal128.POSITIVE_ZERO, new Decimal128(1));
     }
 
     /**

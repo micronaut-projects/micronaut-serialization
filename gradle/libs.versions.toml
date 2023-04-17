@@ -21,6 +21,7 @@ micronaut-reactor = "3.0.0-SNAPSHOT"
 
 oracle-jdbc-driver = "23.2.0.0"
 jetbrains-annotations = "24.0.0"
+jmh = "1.35"
 
 [libraries]
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
@@ -37,6 +38,9 @@ aws-lambda-events = { module = "com.amazonaws:aws-lambda-java-events", version.r
 aws-lambda-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-serialization" }
 graal-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graal-svm" }
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
+
+jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
+jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
 #PLUGINS
 

@@ -5,5 +5,3 @@ dependencyResolutionManagement {
         }
     }
 }
-
-rootProject.name = "serde-parent"

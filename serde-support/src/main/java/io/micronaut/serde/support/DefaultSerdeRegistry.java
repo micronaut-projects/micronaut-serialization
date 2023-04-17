@@ -15,30 +15,6 @@
  */
 package io.micronaut.serde.support;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.TimeZone;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.BeanRegistration;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
@@ -71,6 +47,30 @@ import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.TimeZone;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -1099,9 +1099,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private static final class StringSerde
-        extends SerdeRegistrar<String>
-        implements NullableSerde<String> {
+    private static final class StringSerde extends SerdeRegistrar<String> implements Serde<String> {
 
         @Override
         Argument<String> getType() {
@@ -1115,11 +1113,15 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public String deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super String> type)
-            throws IOException {
-            return decoder.decodeString();
+        public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            } else {
+                return decoder.decodeString();
+            }
         }
     }
+
 
     private static final class URLSerde extends SerdeRegistrar<URL> implements NullableSerde<URL> {
 

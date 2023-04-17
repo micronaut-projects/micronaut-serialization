@@ -273,7 +273,7 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public void skipValue() throws IOException {
+        public void skipValue() {
             if (nextValue == null) {
                 throw new IllegalStateException("Field name not parsed yet");
             }
@@ -281,12 +281,12 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public boolean hasNextArrayValue() throws IOException {
+        public boolean hasNextArrayValue() {
             return false;
         }
 
         @Override
-        public String decodeKey() throws IOException {
+        public String decodeKey() {
             if (nextValue != null) {
                 throw new IllegalStateException("Field value not parsed yet");
             }
@@ -300,8 +300,8 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public void finishStructure() throws IOException {
-            if (nextValue != null || iterator.hasNext()) {
+        public void finishStructure(boolean consumeLeftElements) {
+            if (!consumeLeftElements && (nextValue != null || iterator.hasNext())) {
                 throw new IllegalStateException("Not all elements have been consumed yet");
             }
         }
@@ -317,12 +317,12 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public boolean hasNextArrayValue() throws IOException {
+        public boolean hasNextArrayValue() {
             return peeked != null;
         }
 
         @Override
-        public String decodeKey() throws IOException {
+        public String decodeKey() {
             throw new IllegalStateException("Arrays have no keys");
         }
 
@@ -336,8 +336,8 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public void finishStructure() throws IOException {
-            if (peeked != null) {
+        public void finishStructure(boolean consumeLeftElements) {
+            if (!consumeLeftElements && peeked != null) {
                 throw new IllegalStateException("Not all elements have been consumed yet");
             }
         }
@@ -360,17 +360,17 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public boolean hasNextArrayValue() throws IOException {
+        public boolean hasNextArrayValue() {
             return false;
         }
 
         @Override
-        public String decodeKey() throws IOException {
+        public String decodeKey() {
             throw new IllegalStateException("Can't be called on buffered node");
         }
 
         @Override
-        public void skipValue() throws IOException {
+        public void skipValue() {
             if (complete) {
                 throw new IllegalStateException("Already drained");
             }
@@ -378,7 +378,7 @@ public abstract class JsonNodeDecoder implements Decoder {
         }
 
         @Override
-        public void finishStructure() throws IOException {
+        public void finishStructure(boolean consumeLeftElements) {
             throw new IllegalStateException("Can't be called on buffered node");
         }
 

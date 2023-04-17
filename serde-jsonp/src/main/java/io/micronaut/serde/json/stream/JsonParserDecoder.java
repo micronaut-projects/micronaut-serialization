@@ -15,14 +15,14 @@
  */
 package io.micronaut.serde.json.stream;
 
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractStreamDecoder;
+import jakarta.json.JsonNumber;
+import jakarta.json.stream.JsonParser;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
-import io.micronaut.serde.support.AbstractStreamDecoder;
-import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.json.JsonNumber;
-import jakarta.json.stream.JsonParser;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface for JSON-P.
@@ -32,17 +32,14 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     private JsonParser.Event currentEvent;
 
     public JsonParserDecoder(JsonParser jsonParser) {
-        super(Object.class);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }
 
-    private JsonParserDecoder(JsonParserDecoder parent) {
-        super(parent);
-        this.jsonParser = parent.jsonParser;
-
-        this.currentEvent = parent.currentEvent;
-        parent.currentEvent = null;
+    @Override
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        nextToken();
     }
 
     @Override
@@ -77,7 +74,7 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected String coerceScalarToString() {
+    protected String coerceScalarToString(TokenType currentToken) {
         return switch (currentEvent) {
             case VALUE_STRING, VALUE_NUMBER ->
                 // only allowed for string and number
@@ -90,8 +87,8 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected AbstractStreamDecoder createChildDecoder() {
-        return new JsonParserDecoder(this);
+    protected String getString() {
+        return jsonParser.getString();
     }
 
     @Override
