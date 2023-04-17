@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde;
 
-import java.io.IOException;
-
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -26,6 +24,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
+
+import java.io.IOException;
 
 /**
  * Interface that represents a deserializer.
@@ -65,6 +65,7 @@ public interface Deserializer<T> {
             @NonNull Argument<? super T> type) throws IOException;
 
     /**
+     * Return true if the decoder can accept the null value by converting it to something else or just returning null.
      * @return Whether the deserializer is allowed to emit {@code null}
      */
     default boolean allowNull() {

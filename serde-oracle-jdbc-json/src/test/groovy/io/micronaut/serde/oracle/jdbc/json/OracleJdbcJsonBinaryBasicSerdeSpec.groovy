@@ -133,4 +133,9 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
         // Just simple validation, no need to parse
         json.contains("\"etag\":\"" + OracleJsonBinaryImpl.getString(etag.getBytes(Charset.defaultCharset()), false) + "\"")
     }
+
+    @Override
+    boolean jsonMatches(String result, String expected) {
+        textJsonMapper.readValue(result, Map) == textJsonMapper.readValue(expected, Map)
+    }
 }

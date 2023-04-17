@@ -15,15 +15,15 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.time.Year;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalQuery;
-
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.time.Year;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalQuery;
 
 /**
  * Serde for year.
@@ -43,7 +43,7 @@ public class YearSerde implements TemporalSerde<Year> {
     }
 
     @Override
-    public Year deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Year> type)
+    public Year deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Year> type)
             throws IOException {
         return Year.of(decoder.decodeInt());
     }

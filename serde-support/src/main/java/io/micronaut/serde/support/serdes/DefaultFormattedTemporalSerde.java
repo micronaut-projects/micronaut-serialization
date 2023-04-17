@@ -62,7 +62,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     }
 
     @Override
-    public final T deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+    public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         if (treatDatesAsTimestamps) {
             try {
                 return deserializeNonNullWithoutFormat(decoder, decoderContext, type);

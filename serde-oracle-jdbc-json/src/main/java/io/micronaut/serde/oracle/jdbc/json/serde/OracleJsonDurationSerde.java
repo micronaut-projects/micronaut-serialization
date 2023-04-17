@@ -15,16 +15,16 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
-import java.io.IOException;
-import java.time.Duration;
-
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.util.NullableSerde;
+import io.micronaut.serde.Serde;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.time.Duration;
 
 /**
  * The custom serde for {@link Duration} for Oracle JSON. Needed because default serde in Micronaut expects number (nanos)
@@ -35,11 +35,11 @@ import jakarta.inject.Singleton;
  */
 @Singleton
 @Order(-100)
-public class OracleJsonDurationSerde implements NullableSerde<Duration> {
+public class OracleJsonDurationSerde implements Serde<Duration> {
 
     @Override
     @NonNull
-    public Duration deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type) throws IOException {
+    public Duration deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type) throws IOException {
         String duration = decoder.decodeString();
         return Duration.parse(duration);
     }

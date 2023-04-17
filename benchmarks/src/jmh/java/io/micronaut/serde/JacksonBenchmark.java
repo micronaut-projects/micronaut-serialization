@@ -18,6 +18,8 @@ import io.micronaut.serde.data.StringConstructor;
 import io.micronaut.serde.data.StringField;
 import io.micronaut.serde.data.StringListConstructor;
 import io.micronaut.serde.data.StringListField;
+import io.micronaut.serde.data.Users;
+import io.micronaut.serde.data.UsersNoArrays;
 import io.micronaut.serde.jackson.JacksonJsonMapper;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Mode;
@@ -34,6 +36,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class JacksonBenchmark {
+
+    private static final Argument<Users> USERS_ARGUMENT = Argument.of(Users.class);
+    private static final Argument<UsersNoArrays> USERS_NO_ARRAYS_ARGUMENT = Argument.of(UsersNoArrays.class);
 
     private static final Argument<InputConstructor> INPUT_CONSTRUCTOR_ARGUMENT = Argument.of(InputConstructor.class);
     private static final Argument<InputField> INPUT_FIELD_ARGUMENT = Argument.of(InputField.class);
@@ -74,6 +79,26 @@ public class JacksonBenchmark {
     }
 
     @Benchmark
+    public Object decodeUsers(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            """
+                {"users":[{"_id":"39771757156730064829","index":1031703887,"guid":"ifhsrU6geU4PijjDE8Q5","isActive":false,"balance":"TKl0GcwTs72S4CPx5rfg","picture":"FkKrg6ZOPC5REchlhixu5WgIl3gNAqq28iLtFm6dKfTSQs8d3P0cYxKsEvbvMB2C6BVgExop3khRlNSFE4SV8dVFitFs7RyyecN8","age":5,"eyeColor":"AY79Pw4sYByUZEMLxnYJ","name":"XjXrEZMuTvPnuOPBg7hL","gender":"VaMcuWBHvnWvIlCC9q4T","company":"6pmCe1LxouRGfZD79ena","email":"TboNtpmAS0ppZ07jITFE","phone":"j8OoUhtmwBlI20EgD1LS","address":"Aqo4fSYBpvvAWTDqbFbK","about":"1kXFSA2782BLqNBbKIbp","registered":"Mc7h3gZJcQ11ShGQYdXI","latitude":13.474549605725421,"longitude":35.010833129741435,"tags":["8tGfPhZkZD","XYmwuAAtZ4","u9iBDMpS9G","4udy1eRqme","Lg48Ogrf0I","zku019kVpo","iuIMkiZzog","MuI1uYeCjc","49n7qisFD8","TtVgWerCRh","H604QRJmi1","ZIQMfqInNH","CbDyjjA19F","pNFwPdkVdU","aPFLsUbIUh","fA735PT0Hd","00etYDYL87","mlyEf1lI2B","RQ05IJSzXF","3jJt0Zrkhw","ZINP8GH4Bm","XebX8UvviN","EXqZ9G0ATB","ssyzWZVAa2"],"friends":[{"id":"2668","name":"lcxeDXPbnoIxAPqTNdkwbcGIJxLnPe"},{"id":"9395","name":"dxNBbezfkbotyCmFzjodONShlGFaAg"},{"id":"5249","name":"fYHSDXScMSzQvxzFuuPHYWfyjdGQLg"},{"id":"4978","name":"qfoxPWmoWUyUduVkRwhzyBusuflrFY"},{"id":"9710","name":"vUAJwshFGLoBHfwLcsEVNLJLwdaCAg"},{"id":"7404","name":"BhVMdvhPRdpwpDWAmfhNDikncdNgGr"},{"id":"1343","name":"ZeDoizPcOBafZtVYDOmpzGoHekfoxf"},{"id":"7382","name":"KtqXeVdCQJlwSNHkgkxuoIGdOWrmqG"},{"id":"1365","name":"rCSTlgbmTAFhbSfPmnftcDLwdiKsHt"},{"id":"8037","name":"PUvwVYoSvSTnwjJCQITTcwNvMOpxie"},{"id":"4858","name":"cUfQfDIiyMfCMYBKGwhZSWnRRKwlxG"},{"id":"9141","name":"rJxMGOWRjdkphthcaKTspFrMcvcLLb"},{"id":"9128","name":"gcsYaolAQqrNMQTluIAKOkwYTWVUXe"},{"id":"2268","name":"jwXOUcXAiLurRlgTdxyKWvsbNHfFxl"},{"id":"5447","name":"whivfJXOdxoHtLIGpytTdbOXxlZpUY"},{"id":"7551","name":"whykuIjZUgvOFGpmNHjoPeTeYCPNby"},{"id":"719","name":"SmbiwQaORLdsbAlUZbQwgCKfuoPLVr"},{"id":"7773","name":"LZmRMXmXXHzlzFFJAopDNnWkuBqndD"},{"id":"9602","name":"xCNsDBFMygEwZuecJKTUrqeDLBJlrR"},{"id":"1536","name":"hrfeFnKnmVgZDDOxAHgXfgcJSRyiXB"},{"id":"3549","name":"NvvhXwWgCSaYijqhxsrxIWrHbBOOIa"}],"greeting":"hTAIJLspvLr8DJPG3jYh","favoriteFruit":"f6ZsZ3saRGKMBCZLAkiP"}]}
+                """,
+            USERS_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object decodeUsersNoArrays(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            """
+                {"users":[{"_id":"39771757156730064829","index":1031703887,"guid":"ifhsrU6geU4PijjDE8Q5","isActive":false,"balance":"TKl0GcwTs72S4CPx5rfg","picture":"FkKrg6ZOPC5REchlhixu5WgIl3gNAqq28iLtFm6dKfTSQs8d3P0cYxKsEvbvMB2C6BVgExop3khRlNSFE4SV8dVFitFs7RyyecN8","age":5,"eyeColor":"AY79Pw4sYByUZEMLxnYJ","name":"XjXrEZMuTvPnuOPBg7hL","gender":"VaMcuWBHvnWvIlCC9q4T","company":"6pmCe1LxouRGfZD79ena","email":"TboNtpmAS0ppZ07jITFE","phone":"j8OoUhtmwBlI20EgD1LS","address":"Aqo4fSYBpvvAWTDqbFbK","about":"1kXFSA2782BLqNBbKIbp","registered":"Mc7h3gZJcQ11ShGQYdXI","latitude":13.474549605725421,"longitude":35.010833129741435,"tags":["8tGfPhZkZD","XYmwuAAtZ4","u9iBDMpS9G","4udy1eRqme","Lg48Ogrf0I","zku019kVpo","iuIMkiZzog","MuI1uYeCjc","49n7qisFD8","TtVgWerCRh","H604QRJmi1","ZIQMfqInNH","CbDyjjA19F","pNFwPdkVdU","aPFLsUbIUh","fA735PT0Hd","00etYDYL87","mlyEf1lI2B","RQ05IJSzXF","3jJt0Zrkhw","ZINP8GH4Bm","XebX8UvviN","EXqZ9G0ATB","ssyzWZVAa2"],"friends":[{"id":"2668","name":"lcxeDXPbnoIxAPqTNdkwbcGIJxLnPe"},{"id":"9395","name":"dxNBbezfkbotyCmFzjodONShlGFaAg"},{"id":"5249","name":"fYHSDXScMSzQvxzFuuPHYWfyjdGQLg"},{"id":"4978","name":"qfoxPWmoWUyUduVkRwhzyBusuflrFY"},{"id":"9710","name":"vUAJwshFGLoBHfwLcsEVNLJLwdaCAg"},{"id":"7404","name":"BhVMdvhPRdpwpDWAmfhNDikncdNgGr"},{"id":"1343","name":"ZeDoizPcOBafZtVYDOmpzGoHekfoxf"},{"id":"7382","name":"KtqXeVdCQJlwSNHkgkxuoIGdOWrmqG"},{"id":"1365","name":"rCSTlgbmTAFhbSfPmnftcDLwdiKsHt"},{"id":"8037","name":"PUvwVYoSvSTnwjJCQITTcwNvMOpxie"},{"id":"4858","name":"cUfQfDIiyMfCMYBKGwhZSWnRRKwlxG"},{"id":"9141","name":"rJxMGOWRjdkphthcaKTspFrMcvcLLb"},{"id":"9128","name":"gcsYaolAQqrNMQTluIAKOkwYTWVUXe"},{"id":"2268","name":"jwXOUcXAiLurRlgTdxyKWvsbNHfFxl"},{"id":"5447","name":"whivfJXOdxoHtLIGpytTdbOXxlZpUY"},{"id":"7551","name":"whykuIjZUgvOFGpmNHjoPeTeYCPNby"},{"id":"719","name":"SmbiwQaORLdsbAlUZbQwgCKfuoPLVr"},{"id":"7773","name":"LZmRMXmXXHzlzFFJAopDNnWkuBqndD"},{"id":"9602","name":"xCNsDBFMygEwZuecJKTUrqeDLBJlrR"},{"id":"1536","name":"hrfeFnKnmVgZDDOxAHgXfgcJSRyiXB"},{"id":"3549","name":"NvvhXwWgCSaYijqhxsrxIWrHbBOOIa"}],"greeting":"hTAIJLspvLr8DJPG3jYh","favoriteFruit":"f6ZsZ3saRGKMBCZLAkiP"}]}
+                """,
+            USERS_NO_ARRAYS_ARGUMENT
+        );
+    }
+
+    @Benchmark
     public Object decodeInputSetter(Holder holder) throws IOException {
         return holder.jsonMapper.readValue(
             "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
@@ -100,7 +125,7 @@ public class JacksonBenchmark {
     @Benchmark
     public Object decodeStringArrayConstructor(Holder holder) throws IOException {
         return holder.jsonMapper.readValue(
-            "{\"strs\":[\"myString1\",\"myString2\"]}",
+            "{\"strs\":[\"myString1\",\"myString2\",\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\", \"needle\", \"idg\",\"myString1\",\"myString2\",\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\", \"needle\", \"idg\"]}",
             STRING_ARRAY_CONSTRUCTOR_ARGUMENT
         );
     }
@@ -122,9 +147,17 @@ public class JacksonBenchmark {
     }
 
     @Benchmark
-    public Object decodeStringListField(Holder holder) throws IOException {
+    public Object decodeStringListFieldSmall(Holder holder) throws IOException {
         return holder.jsonMapper.readValue(
             "{\"strs\":[\"myString1\",\"myString2\"]}",
+            STRING_LIST_FIELD_ARGUMENT
+        );
+    }
+
+    @Benchmark
+    public Object decodeStringListFieldBig(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            "{\"strs\":[\"myString1\",\"myString2\",\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\", \"needle\", \"idg\",\"myString1\",\"myString2\",\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\", \"needle\", \"idg\"]}",
             STRING_LIST_FIELD_ARGUMENT
         );
     }
@@ -180,6 +213,7 @@ public class JacksonBenchmark {
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
             .include(JacksonBenchmark.class.getName() + ".*")
+//            .include(JacksonBenchmark.class.getName() + ".decodeUsersNoArrays")
             .warmupIterations(5)
             .measurementIterations(10)
             .mode(Mode.AverageTime)
@@ -188,6 +222,7 @@ public class JacksonBenchmark {
 //            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
 //            .addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
             .forks(1)
+//            .jvmArgsAppend("-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints")
 //            .jvmArgsPrepend("-Dio.type.pollution.file=out.txt", "-javaagent:/Users/denisstepanov/dev/micronaut-core/type-pollution-agent-0.1-SNAPSHOT.jar")
             .build();
 
@@ -196,12 +231,12 @@ public class JacksonBenchmark {
 
     public static void mainx(String[] args) throws Exception {
         ApplicationContext ctx = ApplicationContext.run();
+        Holder holder = new Holder();
+        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+//        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+        Object obj = new JacksonBenchmark().decodeStringListFieldSmall(holder);
 
-        JsonMapper jsonMapper = ctx.getBean(JacksonJsonMapper.class);
-        jsonMapper.readValue(
-            "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}",
-            INPUT_FIELD_ARGUMENT
-        );
+        System.out.println(obj);
     }
 
     @State(Scope.Thread)

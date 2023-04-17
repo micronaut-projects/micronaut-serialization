@@ -15,11 +15,6 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.Locale;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -27,15 +22,21 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
  * Adapts serialization for formatted numbers.
  * @param <N> The number type
  */
 @Internal
-final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
+final class FormattedNumberSerde<N extends Number> implements Serde<N> {
     private final String pattern;
     private final Locale locale;
 
@@ -54,7 +55,7 @@ final class FormattedNumberSerde<N extends Number> implements NumberSerde<N> {
     }
 
     @Override
-    public N deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super N> type) throws IOException {
+    public N deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super N> type) throws IOException {
         final String s = decoder.decodeString();
         final DecimalFormat decimalFormat = createDecimalFormat(type);
         try {

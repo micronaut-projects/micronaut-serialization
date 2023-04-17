@@ -34,12 +34,16 @@ import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.exceptions.InvalidFormatException;
+import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,7 +86,6 @@ class DeserBean<T> {
     public final boolean recordLikeBean;
     public final ConversionService conversionService;
 
-    private volatile boolean initialized;
     // CHECKSTYLE:ON
 
     public DeserBean(
@@ -342,34 +345,27 @@ class DeserBean<T> {
         return false;
     }
 
-    public void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized) {
-                    if (readProperties != null) {
-                        List<Map.Entry<String, DerProperty<T, Object>>> properties = readProperties.getProperties();
-                        for (Map.Entry<String, DerProperty<T, Object>> e : properties) {
-                            DerProperty<T, Object> property = e.getValue();
-                            initProperty(property, decoderContext);
-                        }
-                    }
-                    if (creatorParams != null) {
-                        List<Map.Entry<String, DerProperty<T, Object>>> properties = creatorParams.getProperties();
-                        for (Map.Entry<String, DerProperty<T, Object>> e : properties) {
-                            DerProperty<T, Object> property = e.getValue();
-                            initProperty(property, decoderContext);
-                        }
-                    }
-                    if (anySetter != null) {
-                        anySetter.deserializer = anySetter.valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, anySetter.valueType);
-                    }
-                    if (unwrappedProperties != null) {
-                        for (DerProperty<T, Object> unwrappedProperty : unwrappedProperties) {
-                            initProperty(unwrappedProperty, decoderContext);
-                        }
-                    }
-                    initialized = true;
-                }
+    void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
+        if (readProperties != null) {
+            List<Map.Entry<String, DerProperty<T, Object>>> properties = readProperties.getProperties();
+            for (Map.Entry<String, DerProperty<T, Object>> e : properties) {
+                DerProperty<T, Object> property = e.getValue();
+                initProperty(property, decoderContext);
+            }
+        }
+        if (creatorParams != null) {
+            List<Map.Entry<String, DerProperty<T, Object>>> properties = creatorParams.getProperties();
+            for (Map.Entry<String, DerProperty<T, Object>> e : properties) {
+                DerProperty<T, Object> property = e.getValue();
+                initProperty(property, decoderContext);
+            }
+        }
+        if (anySetter != null) {
+            anySetter.deserializer = anySetter.valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : findDeserializer(decoderContext, anySetter.valueType);
+        }
+        if (unwrappedProperties != null) {
+            for (DerProperty<T, Object> unwrappedProperty : unwrappedProperties) {
+                initProperty(unwrappedProperty, decoderContext);
             }
         }
     }
@@ -406,9 +402,7 @@ class DeserBean<T> {
 
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
         property.deserializer = findDeserializer(decoderContext, property.argument);
-        if (property.unwrapped != null) {
-            property.unwrapped.initialize(decoderContext);
-        }
+        property.deserializerNotAllowsNull = !property.deserializer.allowNull();
     }
 
     private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
@@ -605,15 +599,14 @@ class DeserBean<T> {
 
         @Nullable
         public final UnsafeBeanProperty<B, P> beanProperty;
-        @Nullable
-        public final BeanMethod<B, P> beanMethod;
 
         public final DeserBean<P> unwrapped;
         public final String managedRef;
         public final String backRef;
 
         // Null when DeserBean not initialized
-        public Deserializer<? super P> deserializer;
+        public Deserializer<P> deserializer;
+        public boolean deserializerNotAllowsNull;
 
         public DerProperty(ConversionService conversionService,
                            BeanIntrospection<B> introspection,
@@ -653,8 +646,13 @@ class DeserBean<T> {
                     || argument.isAssignableFrom(OptionalInt.class);
             this.nonNull = argument.isNonNull();
             this.nullable = argument.isNullable();
-            this.beanProperty = (UnsafeBeanProperty<B, P>) beanProperty;
-            this.beanMethod = beanMethod;
+            if (beanProperty != null)  {
+                this.beanProperty = (UnsafeBeanProperty<B, P>) beanProperty;
+            } else if (beanMethod != null) {
+                this.beanProperty = new BeanMethodAsBeanProperty<>(property, beanMethod);
+            } else {
+                this.beanProperty = null;
+            }
             // compute default
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(instrospection, argument, argumentMetadata);
             this.views = SerdeAnnotationUtil.resolveViews(instrospection, annotationMetadata);
@@ -683,22 +681,18 @@ class DeserBean<T> {
                     .orElse(false);
         }
 
-        public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
+        public void setDefaultPropertyValue(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
             if (!explicitlyRequired) {
                 P def = defaultValue;
                 if (def == null) {
                     if (!mustSetField) {
                         return;
                     }
-                    def = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
+                    def = deserializer.getDefaultValue(decoderContext, argument);
                 }
                 if (def != null) {
                     if (beanProperty != null) {
                         beanProperty.setUnsafe(bean, def);
-                        return;
-                    }
-                    if (beanMethod != null) {
-                        beanMethod.invoke(bean, def);
                         return;
                     }
                 }
@@ -707,7 +701,7 @@ class DeserBean<T> {
                     "] is not present in supplied data");
         }
 
-        public void setDefault(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
+        public void setDefaultConstructorValue(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
             if (!explicitlyRequired) {
                 if (defaultValue != null) {
                     params[index] = defaultValue;
@@ -716,7 +710,7 @@ class DeserBean<T> {
                 if (!mustSetField && !argument.isPrimitive()) {
                     return;
                 }
-                P newDefaultValue = (P) deserializer.getDefaultValue(decoderContext, (Argument) argument);
+                P newDefaultValue = deserializer.getDefaultValue(decoderContext, argument);
                 if (newDefaultValue != null) {
                     params[index] = newDefaultValue;
                     return;
@@ -733,8 +727,67 @@ class DeserBean<T> {
             }
             if (beanProperty != null) {
                 beanProperty.setUnsafe(obj, v);
-            } else if (beanMethod != null) {
-                beanMethod.invoke(obj, v);
+            }
+        }
+
+        public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
+            try {
+                P value;
+                if (deserializerNotAllowsNull && objectDecoder.decodeNull()) {
+                    value = null;
+                } else {
+                    value = deserializer.deserialize(objectDecoder, decoderContext, argument);
+                }
+                if (value == null && !nullable) {
+                    if (!explicitlyRequired) {
+                        value = defaultValue;
+                        if (value == null) {
+                            if (!mustSetField) {
+                                return;
+                            }
+                            value = deserializer.getDefaultValue(decoderContext, argument);
+                        }
+                    } else {
+                        throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                            "] is not present in supplied data");
+                    }
+                }
+                values[index] = value;
+            } catch (InvalidFormatException e) {
+                throw new InvalidPropertyFormatException(e, argument);
+            } catch (Exception e) {
+                throw new SerdeException("Error decoding property [" + argument + "] of type [" + instrospection.getBeanType() + "]: " + e.getMessage(), e);
+            }
+        }
+
+        @Nullable
+        public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
+            try {
+                P value;
+                if (deserializerNotAllowsNull && objectDecoder.decodeNull()) {
+                    value = null;
+                } else {
+                    value = deserializer.deserialize(objectDecoder, decoderContext, argument);
+                }
+                if (value == null && !nullable) {
+                    if (!explicitlyRequired) {
+                        value = defaultValue;
+                        if (value == null) {
+                            if (!mustSetField) {
+                                return;
+                            }
+                            value = deserializer.getDefaultValue(decoderContext, argument);
+                        }
+                    } else {
+                        throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                            "] is not present in supplied data");
+                    }
+                }
+                beanProperty.setUnsafe(beanInstance, value);
+            } catch (InvalidFormatException e) {
+                throw new InvalidPropertyFormatException(e, argument);
+            } catch (Exception e) {
+                throw new SerdeException("Error decoding property [" + argument + "] of type [" + instrospection.getBeanType() + "]: " + e.getMessage(), e);
             }
         }
 
@@ -746,5 +799,70 @@ class DeserBean<T> {
                 .map(BeanProperty::getAnnotationMetadata)
                 .orElse(AnnotationMetadata.EMPTY_METADATA);
         return new AnnotationMetadataHierarchy(propertyMetadata, annotationMetadata);
+    }
+
+    private static final class BeanMethodAsBeanProperty<B, P> implements UnsafeBeanProperty<B, P> {
+
+        private final String name;
+        private final BeanMethod<B, P> beanMethod;
+        private final Argument<P> argument;
+        private final Class<P> type;
+
+        public BeanMethodAsBeanProperty(String name, BeanMethod<B, P> beanMethod) {
+            this.name = name;
+            this.beanMethod = beanMethod;
+            this.argument = (Argument<P>) beanMethod.getArguments()[0];
+            this.type = argument.getType();
+        }
+
+        @Override
+        public boolean isReadOnly() {
+            return true;
+        }
+
+        @Override
+        public P getUnsafe(B bean) {
+            throw new IllegalStateException("Not supported");
+        }
+
+        @Override
+        public B withValueUnsafe(B bean, P value) {
+            throw new IllegalStateException("Not supported");
+        }
+
+        @Override
+        public void setUnsafe(B bean, P value) {
+            beanMethod.invoke(bean, value);
+        }
+
+        @Override
+        public BeanIntrospection<B> getDeclaringBean() {
+            return null;
+        }
+
+        @Override
+        public P get(B bean) {
+            throw new IllegalStateException("Not supported");
+        }
+
+        @Override
+        public Class<P> getType() {
+            return type;
+        }
+
+        @Override
+        public Argument<P> asArgument() {
+            return argument;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public AnnotationMetadata getAnnotationMetadata() {
+            return beanMethod.getAnnotationMetadata();
+        }
     }
 }

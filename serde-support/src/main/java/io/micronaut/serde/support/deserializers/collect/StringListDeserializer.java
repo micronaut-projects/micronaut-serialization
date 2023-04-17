@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support.deserializers;
+package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -36,13 +36,14 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
         final Decoder arrayDecoder = decoder.decodeArray();
         ArrayList<String> collection = new ArrayList<>();
         while (arrayDecoder.hasNextArrayValue()) {
-            collection.add(arrayDecoder.decodeString());
+            if (arrayDecoder.decodeNull()) {
+                collection.add(null);
+            } else {
+                collection.add(arrayDecoder.decodeString());
+            }
         }
         arrayDecoder.finishStructure();
         return collection;
@@ -51,11 +52,6 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
     @Override
     public ArrayList<String> getDefaultValue(DecoderContext context, Argument<? super ArrayList<String>> type) {
         return new ArrayList<>();
-    }
-
-    @Override
-    public boolean allowNull() {
-        return true;
     }
 
 }

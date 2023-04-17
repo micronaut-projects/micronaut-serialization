@@ -20,9 +20,9 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.util.NullableSerde;
 
 import java.io.IOException;
 
@@ -32,15 +32,15 @@ import java.io.IOException;
  * @param <T> the type being deserialized
  */
 @Internal
-public abstract class AbstractOracleJsonSerde<T> implements NullableSerde<T> {
+public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
     @NonNull
-    public final T deserializeNonNull(@NonNull Decoder decoder, @NonNull DecoderContext decoderContext, @NonNull Argument<? super T> type) throws IOException {
+    public final T deserialize(@NonNull Decoder decoder, @NonNull DecoderContext decoderContext, @NonNull Argument<? super T> type) throws IOException {
         if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
             return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
         } else {
-            return getDefault().deserializeNonNull(decoder, decoderContext, type);
+            return getDefault().deserialize(decoder, decoderContext, type);
         }
     }
 
@@ -84,5 +84,5 @@ public abstract class AbstractOracleJsonSerde<T> implements NullableSerde<T> {
     /**
      * @return The default behaviour
      */
-    protected abstract NullableSerde<T> getDefault();
+    protected abstract Serde<T> getDefault();
 }

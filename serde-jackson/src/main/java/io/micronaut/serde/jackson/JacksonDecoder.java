@@ -87,7 +87,10 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         if (consumeLeftElements) {
-            while (currentToken != JsonToken.END_ARRAY && currentToken != JsonToken.END_OBJECT) {
+            while (currentToken != null && currentToken != JsonToken.END_ARRAY && currentToken != JsonToken.END_OBJECT) {
+                if (currentToken == JsonToken.START_ARRAY || currentToken == JsonToken.START_OBJECT) {
+                    parser.skipChildren();
+                }
                 currentToken = parser.nextToken();
             }
         } else if (currentToken != JsonToken.END_ARRAY && currentToken != JsonToken.END_OBJECT) {
@@ -335,7 +338,7 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public int decodeInt() throws IOException {
         switch (currentToken) {
-            case VALUE_NUMBER_INT ->  {
+            case VALUE_NUMBER_INT -> {
                 int value = parser.getIntValue();
                 nextToken();
                 return value;
@@ -381,7 +384,7 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public long decodeLong() throws IOException {
         switch (currentToken) {
-            case VALUE_NUMBER_INT ->  {
+            case VALUE_NUMBER_INT -> {
                 long value = parser.getLongValue();
                 nextToken();
                 return value;
@@ -468,7 +471,7 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public double decodeDouble() throws IOException {
         switch (currentToken) {
-            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT ->  {
+            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
                 double value = parser.getDoubleValue();
                 nextToken();
                 return value;

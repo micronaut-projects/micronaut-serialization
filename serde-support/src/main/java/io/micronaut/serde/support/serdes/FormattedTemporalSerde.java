@@ -15,13 +15,6 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalQuery;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
@@ -30,6 +23,13 @@ import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
+import java.io.IOException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
+import java.util.Locale;
 
 @Internal
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
@@ -67,7 +67,7 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
     }
 
     @Override
-    public T deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+    public T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         final String str = decoder.decodeString();
         return formatter.parse(str, query());
     }

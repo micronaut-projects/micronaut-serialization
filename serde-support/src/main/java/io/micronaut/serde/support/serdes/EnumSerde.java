@@ -25,11 +25,11 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ import java.util.Locale;
  * @since 1.0.0
  */
 @Singleton
-final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
+final class EnumSerde<E extends Enum<E>> implements Serde<E> {
     private final SerdeIntrospections introspections;
 
     EnumSerde(SerdeIntrospections introspections) {
@@ -53,7 +53,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
 
     @Override
     @NonNull
-    public E deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super E> type) throws IOException {
+    public E deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super E> type) throws IOException {
         @SuppressWarnings("rawtypes") final Class t = type.getType();
         String s = decoder.decodeString();
         try {
