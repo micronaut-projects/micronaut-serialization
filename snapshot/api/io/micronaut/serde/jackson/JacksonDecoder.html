@@ -43,7 +43,7 @@ loadScripts(document, 'script');</script>
 <div>
 <ul class="sub-nav-list">
 <li>Summary:&nbsp;</li>
-<li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
+<li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
@@ -71,11 +71,7 @@ loadScripts(document, 'script');</script>
 <h1 title="Class JacksonDecoder" class="title">Class JacksonDecoder</h1>
 </div>
 <div class="inheritance" title="Inheritance Tree"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">java.lang.Object</a>
-<div class="inheritance"><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractStreamDecoder</a>
-<div class="inheritance"><a href="../support/AbstractChildReuseStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractChildReuseStreamDecoder</a>
 <div class="inheritance">io.micronaut.serde.jackson.JacksonDecoder</div>
-</div>
-</div>
 </div>
 <section class="class-description" id="class-description">
 <dl class="notes">
@@ -85,20 +81,16 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="annotations">@Internal
 </span><span class="modifiers">public final class </span><span class="element-name type-name-label">JacksonDecoder</span>
-<span class="extends-implements">extends <a href="../support/AbstractChildReuseStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractChildReuseStreamDecoder</a></span></div>
+<span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
+implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span></div>
 <div class="block">Implementation of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> interface for Jackson.</div>
+<dl class="notes">
+<dt>Author:</dt>
+<dd>Denis Stepanov</dd>
+</dl>
 </section>
 <section class="summary">
 <ul class="summary-list">
-<!-- ======== NESTED CLASS SUMMARY ======== -->
-<li>
-<section class="nested-class-summary" id="nested-class-summary">
-<h2>Nested Class Summary</h2>
-<div class="inherited-list">
-<h2 id="nested-classes-inherited-from-class-io.micronaut.serde.support.AbstractStreamDecoder">Nested classes/interfaces inherited from class&nbsp;io.micronaut.serde.support.<a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></h2>
-<code><a href="../support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a>, <a href="../support/AbstractStreamDecoder.ValueDecoder.html" title="interface in io.micronaut.serde.support">AbstractStreamDecoder.ValueDecoder</a>&lt;<a href="../support/AbstractStreamDecoder.ValueDecoder.html" title="type parameter in AbstractStreamDecoder.ValueDecoder">R</a>&gt;</code></div>
-</section>
-</li>
 <!-- ========== METHOD SUMMARY =========== -->
 <li>
 <section class="method-summary" id="method-summary">
@@ -110,95 +102,138 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#coerceScalarToString()" class="member-name-link">coerceScalarToString</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode any non-null scalar value (number, string or boolean) to its string representation.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(com.fasterxml.jackson.core.JsonParser)" class="member-name-link">create</a><wbr>(com.fasterxml.jackson.core.JsonParser&nbsp;parser)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(com.fasterxml.jackson.core.JsonParser,java.lang.Class)" class="member-name-link">create</a><wbr>(com.fasterxml.jackson.core.JsonParser&nbsp;parser,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(com.fasterxml.jackson.core.JsonParser)" class="member-name-link">create</a><wbr>(com.fasterxml.jackson.core.JsonParser&nbsp;parser)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createChildDecoder()" class="member-name-link">createChildDecoder</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Create a new child decoder using <a href="../support/AbstractStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractStreamDecoder)"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;invalidValue)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates an exception for the given message.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#currentToken()" class="member-name-link">currentToken</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArbitrary()" class="member-name-link">decodeArbitrary</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes the current state into an arbitrary object.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArray()" class="member-name-link">decodeArray</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Start decoding an array.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Start decoding an array.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigDecimal()" class="member-name-link">decodeBigDecimal</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a BigDecimal.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigInteger()" class="member-name-link">decodeBigInteger</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a BigInteger.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBoolean()" class="member-name-link">decodeBoolean</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a boolean.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBuffer()" class="member-name-link">decodeBuffer</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Buffer the whole subtree of this value and return it as a new <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>byte</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeByte()" class="member-name-link">decodeByte</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a byte.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>char</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeChar()" class="member-name-link">decodeChar</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a char.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeDouble()" class="member-name-link">decodeDouble</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a double.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>float</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeFloat()" class="member-name-link">decodeFloat</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a float.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeInt()" class="member-name-link">decodeInt</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a int.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeKey()" class="member-name-link">decodeKey</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeLong()" class="member-name-link">decodeLong</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a long.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNode()" class="member-name-link">decodeNode</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes the current state into a <code>JsonNode</code>.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNull()" class="member-name-link">decodeNull</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Attempt to decode a null value.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeObject()" class="member-name-link">decodeObject</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes an object.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes an object.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>short</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeShort()" class="member-name-link">decodeShort</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a short.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeString()" class="member-name-link">decodeString</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Decodes a string.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#finishStructure()" class="member-name-link">finishStructure</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#finishStructure(boolean)" class="member-name-link">finishStructure</a><wbr>(boolean&nbsp;consumeLeftElements)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getBestNumber()" class="member-name-link">getBestNumber</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link"><code>Number</code></a> value.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getBigDecimal()" class="member-name-link">getBigDecimal</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hasNextArrayValue()" class="member-name-link">hasNextArrayValue</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipValue()" class="member-name-link">skipValue</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link"><code>BigDecimal</code></a> value.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getBigInteger()" class="member-name-link">getBigInteger</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link"><code>BigInteger</code></a> value.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getBoolean()" class="member-name-link">getBoolean</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getCurrentKey()" class="member-name-link">getCurrentKey</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Get the current object field name.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected double</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDouble()" class="member-name-link">getDouble</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getInteger()" class="member-name-link">getInteger</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected long</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getLong()" class="member-name-link">getLong</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextToken()" class="member-name-link">nextToken</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Move to the next token.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipChildren()" class="member-name-link">skipChildren</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">If we are at a <a href="../support/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
- <a href="../support/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>.</div>
+<div class="block">Skips the current value.</div>
 </div>
 </div>
 </div>
 </div>
-<div class="inherited-list">
-<h3 id="methods-inherited-from-class-io.micronaut.serde.support.AbstractStreamDecoder">Methods inherited from class&nbsp;io.micronaut.serde.support.<a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></h3>
-<code><a href="../support/AbstractStreamDecoder.html#backFromChild(io.micronaut.serde.support.AbstractStreamDecoder)">backFromChild</a>, <a href="../support/AbstractStreamDecoder.html#decodeArbitrary()">decodeArbitrary</a>, <a href="../support/AbstractStreamDecoder.html#decodeArray(io.micronaut.core.type.Argument)">decodeArray</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigDecimal()">decodeBigDecimal</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigInteger()">decodeBigInteger</a>, <a href="../support/AbstractStreamDecoder.html#decodeBoolean()">decodeBoolean</a>, <a href="../support/AbstractStreamDecoder.html#decodeBuffer()">decodeBuffer</a>, <a href="../support/AbstractStreamDecoder.html#decodeByte()">decodeByte</a>, <a href="../support/AbstractStreamDecoder.html#decodeChar()">decodeChar</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,boolean)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeDouble()">decodeDouble</a>, <a href="../support/AbstractStreamDecoder.html#decodeFloat()">decodeFloat</a>, <a href="../support/AbstractStreamDecoder.html#decodeInt()">decodeInt</a>, <a href="../support/AbstractStreamDecoder.html#decodeKey()">decodeKey</a>, <a href="../support/AbstractStreamDecoder.html#decodeLong()">decodeLong</a>, <a href="../support/AbstractStreamDecoder.html#decodeNode()">decodeNode</a>, <a href="../support/AbstractStreamDecoder.html#decodeNull()">decodeNull</a>, <a href="../support/AbstractStreamDecoder.html#decodeNumber(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,java.util.function.Function,T,T)">decodeNumber</a>, <a href="../support/AbstractStreamDecoder.html#decodeObject(io.micronaut.core.type.Argument)">decodeObject</a>, <a href="../support/AbstractStreamDecoder.html#decodeShort()">decodeShort</a>, <a href="../support/AbstractStreamDecoder.html#decodeString()">decodeString</a>, <a href="../support/AbstractStreamDecoder.html#finishStructure()">finishStructure</a>, <a href="../support/AbstractStreamDecoder.html#getBestNumberNode()">getBestNumberNode</a>, <a href="../support/AbstractStreamDecoder.html#hasNextArrayValue()">hasNextArrayValue</a>, <a href="../support/AbstractStreamDecoder.html#skipValue()">skipValue</a>, <a href="../support/AbstractStreamDecoder.html#unexpectedToken(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">unexpectedToken</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Decoder">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></h3>
-<code><a href="../Decoder.html#close()">close</a>, <a href="../Decoder.html#decodeArray()">decodeArray</a>, <a href="../Decoder.html#decodeObject()">decodeObject</a></code></div>
+<code><a href="../Decoder.html#close()">close</a></code></div>
 </section>
 </li>
 </ul>
@@ -222,18 +257,6 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="create(com.fasterxml.jackson.core.JsonParser,java.lang.Class)">
-<h3>create</h3>
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(com.fasterxml.jackson.core.JsonParser&nbsp;parser,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</span>
-                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<dl class="notes">
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></dd>
-</dl>
-</section>
-</li>
-<li>
 <section class="detail" id="createDeserializationException(java.lang.String,java.lang.Object)">
 <h3>createDeserializationException</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span>&nbsp;<span class="element-name">createDeserializationException</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
@@ -241,6 +264,8 @@ loadScripts(document, 'script');</script>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#createDeserializationException(java.lang.String,java.lang.Object)">Decoder</a></code></span></div>
 <div class="block">Creates an exception for the given message.</div>
 <dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#createDeserializationException(java.lang.String,java.lang.Object)">createDeserializationException</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
 <dt>Parameters:</dt>
 <dd><code>message</code> - The message, never <code>null</code></dd>
 <dd><code>invalidValue</code> - The invalid value. Can be <code>null</code>.</dd>
@@ -250,212 +275,423 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="currentToken()">
-<h3>currentToken</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></span>&nbsp;<span class="element-name">currentToken</span>()</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#currentToken()">currentToken</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The current token.</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="nextToken()">
-<h3>nextToken</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">nextToken</span>()
-                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#nextToken()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Move to the next token.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#nextToken()">nextToken</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getCurrentKey()">
-<h3>getCurrentKey</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getCurrentKey</span>()
-                        throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getCurrentKey()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Get the current object field name. Only called for <a href="../support/AbstractStreamDecoder.TokenType.html#KEY"><code>AbstractStreamDecoder.TokenType.KEY</code></a>.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getCurrentKey()">getCurrentKey</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The current field key</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="createChildDecoder()">
-<h3>createChildDecoder</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></span>&nbsp;<span class="element-name">createChildDecoder</span>()</div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#createChildDecoder()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Create a new child decoder using <a href="../support/AbstractStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractStreamDecoder)"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#createChildDecoder()">createChildDecoder</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The new decoder</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="coerceScalarToString()">
-<h3>coerceScalarToString</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">coerceScalarToString</span>()
-                               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#coerceScalarToString()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode any non-null scalar value (number, string or boolean) to its string representation.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#coerceScalarToString()">coerceScalarToString</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The current value, coerced to a string</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getBoolean()">
-<h3>getBoolean</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">getBoolean</span>()
-                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getBoolean()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#BOOLEAN"><code>AbstractStreamDecoder.TokenType.BOOLEAN</code></a> value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getBoolean()">getBoolean</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The boolean value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getLong()">
-<h3>getLong</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">getLong</span>()
-                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getLong()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getLong()">getLong</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The number value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getInteger()">
-<h3>getInteger</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">getInteger</span>()
-                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getInteger()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Overrides:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getInteger()">getInteger</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The number value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getDouble()">
-<h3>getDouble</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">getDouble</span>()
-                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getDouble()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getDouble()">getDouble</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The number value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getBigInteger()">
-<h3>getBigInteger</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></span>&nbsp;<span class="element-name">getBigInteger</span>()
-                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getBigInteger()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link"><code>BigInteger</code></a> value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getBigInteger()">getBigInteger</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The number value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getBigDecimal()">
-<h3>getBigDecimal</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></span>&nbsp;<span class="element-name">getBigDecimal</span>()
-                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getBigDecimal()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link"><code>BigDecimal</code></a> value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getBigDecimal()">getBigDecimal</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The number value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getBestNumber()">
-<h3>getBestNumber</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a></span>&nbsp;<span class="element-name">getBestNumber</span>()
-                        throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getBestNumber()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link"><code>Number</code></a> value. Called for no other token type.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#getBestNumber()">getBestNumber</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
-<dt>Returns:</dt>
-<dd>The number value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="skipChildren()">
-<h3>skipChildren</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">skipChildren</span>()
+<section class="detail" id="finishStructure(boolean)">
+<h3>finishStructure</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">finishStructure</span><wbr><span class="parameters">(boolean&nbsp;consumeLeftElements)</span>
                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#skipChildren()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">If we are at a <a href="../support/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
- <a href="../support/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>. Else, do nothing.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#skipChildren()">skipChildren</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../Decoder.html#finishStructure(boolean)">finishStructure</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>consumeLeftElements</code> - True to consume left elements</dd>
 <dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if an unrecoverable error occurs</dd>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="finishStructure()">
+<h3>finishStructure</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">finishStructure</span>()
+                     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#finishStructure()">finishStructure</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="hasNextArrayValue()">
+<h3>hasNextArrayValue</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">hasNextArrayValue</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#hasNextArrayValue()">hasNextArrayValue</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>Returns <code>true</code> if another array value is available.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeKey()">
+<h3>decodeKey</h3>
+<div class="member-signature"><span class="annotations">@Nullable
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeKey</span>()
+                 throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeKey()">Decoder</a></code></span></div>
+<div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeKey()">decodeKey</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The key or <code>null</code> if there aren't any more keys</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeArray(io.micronaut.core.type.Argument)">
+<h3>decodeArray</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></span>&nbsp;<span class="element-name">decodeArray</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
+                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeArray(io.micronaut.core.type.Argument)">Decoder</a></code></span></div>
+<div class="block">Start decoding an array.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeArray(io.micronaut.core.type.Argument)">decodeArray</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>type</code> - The array type</dd>
+<dt>Returns:</dt>
+<dd>The array decoder</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeArray()">
+<h3>decodeArray</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></span>&nbsp;<span class="element-name">decodeArray</span>()
+                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeArray()">Decoder</a></code></span></div>
+<div class="block">Start decoding an array.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeArray()">decodeArray</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The array decoder</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeObject(io.micronaut.core.type.Argument)">
+<h3>decodeObject</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></span>&nbsp;<span class="element-name">decodeObject</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
+                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeObject(io.micronaut.core.type.Argument)">Decoder</a></code></span></div>
+<div class="block">Decodes an object.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeObject(io.micronaut.core.type.Argument)">decodeObject</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>type</code> - The type, never <code>null</code></dd>
+<dt>Returns:</dt>
+<dd>The object decoder</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeObject()">
+<h3>decodeObject</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></span>&nbsp;<span class="element-name">decodeObject</span>()
+                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeObject()">Decoder</a></code></span></div>
+<div class="block">Decodes an object.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeObject()">decodeObject</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The object decoder</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeString()">
+<h3>decodeString</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeString</span>()
+                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeString()">Decoder</a></code></span></div>
+<div class="block">Decodes a string.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeString()">decodeString</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The string, never <code>null</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeBoolean()">
+<h3>decodeBoolean</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">decodeBoolean</span>()
+                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeBoolean()">Decoder</a></code></span></div>
+<div class="block">Decodes a boolean.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeBoolean()">decodeBoolean</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The boolean</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeByte()">
+<h3>decodeByte</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">byte</span>&nbsp;<span class="element-name">decodeByte</span>()
+                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeByte()">Decoder</a></code></span></div>
+<div class="block">Decodes a byte.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeByte()">decodeByte</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The byte</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeShort()">
+<h3>decodeShort</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">short</span>&nbsp;<span class="element-name">decodeShort</span>()
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeShort()">Decoder</a></code></span></div>
+<div class="block">Decodes a short.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeShort()">decodeShort</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The short</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeChar()">
+<h3>decodeChar</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">char</span>&nbsp;<span class="element-name">decodeChar</span>()
+                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeChar()">Decoder</a></code></span></div>
+<div class="block">Decodes a char.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeChar()">decodeChar</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The char</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeInt()">
+<h3>decodeInt</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">decodeInt</span>()
+              throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeInt()">Decoder</a></code></span></div>
+<div class="block">Decodes a int.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeInt()">decodeInt</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The int</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeLong()">
+<h3>decodeLong</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">decodeLong</span>()
+                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeLong()">Decoder</a></code></span></div>
+<div class="block">Decodes a long.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeLong()">decodeLong</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The long</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeFloat()">
+<h3>decodeFloat</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">float</span>&nbsp;<span class="element-name">decodeFloat</span>()
+                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeFloat()">Decoder</a></code></span></div>
+<div class="block">Decodes a float.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeFloat()">decodeFloat</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The float</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeDouble()">
+<h3>decodeDouble</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">decodeDouble</span>()
+                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeDouble()">Decoder</a></code></span></div>
+<div class="block">Decodes a double.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeDouble()">decodeDouble</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The double</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeBigInteger()">
+<h3>decodeBigInteger</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></span>&nbsp;<span class="element-name">decodeBigInteger</span>()
+                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeBigInteger()">Decoder</a></code></span></div>
+<div class="block">Decodes a BigInteger.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeBigInteger()">decodeBigInteger</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The BigInteger, never <code>null</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeBigDecimal()">
+<h3>decodeBigDecimal</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></span>&nbsp;<span class="element-name">decodeBigDecimal</span>()
+                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeBigDecimal()">Decoder</a></code></span></div>
+<div class="block">Decodes a BigDecimal.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeBigDecimal()">decodeBigDecimal</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The BigDecimal, never <code>null</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeNull()">
+<h3>decodeNull</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">decodeNull</span>()
+                   throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeNull()">Decoder</a></code></span></div>
+<div class="block">Attempt to decode a null value. Returns <code>false</code> if this value is not null, and another method should be
+ used for decoding. Returns <code>true</code> if this value was null, and the cursor has been advanced to the next
+ value.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeNull()">decodeNull</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>Returns <code>true</code> if the value was <code>null</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeBuffer()">
+<h3>decodeBuffer</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span>&nbsp;<span class="element-name">decodeBuffer</span>()
+                     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeBuffer()">Decoder</a></code></span></div>
+<div class="block">Buffer the whole subtree of this value and return it as a new <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>. The returned <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> can
+ be used independently to this <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>. This means actual parsing of the subtree can be delayed.
+ <p>
+ The returned <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> should behave identically to this <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>. This means that for example
+ <code>decoder.decodeDouble()</code> should be equivalent to <code>decoder.decodeBuffer().decodeDouble()</code>.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeBuffer()">decodeBuffer</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>An independent decoder that visits this subtree.</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeNode()">
+<h3>decodeNode</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">decodeNode</span>()
+                                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeNode()">Decoder</a></code></span></div>
+<div class="block">Decodes the current state into a <code>JsonNode</code>.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeNode()">decodeNode</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The decoded node</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="decodeArbitrary()">
+<h3>decodeArbitrary</h3>
+<div class="member-signature"><span class="annotations">@Nullable
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span>&nbsp;<span class="element-name">decodeArbitrary</span>()
+                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeArbitrary()">Decoder</a></code></span></div>
+<div class="block">Decodes the current state into an arbitrary object.
+
+ <p>The following should be decoded by this method:</p>
+
+ <ul>
+  <li>Object types will be decoded into a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link"><code>Map</code></a></li>
+  <li>Array types will be decoded into a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link"><code>List</code></a></li>
+  <li>JSON primitive types into the equivalent Java wrapper type</li>
+ </ul></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#decodeArbitrary()">decodeArbitrary</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The decoded object</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="skipValue()">
+<h3>skipValue</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">skipValue</span>()
+               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#skipValue()">Decoder</a></code></span></div>
+<div class="block">Skips the current value.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Decoder.html#skipValue()">skipValue</a></code>&nbsp;in interface&nbsp;<code><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
 </dl>
 </section>
 </li>

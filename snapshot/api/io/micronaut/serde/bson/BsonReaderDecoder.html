@@ -72,7 +72,9 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="inheritance" title="Inheritance Tree"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">java.lang.Object</a>
 <div class="inheritance"><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractStreamDecoder</a>
+<div class="inheritance"><a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder</a>
 <div class="inheritance">io.micronaut.serde.bson.BsonReaderDecoder</div>
+</div>
 </div>
 </div>
 <section class="class-description" id="class-description">
@@ -83,7 +85,7 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="annotations">@Internal
 </span><span class="modifiers">public final class </span><span class="element-name type-name-label">BsonReaderDecoder</span>
-<span class="extends-implements">extends <a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></span></div>
+<span class="extends-implements">extends <a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></span></div>
 <div class="block">Bson implementation of <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -131,14 +133,14 @@ loadScripts(document, 'script');</script>
 <div class="block">Called when the old child has finished processing and returns control of the stream to the parent.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#coerceScalarToString()" class="member-name-link">coerceScalarToString</a>()</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#coerceScalarToString(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" class="member-name-link">coerceScalarToString</a><wbr>(<a href="../support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a>&nbsp;currentToken)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decode any non-null scalar value (number, string or boolean) to its string representation.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createChildDecoder()" class="member-name-link">createChildDecoder</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Create a new child decoder using <a href="../support/AbstractStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractStreamDecoder)"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
+<div class="block">Create a new child decoder using <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder)"><code>AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder)</code></a>.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
@@ -203,14 +205,19 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextToken()" class="member-name-link">nextToken</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getString()" class="member-name-link">getString</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Move to the next token.</div>
+<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#STRING"><code>AbstractStreamDecoder.TokenType.STRING</code></a> value.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipChildren()" class="member-name-link">skipChildren</a>()</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nextToken()" class="member-name-link">nextToken</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Move to the next token.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#skipChildren()" class="member-name-link">skipChildren</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">If we are at a <a href="../support/AbstractStreamDecoder.TokenType.html#START_OBJECT"><code>AbstractStreamDecoder.TokenType.START_OBJECT</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#START_ARRAY"><code>AbstractStreamDecoder.TokenType.START_ARRAY</code></a>, skip to the matching
  <a href="../support/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a>.</div>
 </div>
@@ -218,14 +225,17 @@ loadScripts(document, 'script');</script>
 </div>
 </div>
 <div class="inherited-list">
+<h3 id="methods-inherited-from-class-io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder">Methods inherited from class&nbsp;io.micronaut.serde.support.<a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></h3>
+<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeArray0(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">decodeArray0</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeKey()">decodeKey</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#decodeObject0(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">decodeObject0</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#finishStructure(boolean)">finishStructure</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#hasNextArrayValue()">hasNextArrayValue</a>, <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#preDecodeValue(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">preDecodeValue</a></code></div>
+<div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.support.AbstractStreamDecoder">Methods inherited from class&nbsp;io.micronaut.serde.support.<a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></h3>
-<code><a href="../support/AbstractStreamDecoder.html#decodeArbitrary()">decodeArbitrary</a>, <a href="../support/AbstractStreamDecoder.html#decodeArray(io.micronaut.core.type.Argument)">decodeArray</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigDecimal()">decodeBigDecimal</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigInteger()">decodeBigInteger</a>, <a href="../support/AbstractStreamDecoder.html#decodeBoolean()">decodeBoolean</a>, <a href="../support/AbstractStreamDecoder.html#decodeByte()">decodeByte</a>, <a href="../support/AbstractStreamDecoder.html#decodeChar()">decodeChar</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,boolean)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeDouble()">decodeDouble</a>, <a href="../support/AbstractStreamDecoder.html#decodeFloat()">decodeFloat</a>, <a href="../support/AbstractStreamDecoder.html#decodeInt()">decodeInt</a>, <a href="../support/AbstractStreamDecoder.html#decodeKey()">decodeKey</a>, <a href="../support/AbstractStreamDecoder.html#decodeLong()">decodeLong</a>, <a href="../support/AbstractStreamDecoder.html#decodeNode()">decodeNode</a>, <a href="../support/AbstractStreamDecoder.html#decodeNull()">decodeNull</a>, <a href="../support/AbstractStreamDecoder.html#decodeNumber(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,java.util.function.Function,T,T)">decodeNumber</a>, <a href="../support/AbstractStreamDecoder.html#decodeObject(io.micronaut.core.type.Argument)">decodeObject</a>, <a href="../support/AbstractStreamDecoder.html#decodeShort()">decodeShort</a>, <a href="../support/AbstractStreamDecoder.html#decodeString()">decodeString</a>, <a href="../support/AbstractStreamDecoder.html#finishStructure()">finishStructure</a>, <a href="../support/AbstractStreamDecoder.html#getBestNumberNode()">getBestNumberNode</a>, <a href="../support/AbstractStreamDecoder.html#getInteger()">getInteger</a>, <a href="../support/AbstractStreamDecoder.html#hasNextArrayValue()">hasNextArrayValue</a>, <a href="../support/AbstractStreamDecoder.html#skipValue()">skipValue</a>, <a href="../support/AbstractStreamDecoder.html#unexpectedToken(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">unexpectedToken</a></code></div>
+<code><a href="../support/AbstractStreamDecoder.html#consumeLeftElements(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">consumeLeftElements</a>, <a href="../support/AbstractStreamDecoder.html#decodeArbitrary()">decodeArbitrary</a>, <a href="../support/AbstractStreamDecoder.html#decodeArray(io.micronaut.core.type.Argument)">decodeArray</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigDecimal()">decodeBigDecimal</a>, <a href="../support/AbstractStreamDecoder.html#decodeBigInteger()">decodeBigInteger</a>, <a href="../support/AbstractStreamDecoder.html#decodeBoolean()">decodeBoolean</a>, <a href="../support/AbstractStreamDecoder.html#decodeByte()">decodeByte</a>, <a href="../support/AbstractStreamDecoder.html#decodeChar()">decodeChar</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,boolean)">decodeCustom</a>, <a href="../support/AbstractStreamDecoder.html#decodeDouble()">decodeDouble</a>, <a href="../support/AbstractStreamDecoder.html#decodeFloat()">decodeFloat</a>, <a href="../support/AbstractStreamDecoder.html#decodeInt()">decodeInt</a>, <a href="../support/AbstractStreamDecoder.html#decodeLong()">decodeLong</a>, <a href="../support/AbstractStreamDecoder.html#decodeNode()">decodeNode</a>, <a href="../support/AbstractStreamDecoder.html#decodeNull()">decodeNull</a>, <a href="../support/AbstractStreamDecoder.html#decodeNumber(io.micronaut.serde.support.AbstractStreamDecoder.TokenType,io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder,java.util.function.Function,T,T)">decodeNumber</a>, <a href="../support/AbstractStreamDecoder.html#decodeObject(io.micronaut.core.type.Argument)">decodeObject</a>, <a href="../support/AbstractStreamDecoder.html#decodeShort()">decodeShort</a>, <a href="../support/AbstractStreamDecoder.html#decodeString()">decodeString</a>, <a href="../support/AbstractStreamDecoder.html#getBestNumberNode()">getBestNumberNode</a>, <a href="../support/AbstractStreamDecoder.html#getInteger()">getInteger</a>, <a href="../support/AbstractStreamDecoder.html#skipValue()">skipValue</a>, <a href="../support/AbstractStreamDecoder.html#unexpectedToken(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">unexpectedToken</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Decoder">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></h3>
-<code><a href="../Decoder.html#close()">close</a>, <a href="../Decoder.html#decodeArray()">decodeArray</a>, <a href="../Decoder.html#decodeObject()">decodeObject</a></code></div>
+<code><a href="../Decoder.html#close()">close</a>, <a href="../Decoder.html#decodeArray()">decodeArray</a>, <a href="../Decoder.html#decodeObject()">decodeObject</a>, <a href="../Decoder.html#finishStructure()">finishStructure</a></code></div>
 </section>
 </li>
 </ul>
@@ -256,13 +266,13 @@ loadScripts(document, 'script');</script>
 <h3>backFromChild</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">backFromChild</span><wbr><span class="parameters">(<a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a>&nbsp;child)</span>
                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#backFromChild(io.micronaut.serde.support.AbstractStreamDecoder)">AbstractStreamDecoder</a></code></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#backFromChild(io.micronaut.serde.support.AbstractStreamDecoder)">AbstractDecoderPerStructureStreamDecoder</a></code></span></div>
 <div class="block">Called when the old child has finished processing and returns control of the stream to the parent. Current token
  is assumed to be <a href="../support/AbstractStreamDecoder.TokenType.html#END_ARRAY"><code>AbstractStreamDecoder.TokenType.END_ARRAY</code></a> or <a href="../support/AbstractStreamDecoder.TokenType.html#END_OBJECT"><code>AbstractStreamDecoder.TokenType.END_OBJECT</code></a>. However we <a href="../support/AbstractStreamDecoder.html#currentToken()"><code>AbstractStreamDecoder.currentToken()</code></a>
  may hold an outdated value until <a href="../support/AbstractStreamDecoder.html#nextToken()"><code>AbstractStreamDecoder.nextToken()</code></a> is called, which this method does.</div>
 <dl class="notes">
 <dt>Overrides:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#backFromChild(io.micronaut.serde.support.AbstractStreamDecoder)">backFromChild</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#backFromChild(io.micronaut.serde.support.AbstractStreamDecoder)">backFromChild</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></code></dd>
 <dt>Parameters:</dt>
 <dd><code>child</code> - The now-invalid child decoder.</dd>
 <dt>Throws:</dt>
@@ -297,15 +307,17 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="coerceScalarToString()">
+<section class="detail" id="coerceScalarToString(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">
 <h3>coerceScalarToString</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">coerceScalarToString</span>()
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">coerceScalarToString</span><wbr><span class="parameters">(<a href="../support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a>&nbsp;currentToken)</span>
                                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#coerceScalarToString()">AbstractStreamDecoder</a></code></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#coerceScalarToString(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">AbstractStreamDecoder</a></code></span></div>
 <div class="block">Decode any non-null scalar value (number, string or boolean) to its string representation.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#coerceScalarToString()">coerceScalarToString</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../support/AbstractStreamDecoder.html#coerceScalarToString(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)">coerceScalarToString</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dt>Parameters:</dt>
+<dd><code>currentToken</code> - The current token</dd>
 <dt>Returns:</dt>
 <dd>The current value, coerced to a string</dd>
 <dt>Throws:</dt>
@@ -317,13 +329,27 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="createChildDecoder()">
 <h3>createChildDecoder</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></span>&nbsp;<span class="element-name">createChildDecoder</span>()</div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#createChildDecoder()">AbstractStreamDecoder</a></code></span></div>
-<div class="block">Create a new child decoder using <a href="../support/AbstractStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractStreamDecoder)"><code>AbstractStreamDecoder(AbstractStreamDecoder)</code></a>.</div>
+<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#createChildDecoder()">AbstractDecoderPerStructureStreamDecoder</a></code></span></div>
+<div class="block">Create a new child decoder using <a href="../support/AbstractDecoderPerStructureStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder)"><code>AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder)</code></a>.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../support/AbstractStreamDecoder.html#createChildDecoder()">createChildDecoder</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dd><code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html#createChildDecoder()">createChildDecoder</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></code></dd>
 <dt>Returns:</dt>
 <dd>The new decoder</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getString()">
+<h3>getString</h3>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getString</span>()</div>
+<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="../support/AbstractStreamDecoder.html#getString()">AbstractStreamDecoder</a></code></span></div>
+<div class="block">Decode the current <a href="../support/AbstractStreamDecoder.TokenType.html#STRING"><code>AbstractStreamDecoder.TokenType.STRING</code></a> value. Called for no other token type.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../support/AbstractStreamDecoder.html#getString()">getString</a></code>&nbsp;in class&nbsp;<code><a href="../support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></code></dd>
+<dt>Returns:</dt>
+<dd>The String value</dd>
 </dl>
 </section>
 </li>
