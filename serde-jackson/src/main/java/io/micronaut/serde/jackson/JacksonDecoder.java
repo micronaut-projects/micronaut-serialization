@@ -479,7 +479,7 @@ public final class JacksonDecoder implements Decoder {
                 try {
                     value = Double.parseDouble(string);
                 } catch (NumberFormatException e) {
-                    throw createDeserializationException("Unable to coerce string to integer", string);
+                    throw createDeserializationException("Unable to coerce string to double", string);
                 }
                 nextToken();
                 return value;
