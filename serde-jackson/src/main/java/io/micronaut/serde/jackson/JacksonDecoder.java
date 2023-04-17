@@ -433,7 +433,7 @@ public final class JacksonDecoder implements Decoder {
                 try {
                     value = Float.parseFloat(string);
                 } catch (NumberFormatException e) {
-                    throw createDeserializationException("Unable to coerce string to integer", string);
+                    throw createDeserializationException("Unable to coerce string to float", string);
                 }
                 nextToken();
                 return value;
@@ -479,7 +479,7 @@ public final class JacksonDecoder implements Decoder {
                 try {
                     value = Double.parseDouble(string);
                 } catch (NumberFormatException e) {
-                    throw createDeserializationException("Unable to coerce string to integer", string);
+                    throw createDeserializationException("Unable to coerce string to double", string);
                 }
                 nextToken();
                 return value;
@@ -563,7 +563,7 @@ public final class JacksonDecoder implements Decoder {
                 try {
                     value = new BigDecimal(string);
                 } catch (NumberFormatException e) {
-                    throw createDeserializationException("Unable to coerce string to integer", string);
+                    throw createDeserializationException("Unable to coerce string to BigDecimal", string);
                 }
                 nextToken();
                 return value;
