@@ -161,7 +161,7 @@ enum EnumWithDefaultValue {
         jsonMapper.writeValueAsString(DefaultValue) == 'null'
 
         jsonMapper.readValue('"my value"', enumClass) == MyValue
-//        jsonMapper.readValue('null', enumClass) == DefaultValue
+        jsonMapper.readValue('null', enumClass) == DefaultValue
         jsonMapper.readValue('"unknown value"', enumClass) == DefaultValue
 
         cleanup:

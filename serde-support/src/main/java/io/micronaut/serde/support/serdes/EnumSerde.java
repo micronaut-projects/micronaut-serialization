@@ -82,7 +82,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
             Argument<Object> argumentType = (Argument<Object>) constructorArguments[0];
             Deserializer<Object> argumentDeserializer = (Deserializer<Object>) context.findDeserializer(argumentType);
 
-            return new EnumCreatorDeserializer<E>(argumentType, argumentDeserializer, deserializableIntrospection);
+            return new EnumCreatorDeserializer<E>(argumentType, argumentDeserializer, deserializableIntrospection, argumentType.isNullable());
         } catch (IntrospectionException | SerdeException e) {
             return this;
         }
@@ -126,18 +126,20 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
  */
 final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E> {
 
-    Argument<Object> argumentType;
-    Deserializer<Object> argumentDeserializer;
-    BeanIntrospection<? super E> deserializableIntrospection;
+    private final Argument<Object> argumentType;
+    private final Deserializer<Object> argumentDeserializer;
+    private final BeanIntrospection<? super E> deserializableIntrospection;
+    private final boolean allowNull;
 
     public EnumCreatorDeserializer(
         Argument<Object> argumentType,
         Deserializer<Object> argumentDeserializer,
-        BeanIntrospection<? super E> deserializableIntrospection
-    ) {
+        BeanIntrospection<? super E> deserializableIntrospection,
+        boolean allowNull) {
         this.argumentType = argumentType;
         this.argumentDeserializer = argumentDeserializer;
         this.deserializableIntrospection = deserializableIntrospection;
+        this.allowNull = allowNull;
     }
 
     @Override
@@ -163,7 +165,7 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
 
     @Override
     public boolean allowNull() {
-        return argumentDeserializer.allowNull();
+        return allowNull;
     }
 }
 
