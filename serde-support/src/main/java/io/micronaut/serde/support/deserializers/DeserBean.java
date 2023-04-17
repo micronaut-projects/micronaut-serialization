@@ -262,7 +262,6 @@ class DeserBean<T> {
                         if (unwrappedProps != null) {
                             for (Map.Entry<String, DerProperty<T, Object>> e : unwrappedProps.getProperties()) {
                                 String resolved = prefix + e.getKey() + suffix;
-                                //noinspection unchecked
                                 readPropertiesBuilder.register(resolved, e.getValue(), false);
 
                             }
@@ -382,7 +381,7 @@ class DeserBean<T> {
         if (readProperties != null) {
             for (Map.Entry<String, DerProperty<T, Object>> e : readProperties.getProperties()) {
                 DerProperty<T, Object> property = e.getValue();
-                if (property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.instrospection || property.backRef != null) {
+                if (property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.instrospection || property.backRef != null || property.beanProperty == null) {
                     return false;
                 }
             }
@@ -734,11 +733,11 @@ class DeserBean<T> {
             }
             if (beanProperty != null) {
                 beanProperty.setUnsafe(obj, v);
-            }
-            if (beanMethod != null) {
+            } else if (beanMethod != null) {
                 beanMethod.invoke(obj, v);
             }
         }
+
     }
 
     private static <B, P> AnnotationMetadata resolveArgumentMetadata(BeanIntrospection<B> instrospection, Argument<P> argument, AnnotationMetadata annotationMetadata) {

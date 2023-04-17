@@ -89,17 +89,15 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
                             consumedProperty.setDefault(decoderContext, obj);
                         }
                     } else {
-                        Object val;
                         Argument<Object> argument = consumedProperty.argument;
                         try {
-                            val = consumedProperty.deserializer.deserialize(objectDecoder, decoderContext, argument);
+                            Object val = consumedProperty.deserializer.deserialize(objectDecoder, decoderContext, argument);
+                            consumedProperty.beanProperty.setUnsafe(obj, val);
                         } catch (InvalidFormatException e) {
                             throw new InvalidPropertyFormatException(e, argument);
                         } catch (Exception e) {
                             throw new SerdeException("Error decoding property [" + argument + "] of type [" + deserBean.introspection.getBeanType() + "]: " + e.getMessage(), e);
                         }
-
-                        consumedProperty.set(obj, val);
                     }
 
                     allConsumed = readProperties.isAllConsumed();

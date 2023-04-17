@@ -468,7 +468,7 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public double decodeDouble() throws IOException {
         switch (currentToken) {
-            case VALUE_NUMBER_INT ->  {
+            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT ->  {
                 double value = parser.getDoubleValue();
                 nextToken();
                 return value;
