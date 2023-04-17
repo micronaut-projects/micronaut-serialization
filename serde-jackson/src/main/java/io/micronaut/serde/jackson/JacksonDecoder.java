@@ -322,12 +322,12 @@ public final class JacksonDecoder implements Decoder {
                 return value;
             }
             default -> {
-                char[] value = parser.getText().toCharArray();
-                if (value.length == 0) {
-                    throw new IllegalStateException("Not characters!");
+                String text = parser.getText();
+                if (text.length() == 0) {
+                    throw createDeserializationException("No characters found", text);
                 }
                 nextToken();
-                return value[0];
+                return text.charAt(0);
             }
         }
     }
