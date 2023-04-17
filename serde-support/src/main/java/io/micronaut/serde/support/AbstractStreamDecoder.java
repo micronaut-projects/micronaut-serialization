@@ -825,7 +825,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
         R decode(AbstractStreamDecoder target) throws IOException;
     }
 
-    private abstract static class ArbitraryBuilder {
+    private sealed abstract static class ArbitraryBuilder {
         final ArbitraryBuilder parent;
         final AbstractStreamDecoder elementDecoder;
 

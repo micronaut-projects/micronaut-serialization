@@ -366,7 +366,7 @@ public class CoreDeserializers {
         @Override
         public Deserializer<C> createSpecific(DecoderContext context, Argument<? super C> type) throws SerdeException {
             if (type.getType().isAssignableFrom(ArrayList.class) && type.getFirstTypeVariable().orElse(Argument.OBJECT_ARGUMENT).getType().equals(String.class)) {
-                return (Deserializer) new StringListDeserializer();
+                return (Deserializer) StringListDeserializer.INSTANCE;
             }
 
             final Argument[] generics = type.getTypeParameters();

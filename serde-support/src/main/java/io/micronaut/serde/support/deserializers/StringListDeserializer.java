@@ -29,6 +29,11 @@ import java.util.ArrayList;
  */
 final class StringListDeserializer implements Deserializer<ArrayList<String>> {
 
+    static final StringListDeserializer INSTANCE = new StringListDeserializer();
+
+    private StringListDeserializer() {
+    }
+
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
         if (decoder.decodeNull()) {

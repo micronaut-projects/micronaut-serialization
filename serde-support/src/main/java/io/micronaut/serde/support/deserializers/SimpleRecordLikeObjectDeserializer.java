@@ -34,7 +34,7 @@ import java.io.IOException;
 final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final DeserBean<? super Object> deserBean;
 
-    public SimpleRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
+    SimpleRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
         this.deserBean = deserBean;
     }
 

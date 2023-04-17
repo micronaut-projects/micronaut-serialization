@@ -36,7 +36,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     private final boolean ignoreUnknown;
     private final DeserBean<? super Object> deserBean;
 
-    public SimpleObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
+    SimpleObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
         this.deserBean = deserBean;
     }
