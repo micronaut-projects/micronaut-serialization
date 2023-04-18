@@ -33,8 +33,8 @@ import java.io.IOException;
  */
 final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final boolean ignoreUnknown;
-    public final BeanIntrospection<Object> introspection;
-    public final PropertiesBag<Object> properties;
+    private final BeanIntrospection<Object> introspection;
+    private final PropertiesBag<Object> properties;
 
     SimpleObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
