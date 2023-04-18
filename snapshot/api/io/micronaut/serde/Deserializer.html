@@ -124,7 +124,9 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#allowNull()" class="member-name-link">allowNull</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Return true if the decoder can accept the null value by converting it to something else or just returning null.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="Deserializer.html" title="type parameter in Deserializer">T</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? super <a href="Deserializer.html" title="type parameter in Deserializer">T</a>&gt;&nbsp;type)</code></div>
@@ -207,6 +209,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="allowNull()">
 <h3>allowNull</h3>
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">allowNull</span>()</div>
+<div class="block">Return true if the decoder can accept the null value by converting it to something else or just returning null.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>Whether the deserializer is allowed to emit <code>null</code></dd>

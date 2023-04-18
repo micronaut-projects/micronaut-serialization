@@ -57,6 +57,7 @@ loadScripts(document, 'script');</script>
 <li><a href="io/micronaut/serde/config/package-tree.html">io.micronaut.serde.config</a>, </li>
 <li><a href="io/micronaut/serde/config/annotation/package-tree.html">io.micronaut.serde.config.annotation</a>, </li>
 <li><a href="io/micronaut/serde/config/naming/package-tree.html">io.micronaut.serde.config.naming</a>, </li>
+<li><a href="io/micronaut/serde/data/package-tree.html">io.micronaut.serde.data</a>, </li>
 <li><a href="io/micronaut/serde/exceptions/package-tree.html">io.micronaut.serde.exceptions</a>, </li>
 <li><a href="io/micronaut/serde/jackson/package-tree.html">io.micronaut.serde.jackson</a>, </li>
 <li><a href="io/micronaut/serde/json/stream/package-tree.html">io.micronaut.serde.json.stream</a>, </li>
@@ -73,6 +74,7 @@ loadScripts(document, 'script');</script>
 <li><a href="io/micronaut/serde/support/bind/package-tree.html">io.micronaut.serde.support.bind</a>, </li>
 <li><a href="io/micronaut/serde/support/config/package-tree.html">io.micronaut.serde.support.config</a>, </li>
 <li><a href="io/micronaut/serde/support/deserializers/package-tree.html">io.micronaut.serde.support.deserializers</a>, </li>
+<li><a href="io/micronaut/serde/support/deserializers/collect/package-tree.html">io.micronaut.serde.support.deserializers.collect</a>, </li>
 <li><a href="io/micronaut/serde/support/serdes/package-tree.html">io.micronaut.serde.support.serdes</a>, </li>
 <li><a href="io/micronaut/serde/support/serializers/package-tree.html">io.micronaut.serde.support.serializers</a>, </li>
 <li><a href="io/micronaut/serde/support/util/package-tree.html">io.micronaut.serde.support.util</a>, </li>
@@ -90,13 +92,13 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonJsonMapper.html" class="type-name-link" title="class in io.micronaut.serde.bson">BsonJsonMapper</a></li>
 </ul>
 </li>
-<li class="circle">io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" class="type-name-link" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a>&lt;T&gt; (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)
+<li class="circle">io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" class="type-name-link" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a>&lt;T&gt; (implements io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)
 <ul>
 <li class="circle">io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html" class="type-name-link" title="class in io.micronaut.serde.bson.custom">BsonRepresentationSerde</a></li>
 <li class="circle">io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/CodecBsonDecoder.html" class="type-name-link" title="class in io.micronaut.serde.bson.custom">CodecBsonDecoder</a>&lt;T&gt;</li>
 </ul>
 </li>
-<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a>&lt;T&gt; (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a>&lt;T&gt; (implements io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)
 <ul>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonBinarySerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonBinarySerde</a></li>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonLocaleDateSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleDateSerde</a></li>
@@ -129,7 +131,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonWriterEncoder.html" class="type-name-link" title="class in io.micronaut.serde.bson">BsonWriterEncoder</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>)</li>
 <li class="circle">io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html" class="type-name-link" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></li>
 <li class="circle">io.micronaut.serde.<a href="io/micronaut/serde/ConstructorArgs.html" class="type-name-link" title="class in io.micronaut.serde">ConstructorArgs</a></li>
-<li class="circle">io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/CoreDeserializers.html" class="type-name-link" title="class in io.micronaut.serde.support.deserializers">CoreDeserializers</a></li>
+<li class="circle">io.micronaut.serde.support.deserializers.collect.<a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html" class="type-name-link" title="class in io.micronaut.serde.support.deserializers.collect">CoreCollectionsDeserializers</a></li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/CoreSerdes.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">CoreSerdes</a></li>
 <li class="circle">io.micronaut.serde.support.serializers.<a href="io/micronaut/serde/support/serializers/CoreSerializers.html" class="type-name-link" title="class in io.micronaut.serde.support.serializers">CoreSerializers</a></li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/CustomizedObjectArrayDeserializer.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">CustomizedObjectArrayDeserializer</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;)</li>
@@ -147,7 +149,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li class="circle">io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeIntrospections.html" class="type-name-link" title="class in io.micronaut.serde.support">DefaultSerdeIntrospections</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>)</li>
 <li class="circle">io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" class="type-name-link" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>)</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/IdentityStrategy.html" class="type-name-link" title="class in io.micronaut.serde.config.naming">IdentityStrategy</a> (implements io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>)</li>
 <li class="circle">io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JacksonAnnotationMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">JacksonAnnotationMapper</a> (implements io.micronaut.inject.annotation.NamedAnnotationMapper)</li>
 <li class="circle">io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" class="type-name-link" title="class in io.micronaut.serde.jackson">JacksonDecoder</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a>)</li>
@@ -193,7 +195,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></li>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a>)</li>
 <li class="circle">io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></li>
-<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonDurationSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonDurationSerde</a> (implements io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonDurationSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonDurationSerde</a> (implements io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReference.html" class="type-name-link" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>T&gt;
 <ul>
 <li class="circle">io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/SerializationReference.html" class="type-name-link" title="class in io.micronaut.serde.reference">SerializationReference</a>&lt;B,<wbr>T&gt;</li>
@@ -237,6 +239,14 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/TypeKey.html" class="type-name-link" title="class in io.micronaut.serde.support.util">TypeKey</a></li>
 <li class="circle">io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html" class="type-name-link" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategy</a> (implements io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>)</li>
 <li class="circle">io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html" class="type-name-link" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategyWithSpaces</a> (implements io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>)</li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.html" class="type-name-link" title="class in io.micronaut.serde.data">Users1</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.Friend.html" class="type-name-link" title="class in io.micronaut.serde.data">Users1.Friend</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" class="type-name-link" title="class in io.micronaut.serde.data">Users1.User</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users2.html" class="type-name-link" title="class in io.micronaut.serde.data">Users2</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users2.User.html" class="type-name-link" title="class in io.micronaut.serde.data">Users2.User</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.html" class="type-name-link" title="class in io.micronaut.serde.data">Users3</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.Friend.html" class="type-name-link" title="class in io.micronaut.serde.data">Users3.Friend</a></li>
+<li class="circle">io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.User.html" class="type-name-link" title="class in io.micronaut.serde.data">Users3.User</a></li>
 <li class="circle">io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/ValidatingAnnotationMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">ValidatingAnnotationMapper</a> (implements io.micronaut.inject.annotation.NamedAnnotationMapper)
 <ul>
 <li class="circle">io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonAnyGetterMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">JsonAnyGetterMapper</a></li>
@@ -277,23 +287,14 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;T&gt;</li>
 <li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;
 <ul>
-<li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)
-<ul>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</li>
-</ul>
-</li>
+<li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" class="type-name-link" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;)
 <ul>
-<li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)
-<ul>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt;</li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</li>
-</ul>
-</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
 </ul>
 </li>
 <li class="circle">io.micronaut.serde.<a href="io/micronaut/serde/UpdatingDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</li>
@@ -337,13 +338,9 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableSerializer.html" class="type-name-link" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;T&gt;</li>
 <li class="circle">io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" class="type-name-link" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;)
 <ul>
-<li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)
-<ul>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.<a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt;</li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</li>
-</ul>
-</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.util.<a href="io/micronaut/serde/util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
 </ul>
 </li>
 </ul>

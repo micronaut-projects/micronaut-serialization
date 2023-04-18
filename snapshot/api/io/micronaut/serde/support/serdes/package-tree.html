@@ -71,7 +71,7 @@ loadScripts(document, 'script');</script>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="ZonedDateTimeSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a> (implements io.micronaut.serde.support.serdes.<a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;)</li>
 </ul>
 </li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="HealthStatusSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a> (implements io.micronaut.serde.util.<a href="../../util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.support.serdes.<a href="HealthStatusSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a> (implements io.micronaut.serde.<a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="ObjectArraySerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a> (implements io.micronaut.serde.util.<a href="../../util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;T&gt;, io.micronaut.serde.util.<a href="../../util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;T&gt;, io.micronaut.serde.<a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="YearSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">YearSerde</a> (implements io.micronaut.serde.support.serdes.<a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;)</li>
 </ul>
@@ -83,25 +83,10 @@ loadScripts(document, 'script');</script>
 <ul>
 <li class="circle">io.micronaut.serde.<a href="../../Deserializer.html" class="type-name-link" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;
 <ul>
-<li class="circle">io.micronaut.serde.util.<a href="../../util/NullableDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;
-<ul>
-<li class="circle">io.micronaut.serde.util.<a href="../../util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)
-<ul>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.<a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="TemporalSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</li>
-</ul>
-</li>
-</ul>
-</li>
 <li class="circle">io.micronaut.serde.<a href="../../Serde.html" class="type-name-link" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;)
 <ul>
-<li class="circle">io.micronaut.serde.util.<a href="../../util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.util.<a href="../../util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)
-<ul>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.<a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt;</li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="TemporalSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</li>
-</ul>
-</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.util.<a href="../../util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
 </ul>
 </li>
 </ul>
@@ -110,13 +95,8 @@ loadScripts(document, 'script');</script>
 <ul>
 <li class="circle">io.micronaut.serde.<a href="../../Serde.html" class="type-name-link" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt; (also extends io.micronaut.serde.<a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;)
 <ul>
-<li class="circle">io.micronaut.serde.util.<a href="../../util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt; (also extends io.micronaut.serde.util.<a href="../../util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;T&gt;)
-<ul>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.<a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;)</li>
+<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt;</li>
 <li class="circle">io.micronaut.serde.support.serdes.<a href="TemporalSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</li>
-</ul>
-</li>
-<li class="circle">io.micronaut.serde.support.serdes.<a href="NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt; (also extends io.micronaut.serde.util.<a href="../../util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;)</li>
 </ul>
 </li>
 </ul>

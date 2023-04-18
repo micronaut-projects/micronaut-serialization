@@ -81,11 +81,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <dl class="notes">
 <dt>All Known Subinterfaces:</dt>
-<dd><code><a href="NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;</code>, <code><a href="../support/serdes/NumberSerde.html" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a>&lt;N&gt;</code>, <code><a href="../support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</code></dd>
-</dl>
-<dl class="notes">
-<dt>All Known Implementing Classes:</dt>
-<dd><code><a href="../bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/AbstractOracleJsonSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a></code>, <code><a href="../bson/custom/BsonRepresentationSerde.html" title="class in io.micronaut.serde.bson.custom">BsonRepresentationSerde</a></code>, <code><a href="../bson/custom/CodecBsonDecoder.html" title="class in io.micronaut.serde.bson.custom">CodecBsonDecoder</a></code>, <code><a href="../support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></code>, <code><a href="../support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a></code>, <code><a href="../support/serdes/InstantSerde.html" title="class in io.micronaut.serde.support.serdes">InstantSerde</a></code>, <code><a href="../support/serdes/LocalDateSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateSerde</a></code>, <code><a href="../support/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a></code>, <code><a href="../support/serdes/LocalTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalTimeSerde</a></code>, <code><a href="../support/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonBinarySerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonBinarySerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonDurationSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonDurationSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonLocaleDateSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleDateSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonLocaleDateTimeSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleDateTimeSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonLocaleTimeSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleTimeSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonOffsetDateTimeSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonOffsetDateTimeSerde</a></code>, <code><a href="../oracle/jdbc/json/serde/OracleJsonZonedDateTimeSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonZonedDateTimeSerde</a></code>, <code><a href="../support/serdes/YearSerde.html" title="class in io.micronaut.serde.support.serdes">YearSerde</a></code>, <code><a href="../support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></code></dd>
+<dd><code><a href="NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;T&gt;</code></dd>
 </dl>
 <dl class="notes">
 <dt>Functional Interface:</dt>
@@ -122,7 +118,9 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#allowNull()" class="member-name-link">allowNull</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Return true if the decoder can accept the null value by converting it to something else or just returning null.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
@@ -202,6 +200,8 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <section class="detail" id="allowNull()">
 <h3>allowNull</h3>
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">allowNull</span>()</div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Deserializer.html#allowNull()">Deserializer</a></code></span></div>
+<div class="block">Return true if the decoder can accept the null value by converting it to something else or just returning null.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code><a href="../Deserializer.html#allowNull()">allowNull</a></code>&nbsp;in interface&nbsp;<code><a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;</code></dd>

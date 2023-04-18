@@ -77,11 +77,11 @@ loadScripts(document, 'script');</script>
 </dl>
 <dl class="notes">
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;N&gt;</code>, <code><a href="../../util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a>&lt;N&gt;</code>, <code><a href="../../util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;N&gt;</code>, <code><a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;</code>, <code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;N&gt;</code></dd>
+<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;N&gt;</code>, <code><a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;</code>, <code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;N&gt;</code></dd>
 </dl>
 <hr>
 <div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">NumberSerde&lt;N extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</span><span class="extends-implements">
-extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;, <a href="../../util/NullableSerde.html" title="interface in io.micronaut.serde.util">NullableSerde</a>&lt;N&gt;</span></div>
+extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;</span></div>
 <div class="block">Number serializer that handles formatting.</div>
 </section>
 <section class="summary">
@@ -126,10 +126,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Deserializer">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a></h3>
-<code><a href="../../Deserializer.html#getDefaultValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">getDefaultValue</a></code></div>
-<div class="inherited-list">
-<h3 id="methods-inherited-from-class-io.micronaut.serde.util.NullableDeserializer">Methods inherited from interface&nbsp;io.micronaut.serde.util.<a href="../../util/NullableDeserializer.html" title="interface in io.micronaut.serde.util">NullableDeserializer</a></h3>
-<code><a href="../../util/NullableDeserializer.html#allowNull()">allowNull</a>, <a href="../../util/NullableDeserializer.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">deserialize</a>, <a href="../../util/NullableDeserializer.html#deserializeNonNull(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">deserializeNonNull</a></code></div>
+<code><a href="../../Deserializer.html#allowNull()">allowNull</a>, <a href="../../Deserializer.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">deserialize</a>, <a href="../../Deserializer.html#getDefaultValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">getDefaultValue</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Serializer">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a></h3>
 <code><a href="../../Serializer.html#isAbsent(io.micronaut.serde.Serializer.EncoderContext,T)">isAbsent</a>, <a href="../../Serializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)">isEmpty</a>, <a href="../../Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">serialize</a></code></div>
