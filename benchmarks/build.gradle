@@ -2,14 +2,15 @@ plugins {
     id("io.micronaut.build.internal.serde-base")
     id("java")
     id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("me.champeau.jmh") version "0.7.0"
+//    id("me.champeau.jmh") version "0.7.0"
 }
 
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
     annotationProcessor(mn.micronaut.inject.java)
-    jmhAnnotationProcessor(libs.jmh.generator.annprocess)
-    jmhAnnotationProcessor(mn.micronaut.inject.java)
+    annotationProcessor(libs.jmh.generator.annprocess)
+//    jmhAnnotationProcessor(libs.jmh.generator.annprocess)
+//    jmhAnnotationProcessor(mn.micronaut.inject.java)
 
     implementation(projects.micronautSerdeJackson)
     implementation(projects.micronautSerdeSupport)
@@ -17,13 +18,9 @@ dependencies {
 
     implementation(mn.micronaut.runtime)
 
-    jmh(libs.jmh.core)
+    implementation(libs.jmh.core)
+//    jmh(libs.jmh.core)
     runtimeOnly(mn.logback.classic)
-}
-
-jmh {
-    includes = ["io.micronaut.serde.JacksonBenchmark"]
-    duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 shadowJar {
