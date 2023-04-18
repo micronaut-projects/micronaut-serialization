@@ -22,13 +22,12 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableSerde;
 
 /**
  * Number serializer that handles formatting.
  * @param <N> The number type
  */
-public interface NumberSerde<N extends Number> extends Serde<N>, NullableSerde<N> {
+public interface NumberSerde<N extends Number> extends Serde<N> {
 
     @Override
     default Deserializer<N> createSpecific(DecoderContext decoderContext, Argument<? super N> context) throws SerdeException {

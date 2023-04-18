@@ -18,10 +18,10 @@ package io.micronaut.serde.oracle.jdbc.json.serde;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
 import io.micronaut.serde.support.serdes.LocalTimeSerde;
-import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDate;
@@ -57,7 +57,7 @@ public class OracleJsonLocaleTimeSerde extends AbstractOracleJsonSerde<LocalTime
     }
 
     @Override
-    protected NullableSerde<LocalTime> getDefault() {
+    protected Serde<LocalTime> getDefault() {
         return localTimeSerde;
     }
 }

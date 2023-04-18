@@ -15,19 +15,19 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.sql.Date;
-import java.time.LocalDate;
-
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
+import java.sql.Date;
+import java.time.LocalDate;
 
 /**
  * Serde for SQL dates.
@@ -36,7 +36,7 @@ import jakarta.inject.Singleton;
  */
 @Singleton
 @Secondary
-final class SqlDateSerde implements NullableSerde<Date> {
+final class SqlDateSerde implements Serde<Date> {
     private static final Argument<LocalDate> LOCAL_DATE_ARGUMENT = Argument.of(LocalDate.class);
     private final LocalDateSerde localDateSerde;
 
@@ -93,7 +93,7 @@ final class SqlDateSerde implements NullableSerde<Date> {
     }
 
     @Override
-    public Date deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
+    public Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
             throws IOException {
         final LocalDate localDate = localDateSerde.deserialize(
                 decoder,

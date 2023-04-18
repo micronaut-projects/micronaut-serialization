@@ -18,8 +18,9 @@ package io.micronaut.serde.support.deserializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.exceptions.SerdeException;
 
 @Internal
 interface DeserBeanRegistry {
-    <T> DeserBean<T> getDeserializableBean(Argument<T> type, Deserializer.DecoderContext decoderContext);
+    <T> DeserBean<T> getDeserializableBean(Argument<T> type, Deserializer.DecoderContext decoderContext) throws SerdeException;
 }

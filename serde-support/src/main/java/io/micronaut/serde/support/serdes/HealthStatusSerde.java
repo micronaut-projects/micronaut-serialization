@@ -15,15 +15,15 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.type.Argument;
 import io.micronaut.health.HealthStatus;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.util.NullableSerde;
+import io.micronaut.serde.Serde;
 import jakarta.inject.Singleton;
+
+import java.io.IOException;
 
 /**
  * Serde for health status.
@@ -32,7 +32,7 @@ import jakarta.inject.Singleton;
  */
 @Singleton
 @Requires(classes = HealthStatus.class)
-public class HealthStatusSerde implements NullableSerde<HealthStatus> {
+public class HealthStatusSerde implements Serde<HealthStatus> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends HealthStatus> type, HealthStatus value)
             throws IOException {
@@ -40,7 +40,7 @@ public class HealthStatusSerde implements NullableSerde<HealthStatus> {
     }
 
     @Override
-    public HealthStatus deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super HealthStatus> type)
+    public HealthStatus deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super HealthStatus> type)
             throws IOException {
         return new HealthStatus(decoder.decodeString());
     }

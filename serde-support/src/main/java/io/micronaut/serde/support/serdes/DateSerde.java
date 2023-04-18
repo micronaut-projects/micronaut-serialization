@@ -19,9 +19,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableSerde;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ import java.util.Date;
  * Serde for dates.
  */
 @Singleton
-final class DateSerde implements NullableSerde<Date> {
+final class DateSerde implements Serde<Date> {
     private static final Argument<Instant> INSTANT_ARGUMENT = Argument.of(Instant.class);
     private final InstantSerde instantSerde;
 
@@ -83,9 +83,9 @@ final class DateSerde implements NullableSerde<Date> {
     }
 
     @Override
-    public Date deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
+    public Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
             throws IOException {
-        return Date.from(instantSerde.deserializeNonNull(
+        return Date.from(instantSerde.deserialize(
                 decoder,
                 decoderContext,
                 INSTANT_ARGUMENT

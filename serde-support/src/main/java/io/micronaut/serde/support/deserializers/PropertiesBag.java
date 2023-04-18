@@ -22,7 +22,6 @@ import io.micronaut.core.beans.BeanIntrospection;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,17 +92,17 @@ final class PropertiesBag<T> {
      */
     public final class Consumer {
 
-        private final BitSet consumedSet = new BitSet(properties.length);
+        private final boolean[] consumed = new boolean[properties.length];
         private int remaining = properties.length;
 
         public boolean isNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
-            return propertyIndex != -1 && !consumedSet.get(propertyIndex);
+            return propertyIndex != -1 && !consumed[propertyIndex];
         }
 
         public DeserBean.DerProperty<T, Object> findNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || consumedSet.get(propertyIndex)) {
+            if (propertyIndex == -1 || consumed[propertyIndex]) {
                 return null;
             }
             return properties[propertyIndex];
@@ -111,10 +110,10 @@ final class PropertiesBag<T> {
 
         public DeserBean.DerProperty<T, Object> consume(String name) {
             int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || consumedSet.get(propertyIndex)) {
+            if (propertyIndex == -1 || consumed[propertyIndex]) {
                 return null;
             }
-            consumedSet.set(propertyIndex);
+            consumed[propertyIndex] = true;
             remaining--;
             return properties[propertyIndex];
         }
@@ -123,7 +122,7 @@ final class PropertiesBag<T> {
             List<DeserBean.DerProperty<T, Object>> list = new ArrayList<>(properties.length);
             int bound = properties.length;
             for (int index = 0; index < bound; index++) {
-                if (!consumedSet.get(index)) {
+                if (!consumed[index]) {
                     list.add(properties[index]);
                 }
             }

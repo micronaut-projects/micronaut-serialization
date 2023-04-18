@@ -15,26 +15,26 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalQuery;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableSerde;
+
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQuery;
 
 /**
  * Interface for serializing and deserializing temporals.
  *
  * @param <T> The generic type
  */
-public interface TemporalSerde<T extends TemporalAccessor> extends NullableSerde<T> {
+public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T> {
     ZoneId UTC = ZoneId.of(ZoneOffset.UTC.getId());
 
     @Override

@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support.deserializers;
+package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
-import io.micronaut.core.convert.ConversionService;
-import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
@@ -48,7 +46,7 @@ import java.util.TreeSet;
  */
 @Factory
 @BootstrapContextCompatible
-public class CoreDeserializers {
+public class CoreCollectionsDeserializers {
 
     /**
      * Deserializes array lists.
@@ -60,7 +58,19 @@ public class CoreDeserializers {
     @Order(-100) // prioritize over hashset
     @NonNull
     protected <E> Deserializer<ArrayList<E>> arrayListDeserializer() {
-        return new ArrayListCollectionDeserializer<>();
+        return new SpecificOnlyCollectionDeserializer<>() {
+
+            @Override
+            protected Deserializer<ArrayList<E>> createSpecific(Argument<? super ArrayList<E>> collectionArgument,
+                                                                Argument<E> collectionItemArgument,
+                                                                Deserializer<? extends E> valueDeser,
+                                                                boolean decoderAllowsNull) {
+                if (collectionArgument.getType().isAssignableFrom(ArrayList.class) && collectionItemArgument.getType().equals(String.class)) {
+                    return (Deserializer) StringListDeserializer.INSTANCE;
+                }
+                return new ArrayListDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+            }
+        };
     }
 
     /**
@@ -73,7 +83,16 @@ public class CoreDeserializers {
     @Order(-99) // prioritize over hashset
     @NonNull
     protected <E> Deserializer<ArrayDeque<E>> arrayDequeDeserializer() {
-        return new ArrayDequeDeserializer<>();
+        return new SpecificOnlyCollectionDeserializer<>() {
+
+            @Override
+            protected Deserializer<ArrayDeque<E>> createSpecific(Argument<? super ArrayDeque<E>> collectionArgument,
+                                                                 Argument<E> collectionItemArgument,
+                                                                 Deserializer<? extends E> valueDeser,
+                                                                 boolean decoderAllowsNull) {
+                return new ArrayDequeDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+            }
+        };
     }
 
     /**
@@ -86,7 +105,16 @@ public class CoreDeserializers {
     @Order(-99) // prioritize over hashset
     @NonNull
     protected <E> Deserializer<LinkedList<E>> linkedListDeserializer() {
-        return new LinkedListDeserializer<>();
+        return new SpecificOnlyCollectionDeserializer<>() {
+
+            @Override
+            protected Deserializer<LinkedList<E>> createSpecific(Argument<? super LinkedList<E>> collectionArgument,
+                                                                 Argument<E> collectionItemArgument,
+                                                                 Deserializer<? extends E> valueDeser,
+                                                                 boolean decoderAllowsNull) {
+                return new LinkedListDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+            }
+        };
     }
 
     /**
@@ -99,7 +127,16 @@ public class CoreDeserializers {
     @Singleton
     @Order(-50) // prioritize over enumset
     protected <E> Deserializer<HashSet<E>> hashSetDeserializer() {
-        return new HashSetDeserializer<>();
+        return new SpecificOnlyCollectionDeserializer<>() {
+
+            @Override
+            protected Deserializer<HashSet<E>> createSpecific(Argument<? super HashSet<E>> collectionArgument,
+                                                              Argument<E> collectionItemArgument,
+                                                              Deserializer<? extends E> valueDeser,
+                                                              boolean decoderAllowsNull) {
+                return new HashSetDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+            }
+        };
     }
 
     /**
@@ -111,7 +148,7 @@ public class CoreDeserializers {
     @NonNull
     @Singleton
     protected <E> Deserializer<? extends Set<E>> defaultSetDeserializer() {
-        return new HashSetDeserializer<>();
+        return hashSetDeserializer();
     }
 
     /**
@@ -124,7 +161,16 @@ public class CoreDeserializers {
     @Singleton
     @Order(-51) // prioritize over hashset
     protected <E> Deserializer<LinkedHashSet<E>> linkedHashSetDeserializer() {
-        return new LinkedHashDeserializer<>();
+        return new SpecificOnlyCollectionDeserializer<>() {
+
+            @Override
+            protected Deserializer<LinkedHashSet<E>> createSpecific(Argument<? super LinkedHashSet<E>> collectionArgument,
+                                                                    Argument<E> collectionItemArgument,
+                                                                    Deserializer<? extends E> valueDeser,
+                                                                    boolean decoderAllowsNull) {
+                return new LinkedHashSetDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+            }
+        };
     }
 
     /**
@@ -137,7 +183,16 @@ public class CoreDeserializers {
     @Singleton
     @Order(-52) // prioritize over hashset
     protected <E> Deserializer<TreeSet<E>> treeSetDeserializer() {
-        return new TreeSetDeserializer<>();
+        return new SpecificOnlyCollectionDeserializer<>() {
+
+            @Override
+            protected Deserializer<TreeSet<E>> createSpecific(Argument<? super TreeSet<E>> collectionArgument,
+                                                              Argument<E> collectionItemArgument,
+                                                              Deserializer<? extends E> valueDeser,
+                                                              boolean decoderAllowsNull) {
+                return new TreeSetDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+            }
+        };
     }
 
     /**
@@ -151,7 +206,13 @@ public class CoreDeserializers {
     @NonNull
     @Order(1001)
     protected <K, V> Deserializer<LinkedHashMap<K, V>> linkedHashMapDeserializer() {
-        return new LinkedHashMapDeserializer<>();
+        return new SpecificOnlyMapDeserializer<>() {
+
+            @Override
+            protected Deserializer<LinkedHashMap<K, V>> createSpecific(Argument<K> keyType, Argument<V> valueType, Deserializer<? extends V> valueDeser) {
+                return new LinkedHashMapDeserializer<>(valueDeser, keyType, valueType);
+            }
+        };
     }
 
     /**
@@ -165,7 +226,13 @@ public class CoreDeserializers {
     @NonNull
     @Order(1002) // prioritize over linked hash map
     protected <K, V> Deserializer<TreeMap<K, V>> treeMapDeserializer() {
-        return new TreeMapDeserializer<>();
+        return new SpecificOnlyMapDeserializer<>() {
+
+            @Override
+            protected Deserializer<TreeMap<K, V>> createSpecific(Argument<K> keyType, Argument<V> valueType, Deserializer<? extends V> valueDeser) {
+                return new TreeMapDeserializer<>(valueDeser, keyType, valueType);
+            }
+        };
     }
 
     /**
@@ -185,27 +252,27 @@ public class CoreDeserializers {
         @Override
         public Deserializer<Optional<V>> createSpecific(DecoderContext context, Argument<? super Optional<V>> type) throws SerdeException {
             @SuppressWarnings("unchecked") final Argument<V> generic =
-                    (Argument<V>) type.getFirstTypeVariable().orElse(null);
+                (Argument<V>) type.getFirstTypeVariable().orElse(null);
             if (generic == null) {
                 throw new SerdeException("Cannot deserialize raw optional");
             }
             final Deserializer<? extends V> deserializer = context.findDeserializer(generic)
-                    .createSpecific(context, generic);
+                .createSpecific(context, generic);
 
-            return new Deserializer<Optional<V>>() {
+            return new Deserializer<>() {
 
                 @Override
                 public Optional<V> deserialize(Decoder decoder, DecoderContext context, Argument<? super Optional<V>> type)
-                        throws IOException {
+                    throws IOException {
                     if (decoder.decodeNull()) {
                         return Optional.empty();
                     } else {
                         return Optional.ofNullable(
-                                deserializer.deserialize(
-                                        decoder,
-                                        context,
-                                        generic
-                                )
+                            deserializer.deserialize(
+                                decoder,
+                                context,
+                                generic
+                            )
                         );
                     }
                 }
@@ -214,21 +281,12 @@ public class CoreDeserializers {
                 public Optional<V> getDefaultValue(DecoderContext context, Argument<? super Optional<V>> type) {
                     return Optional.empty();
                 }
+
+                @Override
+                public boolean allowNull() {
+                    return true;
+                }
             };
-        }
-    }
-
-    private static class LinkedHashMapDeserializer<K, V> extends SpecificOnlyMapDeserializer<K, V, LinkedHashMap<K, V>> {
-        @Override
-        public LinkedHashMap<K, V> getDefaultValue() {
-            return new LinkedHashMap<>();
-        }
-    }
-
-    private static class TreeMapDeserializer<K, V> extends SpecificOnlyMapDeserializer<K, V, TreeMap<K, V>> {
-        @Override
-        public TreeMap<K, V> getDefaultValue() {
-            return new TreeMap<>();
         }
     }
 
@@ -241,58 +299,13 @@ public class CoreDeserializers {
                 @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
                 @SuppressWarnings("unchecked") final Argument<V> valueType = (Argument<V>) generics[1];
                 final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
-                        .createSpecific(context, valueType);
-                return new Deserializer<M>() {
-
-                    @Override
-                    public M deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super M> type) throws IOException {
-                        if (decoder.decodeNull()) {
-                            return null;
-                        }
-                        final Decoder objectDecoder = decoder.decodeObject(type);
-                        String key = objectDecoder.decodeKey();
-                        M map = getDefaultValue(decoderContext, type);
-                        ConversionService conversionService = decoderContext.getConversionService();
-                        while (key != null) {
-                            K k;
-                            if (keyType.isInstance(key)) {
-                                k = (K) key;
-                            } else {
-                                try {
-                                    k = conversionService.convertRequired(key, keyType);
-                                } catch (ConversionErrorException e) {
-                                    throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyType + "]: " + e.getMessage(), e);
-                                }
-                            }
-                            if (valueDeser == null) {
-                                map.put(k, (V) objectDecoder.decodeArbitrary());
-                            } else {
-                                map.put(k, valueDeser.deserialize(objectDecoder, decoderContext, valueType));
-                            }
-                            key = objectDecoder.decodeKey();
-                        }
-                        objectDecoder.finishStructure();
-                        return map;
-                    }
-
-                    @Override
-                    public boolean allowNull() {
-                        return true;
-                    }
-
-                    @Override
-                    public M getDefaultValue(DecoderContext context, Argument<? super M> type) {
-                        return SpecificOnlyMapDeserializer.this.getDefaultValue();
-                    }
-                };
+                    .createSpecific(context, valueType);
+                return createSpecific(keyType, valueType, valueDeser);
             }
-            return new Deserializer<M>() {
+            return new Deserializer<>() {
 
                 @Override
                 public M deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super M> type) throws IOException {
-                    if (decoder.decodeNull()) {
-                        return null;
-                    }
                     // raw map
                     final Object o = decoder.decodeArbitrary();
                     if (type.isInstance(o)) {
@@ -306,115 +319,36 @@ public class CoreDeserializers {
                     }
                 }
 
-                @Override
-                public M getDefaultValue(DecoderContext context, Argument<? super M> type) {
-                    return SpecificOnlyMapDeserializer.this.getDefaultValue();
-                }
             };
         }
 
         @NonNull
-        abstract M getDefaultValue();
+        protected abstract Deserializer<M> createSpecific(Argument<K> keyType, Argument<V> valueType, Deserializer<? extends V> valueDeser);
 
-    }
-
-    private static class ArrayDequeDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, ArrayDeque<E>> {
-        @Override
-        public ArrayDeque<E> getDefaultValue() {
-            return new ArrayDeque<>();
-        }
-    }
-
-    private static class LinkedListDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, LinkedList<E>> {
-        @Override
-        public LinkedList<E> getDefaultValue() {
-            return new LinkedList<>();
-        }
-    }
-
-    private static class HashSetDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, HashSet<E>> {
-        @Override
-        public HashSet<E> getDefaultValue() {
-            return new HashSet<>();
-        }
-    }
-
-    private static class LinkedHashDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, LinkedHashSet<E>> {
-        @Override
-        public LinkedHashSet<E> getDefaultValue() {
-            return new LinkedHashSet<>();
-        }
-    }
-
-    private static class TreeSetDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, TreeSet<E>> {
-        @Override
-        public TreeSet<E> getDefaultValue() {
-            return new TreeSet<>();
-        }
-    }
-
-    private static class ArrayListCollectionDeserializer<E> extends SpecificOnlyCollectionDeserializer<E, ArrayList<E>> {
-
-        @Override
-        public ArrayList<E> getDefaultValue() {
-            return new ArrayList<>();
-        }
     }
 
     private abstract static class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> implements CustomizableDeserializer<C> {
 
         @Override
         public Deserializer<C> createSpecific(DecoderContext context, Argument<? super C> type) throws SerdeException {
-            if (type.getType().isAssignableFrom(ArrayList.class) && type.getFirstTypeVariable().orElse(Argument.OBJECT_ARGUMENT).getType().equals(String.class)) {
-                return (Deserializer) StringListDeserializer.INSTANCE;
-            }
-
             final Argument[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");
             }
             @SuppressWarnings("unchecked") final Argument<E> collectionItemArgument = (Argument<E>) generics[0];
             final Deserializer<? extends E> valueDeser = context.findDeserializer(collectionItemArgument)
-                    .createSpecific(context, collectionItemArgument);
+                .createSpecific(context, collectionItemArgument);
 
-            return new Deserializer<C>() {
+            final boolean decoderAllowsNull = valueDeser.allowNull();
 
-                @Override
-                public C deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super C> type) throws IOException {
-                    if (decoder.decodeNull()) {
-                        return null;
-                    }
-                    final Decoder arrayDecoder = decoder.decodeArray();
-                    C collection = getDefaultValue(decoderContext, type);
-                    while (arrayDecoder.hasNextArrayValue()) {
-                        collection.add(
-                                valueDeser.deserialize(
-                                        arrayDecoder,
-                                        decoderContext,
-                                        collectionItemArgument
-                                )
-                        );
-                    }
-                    arrayDecoder.finishStructure();
-                    return collection;
-                }
-
-                @Override
-                public boolean allowNull() {
-                    return true;
-                }
-
-                @Override
-                @NonNull
-                public C getDefaultValue(DecoderContext context, Argument<? super C> type) {
-                    return SpecificOnlyCollectionDeserializer.this.getDefaultValue();
-                }
-
-            };
+            return createSpecific(type, collectionItemArgument, valueDeser, decoderAllowsNull);
         }
 
-        @NonNull
-        abstract C getDefaultValue();
+        protected abstract Deserializer<C> createSpecific(Argument<? super C> collectionArgument,
+                                                          Argument<E> collectionItemArgument,
+                                                          Deserializer<? extends E> valueDeser,
+                                                          boolean decoderAllowsNull);
+
     }
 
 }

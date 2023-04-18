@@ -45,7 +45,7 @@ import java.util.UUID;
 public final class BsonRepresentationSerde extends AbstractBsonSerde<Object> {
 
     @Override
-    protected Object doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
+    protected Object doDeserialize(BsonReaderDecoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         BsonType bsonType = getBsonType(type);
         return decoder.decodeCustom((bsonReader, ctx) -> {
             switch (bsonType) {

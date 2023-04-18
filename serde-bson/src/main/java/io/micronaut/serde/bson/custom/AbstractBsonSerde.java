@@ -18,10 +18,10 @@ package io.micronaut.serde.bson.custom;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.bson.BsonReaderDecoder;
 import io.micronaut.serde.bson.BsonWriterEncoder;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.util.NullableSerde;
 
 import java.io.IOException;
 
@@ -29,15 +29,15 @@ import java.io.IOException;
  * Abstract serializer/deserializer that needs to access Bson decoder/encoder.
  * @param <T>
  */
-public abstract class AbstractBsonSerde<T> implements NullableSerde<T> {
+public abstract class AbstractBsonSerde<T> implements Serde<T> {
 
-    protected abstract T doDeserializeNonNull(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
+    protected abstract T doDeserialize(BsonReaderDecoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
 
     protected abstract void doSerialize(BsonWriterEncoder encoder, EncoderContext context, T value, Argument<? extends T> type) throws IOException;
 
     @Override
-    public final T deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
-        return doDeserializeNonNull(asBson(decoder), decoderContext, type);
+    public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+        return doDeserialize(asBson(decoder), decoderContext, type);
     }
 
     @Override
@@ -53,8 +53,8 @@ public abstract class AbstractBsonSerde<T> implements NullableSerde<T> {
     }
 
     private BsonWriterEncoder asBson(Encoder encoder) throws SerdeException {
-        if (encoder instanceof BsonWriterEncoder) {
-            return (BsonWriterEncoder) encoder;
+        if (encoder instanceof BsonWriterEncoder bsonWriterEncoder) {
+            return bsonWriterEncoder;
         }
         throw new SerdeException("Expected an instance of BsonWriterEncoder got: " + encoder);
     }
