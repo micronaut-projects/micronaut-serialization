@@ -36,6 +36,9 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
         final Decoder arrayDecoder = decoder.decodeArray();
         ArrayList<String> collection = new ArrayList<>();
         while (arrayDecoder.hasNextArrayValue()) {
@@ -54,4 +57,8 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
         return new ArrayList<>();
     }
 
+    @Override
+    public boolean allowNull() {
+        return true;
+    }
 }

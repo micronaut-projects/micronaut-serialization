@@ -28,6 +28,8 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.profile.AsyncProfiler;
+import org.openjdk.jmh.profile.LinuxPerfAsmProfiler;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
@@ -218,16 +220,22 @@ public class JacksonBenchmark {
     }
 
     public static void main(String[] args) throws Exception {
+        ApplicationContext ctx = ApplicationContext.run();
+        Holder holder = new Holder();
+        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+//        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+        Object obj = new JacksonBenchmark().decodeUsers(holder);
         Options opt = new OptionsBuilder()
-            .include(JacksonBenchmark.class.getName() + ".*")
-//            .include(JacksonBenchmark.class.getName() + ".decodeUsersNoArrays")
-            .warmupIterations(5)
+            //.include(JacksonBenchmark.class.getName() + ".*")
+            .include(JacksonBenchmark.class.getName() + ".decodeUsers$")
+            .warmupIterations(20)
             .measurementIterations(10)
             .mode(Mode.AverageTime)
             .timeUnit(TimeUnit.NANOSECONDS)
 //            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
 //            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
-//            .addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
+            //.addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
+            .addProfiler(LinuxPerfAsmProfiler.class, "intelSyntax=true;hotThreshold=0.05")
             .forks(1)
 //            .jvmArgsAppend("-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints")
 //            .jvmArgsPrepend("-Dio.type.pollution.file=out.txt", "-javaagent:/Users/denisstepanov/dev/micronaut-core/type-pollution-agent-0.1-SNAPSHOT.jar")
@@ -241,7 +249,7 @@ public class JacksonBenchmark {
         Holder holder = new Holder();
         holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
 //        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
-        Object obj = new JacksonBenchmark().decodeStringListFieldSmall(holder);
+        Object obj = new JacksonBenchmark().decodeUsers(holder);
 
         System.out.println(obj);
     }
@@ -249,8 +257,8 @@ public class JacksonBenchmark {
     @State(Scope.Thread)
     public static class Holder {
         @Param({
-            "JACKSON_DATABIND_INTROSPECTION",
-            "JACKSON_DATABIND_REFLECTION",
+            //"JACKSON_DATABIND_INTROSPECTION",
+            //"JACKSON_DATABIND_REFLECTION",
             "SERDE_JACKSON"
         })
         Stack stack = Stack.SERDE_JACKSON;

@@ -36,6 +36,9 @@ final class ArrayListDeserializer<E> extends CollectionDeserializer<E, ArrayList
 
     @Override
     public ArrayList<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<E>> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
         ArrayList<E> collection = new ArrayList<>();
         doDeserialize(decoder, context, collection);
         return collection;
@@ -44,5 +47,10 @@ final class ArrayListDeserializer<E> extends CollectionDeserializer<E, ArrayList
     @Override
     public ArrayList<E> getDefaultValue(DecoderContext context, Argument<? super ArrayList<E>> type) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public boolean allowNull() {
+        return true;
     }
 }

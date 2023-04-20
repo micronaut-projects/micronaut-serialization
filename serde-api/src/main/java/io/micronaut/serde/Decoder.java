@@ -91,11 +91,31 @@ public interface Decoder extends AutoCloseable {
     String decodeString() throws IOException;
 
     /**
+     * Decodes a string.
+     *
+     * @return The string, or {@code null} on a null token
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default String decodeStringNullable() throws IOException {
+        return decodeNull() ? null : decodeString();
+    }
+
+    /**
      * Decodes a boolean.
      * @return The boolean
      * @throws IOException If an unrecoverable error occurs
      */
     boolean decodeBoolean() throws IOException;
+
+    /**
+     * Decodes a boolean.
+     * @return The boolean
+     * @throws IOException If an unrecoverable error occurs
+     */
+    default Boolean decodeBooleanNullable() throws IOException {
+        return decodeNull() ? null : decodeBoolean();
+    }
 
     /**
      * Decodes a byte.
@@ -124,6 +144,15 @@ public interface Decoder extends AutoCloseable {
      * @throws IOException If an unrecoverable error occurs
      */
     int decodeInt() throws IOException;
+
+    /**
+     * Decodes a int.
+     * @return The int
+     * @throws IOException If an unrecoverable error occurs
+     */
+    default Integer decodeIntNullable() throws IOException {
+        return decodeNull() ? null : decodeInt();
+    }
 
     /**
      * Decodes a long.

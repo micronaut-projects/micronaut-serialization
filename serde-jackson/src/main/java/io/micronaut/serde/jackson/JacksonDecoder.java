@@ -47,19 +47,20 @@ public final class JacksonDecoder implements Decoder {
     @Internal
     private final JsonParser parser;
 
-    private JsonToken currentToken;
+    @Nullable
+    private JsonToken peekedToken;
     private boolean currentlyUnwrappingArray;
     private int depth = 0;
 
     private JacksonDecoder(JsonParser parser) throws IOException {
         this.parser = parser;
         if (!parser.hasCurrentToken()) {
-            currentToken = parser.nextToken();
+            peekedToken = parser.nextToken();
             if (!parser.hasCurrentToken()) {
                 throw new EOFException("No JSON input to parse");
             }
         } else {
-            currentToken = parser.currentToken();
+            peekedToken = parser.currentToken();
         }
     }
 
@@ -80,108 +81,119 @@ public final class JacksonDecoder implements Decoder {
      * @param expected The token type that was expected in place of {@link JsonParser#currentToken()}.
      * @return The exception that should be thrown to signify an unexpected token.
      */
-    private IOException unexpectedToken(JsonToken expected) {
-        return createDeserializationException("Unexpected token " + currentToken + ", expected " + expected, null);
+    private IOException unexpectedToken(JsonToken expected, JsonToken actual) {
+        return createDeserializationException("Unexpected token " + actual + ", expected " + expected, null);
     }
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
-        if (consumeLeftElements) {
-            while (currentToken != null && currentToken != JsonToken.END_ARRAY && currentToken != JsonToken.END_OBJECT) {
-                if (currentToken == JsonToken.START_ARRAY || currentToken == JsonToken.START_OBJECT) {
+        JsonToken t = nextToken();
+        if (t != JsonToken.END_ARRAY && t != JsonToken.END_OBJECT) {
+            if (!consumeLeftElements) {
+                throw new IllegalStateException("Not all elements have been consumed yet");
+            }
+            do {
+                t = nextToken();
+                if (t == JsonToken.START_ARRAY || t == JsonToken.START_OBJECT) {
                     parser.skipChildren();
                 }
-                currentToken = parser.nextToken();
-            }
-        } else if (currentToken != JsonToken.END_ARRAY && currentToken != JsonToken.END_OBJECT) {
-            throw new IllegalStateException("Not all elements have been consumed yet");
+            } while (t != JsonToken.END_OBJECT && t != JsonToken.END_ARRAY && t != null);
         }
-        if (--depth != 0) {
-            nextToken();
-        }
+        depth--;
     }
 
     @Override
     public void finishStructure() throws IOException {
-        if (currentToken != JsonToken.END_ARRAY && currentToken != JsonToken.END_OBJECT) {
+        JsonToken token = nextToken();
+        if (token != JsonToken.END_ARRAY && token != JsonToken.END_OBJECT) {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
-        if (--depth != 0) {
-            nextToken();
-        }
+        depth--;
     }
 
     @Override
-    public boolean hasNextArrayValue() {
-        return currentToken != JsonToken.END_ARRAY;
+    public boolean hasNextArrayValue() throws IOException {
+        return peekToken() != JsonToken.END_ARRAY;
     }
 
     @Nullable
     @Override
     public String decodeKey() throws IOException {
-        if (currentToken == JsonToken.END_OBJECT) {
-            // stay on the end token, will be handled in finishStructure
-            return null;
+        if (peekedToken != null) {
+            String fieldName = parser.currentName();
+            if (fieldName != null) {
+                peekedToken = null;
+            }
+            return fieldName;
+        } else {
+            String fieldName = parser.nextFieldName();
+            if (fieldName == null) {
+                peekedToken = parser.currentToken();
+            }
+            return fieldName;
         }
-        if (currentToken != JsonToken.FIELD_NAME) {
-            throw new IllegalStateException("Not at a field name");
-        }
-        String fieldName = parser.getCurrentName();
-        nextToken();
-        return fieldName;
     }
 
     @NonNull
     @Override
     public JacksonDecoder decodeArray(Argument<?> type) throws IOException {
-        if (currentToken != JsonToken.START_ARRAY) {
-            throw unexpectedToken(JsonToken.START_ARRAY);
+        JsonToken t = nextToken();
+        if (t != JsonToken.START_ARRAY) {
+            throw unexpectedToken(JsonToken.START_ARRAY, t);
         }
         depth++;
-        nextToken();
         return this;
     }
 
     @Override
     public JacksonDecoder decodeArray() throws IOException {
-        if (currentToken != JsonToken.START_ARRAY) {
-            throw unexpectedToken(JsonToken.START_ARRAY);
+        JsonToken t = nextToken();
+        if (t != JsonToken.START_ARRAY) {
+            throw unexpectedToken(JsonToken.START_ARRAY, t);
         }
         depth++;
-        nextToken();
         return this;
     }
 
     @NonNull
     @Override
     public JacksonDecoder decodeObject(Argument<?> type) throws IOException {
-        if (currentToken != JsonToken.START_OBJECT) {
-            throw unexpectedToken(JsonToken.START_OBJECT);
+        JsonToken t = nextToken();
+        if (t != JsonToken.START_OBJECT) {
+            throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
         depth++;
-        nextToken();
         return this;
     }
 
     @Override
     public JacksonDecoder decodeObject() throws IOException {
-        if (currentToken != JsonToken.START_OBJECT) {
-            throw unexpectedToken(JsonToken.START_OBJECT);
+        JsonToken t = nextToken();
+        if (t != JsonToken.START_OBJECT) {
+            throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
         depth++;
-        nextToken();
         return this;
     }
 
     @NonNull
     @Override
     public String decodeString() throws IOException {
-        if (currentToken == JsonToken.VALUE_STRING) {
-            String value = parser.getText();
-            nextToken();
-            return value;
-        } else if (currentToken == JsonToken.START_ARRAY) {
-            if (beginUnwrapArray(currentToken)) {
+        JsonToken t;
+        if (peekedToken == null) {
+            String value = parser.nextTextValue();
+            if (value != null) {
+                return value;
+            }
+            t = parser.currentToken();
+        } else {
+            t = nextToken();
+            if (t == JsonToken.VALUE_STRING) {
+                return parser.getText();
+            }
+        }
+        if (t == JsonToken.START_ARRAY) {
+            if (beginUnwrapArray(t)) {
                 String unwrapped = decodeString();
                 if (endUnwrapArray()) {
                     return unwrapped;
@@ -189,32 +201,42 @@ public final class JacksonDecoder implements Decoder {
                     throw createDeserializationException("Expected one string, but got array of multiple values", null);
                 }
             }
-            throw unexpectedToken(JsonToken.VALUE_STRING);
+            throw unexpectedToken(JsonToken.VALUE_STRING, t);
         } else {
-            String def = parser.getValueAsString();
-            nextToken();
-            return def;
+            return parser.getValueAsString();
         }
+    }
+
+    @Nullable
+    @Override
+    public String decodeStringNullable() throws IOException {
+        return decodeString();
     }
 
     @Override
     public boolean decodeBoolean() throws IOException {
-        switch (currentToken) {
+        JsonToken t;
+        if (peekedToken == null) {
+            Boolean value = parser.nextBooleanValue();
+            if (value != null) {
+                return value;
+            }
+            t = parser.currentToken();
+        } else {
+            t = nextToken();
+        }
+        switch (t) {
             case VALUE_TRUE -> {
-                nextToken();
                 return true;
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return false;
             }
             case VALUE_NUMBER_FLOAT -> {
-                float floatValue = parser.getFloatValue();
-                nextToken();
-                return floatValue != 0.0;
+                return parser.getFloatValue() != 0.0;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     boolean unwrapped = decodeBoolean();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -222,29 +244,26 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_TRUE);
+                throw unexpectedToken(JsonToken.VALUE_TRUE, t);
             }
             default -> {
-                boolean value = parser.getValueAsBoolean();
-                nextToken();
-                return value;
+                return parser.getValueAsBoolean();
             }
         }
     }
 
     @Override
     public byte decodeByte() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_TRUE -> {
-                nextToken();
                 return 1;
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return 0;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     byte unwrapped = decodeByte();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -252,51 +271,47 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             default -> {
-                byte value = parser.getByteValue();
-                nextToken();
-                return value;
+                return parser.getByteValue();
             }
         }
     }
 
     @Override
     public short decodeShort() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_TRUE -> {
-                nextToken();
                 return 1;
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return 0;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
-                    byte unwrapped = decodeByte();
+                if (beginUnwrapArray(t)) {
+                    short unwrapped = decodeShort();
                     if (endUnwrapArray()) {
                         return unwrapped;
                     } else {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             default -> {
-                short value = parser.getShortValue();
-                nextToken();
-                return value;
+                return parser.getShortValue();
             }
         }
     }
 
     @Override
     public char decodeChar() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     char unwrapped = decodeChar();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -304,28 +319,23 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
                 if (string.length() != 1) {
                     throw createDeserializationException("When decoding char value, must give a single character", string);
                 }
-                char c = string.charAt(0);
-                nextToken();
-                return c;
+                return string.charAt(0);
             }
             case VALUE_NUMBER_INT -> {
-                char value = (char) parser.getIntValue();
-                nextToken();
-                return value;
+                return (char) parser.getIntValue();
             }
             default -> {
                 String text = parser.getText();
                 if (text.length() == 0) {
                     throw createDeserializationException("No characters found", text);
                 }
-                nextToken();
                 return text.charAt(0);
             }
         }
@@ -333,25 +343,21 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public int decodeInt() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_NUMBER_INT -> {
-                int value = parser.getIntValue();
-                nextToken();
-                return value;
+                return parser.getIntValue();
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
-                int value;
                 try {
-                    value = Integer.parseInt(string);
+                    return Integer.parseInt(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to integer", string);
                 }
-                nextToken();
-                return value;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     int unwrapped = decodeInt();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -359,31 +365,26 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return 0;
             }
             case VALUE_TRUE -> {
-                nextToken();
                 return 1;
             }
             default -> {
-                int value = parser.getValueAsInt();
-                nextToken();
-                return value;
+                return parser.getValueAsInt();
             }
         }
     }
 
     @Override
     public long decodeLong() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_NUMBER_INT -> {
-                long value = parser.getLongValue();
-                nextToken();
-                return value;
+                return parser.getLongValue();
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
@@ -393,19 +394,16 @@ public final class JacksonDecoder implements Decoder {
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to integer", string);
                 }
-                nextToken();
                 return value;
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return 0;
             }
             case VALUE_TRUE -> {
-                nextToken();
                 return 1;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     long unwrapped = decodeLong();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -413,19 +411,18 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             default -> {
-                long value = parser.getValueAsLong();
-                nextToken();
-                return value;
+                return parser.getValueAsLong();
             }
         }
     }
 
     @Override
     public float decodeFloat() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
                 float value;
@@ -434,11 +431,10 @@ public final class JacksonDecoder implements Decoder {
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to float", string);
                 }
-                nextToken();
                 return value;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     float unwrapped = decodeFloat();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -446,45 +442,37 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return 0;
             }
             case VALUE_TRUE -> {
-                nextToken();
                 return 1;
             }
             default -> {
-                float value = parser.getFloatValue();
-                nextToken();
-                return value;
+                return parser.getFloatValue();
             }
         }
     }
 
     @Override
     public double decodeDouble() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
-                double value = parser.getDoubleValue();
-                nextToken();
-                return value;
+                return parser.getDoubleValue();
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
-                double value;
                 try {
-                    value = Double.parseDouble(string);
+                    return Double.parseDouble(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to double", string);
                 }
-                nextToken();
-                return value;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     double unwrapped = decodeDouble();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -492,20 +480,16 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return 0;
             }
             case VALUE_TRUE -> {
-                nextToken();
                 return 1;
             }
             default -> {
-                double value = parser.getValueAsDouble();
-                nextToken();
-                return value;
+                return parser.getValueAsDouble();
             }
         }
     }
@@ -513,20 +497,18 @@ public final class JacksonDecoder implements Decoder {
     @NonNull
     @Override
     public BigInteger decodeBigInteger() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
-                BigInteger value;
                 try {
-                    value = new BigInteger(string);
+                    return new BigInteger(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to integer", string);
                 }
-                nextToken();
-                return value;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     BigInteger unwrapped = decodeBigInteger();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -534,20 +516,16 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return BigInteger.ZERO;
             }
             case VALUE_TRUE -> {
-                nextToken();
                 return BigInteger.ONE;
             }
             default -> {
-                BigInteger value = parser.getBigIntegerValue();
-                nextToken();
-                return value;
+                return parser.getBigIntegerValue();
             }
         }
     }
@@ -555,20 +533,18 @@ public final class JacksonDecoder implements Decoder {
     @NonNull
     @Override
     public BigDecimal decodeBigDecimal() throws IOException {
-        switch (currentToken) {
+        JsonToken t = nextToken();
+        switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
-                BigDecimal value;
                 try {
-                    value = new BigDecimal(string);
+                    return new BigDecimal(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to BigDecimal", string);
                 }
-                nextToken();
-                return value;
             }
             case START_ARRAY -> {
-                if (beginUnwrapArray(currentToken)) {
+                if (beginUnwrapArray(t)) {
                     BigDecimal unwrapped = decodeBigDecimal();
                     if (endUnwrapArray()) {
                         return unwrapped;
@@ -576,33 +552,28 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             case VALUE_FALSE -> {
-                nextToken();
                 return BigDecimal.ZERO;
             }
             case VALUE_TRUE -> {
-                nextToken();
                 return BigDecimal.ONE;
             }
             default -> {
-                BigDecimal value = parser.getDecimalValue();
-                nextToken();
-                return value;
+                return parser.getDecimalValue();
             }
         }
     }
 
     private Number decodeNumber() throws IOException {
-        Number number = parser.getNumberValue();
         nextToken();
-        return number;
+        return parser.getNumberValue();
     }
 
     @Override
     public boolean decodeNull() throws IOException {
-        if (currentToken == JsonToken.VALUE_NULL) {
+        if (peekToken() == JsonToken.VALUE_NULL) {
             nextToken();
             return true;
         } else {
@@ -620,18 +591,29 @@ public final class JacksonDecoder implements Decoder {
             throw new IllegalStateException("Not an array");
         }
         currentlyUnwrappingArray = true;
-
-        nextToken();
         return true;
     }
 
-    private void nextToken() throws IOException {
-        currentToken = parser.nextToken();
+    private JsonToken nextToken() throws IOException {
+        JsonToken peekedToken = this.peekedToken;
+        if (peekedToken == null) {
+            return parser.nextToken();
+        } else {
+            this.peekedToken = null;
+            return peekedToken;
+        }
+    }
+
+    private JsonToken peekToken() throws IOException {
+        if (peekedToken == null) {
+            peekedToken = parser.nextToken();
+        }
+        return peekedToken;
     }
 
     private boolean endUnwrapArray() throws IOException {
         currentlyUnwrappingArray = false;
-        if (currentToken == JsonToken.END_ARRAY) {
+        if (peekToken() == JsonToken.END_ARRAY) {
             nextToken();
             return true;
         } else {
@@ -647,14 +629,14 @@ public final class JacksonDecoder implements Decoder {
 
     @NonNull
     public JsonNode decodeNode() throws IOException {
-        return switch (currentToken) {
+        JsonToken t = peekToken();
+        return switch (t) {
             case START_OBJECT -> decodeObjectNode(decodeObject());
             case START_ARRAY -> decodeArrayNode(decodeArray());
             case VALUE_STRING -> JsonNode.createStringNode(decodeString());
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
-                JsonNode bestNumberNode = getBestNumberNode();
                 nextToken();
-                yield bestNumberNode;
+                yield getBestNumberNode();
             }
             case VALUE_TRUE, VALUE_FALSE -> JsonNode.createBooleanNode(decodeBoolean());
             case VALUE_NULL -> {
@@ -662,7 +644,7 @@ public final class JacksonDecoder implements Decoder {
                 yield JsonNode.nullNode();
             }
             default ->
-                throw createDeserializationException("Unexpected token " + currentToken + ", expected value", null);
+                throw createDeserializationException("Unexpected token " + t + ", expected value", null);
         };
     }
 
@@ -722,8 +704,8 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public void skipValue() throws IOException {
-        parser.skipChildren();
         nextToken();
+        parser.skipChildren();
     }
 
     private abstract static class ArbitraryBuilder {
@@ -750,8 +732,8 @@ public final class JacksonDecoder implements Decoder {
             String key = decodeKey();
             if (key != null) {
                 //noinspection ConstantConditions
-                JsonParser jsonParser = elementDecoder.parser;
-                switch (elementDecoder.currentToken) {
+                JsonToken t = elementDecoder.peekToken();
+                switch (t) {
                     case START_OBJECT -> {
                         MapBuilder map = new MapBuilder(this, elementDecoder.decodeObject());
                         put(key, map.items);
@@ -780,7 +762,7 @@ public final class JacksonDecoder implements Decoder {
                         return this;
                     }
                     default ->
-                        throw elementDecoder.createDeserializationException("Unexpected token " + elementDecoder.currentToken + ", expected value", null);
+                        throw elementDecoder.createDeserializationException("Unexpected token " + t + ", expected value", null);
                 }
             } else {
                 return parent;

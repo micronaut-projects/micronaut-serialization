@@ -45,6 +45,9 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType)
             throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
 
         Object obj;
         try {
@@ -105,4 +108,8 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
         return new SerdeException("Unknown property [" + prop + "] encountered during deserialization of type: " + beanType);
     }
 
+    @Override
+    public boolean allowNull() {
+        return true;
+    }
 }

@@ -495,7 +495,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Double deserialize(Decoder decoder,
                                         DecoderContext decoderContext,
                                         Argument<? super Double> type) throws IOException {
-            return decoder.decodeDouble();
+            return decoder.decodeNull() ? null : decoder.decodeDouble();
         }
 
         @Override
@@ -503,6 +503,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               Argument<? extends Double> type, Double value) throws IOException {
             encoder.encodeDouble(value);
+        }
+
+        @Override
+        public boolean allowNull() {
+            return true;
         }
 
         @Override
@@ -597,7 +602,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Integer deserialize(Decoder decoder,
                                           DecoderContext decoderContext,
                                           Argument<? super Integer> type) throws IOException {
-            return decoder.decodeInt();
+            return decoder.decodeIntNullable();
         }
 
         @Override
@@ -623,6 +628,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public Integer getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Integer> type) {
             return type.isPrimitive() ? 0 : null;
+        }
+
+        @Override
+        public boolean allowNull() {
+            return true;
         }
     }
 
@@ -665,7 +675,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Boolean deserialize(Decoder decoder,
                                           DecoderContext decoderContext,
                                           Argument<? super Boolean> type) throws IOException {
-            return decoder.decodeBoolean();
+            return decoder.decodeBooleanNullable();
         }
 
         @Override
@@ -691,6 +701,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public Boolean getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) {
             return type.isPrimitive() ? false : null;
+        }
+
+        @Override
+        public boolean allowNull() {
+            return true;
         }
     }
 
@@ -1111,7 +1126,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
-            return decoder.decodeString();
+            return decoder.decodeStringNullable();
+        }
+
+        @Override
+        public boolean allowNull() {
+            return true;
         }
     }
 
