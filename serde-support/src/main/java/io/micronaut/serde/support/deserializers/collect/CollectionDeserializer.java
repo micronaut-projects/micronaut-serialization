@@ -31,12 +31,10 @@ import java.util.Collection;
  */
 abstract class CollectionDeserializer<E, C extends Collection<E>> implements Deserializer<C> {
 
-    private final boolean decoderAllowsNull;
     private final Deserializer<? extends E> valueDeser;
     private final Argument<E> collectionItemArgument;
 
-    CollectionDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        this.decoderAllowsNull = decoderAllowsNull;
+    CollectionDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
         this.valueDeser = valueDeser;
         this.collectionItemArgument = collectionItemArgument;
     }
@@ -46,11 +44,7 @@ abstract class CollectionDeserializer<E, C extends Collection<E>> implements Des
                                        Collection<E> collection) throws IOException {
         final Decoder arrayDecoder = decoder.decodeArray();
         while (arrayDecoder.hasNextArrayValue()) {
-            if (!decoderAllowsNull && arrayDecoder.decodeNull()) {
-                collection.add(null);
-                continue;
-            }
-            E deserialize = valueDeser.deserialize(
+            E deserialize = valueDeser.deserializeNullable(
                 arrayDecoder,
                 decoderContext,
                 collectionItemArgument

@@ -30,8 +30,8 @@ import java.util.HashSet;
  */
 final class HashSetDeserializer<E> extends CollectionDeserializer<E, HashSet<E>> {
 
-    HashSetDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        super(decoderAllowsNull, valueDeser, collectionItemArgument);
+    HashSetDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
+        super(valueDeser, collectionItemArgument);
     }
 
     @Override

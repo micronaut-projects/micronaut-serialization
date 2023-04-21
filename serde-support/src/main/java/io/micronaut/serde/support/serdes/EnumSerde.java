@@ -129,8 +129,6 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
     private final Argument<Object> argumentType;
     private final Deserializer<Object> argumentDeserializer;
     private final BeanIntrospection<? super E> deserializableIntrospection;
-    private final boolean allowNull;
-
     public EnumCreatorDeserializer(
         Argument<Object> argumentType,
         Deserializer<Object> argumentDeserializer,
@@ -139,12 +137,10 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
         this.argumentType = argumentType;
         this.argumentDeserializer = argumentDeserializer;
         this.deserializableIntrospection = deserializableIntrospection;
-        this.allowNull = allowNull;
     }
 
-    @Override
-    public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
-        Object v = argumentDeserializer.deserialize(decoder, context, argumentType);
+    @NonNull
+    private E transform(Object v) {
         try {
             return (E) deserializableIntrospection.instantiate(v);
         } catch (IllegalArgumentException e) {
@@ -164,8 +160,13 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
     }
 
     @Override
-    public boolean allowNull() {
-        return allowNull;
+    public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
+        return transform(argumentDeserializer.deserialize(decoder, context, argumentType));
+    }
+
+    @Override
+    public E deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
+        return transform(argumentDeserializer.deserializeNullable(decoder, context, argumentType));
     }
 }
 

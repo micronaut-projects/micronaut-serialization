@@ -43,6 +43,16 @@ import java.util.Map;
  */
 @Internal
 public final class JacksonDecoder implements Decoder {
+    /**
+     * Default value for {@link JsonParser#nextIntValue(int)}. If this value is encountered, we
+     * enter the slow parse path.
+     */
+    private static final int INT_CANARY = 0xff123456;
+    /**
+     * Default value for {@link JsonParser#nextLongValue(long)} (int)}. If this value is
+     * encountered, we enter the slow parse path.
+     */
+    private static final long LONG_CANARY = 0xff1234567890abcdL;
 
     @Internal
     private final JsonParser parser;
@@ -179,8 +189,19 @@ public final class JacksonDecoder implements Decoder {
     @NonNull
     @Override
     public String decodeString() throws IOException {
+        String s = decodeStringNullable();
+        if (s == null) {
+            throw unexpectedToken(JsonToken.VALUE_STRING, parser.currentToken());
+        }
+        return s;
+    }
+
+    @Nullable
+    @Override
+    public String decodeStringNullable() throws IOException {
         JsonToken t;
         if (peekedToken == null) {
+            // fast path: avoid nextToken
             String value = parser.nextTextValue();
             if (value != null) {
                 return value;
@@ -207,16 +228,21 @@ public final class JacksonDecoder implements Decoder {
         }
     }
 
-    @Nullable
-    @Override
-    public String decodeStringNullable() throws IOException {
-        return decodeString();
-    }
-
     @Override
     public boolean decodeBoolean() throws IOException {
+        Boolean v = decodeBooleanNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_TRUE, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Boolean decodeBooleanNullable() throws IOException {
         JsonToken t;
         if (peekedToken == null) {
+            // fast path: avoid nextToken
             Boolean value = parser.nextBooleanValue();
             if (value != null) {
                 return value;
@@ -246,6 +272,10 @@ public final class JacksonDecoder implements Decoder {
                 }
                 throw unexpectedToken(JsonToken.VALUE_TRUE, t);
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_TRUE, t);
             default -> {
                 return parser.getValueAsBoolean();
             }
@@ -254,6 +284,16 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public byte decodeByte() throws IOException {
+        Byte v = decodeByteNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Byte decodeByteNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case VALUE_TRUE -> {
@@ -273,6 +313,10 @@ public final class JacksonDecoder implements Decoder {
                 }
                 throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getByteValue();
             }
@@ -281,6 +325,16 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public short decodeShort() throws IOException {
+        Short v = decodeShortNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Short decodeShortNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case VALUE_TRUE -> {
@@ -300,6 +354,10 @@ public final class JacksonDecoder implements Decoder {
                 }
                 throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getShortValue();
             }
@@ -308,6 +366,16 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public char decodeChar() throws IOException {
+        Character v = decodeCharNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Character decodeCharNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case START_ARRAY -> {
@@ -331,6 +399,10 @@ public final class JacksonDecoder implements Decoder {
             case VALUE_NUMBER_INT -> {
                 return (char) parser.getIntValue();
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 String text = parser.getText();
                 if (text.length() == 0) {
@@ -343,7 +415,27 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public int decodeInt() throws IOException {
-        JsonToken t = nextToken();
+        Integer v = decodeIntNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Integer decodeIntNullable() throws IOException {
+        JsonToken t;
+        if (peekedToken == null) {
+            // fast path: avoid nextToken
+            int value = parser.nextIntValue(INT_CANARY);
+            if (value != INT_CANARY) {
+                return value;
+            }
+            t = parser.currentToken();
+        } else {
+            t = nextToken();
+        }
         switch (t) {
             case VALUE_NUMBER_INT -> {
                 return parser.getIntValue();
@@ -373,6 +465,10 @@ public final class JacksonDecoder implements Decoder {
             case VALUE_TRUE -> {
                 return 1;
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getValueAsInt();
             }
@@ -381,7 +477,26 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public long decodeLong() throws IOException {
-        JsonToken t = nextToken();
+        Long v = decodeLongNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Long decodeLongNullable() throws IOException {
+        JsonToken t;
+        if (peekedToken == null) {
+            long value = parser.nextLongValue(LONG_CANARY);
+            if (value != LONG_CANARY) {
+                return value;
+            }
+            t = parser.currentToken();
+        } else {
+            t = nextToken();
+        }
         switch (t) {
             case VALUE_NUMBER_INT -> {
                 return parser.getLongValue();
@@ -397,10 +512,10 @@ public final class JacksonDecoder implements Decoder {
                 return value;
             }
             case VALUE_FALSE -> {
-                return 0;
+                return 0L;
             }
             case VALUE_TRUE -> {
-                return 1;
+                return 1L;
             }
             case START_ARRAY -> {
                 if (beginUnwrapArray(t)) {
@@ -413,6 +528,10 @@ public final class JacksonDecoder implements Decoder {
                 }
                 throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getValueAsLong();
             }
@@ -421,6 +540,16 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public float decodeFloat() throws IOException {
+        Float v = decodeFloatNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Float decodeFloatNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case VALUE_STRING -> {
@@ -445,11 +574,15 @@ public final class JacksonDecoder implements Decoder {
                 throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             }
             case VALUE_FALSE -> {
-                return 0;
+                return 0F;
             }
             case VALUE_TRUE -> {
-                return 1;
+                return 1F;
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             default -> {
                 return parser.getFloatValue();
             }
@@ -458,6 +591,16 @@ public final class JacksonDecoder implements Decoder {
 
     @Override
     public double decodeDouble() throws IOException {
+        Double v = decodeDoubleNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public Double decodeDoubleNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
@@ -483,11 +626,15 @@ public final class JacksonDecoder implements Decoder {
                 throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             }
             case VALUE_FALSE -> {
-                return 0;
+                return 0D;
             }
             case VALUE_TRUE -> {
-                return 1;
+                return 1D;
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             default -> {
                 return parser.getValueAsDouble();
             }
@@ -497,6 +644,16 @@ public final class JacksonDecoder implements Decoder {
     @NonNull
     @Override
     public BigInteger decodeBigInteger() throws IOException {
+        BigInteger v = decodeBigIntegerNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public BigInteger decodeBigIntegerNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case VALUE_STRING -> {
@@ -524,6 +681,10 @@ public final class JacksonDecoder implements Decoder {
             case VALUE_TRUE -> {
                 return BigInteger.ONE;
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getBigIntegerValue();
             }
@@ -533,6 +694,16 @@ public final class JacksonDecoder implements Decoder {
     @NonNull
     @Override
     public BigDecimal decodeBigDecimal() throws IOException {
+        BigDecimal v = decodeBigDecimalNullable();
+        if (v == null) {
+            throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, parser.currentToken());
+        }
+        return v;
+    }
+
+    @Nullable
+    @Override
+    public BigDecimal decodeBigDecimalNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
             case VALUE_STRING -> {
@@ -552,7 +723,7 @@ public final class JacksonDecoder implements Decoder {
                         throw createDeserializationException("Expected one string, but got array of multiple values", null);
                     }
                 }
-                throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+                throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             }
             case VALUE_FALSE -> {
                 return BigDecimal.ZERO;
@@ -560,6 +731,10 @@ public final class JacksonDecoder implements Decoder {
             case VALUE_TRUE -> {
                 return BigDecimal.ONE;
             }
+            case VALUE_NULL -> {
+                return null;
+            }
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             default -> {
                 return parser.getDecimalValue();
             }

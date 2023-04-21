@@ -65,9 +65,34 @@ public interface Deserializer<T> {
             @NonNull Argument<? super T> type) throws IOException;
 
     /**
+     * Deserializes from the current state of the {@link Decoder} an object of type {@link T}. If
+     * the decoder value is {@code null}, this <i>must</i> be permitted. By default, in this case,
+     * this method will return {@code null}.
+     *
+     * @param decoder The decoder, never {@code null}
+     * @param context The decoder context, never {@code null}
+     * @param type The generic type to be deserialized
+     * @return The deserialized object or {@code null}
+     * @throws IOException If an error occurs during deserialization of the object
+     * @since 2.0.0
+     */
+    default T deserializeNullable(
+        @NonNull Decoder decoder,
+        @NonNull DecoderContext context,
+        @NonNull Argument<? super T> type) throws IOException {
+        if (allowNull()) {
+            return deserialize(decoder, context, type);
+        } else {
+            return decoder.decodeNull() ? null : deserialize(decoder, context, type);
+        }
+    }
+
+    /**
      * Return true if the decoder can accept the null value by converting it to something else or just returning null.
      * @return Whether the deserializer is allowed to emit {@code null}
+     * @deprecated Use and override {@link #deserializeNullable} instead
      */
+    @Deprecated
     default boolean allowNull() {
         return false;
     }

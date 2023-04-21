@@ -42,7 +42,6 @@ public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]>
     @Override
     public Object[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object[]> type)
             throws IOException {
-        boolean decoderNotAllowsNull = !componentDeserializer.allowNull();
         final Decoder arrayDecoder = decoder.decodeArray();
         // safe to assume only object[] handled
         Object[] buffer = (Object[]) Array.newInstance(componentType.getType(), 50);
@@ -52,11 +51,7 @@ public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]>
             if (l == index) {
                 buffer = Arrays.copyOf(buffer, l * 2);
             }
-            if (decoderNotAllowsNull && arrayDecoder.decodeNull()) {
-                index++;
-                continue;
-            }
-            buffer[index++] = componentDeserializer.deserialize(
+            buffer[index++] = componentDeserializer.deserializeNullable(
                     arrayDecoder,
                     decoderContext,
                     componentType

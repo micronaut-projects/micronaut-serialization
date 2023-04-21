@@ -30,8 +30,8 @@ import java.util.LinkedHashSet;
  */
 final class LinkedHashSetDeserializer<E> extends CollectionDeserializer<E, LinkedHashSet<E>> {
 
-    LinkedHashSetDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        super(decoderAllowsNull, valueDeser, collectionItemArgument);
+    LinkedHashSetDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
+        super(valueDeser, collectionItemArgument);
     }
 
     @Override

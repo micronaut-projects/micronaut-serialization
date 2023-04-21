@@ -30,8 +30,8 @@ import java.util.ArrayDeque;
  */
 final class ArrayDequeDeserializer<E> extends CollectionDeserializer<E, ArrayDeque<E>> {
 
-    ArrayDequeDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        super(decoderAllowsNull, valueDeser, collectionItemArgument);
+    ArrayDequeDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
+        super(valueDeser, collectionItemArgument);
     }
 
     @Override

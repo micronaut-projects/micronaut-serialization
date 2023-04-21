@@ -30,8 +30,8 @@ import java.util.LinkedList;
  */
 final class LinkedListDeserializer<E> extends CollectionDeserializer<E, LinkedList<E>> {
 
-    LinkedListDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        super(decoderAllowsNull, valueDeser, collectionItemArgument);
+    LinkedListDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
+        super(valueDeser, collectionItemArgument);
     }
 
     @Override

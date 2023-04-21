@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -36,9 +37,6 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
         final Decoder arrayDecoder = decoder.decodeArray();
         ArrayList<String> collection = new ArrayList<>();
         while (arrayDecoder.hasNextArrayValue()) {
@@ -53,12 +51,15 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
     }
 
     @Override
-    public ArrayList<String> getDefaultValue(DecoderContext context, Argument<? super ArrayList<String>> type) {
-        return new ArrayList<>();
+    public ArrayList<String> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super ArrayList<String>> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
     }
 
     @Override
-    public boolean allowNull() {
-        return true;
+    public ArrayList<String> getDefaultValue(DecoderContext context, Argument<? super ArrayList<String>> type) {
+        return new ArrayList<>();
     }
 }

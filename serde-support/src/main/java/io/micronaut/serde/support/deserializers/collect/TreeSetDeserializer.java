@@ -30,8 +30,8 @@ import java.util.TreeSet;
  */
 final class TreeSetDeserializer<E> extends CollectionDeserializer<E, TreeSet<E>> {
 
-    TreeSetDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        super(decoderAllowsNull, valueDeser, collectionItemArgument);
+    TreeSetDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
+        super(valueDeser, collectionItemArgument);
     }
 
     @Override

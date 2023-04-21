@@ -495,7 +495,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Double deserialize(Decoder decoder,
                                         DecoderContext decoderContext,
                                         Argument<? super Double> type) throws IOException {
-            return decoder.decodeNull() ? null : decoder.decodeDouble();
+            return decoder.decodeDouble();
+        }
+
+        @Override
+        public Double deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Double> type) throws IOException {
+            return decoder.decodeDoubleNullable();
         }
 
         @Override
@@ -503,11 +508,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                               EncoderContext context,
                               Argument<? extends Double> type, Double value) throws IOException {
             encoder.encodeDouble(value);
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
         }
 
         @Override
@@ -602,6 +602,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Integer deserialize(Decoder decoder,
                                           DecoderContext decoderContext,
                                           Argument<? super Integer> type) throws IOException {
+            return decoder.decodeInt();
+        }
+
+        @Override
+        public Integer deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Integer> type) throws IOException {
             return decoder.decodeIntNullable();
         }
 
@@ -628,11 +633,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public Integer getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Integer> type) {
             return type.isPrimitive() ? 0 : null;
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
         }
     }
 
@@ -675,6 +675,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public Boolean deserialize(Decoder decoder,
                                           DecoderContext decoderContext,
                                           Argument<? super Boolean> type) throws IOException {
+            return decoder.decodeBoolean();
+        }
+
+        @Override
+        public Boolean deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) throws IOException {
             return decoder.decodeBooleanNullable();
         }
 
@@ -701,11 +706,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public Boolean getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) {
             return type.isPrimitive() ? false : null;
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
         }
     }
 
@@ -1126,12 +1126,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public String deserialize(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
-            return decoder.decodeStringNullable();
+            return decoder.decodeString();
         }
 
         @Override
-        public boolean allowNull() {
-            return true;
+        public String deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super String> type) throws IOException {
+            return decoder.decodeStringNullable();
         }
     }
 
@@ -1301,6 +1301,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public OptionalInt deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super OptionalInt> type) throws IOException {
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public OptionalInt getDefaultValue(DecoderContext context, Argument<? super OptionalInt> type) {
             return OptionalInt.empty();
         }
@@ -1313,11 +1318,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public boolean isAbsent(EncoderContext context, OptionalInt value) {
             return value == null || value.isEmpty();
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
         }
 
         @Override
@@ -1350,6 +1350,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public OptionalDouble deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super OptionalDouble> type) throws IOException {
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public boolean isEmpty(EncoderContext context, OptionalDouble value) {
             return value == null || value.isEmpty();
         }
@@ -1362,11 +1367,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public OptionalDouble getDefaultValue(DecoderContext context, Argument<? super OptionalDouble> type) {
             return OptionalDouble.empty();
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
         }
 
         @Override
@@ -1398,6 +1398,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public OptionalLong deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super OptionalLong> type) throws IOException {
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public OptionalLong getDefaultValue(DecoderContext context, Argument<? super OptionalLong> type) {
             return OptionalLong.empty();
         }
@@ -1410,11 +1415,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Override
         public boolean isAbsent(EncoderContext context, OptionalLong value) {
             return value == null || value.isEmpty();
-        }
-
-        @Override
-        public boolean allowNull() {
-            return true;
         }
 
         @Override

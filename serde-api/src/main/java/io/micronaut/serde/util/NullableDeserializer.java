@@ -39,6 +39,11 @@ public interface NullableDeserializer<T> extends Deserializer<T> {
         }
     }
 
+    @Override
+    default T deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super T> type) throws IOException {
+        return deserialize(decoder, context, type);
+    }
+
     /**
      * A method that is invoked when the value is known not to be null.
      * @param decoder The decoder
@@ -49,9 +54,4 @@ public interface NullableDeserializer<T> extends Deserializer<T> {
      */
     @NonNull
     T deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
-
-    @Override
-    default boolean allowNull() {
-        return true;
-    }
 }

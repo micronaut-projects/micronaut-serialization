@@ -394,10 +394,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 );
             }
             Deserializer<Object> deserializer = derProperty.deserializer;
-            if (!deserializer.allowNull() && objectDecoder.decodeNull()) {
-                return null;
-            }
-            return deserializer.deserialize(
+            return deserializer.deserializeNullable(
                     objectDecoder,
                     decoderContext,
                     propertyType
@@ -742,10 +739,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 values.put(property, null);
             } else {
                 if (anySetter.deserializer != null) {
-                    if (anySetter.deserializer.allowNull() && objectDecoder.decodeNull()) {
-                        return;
-                    }
-                    T deserializedValue = anySetter.deserializer.deserialize(
+                    T deserializedValue = anySetter.deserializer.deserializeNullable(
                         objectDecoder,
                         decoderContext,
                         anySetter.valueType
@@ -867,15 +861,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     );
                 }
                 try {
-                    if (!property.deserializer.allowNull() && decoder.decodeNull()) {
-                        value = null;
-                    } else {
-                        value = property.deserializer.deserialize(
-                            decoder,
-                                decoderContext,
-                                property.argument
-                        );
-                    }
+                    value = property.deserializer.deserializeNullable(
+                        decoder,
+                            decoderContext,
+                            property.argument
+                    );
                 } catch (InvalidFormatException e) {
                     throw new InvalidPropertyFormatException(
                             e,
@@ -891,15 +881,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         public void set(Object[] params, DecoderContext decoderContext) throws IOException {
             if (value instanceof Decoder decoder) {
                 try {
-                    if (!property.deserializer.allowNull() && decoder.decodeNull()) {
-                        value = null;
-                    } else {
-                        value = property.deserializer.deserialize(
-                            decoder,
-                            decoderContext,
-                            property.argument
-                        );
-                    }
+                    value = property.deserializer.deserializeNullable(
+                        decoder,
+                        decoderContext,
+                        property.argument
+                    );
                 } catch (InvalidFormatException e) {
                     throw new InvalidPropertyFormatException(
                             e,

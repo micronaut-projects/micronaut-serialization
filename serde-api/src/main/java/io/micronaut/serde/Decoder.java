@@ -91,9 +91,9 @@ public interface Decoder extends AutoCloseable {
     String decodeString() throws IOException;
 
     /**
-     * Decodes a string.
+     * Equivalent to {@code decodeNull() ? null : decodeString()}.
      *
-     * @return The string, or {@code null} on a null token
+     * @return The value
      * @throws IOException If an unrecoverable error occurs
      */
     @Nullable
@@ -109,10 +109,12 @@ public interface Decoder extends AutoCloseable {
     boolean decodeBoolean() throws IOException;
 
     /**
-     * Decodes a boolean.
+     * Equivalent to {@code decodeNull() ? null : decodeBoolean()}.
+     *
      * @return The boolean
      * @throws IOException If an unrecoverable error occurs
      */
+    @Nullable
     default Boolean decodeBooleanNullable() throws IOException {
         return decodeNull() ? null : decodeBoolean();
     }
@@ -125,11 +127,33 @@ public interface Decoder extends AutoCloseable {
     byte decodeByte() throws IOException;
 
     /**
+     * Equivalent to {@code decodeNull() ? null : decodeByte()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default Byte decodeByteNullable() throws IOException {
+        return decodeNull() ? null : decodeByte();
+    }
+
+    /**
      * Decodes a short.
      * @return The short
      * @throws IOException If an unrecoverable error occurs
      */
     short decodeShort() throws IOException;
+
+    /**
+     * Equivalent to {@code decodeNull() ? null : decodeShort()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default Short decodeShortNullable() throws IOException {
+        return decodeNull() ? null : decodeShort();
+    }
 
     /**
      * Decodes a char.
@@ -139,6 +163,17 @@ public interface Decoder extends AutoCloseable {
     char decodeChar() throws IOException;
 
     /**
+     * Equivalent to {@code decodeNull() ? null : decodeChar()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default Character decodeCharNullable() throws IOException {
+        return decodeNull() ? null : decodeChar();
+    }
+
+    /**
      * Decodes a int.
      * @return The int
      * @throws IOException If an unrecoverable error occurs
@@ -146,10 +181,12 @@ public interface Decoder extends AutoCloseable {
     int decodeInt() throws IOException;
 
     /**
-     * Decodes a int.
+     * Equivalent to {@code decodeNull() ? null : decodeInt()}.
+     *
      * @return The int
      * @throws IOException If an unrecoverable error occurs
      */
+    @Nullable
     default Integer decodeIntNullable() throws IOException {
         return decodeNull() ? null : decodeInt();
     }
@@ -162,6 +199,17 @@ public interface Decoder extends AutoCloseable {
     long decodeLong() throws IOException;
 
     /**
+     * Equivalent to {@code decodeNull() ? null : decodeLong()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default Long decodeLongNullable() throws IOException {
+        return decodeNull() ? null : decodeLong();
+    }
+
+    /**
      * Decodes a float.
      * @return The float
      * @throws IOException If an unrecoverable error occurs
@@ -169,11 +217,33 @@ public interface Decoder extends AutoCloseable {
     float decodeFloat() throws IOException;
 
     /**
+     * Equivalent to {@code decodeNull() ? null : decodeFloat()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default Float decodeFloatNullable() throws IOException {
+        return decodeNull() ? null : decodeFloat();
+    }
+
+    /**
      * Decodes a double.
      * @return The double
      * @throws IOException If an unrecoverable error occurs
      */
     double decodeDouble() throws IOException;
+
+    /**
+     * Equivalent to {@code decodeNull() ? null : decodeDouble()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default Double decodeDoubleNullable() throws IOException {
+        return decodeNull() ? null : decodeDouble();
+    }
 
     /**
      * Decodes a BigInteger.
@@ -184,12 +254,34 @@ public interface Decoder extends AutoCloseable {
     BigInteger decodeBigInteger() throws IOException;
 
     /**
+     * Equivalent to {@code decodeNull() ? null : decodeBigInteger()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default BigInteger decodeBigIntegerNullable() throws IOException {
+        return decodeNull() ? null : decodeBigInteger();
+    }
+
+    /**
      * Decodes a BigDecimal.
      * @return The BigDecimal, never {@code null}
      * @throws IOException If an unrecoverable error occurs
      */
     @NonNull
     BigDecimal decodeBigDecimal() throws IOException;
+
+    /**
+     * Equivalent to {@code decodeNull() ? null : decodeBigDecimal()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     */
+    @Nullable
+    default BigDecimal decodeBigDecimalNullable() throws IOException {
+        return decodeNull() ? null : decodeBigDecimal();
+    }
 
     /**
      * Attempt to decode a null value. Returns {@code false} if this value is not null, and another method should be
