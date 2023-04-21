@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -39,6 +40,14 @@ final class ArrayDequeDeserializer<E> extends CollectionDeserializer<E, ArrayDeq
         ArrayDeque<E> collection = new ArrayDeque<>();
         doDeserialize(decoder, context, collection);
         return collection;
+    }
+
+    @Override
+    public ArrayDeque<E> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super ArrayDeque<E>> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
     }
 
     @Override

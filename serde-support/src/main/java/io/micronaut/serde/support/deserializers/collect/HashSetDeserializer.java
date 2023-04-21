@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -39,6 +40,14 @@ final class HashSetDeserializer<E> extends CollectionDeserializer<E, HashSet<E>>
         HashSet<E> collection = new HashSet<>();
         doDeserialize(decoder, context, collection);
         return collection;
+    }
+
+    @Override
+    public HashSet<E> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super HashSet<E>> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
     }
 
     @Override

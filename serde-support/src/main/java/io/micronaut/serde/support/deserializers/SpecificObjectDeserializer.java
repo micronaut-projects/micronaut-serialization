@@ -361,11 +361,19 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         }
     }
 
+    @Override
+    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
+    }
+
     private void processPropertyBuffer(DecoderContext decoderContext,
-                           Class<? super Object> objectType,
-                           PropertiesBag<Object>.Consumer readProperties,
-                           Object obj,
-                           PropertyBuffer buffer) throws IOException {
+                                       Class<? super Object> objectType,
+                                       PropertiesBag<Object>.Consumer readProperties,
+                                       Object obj,
+                                       PropertyBuffer buffer) throws IOException {
         for (PropertyBuffer propertyBuffer : buffer) {
             final DeserBean.DerProperty<Object, Object> derProperty = readProperties.consume(propertyBuffer.name);
             if (derProperty != null) {

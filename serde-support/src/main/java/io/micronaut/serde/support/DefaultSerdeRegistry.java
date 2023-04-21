@@ -465,6 +465,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public Byte deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Byte> type) throws IOException {
+            return decoder.decodeByteNullable();
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends Byte> type, Byte value) throws IOException {
@@ -538,6 +543,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public Short deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Short> type) throws IOException {
+            return decoder.decodeShortNullable();
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends Short> type, Short value) throws IOException {
@@ -569,6 +579,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                                         DecoderContext decoderContext,
                                         Argument<? super Float> type) throws IOException {
             return decoder.decodeFloat();
+        }
+
+        @Override
+        public Float deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Float> type) throws IOException {
+            return decoder.decodeFloatNullable();
         }
 
         @Override
@@ -645,6 +660,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public Character deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Character> type) throws IOException {
+            return decoder.decodeCharNullable();
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends Character> type, Character value) throws IOException {
@@ -718,6 +738,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public Long deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Long> type) throws IOException {
+            return decoder.decodeLongNullable();
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends Long> type, Long value) throws IOException {
@@ -775,6 +800,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public boolean[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super boolean[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends boolean[]> type, boolean[] value) throws IOException {
@@ -814,6 +847,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             }
             arrayDecoder.finishStructure();
             return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public double[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super double[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
         }
 
         @Override
@@ -859,6 +900,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public short[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super short[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends short[]> type, short[] value) throws IOException {
@@ -898,6 +947,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             }
             arrayDecoder.finishStructure();
             return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public float[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super float[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
         }
 
         @Override
@@ -944,6 +1001,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public long[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super long[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends long[]> type, long[] value) throws IOException {
@@ -983,6 +1048,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             }
             arrayDecoder.finishStructure();
             return Arrays.copyOf(buffer, index);
+        }
+
+        @Override
+        public char[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super char[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
         }
 
         @Override
@@ -1028,6 +1101,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public byte[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends byte[]> type, byte[] value) throws IOException {
@@ -1070,6 +1151,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
+        public int[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super int[]> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
+
+        @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends int[]> type, int[] value) throws IOException {
@@ -1108,6 +1197,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public BigDecimal deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super BigDecimal> type)
                 throws IOException {
             return decoder.decodeBigDecimal();
+        }
+
+        @Override
+        public BigDecimal deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super BigDecimal> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
         }
     }
 
@@ -1154,6 +1251,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throws IOException {
             return new URL(decoder.decodeString());
         }
+
+        @Override
+        public URL deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super URL> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
     }
 
     private static final class URISerde extends SerdeRegistrar<URI> {
@@ -1173,6 +1278,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public URI deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super URI> type)
                 throws IOException {
             return URI.create(decoder.decodeString());
+        }
+
+        @Override
+        public URI deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super URI> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
         }
     }
 
@@ -1194,6 +1307,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throws IOException {
             return Charset.forName(decoder.decodeString());
         }
+
+        @Override
+        public Charset deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Charset> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
     }
 
     private static final class TimeZoneSerde extends SerdeRegistrar<TimeZone> {
@@ -1213,6 +1334,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public TimeZone deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super TimeZone> type)
                 throws IOException {
             return TimeZone.getTimeZone(decoder.decodeString());
+        }
+
+        @Override
+        public TimeZone deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super TimeZone> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
         }
     }
 
@@ -1234,6 +1363,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throws IOException {
             return StringUtils.parseLocale(decoder.decodeString());
         }
+
+        @Override
+        public Locale deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Locale> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
     }
 
     private static final class UUIDSerde extends SerdeRegistrar<UUID> {
@@ -1254,6 +1391,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                 throws IOException {
             return UUID.fromString(decoder.decodeString());
         }
+
+        @Override
+        public UUID deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super UUID> type) throws IOException {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return deserialize(decoder, context, type);
+        }
     }
 
     private static final class BigIntegerSerde extends SerdeRegistrar<BigInteger> implements NumberSerde<BigInteger> {
@@ -1273,6 +1418,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         public BigInteger deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super BigInteger> type)
                 throws IOException {
             return decoder.decodeBigInteger();
+        }
+
+        @Override
+        public BigInteger deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super BigInteger> type) throws IOException {
+            return decoder.decodeBigIntegerNullable();
         }
     }
 
