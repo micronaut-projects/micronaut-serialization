@@ -21,7 +21,7 @@ micronaut-reactor = "3.0.0-SNAPSHOT"
 
 oracle-jdbc-driver = "23.2.0.0"
 jetbrains-annotations = "24.0.1"
-jmh = "1.35"
+jmh = "1.36"
 
 [libraries]
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
