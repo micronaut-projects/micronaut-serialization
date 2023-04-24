@@ -15,35 +15,35 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Singleton;
+
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
 
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
-
 /**
  * Local date serde.
+ *
+ * @implNote Slightly different to {@link NumericSupportTemporalSerde}, we only support one unit
+ * (epoch day)
  */
 @Singleton
-public class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate> {
+public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate> {
+    private final boolean writeNumeric;
+
     /**
      * Allows configuring a default time format for temporal date/time types.
      *
      * @param configuration The configuration
      */
-    protected LocalDateSerde(SerdeConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    protected DateTimeFormatter getDefaultFormatter() {
-        return DateTimeFormatter.ISO_LOCAL_DATE;
+    LocalDateSerde(SerdeConfiguration configuration) {
+        super(configuration, DateTimeFormatter.ISO_LOCAL_DATE);
+        this.writeNumeric = configuration.getTimeWriteShape() != SerdeConfiguration.TimeShape.STRING;
     }
 
     @Override
@@ -52,12 +52,23 @@ public class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> imp
     }
 
     @Override
-    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalDate value, Argument<? extends LocalDate> type) throws IOException {
-        encoder.encodeLong(value.toEpochDay());
+    void serialize0(Encoder encoder, LocalDate value) throws IOException {
+        if (writeNumeric) {
+            encoder.encodeLong(value.toEpochDay());
+        } else {
+            super.serialize0(encoder, value);
+        }
     }
 
     @Override
-    protected LocalDate deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDate> type) throws IOException {
-        return LocalDate.ofEpochDay(decoder.decodeLong());
+    LocalDate deserializeFallback(DateTimeException exc, String s) {
+        long l;
+        try {
+            l = Long.parseLong(s);
+        } catch (NumberFormatException e) {
+            exc.addSuppressed(e);
+            throw exc;
+        }
+        return LocalDate.ofEpochDay(l);
     }
 }

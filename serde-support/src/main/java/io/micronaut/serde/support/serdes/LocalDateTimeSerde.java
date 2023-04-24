@@ -15,16 +15,12 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
+import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Singleton;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
-
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
 
 /**
  * Temporal serde for LocalDateTime.
@@ -32,30 +28,15 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateTime>
+public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateTime>
         implements TemporalSerde<LocalDateTime> {
 
-    protected LocalDateTimeSerde(SerdeConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    protected DateTimeFormatter getDefaultFormatter() {
-        return DateTimeFormatter.ISO_DATE_TIME;
+    LocalDateTimeSerde(SerdeConfiguration configuration) {
+        super(configuration, DateTimeFormatter.ISO_DATE_TIME);
     }
 
     @Override
     public TemporalQuery<LocalDateTime> query() {
         return LocalDateTime::from;
-    }
-
-    @Override
-    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalDateTime value, Argument<? extends LocalDateTime> type) throws IOException {
-        encoder.encodeString(getDefaultFormatter().format(value));
-    }
-
-    @Override
-    protected LocalDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalDateTime> type) throws IOException {
-        return getDefaultFormatter().parse(decoder.decodeString(), LocalDateTime::from);
     }
 }

@@ -15,16 +15,12 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
+import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Singleton;
+
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
-
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
 
 /**
  * Serde used for {@link java.time.Instant}.
@@ -32,17 +28,12 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class InstantSerde extends DefaultFormattedTemporalSerde<Instant> implements TemporalSerde<Instant> {
+public final class InstantSerde extends NumericSupportTemporalSerde<Instant> implements TemporalSerde<Instant> {
 
     private static final TemporalQuery<Instant> QUERY = Instant::from;
 
-    protected InstantSerde(SerdeConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    protected DateTimeFormatter getDefaultFormatter() {
-        return DateTimeFormatter.ISO_INSTANT;
+    InstantSerde(SerdeConfiguration configuration) {
+        super(configuration, DateTimeFormatter.ISO_INSTANT, SerdeConfiguration.NumericTimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -51,12 +42,17 @@ public class InstantSerde extends DefaultFormattedTemporalSerde<Instant> impleme
     }
 
     @Override
-    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, Instant value, Argument<? extends Instant> type) throws IOException {
-        encoder.encodeLong(value.toEpochMilli());
+    protected long getSecondPart(Instant value) {
+        return value.getEpochSecond();
     }
 
     @Override
-    protected Instant deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super Instant> type) throws IOException {
-        return Instant.ofEpochMilli(decoder.decodeLong());
+    protected int getNanoPart(Instant value) {
+        return value.getNano();
+    }
+
+    @Override
+    protected Instant fromNanos(long seconds, int nanos) {
+        return Instant.ofEpochSecond(seconds, nanos);
     }
 }
