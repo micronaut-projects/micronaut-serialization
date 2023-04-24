@@ -34,6 +34,11 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
     private final SerdeConfiguration.TimeShape writeShape;
     private final SerdeConfiguration.NumericTimeUnit numericUnit;
 
+    /**
+     * @param configuration          The configuration
+     * @param defaultStringFormatter Default string formatter to use if the user hasn't configured one
+     * @param legacyUnit             The unit to use in place of {@link io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit#LEGACY}
+     */
     NumericSupportTemporalSerde(
         @NonNull SerdeConfiguration configuration,
         @NonNull DateTimeFormatter defaultStringFormatter,
@@ -79,7 +84,9 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
                     case SECONDS -> encoder.encodeLong(getSecondPart(value));
                     case MILLISECONDS -> encoder.encodeLong(getSecondPart(value) * 1000L + TimeUnit.NANOSECONDS.toMillis(getNanoPart(value)));
                     // this can go out of bounds of long
-                    case NANOSECONDS -> encoder.encodeBigInteger(BigInteger.valueOf(getSecondPart(value)).multiply(NS_FACTOR).add(BigInteger.valueOf(getNanoPart(value))));
+                    case NANOSECONDS ->
+                        encoder.encodeBigInteger(BigInteger.valueOf(getSecondPart(value)).multiply(NS_FACTOR).add(BigInteger.valueOf(getNanoPart(value))));
+                    default -> throw new AssertionError();
                 }
             }
             case DECIMAL -> {
@@ -89,6 +96,7 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
                     case SECONDS -> encoder.encodeBigDecimal(s);
                     case MILLISECONDS -> encoder.encodeBigDecimal(s.scaleByPowerOfTen(3));
                     case NANOSECONDS -> encoder.encodeBigInteger(s.unscaledValue());
+                    default -> throw new AssertionError();
                 }
             }
         }

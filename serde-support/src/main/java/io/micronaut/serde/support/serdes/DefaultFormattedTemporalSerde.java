@@ -39,7 +39,8 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     /**
      * Allows configuring a default time format for temporal date/time types.
      *
-     * @param configuration The configuration
+     * @param configuration          The configuration
+     * @param defaultStringFormatter Default string formatter to use if the user hasn't configured one
      */
     protected DefaultFormattedTemporalSerde(
         @NonNull SerdeConfiguration configuration,
@@ -53,6 +54,12 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         serialize0(encoder, value);
     }
 
+    /**
+     * Serialize method, can be overridden to support numeric serialization.
+     *
+     * @param encoder The encoder
+     * @param value   The value to serialize
+     */
     void serialize0(Encoder encoder, T value) throws IOException {
         encoder.encodeString(stringFormatter.format(value));
     }
@@ -67,6 +74,13 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         }
     }
 
+    /**
+     * Fallback to try when parsing as a timestamp fails.
+     *
+     * @param exc The parse exception, for rethrowing
+     * @param s   The input value
+     * @return The parsed value
+     */
     T deserializeFallback(DateTimeException exc, String s) {
         throw exc;
     }
@@ -76,7 +90,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         // Creates a pattern-based formatter if there is a date format configured
         return configuration.getDateFormat()
             .map(pattern -> configuration.getLocale()
-                    .map(locale -> DateTimeFormatter.ofPattern(pattern, locale))
+                .map(locale -> DateTimeFormatter.ofPattern(pattern, locale))
                     .orElseGet(() -> DateTimeFormatter.ofPattern(pattern)))
             .map(formatter -> configuration.getTimeZone()
                     .map(tz -> formatter.withZone(tz.toZoneId()))

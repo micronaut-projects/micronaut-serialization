@@ -27,10 +27,8 @@ import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
 
 /**
- * Local date serde.
- *
- * @implNote Slightly different to {@link NumericSupportTemporalSerde}, we only support one unit
- * (epoch day)
+ * Local date serde. Slightly different to {@link NumericSupportTemporalSerde}, we only support one
+ * unit (epoch day)
  */
 @Singleton
 public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate> {
