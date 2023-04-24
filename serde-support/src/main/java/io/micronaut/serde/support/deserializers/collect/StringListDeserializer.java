@@ -40,11 +40,7 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
         final Decoder arrayDecoder = decoder.decodeArray();
         ArrayList<String> collection = new ArrayList<>();
         while (arrayDecoder.hasNextArrayValue()) {
-            if (arrayDecoder.decodeNull()) {
-                collection.add(null);
-            } else {
-                collection.add(arrayDecoder.decodeString());
-            }
+            collection.add(arrayDecoder.decodeStringNullable());
         }
         arrayDecoder.finishStructure();
         return collection;
