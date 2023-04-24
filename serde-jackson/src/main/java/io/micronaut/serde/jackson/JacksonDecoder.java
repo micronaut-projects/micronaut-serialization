@@ -240,13 +240,20 @@ public final class JacksonDecoder implements Decoder {
     @Nullable
     @Override
     public Boolean decodeBooleanNullable() throws IOException {
-        JsonToken t;
         if (peekedToken == null) {
             // fast path: avoid nextToken
             Boolean value = parser.nextBooleanValue();
             if (value != null) {
                 return value;
             }
+        }
+        return decodeBooleanSlow();
+    }
+
+    @Nullable
+    private Boolean decodeBooleanSlow() throws IOException {
+        JsonToken t;
+        if (peekedToken == null) {
             t = parser.currentToken();
         } else {
             t = nextToken();
@@ -425,17 +432,19 @@ public final class JacksonDecoder implements Decoder {
     @Nullable
     @Override
     public Integer decodeIntNullable() throws IOException {
-        JsonToken t;
         if (peekedToken == null) {
             // fast path: avoid nextToken
             int value = parser.nextIntValue(INT_CANARY);
             if (value != INT_CANARY) {
                 return value;
             }
-            t = parser.currentToken();
-        } else {
-            t = nextToken();
         }
+        return decodeIntSlow();
+    }
+
+    @Nullable
+    private Integer decodeIntSlow() throws IOException {
+        JsonToken t = peekedToken == null ? parser.currentToken() : nextToken();
         switch (t) {
             case VALUE_NUMBER_INT -> {
                 return parser.getIntValue();
@@ -487,12 +496,19 @@ public final class JacksonDecoder implements Decoder {
     @Nullable
     @Override
     public Long decodeLongNullable() throws IOException {
-        JsonToken t;
         if (peekedToken == null) {
             long value = parser.nextLongValue(LONG_CANARY);
             if (value != LONG_CANARY) {
                 return value;
             }
+        }
+        return decodeLongSlow();
+    }
+
+    @Nullable
+    private Long decodeLongSlow() throws IOException {
+        JsonToken t;
+        if (peekedToken == null) {
             t = parser.currentToken();
         } else {
             t = nextToken();
@@ -602,6 +618,14 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public Double decodeDoubleNullable() throws IOException {
         JsonToken t = nextToken();
+        if (t == JsonToken.VALUE_NUMBER_FLOAT) {
+            return parser.getDoubleValue();
+        }
+        return decodeDoubleSlow(t);
+    }
+
+    @Nullable
+    private Double decodeDoubleSlow(JsonToken t) throws IOException {
         switch (t) {
             case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
                 return parser.getDoubleValue();
