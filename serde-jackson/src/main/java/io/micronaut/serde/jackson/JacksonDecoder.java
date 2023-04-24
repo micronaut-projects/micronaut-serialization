@@ -60,7 +60,6 @@ public final class JacksonDecoder implements Decoder {
     @Nullable
     private JsonToken peekedToken;
     private boolean currentlyUnwrappingArray;
-    private int depth = 0;
 
     private JacksonDecoder(JsonParser parser) throws IOException {
         this.parser = parser;
@@ -109,7 +108,6 @@ public final class JacksonDecoder implements Decoder {
                 }
             } while (t != JsonToken.END_OBJECT && t != JsonToken.END_ARRAY && t != null);
         }
-        depth--;
     }
 
     @Override
@@ -118,7 +116,6 @@ public final class JacksonDecoder implements Decoder {
         if (token != JsonToken.END_ARRAY && token != JsonToken.END_OBJECT) {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
-        depth--;
     }
 
     @Override
@@ -151,7 +148,6 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_ARRAY) {
             throw unexpectedToken(JsonToken.START_ARRAY, t);
         }
-        depth++;
         return this;
     }
 
@@ -161,7 +157,6 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_ARRAY) {
             throw unexpectedToken(JsonToken.START_ARRAY, t);
         }
-        depth++;
         return this;
     }
 
@@ -172,7 +167,6 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_OBJECT) {
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
-        depth++;
         return this;
     }
 
@@ -182,7 +176,6 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_OBJECT) {
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
-        depth++;
         return this;
     }
 
