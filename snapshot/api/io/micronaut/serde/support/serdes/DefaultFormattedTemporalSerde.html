@@ -129,7 +129,8 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>protected </code></div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">DefaultFormattedTemporalSerde</a><wbr>(<a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</code></div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration,java.time.format.DateTimeFormatter)" class="member-name-link">DefaultFormattedTemporalSerde</a><wbr>(<a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;defaultStringFormatter)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Allows configuring a default time format for temporal date/time types.</div>
 </div>
@@ -141,7 +142,7 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel">
 <div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
 <div class="table-header col-first">Modifier and Type</div>
@@ -154,30 +155,12 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Deserializes from the current state of the <a href="../../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#deserializeNonNullWithoutFormat(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNonNullWithoutFormat</a><wbr>(<a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
- <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
- io.micronaut.core.type.Argument&lt;? super <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">A method that is invoked when the value is known not to be null.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDefaultFormatter()" class="member-name-link">getDefaultFormatter</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
  <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
  <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Serializes the given value using the passed <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#serializeWithoutFormat(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,T,io.micronaut.core.type.Argument)" class="member-name-link">serializeWithoutFormat</a><wbr>(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
- <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value,
- io.micronaut.core.type.Argument&lt;? extends <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Serializes the given value using the passed <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </div>
 </div>
@@ -207,14 +190,17 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(io.micronaut.serde.config.SerdeConfiguration)">
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.config.SerdeConfiguration,java.time.format.DateTimeFormatter)">
 <h3>DefaultFormattedTemporalSerde</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="element-name">DefaultFormattedTemporalSerde</span><wbr><span class="parameters">(@NonNull
- <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</span></div>
+ <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @NonNull
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;defaultStringFormatter)</span></div>
 <div class="block">Allows configuring a default time format for temporal date/time types.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>configuration</code> - The configuration</dd>
+<dd><code>defaultStringFormatter</code> - Default string formatter to use if the user hasn't configured one</dd>
 </dl>
 </section>
 </li>
@@ -226,17 +212,6 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
-<li>
-<section class="detail" id="getDefaultFormatter()">
-<h3>getDefaultFormatter</h3>
-<div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></span>&nbsp;<span class="element-name">getDefaultFormatter</span>()</div>
-<dl class="notes">
-<dt>Returns:</dt>
-<dd>The default formatter.</dd>
-</dl>
-</section>
-</li>
 <li>
 <section class="detail" id="serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">
 <h3 id="serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,java.time.temporal.TemporalAccessor)">serialize</h3>
@@ -280,46 +255,6 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <dd>The deserialized object or <code>null</code> only if <a href="../../Deserializer.html#allowNull()"><code>Deserializer.allowNull()</code></a> returns <code>true</code></dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="serializeWithoutFormat(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,T,io.micronaut.core.type.Argument)">
-<h3 id="serializeWithoutFormat(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,java.time.temporal.TemporalAccessor,io.micronaut.core.type.Argument)">serializeWithoutFormat</h3>
-<div class="member-signature"><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">serializeWithoutFormat</span><wbr><span class="parameters">(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
- <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value,
- io.micronaut.core.type.Argument&lt;? extends <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)</span>
-                                        throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">Serializes the given value using the passed <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>encoder</code> - The encoder to use</dd>
-<dd><code>context</code> - The encoder context, never <code>null</code></dd>
-<dd><code>value</code> - The value, can be <code>null</code></dd>
-<dd><code>type</code> - Models the generic type of the value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during serialization</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="deserializeNonNullWithoutFormat(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
-<h3>deserializeNonNullWithoutFormat</h3>
-<div class="member-signature"><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type"><a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a></span>&nbsp;<span class="element-name">deserializeNonNullWithoutFormat</span><wbr><span class="parameters">(<a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
- <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
- io.micronaut.core.type.Argument&lt;? super <a href="DefaultFormattedTemporalSerde.html" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)</span>
-                                              throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">A method that is invoked when the value is known not to be null.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>decoder</code> - The decoder</dd>
-<dd><code>decoderContext</code> - The decoder context</dd>
-<dd><code>type</code> - The type</dd>
-<dt>Returns:</dt>
-<dd>The value</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if something goes wrong during deserialization</dd>
 </dl>
 </section>
 </li>

@@ -43,7 +43,7 @@ loadScripts(document, 'script');</script>
 <div>
 <ul class="sub-nav-list">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field-summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
@@ -81,6 +81,29 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Interface</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfiguration.NumericTimeUnit.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Time unit to use when deserializing a numeric value, or when serializing to a numeric value
+ as configured by <a href="#getTimeWriteShape()"><code>getTimeWriteShape()</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfiguration.TimeShape.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Shape to use for time serialization.</div>
+</div>
+</div>
+</section>
+</li>
 <!-- =========== FIELD SUMMARY =========== -->
 <li>
 <section class="field-summary" id="field-summary">
@@ -121,14 +144,19 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html" title="class or interface in java.util" class="external-link">Locale</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getLocale()" class="member-name-link">getLocale</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getNumericTimeUnit()" class="member-name-link">getNumericTimeUnit</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">The unit to use for serializing and deserializing dates to or from numbers.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTimeWriteShape()" class="member-name-link">getTimeWriteShape</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Shape for serializing dates.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TimeZone.html" title="class or interface in java.util" class="external-link">TimeZone</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTimeZone()" class="member-name-link">getTimeZone</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteDatesAsTimestamps()" class="member-name-link">isWriteDatesAsTimestamps</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Whether to write dates as time stamps.</div>
-</div>
 </div>
 </div>
 </div>
@@ -177,22 +205,27 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="isWriteDatesAsTimestamps()">
-<h3>isWriteDatesAsTimestamps</h3>
-<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
-</span><span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteDatesAsTimestamps</span>()</div>
-<div class="block">Whether to write dates as time stamps. Defaults to <code>true</code>.
-
- <p>If set to <code>false</code> the default ISO formats will be used to format dates as strings.</p></div>
+<section class="detail" id="getTimeWriteShape()">
+<h3>getTimeWriteShape</h3>
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="STRING")
+</span><span class="return-type"><a href="SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></span>&nbsp;<span class="element-name">getTimeWriteShape</span>()</div>
+<div class="block">Shape for serializing dates.</div>
 <dl class="notes">
 <dt>Returns:</dt>
-<dd>Whether to write dates as timestamps</dd>
-<dt>See Also:</dt>
-<dd>
-<ul class="see-list">
-<li><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link"><code>DateTimeFormatter</code></a></li>
-</ul>
-</dd>
+<dd>The date serialization shape</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getNumericTimeUnit()">
+<h3>getNumericTimeUnit</h3>
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="SECONDS")
+</span><span class="return-type"><a href="SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></span>&nbsp;<span class="element-name">getNumericTimeUnit</span>()</div>
+<div class="block">The unit to use for serializing and deserializing dates to or from numbers. Note that
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link"><code>LocalDate</code></a> always uses the epoch day, regardless of this setting.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The time unit</dd>
 </dl>
 </section>
 </li>
