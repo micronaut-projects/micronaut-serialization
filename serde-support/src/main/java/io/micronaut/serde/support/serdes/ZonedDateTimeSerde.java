@@ -15,17 +15,13 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
+import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Singleton;
+
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
-
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
 
 /**
  * Zoned date time serde.
@@ -33,17 +29,12 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class ZonedDateTimeSerde 
-    extends DefaultFormattedTemporalSerde<ZonedDateTime>
+public final class ZonedDateTimeSerde
+    extends NumericSupportTemporalSerde<ZonedDateTime>
         implements TemporalSerde<ZonedDateTime> {
 
-    protected ZonedDateTimeSerde(SerdeConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    protected DateTimeFormatter getDefaultFormatter() {
-        return DateTimeFormatter.ISO_ZONED_DATE_TIME;
+    ZonedDateTimeSerde(SerdeConfiguration configuration) {
+        super(configuration, DateTimeFormatter.ISO_ZONED_DATE_TIME, SerdeConfiguration.NumericTimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -52,15 +43,17 @@ public class ZonedDateTimeSerde
     }
 
     @Override
-    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, ZonedDateTime value, Argument<? extends ZonedDateTime> type) throws IOException {
-        encoder.encodeLong(value.withZoneSameInstant(UTC).toInstant().toEpochMilli());
+    protected ZonedDateTime fromNanos(long seconds, int nanos) {
+        return ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanos), UTC);
     }
 
     @Override
-    protected ZonedDateTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super ZonedDateTime> type) throws IOException {
-        return ZonedDateTime.ofInstant(
-                Instant.ofEpochMilli(decoder.decodeLong()),
-                TemporalSerde.UTC
-        );
+    protected long getSecondPart(ZonedDateTime value) {
+        return value.toInstant().getEpochSecond();
+    }
+
+    @Override
+    protected int getNanoPart(ZonedDateTime value) {
+        return value.toInstant().getNano();
     }
 }
