@@ -11,7 +11,7 @@ kotlin = '1.8.20'
 graal-svm = "22.3.2"
 aws-lambda-events = '3.11.1'
 aws-lambda-serialization = '1.1.2'
-microstream-storage-restclient = '08.00.00-MS-EA2'
+microstream-storage-restclient = '08.00.00-MS-GA'
 
 managed-bson = "4.9.1"
 managed-jakarta-json-api = "2.1.1"
