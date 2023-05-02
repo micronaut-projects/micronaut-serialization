@@ -253,6 +253,29 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
             jsonMatches(result, jsonStripped)
     }
 
+    void "test read/write record"() {
+        when:
+        def bean = new RecordBean("fizz", "buzz")
+        def result = writeJson(jsonMapper, bean)
+
+        then:
+        jsonMatches(result, '{"foo":"fizz","bar":"buzz"}')
+
+        when:
+        bean = jsonMapper.readValue(jsonAsBytes('{"foo":"fizz","ignore":"this","bar":"buzz"}'), Argument.of(RecordBean))
+
+        then:
+        bean.foo() == 'fizz'
+        bean.bar() == 'buzz'
+
+        when:
+        bean = jsonMapper.readValue(jsonAsBytes('{"foo":"fizz","bar":"buzz"}'), Argument.of(RecordBean))
+
+        then:
+        bean.foo() == 'fizz'
+        bean.bar() == 'buzz'
+    }
+
     def <T> T serializeDeserialize(T obj) {
         def output = jsonMapper.writeValueAsBytes(obj)
         return jsonMapper.readValue(output, Argument.of(obj.getClass())) as T
