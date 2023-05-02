@@ -11,7 +11,7 @@
 <link rel="stylesheet" type="text/css" href="../../../script-dir/jquery-ui.min.css" title="Style">
 <link rel="stylesheet" type="text/css" href="../../../jquery-ui.overrides.css" title="Style">
 <script type="text/javascript" src="../../../script.js"></script>
-<script type="text/javascript" src="../../../script-dir/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="../../../script-dir/jquery-3.6.1.min.js"></script>
 <script type="text/javascript" src="../../../script-dir/jquery-ui.min.js"></script>
 </head>
 <body class="package-declaration-page">
@@ -96,7 +96,7 @@ loadScripts(document, 'script');</script>
 </li>
 <li>
 <div id="class-summary">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="class-summary-tab0" role="tab" aria-selected="true" aria-controls="class-summary.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary', 2)" class="active-table-tab">All Classes and Interfaces</button><button id="class-summary-tab1" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab1', 2)" class="table-tab">Interfaces</button><button id="class-summary-tab2" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab2', 2)" class="table-tab">Classes</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="class-summary-tab0" role="tab" aria-selected="true" aria-controls="class-summary.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary', 2)" class="active-table-tab">All Classes and Interfaces</button><button id="class-summary-tab1" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab1', 2)" class="table-tab">Interfaces</button><button id="class-summary-tab2" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab2', 2)" class="table-tab">Classes</button><button id="class-summary-tab4" role="tab" aria-selected="false" aria-controls="class-summary.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('class-summary', 'class-summary-tab4', 2)" class="table-tab">Record Classes</button></div>
 <div id="class-summary.tabpanel" role="tabpanel">
 <div class="summary-table two-column-summary" aria-labelledby="class-summary-tab0">
 <div class="table-header col-first">Class</div>
@@ -141,41 +141,43 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Models a build time property filter.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;</div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab4"><a href="RecordBean.html" title="class in io.micronaut.serde">RecordBean</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab4">&nbsp;</div>
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;</div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Combined interface for a serializer and deserializer pair.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Interface that abstracts the lookup for introspections usable for serialization and/or deserialization.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab2">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SerdeJsonMapperSupplier.html" title="class in io.micronaut.serde">SerdeJsonMapperSupplier</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">
 <div class="block">An implementation of the <code>JsonMapperSupplier</code> interface for Micronaut Serialization.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Represents a registry where specific serializers can be looked up.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;</div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;</div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Models a build time serializer.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Context object passes to the
  <a href="Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)"><code>Serializer.serialize(Encoder, EncoderContext, Argument, Object)</code></a>  method.</div>
 </div>
-<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></div>
-<div class="col-last odd-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab1"><a href="SerializerLocator.html" title="interface in io.micronaut.serde">SerializerLocator</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab1">
 <div class="block">Locator strategy interface for serializers.</div>
 </div>
-<div class="col-first even-row-color class-summary class-summary-tab2"><a href="Simple.html" title="class in io.micronaut.serde">Simple</a></div>
-<div class="col-last even-row-color class-summary class-summary-tab2">&nbsp;</div>
-<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></div>
+<div class="col-first odd-row-color class-summary class-summary-tab2"><a href="Simple.html" title="class in io.micronaut.serde">Simple</a></div>
 <div class="col-last odd-row-color class-summary class-summary-tab2">&nbsp;</div>
-<div class="col-first even-row-color class-summary class-summary-tab1"><a href="UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</div>
-<div class="col-last even-row-color class-summary class-summary-tab1">
+<div class="col-first even-row-color class-summary class-summary-tab2"><a href="SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></div>
+<div class="col-last even-row-color class-summary class-summary-tab2">&nbsp;</div>
+<div class="col-first odd-row-color class-summary class-summary-tab1"><a href="UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;T&gt;</div>
+<div class="col-last odd-row-color class-summary class-summary-tab1">
 <div class="block">Interface that represents a deserializer capable of updating an existing object.</div>
 </div>
 </div>
