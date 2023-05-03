@@ -35,11 +35,13 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
     private final BeanIntrospection<Object> introspection;
     private final PropertiesBag<Object> constructorParameters;
     private final int valuesSize;
+    private final boolean ignoreUnknown;
 
-    SimpleRecordLikeObjectDeserializer(DeserBean<? super Object> deserBean) {
+    SimpleRecordLikeObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
         this.introspection = deserBean.introspection;
         this.constructorParameters = deserBean.creatorParams;
         this.valuesSize = deserBean.creatorSize;
+        this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
     }
 
     @Override
@@ -57,6 +59,10 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
             if (derProperty != null) {
                 derProperty.deserializeAndSetConstructorValue(objectDecoder, decoderContext, params);
                 allConsumed = creatorParameters.isAllConsumed();
+            } else if (ignoreUnknown) {
+                objectDecoder.skipValue();
+            } else {
+                return new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
             }
         }
         if (!allConsumed) {

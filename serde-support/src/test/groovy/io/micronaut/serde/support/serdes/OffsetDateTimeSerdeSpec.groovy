@@ -1,6 +1,6 @@
 package io.micronaut.serde.support.serdes
 
-
+import io.micronaut.context.ApplicationContext
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -44,20 +44,27 @@ class OffsetDateTimeSerdeSpec extends Specification {
         pojo.timeCreated == OffsetDateTime.parse('2022-01-01T12:30:00.123Z')
 
         where:
-        value << [1641040200123]
+        value << [1641040200.123]
     }
 
     @Unroll
-    void "OffsetDateTime by default is serialized as timestamp"() {
+    void "OffsetDateTime can be serialized as number"() {
         given:
+        def ctx = ApplicationContext.run([
+                'micronaut.serde.time-write-shape': 'integer',
+                'micronaut.serde.numeric-time-unit': 'legacy',
+        ])
         OffsetDateTimePojo pojo = new OffsetDateTimePojo()
         pojo.timeCreated = OffsetDateTime.parse('2022-01-01T12:30:00.123Z')
 
         when:
-        String json = objectMapper.writeValueAsString(pojo)
+        String json = ctx.getBean(ObjectMapper).writeValueAsString(pojo)
 
         then:
         '{"timeCreated":1641040200123}' == json
+
+        cleanup:
+        ctx.close()
     }
 
     @Serdeable.Deserializable

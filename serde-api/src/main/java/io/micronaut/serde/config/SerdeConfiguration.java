@@ -18,7 +18,6 @@ package io.micronaut.serde.config;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
-import io.micronaut.core.util.StringUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -43,15 +42,21 @@ public interface SerdeConfiguration {
     Optional<String> getDateFormat();
 
     /**
-     * Whether to write dates as time stamps. Defaults to {@code true}.
+     * Shape for serializing dates.
      *
-     * <p>If set to {@code false} the default ISO formats will be used to format dates as strings.</p>
-     *
-     * @see java.time.format.DateTimeFormatter
-     * @return Whether to write dates as timestamps
+     * @return The date serialization shape
      */
-    @Bindable(defaultValue = StringUtils.TRUE)
-    boolean isWriteDatesAsTimestamps();
+    @Bindable(defaultValue = "STRING")
+    TimeShape getTimeWriteShape();
+
+    /**
+     * The unit to use for serializing and deserializing dates to or from numbers. Note that
+     * {@link java.time.LocalDate} always uses the epoch day, regardless of this setting.
+     *
+     * @return The time unit
+     */
+    @Bindable(defaultValue = "SECONDS")
+    NumericTimeUnit getNumericTimeUnit();
 
     /**
      * @return The default locale to use.
@@ -71,4 +76,53 @@ public interface SerdeConfiguration {
      */
     @Bindable(defaultValue = "io.micronaut")
     List<String> getIncludedIntrospectionPackages();
+
+    /**
+     * Shape to use for time serialization.
+     *
+     * @since 2.0.0
+     */
+    enum TimeShape {
+        /**
+         * Serialize as a string, either using {@link #getDateFormat()} or as an ISO timestamp.
+         */
+        STRING,
+        /**
+         * Serialize as an integer. This exists for compatibility, if possible prefer
+         * {@link #DECIMAL} so that no part of the time component is lost.
+         */
+        INTEGER,
+        /**
+         * Serialize as a decimal value with best possible precision.
+         */
+        DECIMAL,
+    }
+
+    /**
+     * Time unit to use when deserializing a numeric value, or when serializing to a numeric value
+     * as configured by {@link #getTimeWriteShape()}.
+     *
+     * @since 2.0.0
+     */
+    enum NumericTimeUnit {
+        /**
+         * Legacy unit for compatibility with documents created by micronaut-serialization 1.x
+         * (micronaut-core 3.x).
+         */
+        LEGACY,
+        /**
+         * Serialize as seconds, the default. Nanoseconds may still be represented as the
+         * fractional part.
+         */
+        SECONDS,
+        /**
+         * Serialize as milliseconds. Nanoseconds may still be represented as the fractional part.
+         */
+        MILLISECONDS,
+        /**
+         * Serialize as nanoseconds. Never has a fractional part (it's ignored if there is one
+         * while parsing).
+         */
+        NANOSECONDS,
+    }
 }

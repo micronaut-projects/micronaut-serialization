@@ -15,17 +15,13 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
+import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Singleton;
+
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
-
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
 
 /**
  * LocalTime serde.
@@ -33,19 +29,14 @@ import jakarta.inject.Singleton;
  * @since 1.0.0
  */
 @Singleton
-public class LocalTimeSerde extends DefaultFormattedTemporalSerde<LocalTime> {
+public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime> {
     /**
      * Allows configuring a default time format for temporal date/time types.
      *
      * @param configuration The configuration
      */
-    protected LocalTimeSerde(SerdeConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    protected DateTimeFormatter getDefaultFormatter() {
-        return DateTimeFormatter.ISO_LOCAL_TIME;
+    LocalTimeSerde(SerdeConfiguration configuration) {
+        super(configuration, DateTimeFormatter.ISO_LOCAL_TIME, SerdeConfiguration.NumericTimeUnit.NANOSECONDS);
     }
 
     @Override
@@ -54,12 +45,17 @@ public class LocalTimeSerde extends DefaultFormattedTemporalSerde<LocalTime> {
     }
 
     @Override
-    protected void serializeWithoutFormat(Encoder encoder, EncoderContext context, LocalTime value, Argument<? extends LocalTime> type) throws IOException {
-        encoder.encodeLong(value.toNanoOfDay());
+    protected LocalTime fromNanos(long seconds, int nanos) {
+        return LocalTime.ofSecondOfDay(seconds).withNano(nanos);
     }
 
     @Override
-    protected LocalTime deserializeNonNullWithoutFormat(Decoder decoder, DecoderContext decoderContext, Argument<? super LocalTime> type) throws IOException {
-        return LocalTime.ofNanoOfDay(decoder.decodeLong());
+    protected long getSecondPart(LocalTime value) {
+        return value.toSecondOfDay();
+    }
+
+    @Override
+    protected int getNanoPart(LocalTime value) {
+        return value.getNano();
     }
 }

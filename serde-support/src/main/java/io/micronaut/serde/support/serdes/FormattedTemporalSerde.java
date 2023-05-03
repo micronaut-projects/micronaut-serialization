@@ -33,8 +33,8 @@ import java.util.Locale;
 
 @Internal
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
-    private final DateTimeFormatter formatter;
-    private final TemporalQuery<T> query;
+    final DateTimeFormatter formatter;
+    final TemporalQuery<T> query;
 
     FormattedTemporalSerde(@NonNull String pattern,
                            @NonNull AnnotationMetadata annotationMetadata,
@@ -45,6 +45,7 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
                 .orElse(null);
         DateTimeFormatter f = locale != null ? DateTimeFormatter.ofPattern(pattern, locale) :
                 DateTimeFormatter.ofPattern(pattern);
+
         final ZoneId zone = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.TIMEZONE)
                 .map(ZoneId::of).orElse(UTC);

@@ -15,38 +15,30 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalQuery;
-
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Singleton;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalQuery;
 
 /**
  * Serde for OffsetDateTime.
  */
 @Singleton
-public class OffsetDateTimeSerde extends DefaultFormattedTemporalSerde<OffsetDateTime> {
+public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<OffsetDateTime> {
     /**
      * Allows configuring a default time format for temporal date/time types.
      *
      * @param configuration The configuration
      */
-    protected OffsetDateTimeSerde(SerdeConfiguration configuration) {
-        super(configuration);
-    }
-
-    @Override
-    protected DateTimeFormatter getDefaultFormatter() {
-        return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    OffsetDateTimeSerde(SerdeConfiguration configuration) {
+        super(
+            configuration,
+            DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+            SerdeConfiguration.NumericTimeUnit.MILLISECONDS
+        );
     }
 
     @Override
@@ -55,18 +47,20 @@ public class OffsetDateTimeSerde extends DefaultFormattedTemporalSerde<OffsetDat
     }
 
     @Override
-    protected void serializeWithoutFormat(Encoder encoder, Serializer.EncoderContext context, OffsetDateTime value, Argument<? extends OffsetDateTime> type) throws IOException {
-        encoder.encodeLong(
-                value.withOffsetSameInstant(ZoneOffset.UTC)
-                        .toInstant().toEpochMilli()
+    protected OffsetDateTime fromNanos(long seconds, int nanos) {
+        return OffsetDateTime.ofInstant(
+            Instant.ofEpochSecond(seconds, nanos),
+            TemporalSerde.UTC
         );
     }
 
     @Override
-    protected OffsetDateTime deserializeNonNullWithoutFormat(Decoder decoder, Deserializer.DecoderContext decoderContext, Argument<? super OffsetDateTime> type) throws IOException {
-        return OffsetDateTime.ofInstant(
-                Instant.ofEpochMilli(decoder.decodeLong()),
-                TemporalSerde.UTC
-        );
+    protected long getSecondPart(OffsetDateTime value) {
+        return value.toInstant().getEpochSecond();
+    }
+
+    @Override
+    protected int getNanoPart(OffsetDateTime value) {
+        return value.toInstant().getNano();
     }
 }
