@@ -18,13 +18,16 @@ package io.micronaut.serde.support.deserializers;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.naming.Named;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -43,6 +46,12 @@ final class PropertiesBag<T> {
     private final DeserBean.DerProperty<T, Object>[] properties;
     @Nullable
     private final Map<String, Integer> nameToPropertiesMapping;
+    private final long propertiesMask;
+    // hash table with open addressing and linear probing that associates the key with the index
+    // similar to JDK maps but with int values
+    private final String[] keyTable;
+    private final int[] indexTable;
+    private final int tableMask;
 
     private PropertiesBag(BeanIntrospection<T> beanIntrospection,
                           int[] originalNameToPropertiesMapping,
@@ -52,6 +61,44 @@ final class PropertiesBag<T> {
         this.originalNameToPropertiesMapping = originalNameToPropertiesMapping;
         this.properties = properties;
         this.nameToPropertiesMapping = nameToPropertiesMapping;
+        if (properties.length > 0 && properties.length <= 64) {
+            this.propertiesMask = -1L >>> (64 - properties.length);
+        } else {
+            this.propertiesMask = 0;
+        }
+        Stream<String> propStream = beanIntrospection.getBeanProperties().stream().map(Named::getName);
+        if (nameToPropertiesMapping != null) {
+            propStream = Stream.concat(propStream, nameToPropertiesMapping.keySet().stream());
+        }
+        Set<String> props = propStream.collect(Collectors.toSet());
+        int tableSize = (props.size() * 2) + 1;
+        tableSize = Integer.highestOneBit(tableSize) * 2; // round to next power of two
+        tableMask = tableSize - 1;
+        this.keyTable = new String[tableSize];
+        this.indexTable = new int[keyTable.length];
+        for (String prop : props) {
+            int tableIndex = ~probe(prop);
+            keyTable[tableIndex] = prop;
+            indexTable[tableIndex] = propertyIndexOfSlow(prop);
+        }
+    }
+
+    private int probe(String key) {
+        int n = keyTable.length;
+        int i = key.hashCode() & tableMask;
+        while (true) {
+            String candidate = keyTable[i];
+            if (candidate == null) {
+                return ~i;
+            } else if (candidate.equals(key)) {
+                return i;
+            } else {
+                i++;
+                if (i == n) {
+                    i = 0;
+                }
+            }
+        }
     }
 
     public List<Map.Entry<String, DeserBean.DerProperty<T, Object>>> getProperties() {
@@ -72,6 +119,11 @@ final class PropertiesBag<T> {
     }
 
     public int propertyIndexOf(@NonNull String name) {
+        int i = probe(name);
+        return i < 0 ? -1 : indexTable[i];
+    }
+
+    private int propertyIndexOfSlow(@NonNull String name) {
         int propertyIndex = -1;
         int beanPropertyIndex = beanIntrospection.propertyIndexOf(name);
         if (beanPropertyIndex != -1) {
@@ -84,25 +136,24 @@ final class PropertiesBag<T> {
     }
 
     public Consumer newConsumer() {
-        return new Consumer();
+        return propertiesMask == 0 ? new ConsumerBig() : new ConsumerSmall();
     }
 
     /**
      * Properties consumer.
      */
-    public final class Consumer {
-
-        private final boolean[] consumed = new boolean[properties.length];
-        private int remaining = properties.length;
+    public abstract sealed class Consumer {
+        private Consumer() {
+        }
 
         public boolean isNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
-            return propertyIndex != -1 && !consumed[propertyIndex];
+            return propertyIndex != -1 && !isConsumed(propertyIndex);
         }
 
         public DeserBean.DerProperty<T, Object> findNotConsumed(String name) {
             int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || consumed[propertyIndex]) {
+            if (propertyIndex == -1 || isConsumed(propertyIndex)) {
                 return null;
             }
             return properties[propertyIndex];
@@ -110,11 +161,10 @@ final class PropertiesBag<T> {
 
         public DeserBean.DerProperty<T, Object> consume(String name) {
             int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || consumed[propertyIndex]) {
+            if (propertyIndex == -1 || isConsumed(propertyIndex)) {
                 return null;
             }
-            consumed[propertyIndex] = true;
-            remaining--;
+            setConsumed(propertyIndex);
             return properties[propertyIndex];
         }
 
@@ -122,17 +172,58 @@ final class PropertiesBag<T> {
             List<DeserBean.DerProperty<T, Object>> list = new ArrayList<>(properties.length);
             int bound = properties.length;
             for (int index = 0; index < bound; index++) {
-                if (!consumed[index]) {
+                if (!isConsumed(index)) {
                     list.add(properties[index]);
                 }
             }
             return list;
         }
 
+        abstract boolean isConsumed(int index);
+
+        abstract void setConsumed(int index);
+
+        public abstract boolean isAllConsumed();
+    }
+
+    private final class ConsumerBig extends Consumer {
+        private final BitSet consumed = new BitSet(properties.length);
+        private int remaining = properties.length;
+
+        @Override
+        boolean isConsumed(int index) {
+            return consumed.get(index);
+        }
+
+        @Override
         public boolean isAllConsumed() {
             return remaining == 0;
         }
 
+        @Override
+        void setConsumed(int index) {
+            consumed.set(index);
+            remaining--;
+        }
+    }
+
+    private final class ConsumerSmall extends Consumer {
+        private long consumed = ~propertiesMask;
+
+        @Override
+        boolean isConsumed(int index) {
+            return (consumed & (1L << index)) != 0;
+        }
+
+        @Override
+        void setConsumed(int index) {
+            consumed |= 1L << index;
+        }
+
+        @Override
+        public boolean isAllConsumed() {
+            return consumed == -1;
+        }
     }
 
     public static class Builder<T> {

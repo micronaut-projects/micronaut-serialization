@@ -66,7 +66,7 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
             if (valueDeser == null) {
                 map.put(k, (V) objectDecoder.decodeArbitrary());
             } else {
-                map.put(k, valueDeser.deserialize(objectDecoder, decoderContext, valueArgument));
+                map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
             }
             key = objectDecoder.decodeKey();
         }

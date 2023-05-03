@@ -142,9 +142,8 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
         this.allowNull = allowNull;
     }
 
-    @Override
-    public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
-        Object v = argumentDeserializer.deserialize(decoder, context, argumentType);
+    @NonNull
+    private E transform(Object v) {
         try {
             return (E) deserializableIntrospection.instantiate(v);
         } catch (IllegalArgumentException e) {
@@ -164,8 +163,17 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
     }
 
     @Override
-    public boolean allowNull() {
-        return allowNull;
+    public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
+        return transform(argumentDeserializer.deserialize(decoder, context, argumentType));
+    }
+
+    @Override
+    public E deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
+        Object v = argumentDeserializer.deserializeNullable(decoder, context, argumentType);
+        if (!allowNull && v == null) {
+            return null;
+        }
+        return transform(v);
     }
 }
 

@@ -402,7 +402,6 @@ class DeserBean<T> {
 
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
         property.deserializer = findDeserializer(decoderContext, property.argument);
-        property.deserializerNotAllowsNull = !property.deserializer.allowNull();
     }
 
     private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
@@ -606,7 +605,6 @@ class DeserBean<T> {
 
         // Null when DeserBean not initialized
         public Deserializer<P> deserializer;
-        public boolean deserializerNotAllowsNull;
 
         public DerProperty(ConversionService conversionService,
                            BeanIntrospection<B> introspection,
@@ -732,12 +730,7 @@ class DeserBean<T> {
 
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
             try {
-                P value;
-                if (deserializerNotAllowsNull && objectDecoder.decodeNull()) {
-                    value = null;
-                } else {
-                    value = deserializer.deserialize(objectDecoder, decoderContext, argument);
-                }
+                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
                 if (value == null && !nullable) {
                     if (!explicitlyRequired) {
                         value = defaultValue;
@@ -763,12 +756,7 @@ class DeserBean<T> {
         @Nullable
         public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
             try {
-                P value;
-                if (deserializerNotAllowsNull && objectDecoder.decodeNull()) {
-                    value = null;
-                } else {
-                    value = deserializer.deserialize(objectDecoder, decoderContext, argument);
-                }
+                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
                 if (value == null && !nullable) {
                     if (!explicitlyRequired) {
                         value = defaultValue;

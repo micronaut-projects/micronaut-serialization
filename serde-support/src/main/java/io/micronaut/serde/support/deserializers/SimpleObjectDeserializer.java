@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
@@ -45,7 +46,6 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType)
             throws IOException {
-
         Object obj;
         try {
             obj = introspection.instantiate();
@@ -56,6 +56,14 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
         deserializeInto(decoder, decoderContext, beanType, obj);
 
         return obj;
+    }
+
+    @Override
+    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
     }
 
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object beanInstance)
@@ -104,5 +112,4 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     private SerdeException unknownProperty(Argument<? super Object> beanType, String prop) {
         return new SerdeException("Unknown property [" + prop + "] encountered during deserialization of type: " + beanType);
     }
-
 }

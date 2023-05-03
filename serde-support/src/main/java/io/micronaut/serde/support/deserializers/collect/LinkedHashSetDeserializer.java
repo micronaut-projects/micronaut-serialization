@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -30,8 +31,8 @@ import java.util.LinkedHashSet;
  */
 final class LinkedHashSetDeserializer<E> extends CollectionDeserializer<E, LinkedHashSet<E>> {
 
-    LinkedHashSetDeserializer(boolean decoderAllowsNull, Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
-        super(decoderAllowsNull, valueDeser, collectionItemArgument);
+    LinkedHashSetDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
+        super(valueDeser, collectionItemArgument);
     }
 
     @Override
@@ -39,6 +40,14 @@ final class LinkedHashSetDeserializer<E> extends CollectionDeserializer<E, Linke
         LinkedHashSet<E> collection = new LinkedHashSet<>();
         doDeserialize(decoder, context, collection);
         return collection;
+    }
+
+    @Override
+    public LinkedHashSet<E> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super LinkedHashSet<E>> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
     }
 
     @Override

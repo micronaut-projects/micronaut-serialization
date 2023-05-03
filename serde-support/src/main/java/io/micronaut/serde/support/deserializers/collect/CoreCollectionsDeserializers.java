@@ -63,12 +63,11 @@ public class CoreCollectionsDeserializers {
             @Override
             protected Deserializer<ArrayList<E>> createSpecific(Argument<? super ArrayList<E>> collectionArgument,
                                                                 Argument<E> collectionItemArgument,
-                                                                Deserializer<? extends E> valueDeser,
-                                                                boolean decoderAllowsNull) {
+                                                                Deserializer<? extends E> valueDeser) {
                 if (collectionArgument.getType().isAssignableFrom(ArrayList.class) && collectionItemArgument.getType().equals(String.class)) {
                     return (Deserializer) StringListDeserializer.INSTANCE;
                 }
-                return new ArrayListDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+                return new ArrayListDeserializer<>(valueDeser, collectionItemArgument);
             }
         };
     }
@@ -88,9 +87,8 @@ public class CoreCollectionsDeserializers {
             @Override
             protected Deserializer<ArrayDeque<E>> createSpecific(Argument<? super ArrayDeque<E>> collectionArgument,
                                                                  Argument<E> collectionItemArgument,
-                                                                 Deserializer<? extends E> valueDeser,
-                                                                 boolean decoderAllowsNull) {
-                return new ArrayDequeDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+                                                                 Deserializer<? extends E> valueDeser) {
+                return new ArrayDequeDeserializer<>(valueDeser, collectionItemArgument);
             }
         };
     }
@@ -110,9 +108,8 @@ public class CoreCollectionsDeserializers {
             @Override
             protected Deserializer<LinkedList<E>> createSpecific(Argument<? super LinkedList<E>> collectionArgument,
                                                                  Argument<E> collectionItemArgument,
-                                                                 Deserializer<? extends E> valueDeser,
-                                                                 boolean decoderAllowsNull) {
-                return new LinkedListDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+                                                                 Deserializer<? extends E> valueDeser) {
+                return new LinkedListDeserializer<>(valueDeser, collectionItemArgument);
             }
         };
     }
@@ -132,9 +129,8 @@ public class CoreCollectionsDeserializers {
             @Override
             protected Deserializer<HashSet<E>> createSpecific(Argument<? super HashSet<E>> collectionArgument,
                                                               Argument<E> collectionItemArgument,
-                                                              Deserializer<? extends E> valueDeser,
-                                                              boolean decoderAllowsNull) {
-                return new HashSetDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+                                                              Deserializer<? extends E> valueDeser) {
+                return new HashSetDeserializer<>(valueDeser, collectionItemArgument);
             }
         };
     }
@@ -166,9 +162,8 @@ public class CoreCollectionsDeserializers {
             @Override
             protected Deserializer<LinkedHashSet<E>> createSpecific(Argument<? super LinkedHashSet<E>> collectionArgument,
                                                                     Argument<E> collectionItemArgument,
-                                                                    Deserializer<? extends E> valueDeser,
-                                                                    boolean decoderAllowsNull) {
-                return new LinkedHashSetDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+                                                                    Deserializer<? extends E> valueDeser) {
+                return new LinkedHashSetDeserializer<>(valueDeser, collectionItemArgument);
             }
         };
     }
@@ -188,9 +183,8 @@ public class CoreCollectionsDeserializers {
             @Override
             protected Deserializer<TreeSet<E>> createSpecific(Argument<? super TreeSet<E>> collectionArgument,
                                                               Argument<E> collectionItemArgument,
-                                                              Deserializer<? extends E> valueDeser,
-                                                              boolean decoderAllowsNull) {
-                return new TreeSetDeserializer<>(decoderAllowsNull, valueDeser, collectionItemArgument);
+                                                              Deserializer<? extends E> valueDeser) {
+                return new TreeSetDeserializer<>(valueDeser, collectionItemArgument);
             }
         };
     }
@@ -278,13 +272,13 @@ public class CoreCollectionsDeserializers {
                 }
 
                 @Override
-                public Optional<V> getDefaultValue(DecoderContext context, Argument<? super Optional<V>> type) {
-                    return Optional.empty();
+                public Optional<V> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Optional<V>> type) throws IOException {
+                    return deserialize(decoder, context, type);
                 }
 
                 @Override
-                public boolean allowNull() {
-                    return true;
+                public Optional<V> getDefaultValue(DecoderContext context, Argument<? super Optional<V>> type) {
+                    return Optional.empty();
                 }
             };
         }
@@ -339,15 +333,12 @@ public class CoreCollectionsDeserializers {
             final Deserializer<? extends E> valueDeser = context.findDeserializer(collectionItemArgument)
                 .createSpecific(context, collectionItemArgument);
 
-            final boolean decoderAllowsNull = valueDeser.allowNull();
-
-            return createSpecific(type, collectionItemArgument, valueDeser, decoderAllowsNull);
+            return createSpecific(type, collectionItemArgument, valueDeser);
         }
 
         protected abstract Deserializer<C> createSpecific(Argument<? super C> collectionArgument,
                                                           Argument<E> collectionItemArgument,
-                                                          Deserializer<? extends E> valueDeser,
-                                                          boolean decoderAllowsNull);
+                                                          Deserializer<? extends E> valueDeser);
 
     }
 

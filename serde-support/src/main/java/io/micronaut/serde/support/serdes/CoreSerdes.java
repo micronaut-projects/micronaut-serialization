@@ -190,5 +190,10 @@ public class CoreSerdes {
         public CharSequence deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super CharSequence> type) throws IOException {
             return decoder.decodeString();
         }
+
+        @Override
+        public CharSequence deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super CharSequence> type) throws IOException {
+            return decoder.decodeStringNullable();
+        }
     }
 }
