@@ -35,6 +35,7 @@ loadScripts(document, 'script');</script>
 <li><a href="package-summary.html">Package</a></li>
 <li class="nav-bar-cell1-rev">Class</li>
 <li><a href="package-tree.html">Tree</a></li>
+<li><a href="../../../../deprecated-list.html">Deprecated</a></li>
 <li><a href="../../../../index-all.html">Index</a></li>
 <li><a href="../../../../help-doc.html#class">Help</a></li>
 </ul>
@@ -116,31 +117,33 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#allowNull()" class="member-name-link">allowNull</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Return true if the decoder can accept the null value by converting it to something else or just returning null.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? super <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#deserializeNonNull(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNonNull</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#deserializeNonNull(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNonNull</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  io.micronaut.core.type.Argument&lt;? super <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">A method that is invoked when the value is known not to be null.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+ <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;? super <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </div>
 </div>
 </div>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Deserializer">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a></h3>
-<code><a href="../Deserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">createSpecific</a>, <a href="../Deserializer.html#getDefaultValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">getDefaultValue</a></code></div>
+<code><a href="../Deserializer.html#allowNull()">allowNull</a>, <a href="../Deserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">createSpecific</a>, <a href="../Deserializer.html#getDefaultValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">getDefaultValue</a></code></div>
 </section>
 </li>
 </ul>
@@ -176,6 +179,34 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 </section>
 </li>
 <li>
+<section class="detail" id="deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
+<h3>deserializeNullable</h3>
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a></span>&nbsp;<span class="element-name">deserializeNullable</span><wbr><span class="parameters">(@NonNull
+ <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+ @NonNull
+ <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull
+ io.micronaut.core.type.Argument&lt;? super <a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</span>
+                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">Deserializer</a></code></span></div>
+<div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>. If
+ the decoder value is <code>null</code>, this <i>must</i> be permitted. By default, in this case,
+ this method will return <code>null</code>.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">deserializeNullable</a></code>&nbsp;in interface&nbsp;<code><a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>decoder</code> - The decoder, never <code>null</code></dd>
+<dd><code>context</code> - The decoder context, never <code>null</code></dd>
+<dd><code>type</code> - The generic type to be deserialized</dd>
+<dt>Returns:</dt>
+<dd>The deserialized object or <code>null</code></dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="deserializeNonNull(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
 <h3>deserializeNonNull</h3>
 <div class="member-signature"><span class="annotations">@NonNull
@@ -193,20 +224,6 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <dd>The value</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if something goes wrong during deserialization</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="allowNull()">
-<h3>allowNull</h3>
-<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">allowNull</span>()</div>
-<div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Deserializer.html#allowNull()">Deserializer</a></code></span></div>
-<div class="block">Return true if the decoder can accept the null value by converting it to something else or just returning null.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="../Deserializer.html#allowNull()">allowNull</a></code>&nbsp;in interface&nbsp;<code><a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="NullableDeserializer.html" title="type parameter in NullableDeserializer">T</a>&gt;</code></dd>
-<dt>Returns:</dt>
-<dd>Whether the deserializer is allowed to emit <code>null</code></dd>
 </dl>
 </section>
 </li>
