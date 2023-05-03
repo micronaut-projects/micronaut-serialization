@@ -99,6 +99,7 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
                     default -> throw new AssertionError();
                 }
             }
+            default -> throw new AssertionError();
         }
     }
 }

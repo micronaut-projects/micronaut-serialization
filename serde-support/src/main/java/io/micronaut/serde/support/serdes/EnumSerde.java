@@ -129,6 +129,8 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
     private final Argument<Object> argumentType;
     private final Deserializer<Object> argumentDeserializer;
     private final BeanIntrospection<? super E> deserializableIntrospection;
+    private final boolean allowNull;
+
     public EnumCreatorDeserializer(
         Argument<Object> argumentType,
         Deserializer<Object> argumentDeserializer,
@@ -137,6 +139,7 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
         this.argumentType = argumentType;
         this.argumentDeserializer = argumentDeserializer;
         this.deserializableIntrospection = deserializableIntrospection;
+        this.allowNull = allowNull;
     }
 
     @NonNull
@@ -166,7 +169,11 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
 
     @Override
     public E deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
-        return transform(argumentDeserializer.deserializeNullable(decoder, context, argumentType));
+        Object v = argumentDeserializer.deserializeNullable(decoder, context, argumentType);
+        if (!allowNull && v == null) {
+            return null;
+        }
+        return transform(v);
     }
 }
 

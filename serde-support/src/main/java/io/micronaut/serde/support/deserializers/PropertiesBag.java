@@ -142,7 +142,7 @@ final class PropertiesBag<T> {
     /**
      * Properties consumer.
      */
-    public sealed abstract class Consumer {
+    public abstract sealed class Consumer {
         private Consumer() {
         }
 
