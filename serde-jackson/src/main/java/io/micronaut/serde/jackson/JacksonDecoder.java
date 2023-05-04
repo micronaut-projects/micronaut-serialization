@@ -206,18 +206,22 @@ public final class JacksonDecoder implements Decoder {
                 return parser.getText();
             }
         }
-        if (t == JsonToken.START_ARRAY) {
-            if (beginUnwrapArray(t)) {
-                String unwrapped = decodeString();
-                if (endUnwrapArray()) {
-                    return unwrapped;
-                } else {
-                    throw createDeserializationException("Expected one string, but got array of multiple values", null);
+        switch (t) {
+            case START_ARRAY -> {
+                if (beginUnwrapArray(t)) {
+                    String unwrapped = decodeString();
+                    if (endUnwrapArray()) {
+                        return unwrapped;
+                    } else {
+                        throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                    }
                 }
+                throw unexpectedToken(JsonToken.VALUE_STRING, t);
             }
-            throw unexpectedToken(JsonToken.VALUE_STRING, t);
-        } else {
-            return parser.getValueAsString();
+            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_STRING, t);
+            default -> {
+                return parser.getValueAsString();
+            }
         }
     }
 
