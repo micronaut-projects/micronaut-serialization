@@ -124,4 +124,11 @@ class JacksonDecoderSpec extends Specification {
         then:
         thrown EOFException
     }
+
+    def "decode incompatible to string"() {
+        when:
+        createDecoder('{}').decodeStringNullable()
+        then:
+        thrown SerdeException
+    }
 }

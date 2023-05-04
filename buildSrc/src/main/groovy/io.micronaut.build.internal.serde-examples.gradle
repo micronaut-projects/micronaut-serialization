@@ -3,7 +3,15 @@ plugins {
     id("io.micronaut.application")
 }
 
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        all {
+            if (it.requested instanceof ModuleComponentSelector && it.requested.group == project.group) {
+                substitute module("${it.requested.group}:${it.requested.module}") using project(":${it.requested.module}")
+            }
+        }
+    }
+}
 micronaut {
-   // Do not build examples against M1 since the platform is not released
-   version = "4.0.0-SNAPSHOT"
+    version libs.versions.micronaut.platform.get()
 }
