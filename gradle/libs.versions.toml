@@ -5,6 +5,7 @@ micronaut-docs = "2.0.0"
 micronaut-gradle-plugin = "4.0.0-M1"
 micronaut-test = "4.0.0-M2"
 micronaut-discovery = "4.0.0-M1"
+micronaut-logging = "1.0.0-M1"
 
 groovy = "4.0.11"
 spock = "2.3-groovy-4.0"
@@ -30,6 +31,7 @@ managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
 managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
 micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
+micronaut-logging = { module = "io.micronaut.logging:micronaut-logging-bom", version.ref = "micronaut-logging" }
 
 managed-jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "managed-jakarta-json-api" }
 managed-jakarta-json-bindApi = { module = "jakarta.json.bind:jakarta.json.bind-api", version.ref = "managed-jakarta-json-bindApi" }

@@ -37,4 +37,5 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     useStandardizedProjectNames.set(true)
     importMicronautCatalog()
     importMicronautCatalog("micronaut-reactor")
+    importMicronautCatalog("micronaut-logging")
 }
