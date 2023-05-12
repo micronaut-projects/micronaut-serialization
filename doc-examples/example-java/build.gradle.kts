@@ -11,7 +11,7 @@ dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)
-    runtimeOnly(mn.logback.classic)
+    runtimeOnly(mnLogging.logback.classic)
     testImplementation(mnTest.micronaut.test.junit5)
 }
 application {

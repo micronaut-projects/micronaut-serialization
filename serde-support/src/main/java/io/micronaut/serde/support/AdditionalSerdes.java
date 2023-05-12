@@ -15,11 +15,10 @@
  */
 package io.micronaut.serde.support;
 
+import io.micronaut.serde.annotation.SerdeImport;
+
 import java.lang.management.LockInfo;
 import java.lang.management.ThreadInfo;
-
-import io.micronaut.management.health.indicator.HealthResult;
-import io.micronaut.serde.annotation.SerdeImport;
 
 /**
  * Additional Serdes for core types needed by Micronaut management module.
@@ -27,6 +26,5 @@ import io.micronaut.serde.annotation.SerdeImport;
 @SerdeImport(ThreadInfo.class)
 @SerdeImport(LockInfo.class)
 @SerdeImport(StackTraceElement.class)
-@SerdeImport(HealthResult.class)
 final class AdditionalSerdes {
 }

@@ -4,13 +4,7 @@ plugins {
 }
 
 configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        all {
-            if (it.requested instanceof ModuleComponentSelector && it.requested.group == project.group) {
-                substitute module("${it.requested.group}:${it.requested.module}") using project(":${it.requested.module}")
-            }
-        }
-    }
+    resolutionStrategy.preferProjectModules()
 }
 micronaut {
     version libs.versions.micronaut.platform.get()

@@ -18,7 +18,7 @@ dependencies {
     implementation(mn.micronaut.runtime)
 
     jmh(libs.jmh.core)
-    runtimeOnly(mn.logback.classic)
+    runtimeOnly(mnLogging.logback.classic)
 }
 
 jmh {
