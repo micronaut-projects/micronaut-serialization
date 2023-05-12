@@ -752,11 +752,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                         .orElse(null);
                                 if (mixinType != null) {
                                     visitMixin(mixinType, c);
-                                    c.annotate(value);
                                 } else {
                                     visitClassInternal(c, context, true);
-                                    c.annotate(value);
                                 }
+                                c.annotate(value);
                             }
                         });
             }
