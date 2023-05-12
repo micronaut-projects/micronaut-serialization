@@ -177,7 +177,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     @Override
     public void visitMethod(MethodElement element, VisitorContext context) {
-        if (checkForErrors(element, context)) {
+        if (checkForErrors(element, context) || element.getDeclaringType().getAnnotationMetadata().hasAnnotation(SerdeImport.class)) {
             return;
         }
         AnnotationMetadata declaredMetadata = element.getDeclaredMetadata();
@@ -752,8 +752,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                         .orElse(null);
                                 if (mixinType != null) {
                                     visitMixin(mixinType, c);
+                                    c.annotate(value);
                                 } else {
                                     visitClassInternal(c, context, true);
+                                    c.annotate(value);
                                 }
                             }
                         });

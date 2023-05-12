@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Singleton
+@Requires(classes = HealthResult.class)
 final class HealthResultDeserializer implements CustomizableDeserializer<HealthResult> {
     // note: serialization works by default on HealthResult using the normal getters, so we don't need to implement it
 
