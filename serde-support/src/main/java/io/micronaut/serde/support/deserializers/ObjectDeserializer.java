@@ -78,8 +78,8 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         DeserBean<T> deserBeanSupplier = (DeserBean) deserBeanMap.get(key);
         if (deserBeanSupplier == null) {
             deserBeanSupplier = createDeserBean(type, decoderContext);
-            deserBeanMap.put(key, (DeserBean) deserBeanSupplier);
             deserBeanSupplier.initialize(decoderContext);
+            deserBeanMap.put(key, (DeserBean) deserBeanSupplier);
         }
         return deserBeanSupplier;
     }
