@@ -1,0 +1,11 @@
+plugins {
+    id("io.micronaut.build.internal.serde-base")
+    id("io.micronaut.application")
+}
+
+configurations.all {
+    resolutionStrategy.preferProjectModules()
+}
+micronaut {
+    version libs.versions.micronaut.platform.get()
+}
