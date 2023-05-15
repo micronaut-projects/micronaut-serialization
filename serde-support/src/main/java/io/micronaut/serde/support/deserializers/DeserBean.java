@@ -86,6 +86,8 @@ class DeserBean<T> {
     public final boolean recordLikeBean;
     public final ConversionService conversionService;
 
+    private volatile boolean initialized;
+
     // CHECKSTYLE:ON
 
     public DeserBean(
@@ -346,6 +348,18 @@ class DeserBean<T> {
     }
 
     void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
+        // Double check locking
+        if (!initialized) {
+            synchronized (this) {
+                if (!initialized) {
+                    initializeInternal(decoderContext);
+                    initialized = true;
+                }
+            }
+        }
+    }
+
+    private void initializeInternal(Deserializer.DecoderContext decoderContext) throws SerdeException {
         if (readProperties != null) {
             List<Map.Entry<String, DerProperty<T, Object>>> properties = readProperties.getProperties();
             for (Map.Entry<String, DerProperty<T, Object>> e : properties) {

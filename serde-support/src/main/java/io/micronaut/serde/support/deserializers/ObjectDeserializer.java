@@ -21,7 +21,6 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -35,7 +34,6 @@ import jakarta.inject.Singleton;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -49,7 +47,7 @@ import java.util.function.Supplier;
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;
-    private final Map<TypeKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeKey, DeserBean<?>> deserBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
         this.introspections = introspections;
@@ -77,27 +75,13 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
         TypeKey key = new TypeKey(type);
-        Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.get(key);
-        if (deserBeanSupplier == null) {
-            try {
-                deserBeanSupplier = SupplierUtil.memoizedNonEmpty(() -> {
-                    DeserBean<?> deserBean = createDeserBean(type, decoderContext);
-                    try {
-                        deserBean.initialize(decoderContext);
-                    } catch (SerdeException e) {
-                        throw new RuntimeException(e);
-                    }
-                    return deserBean;
-                });
-                deserBeanMap.put(key, deserBeanSupplier);
-            } catch (RuntimeException e) {
-                if (e.getCause() instanceof SerdeException serdeException) {
-                    throw serdeException;
-                }
-                throw e;
-            }
+        DeserBean<T> deserBean = (DeserBean) deserBeanMap.get(key);
+        if (deserBean == null) {
+            deserBean = createDeserBean(type, decoderContext);
+            deserBeanMap.put(key, deserBean);
         }
-        return (DeserBean<T>) deserBeanSupplier.get();
+        deserBean.initialize(decoderContext);
+        return deserBean;
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type, DecoderContext decoderContext) {
