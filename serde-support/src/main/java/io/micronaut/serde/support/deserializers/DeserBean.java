@@ -87,6 +87,7 @@ class DeserBean<T> {
     public final ConversionService conversionService;
 
     private volatile boolean initialized;
+    private volatile boolean initializing;
 
     // CHECKSTYLE:ON
 
@@ -351,9 +352,11 @@ class DeserBean<T> {
         // Double check locking
         if (!initialized) {
             synchronized (this) {
-                if (!initialized) {
+                if (!initialized && !initializing) {
+                    initializing = true;
                     initializeInternal(decoderContext);
                     initialized = true;
+                    initializing = false;
                 }
             }
         }
