@@ -73,13 +73,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
         TypeKey key = new TypeKey(type);
-        DeserBean<T> deserBean = (DeserBean) deserBeanMap.get(key);
-        if (deserBean == null) {
-            deserBean = createDeserBean(type, decoderContext);
-            deserBeanMap.put(key, deserBean);
-        }
+        DeserBean<?> deserBean = deserBeanMap.computeIfAbsent(key, ignore -> createDeserBean(type, decoderContext));
         deserBean.initialize(decoderContext);
-        return deserBean;
+        return (DeserBean<T>) deserBean;
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type, DecoderContext decoderContext) {
