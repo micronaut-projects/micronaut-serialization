@@ -21,6 +21,7 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -34,6 +35,7 @@ import jakarta.inject.Singleton;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -47,7 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;
-    private final Map<TypeKey, DeserBean<?>> deserBeanMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
         this.introspections = introspections;
@@ -73,13 +75,11 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
         TypeKey key = new TypeKey(type);
-        DeserBean<T> deserBean = (DeserBean) deserBeanMap.get(key);
-        if (deserBean == null) {
-            deserBean = createDeserBean(type, decoderContext);
-            deserBeanMap.put(key, deserBean);
-        }
+        // Use suppliers to prevent recursive update because the lambda will can call the same method again
+        Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, decoderContext)));
+        DeserBean<?> deserBean = deserBeanSupplier.get();
         deserBean.initialize(decoderContext);
-        return deserBean;
+        return (DeserBean<T>) deserBean;
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type, DecoderContext decoderContext) {
