@@ -55,7 +55,6 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
     @Override
     public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         try {
-            serBean.initialize(context);
             Encoder childEncoder = encoder.encodeObject(type);
 
             if (serBean.wrapperProperty != null) {

@@ -21,6 +21,7 @@ import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
@@ -31,7 +32,7 @@ import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.exceptions.RuntimeSerdeException;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
@@ -45,9 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
-
-import io.micronaut.core.beans.exceptions.IntrospectionException;
-import io.micronaut.serde.exceptions.SerdeException;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
@@ -78,22 +76,21 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     }
 
     @Override
-    public Serializer<Object> createSpecific(@NonNull EncoderContext encoderContext, Argument<? extends Object> type) {
+    public Serializer<Object> createSpecific(@NonNull EncoderContext encoderContext, Argument<?> type) throws SerdeException {
         boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
         if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
             Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
             return new RuntimeTypeSerializer(encoderContext, outer);
         } else {
-
             return createSpecificInternal(encoderContext, type);
         }
     }
 
-    private Serializer<Object> createSpecificInternal(EncoderContext encoderContext, Argument<?> type) {
+    private Serializer<Object> createSpecificInternal(EncoderContext encoderContext, Argument<?> type) throws SerdeException {
         SerBean<Object> serBean;
         try {
-            serBean = getSerBean(type, encoderContext).get();
+            serBean = getSerBean(type, encoderContext);
         } catch (IntrospectionException e) {
             return createRuntimeSerializer(encoderContext, type, e);
         }
@@ -169,7 +166,6 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             @Override
             public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
                 throws IOException {
-                serBean.initialize(context);
                 SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
                 final Object v = jsonValue.get(value);
                 serBean.jsonValue.serializer.serialize(
@@ -181,33 +177,27 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
             @Override
             public boolean isEmpty(EncoderContext context, Object value) {
-                try {
-                    serBean.initialize(context);
-                } catch (SerdeException e) {
-                    throw new RuntimeSerdeException(e);
-                }
                 return serBean.jsonValue.serializer.isEmpty(context, serBean.jsonValue.get(value));
             }
 
             @Override
             public boolean isAbsent(EncoderContext context, Object value) {
-                try {
-                    serBean.initialize(context);
-                } catch (SerdeException e) {
-                    throw new RuntimeSerdeException(e);
-                }
                 return serBean.jsonValue.serializer.isAbsent(context, serBean.jsonValue.get(value));
             }
         };
     }
 
-    private Supplier<SerBean<Object>> getSerBean(Argument<? extends Object> type, Serializer.EncoderContext context) {
+    private SerBean<Object> getSerBean(Argument<?> type, Serializer.EncoderContext context) throws SerdeException {
         TypeKey key = new TypeKey(type);
-        return serBeanMap.computeIfAbsent(key, typeKey -> SupplierUtil.memoized(() -> create(type, context)));
+        // Use suppliers to prevent recursive update because the lambda will can call the same method again
+        Supplier<SerBean<Object>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> create(type, context)));
+        SerBean<Object> serBean = serBeanSupplier.get();
+        serBean.initialize(context);
+        return serBean;
     }
 
     @SuppressWarnings("unchecked")
-    private SerBean<Object> create(Argument<? extends Object> type, EncoderContext encoderContext) {
+    private SerBean<Object> create(Argument<?> type, EncoderContext encoderContext) {
         try {
             return new SerBean<>((Argument<Object>) type, introspections, encoderContext, configuration, beanContext);
         } catch (SerdeException e) {
@@ -215,7 +205,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
     }
 
-    private Serializer<Object> createRuntimeSerializer(EncoderContext encoderContext, Argument<? extends Object> type, IntrospectionException e) {
+    private Serializer<Object> createRuntimeSerializer(EncoderContext encoderContext, Argument<?> type, IntrospectionException e) {
         // no introspection, create dynamic serialization case
         return new RuntimeTypeSerializer(encoderContext, null) {
 
