@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde.support.serializers;
 
-import java.lang.reflect.Modifier;
-
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.context.exceptions.NoSuchBeanException;
@@ -41,10 +39,12 @@ import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 
+import java.lang.reflect.Modifier;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,8 +57,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import io.micronaut.serde.config.annotation.SerdeConfig;
 
 @Internal
 final class SerBean<T> {
@@ -93,6 +91,8 @@ final class SerBean<T> {
     public final PropertyFilter propertyFilter;
 
     private volatile boolean initialized;
+    private volatile boolean initializing;
+
     private List<Initializer> initializers = new ArrayList<>();
 
     // CHECKSTYLE:ON
@@ -295,12 +295,14 @@ final class SerBean<T> {
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
         if (!initialized) {
             synchronized (this) {
-                if (!initialized) {
+                if (!initialized && !initializing) {
+                    initializing = true;
                     for (Initializer initializer : initializers) {
                         initializer.initialize(encoderContext);
                     }
                     initializers = null;
                     initialized = true;
+                    initializing = false;
                 }
             }
         }

@@ -45,7 +45,6 @@ public final class SimpleObjectSerializer<T> implements Serializer<T> {
             if (value == null) {
                 encoder.encodeNull();
             } else {
-                serBean.initialize(context);
                 Encoder childEncoder = encoder.encodeObject(type);
                 for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
                     childEncoder.encodeKey(property.name);
