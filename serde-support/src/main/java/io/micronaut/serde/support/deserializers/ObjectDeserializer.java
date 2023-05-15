@@ -59,17 +59,15 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
             // fallback to dynamic resolution
             return (Decoder decoder, DecoderContext context1, Argument<? super Object> type1) -> decoder.decodeArbitrary();
-        } else {
-            DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
-            if (deserBean.simpleBean) {
-                return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
-            }
-            if (deserBean.recordLikeBean) {
-                return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, deserBean);
-            }
-            return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
-
         }
+        DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
+        if (deserBean.simpleBean) {
+            return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
+        }
+        if (deserBean.recordLikeBean) {
+            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, deserBean);
+        }
+        return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
     }
 
     @Override
