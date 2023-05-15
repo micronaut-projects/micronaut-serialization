@@ -12,6 +12,11 @@ import jakarta.inject.Inject
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.stream.IntStream
 
 @MicronautTest
 class CoreTypeSerdeSpec extends Specification {
@@ -85,5 +90,29 @@ class CoreTypeSerdeSpec extends Specification {
 
         then:
         read == node
+    }
+
+    void "test read concurrency"() {
+        given:
+        def results = new ConcurrentHashMap<Integer, SimpleInfo>()
+
+        when:
+        ExecutorService threadPool =  Executors.newFixedThreadPool(1000)
+        IntStream.range(0, 1000).forEach(i -> threadPool.execute(new Runnable() {
+            @Override
+            void run() {
+                results.put(i, jsonMapper.readValue('{"info":"test' + i + '"}', Argument.of(SimpleInfo)))
+            }
+        }));
+        threadPool.shutdown()
+        try {
+            threadPool.awaitTermination(1, TimeUnit.MINUTES)
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while waiting", e)
+        }
+
+        then:
+        results.size() == 1000
+        results.each { assert it.value.getInfo() == "test" + it.key }
     }
 }

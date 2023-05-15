@@ -47,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;
-    private final Map<TypeKey, DeserBean<? super Object>> deserBeanMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeKey, DeserBean<?>> deserBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
         this.introspections = introspections;
@@ -59,29 +59,27 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
             // fallback to dynamic resolution
             return (Decoder decoder, DecoderContext context1, Argument<? super Object> type1) -> decoder.decodeArbitrary();
-        } else {
-            DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
-            if (deserBean.simpleBean) {
-                return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
-            }
-            if (deserBean.recordLikeBean) {
-                return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, deserBean);
-            }
-            return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
-
         }
+        DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
+        if (deserBean.simpleBean) {
+            return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
+        }
+        if (deserBean.recordLikeBean) {
+            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, deserBean);
+        }
+        return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
     }
 
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
         TypeKey key = new TypeKey(type);
-        DeserBean<T> deserBeanSupplier = (DeserBean) deserBeanMap.get(key);
-        if (deserBeanSupplier == null) {
-            deserBeanSupplier = createDeserBean(type, decoderContext);
-            deserBeanMap.put(key, (DeserBean) deserBeanSupplier);
-            deserBeanSupplier.initialize(decoderContext);
+        DeserBean<T> deserBean = (DeserBean) deserBeanMap.get(key);
+        if (deserBean == null) {
+            deserBean = createDeserBean(type, decoderContext);
+            deserBeanMap.put(key, deserBean);
         }
-        return deserBeanSupplier;
+        deserBean.initialize(decoderContext);
+        return deserBean;
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type, DecoderContext decoderContext) {
@@ -94,7 +92,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             if (annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
                 if (type.hasTypeVariables()) {
                     final Map<String, Argument<?>> bounds = type.getTypeVariables();
-                    return new SubtypedDeserBean(annotationMetadata, deserializableIntrospection, decoderContext, this) {
+                    return new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this) {
                         @Override
                         protected Map<String, Argument<?>> getBounds() {
                             return bounds;
@@ -106,7 +104,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             } else {
                 if (type.hasTypeVariables()) {
                     final Map<String, Argument<?>> bounds = type.getTypeVariables();
-                    return new DeserBean(deserializableIntrospection, decoderContext, this) {
+                    return new DeserBean<>(deserializableIntrospection, decoderContext, this) {
                         @Override
                         protected Map<String, Argument<?>> getBounds() {
                             return bounds;
