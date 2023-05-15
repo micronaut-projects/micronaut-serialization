@@ -26,6 +26,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Fallback {@link io.micronaut.serde.Serializer} for general {@link Object} values. For deserialization, deserializes to
@@ -65,7 +67,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
     private final SerializationConfiguration configuration;
     private final BeanContext beanContext;
-    private final Map<TypeKey, SerBean<Object>> serBeanMap = new ConcurrentHashMap<>(50);
+    private final Map<TypeKey, Supplier<SerBean<Object>>> serBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectSerializer(SerdeIntrospections introspections, SerializationConfiguration configuration, BeanContext beanContext) {
         this.introspections = introspections;
@@ -187,7 +189,9 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     private SerBean<Object> getSerBean(Argument<?> type, Serializer.EncoderContext context) throws SerdeException {
         TypeKey key = new TypeKey(type);
-        SerBean<Object> serBean = serBeanMap.computeIfAbsent(key, ignore -> create(type, context));
+        // Use suppliers to prevent recursive update because the lambda will can call the same method again
+        Supplier<SerBean<Object>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> create(type, context)));
+        SerBean<Object> serBean = serBeanSupplier.get();
         serBean.initialize(context);
         return serBean;
     }
