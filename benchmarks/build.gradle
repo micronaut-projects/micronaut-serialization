@@ -15,7 +15,6 @@ dependencies {
     implementation(projects.micronautSerdeSupport)
     implementation(mn.micronaut.jackson.databind)
 
-    implementation(mn.micronaut.runtime)
 
     jmh(libs.jmh.core)
     runtimeOnly(mnLogging.logback.classic)
