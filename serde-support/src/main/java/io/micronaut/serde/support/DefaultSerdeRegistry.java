@@ -453,7 +453,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public ConversionService getConversionService() {
-        return conversionService;
+        return this.conversionService;
     }
 
     private static final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
