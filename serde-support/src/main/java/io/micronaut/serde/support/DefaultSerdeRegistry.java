@@ -180,8 +180,16 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private void registerBuiltInSerdes() {
-        this.deserializerMap.put(new TypeKey(Argument.STRING),
-                                 (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
+        if (!this.deserializerDefMap.containsKey(String.class)) {
+            TypeKey tk = new TypeKey(Argument.STRING);
+            this.deserializerMap.put(tk,
+                (NullableDeserializer<String>) (decoder, decoderContext, type) -> decoder.decodeString());
+        }
+        if (!this.deserializerDefMap.containsKey(CharSequence.class)) {
+            TypeKey tk = new TypeKey(Argument.of(CharSequence.class));
+            this.deserializerMap.put(tk,
+                (NullableDeserializer<CharSequence>) (decoder, decoderContext, type) -> decoder.decodeString());
+        }
         Stream.of(
                 new IntegerSerde(),
                 new LongSerde(),
@@ -214,8 +222,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private void register(SerdeRegistrar<?> serdeRegistrar) {
         for (Argument<?> type : serdeRegistrar.getTypes()) {
             final TypeKey typeEntry = new TypeKey(type);
-            DefaultSerdeRegistry.this.deserializerMap.put(typeEntry, serdeRegistrar);
-            DefaultSerdeRegistry.this.serializerMap.put(typeEntry, serdeRegistrar);
+            if (!DefaultSerdeRegistry.this.deserializerMap.containsKey(typeEntry)) {
+                DefaultSerdeRegistry.this.deserializerMap.put(typeEntry, serdeRegistrar);
+            }
+            if (!DefaultSerdeRegistry.this.serializerMap.containsKey(typeEntry)) {
+                DefaultSerdeRegistry.this.serializerMap.put(typeEntry, serdeRegistrar);
+            }
         }
     }
 
