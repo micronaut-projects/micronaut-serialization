@@ -27,6 +27,9 @@ jetbrains-annotations = "24.0.1"
 jmh = "1.36"
 
 [libraries]
+# Core
+micronaut-core = { module = 'io.micronaut:micronaut-core-bom', version.ref = 'micronaut' }
+
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
 managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
 micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
