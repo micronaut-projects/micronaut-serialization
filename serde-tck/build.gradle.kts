@@ -6,7 +6,6 @@ plugins {
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.micronautSerdeProcessor)
-    implementation(mn.micronaut.inject.java)
     implementation(projects.micronautSerdeApi)
     implementation(projects.micronautSerdeSupport)
     implementation(projects.micronautSerdeProcessor)
