@@ -73,19 +73,6 @@ public interface ObjectMapper extends JsonMapper {
         return readValue(string, Argument.of(type));
     }
 
-    /**
-     * Write the given value as a string.
-     * @param object The object
-     * @param <T> The generic type
-     * @return The string
-     * @throws IOException If an unrecoverable error occurs
-     */
-    @SuppressWarnings("unchecked")
-    default  @NonNull <T> String writeValueAsString(@NonNull T object) throws IOException {
-        Objects.requireNonNull(object, "Object cannot be null");
-        return writeValueAsString((Argument<T>) Argument.of(object.getClass()), object, StandardCharsets.UTF_8);
-    }
-
     @Override
     default JsonMapper cloneWithFeatures(JsonFeatures features) {
         return this;
