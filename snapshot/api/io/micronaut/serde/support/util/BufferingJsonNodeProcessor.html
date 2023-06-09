@@ -133,13 +133,13 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#onSubscribe(org.reactivestreams.Subscription)" class="member-name-link">onSubscribe</a><wbr>(org.reactivestreams.Subscription&nbsp;s)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected io.micronaut.json.tree.JsonNode</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#parseOne(byte%5B%5D)" class="member-name-link">parseOne</a><wbr>(byte[]&nbsp;remaining)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected @NonNull io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#parseOne(byte%5B%5D)" class="member-name-link">parseOne</a><wbr>(@io.micronaut.core.annotation.NonNull byte[]&nbsp;remaining)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Parse a single node from the given stream.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract io.micronaut.json.tree.JsonNode</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#parseOne(java.io.InputStream)" class="member-name-link">parseOne</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;is)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract @NonNull io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#parseOne(java.io.InputStream)" class="member-name-link">parseOne</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;is)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Parse a single node from the given stream.</div>
 </div>
@@ -225,9 +225,9 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="parseOne(java.io.InputStream)">
 <h3>parseOne</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type">io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">parseOne</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;is)</span>
-                                                     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type">@NonNull io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">parseOne</span><wbr><span class="parameters">(@NonNull
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;is)</span>
+                                                              throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Parse a single node from the given stream.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -243,9 +243,9 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="parseOne(byte[])">
 <h3>parseOne</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">parseOne</span><wbr><span class="parameters">(@NonNull
- byte[]&nbsp;remaining)</span>
-                                            throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">@NonNull io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">parseOne</span><wbr><span class="parameters">(@NonNull
+ @io.micronaut.core.annotation.NonNull byte[]&nbsp;remaining)</span>
+                                                     throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Parse a single node from the given stream.</div>
 <dl class="notes">
 <dt>Parameters:</dt>

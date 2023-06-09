@@ -119,7 +119,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <div class="block">Finalize the current structure.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(com.fasterxml.jackson.core.JsonGenerator)" class="member-name-link">create</a><wbr>(com.fasterxml.jackson.core.JsonGenerator&nbsp;generator)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(com.fasterxml.jackson.core.JsonGenerator)" class="member-name-link">create</a><wbr>(@NonNull com.fasterxml.jackson.core.JsonGenerator&nbsp;generator)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#currentPath()" class="member-name-link">currentPath</a>()</code></div>
@@ -132,12 +132,12 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <div class="block">Encodes an array.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeBigDecimal(java.math.BigDecimal)" class="member-name-link">encodeBigDecimal</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;value)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeBigDecimal(java.math.BigDecimal)" class="member-name-link">encodeBigDecimal</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;value)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a BigDecimal.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeBigInteger(java.math.BigInteger)" class="member-name-link">encodeBigInteger</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a>&nbsp;value)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeBigInteger(java.math.BigInteger)" class="member-name-link">encodeBigInteger</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a>&nbsp;value)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a BigInteger.</div>
 </div>
@@ -172,7 +172,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <div class="block">Encode an int.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeKey(java.lang.String)" class="member-name-link">encodeKey</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;key)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeKey(java.lang.String)" class="member-name-link">encodeKey</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;key)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a key.</div>
 </div>
@@ -197,7 +197,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <div class="block">Encode a short.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeString(java.lang.String)" class="member-name-link">encodeString</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#encodeString(java.lang.String)" class="member-name-link">encodeString</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Encode a string.</div>
 </div>
@@ -244,7 +244,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <section class="detail" id="create(com.fasterxml.jackson.core.JsonGenerator)">
 <h3>create</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Encoder.html" title="interface in io.micronaut.serde">Encoder</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(@NonNull
- com.fasterxml.jackson.core.JsonGenerator&nbsp;generator)</span></div>
+ @NonNull com.fasterxml.jackson.core.JsonGenerator&nbsp;generator)</span></div>
 </section>
 </li>
 <li>
@@ -346,7 +346,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <section class="detail" id="encodeKey(java.lang.String)">
 <h3>encodeKey</h3>
 <div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">encodeKey</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;key)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;key)</span>
                      throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Encoder.html#encodeKey(java.lang.String)">Encoder</a></code></span></div>
 <div class="block">Encode a key.</div>
@@ -364,7 +364,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <section class="detail" id="encodeString(java.lang.String)">
 <h3>encodeString</h3>
 <div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">encodeString</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</span>
                         throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Encoder.html#encodeString(java.lang.String)">Encoder</a></code></span></div>
 <div class="block">Encode a string.</div>
@@ -518,7 +518,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <section class="detail" id="encodeBigInteger(java.math.BigInteger)">
 <h3>encodeBigInteger</h3>
 <div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">encodeBigInteger</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a>&nbsp;value)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a>&nbsp;value)</span>
                             throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Encoder.html#encodeBigInteger(java.math.BigInteger)">Encoder</a></code></span></div>
 <div class="block">Encode a BigInteger.</div>
@@ -536,7 +536,7 @@ implements <a href="../Encoder.html" title="interface in io.micronaut.serde">Enc
 <section class="detail" id="encodeBigDecimal(java.math.BigDecimal)">
 <h3>encodeBigDecimal</h3>
 <div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">encodeBigDecimal</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;value)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&nbsp;value)</span>
                             throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Encoder.html#encodeBigDecimal(java.math.BigDecimal)">Encoder</a></code></span></div>
 <div class="block">Encode a BigDecimal.</div>

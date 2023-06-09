@@ -103,17 +103,17 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T,<wbr>
 D extends <a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? extends T&gt;&gt;<br>D</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#findCustomSerializer(java.lang.Class)" class="member-name-link">findCustomSerializer</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends D&gt;&nbsp;serializerClass)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#findCustomSerializer(java.lang.Class)" class="member-name-link">findCustomSerializer</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends D&gt;&nbsp;serializerClass)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Gets a custom serializer.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T&gt;&nbsp;<a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#findSerializer(io.micronaut.core.type.Argument)" class="member-name-link">findSerializer</a><wbr>(io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;forType)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T&gt;&nbsp;@NonNull <a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#findSerializer(io.micronaut.core.type.Argument)" class="member-name-link">findSerializer</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;forType)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Finds a serializer for the given type.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;<a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#findSerializer(java.lang.Class)" class="member-name-link">findSerializer</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends T&gt;&nbsp;forType)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;@NonNull <a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#findSerializer(java.lang.Class)" class="member-name-link">findSerializer</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends T&gt;&nbsp;forType)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Finds a serializer for the given type.</div>
 </div>
@@ -137,7 +137,7 @@ D extends <a href="Serializer.html" title="interface in io.micronaut.serde">Seri
 <div class="member-signature"><span class="annotations">@NonNull
 </span><span class="type-parameters">&lt;T,<wbr>
 D extends <a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? extends T&gt;&gt;</span>&nbsp;<span class="return-type">D</span>&nbsp;<span class="element-name">findCustomSerializer</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends D&gt;&nbsp;serializerClass)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends D&gt;&nbsp;serializerClass)</span>
                                                       throws <span class="exceptions"><a href="exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
 <div class="block">Gets a custom serializer.</div>
 <dl class="notes">
@@ -157,9 +157,9 @@ D extends <a href="Serializer.html" title="interface in io.micronaut.serde">Seri
 <section class="detail" id="findSerializer(io.micronaut.core.type.Argument)">
 <h3>findSerializer</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type"><a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</span>&nbsp;<span class="element-name">findSerializer</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;forType)</span>
-                                  throws <span class="exceptions"><a href="exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+</span><span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@NonNull <a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</span>&nbsp;<span class="element-name">findSerializer</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;forType)</span>
+                                           throws <span class="exceptions"><a href="exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
 <div class="block">Finds a serializer for the given type.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
@@ -177,9 +177,9 @@ D extends <a href="Serializer.html" title="interface in io.micronaut.serde">Seri
 <section class="detail" id="findSerializer(java.lang.Class)">
 <h3>findSerializer</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type"><a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</span>&nbsp;<span class="element-name">findSerializer</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends T&gt;&nbsp;forType)</span>
-                                          throws <span class="exceptions"><a href="exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@NonNull <a href="Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</span>&nbsp;<span class="element-name">findSerializer</span><wbr><span class="parameters">(@NonNull
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends T&gt;&nbsp;forType)</span>
+                                                   throws <span class="exceptions"><a href="exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
 <div class="block">Finds a serializer for the given type.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>

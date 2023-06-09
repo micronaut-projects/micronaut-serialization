@@ -113,9 +113,9 @@ extends <a href="Deserializer.html" title="interface in io.micronaut.serde">Dese
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#deserializeInto(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">deserializeInto</a><wbr>(<a href="Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
- <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
- io.micronaut.core.type.Argument&lt;? super <a href="UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt;&nbsp;type,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#deserializeInto(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">deserializeInto</a><wbr>(@NonNull <a href="Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+ @NonNull <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt;&nbsp;type,
  <a href="UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&nbsp;value)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Deserializes from the current state of the <a href="Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="UpdatingDeserializer.html" title="interface in io.micronaut.serde"><code>UpdatingDeserializer</code></a>.</div>
@@ -142,11 +142,11 @@ extends <a href="Deserializer.html" title="interface in io.micronaut.serde">Dese
 <h3 id="deserializeInto(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.Object)">deserializeInto</h3>
 <div class="member-signature"><span class="annotations">@Nullable
 </span><span class="return-type">void</span>&nbsp;<span class="element-name">deserializeInto</span><wbr><span class="parameters">(@NonNull
- <a href="Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+ @NonNull <a href="Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  @NonNull
- <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ @NonNull <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  @NonNull
- io.micronaut.core.type.Argument&lt;? super <a href="UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt;&nbsp;type,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt;&nbsp;type,
  <a href="UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&nbsp;value)</span>
               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Deserializes from the current state of the <a href="Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="UpdatingDeserializer.html" title="interface in io.micronaut.serde"><code>UpdatingDeserializer</code></a>.</div>

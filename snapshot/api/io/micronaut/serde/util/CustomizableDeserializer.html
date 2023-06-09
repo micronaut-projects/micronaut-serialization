@@ -128,9 +128,9 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
- <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;? super <a href="CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a>&gt;&nbsp;type)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable</a><wbr>(@NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+ @NonNull <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a>&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </div>
@@ -184,11 +184,11 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <section class="detail" id="deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
 <h3>deserializeNullable</h3>
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a></span>&nbsp;<span class="element-name">deserializeNullable</span><wbr><span class="parameters">(@NonNull
- <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+ @NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  @NonNull
- <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  @NonNull
- io.micronaut.core.type.Argument&lt;? super <a href="CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a>&gt;&nbsp;type)</span>
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a>&gt;&nbsp;type)</span>
                        throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">Deserializer</a></code></span></div>
 <div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>. If

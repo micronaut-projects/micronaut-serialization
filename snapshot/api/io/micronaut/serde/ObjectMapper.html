@@ -126,52 +126,47 @@ extends io.micronaut.json.JsonMapper</span></div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.json.JsonMapper</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#cloneWithFeatures(io.micronaut.json.JsonFeatures)" class="member-name-link">cloneWithFeatures</a><wbr>(io.micronaut.json.JsonFeatures&nbsp;features)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static <a href="ObjectMapper.CloseableObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a></code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static @NonNull <a href="ObjectMapper.CloseableObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#create(java.util.Map,java.lang.String...)" class="member-name-link">create</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;configuration,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>...&nbsp;packageNames)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
 <div class="block">Creates a new custom <a href="ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a> with additional beans (serializers, deserializers etc.) loaded
  from the given package locations.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static @NonNull <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1">
 <div class="block">Get the default ObjectMapper instance.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;T</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readValue(byte%5B%5D,java.lang.Class)" class="member-name-link">readValue</a><wbr>(byte[]&nbsp;byteArray,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readValue(byte%5B%5D,java.lang.Class)" class="member-name-link">readValue</a><wbr>(@io.micronaut.core.annotation.NonNull byte[]&nbsp;byteArray,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Read a value from the byte array for the given type.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;T</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readValue(java.io.InputStream,java.lang.Class)" class="member-name-link">readValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readValue(java.io.InputStream,java.lang.Class)" class="member-name-link">readValue</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Read a value from the given input stream for the given type.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;T</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readValue(java.lang.String,java.lang.Class)" class="member-name-link">readValue</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;string,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readValue(java.lang.String,java.lang.Class)" class="member-name-link">readValue</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;string,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Read a value from the given string for the given type.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsString</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsString</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  T&nbsp;object)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Write the given value as a string.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(io.micronaut.core.type.Argument,T,java.nio.charset.Charset)" class="member-name-link">writeValueAsString</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(io.micronaut.core.type.Argument,T,java.nio.charset.Charset)" class="member-name-link">writeValueAsString</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  T&nbsp;object,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html" title="class or interface in java.nio.charset" class="external-link">Charset</a>&nbsp;charset)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Write the given value as a string.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(T)" class="member-name-link">writeValueAsString</a><wbr>(T&nbsp;object)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Write the given value as a string.</div>
 </div>
 </div>
@@ -179,7 +174,7 @@ extends io.micronaut.json.JsonMapper</span></div>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.json.JsonMapper">Methods inherited from interface&nbsp;io.micronaut.json.JsonMapper</h3>
-<code>cloneWithViewClass, createReactiveParser, createSpecific, detectFeatures, getStreamConfig, readValue, readValue, readValue, readValue, readValueFromTree, readValueFromTree, updateValueFromTree, writeValue, writeValue, writeValueAsBytes, writeValueAsBytes, writeValueToTree, writeValueToTree</code></div>
+<code>cloneWithViewClass, createReactiveParser, createSpecific, detectFeatures, getStreamConfig, readValue, readValue, readValue, readValue, readValueFromTree, readValueFromTree, updateValueFromTree, writeValue, writeValue, writeValueAsBytes, writeValueAsBytes, writeValueAsString, writeValueToTree, writeValueToTree</code></div>
 </section>
 </li>
 </ul>
@@ -196,12 +191,14 @@ extends io.micronaut.json.JsonMapper</span></div>
 <h3>readValue</h3>
 <div class="member-signature"><span class="annotations">@Nullable
 </span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStream.html" title="class or interface in java.io" class="external-link">InputStream</a>&nbsp;inputStream,
  @NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span>
                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Read a value from the given input stream for the given type.</div>
 <dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>readValue</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
 <dt>Type Parameters:</dt>
 <dd><code>T</code> - The generic type</dd>
 <dt>Parameters:</dt>
@@ -219,9 +216,9 @@ extends io.micronaut.json.JsonMapper</span></div>
 <h3>readValue</h3>
 <div class="member-signature"><span class="annotations">@Nullable
 </span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(@NonNull
- byte[]&nbsp;byteArray,
+ @io.micronaut.core.annotation.NonNull byte[]&nbsp;byteArray,
  @NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span>
                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Read a value from the byte array for the given type.</div>
 <dl class="notes">
@@ -242,12 +239,14 @@ extends io.micronaut.json.JsonMapper</span></div>
 <h3>readValue</h3>
 <div class="member-signature"><span class="annotations">@Nullable
 </span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">T</span>&nbsp;<span class="element-name">readValue</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;string,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;string,
  @NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span>
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span>
                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Read a value from the given string for the given type.</div>
 <dl class="notes">
+<dt>Specified by:</dt>
+<dd><code>readValue</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
 <dt>Type Parameters:</dt>
 <dd><code>T</code> - The generic type</dd>
 <dt>Parameters:</dt>
@@ -255,26 +254,6 @@ extends io.micronaut.json.JsonMapper</span></div>
 <dd><code>type</code> - The type</dd>
 <dt>Returns:</dt>
 <dd>The value or <code>null</code> if it decodes to null</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="writeValueAsString(T)">
-<h3 id="writeValueAsString(java.lang.Object)">writeValueAsString</h3>
-<div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">writeValueAsString</span><wbr><span class="parameters">(@NonNull
- T&nbsp;object)</span>
-                               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">Write the given value as a string.</div>
-<dl class="notes">
-<dt>Type Parameters:</dt>
-<dd><code>T</code> - The generic type</dd>
-<dt>Parameters:</dt>
-<dd><code>object</code> - The object</dd>
-<dt>Returns:</dt>
-<dd>The string</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an unrecoverable error occurs</dd>
 </dl>
@@ -294,11 +273,11 @@ extends io.micronaut.json.JsonMapper</span></div>
 <section class="detail" id="writeValueAsString(io.micronaut.core.type.Argument,T)">
 <h3 id="writeValueAsString(io.micronaut.core.type.Argument,java.lang.Object)">writeValueAsString</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">writeValueAsString</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">writeValueAsString</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @Nullable
  T&nbsp;object)</span>
-                               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+                                        throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Write the given value as a string.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
@@ -317,12 +296,12 @@ extends io.micronaut.json.JsonMapper</span></div>
 <section class="detail" id="writeValueAsString(io.micronaut.core.type.Argument,T,java.nio.charset.Charset)">
 <h3 id="writeValueAsString(io.micronaut.core.type.Argument,java.lang.Object,java.nio.charset.Charset)">writeValueAsString</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">writeValueAsString</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+</span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">writeValueAsString</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @Nullable
  T&nbsp;object,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html" title="class or interface in java.nio.charset" class="external-link">Charset</a>&nbsp;charset)</span>
-                               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+                                        throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">Write the given value as a string.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
@@ -342,7 +321,7 @@ extends io.micronaut.json.JsonMapper</span></div>
 <section class="detail" id="getDefault()">
 <h3>getDefault</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></span>&nbsp;<span class="element-name">getDefault</span>()</div>
+</span><span class="modifiers">static</span>&nbsp;<span class="return-type">@NonNull <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></span>&nbsp;<span class="element-name">getDefault</span>()</div>
 <div class="block">Get the default ObjectMapper instance.
 
  <p>Note that this method returns
@@ -364,7 +343,7 @@ extends io.micronaut.json.JsonMapper</span></div>
 <section class="detail" id="create(java.util.Map,java.lang.String...)">
 <h3>create</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="ObjectMapper.CloseableObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;configuration,
+</span><span class="modifiers">static</span>&nbsp;<span class="return-type">@NonNull <a href="ObjectMapper.CloseableObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;configuration,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>...&nbsp;packageNames)</span></div>
 <div class="block">Creates a new custom <a href="ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a> with additional beans (serializers, deserializers etc.) loaded
  from the given package locations.</div>

@@ -148,15 +148,15 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Consumes left elements.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract @Nullable <a href="AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#currentToken()" class="member-name-link">currentToken</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final @Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArbitrary()" class="member-name-link">decodeArbitrary</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes the current state into an arbitrary object.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final @NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Start decoding an array.</div>
@@ -166,12 +166,12 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes the array.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigDecimal()" class="member-name-link">decodeBigDecimal</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a BigDecimal.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeBigInteger()" class="member-name-link">decodeBigInteger</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a BigInteger.</div>
@@ -222,7 +222,7 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a int.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeKey()" class="member-name-link">decodeKey</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
@@ -232,7 +232,7 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a long.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.json.tree.JsonNode</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull io.micronaut.json.tree.JsonNode</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeNode()" class="member-name-link">decodeNode</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes the current state into a <code>JsonNode</code>.</div>
@@ -251,7 +251,7 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decode a number type, applying all necessary coercions.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final @NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes an object.</div>
@@ -266,7 +266,7 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a short.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#decodeString()" class="member-name-link">decodeString</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Decodes a string.</div>
@@ -389,7 +389,7 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="currentToken()">
 <h3>currentToken</h3>
 <div class="member-signature"><span class="annotations">@Nullable
-</span><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type"><a href="AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></span>&nbsp;<span class="element-name">currentToken</span>()</div>
+</span><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type">@Nullable <a href="AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></span>&nbsp;<span class="element-name">currentToken</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The current token.</dd>
@@ -491,8 +491,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeKey()">
 <h3>decodeKey</h3>
 <div class="member-signature"><span class="annotations">@Nullable
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeKey</span>()
-                 throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeKey</span>()
+                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeKey()">Decoder</a></code></span></div>
 <div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
 <dl class="notes">
@@ -509,8 +509,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeArray(io.micronaut.core.type.Argument)">
 <h3>decodeArray</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span>&nbsp;<span class="element-name">decodeArray</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                          throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public final</span>&nbsp;<span class="return-type">@NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span>&nbsp;<span class="element-name">decodeArray</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
+                                   throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeArray(io.micronaut.core.type.Argument)">Decoder</a></code></span></div>
 <div class="block">Start decoding an array.</div>
 <dl class="notes">
@@ -545,8 +545,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeObject(io.micronaut.core.type.Argument)">
 <h3>decodeObject</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span>&nbsp;<span class="element-name">decodeObject</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public final</span>&nbsp;<span class="return-type">@NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span>&nbsp;<span class="element-name">decodeObject</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
+                                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeObject(io.micronaut.core.type.Argument)">Decoder</a></code></span></div>
 <div class="block">Decodes an object.</div>
 <dl class="notes">
@@ -597,8 +597,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeString()">
 <h3>decodeString</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeString</span>()
-                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">decodeString</span>()
+                             throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeString()">Decoder</a></code></span></div>
 <div class="block">Decodes a string.</div>
 <dl class="notes">
@@ -878,8 +878,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeBigInteger()">
 <h3>decodeBigInteger</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></span>&nbsp;<span class="element-name">decodeBigInteger</span>()
-                                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public final</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a></span>&nbsp;<span class="element-name">decodeBigInteger</span>()
+                                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeBigInteger()">Decoder</a></code></span></div>
 <div class="block">Decodes a BigInteger.</div>
 <dl class="notes">
@@ -896,8 +896,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeBigDecimal()">
 <h3>decodeBigDecimal</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></span>&nbsp;<span class="element-name">decodeBigDecimal</span>()
-                                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public final</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a></span>&nbsp;<span class="element-name">decodeBigDecimal</span>()
+                                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeBigDecimal()">Decoder</a></code></span></div>
 <div class="block">Decodes a BigDecimal.</div>
 <dl class="notes">
@@ -1018,8 +1018,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeNode()">
 <h3>decodeNode</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">decodeNode</span>()
-                                           throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull io.micronaut.json.tree.JsonNode</span>&nbsp;<span class="element-name">decodeNode</span>()
+                                                    throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeNode()">Decoder</a></code></span></div>
 <div class="block">Decodes the current state into a <code>JsonNode</code>.</div>
 <dl class="notes">
@@ -1036,8 +1036,8 @@ implements <a href="../Decoder.html" title="interface in io.micronaut.serde">Dec
 <section class="detail" id="decodeArbitrary()">
 <h3>decodeArbitrary</h3>
 <div class="member-signature"><span class="annotations">@Nullable
-</span><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span>&nbsp;<span class="element-name">decodeArbitrary</span>()
-                             throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+</span><span class="modifiers">public final</span>&nbsp;<span class="return-type">@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span>&nbsp;<span class="element-name">decodeArbitrary</span>()
+                                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../Decoder.html#decodeArbitrary()">Decoder</a></code></span></div>
 <div class="block">Decodes the current state into an arbitrary object.
 

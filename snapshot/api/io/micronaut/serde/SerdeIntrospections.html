@@ -93,23 +93,23 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#findSubtypeDeserializables(java.lang.Class)" class="member-name-link">findSubtypeDeserializables</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default &lt;T&gt;&nbsp;@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#findSubtypeDeserializables(java.lang.Class)" class="member-name-link">findSubtypeDeserializables</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Gets an subtype introspection for the given type for deserialization.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.core.beans.BeanIntrospector</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull io.micronaut.core.beans.BeanIntrospector</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getBeanIntrospector()" class="member-name-link">getBeanIntrospector</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">The bean introspector to use.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T&gt;&nbsp;io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDeserializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getDeserializableIntrospection</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T&gt;&nbsp;@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getDeserializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getDeserializableIntrospection</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Gets an introspection for the given type for deserialization.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T&gt;&nbsp;io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSerializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getSerializableIntrospection</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;T&gt;&nbsp;@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSerializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getSerializableIntrospection</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Gets an introspection for the given type for serialization.</div>
 </div>
@@ -131,7 +131,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getBeanIntrospector()">
 <h3>getBeanIntrospector</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">default</span>&nbsp;<span class="return-type">io.micronaut.core.beans.BeanIntrospector</span>&nbsp;<span class="element-name">getBeanIntrospector</span>()</div>
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull io.micronaut.core.beans.BeanIntrospector</span>&nbsp;<span class="element-name">getBeanIntrospector</span>()</div>
 <div class="block">The bean introspector to use.</div>
 <dl class="notes">
 <dt>Returns:</dt>
@@ -143,8 +143,9 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getSerializableIntrospection(io.micronaut.core.type.Argument)">
 <h3>getSerializableIntrospection</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">getSerializableIntrospection</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span></div>
+</span><span class="type-parameters">&lt;T&gt;</span>
+<span class="return-type">@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">getSerializableIntrospection</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span></div>
 <div class="block">Gets an introspection for the given type for serialization.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
@@ -162,8 +163,9 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getDeserializableIntrospection(io.micronaut.core.type.Argument)">
 <h3>getDeserializableIntrospection</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">getDeserializableIntrospection</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span></div>
+</span><span class="type-parameters">&lt;T&gt;</span>
+<span class="return-type">@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">getDeserializableIntrospection</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span></div>
 <div class="block">Gets an introspection for the given type for deserialization.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
@@ -182,8 +184,8 @@ loadScripts(document, 'script');</script>
 <h3>findSubtypeDeserializables</h3>
 <div class="member-signature"><span class="annotations">@NonNull
 </span><span class="modifiers">default</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>
-<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</span>&nbsp;<span class="element-name">findSubtypeDeserializables</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span></div>
+<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</span>&nbsp;<span class="element-name">findSubtypeDeserializables</span><wbr><span class="parameters">(@NonNull
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;type)</span></div>
 <div class="block">Gets an subtype introspection for the given type for deserialization.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>

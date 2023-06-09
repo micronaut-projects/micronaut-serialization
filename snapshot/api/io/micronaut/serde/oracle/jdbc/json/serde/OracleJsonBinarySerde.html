@@ -132,18 +132,18 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected byte[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserializeNonNull</a><wbr>(<a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a>&nbsp;decoder,
- <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
- io.micronaut.core.type.Argument&lt;? super byte[]&gt;&nbsp;type)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected @io.micronaut.core.annotation.NonNull byte[]</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserializeNonNull</a><wbr>(@NonNull <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a>&nbsp;decoder,
+ @NonNull <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ @NonNull io.micronaut.core.type.Argument&lt;? super byte[]&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Deserializes object using <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleJdbcJsonParserDecoder</code></a>.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,byte%5B%5D)" class="member-name-link">doSerializeNonNull</a><wbr>(<a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
- <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;? extends byte[]&gt;&nbsp;type,
- byte[]&nbsp;value)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,byte%5B%5D)" class="member-name-link">doSerializeNonNull</a><wbr>(@NonNull <a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
+ @NonNull <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? extends byte[]&gt;&nbsp;type,
+ @io.micronaut.core.annotation.NonNull byte[]&nbsp;value)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Serializes non null value.</div>
 </div>
@@ -194,12 +194,12 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
 <h3>doDeserializeNonNull</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">byte[]</span>&nbsp;<span class="element-name">doDeserializeNonNull</span><wbr><span class="parameters">(@NonNull
- <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a>&nbsp;decoder,
+</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">@io.micronaut.core.annotation.NonNull byte[]</span>&nbsp;<span class="element-name">doDeserializeNonNull</span><wbr><span class="parameters">(@NonNull
+ @NonNull <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a>&nbsp;decoder,
  @NonNull
- <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ @NonNull <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  @NonNull
- io.micronaut.core.type.Argument&lt;? super byte[]&gt;&nbsp;type)</span></div>
+ @NonNull io.micronaut.core.type.Argument&lt;? super byte[]&gt;&nbsp;type)</span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="AbstractOracleJsonSerde.html#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">AbstractOracleJsonSerde</a></code></span></div>
 <div class="block">Deserializes object using <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json"><code>OracleJdbcJsonParserDecoder</code></a>.</div>
 <dl class="notes">
@@ -218,13 +218,13 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,byte[])">
 <h3>doSerializeNonNull</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">doSerializeNonNull</span><wbr><span class="parameters">(@NonNull
- <a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
+ @NonNull <a href="../OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a>&nbsp;encoder,
  @NonNull
- <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull <a href="../../../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  @NonNull
- io.micronaut.core.type.Argument&lt;? extends byte[]&gt;&nbsp;type,
+ @NonNull io.micronaut.core.type.Argument&lt;? extends byte[]&gt;&nbsp;type,
  @NonNull
- byte[]&nbsp;value)</span></div>
+ @io.micronaut.core.annotation.NonNull byte[]&nbsp;value)</span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="AbstractOracleJsonSerde.html#doSerializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">AbstractOracleJsonSerde</a></code></span></div>
 <div class="block">Serializes non null value.</div>
 <dl class="notes">

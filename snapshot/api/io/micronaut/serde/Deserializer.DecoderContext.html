@@ -98,15 +98,15 @@ extends <a href="reference/PropertyReferenceManager.html" title="interface in io
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.core.convert.ConversionService</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull io.micronaut.core.convert.ConversionService</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hasView(java.lang.Class...)" class="member-name-link">hasView</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;...&nbsp;views)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;B,<wbr>
-P&gt;&nbsp;<a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference</a><wbr>(<a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</code></div>
+P&gt;&nbsp;@Nullable <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference</a><wbr>(@NonNull <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Resolve a reference for the given type and value.</div>
 </div>
@@ -137,7 +137,7 @@ P&gt;&nbsp;<a href="reference/PropertyReference.html" title="class in io.microna
 <section class="detail" id="getConversionService()">
 <h3>getConversionService</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">default</span>&nbsp;<span class="return-type">io.micronaut.core.convert.ConversionService</span>&nbsp;<span class="element-name">getConversionService</span>()</div>
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull io.micronaut.core.convert.ConversionService</span>&nbsp;<span class="element-name">getConversionService</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>Conversion service</dd>
@@ -162,8 +162,8 @@ P&gt;&nbsp;<a href="reference/PropertyReference.html" title="class in io.microna
 <div class="member-signature"><span class="annotations">@Internal
 @Nullable
 </span><span class="type-parameters">&lt;B,<wbr>
-P&gt;</span>&nbsp;<span class="return-type"><a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;</span>&nbsp;<span class="element-name">resolveReference</span><wbr><span class="parameters">(@NonNull
- <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</span></div>
+P&gt;</span>&nbsp;<span class="return-type">@Nullable <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;</span>&nbsp;<span class="element-name">resolveReference</span><wbr><span class="parameters">(@NonNull
+ @NonNull <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</span></div>
 <div class="block">Resolve a reference for the given type and value.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>

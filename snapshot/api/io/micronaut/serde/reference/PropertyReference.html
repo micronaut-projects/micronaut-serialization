@@ -100,10 +100,10 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,io.micronaut.core.beans.BeanIntrospection,io.micronaut.core.type.Argument,java.lang.Object)" class="member-name-link">PropertyReference</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;referenceName,
- io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;&nbsp;introspection,
- io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;&nbsp;property,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</code></div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,io.micronaut.core.beans.BeanIntrospection,io.micronaut.core.type.Argument,java.lang.Object)" class="member-name-link">PropertyReference</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;referenceName,
+ @NonNull io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;&nbsp;introspection,
+ @NonNull io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;&nbsp;property,
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
@@ -119,16 +119,16 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getIntrospection()" class="member-name-link">getIntrospection</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getProperty()" class="member-name-link">getProperty</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getReference()" class="member-name-link">getReference</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getReferenceName()" class="member-name-link">getReferenceName</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
@@ -152,13 +152,13 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="&lt;init&gt;(java.lang.String,io.micronaut.core.beans.BeanIntrospection,io.micronaut.core.type.Argument,java.lang.Object)">
 <h3>PropertyReference</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">PropertyReference</span><wbr><span class="parameters">(@NonNull
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;referenceName,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;referenceName,
  @NonNull
- io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;&nbsp;introspection,
+ @NonNull io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;&nbsp;introspection,
  @NonNull
- io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;&nbsp;property,
+ @NonNull io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;&nbsp;property,
  @Nullable
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</span></div>
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value)</span></div>
 </section>
 </li>
 </ul>
@@ -173,7 +173,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getReferenceName()">
 <h3>getReferenceName</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getReferenceName</span>()</div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getReferenceName</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The reference name</dd>
@@ -184,7 +184,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getIntrospection()">
 <h3>getIntrospection</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;</span>&nbsp;<span class="element-name">getIntrospection</span>()</div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull io.micronaut.core.beans.BeanIntrospection&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">B</a>&gt;</span>&nbsp;<span class="element-name">getIntrospection</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The introspection</dd>
@@ -195,7 +195,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getProperty()">
 <h3>getProperty</h3>
 <div class="member-signature"><span class="annotations">@NonNull
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type">io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;</span>&nbsp;<span class="element-name">getProperty</span>()</div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull io.micronaut.core.type.Argument&lt;<a href="PropertyReference.html" title="type parameter in PropertyReference">T</a>&gt;</span>&nbsp;<span class="element-name">getProperty</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The property</dd>
@@ -206,7 +206,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getReference()">
 <h3>getReference</h3>
 <div class="member-signature"><span class="annotations">@Nullable
-</span><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span>&nbsp;<span class="element-name">getReference</span>()</div>
+</span><span class="modifiers">public</span>&nbsp;<span class="return-type">@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span>&nbsp;<span class="element-name">getReference</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The reference</dd>

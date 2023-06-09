@@ -134,15 +134,15 @@ implements <a href="../SerdeIntrospections.html" title="interface in io.micronau
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Gets an introspection for the given type for serialization.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected &lt;T&gt;&nbsp;io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveIntrospectionForDeserialization(io.micronaut.core.type.Argument,io.micronaut.core.beans.BeanIntrospection)" class="member-name-link">resolveIntrospectionForDeserialization</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
- io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected &lt;T&gt;&nbsp;@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveIntrospectionForDeserialization(io.micronaut.core.type.Argument,io.micronaut.core.beans.BeanIntrospection)" class="member-name-link">resolveIntrospectionForDeserialization</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ @NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Resolve an introspection.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected &lt;T&gt;&nbsp;io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveIntrospectionForSerialization(io.micronaut.core.type.Argument,io.micronaut.core.beans.BeanIntrospection)" class="member-name-link">resolveIntrospectionForSerialization</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
- io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected &lt;T&gt;&nbsp;@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveIntrospectionForSerialization(io.micronaut.core.type.Argument,io.micronaut.core.beans.BeanIntrospection)" class="member-name-link">resolveIntrospectionForSerialization</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+ @NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Resolves an introspection for the purpose of serialization.</div>
 </div>
@@ -230,10 +230,10 @@ implements <a href="../SerdeIntrospections.html" title="interface in io.micronau
 <h3>resolveIntrospectionForSerialization</h3>
 <div class="member-signature"><span class="annotations">@NonNull
 </span><span class="modifiers">protected</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>
-<span class="return-type">io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">resolveIntrospectionForSerialization</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+<span class="return-type">@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">resolveIntrospectionForSerialization</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @NonNull
- io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</span></div>
+ @NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</span></div>
 <div class="block">Resolves an introspection for the purpose of serialization.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
@@ -270,10 +270,10 @@ implements <a href="../SerdeIntrospections.html" title="interface in io.micronau
 <h3>resolveIntrospectionForDeserialization</h3>
 <div class="member-signature"><span class="annotations">@NonNull
 </span><span class="modifiers">protected</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>
-<span class="return-type">io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">resolveIntrospectionForDeserialization</span><wbr><span class="parameters">(@NonNull
- io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
+<span class="return-type">@NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;</span>&nbsp;<span class="element-name">resolveIntrospectionForDeserialization</span><wbr><span class="parameters">(@NonNull
+ @NonNull io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type,
  @NonNull
- io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</span></div>
+ @NonNull io.micronaut.core.beans.BeanIntrospection&lt;T&gt;&nbsp;introspection)</span></div>
 <div class="block">Resolve an introspection.</div>
 <dl class="notes">
 <dt>Type Parameters:</dt>
