@@ -49,11 +49,13 @@ import java.util.function.Supplier;
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final boolean ignoreUnknown;
+    private final boolean strictNullable;
     private final Map<TypeKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
         this.introspections = introspections;
         this.ignoreUnknown = deserializationConfiguration.isIgnoreUnknown();
+        this.strictNullable = deserializationConfiguration.isStrictNullable();
     }
 
     @Override
@@ -64,12 +66,12 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         }
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
         if (deserBean.simpleBean) {
-            return new SimpleObjectDeserializer(ignoreUnknown, deserBean);
+            return new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean);
         }
         if (deserBean.recordLikeBean) {
-            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, deserBean);
+            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean);
         }
-        return new SpecificObjectDeserializer(ignoreUnknown, deserBean);
+        return new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean);
     }
 
     @Override

@@ -41,10 +41,12 @@ import java.util.*;
 final class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private static final String PREFIX_UNABLE_TO_DESERIALIZE_TYPE = "Unable to deserialize type [";
     private final boolean ignoreUnknown;
+    private final boolean strictNullable;
     private final DeserBean<? super Object> deserBean;
 
-    public SpecificObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
+    public SpecificObjectDeserializer(boolean ignoreUnknown, boolean strictNullable, DeserBean<? super Object> deserBean) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
+        this.strictNullable = strictNullable;
         this.deserBean = deserBean;
     }
 
@@ -62,7 +64,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
                 Object[] args = new Object[1];
                 args[0] = val;
-                return db.introspection.instantiate(STRICT_NULLABLE, args);
+                return db.introspection.instantiate(strictNullable, args);
             } else {
                 throw new IllegalStateException("At least one creator parameter expected");
             }
@@ -272,7 +274,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 }
 
                 try {
-                    obj = db.introspection.instantiate(STRICT_NULLABLE, params);
+                    obj = db.introspection.instantiate(strictNullable, params);
                 } catch (InstantiationException e) {
                     throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
@@ -312,7 +314,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 }
             } else {
                 try {
-                    obj = db.introspection.instantiate(STRICT_NULLABLE, new Object[] {});
+                    obj = db.introspection.instantiate(strictNullable, new Object[] {});
                 } catch (InstantiationException e) {
                     throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
@@ -664,9 +666,9 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     }
                 }
 
-                object = unwrapped.introspection.instantiate(STRICT_NULLABLE, params);
+                object = unwrapped.introspection.instantiate(strictNullable, params);
             } else {
-                object = unwrapped.introspection.instantiate(STRICT_NULLABLE, new Object[] {});
+                object = unwrapped.introspection.instantiate(strictNullable, new Object[] {});
             }
 
             if (unwrapped.readProperties != null) {

@@ -37,11 +37,14 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
     private final int valuesSize;
     private final boolean ignoreUnknown;
 
-    SimpleRecordLikeObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
+    private final boolean strictNullable;
+
+    SimpleRecordLikeObjectDeserializer(boolean ignoreUnknown, boolean strictNullable, DeserBean<? super Object> deserBean) {
         this.introspection = deserBean.introspection;
         this.constructorParameters = deserBean.creatorParams;
         this.valuesSize = deserBean.creatorSize;
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
+        this.strictNullable = strictNullable;
     }
 
     @Override
@@ -73,7 +76,7 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
 
         Object obj;
         try {
-            obj = introspection.instantiate(STRICT_NULLABLE, params);
+            obj = introspection.instantiate(strictNullable, params);
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }

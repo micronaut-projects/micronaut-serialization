@@ -53,7 +53,7 @@ final class HealthResultDeserializer implements CustomizableDeserializer<HealthR
             HealthResultDto dto = delegate.deserialize(decoder, context, DELEGATE_ARGUMENT);
             assert dto != null;
             return HealthResult.builder(dto.name)
-                .status( switch (dto.status) {
+                .status(switch (dto.status) {
                     case HealthStatus.NAME_DOWN -> HealthStatus.DOWN;
                     case HealthStatus.NAME_UP -> HealthStatus.UP;
                     default -> new HealthStatus(dto.status);
