@@ -48,7 +48,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             throws IOException {
         Object obj;
         try {
-            obj = introspection.instantiate();
+            obj = introspection.instantiate(STRICT_NULLABLE, new Object[] {});
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }

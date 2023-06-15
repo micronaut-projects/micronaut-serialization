@@ -73,7 +73,7 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
 
         Object obj;
         try {
-            obj = introspection.instantiate(params);
+            obj = introspection.instantiate(STRICT_NULLABLE, params);
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }
