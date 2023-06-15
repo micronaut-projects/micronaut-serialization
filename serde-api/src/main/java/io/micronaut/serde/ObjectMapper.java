@@ -19,7 +19,10 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.json.JsonFeatures;
 import io.micronaut.json.JsonMapper;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Sub-interface of {@link JsonMapper} with customizations.
@@ -27,6 +30,15 @@ import java.util.Map;
  * @author graemerocher
  */
 public interface ObjectMapper extends JsonMapper {
+
+    // Delete when this is merged and core is released in RC2 https://github.com/micronaut-projects/micronaut-core/pull/9453
+    @Override
+    @NonNull
+    default String writeValueAsString(@NonNull Object object) throws IOException {
+        Objects.requireNonNull(object, "Object cannot be null");
+        return new String(writeValueAsBytes(object), StandardCharsets.UTF_8);
+    }
+
     @Override
     default JsonMapper cloneWithFeatures(JsonFeatures features) {
         return this;
