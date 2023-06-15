@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
@@ -36,13 +37,18 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
     private final PropertiesBag<Object> constructorParameters;
     private final int valuesSize;
     private final boolean ignoreUnknown;
-
     private final boolean strictNullable;
+    @Nullable
+    private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
-    SimpleRecordLikeObjectDeserializer(boolean ignoreUnknown, boolean strictNullable, DeserBean<? super Object> deserBean) {
+    SimpleRecordLikeObjectDeserializer(boolean ignoreUnknown,
+                                       boolean strictNullable,
+                                       DeserBean<? super Object> deserBean,
+                                       @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspection = deserBean.introspection;
         this.constructorParameters = deserBean.creatorParams;
         this.valuesSize = deserBean.creatorSize;
+        this.preInstantiateCallback = preInstantiateCallback;
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
     }
@@ -76,6 +82,9 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
 
         Object obj;
         try {
+            if (preInstantiateCallback != null) {
+                preInstantiateCallback.preInstantiate(introspection, params);
+            }
             obj = introspection.instantiate(strictNullable, params);
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);

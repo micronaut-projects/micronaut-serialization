@@ -37,12 +37,16 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     private final boolean strictNullable;
     private final BeanIntrospection<Object> introspection;
     private final PropertiesBag<Object> properties;
+    private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
-    SimpleObjectDeserializer(boolean ignoreUnknown, boolean strictNullable, DeserBean<? super Object> deserBean) {
+    SimpleObjectDeserializer(boolean ignoreUnknown, boolean strictNullable,
+                             DeserBean<? super Object> deserBean,
+                             SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
         this.introspection = deserBean.introspection;
         this.properties = deserBean.readProperties;
+        this.preInstantiateCallback = preInstantiateCallback;
     }
 
     @Override
@@ -50,7 +54,11 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             throws IOException {
         Object obj;
         try {
-            obj = introspection.instantiate(strictNullable, new Object[] {});
+            Object[] arguments = {};
+            if (preInstantiateCallback != null) {
+                preInstantiateCallback.preInstantiate(introspection, arguments);
+            }
+            obj = introspection.instantiate(strictNullable, arguments);
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }

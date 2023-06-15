@@ -18,6 +18,7 @@ package io.micronaut.serde.support.deserializers;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
@@ -51,11 +52,16 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     private final boolean ignoreUnknown;
     private final boolean strictNullable;
     private final Map<TypeKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
+    private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
-    public ObjectDeserializer(SerdeIntrospections introspections, DeserializationConfiguration deserializationConfiguration) {
+    public ObjectDeserializer(SerdeIntrospections introspections,
+                              DeserializationConfiguration deserializationConfiguration,
+                              @Nullable
+                              SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspections = introspections;
         this.ignoreUnknown = deserializationConfiguration.isIgnoreUnknown();
         this.strictNullable = deserializationConfiguration.isStrictNullable();
+        this.preInstantiateCallback = preInstantiateCallback;
     }
 
     @Override
@@ -66,12 +72,12 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         }
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
         if (deserBean.simpleBean) {
-            return new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean);
+            return new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         }
         if (deserBean.recordLikeBean) {
-            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean);
+            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         }
-        return new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean);
+        return new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
     }
 
     @Override
