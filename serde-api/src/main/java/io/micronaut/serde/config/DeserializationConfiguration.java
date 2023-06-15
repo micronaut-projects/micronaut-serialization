@@ -40,4 +40,11 @@ public interface DeserializationConfiguration {
      */
     @Bindable(defaultValue = "100")
     int getArraySizeThreshold();
+
+    /**
+     * Whether null field should be annotated with a nullable annotations. Defaults to {@code false}
+     * @return True if null field should be annotated with a nullable annotations
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    boolean isStrictNullable();
 }

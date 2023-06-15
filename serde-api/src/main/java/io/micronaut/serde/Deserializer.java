@@ -36,7 +36,6 @@ import java.io.IOException;
  */
 @Indexed(Deserializer.class)
 public interface Deserializer<T> {
-
     /**
      * Create a new child deserializer or return this if non is necessary for the given context.
      *

@@ -34,11 +34,13 @@ import java.io.IOException;
  */
 final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final boolean ignoreUnknown;
+    private final boolean strictNullable;
     private final BeanIntrospection<Object> introspection;
     private final PropertiesBag<Object> properties;
 
-    SimpleObjectDeserializer(boolean ignoreUnknown, DeserBean<? super Object> deserBean) {
+    SimpleObjectDeserializer(boolean ignoreUnknown, boolean strictNullable, DeserBean<? super Object> deserBean) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
+        this.strictNullable = strictNullable;
         this.introspection = deserBean.introspection;
         this.properties = deserBean.readProperties;
     }
@@ -48,7 +50,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             throws IOException {
         Object obj;
         try {
-            obj = introspection.instantiate();
+            obj = introspection.instantiate(strictNullable, new Object[] {});
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }
