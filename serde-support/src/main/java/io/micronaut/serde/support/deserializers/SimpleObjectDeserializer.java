@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.UpdatingDeserializer;
@@ -54,11 +55,10 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             throws IOException {
         Object obj;
         try {
-            Object[] arguments = {};
             if (preInstantiateCallback != null) {
-                preInstantiateCallback.preInstantiate(introspection, arguments);
+                preInstantiateCallback.preInstantiate(introspection, ArrayUtils.EMPTY_OBJECT_ARRAY);
             }
-            obj = introspection.instantiate(strictNullable, arguments);
+            obj = introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
         } catch (InstantiationException e) {
             throw new SerdeException("Unable to deserialize type [" + beanType + "]: " + e.getMessage(), e);
         }
