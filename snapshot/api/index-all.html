@@ -11,7 +11,7 @@
 <link rel="stylesheet" type="text/css" href="script-dir/jquery-ui.min.css" title="Style">
 <link rel="stylesheet" type="text/css" href="jquery-ui.overrides.css" title="Style">
 <script type="text/javascript" src="script.js"></script>
-<script type="text/javascript" src="script-dir/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="script-dir/jquery-3.6.1.min.js"></script>
 <script type="text/javascript" src="script-dir/jquery-ui.min.js"></script>
 </head>
 <body class="index-page">
@@ -2512,7 +2512,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Implementation for deserialization of objects that uses introspection metadata.</div>
 </dd>
-<dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration)</a> - Constructor for class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a></dt>
+<dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback)" class="member-name-link">ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeDeserializationPreInstantiateCallback)</a> - Constructor for class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/ObjectMapper.html" class="type-name-link" title="interface in io.micronaut.serde">ObjectMapper</a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
@@ -2677,6 +2677,10 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#PREFIX" class="member-name-link">PREFIX</a> - Static variable in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/deserializers/SerdeDeserializationPreInstantiateCallback.html#preInstantiate(io.micronaut.core.beans.BeanIntrospection,java.lang.Object...)" class="member-name-link">preInstantiate(BeanIntrospection&lt;?&gt;, Object...)</a> - Method in interface io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/SerdeDeserializationPreInstantiateCallback.html" title="interface in io.micronaut.serde.support.deserializers">SerdeDeserializationPreInstantiateCallback</a></dt>
+<dd>
+<div class="block">The callback before the bean is constructed.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html#PROPERTIES" class="member-name-link">PROPERTIES</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerCreatorMode</a></dt>
 <dd>
 <div class="block">From properties.</div>
@@ -2946,6 +2950,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
 <dd>
 <div class="block">Shape to use for time serialization.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/deserializers/SerdeDeserializationPreInstantiateCallback.html" class="type-name-link" title="interface in io.micronaut.serde.support.deserializers">SerdeDeserializationPreInstantiateCallback</a> - Interface in <a href="io/micronaut/serde/support/deserializers/package-summary.html">io.micronaut.serde.support.deserializers</a></dt>
+<dd>
+<div class="block">The pre instantiate callback.</div>
 </dd>
 <dt><a href="io/micronaut/serde/exceptions/SerdeException.html" class="type-name-link" title="class in io.micronaut.serde.exceptions">SerdeException</a> - Exception in <a href="io/micronaut/serde/exceptions/package-summary.html">io.micronaut.serde.exceptions</a></dt>
 <dd>
