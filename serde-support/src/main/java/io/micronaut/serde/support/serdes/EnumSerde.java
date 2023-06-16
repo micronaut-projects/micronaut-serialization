@@ -142,16 +142,12 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
     @NonNull
     private E transform(Object v) {
         try {
-            Object[] args = new Object[1];
-            args[0] = v;
-            return (E) deserializableIntrospection.instantiate(!allowNull, args);
+            return (E) deserializableIntrospection.instantiate(!allowNull, new Object[] { v });
         } catch (IllegalArgumentException e) {
             if (v instanceof String) {
                 String string = (String) v;
                 try {
-                    Object[] args = new Object[1];
-                    args[0] = string.toUpperCase(Locale.ENGLISH);
-                    return (E) deserializableIntrospection.instantiate(!allowNull, args);
+                    return (E) deserializableIntrospection.instantiate(!allowNull,  new Object[] { string.toUpperCase(Locale.ENGLISH) });
                 } catch (IllegalArgumentException ex) {
                     // throw original
                     throw e;

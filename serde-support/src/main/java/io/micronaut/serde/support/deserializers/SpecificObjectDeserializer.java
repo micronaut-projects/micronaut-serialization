@@ -69,8 +69,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 final PropertiesBag<Object>.Consumer creatorParams = db.creatorParams.newConsumer();
                 final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
                 final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
-                Object[] args = new Object[1];
-                args[0] = val;
+                Object[] args = new Object[]  { val };
                 if (preInstantiateCallback != null) {
                     preInstantiateCallback.preInstantiate(db.introspection, args);
                 }
