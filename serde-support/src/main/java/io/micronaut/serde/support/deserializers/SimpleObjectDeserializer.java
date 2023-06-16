@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
@@ -38,11 +39,12 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     private final boolean strictNullable;
     private final BeanIntrospection<Object> introspection;
     private final PropertiesBag<Object> properties;
+    @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
     SimpleObjectDeserializer(boolean ignoreUnknown, boolean strictNullable,
                              DeserBean<? super Object> deserBean,
-                             SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
+                             @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
         this.introspection = deserBean.introspection;

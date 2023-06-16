@@ -49,8 +49,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     public SpecificObjectDeserializer(boolean ignoreUnknown,
                                       boolean strictNullable,
                                       DeserBean<? super Object> deserBean,
-                                      @Nullable
-                                      SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
+                                      @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
         this.deserBean = deserBean;

@@ -52,12 +52,12 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     private final boolean ignoreUnknown;
     private final boolean strictNullable;
     private final Map<TypeKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
+    @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
     public ObjectDeserializer(SerdeIntrospections introspections,
                               DeserializationConfiguration deserializationConfiguration,
-                              @Nullable
-                              SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
+                              @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspections = introspections;
         this.ignoreUnknown = deserializationConfiguration.isIgnoreUnknown();
         this.strictNullable = deserializationConfiguration.isStrictNullable();
