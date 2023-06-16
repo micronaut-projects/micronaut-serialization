@@ -29,8 +29,6 @@ include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
 
-include("test-suite")
-
 include("benchmarks")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
