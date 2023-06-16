@@ -43,11 +43,17 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     private final boolean ignoreUnknown;
     private final boolean strictNullable;
     private final DeserBean<? super Object> deserBean;
+    @Nullable
+    private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
-    public SpecificObjectDeserializer(boolean ignoreUnknown, boolean strictNullable, DeserBean<? super Object> deserBean) {
+    public SpecificObjectDeserializer(boolean ignoreUnknown,
+                                      boolean strictNullable,
+                                      DeserBean<? super Object> deserBean,
+                                      @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
         this.deserBean = deserBean;
+        this.preInstantiateCallback = preInstantiateCallback;
     }
 
     @Override
@@ -62,7 +68,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 final PropertiesBag<Object>.Consumer creatorParams = db.creatorParams.newConsumer();
                 final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
                 final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
-                return db.introspection.instantiate(strictNullable, new Object[] { val });
+                Object[] args = new Object[]  { val };
+                if (preInstantiateCallback != null) {
+                    preInstantiateCallback.preInstantiate(db.introspection, args);
+                }
+                return db.introspection.instantiate(strictNullable, args);
             } else {
                 throw new IllegalStateException("At least one creator parameter expected");
             }
@@ -272,6 +282,9 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 }
 
                 try {
+                    if (preInstantiateCallback != null) {
+                        preInstantiateCallback.preInstantiate(db.introspection, params);
+                    }
                     obj = db.introspection.instantiate(strictNullable, params);
                 } catch (InstantiationException e) {
                     throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
@@ -312,6 +325,9 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 }
             } else {
                 try {
+                    if (preInstantiateCallback != null) {
+                        preInstantiateCallback.preInstantiate(db.introspection);
+                    }
                     obj = db.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
                 } catch (InstantiationException e) {
                     throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
@@ -663,9 +679,14 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                         }
                     }
                 }
-
+                if (preInstantiateCallback != null) {
+                    preInstantiateCallback.preInstantiate(unwrapped.introspection, params);
+                }
                 object = unwrapped.introspection.instantiate(strictNullable, params);
             } else {
+                if (preInstantiateCallback != null) {
+                    preInstantiateCallback.preInstantiate(unwrapped.introspection);
+                }
                 object = unwrapped.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
             }
 
