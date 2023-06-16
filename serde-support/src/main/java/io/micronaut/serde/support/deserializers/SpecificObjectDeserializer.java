@@ -62,9 +62,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 final PropertiesBag<Object>.Consumer creatorParams = db.creatorParams.newConsumer();
                 final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
                 final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
-                Object[] args = new Object[1];
-                args[0] = val;
-                return db.introspection.instantiate(strictNullable, args);
+                return db.introspection.instantiate(strictNullable, new Object[] { val });
             } else {
                 throw new IllegalStateException("At least one creator parameter expected");
             }
@@ -314,7 +312,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 }
             } else {
                 try {
-                    obj = db.introspection.instantiate(strictNullable, new Object[] {});
+                    obj = db.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
                 } catch (InstantiationException e) {
                     throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
@@ -668,7 +666,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
                 object = unwrapped.introspection.instantiate(strictNullable, params);
             } else {
-                object = unwrapped.introspection.instantiate(strictNullable, new Object[] {});
+                object = unwrapped.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
             }
 
             if (unwrapped.readProperties != null) {
