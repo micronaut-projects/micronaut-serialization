@@ -5,25 +5,29 @@ import io.micronaut.serde.support.util.JsonNodeDecoder
 import spock.lang.Specification
 
 class JsonNodeDecoderSpec extends Specification {
+    private static JsonNodeDecoder create(JsonNode jsonNode) {
+        return JsonNodeDecoder.create(jsonNode, LimitingStream.DEFAULT_LIMITS)
+    }
+
     def 'scalar decode'() {
         expect:
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeByte() == (byte) 42
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeShort() == (short) 42
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeInt() == 42
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeLong() == 42L
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeFloat() == 42.0F
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeDouble() == 42.0D
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeBigInteger() == BigInteger.valueOf(42)
-        JsonNodeDecoder.create(JsonNode.createNumberNode(42)).decodeBigDecimal() == BigDecimal.valueOf(42)
+        create(JsonNode.createNumberNode(42)).decodeByte() == (byte) 42
+        create(JsonNode.createNumberNode(42)).decodeShort() == (short) 42
+        create(JsonNode.createNumberNode(42)).decodeInt() == 42
+        create(JsonNode.createNumberNode(42)).decodeLong() == 42L
+        create(JsonNode.createNumberNode(42)).decodeFloat() == 42.0F
+        create(JsonNode.createNumberNode(42)).decodeDouble() == 42.0D
+        create(JsonNode.createNumberNode(42)).decodeBigInteger() == BigInteger.valueOf(42)
+        create(JsonNode.createNumberNode(42)).decodeBigDecimal() == BigDecimal.valueOf(42)
 
-        JsonNodeDecoder.create(JsonNode.createStringNode('foo')).decodeString() == 'foo'
-        JsonNodeDecoder.create(JsonNode.createBooleanNode(true)).decodeBoolean()
-        JsonNodeDecoder.create(JsonNode.nullNode()).decodeNull()
+        create(JsonNode.createStringNode('foo')).decodeString() == 'foo'
+        create(JsonNode.createBooleanNode(true)).decodeBoolean()
+        create(JsonNode.nullNode()).decodeNull()
     }
 
     def 'array decode'() {
         given:
-        def decoder = JsonNodeDecoder.create(JsonNode.createArrayNode([
+        def decoder = create(JsonNode.createArrayNode([
                 JsonNode.createNumberNode(42),
                 JsonNode.createStringNode('foo'),
                 JsonNode.createBooleanNode(true),
@@ -55,7 +59,7 @@ class JsonNodeDecoderSpec extends Specification {
 
     def 'object decode'() {
         given:
-        def decoder = JsonNodeDecoder.create(JsonNode.createObjectNode([
+        def decoder = create(JsonNode.createObjectNode([
                 f1: JsonNode.createNumberNode(42),
                 f2: JsonNode.createStringNode('foo'),
                 f3: JsonNode.createBooleanNode(true),
@@ -87,7 +91,7 @@ class JsonNodeDecoderSpec extends Specification {
 
     def 'arbitrary decode'() {
         given:
-        def decoder = JsonNodeDecoder.create(JsonNode.createObjectNode([
+        def decoder = create(JsonNode.createObjectNode([
                 f1: JsonNode.createNumberNode(42),
                 f2: JsonNode.createStringNode('foo'),
                 f3: JsonNode.createBooleanNode(true),

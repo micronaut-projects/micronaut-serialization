@@ -15,10 +15,13 @@
  */
 package io.micronaut.serde.support.util;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -31,21 +34,36 @@ import java.util.Map;
  * Implementation of the {@link io.micronaut.serde.Encoder} interface that encodes a
  * in-memory {@link io.micronaut.json.tree.JsonNode}.
  */
-public abstract class JsonNodeEncoder implements Encoder {
-    private JsonNodeEncoder() {
+public abstract class JsonNodeEncoder extends LimitingStream implements Encoder {
+    private JsonNodeEncoder(RemainingLimits remainingLimits) {
+        super(remainingLimits);
     }
 
     /**
      * Creates a new instance.
+     *
      * @return The {@link JsonNodeEncoder}
      */
     @NonNull
     public static JsonNodeEncoder create() {
-        return new Outer();
+        return create(DEFAULT_LIMITS);
+    }
+
+    /**
+     * Creates a new instance.
+     *
+     * @param limits The limits
+     * @return The {@link JsonNodeEncoder}
+     */
+    @NonNull
+    @Internal
+    public static JsonNodeEncoder create(RemainingLimits limits) {
+        return new Outer(limits);
     }
 
     /**
      * Encode the given value.
+     *
      * @param node The node to encode
      */
     protected abstract void encodeValue(JsonNode node);
@@ -111,13 +129,13 @@ public abstract class JsonNodeEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray(Argument<?> type) {
-        return new Array(this);
+    public Encoder encodeArray(Argument<?> type) throws SerdeException {
+        return new Array(this, childLimits());
     }
 
     @Override
-    public Encoder encodeObject(Argument<?> type) {
-        return new Obj(this);
+    public Encoder encodeObject(Argument<?> type) throws SerdeException {
+        return new Obj(this, childLimits());
     }
 
     /**
@@ -134,7 +152,8 @@ public abstract class JsonNodeEncoder implements Encoder {
         private final Map<String, JsonNode> nodes = new LinkedHashMap<>();
         private String currentKey;
 
-        Obj(JsonNodeEncoder target) {
+        Obj(JsonNodeEncoder target, RemainingLimits remainingLimits) {
+            super(remainingLimits);
             this.target = target;
         }
 
@@ -165,7 +184,8 @@ public abstract class JsonNodeEncoder implements Encoder {
         private final JsonNodeEncoder target;
         private final List<JsonNode> nodes = new ArrayList<>();
 
-        Array(JsonNodeEncoder target) {
+        Array(JsonNodeEncoder target, RemainingLimits remainingLimits) {
+            super(remainingLimits);
             this.target = target;
         }
 
@@ -187,6 +207,10 @@ public abstract class JsonNodeEncoder implements Encoder {
 
     private static final class Outer extends JsonNodeEncoder {
         JsonNode result;
+
+        Outer(RemainingLimits remainingLimits) {
+            super(remainingLimits);
+        }
 
         @Override
         public void finishStructure() {

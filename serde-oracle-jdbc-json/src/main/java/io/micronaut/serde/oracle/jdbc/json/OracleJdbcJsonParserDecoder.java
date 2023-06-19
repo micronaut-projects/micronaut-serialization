@@ -46,7 +46,8 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     private final OracleJsonParser jsonParser;
     private OracleJsonParser.Event currentEvent;
 
-    OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser) {
+    OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }

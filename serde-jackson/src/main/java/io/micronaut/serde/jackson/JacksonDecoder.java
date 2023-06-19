@@ -23,6 +23,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
@@ -42,7 +43,7 @@ import java.util.Map;
  * @author Denis Stepanov
  */
 @Internal
-public final class JacksonDecoder implements Decoder {
+public final class JacksonDecoder extends LimitingStream implements Decoder {
     /**
      * Default value for {@link JsonParser#nextIntValue(int)}. If this value is encountered, we
      * enter the slow parse path.
@@ -61,7 +62,8 @@ public final class JacksonDecoder implements Decoder {
     private JsonToken peekedToken;
     private boolean currentlyUnwrappingArray;
 
-    private JacksonDecoder(JsonParser parser) throws IOException {
+    private JacksonDecoder(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
+        super(remainingLimits);
         this.parser = parser;
         if (!parser.hasCurrentToken()) {
             peekedToken = parser.nextToken();
@@ -73,8 +75,8 @@ public final class JacksonDecoder implements Decoder {
         }
     }
 
-    public static Decoder create(JsonParser parser) throws IOException {
-        return new JacksonDecoder(parser);
+    public static Decoder create(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
+        return new JacksonDecoder(parser, remainingLimits);
     }
 
     @Override
@@ -108,6 +110,7 @@ public final class JacksonDecoder implements Decoder {
                 }
             } while (t != JsonToken.END_OBJECT && t != JsonToken.END_ARRAY && t != null);
         }
+        decreaseDepth();
     }
 
     @Override
@@ -148,6 +151,7 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_ARRAY) {
             throw unexpectedToken(JsonToken.START_ARRAY, t);
         }
+        increaseDepth();
         return this;
     }
 
@@ -157,6 +161,7 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_ARRAY) {
             throw unexpectedToken(JsonToken.START_ARRAY, t);
         }
+        increaseDepth();
         return this;
     }
 
@@ -167,6 +172,7 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_OBJECT) {
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
+        increaseDepth();
         return this;
     }
 
@@ -176,6 +182,7 @@ public final class JacksonDecoder implements Decoder {
         if (t != JsonToken.START_OBJECT) {
             throw unexpectedToken(JsonToken.START_OBJECT, t);
         }
+        increaseDepth();
         return this;
     }
 
@@ -820,7 +827,7 @@ public final class JacksonDecoder implements Decoder {
     @Override
     public Decoder decodeBuffer() throws IOException {
         JsonNode node = decodeNode();
-        return JsonNodeDecoder.create(node);
+        return JsonNodeDecoder.create(node, ourLimits());
     }
 
     @NonNull

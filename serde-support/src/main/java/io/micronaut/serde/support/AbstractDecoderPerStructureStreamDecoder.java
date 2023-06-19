@@ -15,14 +15,17 @@
  */
 package io.micronaut.serde.support;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 
 /**
  * Abstract variation of {@link AbstractStreamDecoder} that uses separate decoders for structures like an array or an object.
  */
+@Internal
 public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractStreamDecoder {
 
     @Nullable
@@ -33,29 +36,34 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
     /**
      * Child constructor. Should inherit the parser from the parent.
      * @param parent The parent decoder.
+     * @param remainingLimits The limits for this decoder
      */
-    protected AbstractDecoderPerStructureStreamDecoder(@NonNull AbstractDecoderPerStructureStreamDecoder parent) {
+    protected AbstractDecoderPerStructureStreamDecoder(@NonNull AbstractDecoderPerStructureStreamDecoder parent, @NonNull RemainingLimits remainingLimits) {
+        this(remainingLimits);
         this.parent = parent;
     }
 
     /**
      * Root constructor.
+     *
+     * @param remainingLimits The limits for this decoder
      */
-    protected AbstractDecoderPerStructureStreamDecoder() {
+    protected AbstractDecoderPerStructureStreamDecoder(@NonNull RemainingLimits remainingLimits) {
+        super(remainingLimits);
     }
 
     /**
-     * Create a new child decoder using {@link AbstractDecoderPerStructureStreamDecoder#AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder)}.
+     * Create a new child decoder using {@link AbstractDecoderPerStructureStreamDecoder#AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder,io.micronaut.serde.LimitingStream.RemainingLimits)}.
      * @return The new decoder
      */
-    protected abstract AbstractStreamDecoder createChildDecoder();
+    protected abstract AbstractStreamDecoder createChildDecoder() throws SerdeException;
 
     /**
      * Create a child decoder, and transfer control of the stream to it (see {@link #checkChild()}).
      *
      * @return The new child decoder
      */
-    AbstractStreamDecoder childDecoder() {
+    AbstractStreamDecoder childDecoder() throws SerdeException {
         return createChildDecoder();
     }
 
@@ -68,6 +76,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         checkChild();
+        // super decreases our depth limits here, but that's fine since this decoder becomes unused at this point
         super.finishStructure(consumeLeftElements);
         if (parent != null) {
             transferControlToParent();
@@ -88,6 +97,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
     @Override
     protected AbstractStreamDecoder decodeArray0(TokenType currentToken) throws IOException {
         super.decodeArray0(currentToken);
+        decreaseDepth(); // revert our depth, the child decoder will handle it
         child = childDecoder();
         return child;
     }
@@ -95,6 +105,7 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
     @Override
     protected AbstractStreamDecoder decodeObject0(TokenType currentToken) throws IOException {
         super.decodeObject0(currentToken);
+        decreaseDepth(); // revert our depth, the child decoder will handle it
         child = childDecoder();
         return child;
     }

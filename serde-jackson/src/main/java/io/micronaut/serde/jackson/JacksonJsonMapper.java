@@ -45,10 +45,12 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.UpdatingDeserializer;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
@@ -72,14 +74,16 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     private final SerdeRegistry registry;
     private final JsonStreamConfig deserializationConfig;
+    private final SerdeConfiguration serdeConfiguration;
     private final JsonNodeTreeCodec treeCodec;
     private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
 
-    private JacksonJsonMapper(@NonNull SerdeRegistry registry, @NonNull JsonStreamConfig deserializationConfig, @Nullable Class<?> view) {
+    private JacksonJsonMapper(@NonNull SerdeRegistry registry, @NonNull JsonStreamConfig deserializationConfig, @NonNull SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         this.registry = registry;
         this.deserializationConfig = deserializationConfig;
+        this.serdeConfiguration = serdeConfiguration;
         this.treeCodec = JsonNodeTreeCodec.getInstance().withConfig(deserializationConfig);
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
@@ -87,8 +91,8 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Inject
     @Internal
-    public JacksonJsonMapper(SerdeRegistry registry) {
-        this(registry, JsonStreamConfig.DEFAULT, Object.class);
+    public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
+        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, Object.class);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -106,7 +110,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
         gen.setCodec(objectCodecImpl);
         Serializer<? super T> serializer = encoderContext.findSerializer(argument)
                                                    .createSpecific(encoderContext, argument);
-        final Encoder encoder = JacksonEncoder.create(gen);
+        final Encoder encoder = JacksonEncoder.create(gen, LimitingStream.limitsFromConfiguration(serdeConfiguration));
         serializer.serialize(
                 encoder,
                 encoderContext,
@@ -122,7 +126,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
         parser.setCodec(objectCodecImpl);
         Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
-        final Decoder decoder = JacksonDecoder.create(parser);
+        final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
         return (T) deserializer.deserializeNullable(
                 decoder,
                 decoderContext,
@@ -232,7 +236,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @NonNull
     @Override
     public JsonMapper cloneWithViewClass(@NonNull Class<?> viewClass) {
-        return new JacksonJsonMapper(registry, deserializationConfig, viewClass);
+        return new JacksonJsonMapper(registry, deserializationConfig, serdeConfiguration, viewClass);
     }
 
     @Override
@@ -249,7 +253,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
                     }
                     // for jackson compat we need to support deserializing null, but most deserializers don't support it.
                     if (parser.currentToken() != JsonToken.VALUE_NULL) {
-                        final Decoder decoder = JacksonDecoder.create(parser);
+                        final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
                         ((UpdatingDeserializer<Object>) deserializer).deserializeInto(
                                 decoder,
                                 decoderContext,

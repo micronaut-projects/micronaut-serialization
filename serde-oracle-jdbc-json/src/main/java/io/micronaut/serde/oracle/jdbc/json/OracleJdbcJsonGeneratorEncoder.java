@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
 import oracle.sql.json.OracleJsonGenerator;
 
 import java.math.BigDecimal;
@@ -33,18 +35,20 @@ import java.time.OffsetDateTime;
  * @since 1.2.0
  */
 @Internal
-public final class OracleJdbcJsonGeneratorEncoder implements Encoder {
+public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream implements Encoder {
     private final OracleJsonGenerator jsonGenerator;
     private final OracleJdbcJsonGeneratorEncoder parent;
     private String currentKey;
     private int currentIndex;
 
-    OracleJdbcJsonGeneratorEncoder(OracleJsonGenerator jsonGenerator) {
+    OracleJdbcJsonGeneratorEncoder(OracleJsonGenerator jsonGenerator, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.jsonGenerator = jsonGenerator;
         this.parent = null;
     }
 
-    OracleJdbcJsonGeneratorEncoder(OracleJdbcJsonGeneratorEncoder parent) {
+    OracleJdbcJsonGeneratorEncoder(OracleJdbcJsonGeneratorEncoder parent, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.jsonGenerator = parent.jsonGenerator;
         this.parent = parent;
     }
@@ -54,15 +58,15 @@ public final class OracleJdbcJsonGeneratorEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray(Argument<?> type) {
+    public Encoder encodeArray(Argument<?> type) throws SerdeException {
         jsonGenerator.writeStartArray();
-        return new OracleJdbcJsonGeneratorEncoder(this);
+        return new OracleJdbcJsonGeneratorEncoder(this, childLimits());
     }
 
     @Override
-    public Encoder encodeObject(Argument<?> type) {
+    public Encoder encodeObject(Argument<?> type) throws SerdeException {
         jsonGenerator.writeStartObject();
-        return new OracleJdbcJsonGeneratorEncoder(this);
+        return new OracleJdbcJsonGeneratorEncoder(this, childLimits());
     }
 
     @Override

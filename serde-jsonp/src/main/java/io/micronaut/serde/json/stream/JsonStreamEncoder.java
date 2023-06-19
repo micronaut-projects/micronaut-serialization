@@ -15,27 +15,30 @@
  */
 package io.micronaut.serde.json.stream;
 
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
+import jakarta.json.stream.JsonGenerator;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Encoder;
-import jakarta.json.stream.JsonGenerator;
-
-final class JsonStreamEncoder implements Encoder {
+final class JsonStreamEncoder extends LimitingStream implements Encoder {
     private final JsonGenerator jsonGenerator;
     private final JsonStreamEncoder parent;
     private String currentKey;
     private int currentIndex;
 
-    public JsonStreamEncoder(JsonGenerator jsonGenerator) {
+    public JsonStreamEncoder(JsonGenerator jsonGenerator, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.jsonGenerator = jsonGenerator;
         this.parent = null;
     }
 
-    private JsonStreamEncoder(JsonStreamEncoder parent) {
+    private JsonStreamEncoder(JsonStreamEncoder parent, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.jsonGenerator = parent.jsonGenerator;
         this.parent = parent;
     }
@@ -47,13 +50,13 @@ final class JsonStreamEncoder implements Encoder {
     @Override
     public Encoder encodeArray(Argument<?> type) throws IOException {
         jsonGenerator.writeStartArray();
-        return new JsonStreamEncoder(this);
+        return new JsonStreamEncoder(this, childLimits());
     }
 
     @Override
     public Encoder encodeObject(Argument<?> type) throws IOException {
         jsonGenerator.writeStartObject();
-        return new JsonStreamEncoder(this);
+        return new JsonStreamEncoder(this, childLimits());
     }
 
     @Override

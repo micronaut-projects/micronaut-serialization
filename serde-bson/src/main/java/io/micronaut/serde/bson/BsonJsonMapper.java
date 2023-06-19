@@ -19,6 +19,7 @@ import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.config.SerdeConfiguration;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.bson.AbstractBsonWriter;
@@ -43,18 +44,28 @@ import java.nio.charset.StandardCharsets;
 @Order(100) // lower precedence than Jackson
 public final class BsonJsonMapper extends AbstractBsonMapper {
 
-    @Inject
+    @Deprecated
     public BsonJsonMapper(SerdeRegistry registry) {
-        super(registry);
+        super(registry, null);
     }
 
+    @Deprecated
     public BsonJsonMapper(SerdeRegistry registry, Class<?> view) {
-        super(registry, view);
+        super(registry, null, view);
+    }
+
+    @Inject
+    public BsonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
+        super(registry, serdeConfiguration);
+    }
+
+    private BsonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+        super(registry, serdeConfiguration, view);
     }
 
     @Override
     public JsonMapper cloneWithViewClass(Class<?> viewClass) {
-        return new BsonJsonMapper(registry, viewClass);
+        return new BsonJsonMapper(registry, serdeConfiguration, viewClass);
     }
 
     @Override

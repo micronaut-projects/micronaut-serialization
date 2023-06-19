@@ -1,6 +1,7 @@
 package io.micronaut.serde.bson
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.LimitingStream
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
 import spock.lang.Specification
@@ -8,7 +9,7 @@ import spock.lang.Specification
 class BsonWriterEncoderSpec extends Specification {
     def 'currentPath'() {
         given:
-        def encoder = new BsonWriterEncoder(new BsonDocumentWriter(new BsonDocument()))
+        def encoder = new BsonWriterEncoder(new BsonDocumentWriter(new BsonDocument()), LimitingStream.DEFAULT_LIMITS)
 
         when:
         def outer = encoder.encodeObject(Argument.VOID)

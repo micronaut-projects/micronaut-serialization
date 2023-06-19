@@ -2,6 +2,7 @@ package io.micronaut.serde.bson
 
 
 import io.micronaut.serde.Decoder
+import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.exceptions.SerdeException
 import org.bson.json.JsonReader
 import org.intellij.lang.annotations.Language
@@ -9,7 +10,7 @@ import spock.lang.Specification
 
 class BsonReaderDecoderJsonSpec extends Specification {
     private static Decoder createDecoder(@Language('json') String json) {
-        return new BsonReaderDecoder(new JsonReader(json))
+        return new BsonReaderDecoder(new JsonReader(json), LimitingStream.DEFAULT_LIMITS)
     }
 
     def "unwrap arrays normal"() {

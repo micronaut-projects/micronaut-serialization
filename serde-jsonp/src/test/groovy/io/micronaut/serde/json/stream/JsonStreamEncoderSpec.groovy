@@ -1,13 +1,14 @@
 package io.micronaut.serde.json.stream
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.LimitingStream
 import jakarta.json.Json
 import spock.lang.Specification
 
 class JsonStreamEncoderSpec extends Specification {
     def 'currentPath'() {
         given:
-        def encoder = new JsonStreamEncoder(Json.createGenerator(new ByteArrayOutputStream()))
+        def encoder = new JsonStreamEncoder(Json.createGenerator(new ByteArrayOutputStream()), LimitingStream.DEFAULT_LIMITS)
 
         when:
         def outer = encoder.encodeObject(Argument.VOID)

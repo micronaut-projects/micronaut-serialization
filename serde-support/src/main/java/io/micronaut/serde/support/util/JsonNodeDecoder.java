@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -34,15 +35,16 @@ import java.util.Map;
 
 /**
  * Implementation of the {@link io.micronaut.serde.Decoder} interface that
- * uss the {@link io.micronaut.json.tree.JsonNode} abstraction.
+ * uses the {@link io.micronaut.json.tree.JsonNode} abstraction.
  */
 @Internal
-public abstract class JsonNodeDecoder implements Decoder {
-    private JsonNodeDecoder() {
+public abstract class JsonNodeDecoder extends LimitingStream implements Decoder {
+    private JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
+        super(remainingLimits);
     }
 
-    public static JsonNodeDecoder create(JsonNode node) {
-        return new Buffered(node);
+    public static JsonNodeDecoder create(JsonNode node, LimitingStream.RemainingLimits remainingLimits) {
+        return new Buffered(node, remainingLimits);
     }
 
     protected abstract JsonNode peekValue();
@@ -52,7 +54,7 @@ public abstract class JsonNodeDecoder implements Decoder {
         JsonNode peeked = peekValue();
         if (peeked.isArray()) {
             skipValue();
-            return new Array(peeked);
+            return new Array(peeked, childLimits());
         } else {
             throw createDeserializationException("Not an array", null);
         }
@@ -63,7 +65,7 @@ public abstract class JsonNodeDecoder implements Decoder {
         JsonNode peeked = peekValue();
         if (peeked.isObject()) {
             skipValue();
-            return new Obj(peeked);
+            return new Obj(peeked, childLimits());
         } else {
             throw createDeserializationException("Not an array", null);
         }
@@ -244,7 +246,7 @@ public abstract class JsonNodeDecoder implements Decoder {
     public Decoder decodeBuffer() throws IOException {
         JsonNode peeked = peekValue();
         skipValue();
-        return new Buffered(peeked);
+        return new Buffered(peeked, ourLimits());
     }
 
     @Override
@@ -260,7 +262,8 @@ public abstract class JsonNodeDecoder implements Decoder {
         private final Iterator<Map.Entry<String, JsonNode>> iterator;
         private JsonNode nextValue = null;
 
-        Obj(JsonNode node) {
+        Obj(JsonNode node, RemainingLimits remainingLimits) {
+            super(remainingLimits);
             iterator = node.entries().iterator();
         }
 
@@ -311,7 +314,8 @@ public abstract class JsonNodeDecoder implements Decoder {
         private final Iterator<JsonNode> iterator;
         private JsonNode peeked;
 
-        Array(JsonNode node) {
+        Array(JsonNode node, RemainingLimits remainingLimits) {
+            super(remainingLimits);
             iterator = node.values().iterator();
             skipValue();
         }
@@ -355,7 +359,8 @@ public abstract class JsonNodeDecoder implements Decoder {
         private final JsonNode node;
         private boolean complete = false;
 
-        Buffered(JsonNode node) {
+        Buffered(JsonNode node, RemainingLimits remainingLimits) {
+            super(remainingLimits);
             this.node = node;
         }
 
