@@ -44,8 +44,8 @@ loadScripts(document, 'script');</script>
 <div>
 <ul class="sub-nav-list">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
+<li><a href="#field-summary">Field</a>&nbsp;|&nbsp;</li>
 <li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
 </ul>
@@ -72,7 +72,9 @@ loadScripts(document, 'script');</script>
 <h1 title="Class JsonNodeDecoder" class="title">Class JsonNodeDecoder</h1>
 </div>
 <div class="inheritance" title="Inheritance Tree"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">java.lang.Object</a>
+<div class="inheritance"><a href="../../LimitingStream.html" title="class in io.micronaut.serde">io.micronaut.serde.LimitingStream</a>
 <div class="inheritance">io.micronaut.serde.support.util.JsonNodeDecoder</div>
+</div>
 </div>
 <section class="class-description" id="class-description">
 <dl class="notes">
@@ -82,13 +84,31 @@ loadScripts(document, 'script');</script>
 <hr>
 <div class="type-signature"><span class="annotations">@Internal
 </span><span class="modifiers">public abstract class </span><span class="element-name type-name-label">JsonNodeDecoder</span>
-<span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
+<span class="extends-implements">extends <a href="../../LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a>
 implements <a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a></span></div>
 <div class="block">Implementation of the <a href="../../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> interface that
- uss the <code>JsonNode</code> abstraction.</div>
+ uses the <code>JsonNode</code> abstraction.</div>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="inherited-list">
+<h2 id="nested-classes-inherited-from-class-io.micronaut.serde.LimitingStream">Nested classes/interfaces inherited from class&nbsp;io.micronaut.serde.<a href="../../LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></h2>
+<code><a href="../../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a></code></div>
+</section>
+</li>
+<!-- =========== FIELD SUMMARY =========== -->
+<li>
+<section class="field-summary" id="field-summary">
+<h2>Field Summary</h2>
+<div class="inherited-list">
+<h3 id="fields-inherited-from-class-io.micronaut.serde.LimitingStream">Fields inherited from class&nbsp;io.micronaut.serde.<a href="../../LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></h3>
+<code><a href="../../LimitingStream.html#DEFAULT_LIMITS">DEFAULT_LIMITS</a>, <a href="../../LimitingStream.html#DEFAULT_MAXIMUM_DEPTH">DEFAULT_MAXIMUM_DEPTH</a></code></div>
+</section>
+</li>
 <!-- ========== METHOD SUMMARY =========== -->
 <li>
 <section class="method-summary" id="method-summary">
@@ -101,7 +121,8 @@ implements <a href="../../Decoder.html" title="interface in io.micronaut.serde">
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(io.micronaut.json.tree.JsonNode)" class="member-name-link">create</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;node)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits)" class="member-name-link">create</a><wbr>(io.micronaut.json.tree.JsonNode&nbsp;node,
+ <a href="../../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;message,
@@ -201,6 +222,9 @@ implements <a href="../../Decoder.html" title="interface in io.micronaut.serde">
 </div>
 </div>
 <div class="inherited-list">
+<h3 id="methods-inherited-from-class-io.micronaut.serde.LimitingStream">Methods inherited from class&nbsp;io.micronaut.serde.<a href="../../LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></h3>
+<code><a href="../../LimitingStream.html#childLimits()">childLimits</a>, <a href="../../LimitingStream.html#decreaseDepth()">decreaseDepth</a>, <a href="../../LimitingStream.html#increaseDepth()">increaseDepth</a>, <a href="../../LimitingStream.html#limitsFromConfiguration(io.micronaut.serde.config.SerdeConfiguration)">limitsFromConfiguration</a>, <a href="../../LimitingStream.html#ourLimits()">ourLimits</a></code></div>
+<div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
 <div class="inherited-list">
@@ -218,9 +242,10 @@ implements <a href="../../Decoder.html" title="interface in io.micronaut.serde">
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="create(io.micronaut.json.tree.JsonNode)">
+<section class="detail" id="create(io.micronaut.json.tree.JsonNode,io.micronaut.serde.LimitingStream.RemainingLimits)">
 <h3>create</h3>
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(io.micronaut.json.tree.JsonNode&nbsp;node)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></span>&nbsp;<span class="element-name">create</span><wbr><span class="parameters">(io.micronaut.json.tree.JsonNode&nbsp;node,
+ <a href="../../LimitingStream.RemainingLimits.html" title="class in io.micronaut.serde">LimitingStream.RemainingLimits</a>&nbsp;remainingLimits)</span></div>
 </section>
 </li>
 <li>

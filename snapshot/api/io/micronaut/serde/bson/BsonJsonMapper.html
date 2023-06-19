@@ -109,7 +109,7 @@ loadScripts(document, 'script');</script>
 <h2>Field Summary</h2>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-io.micronaut.serde.bson.AbstractBsonMapper">Fields inherited from class&nbsp;io.micronaut.serde.bson.<a href="AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></h3>
-<code><a href="AbstractBsonMapper.html#decoderContext">decoderContext</a>, <a href="AbstractBsonMapper.html#encoderContext">encoderContext</a>, <a href="AbstractBsonMapper.html#registry">registry</a>, <a href="AbstractBsonMapper.html#view">view</a></code></div>
+<code><a href="AbstractBsonMapper.html#decoderContext">decoderContext</a>, <a href="AbstractBsonMapper.html#encoderContext">encoderContext</a>, <a href="AbstractBsonMapper.html#registry">registry</a>, <a href="AbstractBsonMapper.html#serdeConfiguration">serdeConfiguration</a>, <a href="AbstractBsonMapper.html#view">view</a></code></div>
 </section>
 </li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
@@ -121,10 +121,17 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.SerdeRegistry)" class="member-name-link">BsonJsonMapper</a><wbr>(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.SerdeRegistry,java.lang.Class)" class="member-name-link">BsonJsonMapper</a><wbr>(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span></div>
+</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.SerdeRegistry,io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">BsonJsonMapper</a><wbr>(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+ <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration)</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.SerdeRegistry,java.lang.Class)" class="member-name-link">BsonJsonMapper</a><wbr>(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span></div>
+</div>
 </div>
 </section>
 </li>
@@ -177,15 +184,26 @@ loadScripts(document, 'script');</script>
 <li>
 <section class="detail" id="&lt;init&gt;(io.micronaut.serde.SerdeRegistry)">
 <h3>BsonJsonMapper</h3>
-<div class="member-signature"><span class="annotations">@Inject
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>
 </span><span class="modifiers">public</span>&nbsp;<span class="element-name">BsonJsonMapper</span><wbr><span class="parameters">(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry)</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span></div>
 </section>
 </li>
 <li>
 <section class="detail" id="&lt;init&gt;(io.micronaut.serde.SerdeRegistry,java.lang.Class)">
 <h3>BsonJsonMapper</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">BsonJsonMapper</span><wbr><span class="parameters">(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>
+</span><span class="modifiers">public</span>&nbsp;<span class="element-name">BsonJsonMapper</span><wbr><span class="parameters">(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.SerdeRegistry,io.micronaut.serde.config.SerdeConfiguration)">
+<h3>BsonJsonMapper</h3>
+<div class="member-signature"><span class="annotations">@Inject
+</span><span class="modifiers">public</span>&nbsp;<span class="element-name">BsonJsonMapper</span><wbr><span class="parameters">(<a href="../SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a>&nbsp;registry,
+ <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration)</span></div>
 </section>
 </li>
 </ul>
