@@ -17,10 +17,17 @@ package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
-import io.micronaut.serde.*;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
@@ -43,16 +50,19 @@ import java.util.function.Consumer;
 @Internal
 public abstract class AbstractBsonMapper implements ObjectMapper {
     protected final SerdeRegistry registry;
+    @Nullable
+    protected final SerdeConfiguration serdeConfiguration;
     protected final Class<?> view;
     protected Serializer.EncoderContext encoderContext;
     protected Deserializer.DecoderContext decoderContext;
 
-    public AbstractBsonMapper(SerdeRegistry registry) {
-        this(registry, null);
+    public AbstractBsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
+        this(registry, serdeConfiguration, null);
     }
 
-    protected AbstractBsonMapper(SerdeRegistry registry, Class<?> view) {
+    protected AbstractBsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
         this.registry = registry;
+        this.serdeConfiguration = serdeConfiguration;
         this.view = view;
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
@@ -62,9 +72,14 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;
 
+    @NonNull
+    private LimitingStream.RemainingLimits limits() {
+        return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
+    }
+
     @Override
     public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
-        JsonNodeEncoder encoder = JsonNodeEncoder.create();
+        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
@@ -75,7 +90,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             if (object == null) {
                 bsonWriter.writeNull();
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter);
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, limits());
                 serialize(encoder, object, type);
             }
             bsonWriter.flush();
@@ -92,7 +107,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         final Deserializer<? extends T> deserializer = this.decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-        return deserializer.deserialize(JsonNodeDecoder.create(tree), decoderContext, type);
+        return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
 
     @Override
@@ -114,7 +129,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     private <T> T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
         return decoderContext.findDeserializer(type)
                 .createSpecific(decoderContext, type)
-                .deserialize(new BsonReaderDecoder(bsonReader), decoderContext, type);
+                .deserialize(new BsonReaderDecoder(bsonReader, limits()), decoderContext, type);
     }
 
     @Override
@@ -125,7 +140,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
                 try (BsonReader bsonReader = createBsonReader(toByteBuffer(is))) {
-                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader);
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits());
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
                 }
@@ -134,7 +149,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             @Override
             protected JsonNode parseOne(byte[] remaining) throws IOException {
                 try (BsonReader bsonReader = createBsonReader(ByteBuffer.wrap(remaining))) {
-                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader);
+                    final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits());
                     final Object o = decoder.decodeArbitrary();
                     return writeValueToTree(o);
                 }
@@ -144,7 +159,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     @Override
     public JsonNode writeValueToTree(Object value) throws IOException {
-        JsonNodeEncoder encoder = JsonNodeEncoder.create();
+        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
@@ -155,7 +170,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
             if (object == null) {
                 bsonWriter.writeNull();
             } else {
-                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter);
+                BsonWriterEncoder encoder = new BsonWriterEncoder(bsonWriter, limits());
                 serialize(encoder, object);
             }
             bsonWriter.flush();

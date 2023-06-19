@@ -17,10 +17,13 @@ package io.micronaut.serde.jackson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,28 +33,42 @@ import java.util.Objects;
 /**
  * Implementation of the {@link io.micronaut.serde.Encoder} interface for Jackson.
  */
-public abstract class JacksonEncoder implements Encoder {
-    // Changes must be reflected in {@link SpecializedJacksonEncoder}!
-
+public abstract class JacksonEncoder extends LimitingStream implements Encoder {
     protected final JsonGenerator generator;
     @Nullable
     private final JacksonEncoder parent;
 
     private JacksonEncoder child = null;
 
-    private JacksonEncoder(@NonNull JacksonEncoder parent) {
+    private JacksonEncoder(@NonNull JacksonEncoder parent, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.generator = parent.generator;
         this.parent = parent;
     }
 
-    private JacksonEncoder(@NonNull JsonGenerator generator) {
+    private JacksonEncoder(@NonNull JsonGenerator generator, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.generator = generator;
         this.parent = null;
     }
 
+    @NonNull
     public static Encoder create(@NonNull JsonGenerator generator) {
+        return create(generator, DEFAULT_LIMITS);
+    }
+
+    /**
+     * Create a new encoder.
+     *
+     * @param generator       The jackson-core generator to write to
+     * @param remainingLimits The maximum nesting depth
+     * @return The encoder
+     */
+    @NonNull
+    @Internal
+    public static Encoder create(@NonNull JsonGenerator generator, @NonNull RemainingLimits remainingLimits) {
         Objects.requireNonNull(generator, "generator");
-        return new ReuseChildEncoder(generator);
+        return new ReuseChildEncoder(generator, remainingLimits);
     }
 
     void checkChild() {
@@ -63,8 +80,8 @@ public abstract class JacksonEncoder implements Encoder {
         }
     }
 
-    JacksonEncoder makeArrayChildEncoder() {
-        return new ArrayEncoder(this);
+    JacksonEncoder makeArrayChildEncoder() throws SerdeException {
+        return new ArrayEncoder(this, childLimits());
     }
 
     @Override
@@ -77,8 +94,8 @@ public abstract class JacksonEncoder implements Encoder {
         return arrayEncoder;
     }
 
-    JacksonEncoder makeObjectChildEncoder() {
-        return new ObjectEncoder(this);
+    JacksonEncoder makeObjectChildEncoder() throws SerdeException {
+        return new ObjectEncoder(this, childLimits());
     }
 
     @Override
@@ -183,8 +200,8 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     private static final class ArrayEncoder extends JacksonEncoder {
-        ArrayEncoder(JacksonEncoder parent) {
-            super(parent);
+        ArrayEncoder(JacksonEncoder parent, RemainingLimits remainingLimits) {
+            super(parent, remainingLimits);
         }
 
         @Override
@@ -194,8 +211,8 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     private static final class ObjectEncoder extends JacksonEncoder {
-        ObjectEncoder(JacksonEncoder parent) {
-            super(parent);
+        ObjectEncoder(JacksonEncoder parent, RemainingLimits remainingLimits) {
+            super(parent, remainingLimits);
         }
 
         @Override
@@ -205,8 +222,8 @@ public abstract class JacksonEncoder implements Encoder {
     }
 
     private static final class OuterEncoder extends JacksonEncoder {
-        OuterEncoder(@NonNull JsonGenerator generator) {
-            super(generator);
+        OuterEncoder(@NonNull JsonGenerator generator, RemainingLimits remainingLimits) {
+            super(generator, remainingLimits);
         }
 
         @Override
@@ -219,8 +236,8 @@ public abstract class JacksonEncoder implements Encoder {
         private long type = 0;
         private int depth = 0;
 
-        ReuseChildEncoder(@NonNull JsonGenerator generator) {
-            super(generator);
+        ReuseChildEncoder(@NonNull JsonGenerator generator, RemainingLimits remainingLimits) {
+            super(generator, remainingLimits);
         }
 
         @Override
@@ -228,6 +245,7 @@ public abstract class JacksonEncoder implements Encoder {
             if (depth == 0) {
                 throw new IllegalStateException("Not in structure");
             }
+            decreaseDepth();
             depth--;
             if ((type & 1) == 0) {
                 generator.writeEndObject();
@@ -238,10 +256,11 @@ public abstract class JacksonEncoder implements Encoder {
         }
 
         @Override
-        JacksonEncoder makeArrayChildEncoder() {
+        JacksonEncoder makeArrayChildEncoder() throws SerdeException {
             if (depth == 64) {
                 return super.makeArrayChildEncoder();
             } else {
+                increaseDepth();
                 depth++;
                 type = (type << 1) | 1;
                 return this;
@@ -249,10 +268,11 @@ public abstract class JacksonEncoder implements Encoder {
         }
 
         @Override
-        JacksonEncoder makeObjectChildEncoder() {
+        JacksonEncoder makeObjectChildEncoder() throws SerdeException {
             if (depth == 64) {
                 return super.makeObjectChildEncoder();
             } else {
+                increaseDepth();
                 depth++;
                 type = type << 1;
                 return this;

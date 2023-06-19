@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.json.stream;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import jakarta.json.JsonNumber;
@@ -31,7 +32,14 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;
 
+
     public JsonParserDecoder(JsonParser jsonParser) {
+        this(jsonParser, DEFAULT_LIMITS);
+    }
+
+    @Internal
+    JsonParserDecoder(JsonParser jsonParser, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.jsonParser = jsonParser;
         this.currentEvent = jsonParser.next();
     }

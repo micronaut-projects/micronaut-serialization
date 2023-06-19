@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
@@ -32,7 +34,7 @@ import java.math.BigInteger;
  * @author Denis Stepanov
  */
 @Internal
-public final class BsonWriterEncoder implements Encoder {
+public final class BsonWriterEncoder extends LimitingStream implements Encoder {
     private final BsonWriter bsonWriter;
     private final boolean isArray;
     private final BsonWriterEncoder parent;
@@ -40,13 +42,15 @@ public final class BsonWriterEncoder implements Encoder {
     private String currentKey = null;
     private int currentIndex = 0;
 
-    public BsonWriterEncoder(BsonWriter bsonWriter) {
+    public BsonWriterEncoder(BsonWriter bsonWriter, RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.bsonWriter = bsonWriter;
         this.isArray = false;
         this.parent = null;
     }
 
-    private BsonWriterEncoder(BsonWriterEncoder parent, boolean isArray) {
+    private BsonWriterEncoder(BsonWriterEncoder parent, RemainingLimits remainingLimits, boolean isArray) {
+        super(remainingLimits);
         this.bsonWriter = parent.bsonWriter;
         this.isArray = isArray;
         this.parent = parent;
@@ -57,15 +61,15 @@ public final class BsonWriterEncoder implements Encoder {
     }
 
     @Override
-    public Encoder encodeArray(Argument<?> type) {
+    public Encoder encodeArray(Argument<?> type) throws SerdeException {
         bsonWriter.writeStartArray();
-        return new BsonWriterEncoder(this, true);
+        return new BsonWriterEncoder(this, childLimits(), true);
     }
 
     @Override
-    public Encoder encodeObject(Argument<?> type) {
+    public Encoder encodeObject(Argument<?> type) throws SerdeException {
         bsonWriter.writeStartDocument();
-        return new BsonWriterEncoder(this, false);
+        return new BsonWriterEncoder(this, childLimits(), false);
     }
 
     @Override

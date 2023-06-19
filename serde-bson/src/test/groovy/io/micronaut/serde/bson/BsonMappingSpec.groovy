@@ -3,6 +3,7 @@ package io.micronaut.serde.bson
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Deserializer
+import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.serde.bson.custom.CodecBsonDecoder
@@ -163,7 +164,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
                 list.add(
                         serdeRegistry.findDeserializer(Person2)
                                 .createSpecific(context, argument)
-                                .deserialize(new BsonReaderDecoder(reader), context, argument)
+                                .deserialize(new BsonReaderDecoder(reader, LimitingStream.DEFAULT_LIMITS), context, argument)
                 )
             }
 
@@ -185,7 +186,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             def context = serdeRegistry.newDecoderContext(Person2)
             def argument = Argument.of(Person2)
             def readPerson = serdeRegistry.findDeserializer(Person2).createSpecific(context, argument)
-                    .deserialize(new BsonReaderDecoder(reader), context, argument)
+                    .deserialize(new BsonReaderDecoder(reader, LimitingStream.DEFAULT_LIMITS), context, argument)
 
             reader.readEndDocument()
         then:
@@ -290,7 +291,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
             def bsonDocumentAddress = BsonDocument.parse("""{"address": "The home", "street": "Downstreet", "town": "Paris", "postcode": "123456"}""")
         when:
-            Address address = asDecoder.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), context, addressArgument)
+            Address address = asDecoder.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader(), LimitingStream.DEFAULT_LIMITS), context, addressArgument)
         then:
             address.address == "The home"
     }
@@ -315,7 +316,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
                 }
             }
         when:
-            NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObjAddress))
+            NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader(), LimitingStream.DEFAULT_LIMITS), decoderContext, Argument.of(NestedObjAddress))
         then:
             e.address.address == "The home"
             e.lastName == "B"
@@ -342,7 +343,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
                 }
             }
         when:
-            NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObjAddress))
+            NestedObjAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader(), LimitingStream.DEFAULT_LIMITS), decoderContext, Argument.of(NestedObjAddress))
         then:
             e.address.address == "The home"
             e.lastName == null
@@ -369,7 +370,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
                 }
             }
         when:
-            NestedObj2Address e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedObj2Address))
+            NestedObj2Address e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader(), LimitingStream.DEFAULT_LIMITS), decoderContext, Argument.of(NestedObj2Address))
         then:
             e.address.address.address == "The home"
             e.address.lastName == "B"
@@ -396,7 +397,7 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
                 }
             }
         when:
-            NestedArrayAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader()), decoderContext, Argument.of(NestedArrayAddress))
+            NestedArrayAddress e = deserializer.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader(), LimitingStream.DEFAULT_LIMITS), decoderContext, Argument.of(NestedArrayAddress))
         then:
             e.lastName == "B"
             e.addresses[0].address == "The home"
@@ -548,7 +549,7 @@ class MappedCodec<T> implements Codec<T> {
     @Override
     T decode(BsonReader reader, DecoderContext decoderContext) {
         try {
-            T deserialize = deserializer.deserialize(new BsonReaderDecoder(reader), serdeRegistry.newDecoderContext(type), argument)
+            T deserialize = deserializer.deserialize(new BsonReaderDecoder(reader, LimitingStream.DEFAULT_LIMITS), serdeRegistry.newDecoderContext(type), argument)
             return deserialize
         } catch (IOException e) {
             throw new SerdeException("Cannot deserialize: " + type, e)

@@ -16,9 +16,12 @@
 package io.micronaut.serde.oracle.jdbc.json;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.config.SerdeConfiguration;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import oracle.sql.json.OracleJsonGenerator;
 import oracle.sql.json.OracleJsonParser;
@@ -37,17 +40,29 @@ import java.io.OutputStream;
 @Order(199) // lower precedence than Jackson but higher than OracleJdbcJsonBinaryObjectMapper
 public final class OracleJdbcJsonTextObjectMapper extends AbstractOracleJdbcJsonObjectMapper {
 
+    @Deprecated
     public OracleJdbcJsonTextObjectMapper(SerdeRegistry registry) {
-        super(registry);
+        this(registry, (SerdeConfiguration) null);
     }
 
+    @Deprecated
     public OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, Class<?> view) {
-        super(registry, view);
+        this(registry, null, view);
+    }
+
+    @Internal
+    @Inject
+    public OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
+        super(registry, serdeConfiguration);
+    }
+
+    private OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+        super(registry, serdeConfiguration, view);
     }
 
     @Override
     public JsonMapper cloneWithViewClass(Class<?> viewClass) {
-        return new OracleJdbcJsonTextObjectMapper(registry, viewClass);
+        return new OracleJdbcJsonTextObjectMapper(registry, serdeConfiguration, viewClass);
     }
 
     @Override

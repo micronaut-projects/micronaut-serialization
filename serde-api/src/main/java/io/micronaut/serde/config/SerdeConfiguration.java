@@ -18,6 +18,7 @@ package io.micronaut.serde.config;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
+import io.micronaut.serde.LimitingStream;
 
 import java.util.List;
 import java.util.Locale;
@@ -76,6 +77,15 @@ public interface SerdeConfiguration {
      */
     @Bindable(defaultValue = "io.micronaut")
     List<String> getIncludedIntrospectionPackages();
+
+    /**
+     * The maximum nesting depth for serialization and deserialization.
+     *
+     * @return The maximum nesting depth for serialization and deserialization
+     * @since 2.0.0
+     */
+    @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "")
+    int getMaximumNestingDepth();
 
     /**
      * Shape to use for time serialization.

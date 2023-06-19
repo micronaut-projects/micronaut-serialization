@@ -2,13 +2,14 @@ package io.micronaut.serde.jackson
 
 import com.fasterxml.jackson.core.JsonFactoryBuilder
 import io.micronaut.serde.Decoder
+import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.exceptions.SerdeException
 import org.intellij.lang.annotations.Language
 import spock.lang.Specification
 
 class JacksonDecoderSpec extends Specification {
     private static Decoder createDecoder(@Language('json') String json) {
-        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json))
+        return JacksonDecoder.create(new JsonFactoryBuilder().build().createParser(json), LimitingStream.DEFAULT_LIMITS)
     }
 
     def "unwrap arrays normal"() {

@@ -21,6 +21,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
@@ -36,9 +37,13 @@ import java.util.function.Function;
  * Abstract base class for stream-based {@link io.micronaut.serde.Decoder}s.
  */
 @Internal
-public abstract class AbstractStreamDecoder implements Decoder {
+public abstract class AbstractStreamDecoder extends LimitingStream implements Decoder {
 
     private boolean currentlyUnwrappingArray = false;
+
+    public AbstractStreamDecoder(@NonNull RemainingLimits remainingLimits) {
+        super(remainingLimits);
+    }
 
     /**
      * The token type.
@@ -146,6 +151,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
         } else if (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
+        decreaseDepth();
     }
 
     /**
@@ -208,6 +214,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
         if (currentToken != TokenType.START_ARRAY) {
             throw unexpectedToken(TokenType.START_ARRAY);
         }
+        increaseDepth();
         nextToken();
         return this;
     }
@@ -229,6 +236,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
         if (currentToken != TokenType.START_OBJECT) {
             throw unexpectedToken(TokenType.START_OBJECT);
         }
+        increaseDepth();
         nextToken();
         return this;
     }
@@ -730,7 +738,7 @@ public abstract class AbstractStreamDecoder implements Decoder {
     @Override
     public Decoder decodeBuffer() throws IOException {
         JsonNode node = decodeNode();
-        return JsonNodeDecoder.create(node);
+        return JsonNodeDecoder.create(node, ourLimits());
     }
 
     @NonNull

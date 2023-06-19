@@ -16,10 +16,11 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
-import io.micronaut.serde.support.AbstractStreamDecoder;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
+import io.micronaut.serde.support.AbstractStreamDecoder;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonReader;
@@ -51,7 +52,8 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     private BsonType currentBsonType;
     private TokenType currentToken;
 
-    public BsonReaderDecoder(BsonReader bsonReader) {
+    public BsonReaderDecoder(BsonReader bsonReader, @NonNull RemainingLimits remainingLimits) {
+        super(remainingLimits);
         this.bsonReader = bsonReader;
         this.contextStack = new ArrayDeque<>();
         BsonType currentBsonType = bsonReader.getCurrentBsonType();
@@ -65,8 +67,8 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
         }
     }
 
-    private BsonReaderDecoder(BsonReaderDecoder parent) {
-        super(parent);
+    private BsonReaderDecoder(BsonReaderDecoder parent, @NonNull RemainingLimits remainingLimits) {
+        super(parent, remainingLimits);
         this.bsonReader = parent.bsonReader;
         this.contextStack = parent.contextStack;
         this.currentBsonType = parent.currentBsonType;
@@ -220,8 +222,8 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     }
 
     @Override
-    protected AbstractStreamDecoder createChildDecoder() {
-        return new BsonReaderDecoder(this);
+    protected AbstractStreamDecoder createChildDecoder() throws SerdeException {
+        return new BsonReaderDecoder(this, childLimits());
     }
 
     @Override
@@ -401,7 +403,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     @Override
     public Decoder decodeBuffer() throws IOException {
         byte[] documentBytes = decodeCustom(p -> ((BsonReaderDecoder) p).copyValueToDocument());
-        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)));
+        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)), ourLimits());
         Decoder objectDecoder = topDecoder.decodeObject();
         objectDecoder.decodeKey(); // skip key
         return objectDecoder;
