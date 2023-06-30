@@ -6,6 +6,5 @@ plugins {
 micronautBuild {
     binaryCompatibility {
         enabled.set(true)
-        baselineVersion = "2.0.0-M12"
     }
 }
