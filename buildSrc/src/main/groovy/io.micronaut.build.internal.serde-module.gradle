@@ -5,7 +5,6 @@ plugins {
 
 micronautBuild {
     binaryCompatibility {
-        // Enable before Micronaut 4 release
-        enabled.set(false)
+        enabled.set(true)
     }
 }
