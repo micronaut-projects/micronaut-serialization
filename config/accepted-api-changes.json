@@ -3,5 +3,15 @@
     "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
     "member": "Constructor io.micronaut.serde.support.DefaultSerdeRegistry(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections)",
     "reason": "Internal class not part of public API"
+  },
+  {
+    "type": "io.micronaut.serde.bson.BsonBinaryMapper",
+    "member": "Constructor io.micronaut.serde.bson.BsonBinaryMapper(io.micronaut.serde.SerdeRegistry,java.lang.Class)",
+    "reason": "Changed in Micronaut Framework 4"
+  },
+  {
+    "type": "io.micronaut.serde.bson.BsonBinaryMapper",
+    "member": "Constructor io.micronaut.serde.bson.BsonBinaryMapper(io.micronaut.serde.SerdeRegistry)",
+    "reason": "Changed in Micronaut Framework 4"
   }
 ]
