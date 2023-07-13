@@ -2,10 +2,10 @@
 micronaut = "4.0.0"
 micronaut-platform = "4.0.0-RC1"
 micronaut-docs = "2.0.0"
-micronaut-gradle-plugin = "4.0.0-M8"
-micronaut-test = "4.0.0-M8"
-micronaut-discovery = "4.0.0-M5"
-micronaut-logging = "1.0.0-M6"
+micronaut-gradle-plugin = "4.0.0"
+micronaut-test = "4.0.0"
+micronaut-discovery = "4.0.0"
+micronaut-logging = "1.0.0"
 
 groovy = "4.0.11"
 spock = "2.3-groovy-4.0"
@@ -20,7 +20,7 @@ managed-jakarta-json-api = "2.1.2"
 managed-jakarta-json-bindApi = "3.0.0"
 managed-eclipse-parsson = "1.1.2"
 
-micronaut-reactor = "3.0.0-M10"
+micronaut-reactor = "3.0.0"
 
 oracle-jdbc-driver = "23.2.0.0"
 jetbrains-annotations = "24.0.1"
