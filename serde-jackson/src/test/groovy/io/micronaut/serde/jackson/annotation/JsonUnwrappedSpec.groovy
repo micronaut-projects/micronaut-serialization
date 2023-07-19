@@ -596,4 +596,98 @@ class Name {
         cleanup:
         context.close()
     }
+
+    void "test @JsonUnwrapped - levels"() {
+        given:
+        def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Foo {
+
+    @JsonUnwrapped(prefix = "hk_")
+    private ComplexFooId hashKey;
+
+    private String value;
+
+    public ComplexFooId getHashKey() {
+        return hashKey;
+    }
+
+    public void setHashKey(ComplexFooId hashKey) {
+        this.hashKey = hashKey;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+@Serdeable
+class ComplexFooId {
+
+    private Integer theInt;
+
+    @JsonUnwrapped
+    private InnerFooId nested;
+
+    public Integer getTheInt() {
+        return theInt;
+    }
+
+    public void setTheInt(Integer theInt) {
+        this.theInt = theInt;
+    }
+
+    public InnerFooId getNested() {
+        return nested;
+    }
+
+    public void setNested(InnerFooId nested) {
+        this.nested = nested;
+    }
+}
+@Serdeable
+class InnerFooId {
+
+    private Long theLong;
+
+    private String theString;
+
+    public Long getTheLong() {
+        return theLong;
+    }
+
+    public void setTheLong(Long theLong) {
+        this.theLong = theLong;
+    }
+
+    public String getTheString() {
+        return theString;
+    }
+
+    public void setTheString(String theString) {
+        this.theString = theString;
+    }
+}
+""")
+
+        when:
+        def foo = newInstance(context, 'unwrapped.Foo', [value: "TheValue", hashKey: newInstance(context, 'unwrapped.ComplexFooId', [theInt: 10,
+            nested: newInstance(context, 'unwrapped.InnerFooId', [theLong: 200L, theString: 'MyString'])])])
+
+        def result = writeJson(jsonMapper, foo)
+
+        then:
+        result == '{"hk_theInt":10,"hk_theLong":200,"hk_theString":"MyString","value":"TheValue"}'
+
+        cleanup:
+        context.close()
+    }
 }
