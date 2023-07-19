@@ -68,7 +68,7 @@ public interface SerdeConfiguration {
      * @return Whether to use legacy byte array writing behavior
      */
     @Bindable(defaultValue = "true")
-    boolean isWriteLegacyByteArrays();
+    boolean isWriteBinaryAsArray();
 
     /**
      * @return The default locale to use.

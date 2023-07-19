@@ -1095,7 +1095,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         private final boolean writeLegacyByteArrays;
 
         public ByteArraySerde(SerdeConfiguration serdeConfiguration) {
-            this(serdeConfiguration.isWriteLegacyByteArrays());
+            this(serdeConfiguration.isWriteBinaryAsArray());
         }
 
         @Internal

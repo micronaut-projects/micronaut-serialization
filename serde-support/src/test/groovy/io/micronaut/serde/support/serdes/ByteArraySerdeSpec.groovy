@@ -7,7 +7,7 @@ import spock.lang.Specification
 class ByteArraySerdeSpec extends Specification {
     def 'test byte array shapes'(Boolean writeLegacyByteArrays, String expectedJson) {
         given:
-        def ctx = ApplicationContext.run(['micronaut.serde.write-legacy-byte-arrays': writeLegacyByteArrays])
+        def ctx = ApplicationContext.run(['micronaut.serde.write-binary-as-array': writeLegacyByteArrays])
         def mapper = ctx.getBean(JsonMapper)
 
         when:
