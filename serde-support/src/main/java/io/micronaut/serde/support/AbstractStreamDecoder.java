@@ -697,7 +697,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
         return switch (currentToken) {
-            case STRING -> BinaryCodecUtil.decodeFromString(this);
+            case STRING -> BinaryCodecUtil.decodeFromBase64String(this);
             case START_ARRAY -> BinaryCodecUtil.decodeFromArray(this);
             default -> throw unexpectedToken(TokenType.START_ARRAY);
         };

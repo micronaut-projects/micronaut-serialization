@@ -301,6 +301,7 @@ public interface Decoder extends AutoCloseable {
      * Implementations <b>must</b> support the array shape, but the other shapes are optional.
      *
      * @return The decoded byte array
+     * @since 2.1
      */
     default byte @NonNull [] decodeBinary() throws IOException {
         return BinaryCodecUtil.decodeFromArray(this);
@@ -311,6 +312,7 @@ public interface Decoder extends AutoCloseable {
      *
      * @return The value
      * @throws IOException If an unrecoverable error occurs
+     * @since 2.1
      */
     default byte @Nullable [] decodeBinaryNullable() throws IOException {
         return decodeNull() ? null : decodeBinary();

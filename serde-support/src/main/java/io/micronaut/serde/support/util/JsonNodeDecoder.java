@@ -197,7 +197,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
     public byte @NonNull [] decodeBinary() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isString()) {
-            return BinaryCodecUtil.decodeFromString(this);
+            return BinaryCodecUtil.decodeFromBase64String(this);
         } else {
             return BinaryCodecUtil.decodeFromArray(this);
         }

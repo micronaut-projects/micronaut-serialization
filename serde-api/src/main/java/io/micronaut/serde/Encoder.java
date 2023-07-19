@@ -150,6 +150,7 @@ public interface Encoder extends AutoCloseable {
      * the same data.
      *
      * @param data The input data
+     * @since 2.1
      * @implNote For symmetry with {@link Decoder#decodeBinary()}, the default implementation
      * writes to an array, but most implementations should write base64 instead.
      */

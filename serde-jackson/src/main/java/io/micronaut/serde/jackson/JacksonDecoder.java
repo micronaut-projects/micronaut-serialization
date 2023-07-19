@@ -781,7 +781,10 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     @Override
     public byte @NonNull [] decodeBinary() throws IOException {
         return switch (peekToken()) {
-            case VALUE_STRING -> BinaryCodecUtil.decodeFromString(this);
+            case VALUE_STRING -> {
+                nextToken();
+                yield parser.getBinaryValue();
+            }
             case START_ARRAY -> BinaryCodecUtil.decodeFromArray(this);
             default -> throw unexpectedToken(JsonToken.START_ARRAY, nextToken());
         };

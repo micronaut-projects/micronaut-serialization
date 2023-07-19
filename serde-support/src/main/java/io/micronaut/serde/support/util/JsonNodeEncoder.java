@@ -128,7 +128,7 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
     @Override
     public void encodeBinary(byte @NonNull [] data) throws IOException {
         // we're allowed to encode to string because JsonNodeDecoder can handle it
-        BinaryCodecUtil.encodeToString(this, data);
+        BinaryCodecUtil.encodeToBase64String(this, data);
     }
 
     @Override

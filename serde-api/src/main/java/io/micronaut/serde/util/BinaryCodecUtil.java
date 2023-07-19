@@ -26,6 +26,9 @@ import java.util.Base64;
 
 /**
  * Common implementations for reading/writing byte arrays.
+ *
+ * @since 2.1
+ * @author Jonas Konrad
  */
 @Internal
 public final class BinaryCodecUtil {
@@ -45,7 +48,7 @@ public final class BinaryCodecUtil {
         return buffer.toByteArray();
     }
 
-    public static byte[] decodeFromString(Decoder base) throws IOException {
+    public static byte[] decodeFromBase64String(Decoder base) throws IOException {
         String s = base.decodeString();
         try {
             return Base64.getDecoder().decode(s);
@@ -62,7 +65,7 @@ public final class BinaryCodecUtil {
         }
     }
 
-    public static void encodeToString(Encoder encoder, byte[] data) throws IOException {
+    public static void encodeToBase64String(Encoder encoder, byte[] data) throws IOException {
         encoder.encodeString(Base64.getEncoder().encodeToString(data));
     }
 }
