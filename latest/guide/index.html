@@ -131,7 +131,7 @@
         <h1>Micronaut Serialization</h1>
         <p></p>
         <p>Enables serialization/deserialization in Micronaut applications using build time information</p>
-        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option selected value='https://micronaut-projects.github.io/micronaut-serialization/latest/guide/index.html'>LATEST</option><option value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option value='https://micronaut-projects.github.io/micronaut-serialization/2.0.1/guide/index.html'>2.0.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/2.0.0/guide/index.html'>2.0.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.5.3/guide/index.html'>1.5.3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.5.2/guide/index.html'>1.5.2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.5.1/guide/index.html'>1.5.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.5.0/guide/index.html'>1.5.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.4.0/guide/index.html'>1.4.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.3/guide/index.html'>1.3.3</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.2/guide/index.html'>1.3.2</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.1/guide/index.html'>1.3.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.3.0/guide/index.html'>1.3.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.2.0/guide/index.html'>1.2.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.1.1/guide/index.html'>1.1.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.1.0/guide/index.html'>1.1.0</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.1/guide/index.html'>1.0.1</option><option value='https://micronaut-projects.github.io/micronaut-serialization/1.0.0/guide/index.html'>1.0.0</option></select> </p>
+        <p><strong>Version:</strong> <select style='max-width: 200px' onChange='window.document.location.href=this.options[this.selectedIndex].value;'><option value='https://micronaut-projects.github.io/micronaut-serialization/snapshot/guide/index.html'>SNAPSHOT</option><option value='https://micronaut-projects.github.io/micronaut-serialization/latest/guide/index.html'>LATEST</option></select> </p>
     </div>
     
 <h1 id="introduction"><a class="anchor" href="#introduction"></a>1 Introduction</h1>
@@ -247,7 +247,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:2.0.1")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">annotationProcessor(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-processor:2.0.2")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -257,7 +257,7 @@
     &lt;path&gt;
         &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
         &lt;artifactId&gt;micronaut-serde-processor&lt;/artifactId&gt;
-        &lt;version&gt;2.0.1&lt;/version&gt;
+        &lt;version&gt;2.0.2&lt;/version&gt;
     &lt;/path&gt;
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
@@ -286,7 +286,7 @@
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:2.0.1")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jackson:2.0.2")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -294,7 +294,7 @@
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
-    &lt;version&gt;2.0.1&lt;/version&gt;
+    &lt;version&gt;2.0.2&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -498,7 +498,7 @@ class BookTest {
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:2.0.1")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-jsonp:2.0.2")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -506,7 +506,7 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
-    &lt;version&gt;2.0.1&lt;/version&gt;
+    &lt;version&gt;2.0.2&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
@@ -674,7 +674,7 @@ class BookTest {
 <p>        <div class="listingblock multi-language-sample">
 <div class="title"></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:2.0.1")</span></code></pre>
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="gradle">implementation(<span class="hljs-string">"io.micronaut.serde:micronaut-serde-bson:2.0.2")</span></code></pre>
 </div>
 </div>
 <div class="listingblock multi-language-sample">
@@ -682,7 +682,7 @@ class BookTest {
 <pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="maven">&lt;dependency&gt;
     &lt;groupId&gt;io.micronaut.serde&lt;/groupId&gt;
     &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
-    &lt;version&gt;2.0.1&lt;/version&gt;
+    &lt;version&gt;2.0.2&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div></p>
