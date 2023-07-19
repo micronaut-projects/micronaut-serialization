@@ -17,6 +17,7 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -142,6 +143,19 @@ public interface Encoder extends AutoCloseable {
      * @throws IOException If an error occurs
      */
     void encodeBigDecimal(@NonNull BigDecimal value) throws IOException;
+
+    /**
+     * Encode the given binary data. The shape of the data in the output is unspecified, the only
+     * requirement is that the equivalent {@link Decoder#decodeBinary()} must be able to parse to
+     * the same data.
+     *
+     * @param data The input data
+     * @implNote For symmetry with {@link Decoder#decodeBinary()}, the default implementation
+     * writes to an array, but most implementations should write base64 instead.
+     */
+    default void encodeBinary(byte @NonNull [] data) throws IOException {
+        BinaryCodecUtil.encodeToArray(this, data);
+    }
 
     /**
      * Encode {@code null}.

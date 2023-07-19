@@ -115,4 +115,16 @@ class CoreTypeSerdeSpec extends Specification {
         results.size() == 1000
         results.each { assert it.value.getInfo() == "test" + it.key }
     }
+
+    void "test byte array deserialization shapes"(byte[] expected, String json) {
+        when:
+        def deser = jsonMapper.readValue(json, Argument.of(byte[]))
+        then:
+        deser == expected
+
+        where:
+        expected | json
+        [0, 1]   | '[0,1]'
+        [0, 1]   | '"' + Base64.encoder.encodeToString([0, 1] as byte[]) + '"'
+    }
 }

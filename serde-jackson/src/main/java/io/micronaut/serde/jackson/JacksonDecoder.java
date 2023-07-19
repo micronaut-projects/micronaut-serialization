@@ -27,6 +27,7 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
+import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -775,6 +776,15 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     private Number decodeNumber() throws IOException {
         nextToken();
         return parser.getNumberValue();
+    }
+
+    @Override
+    public byte @NonNull [] decodeBinary() throws IOException {
+        return switch (peekToken()) {
+            case VALUE_STRING -> BinaryCodecUtil.decodeFromString(this);
+            case START_ARRAY -> BinaryCodecUtil.decodeFromArray(this);
+            default -> throw unexpectedToken(JsonToken.START_ARRAY, nextToken());
+        };
     }
 
     @Override

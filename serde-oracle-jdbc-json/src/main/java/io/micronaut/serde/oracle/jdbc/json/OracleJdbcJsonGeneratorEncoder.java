@@ -23,6 +23,7 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import oracle.sql.json.OracleJsonGenerator;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -147,6 +148,13 @@ public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream impleme
     @Override
     public void encodeBigDecimal(BigDecimal value) {
         jsonGenerator.write(value);
+        postEncodeValue();
+    }
+
+    @Override
+    public void encodeBinary(byte @NonNull [] data) throws IOException {
+        // custom oson type, can be read by our decoder
+        jsonGenerator.write(data);
         postEncodeValue();
     }
 

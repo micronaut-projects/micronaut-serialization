@@ -20,6 +20,7 @@ import io.micronaut.context.BeanRegistration;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.annotation.Order;
@@ -39,12 +40,14 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.serdes.NumberSerde;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
+import io.micronaut.serde.util.BinaryCodecUtil;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -101,7 +104,11 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     public static final ShortArraySerde SHORT_ARRAY_SERDE = new ShortArraySerde();
     public static final DoubleArraySerde DOUBLE_ARRAY_SERDE = new DoubleArraySerde();
     public static final BooleanArraySerde BOOLEAN_ARRAY_SERDE = new BooleanArraySerde();
-    public static final ByteArraySerde BYTE_ARRAY_SERDE = new ByteArraySerde();
+    /**
+     * @deprecated This serde needs configuration now.
+     */
+    @Deprecated
+    public static final ByteArraySerde BYTE_ARRAY_SERDE = new ByteArraySerde(true);
     public static final CharArraySerde CHAR_ARRAY_SERDE = new CharArraySerde();
 
     public static final StringSerde STRING_SERDE = new StringSerde();
@@ -135,7 +142,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         SHORT_ARRAY_SERDE,
         DOUBLE_ARRAY_SERDE,
         BOOLEAN_ARRAY_SERDE,
-        BYTE_ARRAY_SERDE,
         CHAR_ARRAY_SERDE
     );
     private final Serializer<Object> objectSerializer;
@@ -1080,53 +1086,48 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
     }
 
-    private static final class ByteArraySerde extends SerdeRegistrar<byte[]> {
+    /**
+     * Serde for byte arrays. Nested class for binary compatibility.
+     */
+    @Singleton
+    @Internal
+    public static final class ByteArraySerde implements Serde<byte[]> {
+        private final boolean writeLegacyByteArrays;
+
+        public ByteArraySerde(SerdeConfiguration serdeConfiguration) {
+            this(serdeConfiguration.isWriteLegacyByteArrays());
+        }
+
+        @Internal
+        public ByteArraySerde(boolean writeLegacyByteArrays) {
+            this.writeLegacyByteArrays = writeLegacyByteArrays;
+        }
+
         @Override
         public byte[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super byte[]> type)
-                throws IOException {
-            final Decoder arrayDecoder = decoder.decodeArray();
-            byte[] buffer = new byte[100];
-            int index = 0;
-            while (arrayDecoder.hasNextArrayValue()) {
-                if (buffer.length == index) {
-                    buffer = Arrays.copyOf(buffer, buffer.length * 2);
-                }
-                if (!arrayDecoder.decodeNull()) {
-                    buffer[index] = arrayDecoder.decodeByte();
-                }
-                index++;
-            }
-            arrayDecoder.finishStructure();
-            return Arrays.copyOf(buffer, index);
+            throws IOException {
+            return decoder.decodeBinary();
         }
 
         @Override
         public byte[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws IOException {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return deserialize(decoder, context, type);
+            return decoder.decodeBinaryNullable();
         }
 
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
                               Argument<? extends byte[]> type, byte[] value) throws IOException {
-            final Encoder arrayEncoder = encoder.encodeArray(type);
-            for (byte i : value) {
-                arrayEncoder.encodeByte(i);
+            if (writeLegacyByteArrays) {
+                BinaryCodecUtil.encodeToArray(encoder, value);
+            } else {
+                encoder.encodeBinary(value);
             }
-            arrayEncoder.finishStructure();
         }
 
         @Override
         public boolean isEmpty(EncoderContext context, byte[] value) {
             return value == null || value.length == 0;
-        }
-
-        @Override
-        Argument<byte[]> getType() {
-            return Argument.of(byte[].class);
         }
     }
 

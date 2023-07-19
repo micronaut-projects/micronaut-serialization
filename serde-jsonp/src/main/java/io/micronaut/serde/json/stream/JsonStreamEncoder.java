@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.util.BinaryCodecUtil;
 import jakarta.json.stream.JsonGenerator;
 
 import java.io.IOException;
@@ -138,6 +139,12 @@ final class JsonStreamEncoder extends LimitingStream implements Encoder {
     public void encodeBigDecimal(BigDecimal value) throws IOException {
         jsonGenerator.write(value);
         postEncodeValue();
+    }
+
+    @Override
+    public void encodeBinary(byte @NonNull [] data) throws IOException {
+        // we're allowed to encode to string because our decoder can handle it
+        BinaryCodecUtil.encodeToString(this, data);
     }
 
     @Override

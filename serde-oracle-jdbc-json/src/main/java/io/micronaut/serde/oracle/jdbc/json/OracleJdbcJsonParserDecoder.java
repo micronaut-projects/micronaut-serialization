@@ -174,6 +174,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      *
      * @return the byte array for Oracle JSON binary
      */
+    @Override
     public byte[] decodeBinary() {
         if (currentEvent == OracleJsonParser.Event.VALUE_BINARY) {
             byte[] bytes = jsonParser.getBytes();

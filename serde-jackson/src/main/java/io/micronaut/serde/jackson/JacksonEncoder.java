@@ -195,6 +195,11 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
     }
 
     @Override
+    public void encodeBinary(byte @NonNull [] data) throws IOException {
+        generator.writeBinary(data);
+    }
+
+    @Override
     public final void encodeNull() throws IOException {
         generator.writeNull();
     }

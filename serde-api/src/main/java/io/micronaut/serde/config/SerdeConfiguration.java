@@ -60,6 +60,17 @@ public interface SerdeConfiguration {
     NumericTimeUnit getNumericTimeUnit();
 
     /**
+     * Control whether to use legacy behavior for writing byte arrays. When set to {@code true} (the
+     * default in serde 2.x), byte arrays will always be written as arrays of numbers. When set to
+     * {@code false}, the encoding may be format-specific instead, and will be a base64 string for
+     * JSON.
+     *
+     * @return Whether to use legacy byte array writing behavior
+     */
+    @Bindable(defaultValue = "true")
+    boolean isWriteLegacyByteArrays();
+
+    /**
      * @return The default locale to use.
      */
     Optional<Locale> getLocale();
