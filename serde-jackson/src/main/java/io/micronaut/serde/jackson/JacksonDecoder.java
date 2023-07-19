@@ -130,6 +130,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     @Override
     public String decodeKey() throws IOException {
         if (peekedToken != null) {
+            if (peekedToken == JsonToken.END_OBJECT) {
+                return null;
+            }
             String fieldName = parser.currentName();
             if (fieldName != null) {
                 peekedToken = null;
