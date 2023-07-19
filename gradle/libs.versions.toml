@@ -15,7 +15,7 @@ aws-lambda-events = '3.11.2'
 aws-lambda-serialization = '1.1.2'
 microstream-storage-restclient = '08.01.01-MS-GA'
 
-managed-bson = "4.10.1"
+managed-bson = "4.10.2"
 managed-jakarta-json-api = "2.1.2"
 managed-jakarta-json-bindApi = "3.0.0"
 managed-eclipse-parsson = "1.1.3"
