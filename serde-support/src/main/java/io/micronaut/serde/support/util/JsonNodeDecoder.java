@@ -23,6 +23,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -189,6 +190,16 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             return peeked.getBigDecimalValue();
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+        }
+    }
+
+    @Override
+    public byte @NonNull [] decodeBinary() throws IOException {
+        JsonNode peeked = peekValue();
+        if (peeked.isString()) {
+            return BinaryCodecUtil.decodeFromBase64String(this);
+        } else {
+            return BinaryCodecUtil.decodeFromArray(this);
         }
     }
 

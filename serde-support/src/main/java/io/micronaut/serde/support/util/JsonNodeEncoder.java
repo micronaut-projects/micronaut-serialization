@@ -22,7 +22,9 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.util.BinaryCodecUtil;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -121,6 +123,12 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
     @Override
     public void encodeBigDecimal(BigDecimal value) {
         encodeValue(JsonNode.createNumberNode(value));
+    }
+
+    @Override
+    public void encodeBinary(byte @NonNull [] data) throws IOException {
+        // we're allowed to encode to string because JsonNodeDecoder can handle it
+        BinaryCodecUtil.encodeToBase64String(this, data);
     }
 
     @Override

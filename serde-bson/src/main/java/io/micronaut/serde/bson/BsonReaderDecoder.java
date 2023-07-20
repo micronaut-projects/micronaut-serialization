@@ -317,6 +317,15 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     }
 
     @Override
+    public byte @NonNull [] decodeBinary() throws IOException {
+        if (currentBsonType == BsonType.BINARY) {
+            return decodeCustom(parser -> ((BsonReaderDecoder) parser).bsonReader.readBinaryData().getData());
+        } else {
+            return super.decodeBinary();
+        }
+    }
+
+    @Override
     protected void skipChildren() {
         bsonReader.skipValue();
         currentToken = null;

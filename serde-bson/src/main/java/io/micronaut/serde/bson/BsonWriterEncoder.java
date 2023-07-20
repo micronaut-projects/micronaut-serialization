@@ -21,10 +21,12 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.bson.BsonBinary;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -154,6 +156,12 @@ public final class BsonWriterEncoder extends LimitingStream implements Encoder {
     @Override
     public void encodeBigDecimal(BigDecimal value) {
         bsonWriter.writeDecimal128(new Decimal128(value));
+        postEncodeValue();
+    }
+
+    @Override
+    public void encodeBinary(byte @NonNull [] data) throws IOException {
+        bsonWriter.writeBinaryData(new BsonBinary(data));
         postEncodeValue();
     }
 

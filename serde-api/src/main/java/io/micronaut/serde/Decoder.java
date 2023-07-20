@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -281,6 +282,40 @@ public interface Decoder extends AutoCloseable {
     @Nullable
     default BigDecimal decodeBigDecimalNullable() throws IOException {
         return decodeNull() ? null : decodeBigDecimal();
+    }
+
+    /**
+     * Decode binary data from this stream. Binary data can be serialized in multiple different
+     * ways that differ by format.
+     *
+     * <ul>
+     *     <li>An array of numbers must be supported by all implementations, for compatibility.
+     *     This is also the default implementation.</li>
+     *     <li>A base64 string. This is convenient for text-based formats like json, and is
+     *     supported by jackson.</li>
+     *     <li>A format-specific type, for binary formats such as bson.</li>
+     *     <li>Other format specific behavior. Oracle JDBC Json will parse strings as hex, for
+     *     example.</li>
+     * </ul>
+     *
+     * Implementations <b>must</b> support the array shape, but the other shapes are optional.
+     *
+     * @return The decoded byte array
+     * @since 2.1
+     */
+    default byte @NonNull [] decodeBinary() throws IOException {
+        return BinaryCodecUtil.decodeFromArray(this);
+    }
+
+    /**
+     * Equivalent to {@code decodeNull() ? null : decodeBinary()}.
+     *
+     * @return The value
+     * @throws IOException If an unrecoverable error occurs
+     * @since 2.1
+     */
+    default byte @Nullable [] decodeBinaryNullable() throws IOException {
+        return decodeNull() ? null : decodeBinary();
     }
 
     /**

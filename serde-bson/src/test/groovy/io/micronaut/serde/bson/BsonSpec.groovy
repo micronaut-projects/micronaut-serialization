@@ -2,7 +2,16 @@ package io.micronaut.serde.bson
 
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
-import org.bson.*
+import org.bson.BsonBinary
+import org.bson.BsonBinarySubType
+import org.bson.BsonDateTime
+import org.bson.BsonDbPointer
+import org.bson.BsonDecimal128
+import org.bson.BsonDocument
+import org.bson.BsonNull
+import org.bson.BsonObjectId
+import org.bson.BsonRegularExpression
+import org.bson.BsonString
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import spock.lang.Specification
@@ -118,4 +127,20 @@ class BsonSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
             value.objectId == null
     }
 
+    def "decode binary types"() {
+        given:
+        def document = new BsonDocument()
+        def uuid = new BsonBinary(UUID.randomUUID())
+        def normal = new BsonBinary([1, 2, 3] as byte[])
+        def userDefined = new BsonBinary(BsonBinarySubType.USER_DEFINED, [1, 2, 3] as byte[])
+        document.put("uuid", uuid)
+        document.put("normal", normal)
+        document.put("userDefined", userDefined)
+        when:
+        def value = encodeAsBinaryDecodeAsObject(document, BinaryTypes)
+        then:
+        value.uuid() == uuid.data
+        value.normal() == normal.data
+        value.userDefined() == userDefined.data
+    }
 }

@@ -23,6 +23,7 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
+import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -689,6 +690,17 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         }
         nextToken();
         return value;
+    }
+
+    @Override
+    public byte @NonNull [] decodeBinary() throws IOException {
+        TokenType currentToken = currentToken();
+        preDecodeValue(currentToken);
+        return switch (currentToken) {
+            case STRING -> BinaryCodecUtil.decodeFromBase64String(this);
+            case START_ARRAY -> BinaryCodecUtil.decodeFromArray(this);
+            default -> throw unexpectedToken(TokenType.START_ARRAY);
+        };
     }
 
     /**

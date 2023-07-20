@@ -35,11 +35,20 @@ import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 @Singleton
 @Order(-100)
 public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
+    private final DefaultSerdeRegistry.ByteArraySerde byteArraySerde;
+
+    public OracleJsonBinarySerde(DefaultSerdeRegistry.ByteArraySerde byteArraySerde) {
+        this.byteArraySerde = byteArraySerde;
+    }
+
+    @Deprecated
+    public OracleJsonBinarySerde() {
+        this(DefaultSerdeRegistry.BYTE_ARRAY_SERDE);
+    }
 
     @Override
-    @NonNull
-    protected byte[] doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                          @NonNull Argument<? super byte[]> type) {
+    protected byte @NonNull [] doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
+                                                    @NonNull Argument<? super byte[]> type) {
         return decoder.decodeBinary();
     }
 
@@ -51,7 +60,7 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
 
     @Override
     protected Serde<byte[]> getDefault() {
-        return DefaultSerdeRegistry.BYTE_ARRAY_SERDE;
+        return byteArraySerde;
     }
 
 }
