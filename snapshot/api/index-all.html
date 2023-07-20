@@ -191,6 +191,10 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#BIG_INTEGER_SERDE" class="member-name-link">BIG_INTEGER_SERDE</a> - Static variable in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">BinaryCodecUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Common implementations for reading/writing byte arrays.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#BOOLEAN" class="member-name-link">BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
 <dd>
 <div class="block">A boolean.</div>
@@ -284,8 +288,16 @@ loadScripts(document, 'script');</script>
 <div class="block">Default constructor.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#BYTE_ARRAY_SERDE" class="member-name-link">BYTE_ARRAY_SERDE</a> - Static variable in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">This serde needs configuration now.</div>
+</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#BYTE_SERDE" class="member-name-link">BYTE_SERDE</a> - Static variable in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html#%3Cinit%3E(boolean)" class="member-name-link">ByteArraySerde(boolean)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">ByteArraySerde(SerdeConfiguration)</a> - Constructor for class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 class="title" id="I:C">C</h2>
@@ -596,9 +608,25 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBigIntegerNullable()" class="member-name-link">decodeBigIntegerNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/Decoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
+<dd>
+<div class="block">Decode binary data from this stream.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></dt>
 <dd>
 <div class="block">Decodes Oracle JSON binary data as byte array.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/JsonNodeDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/Decoder.html#decodeBinaryNullable()" class="member-name-link">decodeBinaryNullable()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
+<dd>
+<div class="block">Equivalent to <code>decodeNull() ? null : decodeBinary()</code>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeBoolean()" class="member-name-link">decodeBoolean()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
@@ -705,6 +733,10 @@ loadScripts(document, 'script');</script>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeFloat()</code>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeFloatNullable()" class="member-name-link">decodeFloatNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#decodeFromArray(io.micronaut.serde.Decoder)" class="member-name-link">decodeFromArray(Decoder)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#decodeFromBase64String(io.micronaut.serde.Decoder)" class="member-name-link">decodeFromBase64String(Decoder)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeInt()" class="member-name-link">decodeInt()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
@@ -887,6 +919,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Default constructor.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" class="type-name-link" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a> - Class in <a href="io/micronaut/serde/support/package-summary.html">io.micronaut.serde.support</a></dt>
+<dd>
+<div class="block">Serde for byte arrays.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html#defaultSetDeserializer()" class="member-name-link">defaultSetDeserializer()</a> - Method in class io.micronaut.serde.support.deserializers.collect.<a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html" title="class in io.micronaut.serde.support.deserializers.collect">CoreCollectionsDeserializers</a></dt>
 <dd>
 <div class="block">Deserializes default set.</div>
@@ -906,6 +942,8 @@ loadScripts(document, 'script');</script>
 <div class="block">Deserializes from the current state of the <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize(Decoder, Deserializer.DecoderContext, Argument&lt;? super byte[]&gt;)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize(Decoder, Deserializer.DecoderContext, Argument&lt;? super HealthStatus&gt;)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a></dt>
 <dd>&nbsp;</dd>
@@ -935,6 +973,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">A method that is invoked when the value is known not to be null.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable(Decoder, Deserializer.DecoderContext, Argument&lt;? super byte[]&gt;)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable(Decoder, Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a></dt>
 <dd>
 <div class="block">Deserializes from the current state of the <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
@@ -1069,6 +1109,18 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html#encodeBigInteger(java.math.BigInteger)" class="member-name-link">encodeBigInteger(BigInteger)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#encodeBigInteger(java.math.BigInteger)" class="member-name-link">encodeBigInteger(BigInteger)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/bson/BsonWriterEncoder.html#encodeBinary(byte%5B%5D)" class="member-name-link">encodeBinary(byte[])</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonWriterEncoder.html" title="class in io.micronaut.serde.bson">BsonWriterEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/Encoder.html#encodeBinary(byte%5B%5D)" class="member-name-link">encodeBinary(byte[])</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></dt>
+<dd>
+<div class="block">Encode the given binary data.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/JacksonEncoder.html#encodeBinary(byte%5B%5D)" class="member-name-link">encodeBinary(byte[])</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonEncoder.html" title="class in io.micronaut.serde.jackson">JacksonEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html#encodeBinary(byte%5B%5D)" class="member-name-link">encodeBinary(byte[])</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#encodeBinary(byte%5B%5D)" class="member-name-link">encodeBinary(byte[])</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonWriterEncoder.html#encodeBoolean(boolean)" class="member-name-link">encodeBoolean(boolean)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonWriterEncoder.html" title="class in io.micronaut.serde.bson">BsonWriterEncoder</a></dt>
 <dd>&nbsp;</dd>
@@ -1229,6 +1281,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html#encodeString(java.lang.String)" class="member-name-link">encodeString(String)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#encodeString(java.lang.String)" class="member-name-link">encodeString(String)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#encodeToArray(io.micronaut.serde.Encoder,byte%5B%5D)" class="member-name-link">encodeToArray(Encoder, byte[])</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#encodeToBase64String(io.micronaut.serde.Encoder,byte%5B%5D)" class="member-name-link">encodeToBase64String(Encoder, byte[])</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#encodeValue(io.micronaut.json.tree.JsonNode)" class="member-name-link">encodeValue(JsonNode)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>
@@ -1976,6 +2032,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Used for <code>JsonInclude.Include#NON_EMPTY</code> checking.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,byte%5B%5D)" class="member-name-link">isEmpty(Serializer.EncoderContext, byte[])</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/CustomizedObjectArraySerializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,java.lang.Object%5B%5D)" class="member-name-link">isEmpty(Serializer.EncoderContext, Object[])</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/CustomizedObjectArraySerializer.html" title="class in io.micronaut.serde.support.serdes">CustomizedObjectArraySerializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/CustomizableSerializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isEmpty(Serializer.EncoderContext, T)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a></dt>
@@ -1989,6 +2047,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isStrictNullable()" class="member-name-link">isStrictNullable()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
 <div class="block">Whether null field should be annotated with a nullable annotations.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
+<dd>
+<div class="block">Control whether to use legacy behavior for writing byte arrays.</div>
 </dd>
 </dl>
 <h2 class="title" id="I:J">J</h2>
@@ -2649,6 +2711,10 @@ loadScripts(document, 'script');</script>
 <div class="block">The custom serde for binary values for Oracle JSON.</div>
 </dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonBinarySerde.html#%3Cinit%3E()" class="member-name-link">OracleJsonBinarySerde()</a> - Constructor for class io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonBinarySerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonBinarySerde</a></dt>
+<dd>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span></div>
+</dd>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonBinarySerde.html#%3Cinit%3E(io.micronaut.serde.support.DefaultSerdeRegistry.ByteArraySerde)" class="member-name-link">OracleJsonBinarySerde(DefaultSerdeRegistry.ByteArraySerde)</a> - Constructor for class io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonBinarySerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonBinarySerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonDurationSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonDurationSerde</a> - Class in <a href="io/micronaut/serde/oracle/jdbc/json/serde/package-summary.html">io.micronaut.serde.oracle.jdbc.json.serde</a></dt>
 <dd>
@@ -3100,6 +3166,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Serializes the given value using the passed <a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,byte%5B%5D)" class="member-name-link">serialize(Encoder, Serializer.EncoderContext, Argument&lt;? extends byte[]&gt;, byte[])</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.health.HealthStatus)" class="member-name-link">serialize(Encoder, Serializer.EncoderContext, Argument&lt;? extends HealthStatus&gt;, HealthStatus)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/HealthStatusSerde.html" title="class in io.micronaut.serde.support.serdes">HealthStatusSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/CustomizedObjectArraySerializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,java.lang.Object%5B%5D)" class="member-name-link">serialize(Encoder, Serializer.EncoderContext, Argument&lt;? extends Object[]&gt;, Object[])</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/CustomizedObjectArraySerializer.html" title="class in io.micronaut.serde.support.serdes">CustomizedObjectArraySerializer</a></dt>

@@ -163,6 +163,11 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TimeZone.html" title="class or interface in java.util" class="external-link">TimeZone</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTimeZone()" class="member-name-link">getTimeZone</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Control whether to use legacy behavior for writing byte arrays.</div>
+</div>
 </div>
 </div>
 </div>
@@ -232,6 +237,21 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The time unit</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="isWriteBinaryAsArray()">
+<h3>isWriteBinaryAsArray</h3>
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="return-type">boolean</span>&nbsp;<span class="element-name">isWriteBinaryAsArray</span>()</div>
+<div class="block">Control whether to use legacy behavior for writing byte arrays. When set to <code>true</code> (the
+ default in serde 2.x), byte arrays will always be written as arrays of numbers. When set to
+ <code>false</code>, the encoding may be format-specific instead, and will be a base64 string for
+ JSON.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Whether to use legacy byte array writing behavior</dd>
 </dl>
 </section>
 </li>
