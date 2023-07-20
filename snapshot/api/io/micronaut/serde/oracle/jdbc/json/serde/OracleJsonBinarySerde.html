@@ -117,11 +117,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E()" class="member-name-link">OracleJsonBinarySerde</a>()</code></div>
-<div class="col-last even-row-color">
-<div class="block"><span class="deprecated-label">Deprecated.</span></div>
-</div>
-<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.support.DefaultSerdeRegistry.ByteArraySerde)" class="member-name-link">OracleJsonBinarySerde</a><wbr>(<a href="../../../../support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a>&nbsp;byteArraySerde)</code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -136,7 +132,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected byte @NonNull []</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected @io.micronaut.core.annotation.NonNull byte[]</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserializeNonNull</a><wbr>(@NonNull <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a>&nbsp;decoder,
  @NonNull <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  @NonNull io.micronaut.core.type.Argument&lt;? super byte[]&gt;&nbsp;type)</code></div>
@@ -181,17 +177,9 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(io.micronaut.serde.support.DefaultSerdeRegistry.ByteArraySerde)">
-<h3>OracleJsonBinarySerde</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">OracleJsonBinarySerde</span><wbr><span class="parameters">(<a href="../../../../support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a>&nbsp;byteArraySerde)</span></div>
-</section>
-</li>
-<li>
 <section class="detail" id="&lt;init&gt;()">
 <h3>OracleJsonBinarySerde</h3>
-<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>
-</span><span class="modifiers">public</span>&nbsp;<span class="element-name">OracleJsonBinarySerde</span>()</div>
-<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span></div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">OracleJsonBinarySerde</span>()</div>
 </section>
 </li>
 </ul>
@@ -205,7 +193,8 @@ loadScripts(document, 'script');</script>
 <li>
 <section class="detail" id="doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
 <h3>doDeserializeNonNull</h3>
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">byte @NonNull []</span>&nbsp;<span class="element-name">doDeserializeNonNull</span><wbr><span class="parameters">(@NonNull
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">protected</span>&nbsp;<span class="return-type">@io.micronaut.core.annotation.NonNull byte[]</span>&nbsp;<span class="element-name">doDeserializeNonNull</span><wbr><span class="parameters">(@NonNull
  @NonNull <a href="../OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a>&nbsp;decoder,
  @NonNull
  @NonNull <a href="../../../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
