@@ -17,12 +17,14 @@ package io.micronaut.serde.processor.jackson.databind;
 
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import io.micronaut.core.annotation.AccessorsStyle;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.AnnotationValueBuilder;
+import io.micronaut.core.annotation.Introspected;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.jackson.ValidatingAnnotationMapper;
@@ -42,12 +44,31 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
                             .build()
             );
         }
+        AnnotationClassValue<?> builderClass = annotation.annotationClassValue("builder").orElse(null);
+        if (builderClass != null) {
+            AnnotationValueBuilder<Introspected.IntrospectionBuilder> builderDef = AnnotationValue.builder(Introspected.IntrospectionBuilder.class);
+            builderDef.member("builderClass", builderClass);
+            visitorContext.getClassElement(builderClass.getName()).ifPresent(t -> {
+                AnnotationValue<Annotation> jsonPojoAnn = t.getAnnotation("com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder");
+                if (jsonPojoAnn != null) {
+                    jsonPojoAnn.stringValue("buildMethodName").ifPresent(n -> builderDef.member("creatorMethod", n));
+                    jsonPojoAnn.stringValue("withPrefix").ifPresent(n ->
+                        builderDef.member("accessorStyle", AnnotationValue.builder(AccessorsStyle.class).member("writePrefixes", n).build())
+                    );
+                }
+            });
+            annotations.add(
+                AnnotationValue.builder(Introspected.class)
+                    .member("builder", builderDef.build())
+                    .build()
+            );
+        }
         return annotations;
     }
 
     @Override
     protected Set<String> getSupportedMemberNames() {
-        return Collections.singleton("as");
+        return Set.of("as", "builder");
     }
 
     @Override
