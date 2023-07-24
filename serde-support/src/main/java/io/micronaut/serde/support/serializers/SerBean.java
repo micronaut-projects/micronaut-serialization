@@ -231,7 +231,8 @@ final class SerBean<T> {
                                             argument.getAnnotationMetadata(),
                                             unwrappedProperty.getAnnotationMetadata()
                                         );
-                                    if (!combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)) {
+                                    if (!combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
+                                        !combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)) {
                                         CustomSerProperty<T, Object> prop = new CustomSerProperty<>(SerBean.this, n,
                                             unwrappedPropertyArgument,
                                             combinedMetadata,
