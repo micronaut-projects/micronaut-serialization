@@ -297,6 +297,65 @@ class Name {
         context.close()
     }
 
+    void "test @JsonUnwrapped with readOnly field"() {
+        given:
+        def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Parent {
+  public int age;
+  @JsonUnwrapped
+  public Name name;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Name {
+  public String first, last;
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  public String ssn;
+}
+""")
+
+        when:
+        def name = newInstance(context, 'unwrapped.Name', [first:"Fred", last:"Flinstone", ssn:"abc-123"])
+        def parent = newInstance(context, 'unwrapped.Parent', [age:10, name:name])
+
+        def result = writeJson(jsonMapper, parent)
+
+        then:
+        result == '{"age":10,"first":"Fred","last":"Flinstone"}'
+
+        when:
+        def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+        read.age == 10
+        read.name.first == 'Fred'
+        read.name.last == "Flinstone"
+        read.name.ssn == null
+
+        when:
+        def jsonStr = '{"age":15,"first":"Barney","last":"Rubble","ssn":"def-789"}'
+        read = jsonMapper.readValue(jsonStr, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+        read.age == 15
+        read.name.first == 'Barney'
+        read.name.last == "Rubble"
+        read.name.ssn == 'def-789'
+
+        cleanup:
+        context.close()
+    }
+
     @Requires({ jvm.isJava17Compatible() })
     void "test @JsonUnwrapped records"() {
         given:
