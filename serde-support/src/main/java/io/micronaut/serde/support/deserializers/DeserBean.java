@@ -655,10 +655,11 @@ class DeserBean<T> {
             this.instrospection = instrospection;
             this.index = index;
             this.argument = argument;
-            this.mustSetField = argument.isNonNull() || argument.isAssignableFrom(Optional.class)
-                    || argument.isAssignableFrom(OptionalLong.class)
-                    || argument.isAssignableFrom(OptionalDouble.class)
-                    || argument.isAssignableFrom(OptionalInt.class);
+            Class<?> type = argument.getType();
+            this.mustSetField = argument.isNonNull() || type.equals(Optional.class)
+                    || type.equals(OptionalLong.class)
+                    || type.equals(OptionalDouble.class)
+                    || type.equals(OptionalInt.class);
             this.nonNull = argument.isNonNull();
             this.nullable = argument.isNullable();
             if (beanProperty != null)  {
