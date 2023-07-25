@@ -15,14 +15,14 @@ class DeserializeSpec extends Specification {
         def ctx = ApplicationContext.run()
         def mapper = ctx.getBean(JsonMapper)
 
-        when:"Can deserialize with null parameters for @Nullable field"
+        when:"Can deserialize with null parameters for @Nullable field of java.lang.Object type"
         def result = mapper.readValue('{"valid":"false","message":"Invalid Input"}', Argument.of(TestStatus))
         then:
         !result.valid
         result.message == 'Invalid Input'
         result.additionalData == null
 
-        when:"Deserialize with all parameters"
+        when:"Deserialize with all parameters provided and non null"
         result = mapper.readValue('{"valid":"true","message":"In Progress","additionalData":["Step1 Passed", "Step2 InProgress"]}', Argument.of(TestStatus))
         then:
         result.valid
