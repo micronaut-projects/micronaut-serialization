@@ -217,32 +217,14 @@ final class SerBean<T> {
                         boolean unwrapped = propertyAnnotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         if (unwrapped) {
-                            BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
-                            Set<String> ignoredProperties = Arrays.stream(argument.getAnnotationMetadata().stringValues(SerdeConfig.SerIgnored.class)).collect(Collectors.toSet());
-                            for (BeanProperty<Object, Object> unwrappedProperty : propertyIntrospection.getBeanProperties()) {
-                                if (!ignoredProperties.contains(unwrappedProperty.getName())) {
-                                    Argument<Object> unwrappedPropertyArgument = unwrappedProperty.asArgument();
-                                    String n = resolveName(propertyAnnotationMetadata,
-                                        unwrappedProperty.getAnnotationMetadata(),
-                                        unwrappedPropertyArgument.getName(),
-                                        true, propertyNamingStrategy);
-                                    final AnnotationMetadataHierarchy combinedMetadata =
-                                        new AnnotationMetadataHierarchy(
-                                            argument.getAnnotationMetadata(),
-                                            unwrappedProperty.getAnnotationMetadata()
-                                        );
-                                    if (!combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
-                                        !combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)) {
-                                        CustomSerProperty<T, Object> prop = new CustomSerProperty<>(SerBean.this, n,
-                                            unwrappedPropertyArgument,
-                                            combinedMetadata,
-                                            bean -> unwrappedProperty.get(property.get(bean))
-                                        );
-                                        writeProperties.add(prop);
-                                        initializers.add(ctx -> initProperty(prop, ctx));
-                                    }
-                                }
-                            }
+                            processUnwrapped(
+                                introspections,
+                                property,
+                                argument,
+                                propertyAnnotationMetadata,
+                                propertyNamingStrategy,
+                                null
+                            );
                         } else {
                             String n = resolveName(annotationMetadata, propertyAnnotationMetadata, defaultPropertyName, false, propertyNamingStrategy);
                             final SerProperty<T, Object> serProperty = new PropSerProperty<>(SerBean.this,
@@ -291,6 +273,65 @@ final class SerBean<T> {
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
         subtyped = isAbstractIntrospection || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+    }
+
+    private void processUnwrapped(
+        SerdeIntrospections introspections,
+        BeanProperty<T, Object> property,
+        Argument<Object> argument,
+        AnnotationMetadata propertyAnnotationMetadata,
+        PropertyNamingStrategy propertyNamingStrategy,
+        Function<T, Object> nestedValueResolver) {
+        BeanIntrospection<Object> propertyIntrospection = introspections.getSerializableIntrospection(property.asArgument());
+        Set<String> ignoredProperties = Arrays.stream(argument.getAnnotationMetadata().stringValues(SerdeConfig.SerIgnored.class)).collect(Collectors.toSet());
+        for (BeanProperty<Object, Object> unwrappedProperty : propertyIntrospection.getBeanProperties()) {
+            if (!ignoredProperties.contains(unwrappedProperty.getName())) {
+                Argument<Object> unwrappedPropertyArgument = unwrappedProperty.asArgument();
+                AnnotationMetadata unwrappedPropertyAnnotationMetadata = unwrappedProperty.getAnnotationMetadata();
+                Function<T, Object> valueResolver;
+
+                if (nestedValueResolver != null) {
+                    valueResolver = bean -> unwrappedProperty.get(nestedValueResolver.apply(bean));
+                } else {
+                    valueResolver = bean -> unwrappedProperty.get(property.get(bean));
+                }
+
+                String n = resolveName(propertyAnnotationMetadata,
+                    unwrappedPropertyAnnotationMetadata,
+                    unwrappedPropertyArgument.getName(),
+                    true, propertyNamingStrategy);
+                final AnnotationMetadataHierarchy combinedMetadata =
+                    new AnnotationMetadataHierarchy(
+                        argument.getAnnotationMetadata(),
+                        unwrappedPropertyAnnotationMetadata
+                    );
+
+                if (unwrappedPropertyAnnotationMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                    // nested unwrapped
+                    processUnwrapped(
+                        introspections,
+                        (BeanProperty<T, Object>) unwrappedProperty,
+                        unwrappedPropertyArgument,
+                        combinedMetadata,
+                        propertyNamingStrategy,
+                        valueResolver
+                    );
+                } else {
+
+                    if (!combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
+                        !combinedMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)) {
+
+                        CustomSerProperty<T, Object> prop = new CustomSerProperty<>(SerBean.this, n,
+                            unwrappedPropertyArgument,
+                            combinedMetadata,
+                            valueResolver
+                        );
+                        writeProperties.add(prop);
+                        initializers.add(ctx -> initProperty(prop, ctx));
+                    }
+                }
+            }
+        }
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
