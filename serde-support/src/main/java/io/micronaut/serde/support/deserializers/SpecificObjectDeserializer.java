@@ -307,7 +307,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                                 obj,
                                 objectDecoder,
                                 readProperties,
-                                db.unwrappedProperties,
+                                db.unwrappedProperties == null,
                                 buffer,
                                 anyValues,
                                 ignoreUnknown,
@@ -344,7 +344,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                                                                            obj,
                                                                            objectDecoder,
                                                                            readProperties,
-                                                                           db.unwrappedProperties,
+                                                                           db.unwrappedProperties == null,
                                                                            existingBuffer,
                                                                            anyValues,
                                                                            ignoreUnknown,
@@ -526,7 +526,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             Object obj,
             Decoder objectDecoder,
             PropertiesBag<Object>.Consumer readProperties,
-            DeserBean.DerProperty<? super Object, Object>[] unwrappedProperties,
+            boolean hasNoUnwrapped,
             PropertyBuffer propertyBuffer,
             @Nullable AnyValues<?> anyValues,
             boolean ignoreUnknown,
@@ -559,7 +559,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 } else {
                     propertyBuffer = initBuffer(propertyBuffer, property, prop, val);
                 }
-                if (readProperties.isAllConsumed() && unwrappedProperties == null && introspection.anySetter == null) {
+                if (readProperties.isAllConsumed() && hasNoUnwrapped && introspection.anySetter == null) {
                     break;
                 }
             } else {
@@ -656,60 +656,74 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                                                    DecoderContext decoderContext) throws IOException {
         final DeserBean<Object> unwrapped = property.unwrapped;
         if (unwrapped != null) {
-            Object object;
-            if (unwrapped.creatorParams != null) {
-                final PropertiesBag<Object>.Consumer creatorParams = unwrapped.creatorParams.newConsumer();
-                Object[] params = new Object[unwrapped.creatorSize];
-                // handle construction
-                for (DeserBean.DerProperty<?, ?> der : creatorParams.getNotConsumed()) {
-                    boolean satisfied = false;
-                    for (PropertyBuffer pb : buffer) {
-                        if (pb.property == der) {
-                            pb.set(params, decoderContext);
-                            satisfied = true;
-                            break;
-                        }
-                    }
-                    if (!satisfied) {
-                        if (der.defaultValue != null) {
-                            params[der.index] = der.defaultValue;
-                        } else if (der.mustSetField) {
-                            throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + unwrapped.introspection.getBeanType() + "]. Required constructor parameter [" + der.argument + "] at index [" + der.index + "] is not present in supplied data");
-
-                        }
-                    }
-                }
-                if (preInstantiateCallback != null) {
-                    preInstantiateCallback.preInstantiate(unwrapped.introspection, params);
-                }
-                object = unwrapped.introspection.instantiate(strictNullable, params);
-            } else {
-                if (preInstantiateCallback != null) {
-                    preInstantiateCallback.preInstantiate(unwrapped.introspection);
-                }
-                object = unwrapped.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
-            }
-
-            if (unwrapped.readProperties != null) {
-                final PropertiesBag<Object>.Consumer readProperties = unwrapped.readProperties.newConsumer();
-                for (DeserBean.DerProperty<Object, Object> der : readProperties.getNotConsumed()) {
-                    boolean satisfied = false;
-                    for (PropertyBuffer pb : buffer) {
-                        if (pb.property == der) {
-                            pb.set(object, decoderContext);
-                            der.set(object, pb.value);
-                            satisfied = true;
-                            break;
-                        }
-                    }
-                    if (!satisfied) {
-                        der.setDefaultPropertyValue(decoderContext, object);
-                    }
-                }
-            }
-            return object;
+            return materializeUnwrapped(buffer, decoderContext, unwrapped);
         }
         return null;
+    }
+
+    private Object materializeUnwrapped(PropertyBuffer buffer, DecoderContext decoderContext, DeserBean<Object> unwrapped) throws IOException {
+        Object object;
+        if (unwrapped.creatorParams != null) {
+            final PropertiesBag<Object>.Consumer creatorParams = unwrapped.creatorParams.newConsumer();
+            Object[] params = new Object[unwrapped.creatorSize];
+            // handle construction
+            for (DeserBean.DerProperty<?, ?> der : creatorParams.getNotConsumed()) {
+                boolean satisfied = false;
+                for (PropertyBuffer pb : buffer) {
+                    if (pb.property == der) {
+                        pb.set(params, decoderContext);
+                        satisfied = true;
+                        break;
+                    }
+                }
+                if (!satisfied) {
+                    if (der.defaultValue != null) {
+                        params[der.index] = der.defaultValue;
+                    } else if (der.mustSetField) {
+                        throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + unwrapped.introspection.getBeanType() + "]. Required constructor parameter [" + der.argument + "] at index [" + der.index + "] is not present in supplied data");
+
+                    }
+                }
+            }
+            if (preInstantiateCallback != null) {
+                preInstantiateCallback.preInstantiate(unwrapped.introspection, params);
+            }
+            object = unwrapped.introspection.instantiate(strictNullable, params);
+        } else {
+            if (preInstantiateCallback != null) {
+                preInstantiateCallback.preInstantiate(unwrapped.introspection);
+            }
+            object = unwrapped.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
+        }
+
+        if (unwrapped.readProperties != null) {
+            // nested unwrapped
+            final PropertiesBag<Object>.Consumer readProperties = unwrapped.readProperties.newConsumer();
+            DeserBean.@Nullable DerProperty<Object, Object>[] nestedUnwrappedProperties = unwrapped.unwrappedProperties;
+            if (nestedUnwrappedProperties != null) {
+                for (DeserBean.DerProperty<Object, Object> nestedUnwrappedProperty : nestedUnwrappedProperties) {
+                    DeserBean<Object> nested = nestedUnwrappedProperty.unwrapped;
+                    Object o = materializeUnwrapped(buffer, decoderContext, nested);
+                    nestedUnwrappedProperty.set(object, o);
+                }
+            }
+            for (DeserBean.DerProperty<Object, Object> der : readProperties.getNotConsumed()) {
+                boolean satisfied = false;
+                for (PropertyBuffer pb : buffer) {
+                    DeserBean.DerProperty<Object, Object> property = pb.property;
+                    if (property == der && property.instrospection == unwrapped.introspection) {
+                        pb.set(object, decoderContext);
+                        der.set(object, pb.value);
+                        satisfied = true;
+                        break;
+                    }
+                }
+                if (!satisfied) {
+                    der.setDefaultPropertyValue(decoderContext, object);
+                }
+            }
+        }
+        return object;
     }
 
     @Override
@@ -726,7 +740,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                                                                    value,
                                                                    objectDecoder,
                                                                    readProperties,
-                                                                   deserBean.unwrappedProperties,
+                                                                   deserBean.unwrappedProperties == null,
                                                                    null,
                                                                    anyValues,
                                                                    ignoreUnknown,

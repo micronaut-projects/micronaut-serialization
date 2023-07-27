@@ -687,6 +687,16 @@ class InnerFooId {
         then:
         result == '{"hk_theInt":10,"hk_theLong":200,"hk_theString":"MyString","value":"TheValue"}'
 
+        when:
+        def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Foo')))
+
+        then:
+        read
+        read.value == 'TheValue'
+        read.hashKey.theInt == 10
+        read.hashKey.nested.theLong == 200
+        read.hashKey.nested.theString == 'MyString'
+
         cleanup:
         context.close()
     }
