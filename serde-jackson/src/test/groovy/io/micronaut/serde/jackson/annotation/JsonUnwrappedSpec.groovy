@@ -634,7 +634,7 @@ class ComplexFooId {
 
     private Integer theInt;
 
-    @JsonUnwrapped
+    @JsonUnwrapped(prefix = "foo_")
     private InnerFooId nested;
 
     public Integer getTheInt() {
@@ -685,7 +685,7 @@ class InnerFooId {
         def result = writeJson(jsonMapper, foo)
 
         then:
-        result == '{"hk_theInt":10,"hk_theLong":200,"hk_theString":"MyString","value":"TheValue"}'
+        result == '{"hk_theInt":10,"hk_foo_theLong":200,"hk_foo_theString":"MyString","value":"TheValue"}'
 
         when:
         def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Foo')))

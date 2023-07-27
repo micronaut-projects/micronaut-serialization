@@ -33,6 +33,7 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.PropertyFilter;
@@ -424,9 +425,15 @@ final class SerBean<T> {
                     .orElse(defaultPropertyName);
         }
         if (unwrapped) {
-            n = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX)
-                    .orElse("") + n + annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX)
-                    .orElse("");
+            @NonNull String[] prefixes = annotationMetadata.stringValues(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX);
+            @NonNull String[] suffixes = annotationMetadata.stringValues(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX);
+            if (ArrayUtils.isNotEmpty(prefixes) || ArrayUtils.isNotEmpty(suffixes)) {
+                List<@NonNull String> prefixList = Arrays.asList(prefixes);
+                Collections.reverse(prefixList);
+                List<@NonNull String> suffixList = Arrays.asList(suffixes);
+                Collections.reverse(suffixList);
+                return String.join("", prefixList) + n + String.join("", suffixList);
+            }
         }
         return n;
     }
