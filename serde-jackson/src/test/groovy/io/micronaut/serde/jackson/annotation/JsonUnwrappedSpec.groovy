@@ -2,6 +2,9 @@ package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonCompileSpec
+import io.micronaut.serde.jackson.nested.Address
+import io.micronaut.serde.jackson.nested.NestedEntity
+import io.micronaut.serde.jackson.nested.NestedEntityId
 import spock.lang.Requires
 
 class JsonUnwrappedSpec extends JsonCompileSpec {
@@ -595,5 +598,146 @@ class Name {
 
         cleanup:
         context.close()
+    }
+
+    void "test @JsonUnwrapped - levels"() {
+        given:
+        def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Foo {
+
+    @JsonUnwrapped(prefix = "hk_", suffix = "_out")
+    private ComplexFooId hashKey;
+
+    private String value;
+
+    public ComplexFooId getHashKey() {
+        return hashKey;
+    }
+
+    public void setHashKey(ComplexFooId hashKey) {
+        this.hashKey = hashKey;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+@Serdeable
+class ComplexFooId {
+
+    private Integer theInt;
+
+    @JsonUnwrapped(prefix = "foo_", suffix = "_in")
+    private InnerFooId nested;
+
+    public Integer getTheInt() {
+        return theInt;
+    }
+
+    public void setTheInt(Integer theInt) {
+        this.theInt = theInt;
+    }
+
+    public InnerFooId getNested() {
+        return nested;
+    }
+
+    public void setNested(InnerFooId nested) {
+        this.nested = nested;
+    }
+}
+@Serdeable
+class InnerFooId {
+
+    private Long theLong;
+
+    private String theString;
+
+    public Long getTheLong() {
+        return theLong;
+    }
+
+    public void setTheLong(Long theLong) {
+        this.theLong = theLong;
+    }
+
+    public String getTheString() {
+        return theString;
+    }
+
+    public void setTheString(String theString) {
+        this.theString = theString;
+    }
+}
+""")
+
+        when:
+        def foo = newInstance(context, 'unwrapped.Foo', [value: "TheValue", hashKey: newInstance(context, 'unwrapped.ComplexFooId', [theInt: 10,
+            nested: newInstance(context, 'unwrapped.InnerFooId', [theLong: 200L, theString: 'MyString'])])])
+
+        def result = writeJson(jsonMapper, foo)
+
+        then:
+        result == '{"hk_theInt_out":10,"hk_foo_theLong_in_out":200,"hk_foo_theString_in_out":"MyString","value":"TheValue"}'
+
+        when:
+        def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Foo')))
+
+        then:
+        read
+        read.value == 'TheValue'
+        read.hashKey.theInt == 10
+        read.hashKey.nested.theLong == 200
+        read.hashKey.nested.theString == 'MyString'
+
+        cleanup:
+        context.close()
+    }
+
+
+    void "test @JsonUnwrapped - levels 2"() {
+        given:
+        def ctx = buildContext("")
+
+        when:
+        def nestedEntity = new NestedEntity();
+        nestedEntity.setValue("test1");
+        NestedEntityId hashKey = new NestedEntityId();
+        hashKey.setTheInt(100);
+        hashKey.setTheString("MyString");
+        nestedEntity.setHashKey(hashKey);
+        Address address = new Address();
+        address.getCityData().setCity("NY");
+        address.getCityData().setZipCode("22000");
+        address.setStreet("Blvd 11");
+        nestedEntity.setAddress(address);
+        def nestedJsonStr = writeJson(jsonMapper, nestedEntity)
+
+        then:
+        nestedJsonStr == '{"hk_theInt":100,"hk_theString":"MyString","value":"test1","addr_street":"Blvd 11","addr_cd_zipCode":"22000","addr_cd_city":"NY","version":1,"dateCreated":"1970-01-01T00:00:00Z","dateUpdated":"1970-01-01T00:00:00Z"}'
+
+        when:
+        def deserNestedEntity = jsonMapper.readValue(nestedJsonStr, NestedEntity.class)
+
+        then:
+        deserNestedEntity
+        deserNestedEntity.hashKey.theInt == nestedEntity.hashKey.theInt
+        deserNestedEntity.value == nestedEntity.value
+        deserNestedEntity.audit.dateCreated == nestedEntity.audit.dateCreated
+        deserNestedEntity.address.cityData.zipCode == nestedEntity.address.cityData.zipCode
+        deserNestedEntity.address.street == nestedEntity.address.street
+
+        cleanup:
+        ctx.close()
     }
 }

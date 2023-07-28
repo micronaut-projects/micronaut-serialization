@@ -24,6 +24,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,11 @@ final class PropertiesBag<T> {
         }
     }
 
+    /**
+     * Get the properties in this bag with their property names.
+     *
+     * @return All properties in this bag
+     */
     public List<Map.Entry<String, DeserBean.DerProperty<T, Object>>> getProperties() {
         Stream<AbstractMap.SimpleEntry<String, DeserBean.DerProperty<T, Object>>> originalProperties = Arrays.stream(originalNameToPropertiesMapping)
             .filter(index -> index != -1)
@@ -116,6 +122,15 @@ final class PropertiesBag<T> {
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), properties[e.getValue()]));
         return Stream.concat(originalProperties, mappedByName)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Get the properties in this bag.
+     *
+     * @return All properties in this bag
+     */
+    public List<DeserBean.DerProperty<T, Object>> getDerProperties() {
+        return Collections.unmodifiableList(Arrays.asList(properties));
     }
 
     public int propertyIndexOf(@NonNull String name) {
