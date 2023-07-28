@@ -431,7 +431,6 @@ final class SerBean<T> {
                 List<@NonNull String> prefixList = Arrays.asList(prefixes);
                 Collections.reverse(prefixList);
                 List<@NonNull String> suffixList = Arrays.asList(suffixes);
-                Collections.reverse(suffixList);
                 return String.join("", prefixList) + n + String.join("", suffixList);
             }
         }

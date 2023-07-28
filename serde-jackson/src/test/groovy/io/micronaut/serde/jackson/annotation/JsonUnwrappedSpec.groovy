@@ -608,7 +608,7 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 class Foo {
 
-    @JsonUnwrapped(prefix = "hk_")
+    @JsonUnwrapped(prefix = "hk_", suffix = "_out")
     private ComplexFooId hashKey;
 
     private String value;
@@ -634,7 +634,7 @@ class ComplexFooId {
 
     private Integer theInt;
 
-    @JsonUnwrapped(prefix = "foo_")
+    @JsonUnwrapped(prefix = "foo_", suffix = "_in")
     private InnerFooId nested;
 
     public Integer getTheInt() {
@@ -685,7 +685,7 @@ class InnerFooId {
         def result = writeJson(jsonMapper, foo)
 
         then:
-        result == '{"hk_theInt":10,"hk_foo_theLong":200,"hk_foo_theString":"MyString","value":"TheValue"}'
+        result == '{"hk_theInt_out":10,"hk_foo_theLong_in_out":200,"hk_foo_theString_in_out":"MyString","value":"TheValue"}'
 
         when:
         def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Foo')))
