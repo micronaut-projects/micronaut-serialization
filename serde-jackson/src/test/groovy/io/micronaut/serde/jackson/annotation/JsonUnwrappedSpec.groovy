@@ -700,6 +700,15 @@ class InnerFooId {
         read.hashKey.nested.theLong == 200
         read.hashKey.nested.theString == 'MyString'
 
+        cleanup:
+        context.close()
+    }
+
+
+    void "test @JsonUnwrapped - levels 2"() {
+        given:
+        def ctx = buildContext("")
+
         when:
         def nestedEntity = new NestedEntity();
         nestedEntity.setValue("test1");
@@ -729,6 +738,6 @@ class InnerFooId {
         deserNestedEntity.address.street == nestedEntity.address.street
 
         cleanup:
-        context.close()
+        ctx.close()
     }
 }
