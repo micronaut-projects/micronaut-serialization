@@ -30,7 +30,10 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -664,10 +667,9 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     private Object materializeUnwrapped(PropertyBuffer buffer, DecoderContext decoderContext, DeserBean<Object> unwrapped) throws IOException {
         Object object;
         if (unwrapped.creatorParams != null) {
-            final PropertiesBag<Object>.Consumer creatorParams = unwrapped.creatorParams.newConsumer();
             Object[] params = new Object[unwrapped.creatorSize];
             // handle construction
-            for (DeserBean.DerProperty<?, ?> der : creatorParams.getNotConsumed()) {
+            for (DeserBean.DerProperty<?, ?> der : unwrapped.creatorParams.getDerProperties()) {
                 boolean satisfied = false;
                 for (PropertyBuffer pb : buffer) {
                     if (pb.property == der) {
@@ -698,7 +700,6 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
         if (unwrapped.readProperties != null) {
             // nested unwrapped
-            final PropertiesBag<Object>.Consumer readProperties = unwrapped.readProperties.newConsumer();
             DeserBean.@Nullable DerProperty<Object, Object>[] nestedUnwrappedProperties = unwrapped.unwrappedProperties;
             if (nestedUnwrappedProperties != null) {
                 for (DeserBean.DerProperty<Object, Object> nestedUnwrappedProperty : nestedUnwrappedProperties) {
@@ -707,14 +708,16 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     nestedUnwrappedProperty.set(object, o);
                 }
             }
-            for (DeserBean.DerProperty<Object, Object> der : readProperties.getNotConsumed()) {
+            for (DeserBean.DerProperty<Object, Object> der : unwrapped.readProperties.getDerProperties()) {
                 boolean satisfied = false;
                 for (PropertyBuffer pb : buffer) {
                     DeserBean.DerProperty<Object, Object> property = pb.property;
-                    if (property == der && property.instrospection == unwrapped.introspection) {
-                        pb.set(object, decoderContext);
-                        der.set(object, pb.value);
-                        satisfied = true;
+                    if (property == der) {
+                        if (property.instrospection == unwrapped.introspection) {
+                            pb.set(object, decoderContext);
+                            der.set(object, pb.value);
+                        }
+                        satisfied = true; // belongs to another bean, that bean will handle setting the property
                         break;
                     }
                 }

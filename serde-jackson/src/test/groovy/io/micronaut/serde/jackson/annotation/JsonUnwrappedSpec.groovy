@@ -2,6 +2,9 @@ package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonCompileSpec
+import io.micronaut.serde.jackson.nested.Address
+import io.micronaut.serde.jackson.nested.NestedEntity
+import io.micronaut.serde.jackson.nested.NestedEntityId
 import spock.lang.Requires
 
 class JsonUnwrappedSpec extends JsonCompileSpec {
@@ -699,5 +702,42 @@ class InnerFooId {
 
         cleanup:
         context.close()
+    }
+
+
+    void "test @JsonUnwrapped - levels 2"() {
+        given:
+        def ctx = buildContext("")
+
+        when:
+        def nestedEntity = new NestedEntity();
+        nestedEntity.setValue("test1");
+        NestedEntityId hashKey = new NestedEntityId();
+        hashKey.setTheInt(100);
+        hashKey.setTheString("MyString");
+        nestedEntity.setHashKey(hashKey);
+        Address address = new Address();
+        address.getCityData().setCity("NY");
+        address.getCityData().setZipCode("22000");
+        address.setStreet("Blvd 11");
+        nestedEntity.setAddress(address);
+        def nestedJsonStr = writeJson(jsonMapper, nestedEntity)
+
+        then:
+        nestedJsonStr == '{"hk_theInt":100,"hk_theString":"MyString","value":"test1","addr_street":"Blvd 11","addr_cd_zipCode":"22000","addr_cd_city":"NY","version":1,"dateCreated":"1970-01-01T00:00:00Z","dateUpdated":"1970-01-01T00:00:00Z"}'
+
+        when:
+        def deserNestedEntity = jsonMapper.readValue(nestedJsonStr, NestedEntity.class)
+
+        then:
+        deserNestedEntity
+        deserNestedEntity.hashKey.theInt == nestedEntity.hashKey.theInt
+        deserNestedEntity.value == nestedEntity.value
+        deserNestedEntity.audit.dateCreated == nestedEntity.audit.dateCreated
+        deserNestedEntity.address.cityData.zipCode == nestedEntity.address.cityData.zipCode
+        deserNestedEntity.address.street == nestedEntity.address.street
+
+        cleanup:
+        ctx.close()
     }
 }
