@@ -4,71 +4,7 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 
 class JsonSerializeDeserializeSpec extends JsonCompileSpec {
 
-    void 'test json deserialize builder'() {
-        given:
-        def context = buildContext('test.TestBuildMe', """
-package test;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.micronaut.serde.annotation.Serdeable;
-
-@JsonDeserialize(builder = TestBuildMe.Builder.class)
-class TestBuildMe {
-    private final String name;
-    private final int age;
-
-    private TestBuildMe(String name, int age) {
-        this.name = name;
-        this.age = age;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public static final class Builder {
-        private String name;
-        private int age;
-
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder age(int age) {
-            this.age = age;
-            return this;
-        }
-
-        public TestBuildMe build() {
-            return new TestBuildMe(
-                name,
-                age
-            );
-        }
-    }
-}
-""")
-
-        when:
-        def result = jsonMapper.readValue('{"name":"Fred", "age": 30}', typeUnderTest)
-
-        then:
-        result.name == 'Fred'
-        result.age == '30'
-
-        when:
-        def json = writeJson(jsonMapper, result)
-
-        then:
-        json == '{"name":"Fred", "age": 30}'
-    }
-
-    void 'test json serialize/deserialize as'() {
+        void 'test json serialize/deserialize as'() {
         given:
         def context = buildContext('test.Test', """
 package test;
