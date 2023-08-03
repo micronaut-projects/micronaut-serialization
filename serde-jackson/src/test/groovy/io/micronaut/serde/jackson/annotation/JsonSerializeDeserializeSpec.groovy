@@ -4,7 +4,7 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 
 class JsonSerializeDeserializeSpec extends JsonCompileSpec {
 
-        void 'test json serialize/deserialize as'() {
+    void 'test json serialize/deserialize as'() {
         given:
         def context = buildContext('test.Test', """
 package test;
@@ -25,7 +25,7 @@ class TestImpl implements Test {
     TestImpl(String value) {
         this.value = value;
     }
-
+    
     @Override
     public String getValue() {
         return value;
@@ -67,7 +67,7 @@ class ClientAuthentication extends ServerAuthentication implements Authenticatio
     ClientAuthentication(String value) {
         super(value);
     }
-
+    
     public String getAnother() {
         return "Shouldn't appear in serialization output";
     }
@@ -79,7 +79,7 @@ class ServerAuthentication implements Authentication {
     ServerAuthentication(String value) {
         this.value = value;
     }
-
+    
     @Override
     public String getValue() {
         return value;
