@@ -26,4 +26,22 @@ class BuilderSpec extends Specification {
         then:
         result == json
     }
+
+    void "test serialize/deserialize builder with @JsonPOJOBuilder"() {
+        given:
+        def json = '{"name":"Fred","age":30}'
+
+        when:
+        def value = objectMapper.readValue(json, TestBuildMe2)
+
+        then:
+        value.name == 'Fred'
+        value.age == 30
+
+        when:
+        def result = objectMapper.writeValueAsString(value)
+
+        then:
+        result == json
+    }
 }
