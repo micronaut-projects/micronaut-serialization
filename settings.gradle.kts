@@ -2,7 +2,6 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        mavenLocal()
     }
 }
 
@@ -39,10 +38,4 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     importMicronautCatalog()
     importMicronautCatalog("micronaut-reactor")
     importMicronautCatalog("micronaut-logging")
-}
-
-dependencyResolutionManagement {
-    repositories {
-        mavenLocal()
-    }
 }
