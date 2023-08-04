@@ -84,6 +84,8 @@ class DeserBean<T> {
     public final boolean delegating;
     public final boolean simpleBean;
     public final boolean recordLikeBean;
+
+    public final boolean hasBuilder;
     public final ConversionService conversionService;
 
     private volatile boolean initialized;
@@ -103,7 +105,8 @@ class DeserBean<T> {
                 .enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class)
                 .orElse(null);
         delegating = creatorMode == SerdeConfig.SerCreatorMode.DELEGATING;
-        final Argument<?>[] constructorArguments = introspection.getConstructorArguments();
+        hasBuilder = introspection.hasBuilder();
+        final Argument<?>[] constructorArguments = hasBuilder ? introspection.builder().getBuildMethodArguments() : introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
@@ -205,52 +208,77 @@ class DeserBean<T> {
             creatorPropertiesBuilder.register(propertyName, derProperty, true);
         }
 
-        final List<BeanProperty<T, Object>> beanProperties = introspection.getBeanProperties()
+        if (hasBuilder) {
+            PropertiesBag.Builder<T> readPropertiesBuilder = new PropertiesBag.Builder<>(introspection);
+            BeanIntrospection.Builder<T> builder = introspection.builder();
+            @NonNull Argument<?>[] builderArguments = builder.getBuilderArguments();
+
+            for (int i = 0; i < builderArguments.length; i++) {
+                Argument<Object> builderArgument = (Argument<Object>) builderArguments[i];
+                AnnotationMetadata annotationMetadata = builderArgument.getAnnotationMetadata();
+                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
+                final String jsonProperty = resolveName(builderArgument, annotationMetadata, propertyNamingStrategy);
+                final DerProperty<T, Object> derProperty = new DerProperty<>(
+                    conversionService,
+                    introspection,
+                    i,
+                    jsonProperty,
+                    builderArgument,
+                    null,
+                    null,
+                    null
+                );
+                readPropertiesBuilder.register(jsonProperty, derProperty, true);
+            }
+            readProperties = readPropertiesBuilder.build();
+        } else {
+
+            final List<BeanProperty<T, Object>> beanProperties = introspection.getBeanProperties()
                 .stream().filter(bp -> {
                     final AnnotationMetadata annotationMetadata = bp.getAnnotationMetadata();
                     return !bp.isReadOnly() &&
-                            !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false) &&
-                            !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false);
+                        !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false) &&
+                        !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false);
                 }).toList();
-        final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
-        final List<BeanMethod<T, Object>> jsonSetters = new ArrayList<>(beanMethods.size());
-        BeanMethod<T, Object> anySetter = null;
-        for (BeanMethod<T, Object> method : beanMethods) {
-            if (method.isAnnotationPresent(SerdeConfig.SerSetter.class)) {
-                jsonSetters.add(method);
-            } else if (method.isAnnotationPresent(SerdeConfig.SerAnySetter.class) && ArrayUtils.isNotEmpty(method.getArguments())) {
-                anySetter = method;
+            final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
+            final List<BeanMethod<T, Object>> jsonSetters = new ArrayList<>(beanMethods.size());
+            BeanMethod<T, Object> anySetter = null;
+            for (BeanMethod<T, Object> method : beanMethods) {
+                if (method.isAnnotationPresent(SerdeConfig.SerSetter.class)) {
+                    jsonSetters.add(method);
+                } else if (method.isAnnotationPresent(SerdeConfig.SerAnySetter.class) && ArrayUtils.isNotEmpty(method.getArguments())) {
+                    anySetter = method;
+                }
             }
-        }
 
-        if (anySetterValue == null) {
-            anySetterValue = (anySetter != null ? new AnySetter(anySetter) : null);
-        }
+            if (anySetterValue == null) {
+                anySetterValue = (anySetter != null ? new AnySetter(anySetter) : null);
+            }
 
-        if (CollectionUtils.isNotEmpty(beanProperties) || CollectionUtils.isNotEmpty(jsonSetters)) {
-            PropertiesBag.Builder<T> readPropertiesBuilder = new PropertiesBag.Builder<>(introspection);
-            for (int i = 0; i < beanProperties.size(); i++) {
-                BeanProperty<T, Object> beanProperty = beanProperties.get(i);
-                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
-                final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
-                if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
-                    anySetterValue = new AnySetter(beanProperty);
-                } else {
-                    final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
-                    final Argument<Object> t = resolveArgument(beanProperty.asArgument());
+            if (CollectionUtils.isNotEmpty(beanProperties) || CollectionUtils.isNotEmpty(jsonSetters)) {
+                PropertiesBag.Builder<T> readPropertiesBuilder = new PropertiesBag.Builder<>(introspection);
+                for (int i = 0; i < beanProperties.size(); i++) {
+                    BeanProperty<T, Object> beanProperty = beanProperties.get(i);
+                    PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
+                    final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
+                    if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
+                        anySetterValue = new AnySetter(beanProperty);
+                    } else {
+                        final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
+                        final Argument<Object> t = resolveArgument(beanProperty.asArgument());
 
-                    if (isUnwrapped) {
-                        if (unwrappedProperties == null) {
-                            unwrappedProperties = new ArrayList<>();
-                        }
-                        final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
+                        if (isUnwrapped) {
+                            if (unwrappedProperties == null) {
+                                unwrappedProperties = new ArrayList<>();
+                            }
+                            final DeserBean<Object> unwrapped = deserBeanRegistry.getDeserializableBean(
                                 t,
                                 decoderContext
-                        );
-                        final AnnotationMetadataHierarchy combinedMetadata =
+                            );
+                            final AnnotationMetadataHierarchy combinedMetadata =
                                 new AnnotationMetadataHierarchy(annotationMetadata,
-                                        t.getAnnotationMetadata());
-                        unwrappedProperties.add(new DerProperty<>(
+                                    t.getAnnotationMetadata());
+                            unwrappedProperties.add(new DerProperty<>(
                                 conversionService,
                                 introspection,
                                 i,
@@ -260,30 +288,30 @@ class DeserBean<T> {
                                 beanProperty,
                                 null,
                                 unwrapped
-                        ));
-                        String prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
-                        String suffix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
+                            ));
+                            String prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
+                            String suffix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
 
-                        PropertiesBag<T> unwrappedProps = (PropertiesBag) unwrapped.readProperties;
-                        if (unwrappedProps != null) {
-                            for (Map.Entry<String, DerProperty<T, Object>> e : unwrappedProps.getProperties()) {
-                                String resolved = prefix + e.getKey() + suffix;
-                                readPropertiesBuilder.register(resolved, e.getValue(), false);
+                            PropertiesBag<T> unwrappedProps = (PropertiesBag) unwrapped.readProperties;
+                            if (unwrappedProps != null) {
+                                for (Map.Entry<String, DerProperty<T, Object>> e : unwrappedProps.getProperties()) {
+                                    String resolved = prefix + e.getKey() + suffix;
+                                    readPropertiesBuilder.register(resolved, e.getValue(), false);
 
+                                }
                             }
-                        }
-                        final PropertiesBag<Object> unwrappedCreatorParams = unwrapped.creatorParams;
-                        if (unwrappedCreatorParams != null) {
-                            for (Map.Entry<String, DerProperty<Object, Object>> e : unwrappedCreatorParams.getProperties()) {
-                                String resolved = prefix + e.getKey() + suffix;
-                                //noinspection unchecked
-                                creatorPropertiesBuilder.register(resolved, (DerProperty) e.getValue(), false);
+                            final PropertiesBag<Object> unwrappedCreatorParams = unwrapped.creatorParams;
+                            if (unwrappedCreatorParams != null) {
+                                for (Map.Entry<String, DerProperty<Object, Object>> e : unwrappedCreatorParams.getProperties()) {
+                                    String resolved = prefix + e.getKey() + suffix;
+                                    //noinspection unchecked
+                                    creatorPropertiesBuilder.register(resolved, (DerProperty) e.getValue(), false);
+                                }
                             }
-                        }
-                    } else {
+                        } else {
 
-                        final String jsonProperty = resolveName(beanProperty, annotationMetadata, propertyNamingStrategy);
-                        final DerProperty<T, Object> derProperty = new DerProperty<>(
+                            final String jsonProperty = resolveName(beanProperty, annotationMetadata, propertyNamingStrategy);
+                            final DerProperty<T, Object> derProperty = new DerProperty<>(
                                 conversionService,
                                 introspection,
                                 i,
@@ -292,15 +320,15 @@ class DeserBean<T> {
                                 beanProperty,
                                 null,
                                 null
-                        );
-                        readPropertiesBuilder.register(jsonProperty, derProperty, true);
+                            );
+                            readPropertiesBuilder.register(jsonProperty, derProperty, true);
+                        }
                     }
                 }
-            }
 
-            for (BeanMethod<T, Object> jsonSetter : jsonSetters) {
-                PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonSetter.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
-                final String property = resolveName(
+                for (BeanMethod<T, Object> jsonSetter : jsonSetters) {
+                    PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonSetter.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
+                    final String property = resolveName(
                         new AnnotatedElement() {
                             @Override
                             public String getName() {
@@ -314,9 +342,9 @@ class DeserBean<T> {
                         },
                         jsonSetter.getAnnotationMetadata(),
                         propertyNamingStrategy
-                );
-                final Argument<Object> argument = resolveArgument((Argument<Object>) jsonSetter.getArguments()[0]);
-                final DerProperty<T, Object> derProperty = new DerProperty<>(
+                    );
+                    final Argument<Object> argument = resolveArgument((Argument<Object>) jsonSetter.getArguments()[0]);
+                    final DerProperty<T, Object> derProperty = new DerProperty<>(
                         conversionService,
                         introspection,
                         0,
@@ -325,12 +353,13 @@ class DeserBean<T> {
                         null,
                         jsonSetter,
                         null
-                );
-                readPropertiesBuilder.register(property, derProperty, true);
+                    );
+                    readPropertiesBuilder.register(property, derProperty, true);
+                }
+                readProperties = readPropertiesBuilder.build();
+            } else {
+                readProperties = null;
             }
-            readProperties = readPropertiesBuilder.build();
-        } else {
-            readProperties = null;
         }
 
         this.anySetter = anySetterValue;
@@ -796,6 +825,33 @@ class DeserBean<T> {
                 throw new SerdeException("Error decoding property [" + argument + "] of type [" + instrospection.getBeanType() + "]: " + e.getMessage(), e);
             }
         }
+
+        @Nullable
+        public void deserializeAndCallBuilder(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, BeanIntrospection.Builder<B> builder) throws IOException {
+            try {
+                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
+                if (value == null && !nullable) {
+                    if (!explicitlyRequired) {
+                        value = defaultValue;
+                        if (value == null) {
+                            if (!mustSetField) {
+                                return;
+                            }
+                            value = deserializer.getDefaultValue(decoderContext, argument);
+                        }
+                    } else {
+                        throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                            "] is not present in supplied data");
+                    }
+                }
+                builder.with(index, argument, value);
+            } catch (InvalidFormatException e) {
+                throw new InvalidPropertyFormatException(e, argument);
+            } catch (Exception e) {
+                throw new SerdeException("Error decoding property [" + argument + "] of type [" + instrospection.getBeanType() + "]: " + e.getMessage(), e);
+            }
+        }
+
 
     }
 
