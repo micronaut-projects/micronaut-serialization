@@ -2,7 +2,7 @@ To replace Jackson Databind, but continue using https://fasterxml.github.io/jack
 
 Add the following artifact to the `dependencies` block:
 
-dependency:micronaut-serde-jackson[groupId="io.micronaut.serde",scope="implementation", version="{version}"]
+dependency:micronaut-serde-jackson[groupId="io.micronaut.serde",scope="implementation"]
 
 With the correct dependencies in place you can now define an object to be serialized:
 

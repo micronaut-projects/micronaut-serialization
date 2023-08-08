@@ -5,7 +5,7 @@ Note that only the annotations are supported and the runtime APIs are not, hence
 .`jakarta.json.bind-api` as `compileOnly` scope
 [source,groovy]
 ----
-compileOnly("jakarta.json.bind:jakarta.json.bind-api:2.0.0")
+compileOnly("jakarta.json.bind:jakarta.json.bind-api")
 ----
 
 or Maven:
@@ -16,7 +16,6 @@ or Maven:
 <dependency>
   <groupId>jakarta.json.bind</groupId>
   <artifactId>jakarta.json.bind-api</artifactId>
-  <version>2.0.0</version>
   <scope>provided</scope>
 </dependency>
 ----
