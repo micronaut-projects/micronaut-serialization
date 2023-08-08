@@ -2,7 +2,7 @@ To completely remove all dependencies on Jackson and use JSON-B annotations in y
 
 Add the following artifact to the `dependencies` block:
 
-dependency:micronaut-serde-jsonp[groupId="io.micronaut.serde",scope="implementation", version="{version}"]
+dependency:micronaut-serde-jsonp[groupId="io.micronaut.serde",scope="implementation"]
 
 WARNING: If your third-party dependencies have direct dependencies on Jackson Databind it may not be an option to omit it.
 

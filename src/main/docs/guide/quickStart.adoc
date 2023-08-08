@@ -2,7 +2,7 @@ There are a number of ways to use Micronaut Serialization including a choice of 
 
 The first step however is configure the necessary annotation processor dependency:
 
-dependency:micronaut-serde-processor[groupId="io.micronaut.serde",scope="annotationProcessor", version="{version}"]
+dependency:micronaut-serde-processor[groupId="io.micronaut.serde",scope="annotationProcessor"]
 
 You should then choose a combination of Annotation-based programming model and runtime implementation that you desire.
 
