@@ -24,7 +24,7 @@ micronaut-reactor = "3.0.2"
 
 oracle-jdbc-driver = "23.2.0.0"
 jetbrains-annotations = "24.0.1"
-jmh = "1.36"
+jmh = "1.37"
 
 [libraries]
 # Core
