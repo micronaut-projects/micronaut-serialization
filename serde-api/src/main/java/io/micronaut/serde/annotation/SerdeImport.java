@@ -41,7 +41,9 @@ public @interface SerdeImport {
      *
      * @return The type to enable serialization for.
      */
-    Class<?> value();
+    Class<?> value() default void.class;
+
+    String packageName() default "";
 
     /**
      * Apply a mixin type. This is equivalent to Jackson {@code objectMapper.addMixInAnnotations(..)} allowing to mixin

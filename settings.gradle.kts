@@ -5,6 +5,13 @@ pluginManagement {
     }
 }
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
 plugins {
     id("io.micronaut.build.shared.settings") version "6.5.5"
 }

@@ -440,12 +440,9 @@ final class SerBean<T> {
     private PropertyFilter getPropertyFilterIfPresent(BeanContext beanContext, String typeName) {
         Optional<String> filterName = introspection.stringValue(SerdeConfig.class, SerdeConfig.FILTER);
         if (filterName.isPresent() && !filterName.get().isEmpty()) {
-            try {
-                return beanContext.getBean(PropertyFilter.class, Qualifiers.byName(filterName.get()));
-            } catch (NoSuchBeanException e) {
-                throw new ConfigurationException("Json filter with name '" + filterName.get() + "' was defined on type " +
-                    typeName + " but no PropertyFilter with the name exists");
-            }
+            return beanContext.findBean(PropertyFilter.class, Qualifiers.byName(filterName.get()))
+                .orElseThrow(() -> new ConfigurationException("Json filter with name '" + filterName.get() + "' was defined on type " +
+                    typeName + " but no PropertyFilter with the name exists"));
         }
         return null;
     }

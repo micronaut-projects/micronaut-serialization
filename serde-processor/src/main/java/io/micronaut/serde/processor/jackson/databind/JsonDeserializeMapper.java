@@ -57,10 +57,11 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
                     );
                 }
             });
+            AnnotationValueBuilder<Introspected> builder = AnnotationValue.builder(Introspected.class)
+                .member("builder", builderDef.build())
+                .member("builderClass", builderClass);
             annotations.add(
-                AnnotationValue.builder(Introspected.class)
-                    .member("builder", builderDef.build())
-                    .build()
+                builder.build()
             );
         }
         return annotations;
