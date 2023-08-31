@@ -652,7 +652,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
-        System.out.println("element = " + element);
         // reset
         resetForNewClass(element);
         if (checkForErrors(element, context)) {
@@ -742,7 +741,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final List<AnnotationValue<SerdeImport>> values = element.getDeclaredAnnotationValuesByType(SerdeImport.class);
             List<AnnotationClassValue<?>> classValues = new ArrayList<>();
             for (AnnotationValue<SerdeImport> value : values) {
-                System.out.println("value = " + value);
                 value.annotationClassValue(AnnotationMetadata.VALUE_MEMBER)
                         .flatMap(acv -> context.getClassElement(acv.getName()))
                         .ifPresent(c -> {
@@ -754,8 +752,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         });
                  value.stringValue("packageName").ifPresent(packageName -> {
                      @NonNull ClassElement[] classElements = context.getClassElements(packageName, "*");
-                     System.out.println("packageName = " + packageName);
-                     System.out.println("classElements = " + classElements);
                      for (ClassElement c : classElements) {
                          if (c.isPublic()) {
                              handleClassImport(context, value, c, classValues);

@@ -21,6 +21,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.micronaut.core.annotation.Experimental;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
@@ -43,6 +44,13 @@ public @interface SerdeImport {
      */
     Class<?> value() default void.class;
 
+    /**
+     * Specifies a package name where types can be found. Only publicaly accessible types will be processed.
+     *
+     * @return The package name where types can be found to import.
+     * @since 2.2.2
+     */
+    @Experimental
     String packageName() default "";
 
     /**
