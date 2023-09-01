@@ -32,7 +32,6 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     private final JsonParser jsonParser;
     private JsonParser.Event currentEvent;
 
-
     public JsonParserDecoder(JsonParser jsonParser) {
         this(jsonParser, DEFAULT_LIMITS);
     }

@@ -52,12 +52,13 @@ final class HealthResultDeserializer implements CustomizableDeserializer<HealthR
         public HealthResult deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super HealthResult> type) throws IOException {
             HealthResultDto dto = delegate.deserialize(decoder, context, DELEGATE_ARGUMENT);
             assert dto != null;
+            HealthStatus status = switch (dto.status) {
+                case HealthStatus.NAME_DOWN -> HealthStatus.DOWN;
+                case HealthStatus.NAME_UP -> HealthStatus.UP;
+                default -> new HealthStatus(dto.status);
+            };
             return HealthResult.builder(dto.name)
-                .status(switch (dto.status) {
-                    case HealthStatus.NAME_DOWN -> HealthStatus.DOWN;
-                    case HealthStatus.NAME_UP -> HealthStatus.UP;
-                    default -> new HealthStatus(dto.status);
-                })
+                .status(status)
                 .details(dto.details)
                 .build();
         }

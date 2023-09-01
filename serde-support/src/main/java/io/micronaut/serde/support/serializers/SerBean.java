@@ -17,7 +17,6 @@ package io.micronaut.serde.support.serializers;
 
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.exceptions.ConfigurationException;
-import io.micronaut.context.exceptions.NoSuchBeanException;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;

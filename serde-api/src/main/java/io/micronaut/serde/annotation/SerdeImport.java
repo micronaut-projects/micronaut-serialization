@@ -45,7 +45,9 @@ public @interface SerdeImport {
     Class<?> value() default void.class;
 
     /**
-     * Specifies a package name where types can be found. Only publicaly accessible types will be processed.
+     * Specifies a package name where types can be found.
+     *
+     * <p>Only publicly accessible types will be processed. Nested packages will not be processed and have to be defined explicitly.</p>
      *
      * @return The package name where types can be found to import.
      * @since 2.2.2
