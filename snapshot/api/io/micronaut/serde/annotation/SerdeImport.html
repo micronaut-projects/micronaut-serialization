@@ -42,7 +42,7 @@ loadScripts(document, 'script');</script>
 <li>Summary:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li><a href="#annotation-interface-optional-element-summary">Optional</a>&nbsp;|&nbsp;</li>
-<li><a href="#annotation-interface-required-element-summary">Required</a></li>
+<li>Required</li>
 </ul>
 <ul class="sub-nav-list">
 <li>Detail:&nbsp;</li>
@@ -93,23 +93,6 @@ loadScripts(document, 'script');</script>
 </div>
 </section>
 </li>
-<!-- =========== ANNOTATION INTERFACE REQUIRED MEMBER SUMMARY =========== -->
-<li>
-<section class="member-summary" id="annotation-interface-required-element-summary">
-<h2>Required Element Summary</h2>
-<div class="caption"><span>Required Elements</span></div>
-<div class="summary-table three-column-summary">
-<div class="table-header col-first">Modifier and Type</div>
-<div class="table-header col-second">Required Element</div>
-<div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;</code></div>
-<div class="col-second even-row-color"><code><a href="#value()" class="member-name-link">value</a></code></div>
-<div class="col-last even-row-color">
-<div class="block">Allows making an external class or interface serializable.</div>
-</div>
-</div>
-</section>
-</li>
 <!-- =========== ANNOTATION INTERFACE OPTIONAL MEMBER SUMMARY =========== -->
 <li>
 <section class="member-summary" id="annotation-interface-optional-element-summary">
@@ -127,9 +110,19 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color">
 <div class="block">Apply a mixin type.</div>
 </div>
-<div class="col-first even-row-color"><code>boolean</code></div>
-<div class="col-second even-row-color"><code><a href="#serializable()" class="member-name-link">serializable</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#packageName()" class="member-name-link">packageName</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Specifies a package name where types can be found.</div>
+</div>
+<div class="col-first odd-row-color"><code>boolean</code></div>
+<div class="col-second odd-row-color"><code><a href="#serializable()" class="member-name-link">serializable</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;</code></div>
+<div class="col-second even-row-color"><code><a href="#value()" class="member-name-link">value</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Allows making an external class or interface serializable.</div>
+</div>
 </div>
 </section>
 </li>
@@ -154,15 +147,31 @@ loadScripts(document, 'script');</script>
 <dt>Returns:</dt>
 <dd>The type to enable serialization for.</dd>
 </dl>
+<dl class="notes">
+<dt>Default:</dt>
+<dd>void.class</dd>
+</dl>
 </section>
 </li>
-</ul>
-</section>
-</li>
-<!-- ============ ANNOTATION INTERFACE MEMBER DETAIL =========== -->
 <li>
-<section class="member-details">
-<ul class="member-list">
+<section class="detail" id="packageName()">
+<h3>packageName</h3>
+<div class="member-signature"><span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">packageName</span></div>
+<div class="block">Specifies a package name where types can be found.
+
+ <p>Only publicly accessible types will be processed. Nested packages will not be processed and have to be defined explicitly.</p></div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The package name where types can be found to import.</dd>
+<dt>Since:</dt>
+<dd>2.2.2</dd>
+</dl>
+<dl class="notes">
+<dt>Default:</dt>
+<dd>""</dd>
+</dl>
+</section>
+</li>
 <li>
 <section class="detail" id="mixin()">
 <h3>mixin</h3>
