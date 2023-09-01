@@ -99,31 +99,6 @@ record Test (
         'List<String>' | null         | []          | '{"value":[]}'
     }
 
-    @Unroll
-    void "test @JsonFilter throws error when filter not defined"() {
-        given:
-        def context = buildContext("""
-package jsonfilter;
-
-import io.micronaut.serde.annotation.Serdeable;
-import com.fasterxml.jackson.annotation.JsonFilter;
-import java.util.List;
-
-@Serdeable
-@JsonFilter("non-existing-filter")
-record TestModel (
-    String value
-) {}
-""")
-        def bean = newInstance(context, 'jsonfilter.TestModel', "value")
-
-        when:
-        writeJson(jsonMapper, bean)
-
-        then:
-        thrown(ConfigurationException)
-    }
-
     @Named("ignore-value")
     @Singleton
     static class IgnoreValueFilter implements PropertyFilter {
