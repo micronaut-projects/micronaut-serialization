@@ -15,8 +15,6 @@
  */
 package io.micronaut.serde.config;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
 
@@ -29,8 +27,6 @@ import java.util.TimeZone;
  *
  * @author gkrocher
  */
-@ConfigurationProperties(SerdeConfiguration.PREFIX)
-@BootstrapContextCompatible
 public interface SerdeConfiguration {
 
     String PREFIX = "micronaut.serde";

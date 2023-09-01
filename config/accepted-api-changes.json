@@ -13,5 +13,200 @@
     "type": "io.micronaut.serde.bson.BsonBinaryMapper",
     "member": "Constructor io.micronaut.serde.bson.BsonBinaryMapper(io.micronaut.serde.SerdeRegistry)",
     "reason": "Changed in Micronaut Framework 4"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Field $ANNOTATION_METADATA",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Constructor io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference()",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationSource",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanContextConditional",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadataProvider",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.beans.BeanInfo",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadataDelegate",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.AdvisedBeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadata",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.type.ArgumentCoercible",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.QualifiedBeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$DeserializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanDefinitionReference",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Field $ANNOTATION_METADATA",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Constructor io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference()",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationSource",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanContextConditional",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadataProvider",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.beans.BeanInfo",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadataDelegate",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.AdvisedBeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadata",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.type.ArgumentCoercible",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.QualifiedBeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerdeConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanDefinitionReference",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Field $ANNOTATION_METADATA",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Constructor io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference()",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationSource",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanContextConditional",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadataProvider",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.beans.BeanInfo",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadataDelegate",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.AdvisedBeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.annotation.AnnotationMetadata",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.core.type.ArgumentCoercible",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.QualifiedBeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanType",
+    "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
+    "member": "Implemented interface io.micronaut.inject.BeanDefinitionReference",
+    "reason": "Internal"
   }
 ]
