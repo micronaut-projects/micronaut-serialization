@@ -132,4 +132,18 @@ class JacksonDecoderSpec extends Specification {
         then:
         thrown SerdeException
     }
+
+    def "long array"() {
+        when:
+        def len = 5000
+        def json = '[' + "{},".repeat(len - 1) + '{}]'
+        def decoder = createDecoder(json)
+        def arrayDecoder = decoder.decodeArray()
+        then:
+        for (int i = 0; i < len; i++) {
+            arrayDecoder.decodeObject().finishStructure()
+        }
+        !arrayDecoder.hasNextArrayValue()
+        arrayDecoder.finishStructure()
+    }
 }
