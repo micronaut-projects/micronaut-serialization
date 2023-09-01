@@ -118,7 +118,7 @@ public abstract class LimitingStream {
     /**
      * This data structure contains the limits for this stream.
      */
-    public static class RemainingLimits {
+    public static final class RemainingLimits {
         final int remainingDepth;
 
         private RemainingLimits(int remainingDepth) {

@@ -16,8 +16,6 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.context.BeanContext;
-import io.micronaut.context.exceptions.ConfigurationException;
-import io.micronaut.context.exceptions.NoSuchBeanException;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
@@ -44,6 +42,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Modifier;
 import java.util.AbstractMap;
@@ -440,12 +439,12 @@ final class SerBean<T> {
     private PropertyFilter getPropertyFilterIfPresent(BeanContext beanContext, String typeName) {
         Optional<String> filterName = introspection.stringValue(SerdeConfig.class, SerdeConfig.FILTER);
         if (filterName.isPresent() && !filterName.get().isEmpty()) {
-            try {
-                return beanContext.getBean(PropertyFilter.class, Qualifiers.byName(filterName.get()));
-            } catch (NoSuchBeanException e) {
-                throw new ConfigurationException("Json filter with name '" + filterName.get() + "' was defined on type " +
-                    typeName + " but no PropertyFilter with the name exists");
-            }
+            return beanContext.findBean(PropertyFilter.class, Qualifiers.byName(filterName.get()))
+                .orElseGet(() -> {
+                    LoggerFactory.getLogger(SerBean.class)
+                        .warn("Json filter with name '{}' was defined on type {} but no PropertyFilter bean with the name exists", filterName.get(), typeName);
+                    return null;
+                });
         }
         return null;
     }

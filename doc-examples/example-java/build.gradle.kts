@@ -13,11 +13,12 @@ dependencies {
     implementation(mn.micronaut.http.client)
     runtimeOnly(mnLogging.logback.classic)
     testImplementation(mnTest.micronaut.test.junit5)
+    implementation(libs.oci.aidocument)
 }
 application {
     mainClass.set("example.Application")
 }
-
+//
 //tasks {
 //    compileJava {
 //        options.isFork = true

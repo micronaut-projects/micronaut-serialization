@@ -747,28 +747,28 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             if (!c.isPublic()) {
                                 context.fail("Cannot mixin non-public type: " + c.getName(), element);
                             } else {
-                                classValues.add(new AnnotationClassValue<>(c.getName()));
-                                final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
-                                        .orElse(null);
-                                if (mixinType != null) {
-                                    visitMixin(mixinType, c);
-                                } else {
-                                    visitClassInternal(c, context, true);
-                                }
-                                c.annotate(value);
+                                handleClassImport(context, value, c, classValues);
                             }
                         });
+                 value.stringValue("packageName").ifPresent(packageName -> {
+                     @NonNull ClassElement[] classElements = context.getClassElements(packageName, "*");
+                     for (ClassElement c : classElements) {
+                         if (c.isPublic()) {
+                             handleClassImport(context, value, c, classValues);
+                         }
+                     }
+                 });
             }
-            element.annotate(Introspected.class, (builder) ->
+            element.annotate(Introspected.class, builder ->
                 builder.member("classes", classValues.toArray(new AnnotationClassValue[0]))
             );
         } else if (isJsonAnnotated(element) || isImport) {
             if (!element.hasStereotype(Serdeable.Serializable.class) &&
                     !element.hasStereotype(Serdeable.Deserializable.class) && !isImport) {
                 element.annotate(Serdeable.class);
-                element.annotate(Introspected.class, (builder) -> {
-                    builder.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
-                    builder.member("visibility", "PUBLIC");
+                element.annotate(Introspected.class, i -> {
+                    i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
+                    i.member("visibility", "PUBLIC");
                 });
             }
 
@@ -848,6 +848,24 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                 context.fail("Inheritance cannot be combined with DELEGATING creation", element);
             }
+        }
+    }
+
+    private void handleClassImport(VisitorContext context, AnnotationValue<SerdeImport> value, ClassElement c, List<AnnotationClassValue<?>> classValues) {
+        classValues.add(new AnnotationClassValue<>(c.getName()));
+        final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
+                .orElse(null);
+        if (mixinType != null) {
+            visitMixin(mixinType, c);
+        } else {
+            visitClassInternal(c, context, true);
+        }
+        c.annotate(value);
+        AnnotationValue<Annotation> jsonPojoAnn = c.getAnnotation("com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder");
+        if (jsonPojoAnn != null) {
+            String buildMethod = jsonPojoAnn.stringValue("buildMethodName").orElse("build");
+            c.getEnclosedElement(ElementQuery.ALL_METHODS.named(n -> n.equals(buildMethod)))
+                .ifPresent(m -> m.annotate(Executable.class));
         }
     }
 
