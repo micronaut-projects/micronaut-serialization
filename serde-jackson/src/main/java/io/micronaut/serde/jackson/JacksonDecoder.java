@@ -120,6 +120,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         if (token != JsonToken.END_ARRAY && token != JsonToken.END_OBJECT) {
             throw new IllegalStateException("Not all elements have been consumed yet");
         }
+        decreaseDepth();
     }
 
     @Override
