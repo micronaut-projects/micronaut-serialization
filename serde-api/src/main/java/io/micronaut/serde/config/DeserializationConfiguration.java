@@ -15,16 +15,12 @@
  */
 package io.micronaut.serde.config;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 
 /**
  * Configuration for deserialization.
  */
-@ConfigurationProperties(DeserializationConfiguration.PREFIX)
-@BootstrapContextCompatible
 public interface DeserializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".deserialization";
 
