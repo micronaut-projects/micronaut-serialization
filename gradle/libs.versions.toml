@@ -12,7 +12,7 @@ spock = "2.3-groovy-4.0"
 kotlin = '1.9.10'
 graal-svm = "23.0.1"
 aws-lambda-events = '3.11.3'
-oci-sdk = '3.15.0'
+oci-sdk = '3.25.2'
 aws-lambda-serialization = '1.1.2'
 microstream-storage-restclient = '08.01.01-MS-GA'
 
