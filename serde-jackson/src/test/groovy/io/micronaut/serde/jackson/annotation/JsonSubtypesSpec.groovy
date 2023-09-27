@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.serde.jackson.JsonCompileSpec
+import spock.lang.Issue
 
 class JsonSubtypesSpec extends JsonCompileSpec {
 
@@ -239,6 +240,61 @@ class Sub extends Base {
 
         then:
         result.getClass().name == 'test.Sub'
+    }
+
+    @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/575")
+    void 'test wrapper unnesting'() {
+        given:
+        def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Wrapper(Base base, String other) {
+}
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "subClass")
+)
+class Base {
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    public Sub(String string, Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+        def wrapperArg = argumentOf(context, "test.Wrapper")
+        def result = jsonMapper.readValue('{\"base\":{"subClass":{"string":"a","integer":1}},\"other\":\"foo\"}', wrapperArg)
+
+        then:
+        result.base.getClass().name == 'test.Sub'
+        result.other == 'foo'
     }
 
     void 'test json sub types using name serialization'() {
