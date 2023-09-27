@@ -71,15 +71,6 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             return (Decoder decoder, DecoderContext context1, Argument<? super Object> type1) -> decoder.decodeArbitrary();
         }
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
-        if (deserBean.hasBuilder) {
-            return new SimpleBuilderDeserializer(
-                deserBean.readProperties,
-                deserBean.introspection,
-                preInstantiateCallback,
-                ignoreUnknown,
-                strictNullable
-            );
-        }
         if (deserBean.simpleBean) {
             return new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         }

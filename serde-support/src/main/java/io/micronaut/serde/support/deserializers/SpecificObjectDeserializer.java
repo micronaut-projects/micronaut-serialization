@@ -17,6 +17,7 @@ package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -327,6 +328,42 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                             buffer,
                             decoderContext
                     );
+                }
+            } else if (db.hasBuilder) {
+                BeanIntrospection.Builder<? super Object> builder;
+                try {
+                    if (preInstantiateCallback != null) {
+                        preInstantiateCallback.preInstantiate(db.introspection);
+                    }
+                    builder = db.introspection.builder();
+                } catch (InstantiationException e) {
+                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
+                }
+                if (hasProperties) {
+                    while (true) {
+                        final String prop = objectDecoder.decodeKey();
+                        if (prop == null) {
+                            break;
+                        }
+                        final DeserBean.DerProperty<Object, Object> property = readProperties.consume(prop);
+                        if (property != null) {
+                            property.deserializeAndCallBuilder(objectDecoder, decoderContext, builder);
+                        } else {
+                            skipOrSetAny(
+                                decoderContext,
+                                objectDecoder,
+                                prop,
+                                anyValues,
+                                ignoreUnknown,
+                                type
+                            );
+                        }
+                    }
+                }
+                try {
+                    obj = builder.build();
+                } catch (InstantiationException e) {
+                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
             } else {
                 try {

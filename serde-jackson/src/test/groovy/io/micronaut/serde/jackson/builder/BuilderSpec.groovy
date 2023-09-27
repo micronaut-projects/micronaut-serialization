@@ -44,4 +44,16 @@ class BuilderSpec extends Specification {
         then:
         result == json
     }
+
+    void "test deserialize builder on subtype"() {
+        given:
+        def json = '{"sub":{"foo":"fizz","bar":"buzz"}}'
+
+        when:
+        def value = objectMapper.readValue(json, TestBuildSupertype)
+
+        then:
+        value.foo == 'fizz'
+        value.bar == 'buzz'
+    }
 }
