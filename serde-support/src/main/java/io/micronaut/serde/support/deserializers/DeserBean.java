@@ -216,8 +216,15 @@ class DeserBean<T> {
             for (int i = 0; i < builderArguments.length; i++) {
                 Argument<Object> builderArgument = (Argument<Object>) builderArguments[i];
                 AnnotationMetadata annotationMetadata = builderArgument.getAnnotationMetadata();
+                Optional<BeanProperty<T, Object>> matchingOuterProperty = introspection.getProperty(builderArgument.getName());
                 PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
-                final String jsonProperty = resolveName(builderArgument, annotationMetadata, propertyNamingStrategy);
+                final String jsonProperty = resolveName(
+                    builderArgument,
+                        matchingOuterProperty
+                            .map(outer -> List.of(annotationMetadata, outer.getAnnotationMetadata()))
+                            .orElse(List.of(annotationMetadata)),
+                    propertyNamingStrategy
+                );
                 final DerProperty<T, Object> derProperty = new DerProperty<>(
                     conversionService,
                     introspection,
@@ -532,15 +539,24 @@ class DeserBean<T> {
     }
 
     private String resolveName(AnnotatedElement annotatedElement, AnnotationMetadata annotationMetadata, PropertyNamingStrategy namingStrategy) {
+        return resolveName(annotatedElement, List.of(annotationMetadata), namingStrategy);
+    }
+
+    private String resolveName(AnnotatedElement annotatedElement, List<AnnotationMetadata> annotationMetadata, PropertyNamingStrategy namingStrategy) {
         if (namingStrategy != null) {
             return namingStrategy.translate(annotatedElement);
         }
-        return annotationMetadata
-                .stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                .orElseGet(() ->
-                        annotationMetadata.stringValue(JK_PROP)
-                                .orElseGet(annotatedElement::getName)
-                );
+        for (AnnotationMetadata metadataElement : annotationMetadata) {
+            Optional<String> serde = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY);
+            if (serde.isPresent()) {
+                return serde.get();
+            }
+            Optional<String> jackson = metadataElement.stringValue(JK_PROP);
+            if (jackson.isPresent()) {
+                return jackson.get();
+            }
+        }
+        return annotatedElement.getName();
     }
 
     private static <T> Deserializer<T> findDeserializer(Deserializer.DecoderContext decoderContext, Argument<T> argument) throws SerdeException {
