@@ -340,6 +340,23 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
                 }
                 if (hasProperties) {
+                    if (tokenBuffer != null) {
+                        for (TokenBuffer buffer : tokenBuffer) {
+                            final DeserBean.DerProperty<Object, Object> property = readProperties.consume(buffer.name);
+                            if (property != null) {
+                                property.deserializeAndCallBuilder(buffer.decoder, decoderContext, builder);
+                            } else {
+                                skipOrSetAny(
+                                    decoderContext,
+                                    buffer.decoder,
+                                    buffer.name,
+                                    anyValues,
+                                    ignoreUnknown,
+                                    type
+                                );
+                            }
+                        }
+                    }
                     while (true) {
                         final String prop = objectDecoder.decodeKey();
                         if (prop == null) {

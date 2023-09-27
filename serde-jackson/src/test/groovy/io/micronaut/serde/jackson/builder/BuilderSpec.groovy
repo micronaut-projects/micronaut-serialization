@@ -56,4 +56,16 @@ class BuilderSpec extends Specification {
         value.foo == 'fizz'
         value.bar == 'buzz'
     }
+
+    void "test deserialize builder on supertype"() {
+        given:
+        def json = '{"foo":"fizz"}'
+
+        when:
+        def value = objectMapper.readValue(json, TestBuildSupertype2)
+
+        then:
+        value.getClass() == TestBuildSupertype2
+        value.foo == 'fizz'
+    }
 }
