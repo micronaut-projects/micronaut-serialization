@@ -84,6 +84,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             PropertiesBag<Object>.Consumer readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
             boolean hasProperties = readProperties != null;
 
+            Decoder wrapperObjectOuterDecoder = null; // for WRAPPER_OBJECT subtyping
             Decoder objectDecoder = decoder.decodeObject(type);
             TokenBuffer tokenBuffer = null;
             AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
@@ -132,6 +133,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                         final DeserBean<?> subtypeBean = subtypes.get(key);
                         if (subtypeBean != null) {
                             if (!objectDecoder.decodeNull()) {
+                                wrapperObjectOuterDecoder = objectDecoder;
                                 objectDecoder = objectDecoder.decodeObject(type);
                                 db = (DeserBean<? super Object>) subtypeBean;
                                 //noinspection unchecked
@@ -374,6 +376,10 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             }
             // finish up
             finalizeObjectDecoder(decoderContext, type, ignoreUnknown, objectDecoder, anyValues, obj);
+
+            if (wrapperObjectOuterDecoder != null) {
+                wrapperObjectOuterDecoder.finishStructure(true);
+            }
 
             return obj;
         }
