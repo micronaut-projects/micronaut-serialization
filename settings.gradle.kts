@@ -21,6 +21,7 @@ include("serde-jsonp")
 include("serde-support")
 include("serde-bson")
 include("serde-tck")
+include("serde-tck-tests")
 include("serde-oracle-jdbc-json")
 
 include("doc-examples:example-bson-java")
@@ -30,6 +31,9 @@ include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
 
 include("benchmarks")
+
+include("test-suite-tck-jackson-databind")
+include("test-suite-tck-serde")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
