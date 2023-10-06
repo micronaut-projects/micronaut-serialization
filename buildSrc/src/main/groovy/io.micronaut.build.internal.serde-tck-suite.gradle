@@ -1,0 +1,15 @@
+plugins {
+    id("io.micronaut.build.internal.serde-base")
+    id("java-library")
+}
+dependencies {
+    testImplementation(platform(mn.micronaut.core.bom))
+    testImplementation(projects.micronautSerdeTckTests)
+    testImplementation(platform(mnTest.micronaut.test.bom))
+    testImplementation(libs.junit.platform.engine)
+    testImplementation(libs.junit.jupiter.engine)
+    testRuntimeOnly(mnLogging.logback.classic)
+}
+tasks.named("test") {
+    useJUnitPlatform()
+}

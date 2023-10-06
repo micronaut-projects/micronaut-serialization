@@ -18,6 +18,7 @@ package io.micronaut.serde.config;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
 
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -37,6 +38,16 @@ public interface SerdeConfiguration {
      * @return the date format to use
      */
     Optional<String> getDateFormat();
+
+    boolean DEFAULT_INET_ADDRESS_AS_NUMERIC = false;
+
+    /**
+     *
+     * @return Whether to use {@link InetAddress#getHostAddress()} when serializing {@link InetAddress}.
+     */
+    default boolean isInetAddressAsNumeric() {
+        return DEFAULT_INET_ADDRESS_AS_NUMERIC;
+    }
 
     /**
      * Shape for serializing dates.
