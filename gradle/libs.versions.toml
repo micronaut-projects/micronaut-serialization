@@ -10,6 +10,7 @@ micronaut-logging = "1.1.2"
 groovy = "4.0.11"
 spock = "2.3-groovy-4.0"
 kotlin = '1.9.10'
+ksp = '1.9.10-1.0.13'
 graal-svm = "23.1.0"
 aws-lambda-events = '3.11.3'
 oci-sdk = '3.25.2'
@@ -59,3 +60,4 @@ oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument", versio
 gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }
 kotlin-gradle-plugin = { module = 'org.jetbrains.kotlin:kotlin-gradle-plugin', version.ref = 'kotlin' }
 kotlin-gradle-allopen = { module = 'org.jetbrains.kotlin:kotlin-allopen', version.ref = 'kotlin' }
+kotlin-gradle-ksp = { module = 'com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin', version.ref = 'ksp' }

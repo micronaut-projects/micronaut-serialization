@@ -27,7 +27,10 @@ include("doc-examples:example-bson-java")
 include("doc-examples:example-groovy")
 include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
-include("doc-examples:example-kotlin")
+if (JavaVersion.current() < JavaVersion.VERSION_21) {
+    include("doc-examples:example-kotlin")
+}
+include("doc-examples:example-kotlin-ksp")
 
 include("benchmarks")
 
@@ -37,5 +40,4 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     useStandardizedProjectNames.set(true)
     importMicronautCatalog()
     importMicronautCatalog("micronaut-reactor")
-    importMicronautCatalog("micronaut-logging")
 }
