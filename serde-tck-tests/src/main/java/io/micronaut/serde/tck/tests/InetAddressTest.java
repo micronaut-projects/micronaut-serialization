@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @MicronautTest
 public class InetAddressTest {
+
     @Test
     public void inetAddressSerialization(JsonMapper jsonMapper) throws IOException {
         assertEquals(q("127.0.0.1"), jsonMapper.writeValueAsString(InetAddress.getByName("127.0.0.1")));

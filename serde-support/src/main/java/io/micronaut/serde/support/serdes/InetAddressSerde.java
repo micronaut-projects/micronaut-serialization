@@ -33,6 +33,7 @@ import java.net.InetAddress;
  */
 @Singleton
 public class InetAddressSerde implements Serde<InetAddress> {
+
     private final boolean asNumeric;
 
     public InetAddressSerde(SerdeConfiguration serdeConfiguration) {

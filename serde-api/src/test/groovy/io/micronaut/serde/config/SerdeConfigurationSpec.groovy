@@ -14,5 +14,4 @@ class SerdeConfigurationSpec extends Specification {
         expect:
         !serdeConfiguration.isInetAddressAsNumeric()
     }
-
 }
