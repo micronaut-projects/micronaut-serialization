@@ -26,4 +26,5 @@ io.micronaut.serde.support.deserializers.collect
 io.micronaut.serde.support.serdes
 io.micronaut.serde.support.serializers
 io.micronaut.serde.support.util
+io.micronaut.serde.tck.tests
 io.micronaut.serde.util
