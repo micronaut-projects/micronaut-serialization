@@ -9,14 +9,14 @@ micronaut {
     runtime("netty")
     testRuntime("junit5")
 }
+
 dependencies {
-    annotationProcessor(projects.micronautSerdeProcessor)
+    kapt(projects.micronautSerdeProcessor)
+
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)
+
     runtimeOnly(mnLogging.logback.classic)
+
     testImplementation(mnTest.micronaut.test.junit5)
-    kapt(projects.micronautSerdeProcessor)
-}
-application {
-    mainClass.set("example.ApplicationKt")
 }

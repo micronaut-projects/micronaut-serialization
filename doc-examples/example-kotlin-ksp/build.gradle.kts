@@ -12,9 +12,7 @@ micronaut {
 }
 
 dependencies {
-    ksp(mn.micronaut.inject.kotlin)
     ksp(projects.micronautSerdeProcessor)
-    annotationProcessor(projects.micronautSerdeProcessor)
 
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)
@@ -22,10 +20,6 @@ dependencies {
     runtimeOnly(mnLogging.logback.classic)
 
     testImplementation(mnTest.micronaut.test.junit5)
-}
-
-application {
-    mainClass.set("example.ApplicationKt")
 }
 
 java {
