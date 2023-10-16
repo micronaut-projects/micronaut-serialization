@@ -46,11 +46,6 @@ public class ByteBufferSerde implements Serde<ByteBuffer> {
                           @NonNull EncoderContext context,
                           @NonNull Argument<? extends ByteBuffer> type,
                           @NonNull ByteBuffer value) throws IOException {
-        encodeByteBuffer(encoder, value);
-    }
-
-    private void encodeByteBuffer(@NonNull Encoder encoder,
-                                  @NonNull ByteBuffer value) throws IOException {
         if (value.hasArray()) {
             final int pos = value.position();
             int len = value.limit() - pos;
@@ -58,6 +53,16 @@ public class ByteBufferSerde implements Serde<ByteBuffer> {
             byte[] copy = new byte[len];
             System.arraycopy(value.array(), offset, copy, 0, len);
             encoder.encodeBinary(copy);
+            return;
+        }
+        // the other case is more complicated however. Best to handle with InputStream wrapper.
+        // But should we rewind it; and/or make a copy?
+        ByteBuffer copy = value.asReadOnlyBuffer();
+        if (copy.position() > 0) {
+            copy.rewind();
+        }
+        try (InputStream s = new ByteBufferBackedInputStream(copy)) {
+            encoder.encodeBinary(s.readAllBytes());
         }
     }
 }
