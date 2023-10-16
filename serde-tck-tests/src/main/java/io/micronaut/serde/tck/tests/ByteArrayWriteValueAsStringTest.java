@@ -15,32 +15,26 @@
  */
 package io.micronaut.serde.tck.tests;
 
+import io.micronaut.context.annotation.Property;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
-import java.net.InetAddress;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@Property(name = "micronaut.serde.write-binary-as-array", value = StringUtils.FALSE)
 @MicronautTest(startApplication = false)
-public class InetAddressTest {
+public class ByteArrayWriteValueAsStringTest {
 
+    /**
+     * byte[] is written as base64 string
+     * @param jsonMapper JSONMapper either Jackson or Serde implementation
+     * @throws IOException If an unrecoverable error occurs
+     */
     @Test
-    public void inetAddressSerialization(JsonMapper jsonMapper) throws IOException {
-        assertEquals(q("127.0.0.1"), jsonMapper.writeValueAsString(InetAddress.getByName("127.0.0.1")));
-        InetAddress input = InetAddress.getByName("google.com");
-        assertEquals(q("google.com"), jsonMapper.writeValueAsString(input));
-
-        InetAddress address = jsonMapper.readValue(q("127.0.0.1"), InetAddress.class);
-        assertEquals("127.0.0.1", address.getHostAddress());
-
-        final String HOST = "google.com";
-        address = jsonMapper.readValue(q(HOST), InetAddress.class);
-        assertEquals(HOST, address.getHostName());
-    }
-
-    public static String q(String str) {
-        return '"'+str+'"';
+    public void testByteArrayAsString(JsonMapper jsonMapper) throws IOException {
+        final byte[] INPUT_BYTES = new byte[] { 1, 2, 3, 4, 5 };
+        assertEquals("\"AQIDBAU=\"", jsonMapper.writeValueAsString(INPUT_BYTES));
     }
 }
