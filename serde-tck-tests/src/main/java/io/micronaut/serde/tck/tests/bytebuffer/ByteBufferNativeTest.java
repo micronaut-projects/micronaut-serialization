@@ -26,6 +26,7 @@ public class ByteBufferNativeTest {
         // so far so good, but must ensure Native buffers also work:
         ByteBuffer bbuf2 = ByteBuffer.allocateDirect(5);
         bbuf2.put(INPUT_BYTES);
+        bbuf2.flip();
         assertEquals(exp, jsonMapper.writeValueAsString(bbuf2));
     }
 }
