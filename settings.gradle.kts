@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "6.5.7"
+    id("io.micronaut.build.shared.settings") version "6.6.0"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -29,6 +29,7 @@ include("doc-examples:example-groovy")
 include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
+include("doc-examples:example-kotlin-ksp")
 
 include("benchmarks")
 
@@ -41,5 +42,4 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     useStandardizedProjectNames.set(true)
     importMicronautCatalog()
     importMicronautCatalog("micronaut-reactor")
-    importMicronautCatalog("micronaut-logging")
 }
