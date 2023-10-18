@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "6.5.6"
+    id("io.micronaut.build.shared.settings") version "6.6.0"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -27,9 +27,7 @@ include("doc-examples:example-bson-java")
 include("doc-examples:example-groovy")
 include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
-if (JavaVersion.current() < JavaVersion.VERSION_21) {
-    include("doc-examples:example-kotlin")
-}
+include("doc-examples:example-kotlin")
 include("doc-examples:example-kotlin-ksp")
 
 include("benchmarks")

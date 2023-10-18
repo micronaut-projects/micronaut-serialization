@@ -20,3 +20,9 @@ dependencies {
 
     testImplementation(mnTest.micronaut.test.junit5)
 }
+
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
