@@ -51,9 +51,9 @@
             </div>
 <div class="sect2">
 <h3 id="_micronaut_serde_api_config_properties">Micronaut Serde Api Config Properties</h3>
-<a id="io.micronaut.serde.config.DefaultSerializationConfiguration" href="#io.micronaut.serde.config.DefaultSerializationConfiguration">&#128279;</a>
+<a id="io.micronaut.serde.config.DefaultDeserializationConfiguration" href="#io.micronaut.serde.config.DefaultDeserializationConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 1. Configuration Properties for <a href="../api/io/micronaut/serde/config/DefaultSerializationConfiguration.html">DefaultSerializationConfiguration</a></caption>
+<caption class="title">Table 1. Configuration Properties for <a href="../api/io/micronaut/serde/config/DefaultDeserializationConfiguration.html">DefaultDeserializationConfiguration</a></caption>
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -68,12 +68,17 @@
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.serialization.inclusion</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../api/io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html">SerdeConfig$SerInclude</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.ignore-unknown</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.serialization.always-serialize-errors-as-list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.array-size-threshold</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.strict-nullable</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
@@ -144,9 +149,9 @@
 </tbody>
 </table>
 <div style="page-break-after: always;"></div>
-<a id="io.micronaut.serde.config.DefaultDeserializationConfiguration" href="#io.micronaut.serde.config.DefaultDeserializationConfiguration">&#128279;</a>
+<a id="io.micronaut.serde.config.DefaultSerializationConfiguration" href="#io.micronaut.serde.config.DefaultSerializationConfiguration">&#128279;</a>
 <table class="tableblock frame-all grid-all stretch">
-<caption class="title">Table 3. Configuration Properties for <a href="../api/io/micronaut/serde/config/DefaultDeserializationConfiguration.html">DefaultDeserializationConfiguration</a></caption>
+<caption class="title">Table 3. Configuration Properties for <a href="../api/io/micronaut/serde/config/DefaultSerializationConfiguration.html">DefaultSerializationConfiguration</a></caption>
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -161,17 +166,12 @@
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.ignore-unknown</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.serialization.inclusion</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="../api/io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html">SerdeConfig$SerInclude</a></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.array-size-threshold</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">int</p></td>
-<td class="tableblock halign-left valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.deserialization.strict-nullable</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>micronaut.serde.serialization.always-serialize-errors-as-list</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">boolean</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
