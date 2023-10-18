@@ -43,6 +43,7 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final Optional<TimeZone> timeZone;
     private final List<String> includedIntrospectionPackages;
     private final int maximumNestingDepth;
+    private final boolean inetAddressAsNumeric;
 
     @ConfigurationInject
     DefaultSerdeConfiguration(Optional<String> dateFormat,
@@ -52,7 +53,8 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
                               Optional<Locale> locale,
                               Optional<TimeZone> timeZone,
                               @Bindable(defaultValue = "io.micronaut") List<String> includedIntrospectionPackages,
-                              @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth) {
+                              @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth,
+                              @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric) {
         this.dateFormat = dateFormat;
         this.timeWriteShape = timeWriteShape;
         this.numericTimeUnit = numericTimeUnit;
@@ -61,6 +63,7 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
         this.timeZone = timeZone;
         this.includedIntrospectionPackages = includedIntrospectionPackages;
         this.maximumNestingDepth = maximumNestingDepth;
+        this.inetAddressAsNumeric = inetAddressAsNumeric;
     }
 
     @Override
@@ -101,5 +104,10 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     @Override
     public int getMaximumNestingDepth() {
         return maximumNestingDepth;
+    }
+
+    @Override
+    public boolean isInetAddressAsNumeric() {
+        return inetAddressAsNumeric;
     }
 }
