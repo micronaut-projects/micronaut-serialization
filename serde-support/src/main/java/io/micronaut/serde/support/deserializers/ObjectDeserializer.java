@@ -71,13 +71,22 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             return (Decoder decoder, DecoderContext context1, Argument<? super Object> type1) -> decoder.decodeArbitrary();
         }
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
+        Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
-            return new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+             deserializer = new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+        } else if (deserBean.recordLikeBean) {
+            deserializer =  new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+        } else {
+            deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         }
-        if (deserBean.recordLikeBean) {
-            return new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+        if (deserBean.wrapperProperty != null) {
+            deserializer = new WrappedObjectDeserializer(
+                deserializer,
+                deserBean.wrapperProperty,
+                deserBean.ignoreUnknown
+            );
         }
-        return new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+        return deserializer;
     }
 
     @Override

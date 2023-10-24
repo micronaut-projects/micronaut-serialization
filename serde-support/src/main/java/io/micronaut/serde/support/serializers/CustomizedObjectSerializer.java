@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
@@ -45,29 +44,29 @@ import java.util.Map;
  * @param <T> The type to serialize
  */
 @Internal
-public class CustomizedObjectSerializer<T> implements Serializer<T> {
-    private final SerBean<Object> serBean;
+final class CustomizedObjectSerializer<T> implements Serializer<T> {
+    private final SerBean<T> serBean;
+    private final List<SerBean.SerProperty<T, Object>> writeProperties;
 
-    public CustomizedObjectSerializer(SerBean<Object> serBean) {
+    CustomizedObjectSerializer(SerBean<T> serBean) {
+        this(serBean, serBean.writeProperties);
+    }
+
+    public CustomizedObjectSerializer(SerBean<T> serBean, List<SerBean.SerProperty<T, Object>> writeProperties) {
         this.serBean = serBean;
+        this.writeProperties = writeProperties;
     }
 
     @Override
-    public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         try {
             Encoder childEncoder = encoder.encodeObject(type);
-            Encoder outerEncoder = null;
-            if (serBean.wrapperProperty != null) {
-                childEncoder.encodeKey(serBean.wrapperProperty);
-                outerEncoder = childEncoder;
-                childEncoder = childEncoder.encodeObject(type);
-            }
 
-            for (SerBean.SerProperty<Object, Object> property : getWriteProperties(serBean)) {
+            for (SerBean.SerProperty<T, Object> property : writeProperties) {
                 final Object v = property.get(value);
                 final String backRef = property.backRef;
                 if (backRef != null) {
-                    final PropertyReference<Object, Object> ref = context.resolveReference(
+                    final PropertyReference<T, Object> ref = context.resolveReference(
                             new SerializationReference<>(backRef,
                                                          serBean.introspection,
                                                          property.argument,
@@ -142,7 +141,7 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                     }
                 }
             }
-            final SerBean.SerProperty<Object, Object> anyGetter = serBean.anyGetter;
+            final SerBean.SerProperty<T, Object> anyGetter = serBean.anyGetter;
             if (anyGetter != null) {
                 final Object data = anyGetter.get(value);
                 if (data instanceof Map) {
@@ -169,9 +168,6 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                 }
             }
             childEncoder.finishStructure();
-            if (outerEncoder != null) {
-                outerEncoder.finishStructure();
-            }
         } catch (StackOverflowError e) {
             throw new SerdeException("Infinite recursion serializing type: " + type.getType()
                     .getSimpleName() + " at path " + encoder.currentPath(), e);
@@ -183,13 +179,4 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
 
     }
 
-    /**
-     * Obtains the write properties for this serializer.
-     * @param serBean The serialization bean.
-     * @return The write properties, never {@code null}
-     */
-    protected @NonNull
-    List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
-        return serBean.writeProperties;
-    }
 }

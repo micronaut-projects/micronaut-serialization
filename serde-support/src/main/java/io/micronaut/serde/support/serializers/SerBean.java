@@ -125,7 +125,7 @@ final class SerBean<T> {
                                     beanProperty.getAnnotationMetadata()
                             ));
                         })
-                        .collect(Collectors.toList());
+                        .toList();
         final Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
                 .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class) || bp.getValue().hasAnnotation(JACKSON_VALUE))
                 .findFirst().orElse(null);
@@ -359,7 +359,7 @@ final class SerBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (wrapperProperty != null || anyGetter != null) {
+        if (anyGetter != null) {
             return false;
         }
         if (propertyFilter != null) {

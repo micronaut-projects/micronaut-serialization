@@ -39,7 +39,7 @@ public class JsonRootNameMapper implements NamedAnnotationMapper {
         String v = annotation.stringValue().orElse(null);
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
         if (v != null) {
-            builder.member("rootName", v);
+            builder.member(SerdeConfig.WRAPPER_PROPERTY, v);
         }
         return Collections.singletonList(
                 builder.build()
