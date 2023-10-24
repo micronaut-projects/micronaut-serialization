@@ -27,7 +27,6 @@ import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.SupplierUtil;
-import io.micronaut.serde.Encoder;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -37,7 +36,6 @@ import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -81,7 +79,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
             Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
-            return new RuntimeTypeSerializer(encoderContext, outer);
+            return new RuntimeTypeSerializer(encoderContext, outer, type);
         } else {
             return createSpecificInternal(encoderContext, type);
         }
@@ -92,13 +90,15 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         try {
             serBean = getSerBean(type, encoderContext);
         } catch (IntrospectionException e) {
-            return createRuntimeSerializer(encoderContext, type, e);
+            // no introspection, create dynamic serialization case
+            return new RuntimeTypeSerializer(encoderContext, e, type);
         }
 
         final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         if (serBean.hasJsonValue()) {
-            return createJsonValueSerializer(serBean);
-        } else if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(
+            return new JsonValueSerializer<>(serBean.jsonValue);
+        }
+        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(
                 SerdeConfig.META_ANNOTATION_PROPERTY_ORDER) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
             final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
             final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
@@ -118,26 +118,12 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             outer = new CustomizedObjectSerializer<>(serBean);
         }
         if (serBean.subtyped) {
-            outer = createSubTypedObjectSerializer(encoderContext, type, outer);
+            outer = new RuntimeTypeSerializer(encoderContext, outer, type);
         }
         if (serBean.wrapperProperty != null) {
             outer = new WrappedObjectSerializer<>(outer, serBean.wrapperProperty);
         }
         return outer;
-    }
-
-    private static RuntimeTypeSerializer createSubTypedObjectSerializer(EncoderContext encoderContext, Argument<?> type, Serializer<Object> outer) {
-        return new RuntimeTypeSerializer(encoderContext, outer) {
-            @Override
-            protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
-                if (value.getClass().equals(type.getType())) {
-                    return outer;
-                } else {
-                    return super.tryToFindSerializer(context, value);
-                }
-            }
-
-        };
     }
 
     private static CustomizedObjectSerializer<Object> createIgnoringCustomObjectSerializer(SerBean<Object> serBean, List<String> order, boolean hasIgnored, boolean hasIncluded, Set<String> ignoreSet, Set<String> includedSet) {
@@ -152,32 +138,6 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             writeProperties.removeIf(p -> !includedSet.contains(p.name));
         }
         return new CustomizedObjectSerializer<>(serBean, writeProperties);
-    }
-
-    private static Serializer<Object> createJsonValueSerializer(SerBean<Object> serBean) {
-        return new Serializer<>() {
-            @Override
-            public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
-                throws IOException {
-                SerBean.SerProperty<Object, Object> jsonValue = serBean.jsonValue;
-                final Object v = jsonValue.get(value);
-                serBean.jsonValue.serializer.serialize(
-                    encoder,
-                    context,
-                    jsonValue.argument, v
-                );
-            }
-
-            @Override
-            public boolean isEmpty(EncoderContext context, Object value) {
-                return serBean.jsonValue.serializer.isEmpty(context, serBean.jsonValue.get(value));
-            }
-
-            @Override
-            public boolean isAbsent(EncoderContext context, Object value) {
-                return serBean.jsonValue.serializer.isAbsent(context, serBean.jsonValue.get(value));
-            }
-        };
     }
 
     private SerBean<Object> getSerBean(Argument<?> type, Serializer.EncoderContext context) throws SerdeException {
@@ -198,95 +158,4 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
     }
 
-    private Serializer<Object> createRuntimeSerializer(EncoderContext encoderContext, Argument<?> type, IntrospectionException e) {
-        // no introspection, create dynamic serialization case
-        return new RuntimeTypeSerializer(encoderContext, null) {
-
-            @Override
-            protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
-                final Class<Object> theType = (Class<Object>) value.getClass();
-                if (!theType.equals(type.getType())) {
-                    return super.tryToFindSerializer(context, value);
-                } else {
-                    throw new SerdeException(e.getMessage(), e);
-                }
-            }
-        };
-    }
-
-    private static class RuntimeTypeSerializer implements Serializer<Object> {
-        private final EncoderContext encoderContext;
-        private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
-        private final Serializer<Object> outer;
-
-        public RuntimeTypeSerializer(EncoderContext encoderContext, Serializer<Object> outer) {
-            this.encoderContext = encoderContext;
-            this.outer = outer;
-        }
-
-        @Override
-        public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
-                throws IOException {
-            if (value == null) {
-                encoder.encodeNull();
-            } else {
-                Class<?> t = value.getClass();
-                if (outer != null && t == type.getType()) {
-                    outer.serialize(encoder, context, type, value);
-                } else {
-                    Argument<?> arg = Argument.of(t);
-                    getSerializer(context, value).serialize(encoder, context, arg, value);
-                }
-            }
-        }
-
-        @Override
-        public boolean isEmpty(EncoderContext context, Object value) {
-            if (value == null) {
-                return true;
-            }
-            try {
-                return getSerializer(context, value).isEmpty(context, value);
-            } catch (SerdeException e) {
-                // will fail later
-            }
-            return Serializer.super.isEmpty(context, value);
-        }
-
-        @Override
-        public boolean isAbsent(EncoderContext context, Object value) {
-            if (value == null) {
-                return true;
-            }
-            try {
-                return getSerializer(context, value).isAbsent(context, value);
-            } catch (SerdeException e) {
-                // will fail later
-            }
-            return Serializer.super.isAbsent(context, value);
-        }
-
-        private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {
-            try {
-                return inners.computeIfAbsent(value.getClass(), t -> {
-                    try {
-                        return tryToFindSerializer(context, value);
-                    } catch (SerdeException ex) {
-                        throw new IntrospectionException("No serializer found for type: " + value.getClass(), ex);
-                    }
-                });
-            } catch (IntrospectionException e) {
-                if (e.getCause() instanceof SerdeException serdeException) {
-                    throw serdeException;
-                } else {
-                    throw e;
-                }
-            }
-        }
-
-        protected Serializer<Object> tryToFindSerializer(EncoderContext context, Object value) throws SerdeException {
-            Argument<Object> arg = Argument.of((Class) value.getClass());
-            return encoderContext.findSerializer(arg).createSpecific(context, arg);
-        }
-    }
 }

@@ -144,8 +144,7 @@ final class CustomizedObjectSerializer<T> implements Serializer<T> {
             final SerBean.SerProperty<T, Object> anyGetter = serBean.anyGetter;
             if (anyGetter != null) {
                 final Object data = anyGetter.get(value);
-                if (data instanceof Map) {
-                    Map<Object, Object> map = (Map<Object, Object>) data;
+                if (data instanceof Map<?, ?> map) {
                     if (CollectionUtils.isNotEmpty(map)) {
                         for (Object k : map.keySet()) {
                             final Object v = map.get(k);

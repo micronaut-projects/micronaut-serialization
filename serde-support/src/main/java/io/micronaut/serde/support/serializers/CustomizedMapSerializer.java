@@ -43,7 +43,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
         if (hasGenerics) {
             final Argument<V> valueGeneric = (Argument<V>) generics[1];
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
-            return new Serializer<Map<K, V>>() {
+            return new Serializer<>() {
                 @Override
                 public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     final Encoder childEncoder = encoder.encodeObject(type);
@@ -69,7 +69,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 }
             };
         } else {
-            return new Serializer<Map<K, V>>() {
+            return new Serializer<>() {
                 @Override
                 public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     // slow path, lookup each value serializer

@@ -22,6 +22,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
@@ -71,15 +72,38 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             return (Decoder decoder, DecoderContext context1, Argument<? super Object> type1) -> decoder.decodeArbitrary();
         }
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
+
+        if (deserBean instanceof SubtypedDeserBean<Object> subtypedDeserBean
+            && subtypedDeserBean.discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
+            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypedDeserBean.subtypes.size());
+            for (Map.Entry<String, DeserBean<?>> e : subtypedDeserBean.subtypes.entrySet()) {
+                subtypeDeserializers.put(
+                    e.getKey(),
+                    findDeserializer((DeserBean<Object>) e.getValue(), true)
+                );
+            }
+
+            return new WrappedObjectSubtypedDeserializer(
+                subtypeDeserializers,
+                deserBean.ignoreUnknown
+            );
+        }
+        return findDeserializer(deserBean, false);
+    }
+
+    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean isSubtype) {
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
              deserializer = new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         } else if (deserBean.recordLikeBean) {
             deserializer =  new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+        } else if (deserBean.delegating) {
+            deserializer = new DelegatingObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         } else {
             deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         }
-        if (deserBean.wrapperProperty != null) {
+
+        if (!isSubtype && deserBean.wrapperProperty != null) {
             deserializer = new WrappedObjectDeserializer(
                 deserializer,
                 deserBean.wrapperProperty,
