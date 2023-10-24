@@ -117,12 +117,13 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         } else {
             outer = new CustomizedObjectSerializer<>(serBean);
         }
-
         if (serBean.subtyped) {
-            return createSubTypedObjectSerializer(encoderContext, type, outer);
-        } else {
-            return outer;
+            outer = createSubTypedObjectSerializer(encoderContext, type, outer);
         }
+        if (serBean.wrapperProperty != null) {
+            outer = new WrappedObjectSerializer<>(outer, serBean.wrapperProperty);
+        }
+        return outer;
     }
 
     private static RuntimeTypeSerializer createSubTypedObjectSerializer(EncoderContext encoderContext, Argument<?> type, Serializer<Object> outer) {
@@ -140,25 +141,17 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     }
 
     private static CustomizedObjectSerializer<Object> createIgnoringCustomObjectSerializer(SerBean<Object> serBean, List<String> order, boolean hasIgnored, boolean hasIncluded, Set<String> ignoreSet, Set<String> includedSet) {
-        return new CustomizedObjectSerializer<>(serBean) {
-            @Override
-            protected List<SerBean.SerProperty<Object, Object>> getWriteProperties(SerBean<Object> serBean) {
-                final List<SerBean.SerProperty<Object, Object>> writeProperties =
-                    new ArrayList<>(super.getWriteProperties(
-                        serBean));
-                if (!order.isEmpty()) {
-                    writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
-                }
-                if (hasIgnored) {
-                    writeProperties.removeIf(p -> ignoreSet.contains(p.name));
-                }
-                if (hasIncluded) {
-                    writeProperties.removeIf(p -> !includedSet.contains(p.name));
-                }
-                return writeProperties;
-            }
-
-        };
+        final List<SerBean.SerProperty<Object, Object>> writeProperties = new ArrayList<>(serBean.writeProperties);
+        if (!order.isEmpty()) {
+            writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
+        }
+        if (hasIgnored) {
+            writeProperties.removeIf(p -> ignoreSet.contains(p.name));
+        }
+        if (hasIncluded) {
+            writeProperties.removeIf(p -> !includedSet.contains(p.name));
+        }
+        return new CustomizedObjectSerializer<>(serBean, writeProperties);
     }
 
     private static Serializer<Object> createJsonValueSerializer(SerBean<Object> serBean) {

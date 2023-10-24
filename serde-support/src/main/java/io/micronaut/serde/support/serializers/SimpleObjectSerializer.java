@@ -23,6 +23,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Simple object serializer.
@@ -32,11 +33,12 @@ import java.io.IOException;
  * @since 1.0
  */
 @Internal
-public final class SimpleObjectSerializer<T> implements Serializer<T> {
-    private final SerBean<Object> serBean;
+final class SimpleObjectSerializer<T> implements Serializer<T> {
 
-    public SimpleObjectSerializer(SerBean<Object> serBean) {
-        this.serBean = serBean;
+    private final List<SerBean.SerProperty<T, Object>> writeProperties;
+
+    SimpleObjectSerializer(SerBean<T> serBean) {
+        this.writeProperties = serBean.writeProperties;
     }
 
     @Override
@@ -46,7 +48,7 @@ public final class SimpleObjectSerializer<T> implements Serializer<T> {
                 encoder.encodeNull();
             } else {
                 Encoder childEncoder = encoder.encodeObject(type);
-                for (SerBean.SerProperty<Object, Object> property : serBean.writeProperties) {
+                for (SerBean.SerProperty<T, Object> property : writeProperties) {
                     childEncoder.encodeKey(property.name);
                     Object v = property.get(value);
                     if (v == null) {

@@ -77,6 +77,8 @@ class DeserBean<T> {
     public final DerProperty<T, Object>[] unwrappedProperties;
     @Nullable
     public final AnySetter<Object> anySetter;
+    @Nullable
+    public final String wrapperProperty;
 
     public final int creatorSize;
 
@@ -368,6 +370,7 @@ class DeserBean<T> {
                 readProperties = null;
             }
         }
+        this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
 
         this.anySetter = anySetterValue;
         this.creatorParams = creatorPropertiesBuilder.build();
