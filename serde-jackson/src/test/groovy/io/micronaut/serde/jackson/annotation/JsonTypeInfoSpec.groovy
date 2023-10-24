@@ -1,8 +1,8 @@
 package io.micronaut.serde.jackson.annotation
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class JsonTypeInfoSpec extends JsonCompileSpec {
@@ -702,6 +702,57 @@ class Cat extends Animal {
         then:
         readDog.getClass().name.contains(".Dog")
         readDog.friend.getClass().name.contains("Cat")
+
+        cleanup:
+        context.close()
+    }
+
+    void "test polymorphism"() {
+        given:
+        def context = buildContext("""
+package subtypes;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected
+@Serdeable
+record TypeB (String b) implements InterfaceB { }
+
+@JsonSubTypes({
+    @JsonSubTypes.Type(value=TypeB.class, name="typeB"),
+})
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.WRAPPER_OBJECT
+)
+interface InterfaceB { }
+
+@Introspected
+@Serdeable
+record TypeA (String a, InterfaceB b) { }
+""")
+
+        when:
+        def l = List.of(
+                newInstance(context, 'subtypes.TypeA', "a", newInstance(context, 'subtypes.TypeB', "x")),
+                newInstance(context, 'subtypes.TypeA', "b", newInstance(context, 'subtypes.TypeB', "x"))
+        )
+
+        def json = writeJson(jsonMapper, l)
+
+        then:
+        json == """[{"a":"a","b":{"typeB":{"b":"x"}}},{"a":"b","b":{"typeB":{"b":"x"}}}]"""
+
+        when:
+        def list = jsonMapper.readValue(json, Argument.listOf(argumentOf(context, 'subtypes.TypeA')))
+
+        then:
+        list[0].a ==  "a"
+        list[0].b.b == "x"
+        list[1].a ==  "b"
+        list[1].b.b == "x"
 
         cleanup:
         context.close()

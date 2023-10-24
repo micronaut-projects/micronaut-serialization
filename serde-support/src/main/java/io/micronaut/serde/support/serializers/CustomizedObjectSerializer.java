@@ -56,9 +56,10 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
     public final void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         try {
             Encoder childEncoder = encoder.encodeObject(type);
-
+            Encoder outerEncoder = null;
             if (serBean.wrapperProperty != null) {
                 childEncoder.encodeKey(serBean.wrapperProperty);
+                outerEncoder = childEncoder;
                 childEncoder = childEncoder.encodeObject(type);
             }
 
@@ -168,6 +169,9 @@ public class CustomizedObjectSerializer<T> implements Serializer<T> {
                 }
             }
             childEncoder.finishStructure();
+            if (outerEncoder != null) {
+                outerEncoder.finishStructure();
+            }
         } catch (StackOverflowError e) {
             throw new SerdeException("Infinite recursion serializing type: " + type.getType()
                     .getSimpleName() + " at path " + encoder.currentPath(), e);
