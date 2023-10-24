@@ -23,7 +23,7 @@ import io.micronaut.serde.Serializer;
 import java.io.IOException;
 
 /**
- * The JSON value serializer.
+ * Serializer for the `@JsonValue` annotation.
  *
  * @param <T> The type
  * @author Denis Stepanov
