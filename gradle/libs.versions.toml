@@ -23,6 +23,7 @@ managed-jakarta-json-bindApi = "3.0.0"
 managed-eclipse-parsson = "1.1.4"
 
 micronaut-reactor = "3.0.3"
+micronaut-validation = "4.0.3"
 
 oracle-jdbc-driver = "23.3.0.23.09"
 jetbrains-annotations = "24.0.1"
@@ -31,6 +32,7 @@ jmh = "1.37"
 [libraries]
 # Core
 micronaut-core = { module = 'io.micronaut:micronaut-core-bom', version.ref = 'micronaut' }
+micronaut-validation = { module = 'io.micronaut.validation:micronaut-validation-bom', version.ref = 'micronaut-validation' }
 
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
 managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
