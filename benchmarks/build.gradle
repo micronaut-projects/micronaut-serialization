@@ -28,15 +28,3 @@ jmh {
 shadowJar {
     mergeServiceFiles()
 }
-
-configurations {
-    configureEach {
-        resolutionStrategy {
-            eachDependency { details ->
-                if (details.requested.group == "io.micronaut") {
-                    details.useVersion("4.0.0-M1")
-                }
-            }
-        }
-    }
-}
