@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * A wrapped object deserializer.
@@ -31,17 +32,14 @@ import java.io.IOException;
  * @since 2.3.0
  */
 @Internal
-final class WrappedObjectDeserializer implements Deserializer<Object> {
+final class WrappedObjectSubtypedDeserializer implements Deserializer<Object> {
 
-    private final Deserializer<Object> deserializer;
-    private final String wrapperProperty;
+    private final Map<String, Deserializer<Object>> subtypes;
     private final boolean ignoreUnknown;
 
-    WrappedObjectDeserializer(Deserializer<Object> deserializer,
-                              String wrapperProperty,
-                              boolean ignoreUnknown) {
-        this.deserializer = deserializer;
-        this.wrapperProperty = wrapperProperty;
+    WrappedObjectSubtypedDeserializer(Map<String, Deserializer<Object>> subtypes,
+                                      boolean ignoreUnknown) {
+        this.subtypes = subtypes;
         this.ignoreUnknown = ignoreUnknown;
     }
 
@@ -72,10 +70,11 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
             if (isNullable) {
                 return null;
             }
-            throw new SerdeException("Null wrapper property [" +  wrapperProperty + "] encountered during deserialization of type: " + type);
+            throw new SerdeException("Wrapper property is null encountered during deserialization of type: " + type);
         }
-        if (!key.equals(wrapperProperty)) {
-            throw unknownProperty(type, key);
+        Deserializer<Object> deserializer = subtypes.get(key);
+        if (deserializer == null) {
+            throw new SerdeException("Unknown wrapper property: [" + key + "] encountered during deserialization of type: " + type);
         }
 
         Object result;

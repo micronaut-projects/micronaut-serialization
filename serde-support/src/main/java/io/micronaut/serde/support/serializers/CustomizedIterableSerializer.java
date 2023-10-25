@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 /**
- * Customezed iterable serializer.
+ * Customized iterable serializer.
  *
  * @param <T> The type
  * @author Denis Stepanov
@@ -58,11 +58,10 @@ final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
         if (value == null) {
             return true;
         }
-        if (value instanceof Collection) {
-            return ((Collection<T>) value).isEmpty();
-        } else {
-            return !value.iterator().hasNext();
+        if (value instanceof Collection<T> collection) {
+            return collection.isEmpty();
         }
+        return !value.iterator().hasNext();
     }
 
     @Override

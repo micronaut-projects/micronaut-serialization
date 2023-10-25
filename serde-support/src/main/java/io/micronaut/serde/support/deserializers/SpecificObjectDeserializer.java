@@ -67,376 +67,328 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         DeserBean<? super Object> db = this.deserBean;
         Class<? super Object> objectType = db.introspection.getBeanType();
 
-        if (db.delegating) {
-            if (db.creatorParams != null) {
-                final PropertiesBag<Object>.Consumer creatorParams = db.creatorParams.newConsumer();
-                final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
-                final Object val = deserializeValue(decoderContext, decoder, creator, creator.argument, null);
-                Object[] args = new Object[]  { val };
-                if (preInstantiateCallback != null) {
-                    preInstantiateCallback.preInstantiate(db.introspection, args);
-                }
-                return db.introspection.instantiate(strictNullable, args);
-            } else {
-                throw new IllegalStateException("At least one creator parameter expected");
+        PropertiesBag<Object>.Consumer readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
+        boolean hasProperties = readProperties != null;
+
+        Decoder objectDecoder = decoder.decodeObject(type);
+        TokenBuffer tokenBuffer = null;
+        AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
+        Object obj;
+
+        if (db.isSubtyped() && db instanceof SubtypedDeserBean<Object> subtypedDeserBean) {
+            // subtyped binding required
+            final String defaultImpl = subtypedDeserBean.defaultImpl;
+            final String discriminatorName = subtypedDeserBean.discriminatorName;
+            final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
+
+            if (subtypedDeserBean.discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+                throw new IllegalStateException("Unsupported discriminator type: " + subtypedDeserBean.discriminatorType);
             }
-        } else {
 
-            PropertiesBag<Object>.Consumer readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
-            boolean hasProperties = readProperties != null;
+            while (true) {
+                final String key = objectDecoder.decodeKey();
+                if (key == null) {
+                    break;
+                }
 
-            Decoder wrapperObjectOuterDecoder = null; // for WRAPPER_OBJECT subtyping
-            Decoder objectDecoder = decoder.decodeObject(type);
-            TokenBuffer tokenBuffer = null;
-            AnyValues<Object> anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
-            Object obj;
-
-            if (db.isSubtyped() && db instanceof SubtypedDeserBean<Object> subtypedDeserBean) {
-                // subtyped binding required
-                final String defaultImpl = subtypedDeserBean.defaultImpl;
-                final String discriminatorName = subtypedDeserBean.discriminatorName;
-                final Map<String, DeserBean<?>> subtypes = subtypedDeserBean.subtypes;
-                final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypedDeserBean.discriminatorType;
-                if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-                    while (true) {
-                        final String key = objectDecoder.decodeKey();
-                        if (key == null) {
-                            break;
-                        }
-
-                        if (key.equals(discriminatorName)) {
-                            if (!objectDecoder.decodeNull()) {
-                                final String subtypeName = objectDecoder.decodeString();
-                                final DeserBean<?> subtypeDeser = subtypes.get(subtypeName);
-                                if (subtypeDeser != null) {
-                                    //noinspection unchecked
-                                    db = (DeserBean<? super Object>) subtypeDeser;
-                                    //noinspection unchecked
-                                    objectType = (Class<? super Object>) subtypeDeser.introspection.getBeanType();
-                                    readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
-                                    hasProperties = readProperties != null;
-                                    anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
-                                }
-                            }
-                            break;
-                        } else {
-                            tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, key);
+                if (key.equals(discriminatorName)) {
+                    if (!objectDecoder.decodeNull()) {
+                        final String subtypeName = objectDecoder.decodeString();
+                        final DeserBean<?> subtypeDeser = subtypes.get(subtypeName);
+                        if (subtypeDeser != null) {
+                            //noinspection unchecked
+                            db = (DeserBean<? super Object>) subtypeDeser;
+                            //noinspection unchecked
+                            objectType = (Class<? super Object>) subtypeDeser.introspection.getBeanType();
+                            readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
+                            hasProperties = readProperties != null;
+                            anyValues = db.anySetter != null ? new AnyValues<>(db.anySetter) : null;
                         }
                     }
-
+                    break;
                 } else {
-                    while (true) {
-                        final String key = objectDecoder.decodeKey();
-                        if (key == null) {
-                            break;
-                        }
-
-                        final DeserBean<?> subtypeBean = subtypes.get(key);
-                        if (subtypeBean != null) {
-                            if (!objectDecoder.decodeNull()) {
-                                wrapperObjectOuterDecoder = objectDecoder;
-                                objectDecoder = objectDecoder.decodeObject(type);
-                                db = (DeserBean<? super Object>) subtypeBean;
-                                //noinspection unchecked
-                                objectType = (Class<? super Object>) subtypeBean.introspection.getBeanType();
-                                readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
-                                hasProperties = readProperties != null;
-                            }
-
-                            break;
-                        } else {
-                            if (anyValues != null) {
-                                tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, key);
-                            } else {
-                                objectDecoder.skipValue();
-                            }
-                        }
-                    }
+                    tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, key);
                 }
-
-                if (defaultImpl != null && subtypedDeserBean == db) {
-                    @SuppressWarnings("unchecked")
-                    DeserBean<? super Object> defaultSubType = (DeserBean<? super Object>) subtypes.get(defaultImpl);
-                    if (defaultSubType != null) {
-                        db = defaultSubType;
-                        objectType = defaultSubType.introspection.getBeanType();
-                        readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
-                        hasProperties = readProperties != null;
-
-                    }
-                }
-
             }
 
-            if (db.creatorParams != null) {
-                final PropertiesBag<Object>.Consumer creatorParameters = db.creatorParams.newConsumer();
-                int creatorSize = db.creatorSize;
-                Object[] params = new Object[creatorSize];
-                PropertyBuffer buffer = initFromTokenBuffer(
-                        tokenBuffer,
-                        creatorParameters,
-                        readProperties,
-                        anyValues,
-                        decoderContext
-                );
+            if (defaultImpl != null && subtypedDeserBean == db) {
+                @SuppressWarnings("unchecked")
+                DeserBean<? super Object> defaultSubType = (DeserBean<? super Object>) subtypes.get(defaultImpl);
+                if (defaultSubType != null) {
+                    db = defaultSubType;
+                    objectType = defaultSubType.introspection.getBeanType();
+                    readProperties = db.readProperties != null ? db.readProperties.newConsumer() : null;
+                    hasProperties = readProperties != null;
 
-                while (true) {
-                    final String prop = objectDecoder.decodeKey();
-                    if (prop == null) {
-                        break;
+                }
+            }
+
+        }
+
+        if (db.creatorParams != null) {
+            final PropertiesBag<Object>.Consumer creatorParameters = db.creatorParams.newConsumer();
+            int creatorSize = db.creatorSize;
+            Object[] params = new Object[creatorSize];
+            PropertyBuffer buffer = initFromTokenBuffer(
+                    tokenBuffer,
+                    creatorParameters,
+                    readProperties,
+                    anyValues,
+                    decoderContext
+            );
+
+            while (true) {
+                final String prop = objectDecoder.decodeKey();
+                if (prop == null) {
+                    break;
+                }
+                final DeserBean.DerProperty<Object, Object> sp = creatorParameters.consume(prop);
+                boolean consumed = false;
+                if (sp != null) {
+                    if (sp.views != null && !decoderContext.hasView(sp.views)) {
+                        objectDecoder.skipValue();
+                        continue;
                     }
-                    final DeserBean.DerProperty<Object, Object> sp = creatorParameters.consume(prop);
-                    boolean consumed = false;
-                    if (sp != null) {
-                        if (sp.views != null && !decoderContext.hasView(sp.views)) {
-                            objectDecoder.skipValue();
-                            continue;
-                        }
-                        final Object val = deserializeValue(decoderContext, objectDecoder, sp, sp.argument, null);
-                        if (val == null) {
-                            sp.setDefaultConstructorValue(decoderContext, params);
-                            // Skip consume
-                            continue;
-                        }
-                        if (sp.instrospection.getBeanType() == objectType) {
-                            params[sp.index] = val;
-                            if (hasProperties && readProperties.isNotConsumed(prop)) {
-                                // will need binding to properties as well
-                                buffer = initBuffer(buffer, sp, prop, val);
-                            }
-                        } else {
+                    final Object val = deserializeValue(decoderContext, objectDecoder, sp, sp.argument, null);
+                    if (val == null) {
+                        sp.setDefaultConstructorValue(decoderContext, params);
+                        // Skip consume
+                        continue;
+                    }
+                    if (sp.instrospection.getBeanType() == objectType) {
+                        params[sp.index] = val;
+                        if (hasProperties && readProperties.isNotConsumed(prop)) {
+                            // will need binding to properties as well
                             buffer = initBuffer(buffer, sp, prop, val);
                         }
-                        if (creatorParameters.isAllConsumed()) {
-                            break;
+                    } else {
+                        buffer = initBuffer(buffer, sp, prop, val);
+                    }
+                    if (creatorParameters.isAllConsumed()) {
+                        break;
+                    }
+                    consumed = true;
+                } else if (hasProperties) {
+                    final DeserBean.DerProperty<Object, Object> rp = readProperties.findNotConsumed(prop);
+                    if (rp != null) {
+                        if (rp.managedRef != null) {
+                            tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, prop);
+                        } else {
+                            final Object val = deserializeValue(decoderContext, objectDecoder, rp, rp.argument, null);
+                            buffer = initBuffer(buffer, rp, prop, val);
                         }
                         consumed = true;
-                    } else if (hasProperties) {
-                        final DeserBean.DerProperty<Object, Object> rp = readProperties.findNotConsumed(prop);
-                        if (rp != null) {
-                            if (rp.managedRef != null) {
-                                tokenBuffer = initTokenBuffer(tokenBuffer, objectDecoder, prop);
-                            } else {
-                                final Object val = deserializeValue(decoderContext, objectDecoder, rp, rp.argument, null);
-                                buffer = initBuffer(buffer, rp, prop, val);
-                            }
-                            consumed = true;
-                        }
-                    }
-                    if (!consumed) {
-                        skipOrSetAny(
-                                decoderContext,
-                                objectDecoder,
-                                prop,
-                                anyValues,
-                                ignoreUnknown,
-                                type
-                        );
                     }
                 }
-
-                if (buffer != null && !creatorParameters.isAllConsumed()) {
-                    for (PropertyBuffer propertyBuffer : buffer) {
-                        final DeserBean.DerProperty<? super Object, ?> derProperty = creatorParameters.consume(propertyBuffer.name);
-                        if (derProperty != null) {
-                            propertyBuffer.set(
-                                    params,
-                                    decoderContext
-                            );
-                        }
-                    }
-                }
-
-                if (!creatorParameters.isAllConsumed()) {
-                    // set unsatisfied parameters to defaults or fail
-                    for (DeserBean.DerProperty<Object, Object> sp : creatorParameters.getNotConsumed()) {
-                        if (sp.backRef != null) {
-                            final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
-                                    new PropertyReference<>(
-                                            sp.backRef,
-                                            sp.instrospection,
-                                            sp.argument,
-                                            null
-                                    )
-                            );
-                            if (ref != null) {
-                                final Object o = ref.getReference();
-                                if (o == null) {
-                                    sp.setDefaultConstructorValue(decoderContext, params);
-                                } else {
-                                    params[sp.index] = o;
-                                }
-                                continue;
-                            }
-                        }
-                        if (sp.unwrapped != null && buffer != null) {
-                            final Object o = materializeFromBuffer(sp, buffer, decoderContext);
-                            if (o == null) {
-                                sp.setDefaultConstructorValue(decoderContext, params);
-                            } else {
-                                params[sp.index] = o;
-                            }
-                        } else {
-                            if (sp.isAnySetter && anyValues != null) {
-                                anyValues.bind(params);
-                                anyValues = null;
-                            } else {
-                                sp.setDefaultConstructorValue(decoderContext, params);
-                            }
-                        }
-                    }
-                }
-
-                try {
-                    if (preInstantiateCallback != null) {
-                        preInstantiateCallback.preInstantiate(db.introspection, params);
-                    }
-                    obj = db.introspection.instantiate(strictNullable, params);
-                } catch (InstantiationException e) {
-                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
-                }
-                if (hasProperties) {
-                    if (buffer != null) {
-                        processPropertyBuffer(decoderContext, objectType, readProperties, obj, buffer);
-                    }
-                    if (tokenBuffer != null) {
-                        buffer = initFromTokenBuffer(tokenBuffer, creatorParameters, readProperties, anyValues, decoderContext);
-                        if (buffer != null) {
-                            processPropertyBuffer(decoderContext, objectType, readProperties, obj, buffer);
-                        }
-                    }
-                    if (!readProperties.isAllConsumed()) {
-                        // more properties still to be read
-                        buffer = decodeProperties(
-                                db,
-                                decoderContext,
-                                obj,
-                                objectDecoder,
-                                readProperties,
-                                db.unwrappedProperties == null,
-                                buffer,
-                                anyValues,
-                                ignoreUnknown,
-                                type
-                        );
-                    }
-
-                    applyDefaultValuesOrFail(
-                            obj,
-                            readProperties,
-                            db.unwrappedProperties,
-                            buffer,
-                            decoderContext
-                    );
-                }
-            } else if (db.hasBuilder) {
-                BeanIntrospection.Builder<? super Object> builder;
-                try {
-                    if (preInstantiateCallback != null) {
-                        preInstantiateCallback.preInstantiate(db.introspection);
-                    }
-                    builder = db.introspection.builder();
-                } catch (InstantiationException e) {
-                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
-                }
-                if (hasProperties) {
-                    if (tokenBuffer != null) {
-                        for (TokenBuffer buffer : tokenBuffer) {
-                            final DeserBean.DerProperty<Object, Object> property = readProperties.consume(buffer.name);
-                            if (property != null) {
-                                property.deserializeAndCallBuilder(buffer.decoder, decoderContext, builder);
-                            } else {
-                                skipOrSetAny(
-                                    decoderContext,
-                                    buffer.decoder,
-                                    buffer.name,
-                                    anyValues,
-                                    ignoreUnknown,
-                                    type
-                                );
-                            }
-                        }
-                    }
-                    while (true) {
-                        final String prop = objectDecoder.decodeKey();
-                        if (prop == null) {
-                            break;
-                        }
-                        final DeserBean.DerProperty<Object, Object> property = readProperties.consume(prop);
-                        if (property != null) {
-                            property.deserializeAndCallBuilder(objectDecoder, decoderContext, builder);
-                        } else {
-                            skipOrSetAny(
-                                decoderContext,
-                                objectDecoder,
-                                prop,
-                                anyValues,
-                                ignoreUnknown,
-                                type
-                            );
-                        }
-                    }
-                }
-                try {
-                    obj = builder.build();
-                } catch (InstantiationException e) {
-                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
-                }
-            } else {
-                try {
-                    if (preInstantiateCallback != null) {
-                        preInstantiateCallback.preInstantiate(db.introspection);
-                    }
-                    obj = db.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
-                } catch (InstantiationException e) {
-                    throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
-                }
-                if (hasProperties) {
-                    final PropertyBuffer existingBuffer = initFromTokenBuffer(
-                            tokenBuffer,
-                            null,
-                            readProperties,
+                if (!consumed) {
+                    skipOrSetAny(
+                            decoderContext,
+                            objectDecoder,
+                            prop,
                             anyValues,
-                            decoderContext);
-                    final PropertyBuffer propertyBuffer = decodeProperties(db,
-                                                                           decoderContext,
-                                                                           obj,
-                                                                           objectDecoder,
-                                                                           readProperties,
-                                                                           db.unwrappedProperties == null,
-                                                                           existingBuffer,
-                                                                           anyValues,
-                                                                           ignoreUnknown,
-                            type);
-                    // the property buffer will be non-null if there were any unwrapped
-                    // properties in which case we need to go through and materialize unwrapped
-                    // from the buffer
-                    applyDefaultValuesOrFail(
-                            obj,
-                            readProperties,
-                            db.unwrappedProperties,
-                            propertyBuffer,
-                            decoderContext
+                            ignoreUnknown,
+                            type
                     );
-                } else if (anyValues != null && tokenBuffer != null) {
-                    for (TokenBuffer buffer : tokenBuffer) {
-                        anyValues.handle(
-                                buffer.name,
-                                buffer.decoder,
+                }
+            }
+
+            if (buffer != null && !creatorParameters.isAllConsumed()) {
+                for (PropertyBuffer propertyBuffer : buffer) {
+                    final DeserBean.DerProperty<? super Object, ?> derProperty = creatorParameters.consume(propertyBuffer.name);
+                    if (derProperty != null) {
+                        propertyBuffer.set(
+                                params,
                                 decoderContext
                         );
                     }
                 }
             }
-            // finish up
-            finalizeObjectDecoder(decoderContext, type, ignoreUnknown, objectDecoder, anyValues, obj);
 
-            if (wrapperObjectOuterDecoder != null) {
-                wrapperObjectOuterDecoder.finishStructure(true);
+            if (!creatorParameters.isAllConsumed()) {
+                // set unsatisfied parameters to defaults or fail
+                for (DeserBean.DerProperty<Object, Object> sp : creatorParameters.getNotConsumed()) {
+                    if (sp.backRef != null) {
+                        final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
+                                new PropertyReference<>(
+                                        sp.backRef,
+                                        sp.instrospection,
+                                        sp.argument,
+                                        null
+                                )
+                        );
+                        if (ref != null) {
+                            final Object o = ref.getReference();
+                            if (o == null) {
+                                sp.setDefaultConstructorValue(decoderContext, params);
+                            } else {
+                                params[sp.index] = o;
+                            }
+                            continue;
+                        }
+                    }
+                    if (sp.unwrapped != null && buffer != null) {
+                        final Object o = materializeFromBuffer(sp, buffer, decoderContext);
+                        if (o == null) {
+                            sp.setDefaultConstructorValue(decoderContext, params);
+                        } else {
+                            params[sp.index] = o;
+                        }
+                    } else {
+                        if (sp.isAnySetter && anyValues != null) {
+                            anyValues.bind(params);
+                            anyValues = null;
+                        } else {
+                            sp.setDefaultConstructorValue(decoderContext, params);
+                        }
+                    }
+                }
             }
 
-            return obj;
+            try {
+                if (preInstantiateCallback != null) {
+                    preInstantiateCallback.preInstantiate(db.introspection, params);
+                }
+                obj = db.introspection.instantiate(strictNullable, params);
+            } catch (InstantiationException e) {
+                throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
+            }
+            if (hasProperties) {
+                if (buffer != null) {
+                    processPropertyBuffer(decoderContext, objectType, readProperties, obj, buffer);
+                }
+                if (tokenBuffer != null) {
+                    buffer = initFromTokenBuffer(tokenBuffer, creatorParameters, readProperties, anyValues, decoderContext);
+                    if (buffer != null) {
+                        processPropertyBuffer(decoderContext, objectType, readProperties, obj, buffer);
+                    }
+                }
+                if (!readProperties.isAllConsumed()) {
+                    // more properties still to be read
+                    buffer = decodeProperties(
+                            db,
+                            decoderContext,
+                            obj,
+                            objectDecoder,
+                            readProperties,
+                            db.unwrappedProperties == null,
+                            buffer,
+                            anyValues,
+                            ignoreUnknown,
+                            type
+                    );
+                }
+
+                applyDefaultValuesOrFail(
+                        obj,
+                        readProperties,
+                        db.unwrappedProperties,
+                        buffer,
+                        decoderContext
+                );
+            }
+        } else if (db.hasBuilder) {
+            BeanIntrospection.Builder<? super Object> builder;
+            try {
+                if (preInstantiateCallback != null) {
+                    preInstantiateCallback.preInstantiate(db.introspection);
+                }
+                builder = db.introspection.builder();
+            } catch (InstantiationException e) {
+                throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
+            }
+            if (hasProperties) {
+                if (tokenBuffer != null) {
+                    for (TokenBuffer buffer : tokenBuffer) {
+                        final DeserBean.DerProperty<Object, Object> property = readProperties.consume(buffer.name);
+                        if (property != null) {
+                            property.deserializeAndCallBuilder(buffer.decoder, decoderContext, builder);
+                        } else {
+                            skipOrSetAny(
+                                decoderContext,
+                                buffer.decoder,
+                                buffer.name,
+                                anyValues,
+                                ignoreUnknown,
+                                type
+                            );
+                        }
+                    }
+                }
+                while (true) {
+                    final String prop = objectDecoder.decodeKey();
+                    if (prop == null) {
+                        break;
+                    }
+                    final DeserBean.DerProperty<Object, Object> property = readProperties.consume(prop);
+                    if (property != null) {
+                        property.deserializeAndCallBuilder(objectDecoder, decoderContext, builder);
+                    } else {
+                        skipOrSetAny(
+                            decoderContext,
+                            objectDecoder,
+                            prop,
+                            anyValues,
+                            ignoreUnknown,
+                            type
+                        );
+                    }
+                }
+            }
+            try {
+                obj = builder.build();
+            } catch (InstantiationException e) {
+                throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
+            }
+        } else {
+            try {
+                if (preInstantiateCallback != null) {
+                    preInstantiateCallback.preInstantiate(db.introspection);
+                }
+                obj = db.introspection.instantiate(strictNullable, ArrayUtils.EMPTY_OBJECT_ARRAY);
+            } catch (InstantiationException e) {
+                throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + type + "]: " + e.getMessage(), e);
+            }
+            if (hasProperties) {
+                final PropertyBuffer existingBuffer = initFromTokenBuffer(
+                        tokenBuffer,
+                        null,
+                        readProperties,
+                        anyValues,
+                        decoderContext);
+                final PropertyBuffer propertyBuffer = decodeProperties(db,
+                                                                       decoderContext,
+                                                                       obj,
+                                                                       objectDecoder,
+                                                                       readProperties,
+                                                                       db.unwrappedProperties == null,
+                                                                       existingBuffer,
+                                                                       anyValues,
+                                                                       ignoreUnknown,
+                        type);
+                // the property buffer will be non-null if there were any unwrapped
+                // properties in which case we need to go through and materialize unwrapped
+                // from the buffer
+                applyDefaultValuesOrFail(
+                        obj,
+                        readProperties,
+                        db.unwrappedProperties,
+                        propertyBuffer,
+                        decoderContext
+                );
+            } else if (anyValues != null && tokenBuffer != null) {
+                for (TokenBuffer buffer : tokenBuffer) {
+                    anyValues.handle(
+                            buffer.name,
+                            buffer.decoder,
+                            decoderContext
+                    );
+                }
+            }
         }
+        // finish up
+        finalizeObjectDecoder(decoderContext, type, ignoreUnknown, objectDecoder, anyValues, obj);
+
+        return obj;
     }
 
     @Override
@@ -866,8 +818,8 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     }
 
     private static final class TokenBuffer implements Iterable<TokenBuffer> {
-        final String name;
-        final Decoder decoder;
+        private final String name;
+        private final Decoder decoder;
         private final TokenBuffer next;
 
         private TokenBuffer(@NonNull String name, @NonNull Decoder decoder, @Nullable TokenBuffer next) {
@@ -908,8 +860,8 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
     private static final class PropertyBuffer implements Iterable<PropertyBuffer> {
 
-        final DeserBean.DerProperty<Object, Object> property;
-        final String name;
+        private final DeserBean.DerProperty<Object, Object> property;
+        private final String name;
         private Object value;
         private final PropertyBuffer next;
 
