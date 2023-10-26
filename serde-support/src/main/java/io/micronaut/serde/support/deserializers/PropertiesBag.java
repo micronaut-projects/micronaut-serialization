@@ -133,6 +133,10 @@ final class PropertiesBag<T> {
         return Collections.unmodifiableList(Arrays.asList(properties));
     }
 
+    public DeserBean.DerProperty<T, Object>[] getPropertiesArray() {
+        return properties;
+    }
+
     public int propertyIndexOf(@NonNull String name) {
         int i = probe(name);
         return i < 0 ? -1 : indexTable[i];
@@ -176,6 +180,14 @@ final class PropertiesBag<T> {
 
         public DeserBean.DerProperty<T, Object> consume(String name) {
             int propertyIndex = propertyIndexOf(name);
+            if (propertyIndex == -1 || isConsumed(propertyIndex)) {
+                return null;
+            }
+            setConsumed(propertyIndex);
+            return properties[propertyIndex];
+        }
+
+        public DeserBean.DerProperty<T, Object> consume(int propertyIndex) {
             if (propertyIndex == -1 || isConsumed(propertyIndex)) {
                 return null;
             }

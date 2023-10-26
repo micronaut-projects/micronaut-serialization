@@ -56,8 +56,10 @@ class SubtypedDeserBean<T> extends DeserBean<T> {
     SubtypedDeserBean(AnnotationMetadata annotationMetadata,
                       BeanIntrospection<T> introspection,
                       Deserializer.DecoderContext decoderContext,
-                      DeserBeanRegistry deserBeanRegistry) throws SerdeException {
-        super(introspection, decoderContext, deserBeanRegistry);
+                      DeserBeanRegistry deserBeanRegistry,
+                      @Nullable String namePrefix,
+                      @Nullable String nameSuffix) throws SerdeException {
+        super(introspection, decoderContext, deserBeanRegistry, namePrefix, nameSuffix);
         this.discriminatorType = annotationMetadata.enumValue(
                 SerdeConfig.SerSubtyped.class,
                 SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,

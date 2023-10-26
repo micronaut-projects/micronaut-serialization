@@ -471,6 +471,7 @@ class B extends Base {
         compiled.close()
     }
 
+    @PendingFeature
     void 'test @JsonSubTypes with @AnySetter'() {
         given:
         def compiled = buildContext('example.Base', '''

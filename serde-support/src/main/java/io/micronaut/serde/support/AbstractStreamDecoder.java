@@ -22,7 +22,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
+import io.micronaut.serde.support.util.LookaheadObjectDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.IOException;
@@ -224,6 +226,11 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     @Override
     public final Decoder decodeObject(Argument<?> type) throws IOException {
         return decodeObject0(currentToken());
+    }
+
+    @Override
+    public LookaheadDecoder decodeObjectLookahead(Argument<?> type) throws IOException {
+        return new LookaheadObjectDecoder(ourLimits(), decodeObject());
     }
 
     /**
@@ -762,7 +769,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 return decodeObjectNode((AbstractStreamDecoder) decodeObject());
             case START_ARRAY:
                 return decodeArrayNode((AbstractStreamDecoder) decodeArray());
-            case STRING:
+            case STRING, OTHER: // handle other as string
                 return JsonNode.createStringNode(decodeString());
             case NUMBER:
                 preDecodeValue(currentToken);

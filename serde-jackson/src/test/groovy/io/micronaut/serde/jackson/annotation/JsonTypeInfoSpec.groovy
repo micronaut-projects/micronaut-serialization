@@ -642,6 +642,19 @@ class Cat extends Animal {
         catBean.likesCream
         catBean.lives == 9
 
+        when:"the buffer is used again"
+        dogBean = jsonMapper.readValue('{"name":"Fred","type":"dog","barkVolume":1.1}', argumentOf(context, 'subtypes.Animal'))
+        catBean = jsonMapper.readValue('{"name":"Joe","type":"cat","likesCream":true,"lives":9}', argumentOf(context, 'subtypes.Animal'))
+
+        then:
+        catClass.isInstance(catBean)
+        dogClass.isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+
         cleanup:
         context.close()
     }

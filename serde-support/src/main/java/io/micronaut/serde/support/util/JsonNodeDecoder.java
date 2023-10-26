@@ -18,9 +18,11 @@ package io.micronaut.serde.support.util;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
@@ -29,8 +31,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,8 +39,8 @@ import java.util.Map;
  * uses the {@link io.micronaut.json.tree.JsonNode} abstraction.
  */
 @Internal
-public abstract class JsonNodeDecoder extends LimitingStream implements Decoder {
-    private JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
+public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder, LookaheadObjectDecoder, ReplayObjectDecoder {
+    JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
 
@@ -48,16 +48,16 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
         return new Buffered(node, remainingLimits);
     }
 
-    protected abstract JsonNode peekValue();
+    protected abstract JsonNode peekValue() throws IOException;
 
     @Override
     public Decoder decodeArray(Argument<?> type) throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isArray()) {
             skipValue();
-            return new Array(peeked, childLimits());
+            return new JsonArrayNodeDecoder(peeked, childLimits());
         } else {
-            throw createDeserializationException("Not an array", null);
+            throw createDeserializationException("Not an array", toArbitrary(peeked));
         }
     }
 
@@ -66,10 +66,15 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
         JsonNode peeked = peekValue();
         if (peeked.isObject()) {
             skipValue();
-            return new Obj(peeked, childLimits());
+            return new JsonObjectNodeDecoder(peeked, childLimits());
         } else {
-            throw createDeserializationException("Not an array", null);
+            throw createDeserializationException("Not an array", toArbitrary(peeked));
         }
+    }
+
+    @Override
+    public LookaheadDecoder decodeObjectLookahead(Argument<?> type) throws IOException {
+        return new LookaheadObjectDecoder(ourLimits(), decodeObject());
     }
 
     @Override
@@ -79,7 +84,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getStringValue();
         } else {
-            throw createDeserializationException("Not a string", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a string", toArbitrary(peeked));
         }
     }
 
@@ -90,7 +95,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getBooleanValue();
         } else {
-            throw createDeserializationException("Not a boolean", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a boolean", toArbitrary(peeked));
         }
     }
 
@@ -101,7 +106,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return (byte) peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -112,7 +117,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return (short) peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -123,7 +128,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return (char) peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -134,7 +139,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getIntValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -145,7 +150,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getLongValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -156,7 +161,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getFloatValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -167,7 +172,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getDoubleValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -178,7 +183,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getBigIntegerValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -189,7 +194,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
             skipValue();
             return peeked.getBigDecimalValue();
         } else {
-            throw createDeserializationException("Not a number", toArbitrary(peekValue()));
+            throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
     }
 
@@ -237,13 +242,13 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
         } else if (node.isString()) {
             return node.getStringValue();
         } else if (node.isArray()) {
-            List<Object> transformed = new ArrayList<>();
+            List<Object> transformed = new ArrayList<>(node.size());
             for (JsonNode value : node.values()) {
                 transformed.add(toArbitrary(value));
             }
             return transformed;
         } else if (node.isObject()) {
-            Map<String, Object> transformed = new LinkedHashMap<>();
+            Map<String, Object> transformed = CollectionUtils.newLinkedHashMap(node.size());
             for (Map.Entry<String, JsonNode> entry : node.entries()) {
                 transformed.put(entry.getKey(), toArbitrary(entry.getValue()));
             }
@@ -269,104 +274,7 @@ public abstract class JsonNodeDecoder extends LimitingStream implements Decoder 
         }
     }
 
-    private static class Obj extends JsonNodeDecoder {
-        private final Iterator<Map.Entry<String, JsonNode>> iterator;
-        private JsonNode nextValue = null;
-
-        Obj(JsonNode node, RemainingLimits remainingLimits) {
-            super(remainingLimits);
-            iterator = node.entries().iterator();
-        }
-
-        @Override
-        protected JsonNode peekValue() {
-            if (nextValue == null) {
-                throw new IllegalStateException("Field name not parsed yet");
-            }
-            return nextValue;
-        }
-
-        @Override
-        public void skipValue() {
-            if (nextValue == null) {
-                throw new IllegalStateException("Field name not parsed yet");
-            }
-            nextValue = null;
-        }
-
-        @Override
-        public boolean hasNextArrayValue() {
-            return false;
-        }
-
-        @Override
-        public String decodeKey() {
-            if (nextValue != null) {
-                throw new IllegalStateException("Field value not parsed yet");
-            }
-            if (iterator.hasNext()) {
-                Map.Entry<String, JsonNode> next = iterator.next();
-                nextValue = next.getValue();
-                return next.getKey();
-            } else {
-                return null;
-            }
-        }
-
-        @Override
-        public void finishStructure(boolean consumeLeftElements) {
-            if (!consumeLeftElements && (nextValue != null || iterator.hasNext())) {
-                throw new IllegalStateException("Not all elements have been consumed yet");
-            }
-        }
-    }
-
-    private static class Array extends JsonNodeDecoder {
-        private final Iterator<JsonNode> iterator;
-        private JsonNode peeked;
-
-        Array(JsonNode node, RemainingLimits remainingLimits) {
-            super(remainingLimits);
-            iterator = node.values().iterator();
-            skipValue();
-        }
-
-        @Override
-        public boolean hasNextArrayValue() {
-            return peeked != null;
-        }
-
-        @Override
-        public String decodeKey() {
-            throw new IllegalStateException("Arrays have no keys");
-        }
-
-        @Override
-        public void skipValue() {
-            if (iterator.hasNext()) {
-                peeked = iterator.next();
-            } else {
-                peeked = null;
-            }
-        }
-
-        @Override
-        public void finishStructure(boolean consumeLeftElements) {
-            if (!consumeLeftElements && peeked != null) {
-                throw new IllegalStateException("Not all elements have been consumed yet");
-            }
-        }
-
-        @Override
-        protected JsonNode peekValue() {
-            if (peeked == null) {
-                throw new IllegalStateException("No more elements");
-            }
-            return peeked;
-        }
-    }
-
-    private static class Buffered extends JsonNodeDecoder {
+    static final class Buffered extends JsonNodeDecoder {
         private final JsonNode node;
         private boolean complete = false;
 

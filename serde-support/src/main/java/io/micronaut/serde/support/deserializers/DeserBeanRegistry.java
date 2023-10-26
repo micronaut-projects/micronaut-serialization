@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -23,4 +24,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 @Internal
 interface DeserBeanRegistry {
     <T> DeserBean<T> getDeserializableBean(Argument<T> type, Deserializer.DecoderContext decoderContext) throws SerdeException;
+
+    <T> DeserBean<T> getWrappedDeserializableBean(Argument<T> type, @Nullable String namePrefix, @Nullable String nameSuffix, Deserializer.DecoderContext decoderContext) throws SerdeException;
 }
