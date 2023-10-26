@@ -35,6 +35,7 @@ include("benchmarks")
 
 include("test-suite-tck-jackson-databind")
 include("test-suite-tck-serde")
+include("test-suite-http-server-tck-netty")
 
 val micronautVersion = providers.gradleProperty("micronautVersion")
 
@@ -42,4 +43,5 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     useStandardizedProjectNames.set(true)
     importMicronautCatalog()
     importMicronautCatalog("micronaut-reactor")
+    importMicronautCatalog("micronaut-validation")
 }
