@@ -17,13 +17,10 @@ package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
-import io.micronaut.serde.support.util.LookaheadObjectDecoder;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonReader;
@@ -82,21 +79,6 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
         ARRAY,
         DOCUMENT,
         TOP,
-    }
-
-    @Override
-    public LookaheadDecoder decodeObjectLookahead(Argument<?> type) throws IOException {
-        // unfortunately there is no other way, we need to persist into a byte array and copy it twice
-        // BSON deserializers require to access the original reader to deserialize custom type,
-        // that would need to be changed to allow the cached lookahead decoder
-        boolean callNext = contextStack.peek() == Context.ARRAY;
-        byte[] documentBytes = decodeCustom(p -> ((BsonReaderDecoder) p).copyValueToDocument(), callNext);
-        return new LookaheadObjectDecoder(ourLimits(), decoderFromBytes(documentBytes).decodeObject()) {
-            @Override
-            public Decoder replay() throws IOException {
-                return decoderFromBytes(documentBytes);
-            }
-        };
     }
 
     @Override

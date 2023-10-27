@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde;
 
-import io.micronaut.core.annotation.Experimental;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
@@ -65,19 +64,6 @@ public interface Decoder extends AutoCloseable {
      */
     @NonNull
     Decoder decodeObject(@NonNull Argument<?> type) throws IOException;
-
-    /**
-     * Decodes an object with an ability to replay it.
-     * @param type The type, never {@code null}
-     * @return The object decoder
-     * @throws IOException If an unrecoverable error occurs
-     * @since 2.3
-     */
-    @Experimental
-    @NonNull
-    default LookaheadDecoder decodeObjectLookahead(@NonNull Argument<?> type) throws IOException {
-        throw new IllegalStateException("Lookahead decoder not supported by: " + getClass().getName());
-    }
 
     /**
      * Decodes an object.

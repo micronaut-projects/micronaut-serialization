@@ -17,6 +17,7 @@ package io.micronaut.serde.bson.custom;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.DelegatingDecoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.bson.BsonReaderDecoder;
@@ -45,9 +46,12 @@ public abstract class AbstractBsonSerde<T> implements Serde<T> {
         doSerialize(asBson(encoder), context, value, type);
     }
 
-    private BsonReaderDecoder asBson(Decoder decoder) throws SerdeException {
-        if (decoder instanceof BsonReaderDecoder) {
-            return (BsonReaderDecoder) decoder;
+    private BsonReaderDecoder asBson(Decoder decoder) throws IOException {
+        if (decoder instanceof DelegatingDecoder delegating) {
+            decoder = delegating.delegateForDecodeValue();
+        }
+        if (decoder instanceof BsonReaderDecoder bson) {
+            return bson;
         }
         throw new SerdeException("Expected an instance of BsonParserDecoder got: " + decoder);
     }

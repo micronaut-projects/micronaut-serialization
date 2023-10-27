@@ -24,11 +24,9 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
-import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
-import io.micronaut.serde.support.util.LookaheadObjectDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.EOFException;
@@ -181,11 +179,6 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
         increaseDepth();
         return this;
-    }
-
-    @Override
-    public LookaheadDecoder decodeObjectLookahead(Argument<?> type) throws IOException {
-        return new LookaheadObjectDecoder(ourLimits(), decodeObject());
     }
 
     @Override

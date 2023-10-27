@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.io.IOException;
@@ -51,13 +50,17 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
-        LookaheadDecoder objectDecoder = decoder.decodeObjectLookahead(type);
-        Deserializer<Object> deserializer = findDeserializer(objectDecoder);
-        return deserializer.deserialize(
-            objectDecoder.replay(),
-            decoderContext,
-            type
-        );
+        try (Decoder primed = DemuxingObjectDecoder.prime(decoder)) {
+            Decoder typeFinder = primed.decodeObject(type);
+            Deserializer<Object> deserializer = findDeserializer(typeFinder);
+            typeFinder.finishStructure(true);
+
+            return deserializer.deserialize(
+                primed,
+                decoderContext,
+                type
+            );
+        }
     }
 
     @NonNull

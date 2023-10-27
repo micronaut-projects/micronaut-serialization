@@ -22,7 +22,6 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
-import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
@@ -39,7 +38,7 @@ import java.util.Map;
  * uses the {@link io.micronaut.json.tree.JsonNode} abstraction.
  */
 @Internal
-public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder, LookaheadObjectDecoder, ReplayObjectDecoder {
+public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder {
     JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
@@ -70,11 +69,6 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         } else {
             throw createDeserializationException("Not an array", toArbitrary(peeked));
         }
-    }
-
-    @Override
-    public LookaheadDecoder decodeObjectLookahead(Argument<?> type) throws IOException {
-        return new LookaheadObjectDecoder(ourLimits(), decodeObject());
     }
 
     @Override
