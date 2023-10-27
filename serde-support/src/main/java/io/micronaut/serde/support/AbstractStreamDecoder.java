@@ -762,7 +762,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 return decodeObjectNode((AbstractStreamDecoder) decodeObject());
             case START_ARRAY:
                 return decodeArrayNode((AbstractStreamDecoder) decodeArray());
-            case STRING:
+            case STRING, OTHER: // handle other as string
                 return JsonNode.createStringNode(decodeString());
             case NUMBER:
                 preDecodeValue(currentToken);

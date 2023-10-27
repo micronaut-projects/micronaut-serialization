@@ -185,40 +185,24 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
 
     @Override
     protected String coerceScalarToString(TokenType currentToken) throws IOException {
-        switch (currentBsonType) {
-            case DOUBLE:
-                return String.valueOf(bsonReader.readDouble());
-            case STRING:
-                return bsonReader.readString();
-            case OBJECT_ID:
-                return bsonReader.readObjectId().toHexString();
-            case BOOLEAN:
-                return String.valueOf(bsonReader.readBoolean());
-            case DATE_TIME:
-                return String.valueOf(bsonReader.readDateTime());
-            case REGULAR_EXPRESSION:
-                return bsonReader.readRegularExpression().toString();
-            case JAVASCRIPT:
-                return bsonReader.readJavaScript();
-            case SYMBOL:
-                return bsonReader.readSymbol();
-            case JAVASCRIPT_WITH_SCOPE:
-                return bsonReader.readJavaScriptWithScope();
-            case INT32:
-                return String.valueOf(bsonReader.readInt32());
-            case TIMESTAMP:
-                return bsonReader.readTimestamp().toString();
-            case INT64:
-                return String.valueOf(bsonReader.readInt64());
-            case DECIMAL128:
-                return bsonReader.readDecimal128().toString();
-            case BINARY:
-                return new String(bsonReader.readBinaryData().getData(), StandardCharsets.UTF_8);
-            case DB_POINTER:
-                return bsonReader.readDBPointer().toString();
-            default:
-                throw new SerdeException("Can't decode " + currentBsonType + " as string");
-        }
+        return switch (currentBsonType) {
+            case DOUBLE -> String.valueOf(bsonReader.readDouble());
+            case STRING -> bsonReader.readString();
+            case OBJECT_ID -> bsonReader.readObjectId().toHexString();
+            case BOOLEAN -> String.valueOf(bsonReader.readBoolean());
+            case DATE_TIME -> String.valueOf(bsonReader.readDateTime());
+            case REGULAR_EXPRESSION -> bsonReader.readRegularExpression().toString();
+            case JAVASCRIPT -> bsonReader.readJavaScript();
+            case SYMBOL -> bsonReader.readSymbol();
+            case JAVASCRIPT_WITH_SCOPE -> bsonReader.readJavaScriptWithScope();
+            case INT32 -> String.valueOf(bsonReader.readInt32());
+            case TIMESTAMP -> bsonReader.readTimestamp().toString();
+            case INT64 -> String.valueOf(bsonReader.readInt64());
+            case DECIMAL128 -> bsonReader.readDecimal128().toString();
+            case BINARY -> new String(bsonReader.readBinaryData().getData(), StandardCharsets.UTF_8);
+            case DB_POINTER -> bsonReader.readDBPointer().toString();
+            default -> throw new SerdeException("Can't decode " + currentBsonType + " as string");
+        };
     }
 
     @Override
@@ -238,82 +222,61 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
 
     @Override
     protected long getLong() {
-        switch (currentBsonType) {
-            case INT32:
-                return bsonReader.readInt32();
-            case INT64:
-                return bsonReader.readInt64();
-            case DOUBLE:
-                return (long) bsonReader.readDouble();
-            case DECIMAL128:
-                return bsonReader.readDecimal128().longValue();
-            default:
-                throw new IllegalStateException("Not in number state");
-        }
+        return switch (currentBsonType) {
+            case INT32 -> bsonReader.readInt32();
+            case INT64 -> bsonReader.readInt64();
+            case DOUBLE -> (long) bsonReader.readDouble();
+            case DECIMAL128 -> bsonReader.readDecimal128().longValue();
+            default -> throw getNotInNumberState();
+        };
+    }
+
+    private IllegalStateException getNotInNumberState() {
+        return new IllegalStateException("Not in number state");
     }
 
     @Override
     protected double getDouble() {
-        switch (currentBsonType) {
-            case INT32:
-                return bsonReader.readInt32();
-            case INT64:
-                return bsonReader.readInt64();
-            case DOUBLE:
-                return bsonReader.readDouble();
-            case DECIMAL128:
-                return bsonReader.readDecimal128().doubleValue();
-            default:
-                throw new IllegalStateException("Not in number state");
-        }
+        return switch (currentBsonType) {
+            case INT32 -> bsonReader.readInt32();
+            case INT64 -> bsonReader.readInt64();
+            case DOUBLE -> bsonReader.readDouble();
+            case DECIMAL128 -> bsonReader.readDecimal128().doubleValue();
+            default -> throw getNotInNumberState();
+        };
     }
 
     @Override
     protected BigInteger getBigInteger() {
-        switch (currentBsonType) {
-            case INT32:
-                return BigInteger.valueOf(bsonReader.readInt32());
-            case INT64:
-                return BigInteger.valueOf(bsonReader.readInt64());
-            case DOUBLE:
-                return BigDecimal.valueOf(bsonReader.readDouble()).toBigInteger();
-            case DECIMAL128:
-                return bsonReader.readDecimal128().bigDecimalValue().toBigInteger();
-            default:
-                throw new IllegalStateException("Not in number state");
-        }
+        return switch (currentBsonType) {
+            case INT32 -> BigInteger.valueOf(bsonReader.readInt32());
+            case INT64 -> BigInteger.valueOf(bsonReader.readInt64());
+            case DOUBLE -> BigDecimal.valueOf(bsonReader.readDouble()).toBigInteger();
+            case DECIMAL128 -> bsonReader.readDecimal128().bigDecimalValue().toBigInteger();
+            default -> throw getNotInNumberState();
+        };
     }
 
     @Override
     protected BigDecimal getBigDecimal() {
-        switch (currentBsonType) {
-            case INT32:
-                return BigDecimal.valueOf(bsonReader.readInt32());
-            case INT64:
-                return BigDecimal.valueOf(bsonReader.readInt64());
-            case DOUBLE:
-                return BigDecimal.valueOf(bsonReader.readDouble());
-            case DECIMAL128:
-                return bsonReader.readDecimal128().bigDecimalValue();
-            default:
-                throw new IllegalStateException("Not in number state");
-        }
+        return switch (currentBsonType) {
+            case INT32 -> BigDecimal.valueOf(bsonReader.readInt32());
+            case INT64 -> BigDecimal.valueOf(bsonReader.readInt64());
+            case DOUBLE -> BigDecimal.valueOf(bsonReader.readDouble());
+            case DECIMAL128 -> bsonReader.readDecimal128().bigDecimalValue();
+            default -> throw getNotInNumberState();
+        };
     }
 
     @Override
     protected Number getBestNumber() {
-        switch (currentBsonType) {
-            case INT32:
-                return bsonReader.readInt32();
-            case INT64:
-                return bsonReader.readInt64();
-            case DOUBLE:
-                return bsonReader.readDouble();
-            case DECIMAL128:
-                return bsonReader.readDecimal128();
-            default:
-                throw new IllegalStateException("Not in number state");
-        }
+        return switch (currentBsonType) {
+            case INT32 -> bsonReader.readInt32();
+            case INT64 -> bsonReader.readInt64();
+            case DOUBLE -> bsonReader.readDouble();
+            case DECIMAL128 -> bsonReader.readDecimal128();
+            default -> throw getNotInNumberState();
+        };
     }
 
     @Override
@@ -342,18 +305,13 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     }
 
     private Decimal128 getDecimal128() {
-        switch (currentBsonType) {
-            case INT32:
-                return new Decimal128(bsonReader.readInt32());
-            case INT64:
-                return new Decimal128(bsonReader.readInt64());
-            case DOUBLE:
-                return new Decimal128(BigDecimal.valueOf(bsonReader.readDouble()));
-            case DECIMAL128:
-                return bsonReader.readDecimal128();
-            default:
-                throw new IllegalStateException("Not in number state");
-        }
+        return switch (currentBsonType) {
+            case INT32 -> new Decimal128(bsonReader.readInt32());
+            case INT64 -> new Decimal128(bsonReader.readInt64());
+            case DOUBLE -> new Decimal128(BigDecimal.valueOf(bsonReader.readDouble()));
+            case DECIMAL128 -> bsonReader.readDecimal128();
+            default -> throw getNotInNumberState();
+        };
     }
 
     /**
@@ -409,13 +367,17 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
         return buffer.getInternalBuffer();
     }
 
+    private Decoder decoderFromBytes(byte[] documentBytes) throws IOException {
+        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)), ourLimits());
+        Decoder decoder = topDecoder.decodeObject();
+        decoder.decodeKey(); // Unwrap
+        return decoder;
+    }
+
     @Override
     public Decoder decodeBuffer() throws IOException {
         byte[] documentBytes = decodeCustom(p -> ((BsonReaderDecoder) p).copyValueToDocument());
-        BsonReaderDecoder topDecoder = new BsonReaderDecoder(new BsonBinaryReader(ByteBuffer.wrap(documentBytes)), ourLimits());
-        Decoder objectDecoder = topDecoder.decodeObject();
-        objectDecoder.decodeKey(); // skip key
-        return objectDecoder;
+        return decoderFromBytes(documentBytes);
     }
 
     private static void transfer(BsonReader src, BsonWriter dest, BsonType type) {
@@ -427,7 +389,19 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
                 dest.writeString(src.readString());
                 break;
             case DOCUMENT:
-                dest.pipe(src);
+                src.readStartDocument();
+                dest.writeStartDocument();
+                while (src.readBsonType() != BsonType.END_OF_DOCUMENT) {
+                    String name = src.readName();
+                    if (name != null) {
+                        dest.writeName(name);
+                    } else {
+                        break;
+                    }
+                    transfer(src, dest, src.getCurrentBsonType());
+                }
+                src.readEndDocument();
+                dest.writeEndDocument();
                 break;
             case ARRAY:
                 src.readStartArray();

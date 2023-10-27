@@ -63,4 +63,15 @@ public class Address {
     public int hashCode() {
         return Objects.hash(address, street, town, postcode);
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Address{");
+        sb.append("address='").append(address).append('\'');
+        sb.append(", street='").append(street).append('\'');
+        sb.append(", town='").append(town).append('\'');
+        sb.append(", postcode='").append(postcode).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

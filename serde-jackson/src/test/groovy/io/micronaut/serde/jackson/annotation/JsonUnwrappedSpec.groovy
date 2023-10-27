@@ -359,7 +359,6 @@ class Name {
         context.close()
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void "test @JsonUnwrapped records"() {
         given:
         def context = buildContext("""
