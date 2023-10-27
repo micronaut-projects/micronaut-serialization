@@ -181,10 +181,12 @@ final class SerBean<T> {
                     initializers.add(ctx -> initProperty(ag, ctx));
                 }
 
-                if (!properties.isEmpty() || !jsonGetters.isEmpty()) {
+                AnnotationMetadata am = new AnnotationMetadataHierarchy(introspection, definition.getAnnotationMetadata());
+                Optional<String> subType = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
+
+                if (!properties.isEmpty() || !jsonGetters.isEmpty() || subType.isPresent()) {
                     writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
-                    AnnotationMetadata am = new AnnotationMetadataHierarchy(introspection, definition.getAnnotationMetadata());
-                    am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(typeName -> {
+                    subType.ifPresent(typeName -> {
                         String typeProperty = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
                         if (typeProperty != null) {
                             SerProperty<T, String> prop;

@@ -757,4 +757,47 @@ record TypeA (String a, InterfaceB b) { }
         cleanup:
         context.close()
     }
+
+    void "test no properties subtype"() {
+        given:
+        def context = buildContext("""
+package subtypes;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        property = "validation-type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = NonEmptyString.class, name = "NonEmptyString"),
+})
+interface Validator { }
+
+@Serdeable
+class NonEmptyString implements Validator {
+ }
+""")
+
+        def argument = argumentOf(context, 'subtypes.NonEmptyString')
+
+        when:
+        def bean = newInstance(context, 'subtypes.NonEmptyString')
+        def json = writeJson(jsonMapper, bean)
+
+        then:
+        json == """{"validation-type":"NonEmptyString"}"""
+
+
+        when:
+        def deser = jsonMapper.readValue(json, argument)
+
+        then:
+        deser
+        argument.isInstance(deser)
+
+        cleanup:
+        context.close()
+    }
 }
