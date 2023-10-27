@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
@@ -55,13 +56,15 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.function.BiConsumer;
 
+import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
+
 /**
  * Holder for data about a deserializable bean.
  *
  * @param <T> The generic type
  */
 @Internal
-class DeserBean<T> {
+final class DeserBean<T> {
     private static final String JK_PROP = "com.fasterxml.jackson.annotation.JsonProperty";
 
     // CHECKSTYLE:OFF
@@ -79,6 +82,8 @@ class DeserBean<T> {
     public final AnySetter<Object> anySetter;
     @Nullable
     public final String wrapperProperty;
+    @Nullable
+    public final SubtypeInfo<T> subtypeInfo;
 
     public final int creatorSize;
     public final int injectPropertiesSize;
@@ -91,16 +96,26 @@ class DeserBean<T> {
     public final boolean hasBuilder;
     public final ConversionService conversionService;
 
+    private final Map<String, Argument<?>> bounds;
+
     private volatile boolean initialized;
     private volatile boolean initializing;
 
     // CHECKSTYLE:ON
 
-    public DeserBean(BeanIntrospection<T> introspection,
+    public DeserBean(Argument<T> type,
+                     BeanIntrospection<T> introspection,
                      Deserializer.DecoderContext decoderContext,
                      DeserBeanRegistry deserBeanRegistry,
                      @Nullable String propertiesNamePrefix, @Nullable String propertiesNameSuffix)
         throws SerdeException {
+
+        if (type.hasTypeVariables()) {
+            bounds = type.getTypeVariables();
+        } else {
+            bounds = Collections.emptyMap();
+        }
+
         this.conversionService = decoderContext.getConversionService();
         this.introspection = introspection;
         final SerdeConfig.SerCreatorMode creatorMode = introspection
@@ -345,12 +360,81 @@ class DeserBean<T> {
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
+        this.subtypeInfo = createSubtypeInfo(type, introspection, decoderContext, deserBeanRegistry);
+
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
     }
 
-    public boolean isSubtyped() {
-        return false;
+    private static <T> SubtypeInfo<T> createSubtypeInfo(Argument<T> type,
+                                                        BeanIntrospection<T> introspection,
+                                                        Deserializer.DecoderContext decoderContext,
+                                                        DeserBeanRegistry deserBeanRegistry) throws SerdeException {
+        AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
+            type.getAnnotationMetadata(),
+            introspection.getAnnotationMetadata()
+        );
+        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
+            return null;
+        }
+
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = annotationMetadata.enumValue(
+            SerdeConfig.SerSubtyped.class,
+            SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,
+            SerdeConfig.SerSubtyped.DiscriminatorType.class
+        ).orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
+        SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValue = annotationMetadata.enumValue(
+            SerdeConfig.SerSubtyped.class,
+            SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE,
+            SerdeConfig.SerSubtyped.DiscriminatorValueKind.class
+        ).orElse(CLASS_NAME);
+        String discriminatorName = annotationMetadata.stringValue(
+            SerdeConfig.SerSubtyped.class,
+            SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP
+        ).orElse(discriminatorValue == CLASS_NAME ? "@class" : "@type");
+
+        final Class<T> superType = introspection.getBeanType();
+        final Collection<BeanIntrospection<? extends T>> subtypeIntrospections =
+            decoderContext.getDeserializableSubtypes(superType);
+        Map<String, DeserBean<? extends T>> subtypes = CollectionUtils.newHashMap(subtypeIntrospections.size());
+        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
+        String defaultDiscriminator = null;
+        for (BeanIntrospection<? extends T> subtypeIntrospection : subtypeIntrospections) {
+            Class<? extends T> subBeanType = subtypeIntrospection.getBeanType();
+            final DeserBean<? extends T> deserBean = deserBeanRegistry.getDeserializableBean(
+                Argument.of(subBeanType),
+                decoderContext
+            );
+            final String dn;
+            if (discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME) {
+                dn = subBeanType.getName();
+            } else if (discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME) {
+                dn = subBeanType.getSimpleName();
+            } else {
+                dn = deserBean.introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
+                    .orElse(deserBean.introspection.getBeanType().getSimpleName());
+            }
+            subtypes.put(
+                dn,
+                deserBean
+            );
+            if (defaultType != null && defaultType.equals(subBeanType)) {
+                defaultDiscriminator = dn;
+            }
+
+            String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
+            for (String name : names) {
+                subtypes.put(name, deserBean);
+            }
+        }
+
+        return new SubtypeInfo<>(
+            subtypes,
+            discriminatorType,
+            discriminatorValue,
+            discriminatorName,
+            defaultDiscriminator
+        );
     }
 
     void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
@@ -393,7 +477,7 @@ class DeserBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (delegating || this instanceof SubtypedDeserBean || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (injectProperties != null) {
@@ -408,7 +492,7 @@ class DeserBean<T> {
     }
 
     private boolean isRecordLikeBean() {
-        if (delegating || this instanceof SubtypedDeserBean || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (creatorParams != null) {
@@ -504,7 +588,7 @@ class DeserBean<T> {
      */
     protected @NonNull
     Map<String, Argument<?>> getBounds() {
-        return Collections.emptyMap();
+        return bounds;
     }
 
     private String resolveName(@Nullable String prefix,
@@ -932,5 +1016,20 @@ class DeserBean<T> {
         public AnnotationMetadata getAnnotationMetadata() {
             return beanMethod.getAnnotationMetadata();
         }
+    }
+
+    @Internal
+    public record SubtypeInfo<T>(
+        @NonNull
+        Map<String, DeserBean<? extends T>> subtypes,
+        @NonNull
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
+        @NonNull
+        SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValue,
+        @NonNull
+        String discriminatorName,
+        @Nullable
+        String defaultImpl
+    ) {
     }
 }

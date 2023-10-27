@@ -17,14 +17,12 @@ package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
-import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.SupplierUtil;
-import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
@@ -73,31 +71,32 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         }
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
 
-        if (deserBean instanceof SubtypedDeserBean<Object> subtypedDeserBean) {
-            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypedDeserBean.subtypes.size());
-            for (Map.Entry<String, DeserBean<?>> e : subtypedDeserBean.subtypes.entrySet()) {
+        if (deserBean.subtypeInfo != null) {
+            DeserBean.SubtypeInfo<? super Object> subtypeInfo = deserBean.subtypeInfo;
+            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
+            for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
                 subtypeDeserializers.put(
                     e.getKey(),
-                    findDeserializer((DeserBean<Object>) e.getValue(), true)
+                    new SpecificObjectDeserializer(ignoreUnknown, strictNullable, (DeserBean<? super Object>) e.getValue(), preInstantiateCallback, subtypeInfo)
                 );
             }
-            Deserializer<Object> supertypeDeserializer = findDeserializer(subtypedDeserBean, true);
-            if (subtypedDeserBean.discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
+            Deserializer<Object> supertypeDeserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback, subtypeInfo);
+            if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
                 return new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
                     deserBean.ignoreUnknown
                 );
             }
-            if (subtypedDeserBean.discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-                return new SubtypedPropertyObjectDeserializer(subtypedDeserBean, subtypeDeserializers, supertypeDeserializer);
+            if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+                return new SubtypedPropertyObjectDeserializer(deserBean, subtypeDeserializers, supertypeDeserializer);
             }
-            throw new IllegalStateException("Unrecognized discriminator type: " + subtypedDeserBean.discriminatorType);
+            throw new IllegalStateException("Unrecognized discriminator type: " + subtypeInfo.discriminatorType());
         }
 
-        return findDeserializer(deserBean, false);
+        return findDeserializer(deserBean);
     }
 
-    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean isSubtype) {
+    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean) {
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
             deserializer = new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
@@ -106,10 +105,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         } else if (deserBean.delegating) {
             deserializer = new DelegatingObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         } else {
-            deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+            deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback, null);
         }
-
-        if (!isSubtype && deserBean.wrapperProperty != null) {
+        if (deserBean.wrapperProperty != null) {
             deserializer = new WrappedObjectDeserializer(
                 deserializer,
                 deserBean.wrapperProperty,
@@ -150,35 +148,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                                              DecoderContext decoderContext) {
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
-                type.getAnnotationMetadata(),
-                deserializableIntrospection.getAnnotationMetadata()
-            );
-            if (annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
-                if (type.hasTypeVariables()) {
-                    final Map<String, Argument<?>> bounds = type.getTypeVariables();
-                    return new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix) {
-                        @Override
-                        protected Map<String, Argument<?>> getBounds() {
-                            return bounds;
-                        }
-                    };
-                } else {
-                    return new SubtypedDeserBean<>(annotationMetadata, deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix);
-                }
-            } else {
-                if (type.hasTypeVariables()) {
-                    final Map<String, Argument<?>> bounds = type.getTypeVariables();
-                    return new DeserBean<>(deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix) {
-                        @Override
-                        protected Map<String, Argument<?>> getBounds() {
-                            return bounds;
-                        }
-                    };
-                } else {
-                    return new DeserBean<>(deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix);
-                }
-            }
+            return new DeserBean<>(type, deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

@@ -87,6 +87,8 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     @Override
     public LookaheadDecoder decodeObjectLookahead(Argument<?> type) throws IOException {
         // unfortunately there is no other way, we need to persist into a byte array and copy it twice
+        // BSON deserializers require to access the original reader to deserialize custom type,
+        // that would need to be changed to allow the cached lookahead decoder
         boolean callNext = contextStack.peek() == Context.ARRAY;
         byte[] documentBytes = decodeCustom(p -> ((BsonReaderDecoder) p).copyValueToDocument(), callNext);
         return new LookaheadObjectDecoder(ourLimits(), decoderFromBytes(documentBytes).decodeObject()) {

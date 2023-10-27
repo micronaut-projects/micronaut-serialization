@@ -33,17 +33,18 @@ import java.util.Map;
  */
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
-    private final SubtypedDeserBean<? super Object> deserBean;
+    private final DeserBean<? super Object> deserBean;
     private final Map<String, Deserializer<Object>> deserializers;
     private final Deserializer<Object> supertypeDeserializer;
 
-    public SubtypedPropertyObjectDeserializer(SubtypedDeserBean<? super Object> deserBean,
-                                              Map<String, Deserializer<Object>> deserializers, Deserializer<Object> supertypeDeserializer) {
+    public SubtypedPropertyObjectDeserializer(DeserBean<? super Object> deserBean,
+                                              Map<String, Deserializer<Object>> deserializers,
+                                              Deserializer<Object> supertypeDeserializer) {
         this.deserBean = deserBean;
         this.deserializers = deserializers;
         this.supertypeDeserializer = supertypeDeserializer;
-        if (deserBean.discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-            throw new IllegalStateException("Unsupported discriminator type: " + deserBean.discriminatorType);
+        if (deserBean.subtypeInfo.discriminatorType() != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+            throw new IllegalStateException("Unsupported discriminator type: " + deserBean.subtypeInfo.discriminatorType());
         }
     }
 
@@ -61,8 +62,8 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
     @NonNull
     private Deserializer<Object> findDeserializer(Decoder objectDecoder) throws IOException {
-        final String defaultImpl = deserBean.defaultImpl;
-        final String discriminatorName = deserBean.discriminatorName;
+        final String defaultImpl = deserBean.subtypeInfo.defaultImpl();
+        final String discriminatorName = deserBean.subtypeInfo.discriminatorName();
         while (true) {
             final String key = objectDecoder.decodeKey();
             if (key == null) {
