@@ -10,6 +10,7 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     jmhAnnotationProcessor(libs.jmh.generator.annprocess)
     jmhAnnotationProcessor(mn.micronaut.inject.java)
+    jmhAnnotationProcessor(projects.micronautSerdeProcessor)
 
     implementation(projects.micronautSerdeJackson)
     implementation(projects.micronautSerdeSupport)
@@ -27,4 +28,8 @@ jmh {
 
 shadowJar {
     mergeServiceFiles()
+}
+
+configurations.configureEach {
+    resolutionStrategy.preferProjectModules()
 }

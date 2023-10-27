@@ -127,18 +127,24 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         if (db.hasBuilder) {
             return new BuilderDeserializer(db, preInstantiateCallback);
         }
-        if (db.creatorParams != null) {
-            return new ArgsConstructorBeanDeserializer(db, strictNullable, preInstantiateCallback, subtypeInfo);
+        String ignoreSubtypeProperty;
+        if (subtypeInfo != null && subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+            ignoreSubtypeProperty = subtypeInfo.discriminatorName();
+        } else {
+            ignoreSubtypeProperty = null;
         }
-        return new NoArgsConstructorDeserializer(instance, db, strictNullable, preInstantiateCallback, subtypeInfo);
+        if (db.creatorParams != null) {
+            return new ArgsConstructorBeanDeserializer(db, strictNullable, preInstantiateCallback, ignoreSubtypeProperty);
+        }
+        return new NoArgsConstructorDeserializer(instance, db, strictNullable, preInstantiateCallback, ignoreSubtypeProperty);
     }
 
     private static Object deserializeValue(DecoderContext decoderContext,
                                            Decoder objectDecoder,
                                            DeserBean.DerProperty<Object, Object> derProperty,
-                                           Argument<Object> propertyType,
-                                           Object instance) throws IOException {
-        final boolean hasRef = instance != null && derProperty.managedRef != null;
+                                           @NonNull Object instance) throws IOException {
+        final boolean hasRef = derProperty.managedRef != null;
+
         try {
             if (hasRef) {
                 decoderContext.pushManagedRef(
@@ -150,18 +156,31 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     )
                 );
             }
-            Deserializer<Object> deserializer = derProperty.deserializer;
-            return deserializer.deserializeNullable(
+            return derProperty.deserializer.deserializeNullable(
                 objectDecoder,
                 decoderContext,
-                propertyType
+                derProperty.argument
             );
         } catch (InvalidFormatException e) {
-            throw new InvalidPropertyFormatException(e, propertyType);
+            throw new InvalidPropertyFormatException(e, derProperty.argument);
         } finally {
             if (hasRef) {
                 decoderContext.popManagedRef();
             }
+        }
+    }
+
+    private static Object deserializeValue(DecoderContext decoderContext,
+                                           Decoder objectDecoder,
+                                           DeserBean.DerProperty<Object, Object> derProperty) throws IOException {
+        try {
+            return derProperty.deserializer.deserializeNullable(
+                objectDecoder,
+                decoderContext,
+                derProperty.argument
+            );
+        } catch (InvalidFormatException e) {
+            throw new InvalidPropertyFormatException(e, derProperty.argument);
         }
     }
 
@@ -255,7 +274,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     return true;
                 }
                 if (property.managedRef == null) {
-                    values[property.index] = deserializeValue(decoderContext, decoder, property, property.argument, null);
+                    values[property.index] = deserializeValue(decoderContext, decoder, property);
                 } else {
                     buffered[property.index] = decoder.decodeBuffer();
                 }
@@ -299,7 +318,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 } else {
                     Decoder bufferedDecoder = buffered[i];
                     if (bufferedDecoder != null) {
-                        value = deserializeValue(decoderContext, bufferedDecoder, property, property.argument, instance);
+                        value = deserializeValue(decoderContext, bufferedDecoder, property, instance);
                     } else {
                         value = values[i];
                     }
@@ -402,7 +421,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                         value = null;
                     }
                 } else {
-                    value = deserializeValue(decoderContext, decoder, property, property.argument, instance);
+                    value = deserializeValue(decoderContext, decoder, property, instance);
                 }
                 if (value == null) {
                     property.setDefaultPropertyValue(decoderContext, instance);
@@ -525,7 +544,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             }
         }
 
-        boolean consume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
+        boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
             if (allConsumed) {
                 return false;
             }
@@ -547,9 +566,6 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 decoder.skipValue();
                 return true;
             }
-            if (property.unwrapped != null) {
-                return false;
-            }
             Object value;
             if (property.backRef != null) {
                 final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
@@ -566,7 +582,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     value = null;
                 }
             } else {
-                value = deserializeValue(decoderContext, decoder, property, property.argument, null);
+                value = deserializeValue(decoderContext, decoder, property);
             }
             if (value == null) {
                 property.setDefaultConstructorValue(decoderContext, values);
@@ -683,7 +699,8 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     private static final class ArgsConstructorBeanDeserializer extends BeanDeserializer {
 
         private final boolean strictNullable;
-        private @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
+        @Nullable
+        private SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
         private final BeanIntrospection<Object> introspection;
         private final ConstructorValuesDeserializer constructorValuesDeserializer;
         @Nullable
@@ -696,7 +713,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         ArgsConstructorBeanDeserializer(DeserBean<? super Object> db,
                                         boolean strictNullable,
                                         @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback,
-                                        @Nullable DeserBean.SubtypeInfo<?> subtypeInfo) {
+                                        @Nullable String ignoreSubtypeProperty) {
             this.strictNullable = strictNullable;
             this.preInstantiateCallback = preInstantiateCallback;
             this.introspection = db.introspection;
@@ -711,16 +728,12 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             } else {
                 anyValuesDeserializer = new AnyValuesDeserializer(db.anySetter);
             }
-            if (subtypeInfo != null && subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-                ignoreSubtypeProperty = subtypeInfo.discriminatorName();
-            } else {
-                ignoreSubtypeProperty = null;
-            }
+            this.ignoreSubtypeProperty = ignoreSubtypeProperty;
         }
 
         @Override
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
-            if (constructorValuesDeserializer.consume(propertyName, decoder, decoderContext)) {
+            if (constructorValuesDeserializer.tryConsume(propertyName, decoder, decoderContext)) {
                 return true;
             }
             if (propertiesConsumer != null && propertiesConsumer.tryConsume(propertyName, decoder, decoderContext)) {
@@ -793,7 +806,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                                       DeserBean<? super Object> db,
                                       boolean strictNullable,
                                       @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback,
-                                      @Nullable DeserBean.SubtypeInfo<?> subtypeInfo) {
+                                      @Nullable String ignoreSubtypeProperty) {
             this.instance = instance;
             this.introspection = db.introspection;
             this.preInstantiateCallback = preInstantiateCallback;
@@ -807,11 +820,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             } else {
                 anyValuesDeserializer = new AnyValuesDeserializer(db.anySetter);
             }
-            if (subtypeInfo != null && subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-                ignoreSubtypeProperty = subtypeInfo.discriminatorName();
-            } else {
-                ignoreSubtypeProperty = null;
-            }
+            this.ignoreSubtypeProperty = ignoreSubtypeProperty;
         }
 
         @Override

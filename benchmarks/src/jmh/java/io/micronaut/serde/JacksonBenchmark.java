@@ -18,25 +18,19 @@ import io.micronaut.serde.data.StringConstructor;
 import io.micronaut.serde.data.StringField;
 import io.micronaut.serde.data.StringListConstructor;
 import io.micronaut.serde.data.StringListField;
+import io.micronaut.serde.data.User;
 import io.micronaut.serde.data.Users;
 import io.micronaut.serde.data.UsersNoArrays;
 import io.micronaut.serde.jackson.JacksonJsonMapper;
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.profile.AsyncProfiler;
-import org.openjdk.jmh.profile.LinuxPerfAsmProfiler;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 
 public class JacksonBenchmark {
 
@@ -65,6 +59,8 @@ public class JacksonBenchmark {
     private static final Argument<IntArrayConstructor> INTEGER_ARRAY_CONSTRUCTOR_ARGUMENT = Argument.of(IntArrayConstructor.class);
     private static final Argument<IntArrayField> INTEGER_ARRAY_FIELD_ARGUMENT = Argument.of(IntArrayField.class);
 
+    private static final Argument<User> USER_UNWRAPPED_ARGUMENT = Argument.of(User.class);
+
     private static final byte[] HAYSTACK_6_6 = "{\"haystack\": [\"xniomb\", \"seelzp\", \"nzogdq\", \"omblsg\", \"idgtlm\", \"ydonzo\"], \"needle\": \"idg\"}".getBytes(StandardCharsets.UTF_8);
     private static final byte[] INPUT_USERS = """
         {"users":[{"_id":"39771757156730064829","index":1031703887,"guid":"ifhsrU6geU4PijjDE8Q5","isActive":false,"balance":"TKl0GcwTs72S4CPx5rfg","picture":"FkKrg6ZOPC5REchlhixu5WgIl3gNAqq28iLtFm6dKfTSQs8d3P0cYxKsEvbvMB2C6BVgExop3khRlNSFE4SV8dVFitFs7RyyecN8","age":5,"eyeColor":"AY79Pw4sYByUZEMLxnYJ","name":"XjXrEZMuTvPnuOPBg7hL","gender":"VaMcuWBHvnWvIlCC9q4T","company":"6pmCe1LxouRGfZD79ena","email":"TboNtpmAS0ppZ07jITFE","phone":"j8OoUhtmwBlI20EgD1LS","address":"Aqo4fSYBpvvAWTDqbFbK","about":"1kXFSA2782BLqNBbKIbp","registered":"Mc7h3gZJcQ11ShGQYdXI","latitude":13.474549605725421,"longitude":35.010833129741435,"tags":["8tGfPhZkZD","XYmwuAAtZ4","u9iBDMpS9G","4udy1eRqme","Lg48Ogrf0I","zku019kVpo","iuIMkiZzog","MuI1uYeCjc","49n7qisFD8","TtVgWerCRh","H604QRJmi1","ZIQMfqInNH","CbDyjjA19F","pNFwPdkVdU","aPFLsUbIUh","fA735PT0Hd","00etYDYL87","mlyEf1lI2B","RQ05IJSzXF","3jJt0Zrkhw","ZINP8GH4Bm","XebX8UvviN","EXqZ9G0ATB","ssyzWZVAa2"],"friends":[{"id":"2668","name":"lcxeDXPbnoIxAPqTNdkwbcGIJxLnPe"},{"id":"9395","name":"dxNBbezfkbotyCmFzjodONShlGFaAg"},{"id":"5249","name":"fYHSDXScMSzQvxzFuuPHYWfyjdGQLg"},{"id":"4978","name":"qfoxPWmoWUyUduVkRwhzyBusuflrFY"},{"id":"9710","name":"vUAJwshFGLoBHfwLcsEVNLJLwdaCAg"},{"id":"7404","name":"BhVMdvhPRdpwpDWAmfhNDikncdNgGr"},{"id":"1343","name":"ZeDoizPcOBafZtVYDOmpzGoHekfoxf"},{"id":"7382","name":"KtqXeVdCQJlwSNHkgkxuoIGdOWrmqG"},{"id":"1365","name":"rCSTlgbmTAFhbSfPmnftcDLwdiKsHt"},{"id":"8037","name":"PUvwVYoSvSTnwjJCQITTcwNvMOpxie"},{"id":"4858","name":"cUfQfDIiyMfCMYBKGwhZSWnRRKwlxG"},{"id":"9141","name":"rJxMGOWRjdkphthcaKTspFrMcvcLLb"},{"id":"9128","name":"gcsYaolAQqrNMQTluIAKOkwYTWVUXe"},{"id":"2268","name":"jwXOUcXAiLurRlgTdxyKWvsbNHfFxl"},{"id":"5447","name":"whivfJXOdxoHtLIGpytTdbOXxlZpUY"},{"id":"7551","name":"whykuIjZUgvOFGpmNHjoPeTeYCPNby"},{"id":"719","name":"SmbiwQaORLdsbAlUZbQwgCKfuoPLVr"},{"id":"7773","name":"LZmRMXmXXHzlzFFJAopDNnWkuBqndD"},{"id":"9602","name":"xCNsDBFMygEwZuecJKTUrqeDLBJlrR"},{"id":"1536","name":"hrfeFnKnmVgZDDOxAHgXfgcJSRyiXB"},{"id":"3549","name":"NvvhXwWgCSaYijqhxsrxIWrHbBOOIa"}],"greeting":"hTAIJLspvLr8DJPG3jYh","favoriteFruit":"f6ZsZ3saRGKMBCZLAkiP"}]}
@@ -74,6 +70,9 @@ public class JacksonBenchmark {
     private static final byte[] INPUT_STR_ARRAY_SHORT = "{\"strs\":[\"myString1\",\"myString2\"]}".getBytes(StandardCharsets.UTF_8);
     private static final byte[] INPUT_INT = "{\"integer\":123}".getBytes(StandardCharsets.UTF_8);
     private static final byte[] INPUT_INT_ARRAY = "{\"integers\":[123, 456]}".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] INPUT_USER_UNWRAPPED = """
+        {"id": 123, "firstName": "Foo", "lastName": "Bar"}
+        """.getBytes(StandardCharsets.UTF_8);
 
     @Benchmark
     public Object decodeInputConstructor(Holder holder) throws IOException {
@@ -219,46 +218,44 @@ public class JacksonBenchmark {
         );
     }
 
-    public static void main(String[] args) throws Exception {
-        ApplicationContext ctx = ApplicationContext.run();
-        Holder holder = new Holder();
-        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
-//        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
-        Object obj = new JacksonBenchmark().decodeUsers(holder);
-        Options opt = new OptionsBuilder()
-            //.include(JacksonBenchmark.class.getName() + ".*")
-            .include(JacksonBenchmark.class.getName() + ".decodeUsers$")
-            .warmupIterations(20)
-            .measurementIterations(10)
-            .mode(Mode.AverageTime)
-            .timeUnit(TimeUnit.NANOSECONDS)
-//            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
-//            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
-            //.addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
-            .addProfiler(LinuxPerfAsmProfiler.class, "intelSyntax=true;hotThreshold=0.05")
-            .forks(1)
-//            .jvmArgsAppend("-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints")
-//            .jvmArgsPrepend("-Dio.type.pollution.file=out.txt", "-javaagent:/Users/denisstepanov/dev/micronaut-core/type-pollution-agent-0.1-SNAPSHOT.jar")
-            .build();
-
-        new Runner(opt).run();
+    @Benchmark
+    public Object decodeUnwrapped(Holder holder) throws IOException {
+        return holder.jsonMapper.readValue(
+            INPUT_USER_UNWRAPPED,
+            USER_UNWRAPPED_ARGUMENT
+        );
     }
 
-    public static void mainx(String[] args) throws Exception {
-        ApplicationContext ctx = ApplicationContext.run();
-        Holder holder = new Holder();
-        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+//    public static void main(String[] args) throws Exception {
+//        ApplicationContext ctx = ApplicationContext.run();
+//        Holder holder = new Holder();
 //        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
-        Object obj = new JacksonBenchmark().decodeUsers(holder);
-
-        System.out.println(obj);
-    }
+////        holder.jsonMapper = ctx.getBean(JacksonJsonMapper.class);
+////        Object obj = new JacksonBenchmark().decodeUsers(holder);
+//        Options opt = new OptionsBuilder()
+//            //.include(JacksonBenchmark.class.getName() + ".*")
+//            .include(JacksonBenchmark.class.getName() + ".decodeUnwrapped$")
+//            .warmupIterations(3)
+//            .measurementIterations(10)
+//            .mode(Mode.AverageTime)
+//            .timeUnit(TimeUnit.NANOSECONDS)
+////            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
+////            .addProfiler(AsyncProfiler.class, "libPath=/Users/denisstepanov/dev/async-profiler-2.9-macos/build/libasyncProfiler.dylib;output=flamegraph")
+//            //.addProfiler(AsyncProfiler.class, "libPath=/home/yawkat/bin/async-profiler-2.9-linux-x64/build/libasyncProfiler.so;output=flamegraph")
+////            .addProfiler(LinuxPerfAsmProfiler.class, "intelSyntax=true;hotThreshold=0.05")
+//            .forks(1)
+////            .jvmArgsAppend("-XX:+UnlockDiagnosticVMOptions", "-XX:+DebugNonSafepoints")
+////            .jvmArgsPrepend("-Dio.type.pollution.file=out.txt", "-javaagent:/Users/denisstepanov/dev/micronaut-core/type-pollution-agent-0.1-SNAPSHOT.jar")
+//            .build();
+//
+//        new Runner(opt).run();
+//    }
 
     @State(Scope.Thread)
     public static class Holder {
         @Param({
-            //"JACKSON_DATABIND_INTROSPECTION",
-            //"JACKSON_DATABIND_REFLECTION",
+//            "JACKSON_DATABIND_INTROSPECTION",
+//            "JACKSON_DATABIND_REFLECTION",
             "SERDE_JACKSON"
         })
         Stack stack = Stack.SERDE_JACKSON;
