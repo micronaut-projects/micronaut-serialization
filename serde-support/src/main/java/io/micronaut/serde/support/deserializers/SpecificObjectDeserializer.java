@@ -430,7 +430,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             return false;
         }
 
-        void finalize(DecoderContext decoderContext, Object instance) throws IOException {
+        void finalizeProperties(DecoderContext decoderContext, Object instance) throws IOException {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
                     DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
@@ -851,7 +851,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         @Override
         public Object provideInstance(DecoderContext decoderContext) throws IOException {
             if (propertiesConsumer != null) {
-                propertiesConsumer.finalize(decoderContext, instance);
+                propertiesConsumer.finalizeProperties(decoderContext, instance);
             }
             if (anyValuesDeserializer != null) {
                 anyValuesDeserializer.bind(instance);

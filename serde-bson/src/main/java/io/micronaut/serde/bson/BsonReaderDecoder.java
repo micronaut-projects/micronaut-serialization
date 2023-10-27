@@ -245,8 +245,12 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             case INT64 -> bsonReader.readInt64();
             case DOUBLE -> (long) bsonReader.readDouble();
             case DECIMAL128 -> bsonReader.readDecimal128().longValue();
-            default -> throw new IllegalStateException("Not in number state");
+            default -> throw getNotInNumberState();
         };
+    }
+
+    private IllegalStateException getNotInNumberState() {
+        return new IllegalStateException("Not in number state");
     }
 
     @Override
@@ -256,7 +260,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             case INT64 -> bsonReader.readInt64();
             case DOUBLE -> bsonReader.readDouble();
             case DECIMAL128 -> bsonReader.readDecimal128().doubleValue();
-            default -> throw new IllegalStateException("Not in number state");
+            default -> throw getNotInNumberState();
         };
     }
 
@@ -267,7 +271,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             case INT64 -> BigInteger.valueOf(bsonReader.readInt64());
             case DOUBLE -> BigDecimal.valueOf(bsonReader.readDouble()).toBigInteger();
             case DECIMAL128 -> bsonReader.readDecimal128().bigDecimalValue().toBigInteger();
-            default -> throw new IllegalStateException("Not in number state");
+            default -> throw getNotInNumberState();
         };
     }
 
@@ -278,7 +282,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             case INT64 -> BigDecimal.valueOf(bsonReader.readInt64());
             case DOUBLE -> BigDecimal.valueOf(bsonReader.readDouble());
             case DECIMAL128 -> bsonReader.readDecimal128().bigDecimalValue();
-            default -> throw new IllegalStateException("Not in number state");
+            default -> throw getNotInNumberState();
         };
     }
 
@@ -289,7 +293,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             case INT64 -> bsonReader.readInt64();
             case DOUBLE -> bsonReader.readDouble();
             case DECIMAL128 -> bsonReader.readDecimal128();
-            default -> throw new IllegalStateException("Not in number state");
+            default -> throw getNotInNumberState();
         };
     }
 
@@ -324,7 +328,7 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
             case INT64 -> new Decimal128(bsonReader.readInt64());
             case DOUBLE -> new Decimal128(BigDecimal.valueOf(bsonReader.readDouble()));
             case DECIMAL128 -> bsonReader.readDecimal128();
-            default -> throw new IllegalStateException("Not in number state");
+            default -> throw getNotInNumberState();
         };
     }
 
