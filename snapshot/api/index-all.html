@@ -185,6 +185,12 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the value of the <code>bar</code> record component.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/BeanDefKey.html" class="type-name-link" title="class in io.micronaut.serde.support.util">BeanDefKey</a> - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">Can be used as a key for type.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanDefKey.html#%3Cinit%3E(io.micronaut.core.type.Argument,java.lang.String,java.lang.String)" class="member-name-link">BeanDefKey(Argument&lt;?&gt;, String, String)</a> - Constructor for class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanDefKey.html" title="class in io.micronaut.serde.support.util">BeanDefKey</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/graalvm/JsonpFeature.html#beforeAnalysis(org.graalvm.nativeimage.hosted.Feature.BeforeAnalysisAccess)" class="member-name-link">beforeAnalysis(Feature.BeforeAnalysisAccess)</a> - Method in class io.micronaut.serde.json.stream.graalvm.<a href="io/micronaut/serde/json/stream/graalvm/JsonpFeature.html" title="class in io.micronaut.serde.json.stream.graalvm">JsonpFeature</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/DefaultSerdeRegistry.html#BIG_DECIMAL_SERDE" class="member-name-link">BIG_DECIMAL_SERDE</a> - Static variable in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/DefaultSerdeRegistry.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry</a></dt>
@@ -366,6 +372,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Finalize the current structure.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#close()" class="member-name-link">close()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Encoder.html#close()" class="member-name-link">close()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></dt>
 <dd>
 <div class="block">Finalize the current structure.</div>
@@ -473,6 +481,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Creates an exception for the given message.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException(String, Object)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>
+<div class="block">This method remains abstract because it doesn't throw IOException and thus can't call decoder().</div>
+</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException(String, Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException(String, Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
@@ -568,6 +580,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes the current state into an arbitrary object.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeArbitrary()" class="member-name-link">decodeArbitrary()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeArbitrary()" class="member-name-link">decodeArbitrary()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeArbitrary()" class="member-name-link">decodeArbitrary()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -578,12 +592,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Start decoding an array.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeArray()" class="member-name-link">decodeArray()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeArray()" class="member-name-link">decodeArray()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray(Argument&lt;?&gt;)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Start decoding an array.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeArray(io.micronaut.core.type.Argument)" class="member-name-link">decodeArray(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -600,6 +618,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes a BigDecimal.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBigDecimal()" class="member-name-link">decodeBigDecimal()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBigDecimal()" class="member-name-link">decodeBigDecimal()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBigDecimal()" class="member-name-link">decodeBigDecimal()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -610,12 +630,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeBigDecimal()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBigDecimalNullable()" class="member-name-link">decodeBigDecimalNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBigDecimalNullable()" class="member-name-link">decodeBigDecimalNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeBigInteger()" class="member-name-link">decodeBigInteger()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes a BigInteger.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBigInteger()" class="member-name-link">decodeBigInteger()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBigInteger()" class="member-name-link">decodeBigInteger()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBigInteger()" class="member-name-link">decodeBigInteger()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -626,6 +650,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeBigInteger()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBigIntegerNullable()" class="member-name-link">decodeBigIntegerNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBigIntegerNullable()" class="member-name-link">decodeBigIntegerNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
@@ -634,6 +660,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decode binary data from this stream.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html#decodeBinary()" class="member-name-link">decodeBinary()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></dt>
@@ -648,10 +676,14 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeBinary()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBinaryNullable()" class="member-name-link">decodeBinaryNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeBoolean()" class="member-name-link">decodeBoolean()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes a boolean.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBoolean()" class="member-name-link">decodeBoolean()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBoolean()" class="member-name-link">decodeBoolean()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBoolean()" class="member-name-link">decodeBoolean()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -662,6 +694,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeBoolean()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBooleanNullable()" class="member-name-link">decodeBooleanNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBooleanNullable()" class="member-name-link">decodeBooleanNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#decodeBuffer()" class="member-name-link">decodeBuffer()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
@@ -670,6 +704,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Buffer the whole subtree of this value and return it as a new <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeBuffer()" class="member-name-link">decodeBuffer()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeBuffer()" class="member-name-link">decodeBuffer()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeBuffer()" class="member-name-link">decodeBuffer()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -680,6 +716,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes a byte.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeByte()" class="member-name-link">decodeByte()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeByte()" class="member-name-link">decodeByte()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeByte()" class="member-name-link">decodeByte()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -690,12 +728,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeByte()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeByteNullable()" class="member-name-link">decodeByteNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeByteNullable()" class="member-name-link">decodeByteNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeChar()" class="member-name-link">decodeChar()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes a char.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeChar()" class="member-name-link">decodeChar()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeChar()" class="member-name-link">decodeChar()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeChar()" class="member-name-link">decodeChar()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -706,6 +748,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeChar()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeCharNullable()" class="member-name-link">decodeCharNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeCharNullable()" class="member-name-link">decodeCharNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeCustom(io.micronaut.serde.support.AbstractStreamDecoder.ValueDecoder)" class="member-name-link">decodeCustom(AbstractStreamDecoder.ValueDecoder&lt;T&gt;)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -726,6 +770,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes a double.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeDouble()" class="member-name-link">decodeDouble()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeDouble()" class="member-name-link">decodeDouble()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeDouble()" class="member-name-link">decodeDouble()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -736,12 +782,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeDouble()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeDoubleNullable()" class="member-name-link">decodeDoubleNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeDoubleNullable()" class="member-name-link">decodeDoubleNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeFloat()" class="member-name-link">decodeFloat()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes a float.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeFloat()" class="member-name-link">decodeFloat()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeFloat()" class="member-name-link">decodeFloat()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeFloat()" class="member-name-link">decodeFloat()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -752,6 +802,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeFloat()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeFloatNullable()" class="member-name-link">decodeFloatNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeFloatNullable()" class="member-name-link">decodeFloatNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html#decodeFromArray(io.micronaut.serde.Decoder)" class="member-name-link">decodeFromArray(Decoder)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/BinaryCodecUtil.html" title="class in io.micronaut.serde.util">BinaryCodecUtil</a></dt>
@@ -762,6 +814,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes a int.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeInt()" class="member-name-link">decodeInt()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeInt()" class="member-name-link">decodeInt()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeInt()" class="member-name-link">decodeInt()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -772,12 +826,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeInt()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeIntNullable()" class="member-name-link">decodeIntNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeIntNullable()" class="member-name-link">decodeIntNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeKey()" class="member-name-link">decodeKey()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes a key, if there are no more keys to decode returns <code>null</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeKey()" class="member-name-link">decodeKey()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeKey()" class="member-name-link">decodeKey()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html#decodeKey()" class="member-name-link">decodeKey()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractDecoderPerStructureStreamDecoder</a></dt>
@@ -792,6 +850,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes a long.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeLong()" class="member-name-link">decodeLong()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeLong()" class="member-name-link">decodeLong()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeLong()" class="member-name-link">decodeLong()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -802,12 +862,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeLong()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeLongNullable()" class="member-name-link">decodeLongNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeLongNullable()" class="member-name-link">decodeLongNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeNode()" class="member-name-link">decodeNode()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes the current state into a <code>JsonNode</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeNode()" class="member-name-link">decodeNode()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeNode()" class="member-name-link">decodeNode()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeNode()" class="member-name-link">decodeNode()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -818,6 +882,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Attempt to decode a null value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeNull()" class="member-name-link">decodeNull()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeNull()" class="member-name-link">decodeNull()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeNull()" class="member-name-link">decodeNull()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -832,12 +898,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes an object.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeObject()" class="member-name-link">decodeObject()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeObject()" class="member-name-link">decodeObject()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject(Argument&lt;?&gt;)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes an object.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeObject(io.micronaut.core.type.Argument)" class="member-name-link">decodeObject(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -868,6 +938,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decodes a short.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeShort()" class="member-name-link">decodeShort()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeShort()" class="member-name-link">decodeShort()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeShort()" class="member-name-link">decodeShort()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -878,12 +950,16 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeShort()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeShortNullable()" class="member-name-link">decodeShortNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeShortNullable()" class="member-name-link">decodeShortNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#decodeString()" class="member-name-link">decodeString()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Decodes a string.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeString()" class="member-name-link">decodeString()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeString()" class="member-name-link">decodeString()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#decodeString()" class="member-name-link">decodeString()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
@@ -894,6 +970,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Equivalent to <code>decodeNull() ? null : decodeString()</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#decodeStringNullable()" class="member-name-link">decodeStringNullable()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#decodeStringNullable()" class="member-name-link">decodeStringNullable()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html#decodeZonedDateTime()" class="member-name-link">decodeZonedDateTime()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonParserDecoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonParserDecoder</a></dt>
@@ -949,10 +1027,20 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Deserializes default set.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#delegate()" class="member-name-link">delegate()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#delegateForDecodeValue()" class="member-name-link">delegateForDecodeValue()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html#DELEGATING" class="member-name-link">DELEGATING</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerCreatorMode</a></dt>
 <dd>
 <div class="block">Use a single argument as the value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html" class="type-name-link" title="class in io.micronaut.serde">DelegatingDecoder</a> - Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Decoder that delegates to another decoder.</div>
+</dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#%3Cinit%3E()" class="member-name-link">DelegatingDecoder()</a> - Constructor for class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/annotation/SerdeImport.html#deserializable()" class="member-name-link">deserializable()</a> - Element in annotation interface io.micronaut.serde.annotation.<a href="io/micronaut/serde/annotation/SerdeImport.html" title="annotation interface in io.micronaut.serde.annotation">SerdeImport</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html" class="type-name-link" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a> - Interface in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
@@ -1348,6 +1436,8 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanDefKey.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanDefKey.html" title="class in io.micronaut.serde.support.util">BeanDefKey</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/TypeKey.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#eyeColor" class="member-name-link">eyeColor</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
@@ -1413,6 +1503,8 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#finishStructure()" class="member-name-link">finishStructure()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#finishStructure()" class="member-name-link">finishStructure()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Encoder.html#finishStructure()" class="member-name-link">finishStructure()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></dt>
 <dd>
 <div class="block">Finalize a previously created structure, like an array or object.</div>
@@ -1424,6 +1516,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html#finishStructure()" class="member-name-link">finishStructure()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonGeneratorEncoder.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonGeneratorEncoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#finishStructure(boolean)" class="member-name-link">finishStructure(boolean)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#finishStructure(boolean)" class="member-name-link">finishStructure(boolean)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#finishStructure(boolean)" class="member-name-link">finishStructure(boolean)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
@@ -1847,11 +1941,15 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/ConstructorArgs.html#getTitle()" class="member-name-link">getTitle()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/ConstructorArgs.html" title="class in io.micronaut.serde">ConstructorArgs</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanDefKey.html#getType()" class="member-name-link">getType()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanDefKey.html" title="class in io.micronaut.serde.support.util">BeanDefKey</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/TypeKey.html#getType()" class="member-name-link">getType()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#getVal()" class="member-name-link">getVal()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html#getVisitorKind()" class="member-name-link">getVisitorKind()</a> - Method in class io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor">SerdeAnnotationVisitor</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html#getWrappedDeserializableBean(io.micronaut.core.type.Argument,java.lang.String,java.lang.String,io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">getWrappedDeserializableBean(Argument&lt;T&gt;, String, String, Deserializer.DecoderContext)</a> - Method in class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#greeting" class="member-name-link">greeting</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
@@ -1888,6 +1986,8 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/BeanDefKey.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BeanDefKey.html" title="class in io.micronaut.serde.support.util">BeanDefKey</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/TypeKey.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html#hashSetDeserializer()" class="member-name-link">hashSetDeserializer()</a> - Method in class io.micronaut.serde.support.deserializers.collect.<a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html" title="class in io.micronaut.serde.support.deserializers.collect">CoreCollectionsDeserializers</a></dt>
@@ -1895,6 +1995,8 @@ loadScripts(document, 'script');</script>
 <div class="block">Deserializes hash sets.</div>
 </dd>
 <dt><a href="io/micronaut/serde/Decoder.html#hasNextArrayValue()" class="member-name-link">hasNextArrayValue()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#hasNextArrayValue()" class="member-name-link">hasNextArrayValue()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#hasNextArrayValue()" class="member-name-link">hasNextArrayValue()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
@@ -3320,6 +3422,8 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Skips the current value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/DelegatingDecoder.html#skipValue()" class="member-name-link">skipValue()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonDecoder.html#skipValue()" class="member-name-link">skipValue()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonDecoder.html" title="class in io.micronaut.serde.jackson">JacksonDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#skipValue()" class="member-name-link">skipValue()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
