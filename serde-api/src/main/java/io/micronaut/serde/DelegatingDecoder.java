@@ -36,6 +36,10 @@ import java.math.BigInteger;
 public abstract class DelegatingDecoder implements Decoder {
     protected abstract Decoder delegate() throws IOException;
 
+    /**
+     * @return The delegated decode value
+     * @throws IOException
+     */
     public Decoder delegateForDecodeValue() throws IOException {
         return delegate();
     }

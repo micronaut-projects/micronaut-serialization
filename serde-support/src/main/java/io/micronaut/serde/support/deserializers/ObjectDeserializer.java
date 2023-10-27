@@ -77,10 +77,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
                 subtypeDeserializers.put(
                     e.getKey(),
-                    new SpecificObjectDeserializer(ignoreUnknown, strictNullable, (DeserBean<? super Object>) e.getValue(), preInstantiateCallback, subtypeInfo)
+                    findDeserializer((DeserBean<? super Object>) e.getValue(), true)
                 );
             }
-            Deserializer<Object> supertypeDeserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback, subtypeInfo);
+            Deserializer<Object> supertypeDeserializer = findDeserializer(deserBean, false);
             if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
                 return new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
@@ -93,10 +93,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             throw new IllegalStateException("Unrecognized discriminator type: " + subtypeInfo.discriminatorType());
         }
 
-        return findDeserializer(deserBean);
+        return findDeserializer(deserBean, false);
     }
 
-    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean) {
+    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean isSubtype) {
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
             deserializer = new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
@@ -105,9 +105,9 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         } else if (deserBean.delegating) {
             deserializer = new DelegatingObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         } else {
-            deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback, null);
+            deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
         }
-        if (deserBean.wrapperProperty != null) {
+        if (!isSubtype && deserBean.wrapperProperty != null) {
             deserializer = new WrappedObjectDeserializer(
                 deserializer,
                 deserBean.wrapperProperty,

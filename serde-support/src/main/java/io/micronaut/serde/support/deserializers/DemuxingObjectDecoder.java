@@ -43,9 +43,8 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
     private final DemuxerState state;
     private int nextKeyIndex;
 
-    private DemuxingObjectDecoder(DemuxerState state, int nextKeyIndex) {
+    private DemuxingObjectDecoder(DemuxerState state) {
         this.state = state;
-        this.nextKeyIndex = nextKeyIndex;
         state.outputCount++;
     }
 
@@ -242,7 +241,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 state = new DemuxerState(delegate.decodeObject());
                 state.outputCount++;
             }
-            return new DemuxingObjectDecoder(state, 0);
+            return new DemuxingObjectDecoder(state);
         }
 
         @Override
@@ -251,7 +250,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 state = new DemuxerState(delegate.decodeObject(type));
                 state.outputCount++;
             }
-            return new DemuxingObjectDecoder(state, 0);
+            return new DemuxingObjectDecoder(state);
         }
 
         @Override
