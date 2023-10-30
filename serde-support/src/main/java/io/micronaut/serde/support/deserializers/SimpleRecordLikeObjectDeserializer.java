@@ -70,7 +70,7 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
             } else if (ignoreUnknown) {
                 objectDecoder.skipValue();
             } else {
-                return new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
+                throw new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
             }
         }
         if (!allConsumed) {
