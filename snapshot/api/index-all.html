@@ -2790,6 +2790,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Fallback <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a> for general <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link"><code>Object</code></a> values.</div>
 </dd>
+<dt><a href="io/micronaut/serde/ObjectSerializer.html" class="type-name-link" title="interface in io.micronaut.serde">ObjectSerializer</a>&lt;<a href="io/micronaut/serde/ObjectSerializer.html" title="type parameter in ObjectSerializer">T</a>&gt; - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">A variation of <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a> that is serializing an object and supports serializing its content into an existing object.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serializers/ObjectSerializer.html#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.context.BeanContext)" class="member-name-link">ObjectSerializer(SerdeIntrospections, SerializationConfiguration, BeanContext)</a> - Constructor for class io.micronaut.serde.support.serializers.<a href="io/micronaut/serde/support/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
@@ -3337,6 +3341,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SERIALIZE_AS" class="member-name-link">SERIALIZE_AS</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Used to store the type that will serialize this type.</div>
+</dd>
+<dt><a href="io/micronaut/serde/ObjectSerializer.html#serializeInto(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serializeInto(Encoder, Serializer.EncoderContext, Argument&lt;? extends T&gt;, T)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectSerializer.html" title="interface in io.micronaut.serde">ObjectSerializer</a></dt>
+<dd>
+<div class="block">Serializes the object values using the passed object encoder.</div>
 </dd>
 <dt><a href="io/micronaut/serde/Serializer.html" class="type-name-link" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="io/micronaut/serde/Serializer.html" title="type parameter in Serializer">T</a>&gt; - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>
