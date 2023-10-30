@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.CustomizableSerializer;
@@ -37,30 +38,36 @@ import java.util.Map;
 final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<K, V>> {
 
     @Override
-    public Serializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
+    public ObjectSerializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
         final Argument[] generics = type.getTypeParameters();
         final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
         if (hasGenerics) {
             final Argument<V> valueGeneric = (Argument<V>) generics[1];
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
-            return new Serializer<>() {
+            return new ObjectSerializer<>() {
+
                 @Override
                 public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    final Encoder childEncoder = encoder.encodeObject(type);
+                    final Encoder objectEncoder = encoder.encodeObject(type);
+                    serializeInto(objectEncoder, context, type, value);
+                    objectEncoder.finishStructure();
+                }
+
+                @Override
+                public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     for (K k : value.keySet()) {
-                        encodeMapKey(context, childEncoder, k);
+                        encodeMapKey(context, encoder, k);
                         final V v = value.get(k);
                         if (v == null) {
-                            childEncoder.encodeNull();
+                            encoder.encodeNull();
                         } else {
                             valSerializer.serialize(
-                                    childEncoder,
-                                    context,
-                                    valueGeneric, v
+                                encoder,
+                                context,
+                                valueGeneric, v
                             );
                         }
                     }
-                    childEncoder.finishStructure();
                 }
 
                 @Override
@@ -69,28 +76,34 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 }
             };
         } else {
-            return new Serializer<>() {
+            return new ObjectSerializer<>() {
+
                 @Override
                 public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     // slow path, lookup each value serializer
                     final Encoder childEncoder = encoder.encodeObject(type);
+                    serializeInto(encoder, context, type, value);
+                    childEncoder.finishStructure();
+                }
+
+                @Override
+                public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     for (Map.Entry<K, V> entry : value.entrySet()) {
-                        encodeMapKey(context, childEncoder, entry.getKey());
+                        encodeMapKey(context, encoder, entry.getKey());
                         final V v = entry.getValue();
                         if (v == null) {
-                            childEncoder.encodeNull();
+                            encoder.encodeNull();
                         } else {
                             @SuppressWarnings("unchecked") final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
                             final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric)
                                 .createSpecific(context, valueGeneric);
                             valSerializer.serialize(
-                                    childEncoder,
-                                    context,
-                                    valueGeneric, v
+                                encoder,
+                                context,
+                                valueGeneric, v
                             );
                         }
                     }
-                    childEncoder.finishStructure();
                 }
 
                 @Override

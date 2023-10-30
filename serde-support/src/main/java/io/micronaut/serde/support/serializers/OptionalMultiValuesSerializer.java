@@ -19,6 +19,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalMultiValues;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -44,50 +45,58 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
     }
 
     @Override
-    public Serializer<OptionalMultiValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalMultiValues<V>> type) throws SerdeException {
+    public ObjectSerializer<OptionalMultiValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalMultiValues<V>> type) throws SerdeException {
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw OptionalMultiValues");
         }
-        final Argument generic = generics[0];
+        final Argument<Object> generic = generics[0];
         final Argument listGeneric = Argument.listOf(generic);
-        Serializer listSerializer = context.findSerializer(listGeneric).createSpecific(context, listGeneric);
-        Serializer valueSerializer = context.findSerializer(generic).createSpecific(context, generic);
-        return new Serializer<OptionalMultiValues<V>>() {
-            @Override
-            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
-                Objects.requireNonNull(value, "Values can't be null");
 
-                Encoder objectEncoder = encoder.encodeObject(type);
+        return new ObjectSerializer<>() {
+
+            Serializer<Object> listSerializer = context.findSerializer(listGeneric).createSpecific(context, listGeneric);
+            Serializer<Object> valueSerializer = context.findSerializer(generic).createSpecific(context, generic);
+
+            @Override
+            public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
                 for (CharSequence key : value) {
                     Optional<? extends List<V>> opt = value.get(key);
                     if (opt.isPresent()) {
                         String fieldName = key.toString();
-                        objectEncoder.encodeKey(fieldName);
+                        encoder.encodeKey(fieldName);
                         List<V> list = opt.get();
                         if (alwaysSerializeErrorsAsList) {
                             listSerializer.serialize(
-                                    objectEncoder,
-                                    context,
-                                    listGeneric, list
+                                encoder,
+                                context,
+                                listGeneric, list
                             );
                         } else {
                             if (list.size() == 1) {
                                 valueSerializer.serialize(
-                                        objectEncoder,
-                                        context,
-                                        generic, list.get(0)
+                                    encoder,
+                                    context,
+                                    generic, list.get(0)
                                 );
                             } else {
                                 listSerializer.serialize(
-                                        objectEncoder,
-                                        context,
-                                        listGeneric, list
+                                    encoder,
+                                    context,
+                                    listGeneric, list
                                 );
                             }
                         }
                     }
                 }
+            }
+
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
+                Objects.requireNonNull(value, "Values can't be null");
+
+                Encoder objectEncoder = encoder.encodeObject(type);
+                serializeInto(encoder, context, type, value);
                 objectEncoder.finishStructure();
             }
 

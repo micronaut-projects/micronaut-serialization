@@ -18,7 +18,6 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
@@ -47,15 +46,9 @@ import java.util.Map;
 @Internal
 final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
     private final SerBean<T> serBean;
-    private final List<SerBean.SerProperty<T, Object>> writeProperties;
 
     CustomizedObjectSerializer(SerBean<T> serBean) {
-        this(serBean, serBean.writeProperties);
-    }
-
-    public CustomizedObjectSerializer(SerBean<T> serBean, List<SerBean.SerProperty<T, Object>> writeProperties) {
         this.serBean = serBean;
-        this.writeProperties = writeProperties;
     }
 
     @Override
@@ -87,7 +80,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
     }
 
     private void serializeIntoInternal(Encoder objectEncoder, T objectValue, EncoderContext context) throws IOException {
-        for (SerBean.SerProperty<T, Object> property : writeProperties) {
+        for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
             final Object propertyValue = property.get(objectValue);
             final String backRef = property.backRef;
             if (backRef != null) {
@@ -150,7 +143,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                 );
             }
             try {
-                if (property.unwrapped) {
+                if (property.serializableInto) {
                     if (property.objectSerializer != null) {
                         property.objectSerializer.serializeInto(objectEncoder, context, property.argument, propertyValue);
                     } else {
@@ -167,31 +160,6 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
             } finally {
                 if (managedRef != null) {
                     context.popManagedRef();
-                }
-            }
-        }
-        final SerBean.SerProperty<T, Object> anyGetter = serBean.anyGetter;
-        if (anyGetter != null) {
-            final Object data = anyGetter.get(objectValue);
-            if (data instanceof Map<?, ?> map) {
-                if (CollectionUtils.isNotEmpty(map)) {
-                    for (Object k : map.keySet()) {
-                        final Object v = map.get(k);
-                        objectEncoder.encodeKey(k.toString());
-                        if (v == null) {
-                            objectEncoder.encodeNull();
-                        } else {
-                            Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
-                                    .orElse(null);
-                            if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
-                                valueType = Argument.of(v.getClass());
-                            }
-                            @SuppressWarnings("unchecked")
-                            Serializer<Object> foundSerializer = (Serializer<Object>) context.findSerializer(valueType);
-                            final Serializer<Object> serializer = foundSerializer.createSpecific(context, valueType);
-                            serializer.serialize(objectEncoder, context, valueType, v);
-                        }
-                    }
                 }
             }
         }

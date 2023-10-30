@@ -18,31 +18,22 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
-import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
-import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.BeanDefKey;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -112,55 +103,26 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             return new RuntimeTypeSerializer(encoderContext, e, type);
         }
 
-        final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        if (serBean.hasJsonValue()) {
-            return new JsonValueSerializer<>(serBean.jsonValue);
-        }
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(
-            SerdeConfig.META_ANNOTATION_PROPERTY_ORDER) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
-            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
-            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
-            List<String> order = Arrays.asList(annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
-            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
-            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
-            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
-            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
-            if (!order.isEmpty() || hasIgnored || hasIncluded) {
-                return createIgnoringCustomObjectSerializer(serBean, order, hasIgnored, hasIncluded, ignoreSet, includedSet);
-            }
-        }
-        io.micronaut.serde.ObjectSerializer<Object> outer;
+        io.micronaut.serde.ObjectSerializer<Object> serializer;
         if (serBean.simpleBean) {
-            outer = new SimpleObjectSerializer<>(serBean);
+            serializer = new SimpleObjectSerializer<>(serBean);
+        } else if (serBean.jsonValue != null) {
+            serializer = new JsonValueSerializer<>(serBean.jsonValue);
         } else {
-            outer = new CustomizedObjectSerializer<>(serBean);
+            serializer = new CustomizedObjectSerializer<>(serBean);
         }
         if (serBean.subtyped) {
-            outer = new RuntimeTypeSerializer(encoderContext, outer, type);
+            serializer = new RuntimeTypeSerializer(encoderContext, serializer, type);
         }
         if (serBean.wrapperProperty != null) {
-            outer = new WrappedObjectSerializer<>(outer, serBean.wrapperProperty);
+            serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
         }
-        return outer;
-    }
-
-    private static CustomizedObjectSerializer<Object> createIgnoringCustomObjectSerializer(SerBean<Object> serBean, List<String> order, boolean hasIgnored, boolean hasIncluded, Set<String> ignoreSet, Set<String> includedSet) {
-        final List<SerBean.SerProperty<Object, Object>> writeProperties = new ArrayList<>(serBean.writeProperties);
-        if (!order.isEmpty()) {
-            writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
-        }
-        if (hasIgnored) {
-            writeProperties.removeIf(p -> ignoreSet.contains(p.name));
-        }
-        if (hasIncluded) {
-            writeProperties.removeIf(p -> !includedSet.contains(p.name));
-        }
-        return new CustomizedObjectSerializer<>(serBean, writeProperties);
+        return serializer;
     }
 
     private <T> SerBean<T> getSerializableBean(Argument<T> type, @Nullable String namePrefix, @Nullable String nameSuffix, EncoderContext context) throws SerdeException {
         BeanDefKey key = new BeanDefKey(type, namePrefix, nameSuffix);
-        // Use suppliers to prevent recursive update because the lambda will can call the same method again
+        // Use suppliers to prevent recursive update because the lambda will call the same method again
         Supplier<SerBean<?>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> {
             try {
                 return new SerBean<>((Argument<Object>) type, introspections, context, configuration, namePrefix, nameSuffix, beanContext);
