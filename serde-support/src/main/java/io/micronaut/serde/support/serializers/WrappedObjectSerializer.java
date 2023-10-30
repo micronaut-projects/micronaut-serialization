@@ -18,6 +18,7 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ import java.io.IOException;
  * @since 2.3
  */
 @Internal
-final class WrappedObjectSerializer<T> implements Serializer<T> {
+final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
 
     private final Serializer<T> serializer;
     private final String wrapperProperty;
@@ -46,5 +47,11 @@ final class WrappedObjectSerializer<T> implements Serializer<T> {
             wrapperEncoder.encodeKey(wrapperProperty);
             serializer.serialize(encoder, context, type, value);
         }
+    }
+
+    @Override
+    public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        encoder.encodeKey(wrapperProperty);
+        serializer.serialize(encoder, context, type, value);
     }
 }

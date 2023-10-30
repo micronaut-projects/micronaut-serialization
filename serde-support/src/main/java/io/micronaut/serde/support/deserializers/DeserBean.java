@@ -37,6 +37,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -103,7 +104,8 @@ final class DeserBean<T> {
 
     // CHECKSTYLE:ON
 
-    public DeserBean(Argument<T> type,
+    public DeserBean(DeserializationConfiguration deserializationConfiguration,
+                     Argument<T> type,
                      BeanIntrospection<T> introspection,
                      Deserializer.DecoderContext decoderContext,
                      DeserBeanRegistry deserBeanRegistry,
@@ -128,7 +130,7 @@ final class DeserBean<T> {
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
-        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, "ignoreUnknown").orElse(true);
+        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, "ignoreUnknown").orElse(deserializationConfiguration.isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter<Object> anySetterValue = null;

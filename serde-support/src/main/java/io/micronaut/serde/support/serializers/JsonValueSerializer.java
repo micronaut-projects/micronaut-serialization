@@ -18,7 +18,8 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serializer;
+import io.micronaut.serde.ObjectSerializer;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 
@@ -29,7 +30,7 @@ import java.io.IOException;
  * @author Denis Stepanov
  */
 @Internal
-final class JsonValueSerializer<T> implements Serializer<T> {
+final class JsonValueSerializer<T> implements ObjectSerializer<T> {
 
     private final SerBean.SerProperty<T, Object> jsonValue;
 
@@ -49,6 +50,11 @@ final class JsonValueSerializer<T> implements Serializer<T> {
     }
 
     @Override
+    public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        throw new SerdeException("Serializer for a value type: " + type + " doesn't support serializing into an existing object");
+    }
+
+    @Override
     public boolean isEmpty(EncoderContext context, T value) {
         return jsonValue.serializer.isEmpty(context, jsonValue.get(value));
     }
@@ -57,4 +63,5 @@ final class JsonValueSerializer<T> implements Serializer<T> {
     public boolean isAbsent(EncoderContext context, T value) {
         return jsonValue.serializer.isAbsent(context, jsonValue.get(value));
     }
+
 }

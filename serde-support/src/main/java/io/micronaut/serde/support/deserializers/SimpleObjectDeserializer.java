@@ -42,10 +42,10 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
-    SimpleObjectDeserializer(boolean ignoreUnknown, boolean strictNullable,
+    SimpleObjectDeserializer(boolean strictNullable,
                              DeserBean<? super Object> deserBean,
                              @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
-        this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
+        this.ignoreUnknown = deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
         this.introspection = deserBean.introspection;
         this.properties = deserBean.injectProperties;

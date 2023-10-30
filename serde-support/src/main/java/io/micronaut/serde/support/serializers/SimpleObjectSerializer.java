@@ -19,7 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serializer;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ import java.util.List;
  * @since 1.0
  */
 @Internal
-final class SimpleObjectSerializer<T> implements Serializer<T> {
+final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
     private final List<SerBean.SerProperty<T, Object>> writeProperties;
 
@@ -63,6 +63,19 @@ final class SimpleObjectSerializer<T> implements Serializer<T> {
             throw new SerdeException("Infinite recursion serializing type: " + type.getType().getSimpleName() + " at path " + encoder.currentPath(), e);
         } catch (IntrospectionException e) {
             throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for " + "type: " + type, e);
+        }
+    }
+
+    @Override
+    public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        for (SerBean.SerProperty<T, Object> property : writeProperties) {
+            encoder.encodeKey(property.name);
+            Object v = property.get(value);
+            if (v == null) {
+                encoder.encodeNull();
+            } else {
+                property.serializer.serialize(encoder, context, property.argument, v);
+            }
         }
     }
 }

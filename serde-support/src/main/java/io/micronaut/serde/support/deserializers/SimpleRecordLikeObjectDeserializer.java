@@ -41,15 +41,14 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
-    SimpleRecordLikeObjectDeserializer(boolean ignoreUnknown,
-                                       boolean strictNullable,
+    SimpleRecordLikeObjectDeserializer(boolean strictNullable,
                                        DeserBean<? super Object> deserBean,
                                        @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspection = deserBean.introspection;
         this.constructorParameters = deserBean.creatorParams;
         this.valuesSize = deserBean.creatorSize;
         this.preInstantiateCallback = preInstantiateCallback;
-        this.ignoreUnknown = ignoreUnknown && deserBean.ignoreUnknown;
+        this.ignoreUnknown = deserBean.ignoreUnknown;
         this.strictNullable = strictNullable;
     }
 
