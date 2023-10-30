@@ -16,13 +16,11 @@
 package io.micronaut.serde.processor.jackson;
 
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -31,11 +29,11 @@ import java.util.List;
 public class JacksonIgnorePropertiesMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final AnnotationValueBuilder<?> builder = AnnotationValue.builder(SerdeConfig.SerIgnored.class);
-
-        return Collections.singletonList(
-                builder.members(annotation.getValues())
-                        .build()
+        return List.of(
+            AnnotationValue.builder(SerdeConfig.SerIgnored.class)
+                .member(SerdeConfig.SerIgnored.IGNORE_UNKNOWN, annotation.booleanValue(SerdeConfig.SerIgnored.IGNORE_UNKNOWN).orElse(false))
+                .members(annotation.getValues())
+                .build()
         );
     }
 

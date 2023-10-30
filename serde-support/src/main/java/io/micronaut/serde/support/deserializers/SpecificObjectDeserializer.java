@@ -51,7 +51,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     public SpecificObjectDeserializer(boolean strictNullable,
                                       DeserBean<? super Object> deserBean,
                                       @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
-        this(deserBean, new Conf(deserBean.ignoreUnknown, strictNullable, preInstantiateCallback));
+        this(deserBean, new Conf(strictNullable, preInstantiateCallback));
     }
 
     SpecificObjectDeserializer(DeserBean<? super Object> deserBean, Conf conf) {
@@ -84,7 +84,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             }
             boolean consumed = beanDeserializer.tryConsume(propertyName, objectDecoder, decoderContext);
             if (!consumed) {
-                handleUnknownProperty(type, objectDecoder, propertyName, conf.ignoreUnknown);
+                handleUnknownProperty(type, objectDecoder, propertyName, deserBean);
             }
             if (beanDeserializer.isAllConsumed()) {
                 instance = beanDeserializer.provideInstance(decoderContext);
@@ -95,16 +95,26 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         if (instance == null) {
             instance = beanDeserializer.provideInstance(decoderContext);
         }
-        if (conf.ignoreUnknown) {
+        if (deserBean.ignoreUnknown) {
             objectDecoder.finishStructure(true);
         } else {
+            if (deserBean.ignoredProperties != null) {
+                String key = decoder.decodeKey();
+                while (key != null) {
+                    handleUnknownProperty(type, objectDecoder, key, deserBean);
+                    key = decoder.decodeKey();
+                }
+            }
             objectDecoder.finishStructure();
         }
         return instance;
     }
 
-    private static void handleUnknownProperty(Argument<? super Object> type, Decoder objectDecoder, String propertyName, boolean ignoreUnknown) throws IOException {
-        if (ignoreUnknown) {
+    private static void handleUnknownProperty(Argument<? super Object> type,
+                                              Decoder objectDecoder,
+                                              String propertyName,
+                                              DeserBean<?> deserBean) throws IOException {
+        if (deserBean.ignoreUnknown || deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
             objectDecoder.skipValue();
         } else {
             throw new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + type);
@@ -886,7 +896,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     for (Map.Entry<String, Decoder> e : cache.entrySet()) {
                         boolean consumed = beanDeserializer.tryConsume(e.getKey(), e.getValue(), decoderContext);
                         if (!consumed) {
-                            handleUnknownProperty(db.introspection.asArgument(), decoder, propertyName, conf.ignoreUnknown);
+                            handleUnknownProperty(db.introspection.asArgument(), decoder, propertyName, subDeserBean);
                         }
                     }
                     cache = null;
@@ -1032,8 +1042,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         }
     }
 
-    private record Conf(boolean ignoreUnknown,
-                        boolean strictNullable,
+    private record Conf(boolean strictNullable,
                         @Nullable
                         SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
 

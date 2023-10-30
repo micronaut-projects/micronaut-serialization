@@ -482,4 +482,219 @@ interface MyInterface {
 
     }
 
+    void "test ignoreUnknown=false on a record throws and exception"() {
+        given:
+            def context = buildContext('test.DeserializableRecord', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable.Deserializable;
+
+@Deserializable
+@JsonIgnoreProperties
+record DeserializableRecord(String value) {
+}
+
+
+""")
+        when:
+            Object deserialized = jsonMapper.readValue("""
+        {
+            "unknown": "abc",
+            "value": "xyz"
+        }""", typeUnderTest)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+
+        cleanup:
+            context.close()
+
+    }
+
+    void "test ignoreUnknown=false on a record throws and exception 2"() {
+        given:
+            def context = buildContext('test.DeserializableRecord', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable.Deserializable;
+
+@Deserializable
+@JsonIgnoreProperties(ignoreUnknown = false)
+record DeserializableRecord(String value) {
+}
+
+
+""")
+        when:
+            Object deserialized = jsonMapper.readValue("""
+        {
+            "unknown": "abc",
+            "value": "xyz"
+        }""", typeUnderTest)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+
+        cleanup:
+            context.close()
+
+    }
+
+    void "test ignoreUnknown=true on a record doesn't throws and exception"() {
+        given:
+            def context = buildContext('test.DeserializableRecord', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable.Deserializable;
+
+@Deserializable
+@JsonIgnoreProperties(ignoreUnknown = true)
+record DeserializableRecord(String value) {
+}
+
+
+""")
+        when:
+            Object deserialized = jsonMapper.readValue("""
+        {
+            "unknown": "abc",
+            "value": "xyz"
+        }""", typeUnderTest)
+
+        then:
+            deserialized.value == "xyz"
+
+        cleanup:
+            context.close()
+
+    }
+
+    void "test ignoreUnknown=false on a class throws and exception"() {
+        given:
+            def context = buildContext('test.DeserializableRecord', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable.Deserializable;
+
+@Deserializable
+@JsonIgnoreProperties
+class DeserializableRecord {
+
+    private String value;
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+}
+
+
+""")
+        when:
+            Object deserialized = jsonMapper.readValue("""
+        {
+            "unknown": "abc",
+            "value": "xyz"
+        }""", typeUnderTest)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+
+        cleanup:
+            context.close()
+
+    }
+
+    void "test ignoreUnknown=false on a class throws and exception 2"() {
+        given:
+            def context = buildContext('test.DeserializableRecord', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable.Deserializable;
+
+@Deserializable
+@JsonIgnoreProperties
+class DeserializableRecord {
+
+    private String value;
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+}
+
+""")
+        when:
+            Object deserialized = jsonMapper.readValue("""
+        {
+            "unknown": "abc",
+            "value": "xyz"
+        }""", typeUnderTest)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+
+        cleanup:
+            context.close()
+
+    }
+
+    void "test ignoreUnknown=true on a class doesn't throws and exception"() {
+        given:
+            def context = buildContext('test.DeserializableRecord', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable.Deserializable;
+
+@Deserializable
+@JsonIgnoreProperties(ignoreUnknown = true)
+class DeserializableRecord {
+
+    private String value;
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+}
+
+""")
+        when:
+            Object deserialized = jsonMapper.readValue("""
+        {
+            "unknown": "abc",
+            "value": "xyz"
+        }""", typeUnderTest)
+
+        then:
+            deserialized.value == "xyz"
+
+        cleanup:
+            context.close()
+
+    }
+
 }

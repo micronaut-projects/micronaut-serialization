@@ -47,14 +47,17 @@ import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
@@ -85,6 +88,8 @@ final class DeserBean<T> {
     public final String wrapperProperty;
     @Nullable
     public final SubtypeInfo<T> subtypeInfo;
+    @Nullable
+    public final Set<String> ignoredProperties;
 
     public final int creatorSize;
     public final int injectPropertiesSize;
@@ -130,8 +135,16 @@ final class DeserBean<T> {
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
-        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, "ignoreUnknown").orElse(deserializationConfiguration.isIgnoreUnknown());
+        String[] ignored = introspection.stringValues(SerdeConfig.SerIgnored.class);
+        if (ignored.length == 0) {
+            ignoredProperties = null;
+        } else {
+            ignoredProperties = new HashSet<>(Arrays.asList(ignored));
+        }
+        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
+            .orElse(deserializationConfiguration.isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
+
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter<Object> anySetterValue = null;
         List<DerProperty<T, ?>> unwrappedProperties = null;
@@ -479,7 +492,7 @@ final class DeserBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (ignoredProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (injectProperties != null) {
@@ -494,7 +507,7 @@ final class DeserBean<T> {
     }
 
     private boolean isRecordLikeBean() {
-        if (delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (ignoredProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (creatorParams != null) {

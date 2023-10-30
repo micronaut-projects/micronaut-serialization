@@ -197,6 +197,12 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerIgnored {
+
+        /**
+         * Is it unknown ignored.
+         */
+        String IGNORE_UNKNOWN = "ignoreUnknown";
+
         /**
          * Ignore handling meta annotation on type.
          */
