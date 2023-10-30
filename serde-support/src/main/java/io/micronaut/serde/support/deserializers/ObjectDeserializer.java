@@ -48,8 +48,7 @@ import java.util.function.Supplier;
 @BootstrapContextCompatible
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
-    private final boolean ignoreUnknown;
-    private final boolean strictNullable;
+    private final DeserializationConfiguration deserializationConfiguration;
     private final Map<BeanDefKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
@@ -58,8 +57,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                               DeserializationConfiguration deserializationConfiguration,
                               @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspections = introspections;
-        this.ignoreUnknown = deserializationConfiguration.isIgnoreUnknown();
-        this.strictNullable = deserializationConfiguration.isStrictNullable();
+        this.deserializationConfiguration = deserializationConfiguration;
         this.preInstantiateCallback = preInstantiateCallback;
     }
 
@@ -99,13 +97,13 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean isSubtype) {
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
-            deserializer = new SimpleObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+            deserializer = new SimpleObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         } else if (deserBean.recordLikeBean) {
-            deserializer = new SimpleRecordLikeObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+            deserializer = new SimpleRecordLikeObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         } else if (deserBean.delegating) {
-            deserializer = new DelegatingObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
+            deserializer = new DelegatingObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         } else {
-            deserializer = new SpecificObjectDeserializer(ignoreUnknown, strictNullable, deserBean, preInstantiateCallback);
+            deserializer = new SpecificObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         }
         if (!isSubtype && deserBean.wrapperProperty != null) {
             deserializer = new WrappedObjectDeserializer(
@@ -148,7 +146,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                                              DecoderContext decoderContext) {
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            return new DeserBean<>(type, deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix);
+            return new DeserBean<>(deserializationConfiguration, type, deserializableIntrospection, decoderContext, this, namePrefix, nameSuffix);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

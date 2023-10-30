@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -31,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The runtime type serializer.
  */
 @Internal
-final class RuntimeTypeSerializer implements Serializer<Object> {
+final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     private final EncoderContext encoderContext;
     private final Map<Class<?>, Serializer<Object>> inners = new ConcurrentHashMap<>(10);
     @Nullable
@@ -67,14 +68,38 @@ final class RuntimeTypeSerializer implements Serializer<Object> {
             encoder.encodeNull();
         } else {
             Class<?> t = value.getClass();
+            Serializer<Object> serializer;
             if (outer != null && t == type.getType()) {
-                outer.serialize(encoder, context, type, value);
+                serializer = outer;
             } else {
-                Argument<?> arg = Argument.of(t);
-                getSerializer(context, value).serialize(encoder, context, arg, value);
+                type = Argument.of(t);
+                serializer = getSerializer(context, value);
             }
+            serializer.serialize(encoder, context, type, value);
         }
     }
+
+    @Override
+    public void serializeInto(Encoder encoder, EncoderContext context, Argument<?> type, Object value) throws IOException {
+        Class<?> t = value.getClass();
+        Serializer<Object> serializer;
+        if (outer != null && t == type.getType()) {
+            serializer = outer;
+        } else {
+            type = Argument.of(t);
+            serializer = getSerializer(context, value);
+        }
+        if (serializer instanceof ObjectSerializer<Object> objectSerializer) {
+            objectSerializer.serializeInto(encoder, context, type, value);
+        } else {
+            throw serializeIntoNotSupported(type);
+        }
+    }
+
+    private SerdeException serializeIntoNotSupported(Argument<?> type) {
+        return new SerdeException("Serializer for type: " + type + " doesn't support serializing into an existing object");
+    }
+
 
     @Override
     public boolean isEmpty(EncoderContext context, Object value) {
@@ -86,7 +111,7 @@ final class RuntimeTypeSerializer implements Serializer<Object> {
         } catch (SerdeException e) {
             // will fail later
         }
-        return Serializer.super.isEmpty(context, value);
+        return ObjectSerializer.super.isEmpty(context, value);
     }
 
     @Override
@@ -99,7 +124,7 @@ final class RuntimeTypeSerializer implements Serializer<Object> {
         } catch (SerdeException e) {
             // will fail later
         }
-        return Serializer.super.isAbsent(context, value);
+        return ObjectSerializer.super.isAbsent(context, value);
     }
 
     private Serializer<Object> getSerializer(EncoderContext context, Object value) throws SerdeException {

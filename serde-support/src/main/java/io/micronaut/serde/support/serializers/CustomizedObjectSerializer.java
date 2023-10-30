@@ -20,6 +20,7 @@ import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
@@ -44,7 +45,7 @@ import java.util.Map;
  * @param <T> The type to serialize
  */
 @Internal
-final class CustomizedObjectSerializer<T> implements Serializer<T> {
+final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
     private final SerBean<T> serBean;
     private final List<SerBean.SerProperty<T, Object>> writeProperties;
 
@@ -61,121 +62,139 @@ final class CustomizedObjectSerializer<T> implements Serializer<T> {
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         try {
             Encoder childEncoder = encoder.encodeObject(type);
-
-            for (SerBean.SerProperty<T, Object> property : writeProperties) {
-                final Object v = property.get(value);
-                final String backRef = property.backRef;
-                if (backRef != null) {
-                    final PropertyReference<T, Object> ref = context.resolveReference(
-                            new SerializationReference<>(backRef,
-                                                         serBean.introspection,
-                                                         property.argument,
-                                                         v,
-                                                         property.serializer)
-                    );
-                    if (ref == null) {
-                        continue;
-                    }
-                }
-
-                final Serializer<Object> serializer = property.serializer;
-
-                if (serBean.propertyFilter != null) {
-                    if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, v)) {
-                        continue;
-                    }
-                } else {
-                    switch (property.include) {
-                        case NON_NULL:
-                            if (v == null) {
-                                continue;
-                            }
-                            break;
-                        case NON_ABSENT:
-                            if (serializer.isAbsent(context, v)) {
-                                continue;
-                            }
-                            break;
-                        case NON_EMPTY:
-                            if (serializer.isEmpty(context, v)) {
-                                continue;
-                            }
-                            break;
-                        case NEVER:
-                            continue;
-                        default:
-                            // fall through
-                    }
-                }
-
-                if (property.views != null && !context.hasView(property.views)) {
-                    continue;
-                }
-
-                final String managedRef = property.managedRef;
-                if (managedRef != null) {
-                    context.pushManagedRef(
-                            new SerializationReference<>(
-                                    managedRef,
-                                    serBean.introspection,
-                                    property.argument,
-                                    value,
-                                    property.serializer
-                            )
-                    );
-                }
-                try {
-                    childEncoder.encodeKey(property.name);
-                    if (v == null) {
-                        childEncoder.encodeNull();
-                    } else {
-                        serializer.serialize(
-                                childEncoder,
-                                context,
-                                property.argument, v
-                        );
-                    }
-                } finally {
-                    if (managedRef != null) {
-                        context.popManagedRef();
-                    }
-                }
-            }
-            final SerBean.SerProperty<T, Object> anyGetter = serBean.anyGetter;
-            if (anyGetter != null) {
-                final Object data = anyGetter.get(value);
-                if (data instanceof Map<?, ?> map) {
-                    if (CollectionUtils.isNotEmpty(map)) {
-                        for (Object k : map.keySet()) {
-                            final Object v = map.get(k);
-                            childEncoder.encodeKey(k.toString());
-                            if (v == null) {
-                                childEncoder.encodeNull();
-                            } else {
-                                Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
-                                        .orElse(null);
-                                if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
-                                    valueType = Argument.of(v.getClass());
-                                }
-                                @SuppressWarnings("unchecked")
-                                Serializer<Object> foundSerializer = (Serializer<Object>) context.findSerializer(valueType);
-                                final Serializer<Object> serializer = foundSerializer.createSpecific(context, valueType);
-                                serializer.serialize(childEncoder, context, valueType, v);
-                            }
-                        }
-                    }
-                }
-            }
+            serializeIntoInternal(childEncoder, value, context);
             childEncoder.finishStructure();
         } catch (StackOverflowError e) {
             throw new SerdeException("Infinite recursion serializing type: " + type.getType()
                     .getSimpleName() + " at path " + encoder.currentPath(), e);
         } catch (IntrospectionException e) {
             throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for "
-                                             + "type: " + type,
-                                     e);
+                                             + "type: " + type, e);
         }
+    }
 
+    @Override
+    public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
+        try {
+            serializeIntoInternal(encoder, value, context);
+        } catch (StackOverflowError e) {
+            throw new SerdeException("Infinite recursion serializing type: " + type.getType()
+                .getSimpleName() + " at path " + encoder.currentPath(), e);
+        } catch (IntrospectionException e) {
+            throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for "
+                + "type: " + type, e);
+        }
+    }
+
+    private void serializeIntoInternal(Encoder objectEncoder, T objectValue, EncoderContext context) throws IOException {
+        for (SerBean.SerProperty<T, Object> property : writeProperties) {
+            final Object propertyValue = property.get(objectValue);
+            final String backRef = property.backRef;
+            if (backRef != null) {
+                final PropertyReference<T, Object> ref = context.resolveReference(
+                        new SerializationReference<>(backRef,
+                                                     serBean.introspection,
+                                                     property.argument,
+                                                     propertyValue,
+                                                     property.serializer)
+                );
+                if (ref == null) {
+                    continue;
+                }
+            }
+
+            final Serializer<Object> serializer = property.serializer;
+
+            if (serBean.propertyFilter != null) {
+                if (!serBean.propertyFilter.shouldInclude(context, serializer, objectValue, property.name, propertyValue)) {
+                    continue;
+                }
+            } else {
+                switch (property.include) {
+                    case NON_NULL:
+                        if (propertyValue == null) {
+                            continue;
+                        }
+                        break;
+                    case NON_ABSENT:
+                        if (serializer.isAbsent(context, propertyValue)) {
+                            continue;
+                        }
+                        break;
+                    case NON_EMPTY:
+                        if (serializer.isEmpty(context, propertyValue)) {
+                            continue;
+                        }
+                        break;
+                    case NEVER:
+                        continue;
+                    default:
+                        // fall through
+                }
+            }
+
+            if (property.views != null && !context.hasView(property.views)) {
+                continue;
+            }
+
+            final String managedRef = property.managedRef;
+            if (managedRef != null) {
+                context.pushManagedRef(
+                        new SerializationReference<>(
+                                managedRef,
+                                serBean.introspection,
+                                property.argument,
+                            objectValue,
+                                property.serializer
+                        )
+                );
+            }
+            try {
+                if (property.unwrapped) {
+                    if (property.objectSerializer != null) {
+                        property.objectSerializer.serializeInto(objectEncoder, context, property.argument, propertyValue);
+                    } else {
+                        throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
+                    }
+                } else {
+                    objectEncoder.encodeKey(property.name);
+                    if (propertyValue == null) {
+                        objectEncoder.encodeNull();
+                    } else {
+                        serializer.serialize(objectEncoder, context, property.argument, propertyValue);
+                    }
+                }
+            } finally {
+                if (managedRef != null) {
+                    context.popManagedRef();
+                }
+            }
+        }
+        final SerBean.SerProperty<T, Object> anyGetter = serBean.anyGetter;
+        if (anyGetter != null) {
+            final Object data = anyGetter.get(objectValue);
+            if (data instanceof Map<?, ?> map) {
+                if (CollectionUtils.isNotEmpty(map)) {
+                    for (Object k : map.keySet()) {
+                        final Object v = map.get(k);
+                        objectEncoder.encodeKey(k.toString());
+                        if (v == null) {
+                            objectEncoder.encodeNull();
+                        } else {
+                            Argument<?> valueType = anyGetter.argument.getTypeVariable("V")
+                                    .orElse(null);
+                            if (valueType == null || valueType.equalsType(Argument.OBJECT_ARGUMENT)) {
+                                valueType = Argument.of(v.getClass());
+                            }
+                            @SuppressWarnings("unchecked")
+                            Serializer<Object> foundSerializer = (Serializer<Object>) context.findSerializer(valueType);
+                            final Serializer<Object> serializer = foundSerializer.createSpecific(context, valueType);
+                            serializer.serialize(objectEncoder, context, valueType, v);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
