@@ -21,8 +21,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.StreamWriteFeature;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
+import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
-import io.micronaut.context.annotation.Context;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
 
@@ -35,7 +35,7 @@ import java.util.Map;
  * @author Denis Stepanov
  * @since 2.3
  */
-@Context
+@BootstrapContextCompatible
 @Internal
 @ConfigurationProperties(JacksonConfiguration.PREFIX)
 public final class JacksonConfiguration {
