@@ -100,7 +100,6 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
         return new SerdeException("Serializer for type: " + type + " doesn't support serializing into an existing object");
     }
 
-
     @Override
     public boolean isEmpty(EncoderContext context, Object value) {
         if (value == null) {

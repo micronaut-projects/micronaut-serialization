@@ -41,6 +41,7 @@ import java.util.function.Function;
 public abstract class AbstractStreamDecoder extends LimitingStream implements Decoder {
 
     private boolean currentlyUnwrappingArray = false;
+    private String readString;
 
     public AbstractStreamDecoder(@NonNull RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -257,7 +258,13 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         preDecodeValue(currentToken);
         switch (currentToken) {
             case STRING:
-                String text = getString();
+                String text;
+                if (readString == null) {
+                    text = getString();
+                } else {
+                    text = readString;
+                    readString = null;
+                }
                 nextToken();
                 return text;
             case NUMBER:
@@ -734,17 +741,34 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     }
 
     @Override
+    public String decodeStringNullable() throws IOException {
+        TokenType currentToken = currentToken();
+        preDecodeValue(currentToken);
+        if (currentToken == TokenType.NULL) {
+            nextToken();
+            return null;
+        }
+        return decodeString();
+    }
+
+    @Override
     public final boolean decodeNull() throws IOException {
         TokenType currentToken = currentToken();
         preDecodeValue(currentToken);
         if (currentToken == TokenType.NULL) {
             nextToken();
             return true;
-        } else {
-            // we don't support unwrapping null values from arrays, because the api user wouldn't be able to distinguish
-            // `[null]` and `null` anymore.
-            return false;
+        } else if (currentToken == TokenType.STRING) {
+            readString = getString();
+            if (readString.isEmpty()) {
+                readString = null;
+                nextToken();
+                return true;
+            }
         }
+        // we don't support unwrapping null values from arrays, because the api user wouldn't be able to distinguish
+        // `[null]` and `null` anymore.
+        return false;
     }
 
     @Override

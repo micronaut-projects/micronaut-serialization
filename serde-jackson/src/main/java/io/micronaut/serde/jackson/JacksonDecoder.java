@@ -292,6 +292,17 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
                 return null;
             }
             case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_TRUE, t);
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
+                try {
+                    return Boolean.parseBoolean(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to boolean", string);
+                }
+            }
             default -> {
                 return parser.getValueAsBoolean();
             }
@@ -312,6 +323,17 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     public Byte decodeByteNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
+                try {
+                    return Byte.parseByte(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to byte", string);
+                }
+            }
             case VALUE_TRUE -> {
                 return 1;
             }
@@ -353,6 +375,17 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     public Short decodeShortNullable() throws IOException {
         JsonToken t = nextToken();
         switch (t) {
+            case VALUE_STRING -> {
+                String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
+                try {
+                    return Short.parseShort(string);
+                } catch (NumberFormatException e) {
+                    throw createDeserializationException("Unable to coerce string to short", string);
+                }
+            }
             case VALUE_TRUE -> {
                 return 1;
             }
@@ -407,6 +440,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
                 if (string.length() != 1) {
                     throw createDeserializationException("When decoding char value, must give a single character", string);
                 }
@@ -460,6 +496,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
                 try {
                     return Integer.parseInt(string);
                 } catch (NumberFormatException e) {
@@ -528,13 +567,14 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
-                long value;
+                if (string.isEmpty()) {
+                    return null;
+                }
                 try {
-                    value = Long.parseLong(string);
+                    return Long.parseLong(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to integer", string);
                 }
-                return value;
             }
             case VALUE_FALSE -> {
                 return 0L;
@@ -579,13 +619,14 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
-                float value;
+                if (string.isEmpty()) {
+                    return null;
+                }
                 try {
-                    value = Float.parseFloat(string);
+                    return Float.parseFloat(string);
                 } catch (NumberFormatException e) {
                     throw createDeserializationException("Unable to coerce string to float", string);
                 }
-                return value;
             }
             case START_ARRAY -> {
                 if (beginUnwrapArray(t)) {
@@ -641,6 +682,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             case VALUE_STRING -> {
                 String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
                 try {
                     return Double.parseDouble(string);
                 } catch (NumberFormatException e) {
@@ -691,6 +735,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
                 try {
                     return new BigInteger(string);
                 } catch (NumberFormatException e) {
@@ -741,6 +788,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         switch (t) {
             case VALUE_STRING -> {
                 String string = parser.getText();
+                if (string.isEmpty()) {
+                    return null;
+                }
                 try {
                     return new BigDecimal(string);
                 } catch (NumberFormatException e) {
@@ -793,7 +843,8 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
 
     @Override
     public boolean decodeNull() throws IOException {
-        if (peekToken() == JsonToken.VALUE_NULL) {
+        JsonToken jsonToken = peekToken();
+        if (jsonToken == JsonToken.VALUE_NULL || jsonToken == JsonToken.VALUE_STRING && parser.getText().isBlank()) {
             nextToken();
             return true;
         } else {
