@@ -35,13 +35,16 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     private final DeserBean<? super Object> deserBean;
     private final Map<String, Deserializer<Object>> deserializers;
     private final Deserializer<Object> supertypeDeserializer;
+    private final boolean discriminatorVisible;
 
     public SubtypedPropertyObjectDeserializer(DeserBean<? super Object> deserBean,
                                               Map<String, Deserializer<Object>> deserializers,
-                                              Deserializer<Object> supertypeDeserializer) {
+                                              Deserializer<Object> supertypeDeserializer,
+                                              boolean discriminatorVisible) {
         this.deserBean = deserBean;
         this.deserializers = deserializers;
         this.supertypeDeserializer = supertypeDeserializer;
+        this.discriminatorVisible = discriminatorVisible;
         if (deserBean.subtypeInfo.discriminatorType() != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + deserBean.subtypeInfo.discriminatorType());
         }
@@ -50,7 +53,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
-        try (Decoder primed = DemuxingObjectDecoder.prime(decoder)) {
+        try (Decoder primed = DemuxingObjectDecoder.prime(decoder, !discriminatorVisible)) {
             Decoder typeFinder = primed.decodeObject(type);
             Deserializer<Object> deserializer = findDeserializer(typeFinder);
             typeFinder.finishStructure(true);

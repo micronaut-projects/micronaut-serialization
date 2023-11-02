@@ -270,7 +270,6 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
 
     static final class Buffered extends JsonNodeDecoder {
         private final JsonNode node;
-        private boolean complete = false;
 
         Buffered(JsonNode node, RemainingLimits remainingLimits) {
             super(remainingLimits);
@@ -289,10 +288,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
 
         @Override
         public void skipValue() {
-            if (complete) {
-                throw new IllegalStateException("Already drained");
-            }
-            complete = true;
+            // No-op: Allow to read multiple times
         }
 
         @Override

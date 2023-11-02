@@ -136,11 +136,8 @@ final class DeserBean<T> {
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
         String[] ignored = introspection.stringValues(SerdeConfig.SerIgnored.class);
-        if (ignored.length == 0) {
-            ignoredProperties = null;
-        } else {
-            ignoredProperties = new HashSet<>(Arrays.asList(ignored));
-        }
+        Set<String> ignoredProperties = new HashSet<>(Arrays.asList(ignored));
+
         this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
             .orElse(deserializationConfiguration.isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
@@ -375,20 +372,32 @@ final class DeserBean<T> {
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
-        this.subtypeInfo = createSubtypeInfo(type, introspection, decoderContext, deserBeanRegistry);
+        AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
+            type.getAnnotationMetadata(),
+            introspection.getAnnotationMetadata());
+
+        this.subtypeInfo = createSubtypeInfo(annotationMetadata, introspection, decoderContext, deserBeanRegistry);
+
+        String discriminatorProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+        if (discriminatorProperty != null && !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
+            ignoredProperties.add(discriminatorProperty);
+        }
+
+        if (ignoredProperties.isEmpty()) {
+            this.ignoredProperties = null;
+        } else {
+            this.ignoredProperties = ignoredProperties;
+        }
 
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
     }
 
-    private static <T> SubtypeInfo<T> createSubtypeInfo(Argument<T> type,
+    private static <T> SubtypeInfo<T> createSubtypeInfo(AnnotationMetadata annotationMetadata,
                                                         BeanIntrospection<T> introspection,
                                                         Deserializer.DecoderContext decoderContext,
                                                         DeserBeanRegistry deserBeanRegistry) throws SerdeException {
-        AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
-            type.getAnnotationMetadata(),
-            introspection.getAnnotationMetadata()
-        );
+
         if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
             return null;
         }
@@ -435,7 +444,8 @@ final class DeserBean<T> {
             subtypes,
             discriminatorType,
             discriminatorName,
-            defaultDiscriminator
+            defaultDiscriminator,
+            annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)
         );
     }
 
@@ -1036,7 +1046,8 @@ final class DeserBean<T> {
         @NonNull
         String discriminatorName,
         @Nullable
-        String defaultImpl
+        String defaultImpl,
+        boolean discriminatorVisible
     ) {
     }
 }

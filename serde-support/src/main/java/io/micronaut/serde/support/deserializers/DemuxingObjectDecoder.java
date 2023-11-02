@@ -41,10 +41,12 @@ import java.util.List;
 @Internal
 final class DemuxingObjectDecoder extends DelegatingDecoder {
     private final DemuxerState state;
+    private final boolean consumeValues;
     private int nextKeyIndex;
 
-    private DemuxingObjectDecoder(DemuxerState state) {
+    private DemuxingObjectDecoder(DemuxerState state, boolean consumeValues) {
         this.state = state;
+        this.consumeValues = consumeValues;
         state.outputCount++;
     }
 
@@ -68,10 +70,11 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
      *
      * @param decoder The input to read from. The primed decoder will call {@link #decodeObject()}
      *                on this input exactly once
+     * @param consumeValues If decoder should consume value or not
      * @return The primed decoder
      */
-    public static Decoder prime(Decoder decoder) {
-        return new PrimedDecoder(decoder);
+    public static Decoder prime(Decoder decoder, boolean consumeValues) {
+        return new PrimedDecoder(decoder, consumeValues);
     }
 
     @Override
@@ -101,7 +104,12 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
 
     @Override
     protected Decoder delegate() throws IOException {
-        return entryForValue().consume();
+        DemuxerState.Entry e = entryForValue();
+        if (consumeValues) {
+            return e.consume();
+        } else {
+            return e.buffer();
+        }
     }
 
     @Override
@@ -212,6 +220,15 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 }
             }
 
+            Decoder buffer() throws IOException {
+                if (buffer != null) {
+                    return buffer;
+                } else {
+                    buffer = delegate.decodeBuffer();
+                }
+                return buffer;
+            }
+
             boolean decodeNull() throws IOException {
                 // this call has the expectation that a proper consume() will follow
                 if (consumed) {
@@ -228,11 +245,13 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
 
     private static class PrimedDecoder extends DelegatingDecoder {
         private final Decoder delegate;
+        private final boolean absorbValues;
         @Nullable
         private DemuxerState state;
 
-        PrimedDecoder(Decoder delegate) {
+        PrimedDecoder(Decoder delegate, boolean absorbValues) {
             this.delegate = delegate;
+            this.absorbValues = absorbValues;
         }
 
         @Override
@@ -241,7 +260,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 state = new DemuxerState(delegate.decodeObject());
                 state.outputCount++;
             }
-            return new DemuxingObjectDecoder(state);
+            return new DemuxingObjectDecoder(state, absorbValues);
         }
 
         @Override
@@ -250,7 +269,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 state = new DemuxerState(delegate.decodeObject(type));
                 state.outputCount++;
             }
-            return new DemuxingObjectDecoder(state);
+            return new DemuxingObjectDecoder(state, absorbValues);
         }
 
         @Override

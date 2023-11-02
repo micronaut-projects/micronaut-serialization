@@ -86,7 +86,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 );
             }
             if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-                return new SubtypedPropertyObjectDeserializer(deserBean, subtypeDeserializers, supertypeDeserializer);
+                return new SubtypedPropertyObjectDeserializer(deserBean, subtypeDeserializers, supertypeDeserializer, subtypeInfo.discriminatorVisible());
             }
             throw new IllegalStateException("Unrecognized discriminator type: " + subtypeInfo.discriminatorType());
         }

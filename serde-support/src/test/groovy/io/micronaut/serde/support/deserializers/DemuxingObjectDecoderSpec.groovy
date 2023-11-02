@@ -15,7 +15,7 @@ class DemuxingObjectDecoderSpec extends Specification {
         def ctx = ApplicationContext.run()
         def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "c": 3}""")
 
-        def primed = DemuxingObjectDecoder.prime(outerDecoder)
+        def primed = DemuxingObjectDecoder.prime(outerDecoder, true)
         def demux1 = primed.decodeObject()
         def demux2 = primed.decodeObject()
 
@@ -42,7 +42,7 @@ class DemuxingObjectDecoderSpec extends Specification {
         def ctx = ApplicationContext.run()
         def outerDecoder = createDecoder(ctx, """{"a": [1], "b": {"foo": "bar"}, "c": {"fizz": "buzz"}}""")
 
-        def primed = DemuxingObjectDecoder.prime(outerDecoder)
+        def primed = DemuxingObjectDecoder.prime(outerDecoder, true)
         def demux1 = primed.decodeObject()
         def demux2 = primed.decodeObject()
 
@@ -77,7 +77,7 @@ class DemuxingObjectDecoderSpec extends Specification {
         def ctx = ApplicationContext.run()
         def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "c": 3}""")
 
-        def primed = DemuxingObjectDecoder.prime(outerDecoder)
+        def primed = DemuxingObjectDecoder.prime(outerDecoder, true)
         def demux1 = primed.decodeObject()
         def demux2 = primed.decodeObject()
 

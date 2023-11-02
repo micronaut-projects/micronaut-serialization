@@ -82,6 +82,10 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             if (propertyName == null) {
                 break;
             }
+            if (deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
+                objectDecoder.skipValue();
+                continue;
+            }
             boolean consumed = beanDeserializer.tryConsume(propertyName, objectDecoder, decoderContext);
             if (!consumed) {
                 handleUnknownProperty(type, objectDecoder, propertyName, deserBean);
@@ -877,7 +881,14 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 return beanDeserializer.tryConsume(propertyName, decoder, decoderContext);
             }
             if (subtypeInfo.discriminatorName().equals(propertyName)) {
-                final String subtypeName = decoder.decodeString();
+                Decoder bufferedDiscriminatorValue = null;
+                String subtypeName;
+                if (subtypeInfo.discriminatorVisible()) {
+                    bufferedDiscriminatorValue = decoder.decodeBuffer();
+                    subtypeName = bufferedDiscriminatorValue.decodeString();
+                } else {
+                    subtypeName = decoder.decodeString();
+                }
                 DeserBean<?> subDeserBean = subtypeInfo.subtypes().get(subtypeName);
                 if (subDeserBean == null && subtypeInfo.defaultImpl() != null) {
                     subDeserBean = subtypeInfo.subtypes().get(subtypeInfo.defaultImpl());
@@ -900,6 +911,12 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                         }
                     }
                     cache = null;
+                }
+                if (bufferedDiscriminatorValue != null) {
+                    boolean consumed = beanDeserializer.tryConsume(propertyName, bufferedDiscriminatorValue, decoderContext);
+                    if (!consumed) {
+                        handleUnknownProperty(db.introspection.asArgument(), decoder, propertyName, subDeserBean);
+                    }
                 }
             } else {
                 if (cache == null) {

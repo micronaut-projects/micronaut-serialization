@@ -728,7 +728,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             default -> allNames.add(subtype.getName());
         }
 
-        subtype.annotate(SerdeConfig.class, (builder) -> {
+        subtype.annotate(SerdeConfig.class, builder -> {
             builder.member(SerdeConfig.TYPE_NAME, allNames.get(0));
             builder.member(SerdeConfig.TYPE_NAMES, allNames.toArray(new String[0]));
 
@@ -736,6 +736,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
             } else {
                 builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+            }
+
+            if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {
+                builder.member(SerdeConfig.TYPE_PROPERTY_VISIBLE, true);
             }
         });
     }
