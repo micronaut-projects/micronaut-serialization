@@ -64,7 +64,6 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
             );
         }
 
-        String property = annotation.stringValue("property").orElse(null);
         AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
         if ("PROPERTY".equals(include) || "WRAPPER_OBJECT".equals(include)) {
             builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
@@ -72,12 +71,23 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
             return mapError("Only 'include' of type PROPERTY or WRAPPER_OBJECT are supported");
         }
 
-        if ("CLASS".equals(use) || "NAME".equals(use)) {
-            builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, use);
-            property = property != null ? property : use.equals("CLASS") ? "@class" : "@type";
-            builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, property);
-        } else {
-            return mapError("Unsupported JsonTypeInfo use: " + use);
+        Optional<String> propertyValue = annotation.stringValue("property");
+        switch (use) {
+            case "CLASS" -> {
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@class"));
+            }
+            case "NAME" -> {
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME);
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@type"));
+            }
+            case "MINIMAL_CLASS" -> {
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.MINIMAL_CLASS);
+                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@c"));
+            }
+            default -> {
+                return mapError("Unsupported JsonTypeInfo use: " + use);
+            }
         }
         values.add(builder.build());
         return values;

@@ -420,23 +420,11 @@ final class DeserBean<T> {
                 Argument.of(subBeanType),
                 decoderContext
             );
-            final String dn;
-            if (discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME) {
-                dn = subBeanType.getName();
-            } else if (discriminatorValue == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME) {
-                dn = subBeanType.getSimpleName();
-            } else {
-                dn = deserBean.introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
-                    .orElse(deserBean.introspection.getBeanType().getSimpleName());
-            }
-            subtypes.put(
-                dn,
-                deserBean
-            );
             if (defaultType != null && defaultType.equals(subBeanType)) {
-                defaultDiscriminator = dn;
+                defaultDiscriminator = subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseThrow();
             }
 
+            subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, deserBean));
             String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
             for (String name : names) {
                 subtypes.put(name, deserBean);
@@ -446,7 +434,6 @@ final class DeserBean<T> {
         return new SubtypeInfo<>(
             subtypes,
             discriminatorType,
-            discriminatorValue,
             discriminatorName,
             defaultDiscriminator
         );
@@ -1046,8 +1033,6 @@ final class DeserBean<T> {
         Map<String, DeserBean<? extends T>> subtypes,
         @NonNull
         SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
-        @NonNull
-        SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValue,
         @NonNull
         String discriminatorName,
         @Nullable

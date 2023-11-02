@@ -15,13 +15,6 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.io.service.ServiceDefinition;
 import io.micronaut.core.io.service.SoftServiceLoader;
@@ -32,6 +25,13 @@ import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Maps the {@code com.fasterxml.jackson.annotation.JacksonAnnotation} stereotype to {@link SerdeConfig}.
@@ -44,13 +44,13 @@ public final class JacksonAnnotationMapper implements NamedAnnotationMapper {
                                                                                    AbstractAnnotationMetadataBuilder.class.getClassLoader());
         for (ServiceDefinition<AnnotationMapper> definition : serviceLoader) {
             if (definition.isPresent() && definition.getName().startsWith("io.micronaut.serde.processor.jackson.")) {
-                AnnotationMapper mapper = definition.load();
+                AnnotationMapper<?> mapper = definition.load();
                 try {
                     String name = null;
-                    if (mapper instanceof TypedAnnotationMapper) {
-                        name = ((TypedAnnotationMapper) mapper).annotationType().getName();
-                    } else if (mapper instanceof NamedAnnotationMapper) {
-                        name = ((NamedAnnotationMapper) mapper).getName();
+                    if (mapper instanceof TypedAnnotationMapper<?> typedAnnotationMapper) {
+                        name = typedAnnotationMapper.annotationType().getName();
+                    } else if (mapper instanceof NamedAnnotationMapper namedAnnotationMapper) {
+                        name = namedAnnotationMapper.getName();
                     }
                     if (StringUtils.isNotEmpty(name)) {
                         JACKSON_ANNOTATION_MAPPERS.computeIfAbsent(name, s -> new ArrayList<>(2)).add(mapper);
