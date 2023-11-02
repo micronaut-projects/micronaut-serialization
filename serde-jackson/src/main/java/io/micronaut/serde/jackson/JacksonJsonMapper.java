@@ -80,7 +80,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     private final SerdeRegistry registry;
     private final JsonStreamConfig deserializationConfig;
     private final SerdeConfiguration serdeConfiguration;
-    private final JacksonConfiguration jacksonConfiguration;
+    private final SerdeJacksonConfiguration jacksonConfiguration;
     private final JsonNodeTreeCodec treeCodec;
     private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
     private final Serializer.EncoderContext encoderContext;
@@ -89,14 +89,14 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Inject
     @Internal
-    public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, JacksonConfiguration jacksonConfiguration) {
+    public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, SerdeJacksonConfiguration jacksonConfiguration) {
         this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, jacksonConfiguration, Object.class);
     }
 
     private JacksonJsonMapper(@NonNull SerdeRegistry registry,
                               @NonNull JsonStreamConfig deserializationConfig,
                               @NonNull SerdeConfiguration serdeConfiguration,
-                              @NonNull JacksonConfiguration jacksonConfiguration,
+                              @NonNull SerdeJacksonConfiguration jacksonConfiguration,
                               @Nullable Class<?> view) {
         this.registry = registry;
         this.deserializationConfig = deserializationConfig;
@@ -108,7 +108,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
         this.jsonFactory = buildJsonFactory(jacksonConfiguration);
     }
 
-    private static JsonFactory buildJsonFactory(JacksonConfiguration jacksonConfiguration) {
+    private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
         TSFBuilder<?, ?> builder = JsonFactory.builder();
         for (Map.Entry<JsonFactory.Feature, Boolean> e : jacksonConfiguration.getFactoryFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());

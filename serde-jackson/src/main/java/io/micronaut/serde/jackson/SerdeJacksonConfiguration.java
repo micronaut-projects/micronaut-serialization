@@ -37,8 +37,8 @@ import java.util.Map;
  */
 @BootstrapContextCompatible
 @Internal
-@ConfigurationProperties(JacksonConfiguration.PREFIX)
-public final class JacksonConfiguration {
+@ConfigurationProperties(SerdeJacksonConfiguration.PREFIX)
+public final class SerdeJacksonConfiguration {
 
     static final String PREFIX = SerdeConfiguration.PREFIX + ".jackson";
 
