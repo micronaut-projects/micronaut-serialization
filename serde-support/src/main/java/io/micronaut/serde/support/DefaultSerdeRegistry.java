@@ -260,7 +260,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     @Override
-    public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) {
+    public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
         final Deserializer<?> deserializer = deserializerMap.get(key);
@@ -284,6 +284,17 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     deser = results.iterator().next().bean();
                 } else {
                     deser = beanContext.findBean(deserializerArgument).orElse(null);
+                }
+            } else {
+                List<BeanDefinition<Deserializer>> possibles = deserializerDefMap.get(type.getType());
+                if (possibles != null) {
+                    if (possibles.size() == 1) {
+                        BeanDefinition<Deserializer> definition = possibles.iterator().next();
+                        deser = beanContext.getBean(definition);
+                    } else if (possibles.size() > 1) {
+                        BeanDefinition<Deserializer> definition = lastChanceResolveDeserializer(type, possibles);
+                        deser = beanContext.getBean(definition);
+                    }
                 }
             }
             if (deser != null) {
@@ -360,7 +371,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                     throw new SerdeException("No serializers found for type: " + type);
                 } else {
 
-                    final BeanDefinition<Serializer> definition = lastChanceResolve(type, possibles);
+                    final BeanDefinition<Serializer> definition = lastChanceResolveSerializer(type, possibles);
                     final Serializer locatedSerializer = beanContext.getBean(definition);
                     serializerMap.put(key, locatedSerializer);
                     return locatedSerializer;
@@ -372,12 +383,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return objectSerializer;
     }
 
-    private BeanDefinition<Serializer> lastChanceResolve(
+    private <T> BeanDefinition<T> lastChanceResolve(
             Argument<?> type,
-            Collection<BeanDefinition<Serializer>> candidates) throws SerdeException {
+            Collection<BeanDefinition<T>> candidates,
+            String beansResolved) throws SerdeException {
 
         if (candidates.size() > 1) {
-            List<BeanDefinition<Serializer>> primary = candidates.stream()
+            List<BeanDefinition<T>> primary = candidates.stream()
                     .filter(BeanDefinition::isPrimary)
                     .collect(Collectors.toList());
             if (!primary.isEmpty()) {
@@ -393,7 +405,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             } else {
                 if (candidates.stream().anyMatch(candidate -> candidate.hasAnnotation(Order.class))) {
                     // pick the bean with the highest priority
-                    final Iterator<BeanDefinition<Serializer>> i = candidates.stream()
+                    final Iterator<BeanDefinition<T>> i = candidates.stream()
                             .sorted((bean1, bean2) -> {
                                 int order1 = OrderUtil.getOrder(bean1.getAnnotationMetadata());
                                 int order2 = OrderUtil.getOrder(bean2.getAnnotationMetadata());
@@ -401,24 +413,38 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
                             })
                             .iterator();
                     if (i.hasNext()) {
-                        final BeanDefinition<Serializer> bean = i.next();
+                        final BeanDefinition<T> bean = i.next();
                         if (i.hasNext()) {
                             // check there are not 2 beans with the same order
-                            final BeanDefinition<Serializer> next = i.next();
+                            final BeanDefinition<T> next = i.next();
                             if (OrderUtil.getOrder(bean.getAnnotationMetadata()) == OrderUtil.getOrder(next.getAnnotationMetadata())) {
-                                throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + candidates);
+                                throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
                             }
                         }
 
                         return bean;
                     } else {
-                        throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + candidates);
+                        throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
                     }
                 } else {
-                    throw new SerdeException("Multiple possible serializers found for type [" + type + "]: " + candidates);
+                    throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
                 }
             }
         }
+    }
+
+    private BeanDefinition<Serializer> lastChanceResolveSerializer(
+        Argument<?> type,
+        Collection<BeanDefinition<Serializer>> candidates) throws SerdeException {
+
+        return lastChanceResolve(type, candidates, "serializers");
+    }
+
+    private BeanDefinition<Deserializer> lastChanceResolveDeserializer(
+        Argument<?> type,
+        Collection<BeanDefinition<Deserializer>> candidates) throws SerdeException {
+
+        return lastChanceResolve(type, candidates, "deserializers");
     }
 
     @Override
