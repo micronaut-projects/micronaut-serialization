@@ -235,7 +235,7 @@ class B extends Base {
         expect:
         deserializeFromString(jsonMapper, baseClass, '{"a":{"fieldA":"foo"}}').fieldA == 'foo'
         deserializeFromString(jsonMapper, baseClass, '{"b":{"fieldB":"foo"}}').fieldB == 'foo'
-//        deserializeFromString(jsonMapper, baseClass, '{"c":{"fieldB":"foo"}}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"c":{"fieldB":"foo"}}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"a":{"fieldA":"foo"}}'
 
@@ -276,7 +276,7 @@ class B extends Base {
         expect:
         deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').fieldA == 'foo'
         deserializeFromString(jsonMapper, baseClass, '{"type":"b","fieldB":"foo"}').fieldB == 'foo'
-//        deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"type":"a","fieldA":"foo"}'
 
@@ -433,7 +433,6 @@ class B2 extends Base2 {
         compiled.close()
     }
 
-    @PendingFeature(reason = "@JsonIgnoreProperties(ignoreUnknown = true) not yet implemented")
     void 'test @JsonIgnoreProperties unknown property handling on subtypes'() {
         given:
         def compiled = buildContext('example.Base', '''

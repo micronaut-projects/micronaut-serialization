@@ -691,35 +691,41 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             getDiscriminatorValueKind(supertype);
         final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
             getDiscriminatorType(supertype);
-        final String typeProperty = resolveTypeProperty(supertype).orElseGet(() ->
-            discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME ? "@class" : "@type"
-        );
+        final String typeProperty = resolveTypeProperty(supertype).orElseThrow();
 
         List<String> allNames = new ArrayList<>();
 
-        if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME) {
-            subtype.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
-                .ifPresent(allNames::add);
-
-            for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> parentSubtype:
-                supertype.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class)
-            ) {
-                String parentSubtypeName = parentSubtype.stringValue().orElse(null);
-                if (subtype.getName().equals(parentSubtypeName)) {
-                    parentSubtype.stringValue("name")
+        switch (discriminatorValueKind) {
+            case NAME -> {
+                subtype.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
                         .ifPresent(allNames::add);
-                    Collections.addAll(allNames, parentSubtype.stringValues("names"));
+                for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> parentSubtype :
+                        supertype.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class)) {
+                    String parentSubtypeName = parentSubtype.stringValue().orElse(null);
+                    if (subtype.getName().equals(parentSubtypeName)) {
+                        parentSubtype.stringValue("name")
+                                .ifPresent(allNames::add);
+                        Collections.addAll(allNames, parentSubtype.stringValues("names"));
+                    }
+                }
+                if (allNames.isEmpty()) {
+                    // Fallback to class name
+                    allNames.add(subtype.getSimpleName());
                 }
             }
-
-            if (allNames.isEmpty()) {
-                // Fallback to class name
-                allNames.add(subtype.getSimpleName());
+            case CLASS_SIMPLE_NAME -> allNames.add(subtype.getSimpleName());
+            case MINIMAL_CLASS -> {
+                String superPackage = supertype.getPackage().getName();
+                String name = subtype.getName();
+                String typeName;
+                if (name.startsWith(superPackage)) {
+                    typeName = name.substring(superPackage.length());
+                } else {
+                    typeName = name;
+                }
+                allNames.add(typeName);
             }
-        } else if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_SIMPLE_NAME) {
-            allNames.add(subtype.getSimpleName());
-        } else {
-            allNames.add(subtype.getName());
+            default -> allNames.add(subtype.getName());
         }
 
         subtype.annotate(SerdeConfig.class, (builder) -> {
@@ -1195,9 +1201,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",
                         "com.fasterxml.jackson.annotation.JsonTypeId",
-                        "com.fasterxml.jackson.annotation.JsonAutoDetect")
-                .anyMatch(element::hasDeclaredAnnotation) ||
-                (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
+                        "com.fasterxml.jackson.annotation.JsonAutoDetect",
+                        "com.fasterxml.jackson.annotation.JsonIgnoreProperties"
+            ).anyMatch(element::hasDeclaredAnnotation) ||
+            (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
     }
 
     private static boolean isBasicType(ClassElement propertyType) {

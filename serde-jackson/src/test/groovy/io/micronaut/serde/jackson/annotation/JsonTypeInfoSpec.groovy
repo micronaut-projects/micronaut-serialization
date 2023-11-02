@@ -191,6 +191,105 @@ class Cat implements Animal {
         context.close()
     }
 
+    void "test MINIMAL_CLASS implementation"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, defaultImpl = Dog.class)
+interface Animal {
+    String getName();
+}
+
+@Serdeable
+class Dog implements Animal {
+    private double barkVolume;
+    private String name;
+    @Override
+     public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setBarkVolume(double barkVolume) {
+        this.barkVolume = barkVolume;
+    }
+    public double getBarkVolume() {
+        return barkVolume;
+    }
+}
+
+@Serdeable
+class Cat implements Animal {
+    private boolean likesCream;
+    private int lives;
+    private String name;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public int getLives() {
+        return lives;
+    }
+    public void setLives(int lives) {
+        this.lives = lives;
+    }
+    public void setLikesCream(boolean likesCream) {
+        this.likesCream = likesCream;
+    }
+    public boolean isLikesCream() {
+        return likesCream;
+    }
+}
+""")
+
+        when:
+        def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
+        def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"@c":".Dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"@c":".Cat","name":"Joe","lives":9,"likesCream":true}'
+
+        when:
+        def dogBean = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Animal'))
+        def catBean = jsonMapper.readValue(catJson, argumentOf(context, 'test.Animal'))
+
+        then:
+        dog.getClass().isInstance(dogBean)
+        cat.getClass().isInstance(catBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+
+        when:"No discriminator is used the default impl is chosen"
+        dogBean = jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'test.Animal'))
+        catBean = jsonMapper.readValue('{"@c":".Cat","name":"Joe","lives":9,"likesCream":true}', argumentOf(context, 'test.Animal'))
+
+        then:
+        cat.getClass().isInstance(catBean)
+        dog.getClass().isInstance(dogBean)
+        dogBean.name == "Fred"
+        dogBean.barkVolume == 1.1d
+        catBean.name == "Joe"
+        catBean.likesCream
+        catBean.lives == 9
+
+        cleanup:
+        context.close()
+    }
+
     @Unroll
     void "test fail compilation on unsupported 'use' #use"() {
         when:
@@ -214,7 +313,7 @@ class Test {
         e.message.contains(" Unsupported JsonTypeInfo use: " + use.name())
 
         where:
-        use << [JsonTypeInfo.Id.DEDUCTION, JsonTypeInfo.Id.MINIMAL_CLASS, JsonTypeInfo.Id.CUSTOM]
+        use << [JsonTypeInfo.Id.DEDUCTION, JsonTypeInfo.Id.CUSTOM]
     }
 
     @Unroll
