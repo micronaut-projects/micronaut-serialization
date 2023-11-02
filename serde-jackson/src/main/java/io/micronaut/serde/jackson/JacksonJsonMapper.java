@@ -22,11 +22,16 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.core.StreamWriteFeature;
+import com.fasterxml.jackson.core.TSFBuilder;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import com.fasterxml.jackson.core.type.ResolvedType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.core.util.ByteArrayBuilder;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
@@ -60,6 +65,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -70,29 +76,70 @@ import java.util.function.Consumer;
 @Primary
 @BootstrapContextCompatible
 public final class JacksonJsonMapper implements ObjectMapper {
-    private static final JsonFactory FACTORY = new JsonFactory();
 
     private final SerdeRegistry registry;
     private final JsonStreamConfig deserializationConfig;
     private final SerdeConfiguration serdeConfiguration;
+    private final SerdeJacksonConfiguration jacksonConfiguration;
     private final JsonNodeTreeCodec treeCodec;
     private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
+    private final JsonFactory jsonFactory;
 
-    private JacksonJsonMapper(@NonNull SerdeRegistry registry, @NonNull JsonStreamConfig deserializationConfig, @NonNull SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
+    @Inject
+    @Internal
+    public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, SerdeJacksonConfiguration jacksonConfiguration) {
+        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, jacksonConfiguration, Object.class);
+    }
+
+    private JacksonJsonMapper(@NonNull SerdeRegistry registry,
+                              @NonNull JsonStreamConfig deserializationConfig,
+                              @NonNull SerdeConfiguration serdeConfiguration,
+                              @NonNull SerdeJacksonConfiguration jacksonConfiguration,
+                              @Nullable Class<?> view) {
         this.registry = registry;
         this.deserializationConfig = deserializationConfig;
         this.serdeConfiguration = serdeConfiguration;
         this.treeCodec = JsonNodeTreeCodec.getInstance().withConfig(deserializationConfig);
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
+        this.jacksonConfiguration = jacksonConfiguration;
+        this.jsonFactory = buildJsonFactory(jacksonConfiguration);
     }
 
-    @Inject
-    @Internal
-    public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
-        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, Object.class);
+    private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
+        TSFBuilder<?, ?> builder = JsonFactory.builder();
+        for (Map.Entry<JsonFactory.Feature, Boolean> e : jacksonConfiguration.getFactoryFeatures().entrySet()) {
+            builder = builder.configure(e.getKey(), e.getValue());
+        }
+        for (Map.Entry<JsonReadFeature, Boolean> e : jacksonConfiguration.getReadFeatures().entrySet()) {
+            builder = builder.configure(e.getKey(), e.getValue());
+        }
+        for (Map.Entry<JsonWriteFeature, Boolean> e : jacksonConfiguration.getWriteFeatures().entrySet()) {
+            builder = builder.configure(e.getKey(), e.getValue());
+        }
+        for (Map.Entry<StreamWriteFeature, Boolean> e : jacksonConfiguration.getStreamFeatures().entrySet()) {
+            builder = builder.configure(e.getKey(), e.getValue());
+        }
+        return builder.build();
+    }
+
+    private void configureGenerator(JsonGenerator generator) {
+        generator.setCodec(objectCodecImpl);
+        for (Map.Entry<JsonGenerator.Feature, Boolean> e : jacksonConfiguration.getGeneratorFeatures().entrySet()) {
+            generator.configure(e.getKey(), e.getValue());
+        }
+        if (jacksonConfiguration.isPrettyPrint()) {
+            generator.setPrettyPrinter(new DefaultPrettyPrinter());
+        }
+    }
+
+    private void configureParser(JsonParser parser) {
+        parser.setCodec(objectCodecImpl);
+        for (Map.Entry<JsonParser.Feature, Boolean> e : jacksonConfiguration.getParserFeatures().entrySet()) {
+            parser.configure(e.getKey(), e.getValue());
+        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -102,12 +149,12 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     // type-safe helper method
     private <T> void writeValue0(JsonGenerator gen, T value, Class<T> type) throws IOException {
-        final Argument<T> argument = Argument.of(type);
-        writeValue(gen, value, argument);
+        writeValue(gen, value, Argument.of(type));
     }
 
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
-        gen.setCodec(objectCodecImpl);
+        configureGenerator(gen);
+
         Serializer<? super T> serializer = encoderContext.findSerializer(argument)
                                                    .createSpecific(encoderContext, argument);
         final Encoder encoder = JacksonEncoder.create(gen, LimitingStream.limitsFromConfiguration(serdeConfiguration));
@@ -124,7 +171,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
-        parser.setCodec(objectCodecImpl);
+        configureParser(parser);
         Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
         final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
         return (T) deserializer.deserializeNullable(
@@ -155,7 +202,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Override
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
-        try (JsonParser parser = FACTORY.createParser(inputStream)) {
+        try (JsonParser parser = jsonFactory.createParser(inputStream)) {
             return readValue(parser, type);
         } catch (JsonParseException pe) {
             throw new JsonSyntaxException(pe);
@@ -164,7 +211,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Override
     public <T> T readValue(@NonNull byte[] byteArray, @NonNull Argument<T> type) throws IOException {
-        try (JsonParser parser = FACTORY.createParser(byteArray)) {
+        try (JsonParser parser = jsonFactory.createParser(byteArray)) {
             return readValue(parser, type);
         } catch (JsonParseException pe) {
             throw new JsonSyntaxException(pe);
@@ -173,7 +220,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Override
     public <T> T readValue(@NonNull ByteBuffer<?> byteBuffer, @NonNull Argument<T> type) throws IOException {
-        try (JsonParser parser = JacksonCoreParserFactory.createJsonParser(FACTORY, byteBuffer)) {
+        try (JsonParser parser = JacksonCoreParserFactory.createJsonParser(jsonFactory, byteBuffer)) {
             return readValue(parser, type);
         } catch (JsonParseException pe) {
             throw new JsonSyntaxException(pe);
@@ -182,22 +229,22 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Override
     public void writeValue(@NonNull OutputStream outputStream, @Nullable Object object) throws IOException {
-        try (JsonGenerator generator = FACTORY.createGenerator(outputStream)) {
+        try (JsonGenerator generator = jsonFactory.createGenerator(outputStream)) {
             writeValue0(generator, object);
         }
     }
 
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
-        try (JsonGenerator generator = FACTORY.createGenerator(outputStream)) {
+        try (JsonGenerator generator = jsonFactory.createGenerator(outputStream)) {
             writeValue(generator, object, type);
         }
     }
 
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        ByteArrayBuilder bb = new ByteArrayBuilder(FACTORY._getBufferRecycler());
-        try (JsonGenerator generator = FACTORY.createGenerator(bb)) {
+        ByteArrayBuilder bb = new ByteArrayBuilder(jsonFactory._getBufferRecycler());
+        try (JsonGenerator generator = jsonFactory.createGenerator(bb)) {
             writeValue0(generator, object);
         }
         byte[] bytes = bb.toByteArray();
@@ -207,8 +254,8 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
-        ByteArrayBuilder bb = new ByteArrayBuilder(FACTORY._getBufferRecycler());
-        try (JsonGenerator generator = FACTORY.createGenerator(bb)) {
+        ByteArrayBuilder bb = new ByteArrayBuilder(jsonFactory._getBufferRecycler());
+        try (JsonGenerator generator = jsonFactory.createGenerator(bb)) {
             writeValue(generator, object, type);
         }
         byte[] bytes = bb.toByteArray();
@@ -224,7 +271,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
 
     @Override
     public @NonNull Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe, boolean streamArray) {
-        return new JacksonCoreProcessor(streamArray, new JsonFactory(), deserializationConfig) {
+        return new JacksonCoreProcessor(streamArray, jsonFactory, deserializationConfig) {
             @Override
             public void subscribe(Subscriber<? super JsonNode> downstreamSubscriber) {
                 onSubscribe.accept(this);
@@ -236,7 +283,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @NonNull
     @Override
     public JsonMapper cloneWithViewClass(@NonNull Class<?> viewClass) {
-        return new JacksonJsonMapper(registry, deserializationConfig, serdeConfiguration, viewClass);
+        return new JacksonJsonMapper(registry, deserializationConfig, serdeConfiguration, jacksonConfiguration, viewClass);
     }
 
     @Override
@@ -247,7 +294,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
             if (deserializer instanceof UpdatingDeserializer) {
 
                 try (JsonParser parser = treeCodec.treeAsTokens(tree)) {
-                    parser.setCodec(objectCodecImpl);
+                    configureParser(parser);
                     if (!parser.hasCurrentToken()) {
                         parser.nextToken();
                     }
