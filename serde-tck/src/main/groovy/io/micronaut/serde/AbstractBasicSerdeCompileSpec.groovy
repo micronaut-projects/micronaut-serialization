@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde
 
+import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpStatus
 import spock.lang.Unroll
 
@@ -90,6 +91,63 @@ class Test {
         Charset    | [value: StandardCharsets.UTF_8]        | '{"value":"UTF-8"}'
         TimeZone   | [value: TimeZone.getTimeZone("GMT")]   | '{"value":"GMT"}'
         Locale     | [value: Locale.CANADA_FRENCH]          | '{"value":"fr-CA"}'
+    }
+
+    @Unroll
+    void "test empty string to #type"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @io.micronaut.core.annotation.Nullable
+    private $type.name value;
+    public void setValue($type.name value) {
+        this.value = value;
+    }
+    public $type.name getValue() {
+        return value;
+    }
+}
+""", true)
+        when:
+            def jsonMapper = context.getBean(getJsonMapperClass())
+            typeUnderTest = argumentOf(context, 'test.Test')
+            byte[] bytes = jsonMapper.writeValueAsBytes(Argument.mapOf(String.class, String.class), Map.of("value", ""))
+            def read = jsonMapper.readValue(bytes, typeUnderTest)
+            typeUnderTest.type.isInstance(read)
+
+        then:
+            read.value == result
+
+        cleanup:
+            context.close()
+
+        where:
+            type       | result
+            BigDecimal | null
+            BigInteger | null
+            String     | ""
+            boolean    | false
+            byte       | 0
+            short      | 0
+            int        | 0
+            long       | 0
+            double     | 0
+            float      | 0
+            char       | 0
+            //wrappers
+            Boolean    | null
+            Byte       | null
+            Short      | null
+            Integer    | null
+            Long       | null
+            Double     | null
+            Float      | null
+            Character  | null
     }
 
     @Unroll
