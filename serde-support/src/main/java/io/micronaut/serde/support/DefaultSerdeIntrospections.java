@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeIntrospections} interface
@@ -66,9 +67,17 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
         this.serdePackages = Collections.singleton("io.micronaut");
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(Class<T> type) {
-        return SerdeIntrospections.super.findSubtypeDeserializables(type);
+        return (List) getBeanIntrospector().findIntrospections(ref -> {
+                if (ref.isPresent()) {
+                    final Class<?> bt = ref.getBeanType();
+                    return bt != type && type.isAssignableFrom(bt);
+                }
+                return false;
+            }).stream().filter(bi -> isEnabledForDeserialization(bi, bi.getGenericBeanType()))
+            .collect(Collectors.toList());
     }
 
     @Override
