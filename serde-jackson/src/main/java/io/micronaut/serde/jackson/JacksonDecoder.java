@@ -844,7 +844,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     @Override
     public boolean decodeNull() throws IOException {
         JsonToken jsonToken = peekToken();
-        if (jsonToken == JsonToken.VALUE_NULL || jsonToken == JsonToken.VALUE_STRING && parser.getText().isBlank()) {
+        if (jsonToken == JsonToken.VALUE_NULL || jsonToken == JsonToken.VALUE_STRING && parser.getText().isEmpty()) {
             nextToken();
             return true;
         } else {
