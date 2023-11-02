@@ -363,4 +363,55 @@ class B extends Sub {
         jsonMapper.writeValueAsString(a) == '{"type":"sub-class-a","string":"hello","integer":2}'
         jsonMapper.writeValueAsString(b) == '{"type":"sub-class-b","string":"b","integer":3}'
     }
+
+    void 'subtype SerdeImport'() {
+        given:
+        def context = buildContext('test.Sub', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+)
+class Base {
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+}
+
+@SerdeImport(Sub.class)
+public class Sub extends Base {
+    private Integer integer;
+
+    public Sub(String string, Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+        def baseArg = argumentOf(context, "test.Base")
+        def result = jsonMapper.readValue('{"type":"sub-class","string":"a","integer":1}', baseArg)
+
+        then:
+        result.getClass().name == 'test.Sub'
+        result.string == 'a'
+        result.integer == 1
+    }
 }
