@@ -4,6 +4,7 @@ import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
+import spock.lang.PendingFeature
 
 class JsonIgnoreAllowSpec extends JsonCompileSpec {
 
@@ -798,6 +799,51 @@ class C {
 
         then: // Jackson annotation is not inherited, only the one ignore is applied
             json == '{"f1":"f1","f2":"f2","a1":"a1","a2":"a2","p1":"p1"}'
+
+        cleanup:
+            context.close()
+
+    }
+
+    @PendingFeature
+    void "test @JsonIgnoreProperties inheritance 2"() {
+        given:
+            def context = buildContext('test.C3', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonIgnoreProperties("foo")
+abstract class C1 {
+    abstract String getFoo();
+}
+
+abstract class C2 extends C1 {
+}
+
+@Serdeable
+class C3 extends C2 {
+    private final String foo;
+
+    C3(String foo) {
+        this.foo = foo;
+    }
+
+    @Override
+    String getFoo() {
+        return foo;
+    }
+}
+
+
+""")
+        when:
+            def a = newInstance(context, 'test.C3', 'bar')
+            String json = jsonMapper.writeValueAsString(a)
+
+        then:
+            json == '{}'
 
         cleanup:
             context.close()
