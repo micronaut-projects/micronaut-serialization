@@ -42,12 +42,14 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
                 "defaultImpl",
                 "property",
                 "include",
-                "use"
+                "use",
+                "visible"
         );
     }
 
     @Override
     protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
+        boolean discriminatorVisible = annotation.booleanValue("visible").orElse(false);
         String use = annotation.stringValue("use").orElse(null);
         String include = annotation.stringValue("include").orElse("PROPERTY");
         AnnotationClassValue<?> defaultImpl = annotation.annotationClassValue("defaultImpl").orElse(null);
@@ -65,6 +67,7 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
         }
 
         AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
+        builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE, discriminatorVisible);
         if ("PROPERTY".equals(include) || "WRAPPER_OBJECT".equals(include)) {
             builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
         } else {

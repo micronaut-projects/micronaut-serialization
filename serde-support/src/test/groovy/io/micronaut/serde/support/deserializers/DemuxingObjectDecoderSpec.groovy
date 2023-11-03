@@ -1,6 +1,7 @@
 package io.micronaut.serde.support.deserializers
 
 import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.Decoder
@@ -87,6 +88,34 @@ class DemuxingObjectDecoderSpec extends Specification {
         demux2.decodeKey() == "b"
         !demux2.decodeNull()
         demux2.decodeInt() == 2
+        demux1.decodeKey() == "c"
+        demux1.decodeInt() == 3
+        demux1.decodeKey() == null
+        demux1.finishStructure()
+        demux2.decodeKey() == null
+        demux2.finishStructure()
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'interleaved non consuming'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "c": 3}""")
+
+        def primed = DemuxingObjectDecoder.prime(outerDecoder)
+        def demux1 = primed.decodeObject()
+        def demux2 = primed.decodeObjectNonConsuming(Argument.OBJECT_ARGUMENT)
+
+        expect:
+        demux1.decodeKey() == "a"
+        demux1.decodeInt() == 1
+        demux2.decodeKey() == "b"
+        !demux2.decodeNull()
+        demux2.decodeInt() == 2
+        demux1.decodeKey() == "b"
+        demux1.decodeInt() == 2
         demux1.decodeKey() == "c"
         demux1.decodeInt() == 3
         demux1.decodeKey() == null

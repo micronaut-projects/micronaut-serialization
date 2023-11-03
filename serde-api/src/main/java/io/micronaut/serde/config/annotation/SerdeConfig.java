@@ -120,6 +120,11 @@ public @interface SerdeConfig {
     String TYPE_PROPERTY = "typeProperty";
 
     /**
+     * If the type property should be visible.
+     */
+    String TYPE_PROPERTY_VISIBLE = "typePropertyVisible";
+
+    /**
      * A property that should be used to wrap this value when serializing.
      */
     String WRAPPER_PROPERTY = "wrapperProperty";
@@ -266,10 +271,17 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerSubtyped {
+
         /**
          * @return the subtypes
          */
         SerSubtype[] value() default {};
+
+        /**
+         * Is discriminator visible.
+         */
+        String DISCRIMINATOR_VISIBLE = "discriminatorVisible";
+
         /**
          * The discriminator to use.
          */
