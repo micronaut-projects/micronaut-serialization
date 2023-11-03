@@ -280,7 +280,7 @@ public @interface SerdeConfig {
         /**
          * Is discriminator visible.
          */
-        String DISCRIMINATOR_VISIBLE = "dvisible";
+        String DISCRIMINATOR_VISIBLE = "discriminatorVisible";
 
         /**
          * The discriminator to use.
