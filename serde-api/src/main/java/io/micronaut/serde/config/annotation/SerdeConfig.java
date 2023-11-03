@@ -78,6 +78,16 @@ public @interface SerdeConfig {
     String IGNORED = "ignored";
 
     /**
+     * Is it ignored for deserialization.
+     */
+    String IGNORED_DESERIALIZATION = "ignoredDeserialization";
+
+    /**
+     * Is it ignored for serialization.
+     */
+    String IGNORED_SERIALIZATION = "ignoredSerialization";
+
+    /**
      * Include strategy.
      */
     String INCLUDE = "include";
@@ -207,6 +217,16 @@ public @interface SerdeConfig {
          * Is it unknown ignored.
          */
         String IGNORE_UNKNOWN = "ignoreUnknown";
+
+        /**
+         * Is deserialization of ignored properties allowed.
+         */
+        String ALLOW_DESERIALIZE = "allowDeserialize";
+
+        /**
+         * Is serialization of ignored properties allowed.
+         */
+        String ALLOW_SERIALIZE = "allowSerialize";
 
         /**
          * Ignore handling meta annotation on type.

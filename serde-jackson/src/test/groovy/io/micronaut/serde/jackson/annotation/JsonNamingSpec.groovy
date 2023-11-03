@@ -9,7 +9,6 @@ import io.micronaut.serde.config.naming.SnakeCaseStrategy
 import io.micronaut.serde.config.naming.UpperCamelCaseStrategy
 import io.micronaut.serde.config.naming.UpperCamelCaseStrategyWithSpaces
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Requires
 import spock.lang.Unroll
 
 class JsonNamingSpec extends JsonCompileSpec {
@@ -31,7 +30,7 @@ class Test {
     }
     public String getFooBar() {
          return fooBar;
-    }   
+    }
 }
 """, [fooBar: 'test'])
         when:
@@ -78,7 +77,7 @@ class Test {
     }
     public String getFooBar() {
          return fooBar;
-    }   
+    }
 }
 """, [fooBar: 'test'])
         when:
@@ -107,7 +106,6 @@ class Test {
     }
 
     @Unroll
-    @Requires({ jvm.isJava17Compatible() })
     void "test json naming strategy for records: #strategy"() {
         given:
         def context = buildContext('test.Test', """

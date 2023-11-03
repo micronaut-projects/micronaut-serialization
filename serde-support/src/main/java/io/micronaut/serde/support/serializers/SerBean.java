@@ -114,38 +114,15 @@ final class SerBean<T> {
         this.introspection = introspections.getSerializableIntrospection(type);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
 
-        Predicate<String> allowProperty;
-        AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
-            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
-            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
-            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored);
-            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
-            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
-            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
-            if (hasIgnored || hasIncluded) {
-                allowProperty = propertyName -> {
-                    if (hasIgnored && ignoreSet.contains(propertyName)) {
-                        return false;
-                    }
-                    if (hasIncluded && !includedSet.contains(propertyName)) {
-                        return false;
-                    }
-                    return true;
-                };
-            } else {
-                allowProperty = propertyName -> true;
-            }
-        } else {
-            allowProperty = propertyName -> true;
-        }
+        boolean allowIgnoredProperties = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_SERIALIZE).orElse(false);
+
+        @Nullable
+        Predicate<String> argumentPropertyPredicate = resolveAllowPropertyPredicate(type.getAnnotationMetadata(), allowIgnoredProperties);
 
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, null);
         final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanProperties().stream()
-                        .filter(property -> !property.isWriteOnly() &&
-                                !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false) &&
-                                !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false))
+                        .filter(this::filterProperty)
                         .sorted(getPropertyComparator())
                         .map(beanProperty -> {
                             Optional<Argument<?>> constructorArgument = Arrays.stream(introspection.getConstructor().getArguments())
@@ -195,15 +172,15 @@ final class SerBean<T> {
                 initializers.add(ctx -> initProperty(SerBean.this.jsonValue, ctx));
                 writeProperties = Collections.emptyList();
             } else {
+                AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(introspection, type.getAnnotationMetadata());
 
-                AnnotationMetadata am = new AnnotationMetadataHierarchy(introspection, type.getAnnotationMetadata());
-                Optional<String> subType = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
+                Optional<String> subType = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
                 Set<String> addedProperties = CollectionUtils.newHashSet(properties.size());
 
                 if (!properties.isEmpty() || !beanMethods.isEmpty() || subType.isPresent()) {
                     writeProperties = new ArrayList<>(properties.size() + beanMethods.size());
                     subType.ifPresent(typeName -> {
-                        String typeProperty = am.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+                        String typeProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
                         if (typeProperty != null) {
                             SerProperty<T, String> prop;
                             if (SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER.equals(typeName)) {
@@ -240,7 +217,7 @@ final class SerBean<T> {
                             propertiesNameSuffix,
                             propertyNamingStrategy);
 
-                        if (!allowProperty.test(resolvedPropertyName)) {
+                        if (argumentPropertyPredicate != null && !argumentPropertyPredicate.test(resolvedPropertyName)) {
                             continue;
                         }
 
@@ -273,7 +250,7 @@ final class SerBean<T> {
                             propertiesNameSuffix,
                             propertyNamingStrategy);
 
-                        if (!allowProperty.test(resolvedPropertyName)) {
+                        if (argumentPropertyPredicate != null && !argumentPropertyPredicate.test(resolvedPropertyName)) {
                             continue;
                         }
 
@@ -308,6 +285,31 @@ final class SerBean<T> {
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
         subtyped = isAbstractIntrospection || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+    }
+
+    @Nullable
+    private static Predicate<String> resolveAllowPropertyPredicate(AnnotationMetadata annotationMetadata,
+                                                                   boolean allowIgnoredProperties) {
+        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
+            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
+            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
+            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored) && !allowIgnoredProperties;
+            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
+            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
+            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
+            if (hasIgnored || hasIncluded) {
+                return propertyName -> {
+                    if (hasIgnored && ignoreSet.contains(propertyName)) {
+                        return false;
+                    }
+                    if (hasIncluded && !includedSet.contains(propertyName)) {
+                        return false;
+                    }
+                    return true;
+                };
+            }
+        }
+        return null;
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
@@ -438,6 +440,13 @@ final class SerBean<T> {
                 });
         }
         return null;
+    }
+
+    private boolean filterProperty(BeanProperty<T, Object> property) {
+        return !property.isWriteOnly()
+            && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
+            && !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false);
     }
 
     static final class PropSerProperty<B, P> extends SerProperty<B, P> {
