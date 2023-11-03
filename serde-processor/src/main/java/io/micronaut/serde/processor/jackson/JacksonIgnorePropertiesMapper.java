@@ -32,6 +32,8 @@ public class JacksonIgnorePropertiesMapper implements NamedAnnotationMapper {
         return List.of(
             AnnotationValue.builder(SerdeConfig.SerIgnored.class)
                 .member(SerdeConfig.SerIgnored.IGNORE_UNKNOWN, annotation.booleanValue(SerdeConfig.SerIgnored.IGNORE_UNKNOWN).orElse(false))
+                .member(SerdeConfig.SerIgnored.ALLOW_DESERIALIZE, annotation.booleanValue("allowSetters").orElse(false))
+                .member(SerdeConfig.SerIgnored.ALLOW_SERIALIZE, annotation.booleanValue("allowGetters").orElse(false))
                 .members(annotation.getValues())
                 .build()
         );

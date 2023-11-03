@@ -59,6 +59,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
 
@@ -135,10 +136,20 @@ final class DeserBean<T> {
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
-        String[] ignored = introspection.stringValues(SerdeConfig.SerIgnored.class);
-        Set<String> ignoredProperties = new HashSet<>(Arrays.asList(ignored));
+        AnnotationMetadata typeAnnotationMetadata = new AnnotationMetadataHierarchy(
+            type.getAnnotationMetadata(),
+            introspection.getAnnotationMetadata()
+        );
 
-        this.ignoreUnknown = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
+        Set<String> ignoredProperties = new HashSet<>();
+
+        @Nullable
+        Predicate<String> allowPropertyPredicate = resolveAllowPropertyPredicate(type.getAnnotationMetadata(), false);
+
+        // Replicating Jackson behaviour: @JsonIncludeProperties will ignore any not-included properties
+        boolean hasAllowedProperties = type.isAnnotationPresent(SerdeConfig.SerIncluded.class) ||
+            introspection.isAnnotationPresent(SerdeConfig.SerIncluded.class);
+        this.ignoreUnknown = hasAllowedProperties || introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
             .orElse(deserializationConfiguration.isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
 
@@ -148,7 +159,8 @@ final class DeserBean<T> {
         for (int i = 0; i < constructorArguments.length; i++) {
             Argument<Object> constructorArgument = resolveArgument((Argument<Object>) constructorArguments[i]);
             final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument, constructorArgument.getAnnotationMetadata());
-            if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)) {
+            if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)
+                || annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION)) {
                 continue;
             }
             if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
@@ -174,6 +186,11 @@ final class DeserBean<T> {
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
             final String propertyName = resolveName(propertiesNamePrefix, propertiesNameSuffix, constructorArgument, annotationMetadata, propertyNamingStrategy);
+
+            if (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName)) {
+                continue;
+            }
+
             Argument<Object> constructorWithPropertyArgument = Argument.of(
                 constructorArgument.getType(),
                 constructorArgument.getName(),
@@ -249,16 +266,7 @@ final class DeserBean<T> {
                 readPropertiesBuilder.register(jsonProperty, derProperty, true);
             }
             injectProperties = readPropertiesBuilder.build();
-            injectPropertiesSize = injectProperties.getProperties().size();
         } else {
-
-            final List<BeanProperty<T, Object>> beanProperties = introspection.getBeanProperties()
-                .stream().filter(bp -> {
-                    final AnnotationMetadata annotationMetadata = bp.getAnnotationMetadata();
-                    return !bp.isReadOnly() &&
-                        !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false) &&
-                        !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false);
-                }).toList();
             final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
             final List<BeanMethod<T, Object>> jsonSetters = new ArrayList<>(beanMethods.size());
             BeanMethod<T, Object> anySetter = null;
@@ -274,12 +282,31 @@ final class DeserBean<T> {
                 anySetterValue = (anySetter != null ? new AnySetter(anySetter) : null);
             }
 
-            if (CollectionUtils.isNotEmpty(beanProperties) || CollectionUtils.isNotEmpty(jsonSetters)) {
+            if (!introspection.getBeanProperties().isEmpty() || !jsonSetters.isEmpty()) {
                 PropertiesBag.Builder<T> readPropertiesBuilder = new PropertiesBag.Builder<>(introspection);
-                for (int i = 0; i < beanProperties.size(); i++) {
-                    BeanProperty<T, Object> beanProperty = beanProperties.get(i);
-                    PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
+                int i = -1;
+                for (BeanProperty<T, Object> beanProperty : introspection.getBeanProperties()) {
                     final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
+                    final String propertyName = resolveName(
+                        propertiesNamePrefix,
+                        propertiesNameSuffix,
+                        beanProperty,
+                        annotationMetadata,
+                        getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy)
+                    );
+
+                    if (beanProperty.isReadOnly()) {
+                        continue;
+                    }
+                    if (isIgnored(beanProperty) || allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName)) {
+                        ignoredProperties.add(propertyName);
+                        continue;
+                    }
+                    i++;
+
+                    // Remove any ignored conflicting properties
+                    ignoredProperties.remove(propertyName);
+
                     if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
                         anySetterValue = new AnySetter(beanProperty);
                     } else {
@@ -303,7 +330,7 @@ final class DeserBean<T> {
                                 decoderContext
                             );
                         }
-                        final String propertyName = resolveName(propertiesNamePrefix, propertiesNameSuffix, beanProperty, annotationMetadata, propertyNamingStrategy);
+
                         final DerProperty<T, Object> derProperty = new DerProperty<>(
                             conversionService,
                             introspection,
@@ -357,12 +384,11 @@ final class DeserBean<T> {
                     readPropertiesBuilder.register(property, derProperty, true);
                 }
                 injectProperties = readPropertiesBuilder.build();
-                injectPropertiesSize = injectProperties.getProperties().size();
             } else {
                 injectProperties = null;
-                injectPropertiesSize = 0;
             }
         }
+        this.injectPropertiesSize = injectProperties == null ? 0 : injectProperties.getProperties().size();
         this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
 
         this.anySetter = anySetterValue;
@@ -372,17 +398,20 @@ final class DeserBean<T> {
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
-        AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(
-            type.getAnnotationMetadata(),
-            introspection.getAnnotationMetadata());
+        this.subtypeInfo = createSubtypeInfo(typeAnnotationMetadata, introspection, decoderContext, deserBeanRegistry);
 
-        this.subtypeInfo = createSubtypeInfo(annotationMetadata, introspection, decoderContext, deserBeanRegistry);
-
-        String discriminatorProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
-        if (discriminatorProperty != null && !annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
+        String discriminatorProperty = typeAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+        if (discriminatorProperty != null && !typeAnnotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
             ignoredProperties.add(discriminatorProperty);
         }
-
+        boolean allowIgnoredProperties = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_DESERIALIZE).orElse(false);
+        if (!allowIgnoredProperties) {
+            ignoredProperties.addAll(
+                Arrays.asList(
+                    typeAnnotationMetadata.stringValues(SerdeConfig.SerIgnored.class)
+                )
+            );
+        }
         if (ignoredProperties.isEmpty()) {
             this.ignoredProperties = null;
         } else {
@@ -391,6 +420,31 @@ final class DeserBean<T> {
 
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
+    }
+
+    @Nullable
+    private static Predicate<String> resolveAllowPropertyPredicate(AnnotationMetadata annotationMetadata,
+                                                                   boolean allowIgnoredProperties) {
+        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
+            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
+            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
+            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored) && !allowIgnoredProperties;
+            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
+            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
+            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
+            if (hasIgnored || hasIncluded) {
+                return propertyName -> {
+                    if (hasIgnored && ignoreSet.contains(propertyName)) {
+                        return false;
+                    }
+                    if (hasIncluded && !includedSet.contains(propertyName)) {
+                        return false;
+                    }
+                    return true;
+                };
+            }
+        }
+        return null;
     }
 
     private static <T> SubtypeInfo<T> createSubtypeInfo(AnnotationMetadata annotationMetadata,
@@ -641,6 +695,13 @@ final class DeserBean<T> {
             return decoderContext.findCustomDeserializer(customDeser).createSpecific(decoderContext, argument);
         }
         return (Deserializer<T>) decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
+    }
+
+    private boolean isIgnored(BeanProperty<T, Object> bp) {
+        final AnnotationMetadata annotationMetadata = bp.getAnnotationMetadata();
+        return annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+            || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false);
     }
 
     static final class AnySetter<T> {

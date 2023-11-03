@@ -175,11 +175,11 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
             if (buffer.size() > i) {
                 return buffer.get(i);
             } else {
-                if (buffer.size() != i) {
-                    throw new IllegalArgumentException("Must access entries in sequence");
-                }
                 if (hitEnd) {
                     return null;
+                }
+                if (buffer.size() != i) {
+                    throw new IllegalArgumentException("Must access entries in sequence");
                 }
                 if (!buffer.isEmpty()) {
                     Entry lastEntry = buffer.get(buffer.size() - 1);

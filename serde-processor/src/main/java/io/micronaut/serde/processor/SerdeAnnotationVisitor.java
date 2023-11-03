@@ -65,7 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -687,6 +686,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return;
         }
 
+        if (!subtype.hasAnnotation(SerdeConfig.SerIgnored.class)) {
+            // Replicate the Jackson behaviour of using the ignore annotation from supertype but allow to override it
+            AnnotationValue<SerdeConfig.SerIgnored> serIgnored = supertype.getAnnotation(SerdeConfig.SerIgnored.class);
+            if (serIgnored != null) {
+                subtype.annotate(serIgnored);
+            }
+            // Re-evaluate ignore properties
+            visitProperties(subtype, context);
+        }
+
         final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind =
             getDiscriminatorValueKind(supertype);
         final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
@@ -814,43 +823,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
 
-            final List<PropertyElement> beanProperties = element.getBeanProperties();
-            final List<String> order = Arrays.asList(element.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
-            Collections.reverse(order);
-            final Set<Introspected.AccessKind> access = CollectionUtils.setOf(element.enumValues(Introspected.class,
-                                                                                                 "accessKind",
-                                                                                                 Introspected.AccessKind.class));
-            boolean supportFields = access.contains(Introspected.AccessKind.FIELD);
-            final String[] ignoresProperties = element.stringValues(SerdeConfig.SerIgnored.class);
-            final String[] includeProperties = element.stringValues(SerdeConfig.SerIncluded.class);
-
-            final boolean allowGetters = element.booleanValue(SerdeConfig.SerIgnored.class, "allowGetters").orElse(false);
-            final boolean allowSetters = element.booleanValue(SerdeConfig.SerIgnored.class, "allowSetters").orElse(false);
-            PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(element, null);
-            processProperties(
-                    context,
-                    beanProperties,
-                    order,
-                    ignoresProperties,
-                    includeProperties,
-                    allowGetters,
-                    allowSetters,
-                    propertyNamingStrategy
-            );
-            if (supportFields) {
-                final List<FieldElement> fields = element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance()
-                                                                                                .onlyAccessible());
-                processProperties(
-                        context,
-                        fields,
-                        order,
-                        ignoresProperties,
-                        includeProperties,
-                        allowGetters,
-                        allowSetters,
-                        propertyNamingStrategy
-                );
-            }
+            visitProperties(element, context);
 
             findTypeInfo(element, false)
                 .ifPresent(superType -> visitSubtype(superType, element, context));
@@ -858,6 +831,46 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                 context.fail("Inheritance cannot be combined with DELEGATING creation", element);
             }
+        }
+    }
+
+    private void visitProperties(ClassElement classElement, VisitorContext context) {
+        final List<PropertyElement> beanProperties = classElement.getBeanProperties();
+        final List<String> order = Arrays.asList(classElement.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
+        Collections.reverse(order);
+        final Set<Introspected.AccessKind> access = CollectionUtils.setOf(classElement.enumValues(Introspected.class,
+                                                                                             "accessKind",
+                                                                                             Introspected.AccessKind.class));
+        boolean supportFields = access.contains(Introspected.AccessKind.FIELD);
+        final String[] ignoresProperties = classElement.stringValues(SerdeConfig.SerIgnored.class);
+        final String[] includeProperties = classElement.stringValues(SerdeConfig.SerIncluded.class);
+
+        final boolean ignoreOnlyDeserialization = classElement.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_SERIALIZE).orElse(false);
+        final boolean ignoreOnlySerialization = classElement.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_DESERIALIZE).orElse(false);
+        PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(classElement, null);
+        processProperties(
+            context,
+                beanProperties,
+                order,
+                ignoresProperties,
+                includeProperties,
+                ignoreOnlyDeserialization,
+                ignoreOnlySerialization,
+                propertyNamingStrategy
+        );
+        if (supportFields) {
+            final List<FieldElement> fields = classElement.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance()
+                                                                                            .onlyAccessible());
+            processProperties(
+                context,
+                    fields,
+                    order,
+                    ignoresProperties,
+                    includeProperties,
+                    ignoreOnlyDeserialization,
+                    ignoreOnlySerialization,
+                    propertyNamingStrategy
+            );
         }
     }
 
@@ -1024,8 +1037,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    List<String> order,
                                    String[] ignoresProperties,
                                    String[] includeProperties,
-                                   boolean allowGetters,
-                                   boolean allowSetters,
+                                   boolean ignoreOnlyDeserialization,
+                                   boolean ignoreOnlySerialization,
                                    @Nullable PropertyNamingStrategy namingStrategy) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
@@ -1035,14 +1048,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
-            if (beanProperty instanceof PropertyElement) {
-                PropertyElement pm = (PropertyElement) beanProperty;
-                pm.getReadMethod().ifPresent(rm ->
-                    readMethods.add(rm.getName())
-                );
-                pm.getWriteMethod().ifPresent(rm ->
-                    writeMethods.add(rm.getName())
-                );
+            if (beanProperty instanceof PropertyElement pm) {
+                pm.getReadMethod().ifPresent(rm -> readMethods.add(rm.getName()));
+                pm.getWriteMethod().ifPresent(rm -> writeMethods.add(rm.getName()));
             }
             if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                 final ClassElement t = beanProperty.getGenericType();
@@ -1065,29 +1073,44 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
 
             if (ignoredSet.contains(propertyName)) {
-                ignoreProperty(allowGetters, allowSetters, beanProperty);
+                ignoreProperty(ignoreOnlyDeserialization, ignoreOnlySerialization, beanProperty);
             } else if (!includeSet.isEmpty() && !includeSet.contains(propertyName)) {
-                ignoreProperty(allowGetters, allowSetters, beanProperty);
+                ignoreProperty(false, false, beanProperty);
             }
         }
     }
 
-    private void ignoreProperty(boolean allowGetters, boolean allowSetters, TypedElement beanProperty) {
-        final Consumer<Element> configurer = m ->
-                m.annotate(SerdeConfig.class, (builder) ->
-                        builder.member(SerdeConfig.IGNORED, true)
-                );
-        if (beanProperty instanceof PropertyElement) {
-            final PropertyElement propertyElement = (PropertyElement) beanProperty;
-            if (allowGetters) {
-                propertyElement.getWriteMethod().ifPresent(configurer);
-            } else if (allowSetters) {
-                propertyElement.getReadMethod().ifPresent(configurer);
+    private void ignoreProperty(boolean ignoreOnlyDeserialization,
+                                boolean ignoreOnlySerialization,
+                                TypedElement beanProperty) {
+        if (beanProperty instanceof PropertyElement propertyElement) {
+            if (ignoreOnlySerialization) {
+                propertyElement.getReadMethod().ifPresent(e -> e.annotate(SerdeConfig.class, (builder) ->
+                    builder.member(SerdeConfig.IGNORED_SERIALIZATION, true)
+                ));
+            } else if (ignoreOnlyDeserialization) {
+                propertyElement.getWriteMethod().ifPresent(e -> e.annotate(SerdeConfig.class, (builder) ->
+                    builder.member(SerdeConfig.IGNORED_DESERIALIZATION, true)
+                ));
             } else {
-                configurer.accept(beanProperty);
+                propertyElement.annotate(SerdeConfig.class, (builder) ->
+                    builder.member(SerdeConfig.IGNORED, true)
+                );
             }
         } else {
-            configurer.accept(beanProperty);
+            if (ignoreOnlySerialization) {
+                beanProperty.annotate(SerdeConfig.class, (builder) ->
+                    builder.member(SerdeConfig.IGNORED_SERIALIZATION, true)
+                );
+            } else if (ignoreOnlyDeserialization) {
+                beanProperty.annotate(SerdeConfig.class, (builder) ->
+                    builder.member(SerdeConfig.IGNORED_DESERIALIZATION, true)
+                );
+            } else {
+                beanProperty.annotate(SerdeConfig.class, (builder) ->
+                    builder.member(SerdeConfig.IGNORED, true)
+                );
+            }
         }
     }
 
@@ -1206,7 +1229,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         "com.fasterxml.jackson.annotation.JsonTypeName",
                         "com.fasterxml.jackson.annotation.JsonTypeId",
                         "com.fasterxml.jackson.annotation.JsonAutoDetect",
-                        "com.fasterxml.jackson.annotation.JsonIgnoreProperties"
+                        "com.fasterxml.jackson.annotation.JsonIgnoreProperties",
+                        "com.fasterxml.jackson.annotation.JsonIncludeProperties"
             ).anyMatch(element::hasDeclaredAnnotation) ||
             (element.hasStereotype(Serdeable.Serializable.class) || element.hasStereotype(Serdeable.Deserializable.class));
     }

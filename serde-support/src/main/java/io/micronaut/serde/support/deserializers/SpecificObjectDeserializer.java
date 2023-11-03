@@ -103,10 +103,10 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             objectDecoder.finishStructure(true);
         } else {
             if (deserBean.ignoredProperties != null) {
-                String key = decoder.decodeKey();
+                String key = objectDecoder.decodeKey();
                 while (key != null) {
                     handleUnknownProperty(type, objectDecoder, key, deserBean);
-                    key = decoder.decodeKey();
+                    key = objectDecoder.decodeKey();
                 }
             }
             objectDecoder.finishStructure();

@@ -1095,4 +1095,227 @@ class Cat implements Animal {
         cleanup:
             context.close()
     }
+
+    void "test JsonIgnoreProperties on supertype"() {
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type",
+  defaultImpl = Dog.class)
+@JsonIgnoreProperties("name")
+interface Animal {
+    String getName();
+}
+
+@JsonTypeName("dog")
+class Dog implements Animal {
+    public double barkVolume;
+    private String name;
+    @Override public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat implements Animal {
+    public boolean likesCream;
+    public int lives;
+    private String name;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
+            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+            def dogJson = writeJson(jsonMapper, dog)
+            def catJson = writeJson(jsonMapper, cat)
+
+        then:
+            dogJson == '{"type":"dog","barkVolume":1.1}'
+            catJson == '{"type":"cat","likesCream":true,"lives":9}'
+
+        when:
+            def dogClass = dog.getClass()
+            def catClass = cat.getClass()
+            def dogBean = jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'test.Animal'))
+            def catBean = jsonMapper.readValue(catJson, argumentOf(context, 'test.Animal'))
+
+        then:
+            catClass.isInstance(catBean)
+            dogClass.isInstance(dogBean)
+            dogBean.name == null
+            dogBean.barkVolume == 1.1d
+            catBean.name == null
+            catBean.likesCream
+            catBean.lives == 9
+
+        cleanup:
+            context.close()
+    }
+
+    void "test scenario"() {
+        given:
+            def context = buildContext("""
+package test;
+
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@Serdeable
+@JsonPropertyOrder({
+        "author"
+})
+@Introspected
+class BasicBookInfo extends BookInfo {
+
+    private String author;
+
+    public BasicBookInfo() {
+    }
+
+    public BasicBookInfo(String author, String name, TypeEnum type) {
+        super(name, type);
+        this.author = author;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+}
+
+@Serdeable
+@JsonPropertyOrder({
+        "name",
+        "type"
+})
+@JsonIgnoreProperties(
+  value = "type",
+  allowSetters = true
+)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", visible = true)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = BasicBookInfo.class, name = "BASIC")
+})
+@Introspected
+class BookInfo {
+
+    private String name;
+
+    protected TypeEnum type;
+
+    public BookInfo() {
+    }
+
+    public BookInfo(String name, TypeEnum type) {
+        this.name = name;
+        this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public TypeEnum getType() {
+        return type;
+    }
+
+    public void setType(TypeEnum type) {
+        this.type = type;
+    }
+
+    @Serdeable
+    public enum TypeEnum {
+        BASIC("BASIC"),
+        DETAILED("DETAILED");
+
+        private final String value;
+
+        TypeEnum(String value) {
+            this.value = value;
+        }
+
+        @JsonValue
+        public String getValue() {
+            return value;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
+
+        private final static Map<String, TypeEnum> VALUE_MAPPING = Arrays.stream(values())
+            .collect(Collectors.toMap(v -> v.getValue(), v -> v));
+
+        @JsonCreator
+        public static TypeEnum fromValue(String value) {
+            if (!VALUE_MAPPING.containsKey(value)) {
+                throw new IllegalArgumentException("Unexpected value '" + value + "'");
+            }
+            return VALUE_MAPPING.get(value);
+        }
+    }
+}
+""")
+
+        when:
+
+            def testModel = newInstance(context, 'test.BasicBookInfo', [
+                    author: "Michael Ende",
+                    name: "The Neverending Story",
+                    type: context.classLoader.loadClass('test.BookInfo$TypeEnum').enumConstants[0]]
+            )
+            def json = writeJson(jsonMapper, testModel)
+
+        then:
+            json == '{"type":"BASIC","author":"Michael Ende","name":"The Neverending Story"}'
+
+        when:
+            def bean = jsonMapper.readValue(json, context.classLoader.loadClass('test.BookInfo'))
+        then:
+            bean.author == "Michael Ende"
+            bean.name == "The Neverending Story"
+            bean.type.toString() == "BASIC"
+
+        when:
+            bean = jsonMapper.readValue(json, context.classLoader.loadClass('test.BasicBookInfo'))
+        then:
+            bean.author == "Michael Ende"
+            bean.name == "The Neverending Story"
+            bean.type.toString() == "BASIC"
+
+        cleanup:
+            context.close()
+    }
 }
