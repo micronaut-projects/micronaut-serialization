@@ -19,8 +19,11 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,11 +73,10 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
      *
      * @param decoder The input to read from. The primed decoder will call {@link #decodeObject()}
      *                on this input exactly once
-     * @param consumeValues If decoder should consume value or not
      * @return The primed decoder
      */
-    public static Decoder prime(Decoder decoder, boolean consumeValues) {
-        return new PrimedDecoder(decoder, consumeValues);
+    public static PrimedDecoder prime(Decoder decoder) {
+        return new PrimedDecoder(decoder);
     }
 
     @Override
@@ -104,12 +106,15 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
 
     @Override
     protected Decoder delegate() throws IOException {
-        DemuxerState.Entry e = entryForValue();
-        if (consumeValues) {
-            return e.consume();
-        } else {
-            return e.buffer();
+        DemuxerState.Entry entry = entryForValue();
+        Decoder delegate = entry.consume();
+        if (!consumeValues) {
+            JsonNode node = delegate.decodeNode();
+            entry.consumed = false;
+            entry.buffer = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
+            delegate = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
         }
+        return delegate;
     }
 
     @Override
@@ -220,15 +225,6 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 }
             }
 
-            Decoder buffer() throws IOException {
-                if (buffer != null) {
-                    return buffer;
-                } else {
-                    buffer = delegate.decodeBuffer();
-                }
-                return buffer;
-            }
-
             boolean decodeNull() throws IOException {
                 // this call has the expectation that a proper consume() will follow
                 if (consumed) {
@@ -243,15 +239,13 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
         }
     }
 
-    private static class PrimedDecoder extends DelegatingDecoder {
+    static final class PrimedDecoder extends DelegatingDecoder {
         private final Decoder delegate;
-        private final boolean absorbValues;
         @Nullable
         private DemuxerState state;
 
-        PrimedDecoder(Decoder delegate, boolean absorbValues) {
+        private PrimedDecoder(Decoder delegate) {
             this.delegate = delegate;
-            this.absorbValues = absorbValues;
         }
 
         @Override
@@ -260,7 +254,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 state = new DemuxerState(delegate.decodeObject());
                 state.outputCount++;
             }
-            return new DemuxingObjectDecoder(state, absorbValues);
+            return new DemuxingObjectDecoder(state, true);
         }
 
         @Override
@@ -269,7 +263,24 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 state = new DemuxerState(delegate.decodeObject(type));
                 state.outputCount++;
             }
-            return new DemuxingObjectDecoder(state, absorbValues);
+            return new DemuxingObjectDecoder(state, true);
+        }
+
+        /**
+         * Decode this object in a "non-consuming" fashion. Values read by the returned decoder can
+         * still be read by other decoders, though possibly in a degraded state (e.g. decreased
+         * numerical precision).
+         *
+         * @param type See {@link #decodeObject(Argument)}
+         * @return The object decoder
+         * @throws IOException If an unrecoverable error occurs
+         */
+        public @NonNull DemuxingObjectDecoder decodeObjectNonConsuming(@NonNull Argument<?> type) throws IOException {
+            if (state == null) {
+                state = new DemuxerState(delegate.decodeObject(type));
+                state.outputCount++;
+            }
+            return new DemuxingObjectDecoder(state, false);
         }
 
         @Override

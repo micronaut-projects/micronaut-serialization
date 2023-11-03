@@ -53,8 +53,13 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
-        try (Decoder primed = DemuxingObjectDecoder.prime(decoder, !discriminatorVisible)) {
-            Decoder typeFinder = primed.decodeObject(type);
+        try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
+            Decoder typeFinder;
+            if (discriminatorVisible) {
+                typeFinder = primed.decodeObjectNonConsuming(type);
+            } else {
+                typeFinder = primed.decodeObject(type);
+            }
             Deserializer<Object> deserializer = findDeserializer(typeFinder);
             typeFinder.finishStructure(true);
 
