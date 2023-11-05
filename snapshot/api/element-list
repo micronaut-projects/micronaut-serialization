@@ -27,5 +27,4 @@ io.micronaut.serde.support.serdes
 io.micronaut.serde.support.serializers
 io.micronaut.serde.support.util
 io.micronaut.serde.tck.tests
-io.micronaut.serde.tck.tests.bytebuffer
 io.micronaut.serde.util
