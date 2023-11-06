@@ -4,6 +4,61 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 
 class JsonSerializeDeserializeSpec extends JsonCompileSpec {
 
+    void 'test json deserialize on collection'() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.LinkedList;
+import java.util.List;
+
+@Serdeable.Deserializable
+record Test(
+    @JsonDeserialize(as = LinkedList.class) List<Integer> list
+) {}
+
+""")
+
+        when:
+        def result = jsonMapper.readValue('{"list": [1, 2, 3]}', typeUnderTest);
+        then:
+        result.getClass().name == 'test.Test'
+        result.list instanceof LinkedList
+        result.list == [1, 2, 3] as LinkedList
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test basic json deserialize on collection'() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.LinkedList;
+import java.util.List;
+
+@Serdeable.Deserializable
+record Test(
+    @Serdeable.Deserializable(as = LinkedList.class) List<Integer> list
+) {}
+
+""")
+
+        when:
+        def result = jsonMapper.readValue('{"list": [1, 2, 3]}', typeUnderTest);
+        then:
+        result.getClass().name == 'test.Test'
+        result.list instanceof LinkedList
+        result.list == [1, 2, 3] as LinkedList
+
+        cleanup:
+        context.close()
+    }
+
     void 'test json serialize/deserialize as'() {
         given:
         def context = buildContext('test.Test', """
@@ -25,7 +80,7 @@ class TestImpl implements Test {
     TestImpl(String value) {
         this.value = value;
     }
-    
+
     @Override
     public String getValue() {
         return value;
@@ -67,7 +122,7 @@ class ClientAuthentication extends ServerAuthentication implements Authenticatio
     ClientAuthentication(String value) {
         super(value);
     }
-    
+
     public String getAnother() {
         return "Shouldn't appear in serialization output";
     }
@@ -79,7 +134,7 @@ class ServerAuthentication implements Authentication {
     ServerAuthentication(String value) {
         this.value = value;
     }
-    
+
     @Override
     public String getValue() {
         return value;

@@ -694,6 +694,15 @@ final class DeserBean<T> {
         if (customDeser != null) {
             return decoderContext.findCustomDeserializer(customDeser).createSpecific(decoderContext, argument);
         }
+        Class<T> deserializeAs = argument.getAnnotationMetadata().classValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
+        if (deserializeAs != null) {
+            argument = Argument.of(
+                deserializeAs,
+                argument.getName(),
+                argument.getAnnotationMetadata(),
+                argument.getTypeParameters()
+            );
+        }
         return (Deserializer<T>) decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
     }
 
