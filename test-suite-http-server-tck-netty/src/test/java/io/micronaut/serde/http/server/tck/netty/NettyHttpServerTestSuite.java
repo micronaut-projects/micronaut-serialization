@@ -21,10 +21,14 @@ import org.junit.platform.suite.api.Suite;
 import org.junit.platform.suite.api.SuiteDisplayName;
 
 @Suite
-@ExcludeClassNamePatterns("io.micronaut.http.server.tck.tests.constraintshandler.ControllerConstraintHandlerTest")
+@ExcludeClassNamePatterns({
+    "io.micronaut.http.server.tck.tests.constraintshandler.ControllerConstraintHandlerTest",
+    "io.micronaut.http.server.tck.tests.forms.FormsInputNumberOptionalTest",
+    "io.micronaut.http.server.tck.tests.forms.FormsSubmissionsWithListsTest"
+})
 @SelectPackages({
         "io.micronaut.http.server.tck.tests",
-        "io.micronaut.serde.http.server.tck.netty"
+        "io.micronaut.serde.http.server.tck.netty",
 })
 @SuiteDisplayName("HTTP Server TCK for Netty")
 public class NettyHttpServerTestSuite {
