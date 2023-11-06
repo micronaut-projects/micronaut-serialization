@@ -313,6 +313,13 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
             BsonReaderDecoder decoder = new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS)
         when:
+            def deser = serdeRegistry.findDeserializer(Book).createSpecific(context, bookArgument)
+            def b = deser.deserialize(new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS), context, bookArgument)
+        then:
+            b.title == "xyz"
+            b.pages == 12
+            b.objectId == id.getValue()
+        when:
             Book book = new Book()
             def objectDecoder = decoder.decodeObject(bookArgument)
             objectDecoder.decodeKey()
