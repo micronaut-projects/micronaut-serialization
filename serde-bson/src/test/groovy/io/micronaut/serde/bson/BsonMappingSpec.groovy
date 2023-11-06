@@ -1,6 +1,5 @@
 package io.micronaut.serde.bson
 
-
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Deserializer
 import io.micronaut.serde.LimitingStream
@@ -12,14 +11,19 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.bson.BsonBinaryReader
 import org.bson.BsonDocument
+import org.bson.BsonInt32
 import org.bson.BsonObjectId
 import org.bson.BsonReader
+import org.bson.BsonString
 import org.bson.BsonType
 import org.bson.BsonValue
 import org.bson.BsonWriter
+import org.bson.codecs.BsonInt32Codec
 import org.bson.codecs.Codec
 import org.bson.codecs.DecoderContext
 import org.bson.codecs.EncoderContext
+import org.bson.codecs.ObjectIdCodec
+import org.bson.codecs.StringCodec
 import org.bson.types.ObjectId
 import spock.lang.Specification
 
@@ -294,6 +298,68 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             Address address = asDecoder.deserialize(new BsonReaderDecoder(bsonDocumentAddress.asBsonReader(), LimitingStream.DEFAULT_LIMITS), context, addressArgument)
         then:
             address.address == "The home"
+    }
+
+    def "test custom decoders deserializing"() {
+        given:
+            def bookArgument = Argument.of(Book)
+            Deserializer.DecoderContext context = serdeRegistry.newDecoderContext(null)
+
+            BsonObjectId id = new BsonObjectId()
+            def bookDoc = new BsonDocument()
+            bookDoc.put("title", new BsonString("xyz"))
+            bookDoc.put("objectId", id)
+            bookDoc.put("pages", new BsonInt32(12))
+
+            BsonReaderDecoder decoder = new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS)
+        when:
+            Book book = new Book()
+            def objectDecoder = decoder.decodeObject(bookArgument)
+            objectDecoder.decodeKey()
+            objectDecoder.decodeNull()
+            book.setTitle(new CodecBsonDecoder<>(new StringCodec()).deserialize(objectDecoder, context, Argument.of(String)))
+            objectDecoder.decodeKey()
+            objectDecoder.decodeNull()
+            book.setObjectId(new CodecBsonDecoder<>(new ObjectIdCodec()).deserialize(objectDecoder, context, Argument.of(ObjectId)))
+            objectDecoder.decodeKey()
+            objectDecoder.decodeNull()
+            book.setPages(new CodecBsonDecoder<>(new BsonInt32Codec()).deserialize(objectDecoder, context, Argument.of(BsonInt32)).value)
+            objectDecoder.finishStructure()
+        then:
+            book.objectId == id.value
+            book.title == "xyz"
+            book.pages == 12
+    }
+
+    def "test custom decoders deserializing 2"() {
+        given:
+            def bookArgument = Argument.of(Book)
+            Deserializer.DecoderContext context = serdeRegistry.newDecoderContext(null)
+
+            BsonObjectId id = new BsonObjectId()
+            def bookDoc = new BsonDocument()
+            bookDoc.put("objectId", id)
+            bookDoc.put("title", new BsonString("xyz"))
+            bookDoc.put("pages", new BsonInt32(12))
+
+            BsonReaderDecoder decoder = new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS)
+        when:
+            Book book = new Book()
+            def objectDecoder = decoder.decodeObject(bookArgument)
+            objectDecoder.decodeKey()
+            objectDecoder.decodeNull()
+            book.setObjectId(new CodecBsonDecoder<>(new ObjectIdCodec()).deserialize(objectDecoder, context, Argument.of(ObjectId)))
+            objectDecoder.decodeKey()
+            objectDecoder.decodeNull()
+            book.setTitle(new CodecBsonDecoder<>(new StringCodec()).deserialize(objectDecoder, context, Argument.of(String)))
+            objectDecoder.decodeKey()
+            objectDecoder.decodeNull()
+            book.setPages(new CodecBsonDecoder<>(new BsonInt32Codec()).deserialize(objectDecoder, context, Argument.of(BsonInt32)).value)
+            objectDecoder.finishStructure()
+        then:
+            book.objectId == id.value
+            book.title == "xyz"
+            book.pages == 12
     }
 
     def "test nested bson document parsing"() {
