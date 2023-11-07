@@ -4,6 +4,27 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 
 class JsonSerializeDeserializeSpec extends JsonCompileSpec {
 
+    void 'test errors'() {
+        when:
+            buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.LinkedList;
+import java.util.List;
+import java.time.LocalDate;
+
+@Serdeable.Deserializable(as = LinkedList.class)
+@Serdeable.Serializable(as = LocalDate.class)
+public interface Test {}
+
+""")
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains "Type to serialize as [java.time.LocalDate], must be a subtype of the annotated type: test.Test"
+    }
+
     void 'test json deserialize on collection'() {
         given:
         def context = buildContext('test.Test', """

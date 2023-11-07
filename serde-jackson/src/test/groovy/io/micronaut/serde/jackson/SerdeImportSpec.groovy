@@ -21,14 +21,14 @@ import io.micronaut.serde.annotation.SerdeImport;
 
 @SerdeImport(
     value = SQSEvent.class,
-    mixin = SQSEventMixin.class      
+    mixin = SQSEventMixin.class
 )
 @SerdeImport(
     value = SQSEvent.SQSMessage.class,
-    mixin = SQSEventMixin.SQSMessageMixin.class      
+    mixin = SQSEventMixin.SQSMessageMixin.class
 )
 class AddMixin {
-    
+
 }
 ''')
         def event = new SQSEvent()
@@ -78,7 +78,7 @@ public class Test implements HttpStatusInfo {
     @Override public String name() {
         return status.getReason();
     }
-    @Override public int code() { 
+    @Override public int code() {
         return status.getCode();
     }
 }
@@ -89,7 +89,7 @@ abstract class TestMixin  {
     TestMixin(int code) {
         this.status = HttpStatus.valueOf(code);
     }
-    
+
     @JsonValue
     abstract int code();
 }
@@ -139,12 +139,13 @@ class Test implements HttpStatusInfo {
     @Override public String name() {
         return status.getReason();
     }
-    @Override public int code() { 
+    @Override public int code() {
         return status.getCode();
     }
 }
 
-@Serdeable.Deserializable(as = Another.class)
+// Skip validation for this mixin: the deserializable-as cannot be validated for a mixin
+@Serdeable.Deserializable(validate = false, as = Another.class)
 interface TestMixin {
     @JsonValue
     int code();
@@ -160,7 +161,7 @@ class Another implements HttpStatusInfo {
     @Override public String name() {
         return status.getReason();
     }
-    @Override public int code() { 
+    @Override public int code() {
         return status.getCode();
     }
 }
@@ -242,7 +243,7 @@ public class Test {
     public String getName() {
         return name;
     }
-    
+
     public int getQuantity() {
         return quantity;
     }
@@ -251,7 +252,7 @@ public class Test {
 abstract class TestMixin {
     @JsonProperty("n")
     abstract String getName();
-    
+
     @JsonProperty("qty")
     abstract int getQuantity();
 }
@@ -292,11 +293,11 @@ public class Test {
     public String getName() {
         return name;
     }
-    
+
     public int getQuantity() {
         return quantity;
     }
-    
+
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
@@ -305,10 +306,10 @@ public class Test {
 abstract class TestMixin {
     @JsonProperty("n")
     private String name;
-    
+
     @JsonProperty("qty")
     public abstract int getQuantity();
-    
+
     @JsonProperty("qty")
     public abstract void setQuantity(int quantity);
 }
