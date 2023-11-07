@@ -1,13 +1,26 @@
 package io.micronaut.serde.bson;
 
+import io.micronaut.core.annotation.Creator;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.types.ObjectId;
 
 @Serdeable
-public class Book {
+public class BookWithConstructor {
+    @NonNull
     private ObjectId objectId;
     private String title;
     private int pages;
+
+    public BookWithConstructor() {
+    }
+
+    @Creator
+    public BookWithConstructor(ObjectId objectId, String title, int pages) {
+        this.objectId = objectId;
+        this.title = title;
+        this.pages = pages;
+    }
 
     public ObjectId getObjectId() {
         return objectId;

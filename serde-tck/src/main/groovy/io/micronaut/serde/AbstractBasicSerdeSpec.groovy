@@ -276,6 +276,22 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
         bean.bar() == 'buzz'
     }
 
+    void "test a bean with an extra executable method"() {
+        when:
+            def bean = new BeanWithExtraMethod()
+            bean.name = "Bob"
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            jsonMatches(result, '{"name":"Bob"}')
+
+        when:
+            bean = jsonMapper.readValue(jsonAsBytes(result), Argument.of(BeanWithExtraMethod))
+
+        then:
+            bean.name == 'Bob'
+    }
+
     def <T> T serializeDeserialize(T obj) {
         def output = jsonMapper.writeValueAsBytes(obj)
         return jsonMapper.readValue(output, Argument.of(obj.getClass())) as T

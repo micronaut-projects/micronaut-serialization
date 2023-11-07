@@ -313,13 +313,6 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
 
             BsonReaderDecoder decoder = new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS)
         when:
-            def deser = serdeRegistry.findDeserializer(Book).createSpecific(context, bookArgument)
-            def b = deser.deserialize(new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS), context, bookArgument)
-        then:
-            b.title == "xyz"
-            b.pages == 12
-            b.objectId == id.getValue()
-        when:
             Book book = new Book()
             def objectDecoder = decoder.decodeObject(bookArgument)
             objectDecoder.decodeKey()
@@ -336,6 +329,27 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             book.objectId == id.value
             book.title == "xyz"
             book.pages == 12
+    }
+
+    def "test custom decoders deserializing a bean with a constructor"() {
+        given:
+            def bookArgument = Argument.of(BookWithConstructor)
+            Deserializer.DecoderContext context = serdeRegistry.newDecoderContext(null)
+
+            BsonObjectId id = new BsonObjectId()
+            def bookDoc = new BsonDocument()
+            bookDoc.put("title", new BsonString("xyz"))
+            bookDoc.put("objectId", id)
+            bookDoc.put("pages", new BsonInt32(12))
+
+            BsonReaderDecoder decoder = new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS)
+        when:
+            def deser = serdeRegistry.findDeserializer(BookWithConstructor).createSpecific(context, bookArgument)
+            def b = deser.deserialize(new BsonReaderDecoder(bookDoc.asBsonReader(), LimitingStream.DEFAULT_LIMITS), context, bookArgument)
+        then:
+            b.title == "xyz"
+            b.pages == 12
+            b.objectId == id.getValue()
     }
 
     def "test custom decoders deserializing 2"() {
