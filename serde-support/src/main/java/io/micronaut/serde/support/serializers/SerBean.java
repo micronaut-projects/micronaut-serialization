@@ -176,7 +176,8 @@ final class SerBean<T> {
 
                 final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(introspection.getBeanMethods().size());
                 for (BeanMethod<T, Object> beanMethod : introspection.getBeanMethods()) {
-                    if (beanMethod.isAnnotationPresent(SerdeConfig.SerGetter.class)) {
+                    if (beanMethod.isAnnotationPresent(SerdeConfig.SerGetter.class)
+                        || beanMethod.isAnnotationPresent(SerdeConfig.SerAnyGetter.class)) {
                         jsonGetters.add(beanMethod);
                     }
                 }
