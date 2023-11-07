@@ -235,6 +235,8 @@ final class DeserBean<T> {
             creatorPropertiesBuilder.register(propertyName, derProperty, true);
         }
 
+        this.creatorParams = creatorPropertiesBuilder.build();
+
         if (hasBuilder) {
             PropertiesBag.Builder<T> readPropertiesBuilder = new PropertiesBag.Builder<>(introspection);
             BeanIntrospection.Builder<T> builder = introspection.builder();
@@ -294,7 +296,9 @@ final class DeserBean<T> {
                         annotationMetadata,
                         getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy)
                     );
-
+                    if (creatorParams != null && creatorParams.propertyIndexOf(propertyName) != -1) {
+                        continue;
+                    }
                     if (beanProperty.isReadOnly()) {
                         continue;
                     }
@@ -392,7 +396,7 @@ final class DeserBean<T> {
         this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
 
         this.anySetter = anySetterValue;
-        this.creatorParams = creatorPropertiesBuilder.build();
+
         //noinspection unchecked
         this.creatorUnwrapped = creatorUnwrapped != null ? creatorUnwrapped.toArray(new DerProperty[0]) : null;
         //noinspection unchecked

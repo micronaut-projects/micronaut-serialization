@@ -155,8 +155,8 @@ final class SerBean<T> {
             initializers.add(ctx -> initProperty(SerBean.this.jsonValue, ctx));
             writeProperties = Collections.emptyList();
         } else {
-            final Collection<BeanMethod<T, Object>> beanMethods = introspection.getBeanMethods();
-            final BeanMethod<T, Object> serMethod = beanMethods.stream()
+
+            final BeanMethod<T, Object> serMethod = introspection.getBeanMethods().stream()
                     .filter(m -> m.isAnnotationPresent(SerdeConfig.SerValue.class) || m.getAnnotationMetadata().hasAnnotation(JACKSON_VALUE))
                     .findFirst().orElse(null);
             if (serMethod != null) {
@@ -174,11 +174,19 @@ final class SerBean<T> {
             } else {
                 AnnotationMetadata annotationMetadata = new AnnotationMetadataHierarchy(introspection, type.getAnnotationMetadata());
 
+                final List<BeanMethod<T, Object>> jsonGetters = new ArrayList<>(introspection.getBeanMethods().size());
+                for (BeanMethod<T, Object> beanMethod : introspection.getBeanMethods()) {
+                    if (beanMethod.isAnnotationPresent(SerdeConfig.SerGetter.class)
+                        || beanMethod.isAnnotationPresent(SerdeConfig.SerAnyGetter.class)) {
+                        jsonGetters.add(beanMethod);
+                    }
+                }
+
                 Optional<String> subType = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
                 Set<String> addedProperties = CollectionUtils.newHashSet(properties.size());
 
-                if (!properties.isEmpty() || !beanMethods.isEmpty() || subType.isPresent()) {
-                    writeProperties = new ArrayList<>(properties.size() + beanMethods.size());
+                if (!properties.isEmpty() || !jsonGetters.isEmpty() || subType.isPresent()) {
+                    writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
                     subType.ifPresent(typeName -> {
                         String typeProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
                         if (typeProperty != null) {
@@ -241,7 +249,7 @@ final class SerBean<T> {
                         writeProperties.add(serProperty);
                     }
 
-                    for (BeanMethod<T, Object> jsonGetter : beanMethods) {
+                    for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonGetter.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
                         String resolvedPropertyName = resolveName(jsonGetterAnnotationMetadata,
