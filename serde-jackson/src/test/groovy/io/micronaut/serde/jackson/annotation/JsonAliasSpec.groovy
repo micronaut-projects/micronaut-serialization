@@ -1,7 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Requires
 
 class JsonAliasSpec extends JsonCompileSpec {
     void 'test JsonAlias with simple properties'() {
@@ -52,7 +51,6 @@ class Item {
         context.close()
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void 'test JsonAlias with records'() {
         given:
         def context = buildContext('''
