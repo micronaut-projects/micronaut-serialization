@@ -451,6 +451,6 @@ record Test(
 
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("A method annotated with AnyGetter must return a Map")
+        e.message.contains("A field annotated with AnyGetter must be a Map")
     }
 }

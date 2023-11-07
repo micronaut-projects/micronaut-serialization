@@ -44,6 +44,7 @@ import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.inject.ast.TypedElement;
 import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
+import io.micronaut.inject.processing.ProcessingException;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeImport;
@@ -110,197 +111,185 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     @Override
     public void visitField(FieldElement element, VisitorContext context) {
-        if (checkForErrors(element, context)) {
-            return;
-        }
-        checkForFieldErrors(element, context);
+        checkForErrors(element, context);
+        checkForFieldErrors(element);
     }
 
-    private void checkForFieldErrors(FieldElement element, VisitorContext context) {
-        if (failOnError) {
-
-            if (element.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
-                if (element.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
-                    context.fail("A field annotated with AnyGetter cannot be unwrapped", element);
-                } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                    context.fail("A field annotated with AnyGetter cannot be a JsonValue", element);
-                } else if (!element.getGenericField().isAssignable(Map.class)) {
-                    context.fail("A field annotated with AnyGetter must be a Map", element);
-                } else {
-                    if (anyGetterField != null) {
-                        context.fail("Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true),
-                                element);
-                    } else if (anyGetterMethod != null) {
-                        context.fail("Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true),
-                                element);
-                    } else {
-                        this.anyGetterField = element;
-                    }
-                }
-            } else if (element.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
-                if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
-                    context.fail("A field annotated with AnySetter cannot use DELEGATING creation", element);
-                } else if (element.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
-                    context.fail("A field annotated with AnySetter cannot be unwrapped", element);
-                } else if (!element.getGenericField().isAssignable(Map.class)) {
-                    context.fail("A field annotated with AnySetter must be a Map", element);
-                } else {
-                    if (anySetterField != null) {
-                        context.fail("Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true),
-                                element);
-                    } else if (anySetterMethod != null) {
-                        context.fail("Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true),
-                                element);
-                    } else {
-                        this.anySetterField = element;
-                    }
-                }
+    private void checkForFieldErrors(FieldElement element) {
+        if (!failOnError) {
+            return;
+        }
+        if (element.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
+            if (element.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                throw new ProcessingException(element, "A field annotated with AnyGetter cannot be unwrapped");
             } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                if (jsonValueField != null) {
-                    context.fail("A JsonValue field is already defined: " + jsonValueField, element);
-                } else if (jsonValueMethod != null) {
-                    context.fail("A JsonValue method is already defined: " + jsonValueMethod, element);
+                throw new ProcessingException(element, "A field annotated with AnyGetter cannot be a JsonValue");
+            } else if (!element.getGenericField().isAssignable(Map.class)) {
+                throw new ProcessingException(element, "A field annotated with AnyGetter must be a Map");
+            } else {
+                if (anyGetterField != null) {
+                    throw new ProcessingException(element, "Only a single AnyGetter field is supported, another defined: " + anyGetterField.getDescription(true));
+                } else if (anyGetterMethod != null) {
+                    throw new ProcessingException(element, "Cannot define both an AnyGetter field and an AnyGetter method: " + anyGetterMethod.getDescription(true));
                 } else {
-                    this.jsonValueField = element;
+                    this.anyGetterField = element;
                 }
+            }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
+            if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
+                throw new ProcessingException(element, "A field annotated with AnySetter cannot use DELEGATING creation");
+            } else if (element.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                throw new ProcessingException(element, "A field annotated with AnySetter cannot be unwrapped");
+            } else if (!element.getGenericField().isAssignable(Map.class)) {
+                throw new ProcessingException(element, "A field annotated with AnySetter must be a Map");
+            } else {
+                if (anySetterField != null) {
+                    throw new ProcessingException(element, "Only a single AnySetter field is supported, another defined: " + anySetterField.getDescription(true));
+                } else if (anySetterMethod != null) {
+                    throw new ProcessingException(element, "Cannot define both an AnySetter field and an AnySetter method: " + anySetterMethod.getDescription(true));
+                } else {
+                    this.anySetterField = element;
+                }
+            }
+        } else if (element.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+            if (jsonValueField != null) {
+                throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
+            } else if (jsonValueMethod != null) {
+                throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
+            } else {
+                this.jsonValueField = element;
             }
         }
     }
 
     @Override
     public void visitConstructor(ConstructorElement element, VisitorContext context) {
-        if (checkForErrors(element, context)) {
-            return;
-        }
+        checkForErrors(element, context);
     }
 
     @Override
     public void visitMethod(MethodElement element, VisitorContext context) {
-        if (checkForErrors(element, context) || element.getDeclaringType().getAnnotationMetadata().hasAnnotation(SerdeImport.class)) {
+        checkForErrors(element, context);
+        if (element.getDeclaringType().getAnnotationMetadata().hasAnnotation(SerdeImport.class)) {
             return;
         }
-        AnnotationMetadata declaredMetadata = element.getDeclaredMetadata();
-        if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY) ||
-            declaredMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
+        AnnotationMetadata methodMetadata = element.getMethodAnnotationMetadata();
+        if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY) ||
+            methodMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
             ParameterElement[] parameters = element.getParameters();
             if (element.isStatic()) {
-                context.fail("A method annotated with JsonProperty cannot be static", element);
+                throw new ProcessingException(element, "A method annotated with JsonProperty cannot be static");
             } else if (parameters.length == 0) {
                 if (element.getReturnType().getName().equals("void")) {
-                    context.fail("A method annotated with JsonProperty cannot return void", element);
+                    throw new ProcessingException(element, "A method annotated with JsonProperty cannot return void");
                 } else if (!readMethods.contains(element.getName())) {
                     element.annotate(Executable.class);
                     element.annotate(SerdeConfig.SerGetter.class);
                 }
             } else if (parameters.length == 1) {
                 if (!writeMethods.contains(element.getName())) {
-
                     element.annotate(Executable.class);
                     element.annotate(SerdeConfig.SerSetter.class);
                 }
             } else {
-                context.fail("A method annotated with JsonProperty must specify at most 1 argument", element);
+                throw new ProcessingException(element, "A method annotated with JsonProperty must specify at most 1 argument");
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerGetter.class)) {
+        } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerGetter.class)) {
             if (element.isStatic()) {
-                context.fail("A method annotated with JsonGetter cannot be static", element);
+                throw new ProcessingException(element, "A method annotated with JsonGetter cannot be static");
             } else if (element.getReturnType().getName().equals("void")) {
-                context.fail("A method annotated with JsonGetter cannot return void", element);
+                throw new ProcessingException(element, "A method annotated with JsonGetter cannot return void");
             } else if (element.hasParameters()) {
-                context.fail("A method annotated with JsonGetter cannot define arguments", element);
+                throw new ProcessingException(element, "A method annotated with JsonGetter cannot define arguments");
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerSetter.class)) {
+        } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerSetter.class)) {
             if (element.isStatic()) {
-                context.fail("A method annotated with JsonSetter cannot be static", element);
+                throw new ProcessingException(element, "A method annotated with JsonSetter cannot be static");
             } else {
                 final ParameterElement[] parameters = element.getParameters();
                 if (parameters.length != 1) {
-                    context.fail("A method annotated with JsonSetter must specify exactly 1 argument", element);
+                    throw new ProcessingException(element, "A method annotated with JsonSetter must specify exactly 1 argument");
                 }
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
+        } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnyGetter.class)) {
             if (this.anyGetterMethod == null) {
                 this.anyGetterMethod = element;
             } else {
-                context.fail("Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true), element);
+                throw new ProcessingException(element, "Type already defines a method annotated with JsonAnyGetter: " + anyGetterMethod.getDescription(true));
             }
 
-            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
-                context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
+            if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                throw new ProcessingException(element, "A method annotated with AnyGetter cannot be unwrapped");
             } else if (element.isStatic()) {
-                context.fail("A method annotated with AnyGetter cannot be static", element);
+                throw new ProcessingException(element, "A method annotated with AnyGetter cannot be static");
             } else if (!element.getGenericReturnType().isAssignable(Map.class)) {
-                context.fail("A method annotated with AnyGetter must return a Map", element);
+                throw new ProcessingException(element, "A method annotated with AnyGetter must return a Map");
             } else if (element.hasParameters()) {
-                context.fail("A method annotated with AnyGetter cannot define arguments", element);
+                throw new ProcessingException(element, "A method annotated with AnyGetter cannot define arguments");
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
+        } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerAnySetter.class)) {
             if (this.anySetterMethod == null) {
                 this.anySetterMethod = element;
             } else {
-                context.fail("Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true), element);
+                throw new ProcessingException(element, "Type already defines a method annotated with JsonAnySetter: " + anySetterMethod.getDescription(true));
             }
-            if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
-                context.fail("A method annotated with AnyGetter cannot be unwrapped", element);
+            if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerUnwrapped.class)) {
+                throw new ProcessingException(element, "A method annotated with AnyGetter cannot be unwrapped");
             } else if (element.isStatic()) {
-                context.fail("A method annotated with AnySetter cannot be static", element);
+                throw new ProcessingException(element, "A method annotated with AnySetter cannot be static");
             } else {
                 final ParameterElement[] parameters = element.getParameters();
                 if (parameters.length == 1) {
                    if (!parameters[0].getGenericType().isAssignable(Map.class)) {
-                       context.fail("A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String", element);
+                       throw new ProcessingException(element, "A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String");
                    }
                 } else if (parameters.length != 2 || !parameters[0].getGenericType().isAssignable(String.class)) {
-                    context.fail("A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String", element);
+                    throw new ProcessingException(element, "A method annotated with AnySetter must either define a single parameter of type Map or define exactly 2 parameters, the first of which should be of type String");
                 }
             }
-        } else if (declaredMetadata.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+        } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
             if (jsonValueField != null) {
-                context.fail("A JsonValue field is already defined: " + jsonValueField, element);
+                throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
             } else if (jsonValueMethod != null) {
-                context.fail("A JsonValue method is already defined: " + jsonValueMethod, element);
+                throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
                 this.jsonValueMethod = element;
             }
         }
     }
 
-    private boolean checkForErrors(Element element, VisitorContext context) {
+    private void checkForErrors(Element element, VisitorContext context) {
         if (!failOnError) {
-            return false;
+            return;
         }
         if (element instanceof MethodElement) {
             if (readMethods.contains(element.getName()) && !((MethodElement) element).hasParameters()) {
                 // handled by PropertyElement
-                return false;
+                return;
             } else if (writeMethods.contains(element.getName()) && ((MethodElement) element).getParameters().length == 1) {
                 // handled by PropertyElement
-                return false;
+                return;
             }
         }
 
         if (element instanceof MethodElement && element.hasDeclaredAnnotation(SerdeConfig.class) && element.isPrivate()) {
-            context.fail("JSON annotations cannot be used on private methods and constructors", element);
-            return true;
+            throw new ProcessingException(element, "JSON annotations cannot be used on private methods and constructors");
         }
         for (String annotation : getUnsupportedJacksonAnnotations()) {
             if (element.hasDeclaredAnnotation(annotation)) {
-                context.fail("Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported", element);
-                return true;
+                throw new ProcessingException(element, "Annotation @" + NameUtils.getSimpleName(annotation) + " is not supported");
             }
         }
         final String error = element.stringValue(SerdeConfig.SerError.class).orElse(null);
         if (error != null) {
-            context.fail(error, element);
-            return true;
+            throw new ProcessingException(element, error);
         }
         ClassElement propertyType = resolvePropertyType(element);
         if (propertyType == null) {
-            return false;
+            return;
         }
         final boolean isBasicType = isBasicType(propertyType);
         if (isBasicType) {
-
             String defaultValue = element.stringValue(Bindable.class, "defaultValue").orElse(null);
             if (defaultValue != null) {
                 Class t;
@@ -317,72 +306,56 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             ConversionService.SHARED.convertRequired(defaultValue, t);
                         }
                     } catch (ConversionErrorException e) {
-                        context.fail("Invalid defaultValue [" + defaultValue + "] specified: " + e.getConversionError().getCause().getMessage(), element);
-                        return true;
+                        throw new ProcessingException(element, "Invalid defaultValue [" + defaultValue + "] specified: " + e.getConversionError().getCause().getMessage());
                     }
                 }
             }
         }
         final String pattern = element.stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null && failOnError) {
-
-
             if (isNumberType(propertyType)) {
                 try {
                     new DecimalFormat(pattern);
                 } catch (Exception e) {
-                    context.fail("Specified pattern [" + pattern + "] is not a valid decimal format. See the javadoc for DecimalFormat: " + e.getMessage(), element);
-                    return true;
+                    throw new ProcessingException(element, "Specified pattern [" + pattern + "] is not a valid decimal format. See the javadoc for DecimalFormat: " + e.getMessage());
                 }
             } else if (propertyType.isAssignable(Temporal.class)) {
                 try {
                     DateTimeFormatter.ofPattern(pattern);
                 } catch (Exception e) {
-                    context.fail("Specified pattern [" + pattern + "] is not a valid date format. See the javadoc for DateTimeFormatter: " + e.getMessage(), element);
-                    return true;
+                    throw new ProcessingException(element, "Specified pattern [" + pattern + "] is not a valid date format. See the javadoc for DateTimeFormatter: " + e.getMessage());
                 }
             }
         }
 
-        if (handleManagedRef(element, context, propertyType, isBasicType)) {
-            return true;
-        }
-        if (handleBackRef(element, context, propertyType, isBasicType)) {
-            return true;
-        }
+        handleManagedRef(element, context, propertyType, isBasicType);
+        handleBackRef(element, context, propertyType, isBasicType);
 
         if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
             if (isBasicType(propertyType)) {
-                context.fail("Unwrapped cannot be declared on basic types", element);
-                return true;
+                throw new ProcessingException(element, "Unwrapped cannot be declared on basic types");
             }
             final List<String> thatProperties = resolvePropertyNames(context, propertyType, element);
             final List<String> thisProperties = resolvePropertyNames(context, currentClass, null);
             for (String thisProperty : thisProperties) {
                 for (String thatProperty : thatProperties) {
                     if (thisProperty.equals(thatProperty)) {
-                        context.fail("Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.", element);
-                        return true;
+                        throw new ProcessingException(element, "Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.");
                     }
                 }
             }
         }
-        return false;
     }
 
-    private boolean handleBackRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
+    private void handleBackRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
         if (hasAnnotationOnElement(element, SerdeConfig.SerBackRef.class)) {
             if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
-                context.fail("Managed references cannot be unwrapped", element);
-                return true;
+                throw new ProcessingException(element, "Managed references cannot be unwrapped");
             }
             if (isBasicType) {
-                context.fail("Back references cannot be declared on basic types", element);
-                return true;
+                throw new ProcessingException(element, "Back references cannot be declared on basic types");
             } else if (isCollectionType(propertyType)) {
-                context.fail("Back references cannot be declared on collection, array or Map types and must be simple beans",
-                             element);
-                return true;
+                throw new ProcessingException(element, "Back references cannot be declared on collection, array or Map types and must be simple beans");
             }
             final String otherSide = element.stringValue(SerdeConfig.SerBackRef.class).orElse(null);
             final List<TypedElement> inverseElements = resolveInverseElements(
@@ -394,20 +367,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             if (otherSide == null) {
                 final int i = inverseElements.size();
                 if (i > 1) {
-                    context.fail("More than one potential inverse property found  " + inverseElements +
-                                         ", consider specifying a value to the reference to configure the association",
-                                 element);
-                    return true;
+                    throw new ProcessingException(element, "More than one potential inverse property found  " + inverseElements +
+                                         ", consider specifying a value to the reference to configure the association");
                 } else if (i == 0) {
-                    context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
-                    return true;
+                    throw new ProcessingException(element, "No inverse property found for reference of type " + propertyType.getName());
                 } else {
                     final TypedElement otherElement = inverseElements.iterator().next();
                     if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                        context.fail("Back reference declares an incompatible inverse property [" + otherElement + "]. The "
-                                             + "inverse side should be a map, collection, bean or array of the same type as the property.",
-                                     element);
-                        return true;
+                        throw new ProcessingException(element, "Back reference declares an incompatible inverse property [" + otherElement + "]. The "
+                                             + "inverse side should be a map, collection, bean or array of the same type as the property.");
                     }
                     element.annotate(SerdeConfig.SerBackRef.class, (builder) ->
                         builder.value(otherElement.getName())
@@ -418,28 +386,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         .filter(p -> p.getName().equals(otherSide))
                         .findFirst().orElse(null);
                 if (otherElement == null) {
-                    context.fail("Back reference declares an inverse property [" + otherSide + "] that doesn't exist in type " + propertyType.getName(),
-                                 element);
-                    return true;
+                    throw new ProcessingException(element, "Back reference declares an inverse property [" + otherSide + "] that doesn't exist in type " + propertyType.getName());
                 } else if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                    context.fail("Back reference declares an incompatible inverse property [" + otherSide + "]. The inverse side should be a map, collection, bean or array of the same type as the property.",
-                                 element);
-                    return true;
+                    throw new ProcessingException(element, "Back reference declares an incompatible inverse property [" + otherSide + "]. The inverse side should be a map, collection, bean or array of the same type as the property.");
                 }
             }
         }
-        return false;
     }
 
-    private boolean handleManagedRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
+    private void handleManagedRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
         if (hasAnnotationOnElement(element, SerdeConfig.SerManagedRef.class)) {
             if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
-                context.fail("Managed references cannot be unwrapped", element);
-                return true;
+                throw new ProcessingException(element, "Managed references cannot be unwrapped");
             }
             if (isBasicType) {
-                context.fail("Managed references cannot be declared on basic types", element);
-                return true;
+                throw new ProcessingException(element, "Managed references cannot be declared on basic types");
             }
 
             final String otherSide = element.stringValue(SerdeConfig.SerManagedRef.class).orElse(null);
@@ -452,21 +413,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
                 final int i = inverseElements.size();
                 if (i == 0) {
-                    context.fail("No inverse property found for reference of type " + propertyType.getName(), element);
-                    return true;
+                    throw new ProcessingException(element, "No inverse property found for reference of type " + propertyType.getName());
                 } else if (i > 1) {
-                    context.fail("More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association",
-                                 element);
-                    return true;
+                    throw new ProcessingException(element, "More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association");
                 } else {
                     final TypedElement otherElement = inverseElements.iterator().next();
                     if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                        context.fail("Managed reference declares an incompatible inverse property [" + otherElement +
-                                             "]. The inverse side should be a map, collection, bean or array of the same type as the property.",
-                                     element);
-                        return true;
+                        throw new ProcessingException(element, "Managed reference declares an incompatible inverse property [" + otherElement +
+                                             "]. The inverse side should be a map, collection, bean or array of the same type as the property.");
                     } else {
-
                         element.annotate(SerdeConfig.SerManagedRef.class, (builder) ->
                                 builder.value(otherElement.getName())
                         );
@@ -474,7 +429,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
         }
-        return false;
     }
 
     private boolean hasAnnotationOnElement(Element element, Class<? extends Annotation> managedRefClass) {
@@ -515,8 +469,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
         final List<TypedElement> otherElements = new ArrayList<>();
         if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
-            final List<PropertyElement> beanProperties = propertyType.getBeanProperties();
-            beanProperties.stream()
+            propertyType.getBeanProperties()
+                    .stream()
                     .filter(p ->
                        isMappedCandidate(refType, thisSide, p) &&
                         p.hasAnnotation(refType) &&
@@ -537,11 +491,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return otherElements;
     }
 
-    private List<String> resolvePropertyNames(
-        VisitorContext context,
-        ClassElement propertyType,
-        @Nullable Element annotationSource) {
-
+    private List<String> resolvePropertyNames(VisitorContext context,
+                                              ClassElement propertyType,
+                                              @Nullable Element annotationSource) {
         Set<String> includeSet;
         String[] includedSource = annotationSource == null ? null : annotationSource.stringValues(SerdeConfig.SerIncluded.class);
         String[] includedType = propertyType.stringValues(SerdeConfig.SerIncluded.class);
@@ -653,9 +605,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     public void visitClass(ClassElement element, VisitorContext context) {
         // reset
         resetForNewClass(element);
-        if (checkForErrors(element, context)) {
-            return;
-        }
+        checkForErrors(element, context);
         visitClassInternal(element, context, false);
     }
 
@@ -682,8 +632,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         elementVisitedAsSubtype.add(subtype.getName());
 
         if (failOnError && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
-            context.fail("Inheritance cannot be combined with DELEGATING creation", subtype);
-            return;
+            throw new ProcessingException(subtype, "Inheritance cannot be combined with DELEGATING creation");
         }
 
         if (!subtype.hasAnnotation(SerdeConfig.SerIgnored.class)) {
@@ -764,7 +713,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         .flatMap(acv -> context.getClassElement(acv.getName()))
                         .ifPresent(c -> {
                             if (!c.isPublic()) {
-                                context.fail("Cannot mixin non-public type: " + c.getName(), element);
+                                throw new ProcessingException(element, "Cannot mixin non-public type: " + c.getName());
                             } else {
                                 handleClassImport(context, value, c, classValues);
                             }
@@ -791,23 +740,22 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 });
             }
 
-            String serializeAs = element.getDeclaredMetadata().stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_AS).orElse(null);
-            if (serializeAs != null) {
-                ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
-                if (thatType != null && !thatType.isAssignable(element)) {
-                    context.fail("Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName(),
-                                 element);
-                    return;
+            AnnotationValue<SerdeConfig> declaredAnnotation = element.getDeclaredAnnotation(SerdeConfig.class);
+            if (failOnError && declaredAnnotation != null) {
+                String serializeAs = declaredAnnotation.stringValue(SerdeConfig.SERIALIZE_AS).orElse(null);
+                if (serializeAs != null) {
+                    ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
+                    if (thatType != null && !thatType.isAssignable(element)) {
+                        throw new ProcessingException(element, "Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName());
+                    }
                 }
-            }
 
-            String deserializeAs = element.getDeclaredMetadata().stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_AS).orElse(null);
-            if (deserializeAs != null) {
-                ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
-                if (thatType != null && !thatType.isAssignable(element)) {
-                    context.fail("Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName(),
-                                 element);
-                    return;
+                String deserializeAs = declaredAnnotation.stringValue(SerdeConfig.DESERIALIZE_AS).orElse(null);
+                if (deserializeAs != null) {
+                    ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
+                    if (thatType != null && !thatType.isAssignable(element)) {
+                        throw new ProcessingException(element, "Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName());
+                    }
                 }
             }
 
@@ -817,8 +765,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class).orElse(null);
                 if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                     if (failOnError && primaryConstructor.getParameters().length != 1) {
-                        context.fail("DELEGATING creator mode requires exactly one Creator parameter, but more were defined.",
-                                     element);
+                        throw new ProcessingException(element, "DELEGATING creator mode requires exactly one Creator parameter, but more were defined.");
                     }
                 }
             }
@@ -829,7 +776,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 .ifPresent(superType -> visitSubtype(superType, element, context));
 
             if (failOnError && element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class) && creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
-                context.fail("Inheritance cannot be combined with DELEGATING creation", element);
+                throw new ProcessingException(element, "Inheritance cannot be combined with DELEGATING creation");
             }
         }
     }
@@ -1043,9 +990,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
         for (TypedElement beanProperty : beanProperties) {
-            if (checkForErrors(beanProperty, context)) {
-                continue;
-            }
+            checkForErrors(beanProperty, context);
+
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
             if (beanProperty instanceof PropertyElement pm) {
