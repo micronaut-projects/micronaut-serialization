@@ -1,7 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Requires
 
 class JsonViewSpec extends JsonCompileSpec {
     void 'test JsonView with simple properties'() {
@@ -17,7 +16,7 @@ import io.micronaut.serde.jackson.annotation.Views;
 @Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Item {
- 
+
     @JsonView(Views.Public.class)
     public int id;
 
@@ -60,7 +59,6 @@ class Item {
         context.close()
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void 'test JsonView with records'() {
         given:
         def context = buildContext('''
@@ -74,7 +72,7 @@ import io.micronaut.serde.jackson.annotation.Views;
 
 @Serdeable
 record Item(
- 
+
     @JsonView(Views.Public.class)
     int id,
 

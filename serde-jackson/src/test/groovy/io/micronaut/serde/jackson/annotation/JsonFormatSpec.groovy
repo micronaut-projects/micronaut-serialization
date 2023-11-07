@@ -1,8 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
-import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Requires
 import spock.lang.Unroll
 
 import java.sql.Timestamp
@@ -17,19 +15,18 @@ import java.time.ZonedDateTime
 
 class JsonFormatSpec extends JsonCompileSpec {
 
-    @Requires({ jvm.isJava17Compatible() })
     void "test disable validation"() {
         when:
         def i = buildBeanIntrospection('jsongetterrecord.Test', """
 package jsongetterrecord;
 
-import io.micronaut.serde.annotation.Serdeable;              
-import com.fasterxml.jackson.annotation.JsonFormat;          
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 
 @Serdeable(validate=false)
-record Test( 
-    @JsonFormat(pattern="bunch 'o junk")    
+record Test(
+    @JsonFormat(pattern="bunch 'o junk")
     int value) {
 }
 """)
@@ -38,20 +35,19 @@ record Test(
         i != null
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     @Unroll
     void "test fail compilation when invalid format applied to number for type #type"() {
         when:
         buildBeanIntrospection('jsongetterrecord.Test', """
 package jsongetterrecord;
 
-import io.micronaut.serde.annotation.Serdeable;              
-import com.fasterxml.jackson.annotation.JsonFormat;          
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 
 @Serdeable
-record Test( 
-    @JsonFormat(pattern="bunch 'o junk")    
+record Test(
+    @JsonFormat(pattern="bunch 'o junk")
     $type.name value) {
 }
 """)
@@ -64,20 +60,19 @@ record Test(
         type << [Integer, int.class]
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     @Unroll
     void "test fail compilation when invalid format applied to date for type #type"() {
         when:
         buildBeanIntrospection('jsongetterrecord.Test', """
 package jsongetterrecord;
 
-import io.micronaut.serde.annotation.Serdeable;              
-import com.fasterxml.jackson.annotation.JsonFormat;          
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 
 @Serdeable
-record Test( 
-    @JsonFormat(pattern="bunch 'o junk")    
+record Test(
+    @JsonFormat(pattern="bunch 'o junk")
     $type.name value) {
 }
 """)
@@ -90,7 +85,6 @@ record Test(
         type << [LocalDateTime]
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     @Unroll
     void "test json format for #type and settings #settings with record"() {
         given:
@@ -104,7 +98,7 @@ import com.fasterxml.jackson.annotation.OptBoolean;
 @Serdeable
 record Test(
     @JsonFormat(${settings.collect { "$it.key=\"$it.value\"" }.join(",")})
-    $type.name value   
+    $type.name value
 ) {}
 """)
         expect:
@@ -159,7 +153,7 @@ class Test {
     private $type.name value;
     public void setValue($type.name value) {
         this.value = value;
-    } 
+    }
     public $type.name getValue() {
         return value;
     }
@@ -215,7 +209,7 @@ class Test {
     private $type.name value;
     public void setValue($type.name value) {
         this.value = value;
-    } 
+    }
     public $type.name getValue() {
         return value;
     }

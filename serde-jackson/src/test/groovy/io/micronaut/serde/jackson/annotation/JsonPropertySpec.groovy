@@ -3,7 +3,6 @@ package io.micronaut.serde.jackson.annotation
 import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Requires
 import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
@@ -20,19 +19,19 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @JsonIgnore
     private String value;
-    
+
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     @JsonProperty("value")
     private void setValueInternal(String value) {
         this.value = value.toLowerCase();
-    } 
-    
+    }
+
     @JsonProperty("value")
     private String getValueInternal() {
         return value.toUpperCase();
@@ -57,19 +56,19 @@ import io.micronaut.serde.annotation.Serdeable;
 class Test {
     @JsonIgnore
     private String value;
-    
+
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     @JsonProperty("value")
     protected void setValueInternal(String value) {
         this.value = value.toLowerCase();
-    } 
-    
+    }
+
     @JsonProperty("value")
     protected String getValueInternal() {
         return value.toUpperCase();
@@ -109,7 +108,7 @@ class Test {
     private $type.name value;
     public void setValue($type.name value) {
         this.value = value;
-    } 
+    }
     public $type.name getValue() {
         return value;
     }
@@ -176,7 +175,7 @@ class Test {
 
     public void setValue(int value) {
         this.value = value;
-    } 
+    }
     public int getValue() {
         return value;
     }
@@ -206,7 +205,7 @@ import io.micronaut.core.annotation.Nullable;
 @Serdeable
 class Test {
     private final $type value;
-    
+
     Test($type value) {
         this.value = value;
     }
@@ -244,7 +243,6 @@ class Test {
     }
 
     @Unroll
-    @Requires({ jvm.isJava17Compatible() })
     void "test invalid defaultValue for #type and value #value for records"() {
 
         when:
@@ -290,15 +288,15 @@ class Test {
     private boolean ignored;
     public void setValue(String value) {
         this.value = value;
-    } 
+    }
     public String getValue() {
         return value;
     }
-    
+
     public void setIgnored(boolean b) {
         this.ignored = b;
     }
-    
+
     public boolean isIgnored() {
         return ignored;
     }
@@ -322,7 +320,6 @@ class Test {
 
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void "test @JsonProperty records"() {
         given:
         def context = buildContext("""
@@ -366,7 +363,6 @@ record Test(
 
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void "test @JsonProperty records - invalid default value"() {
         given:
         def context = buildContext("""

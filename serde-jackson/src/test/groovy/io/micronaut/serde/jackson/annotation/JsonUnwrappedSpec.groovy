@@ -5,7 +5,6 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 import io.micronaut.serde.jackson.nested.Address
 import io.micronaut.serde.jackson.nested.NestedEntity
 import io.micronaut.serde.jackson.nested.NestedEntityId
-import spock.lang.Requires
 
 class JsonUnwrappedSpec extends JsonCompileSpec {
 
@@ -85,7 +84,6 @@ class Name {
         e.message.contains("Unwrapped property contains a property [first] that conflicts with an existing property of the outer type: unwrapped.Parent")
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void "test @JsonUnwrapped conflict records"() {
         when:
         def context = buildContext("""

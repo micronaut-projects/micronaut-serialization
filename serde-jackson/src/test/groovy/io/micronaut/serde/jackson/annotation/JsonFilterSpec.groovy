@@ -5,12 +5,10 @@ import io.micronaut.serde.PropertyFilter
 import io.micronaut.serde.Serializer
 import io.micronaut.serde.jackson.JsonCompileSpec
 import jakarta.inject.Named
-import spock.lang.Requires
 import spock.lang.Unroll
 import jakarta.inject.Singleton
 
 
-@Requires({ jvm.isJava17Compatible() })
 class JsonFilterSpec extends JsonCompileSpec {
 
     @Unroll

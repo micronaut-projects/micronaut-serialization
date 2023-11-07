@@ -3,15 +3,12 @@ package io.micronaut.serde.jackson
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.annotation.BootstrapContextCompatible
 import io.micronaut.context.annotation.Requires
-import io.micronaut.context.env.BootstrapPropertySourceLocator
 import io.micronaut.context.env.Environment
 import io.micronaut.context.env.PropertySource
-import io.micronaut.context.exceptions.ConfigurationException
 import io.micronaut.core.async.publisher.Publishers
 import io.micronaut.core.type.Argument
 import io.micronaut.core.util.StringUtils
 import io.micronaut.discovery.config.ConfigurationClient
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.inject.Singleton

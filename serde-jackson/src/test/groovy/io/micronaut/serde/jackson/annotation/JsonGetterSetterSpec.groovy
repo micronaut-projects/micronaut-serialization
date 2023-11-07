@@ -4,7 +4,6 @@ package io.micronaut.serde.jackson.annotation
 import io.micronaut.serde.SerdeIntrospections
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.Requires
 
 class JsonGetterSetterSpec extends JsonCompileSpec {
 
@@ -367,8 +366,6 @@ class Test {
         context.close()
     }
 
-    @Requires({ jvm.isJava17Compatible() })
-//    @PendingFeature(reason = "Need to find out why annotation metadata is empty in introspection")
     void "test json any getter / setter - records"() {
         given:
         def context = buildContext('''
@@ -426,7 +423,6 @@ record Test(
         context.close()
     }
 
-    @Requires({ jvm.isJava17Compatible() })
     void "test json any getter / setter - records fail on invalid component"() {
         when:
         buildBeanIntrospection('jsongetterrecord.Test', '''
