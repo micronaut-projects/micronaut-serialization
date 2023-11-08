@@ -31,7 +31,6 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.qualifiers.Qualifiers;
@@ -43,6 +42,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Modifier;
@@ -90,9 +90,7 @@ final class SerBean<T> {
     public final boolean subtyped;
     public final PropertyFilter propertyFilter;
     @Nullable
-    public final String propertiesNamePrefix;
-    @Nullable
-    public final String propertiesNameSuffix;
+    private final SerdeArgumentConf serdeArgumentConf;
 
     private volatile boolean initialized;
     private volatile boolean initializing;
@@ -105,11 +103,10 @@ final class SerBean<T> {
             SerdeIntrospections introspections,
             Serializer.EncoderContext encoderContext,
             SerializationConfiguration configuration,
-            @Nullable String propertiesNamePrefix,
-            @Nullable String propertiesNameSuffix,
+            @Nullable SerdeArgumentConf serdeArgumentConf,
             BeanContext beanContext) throws SerdeException {
-        this.propertiesNamePrefix = propertiesNamePrefix;
-        this.propertiesNameSuffix = propertiesNameSuffix;
+        // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
+        this.serdeArgumentConf = serdeArgumentConf;
         this.configuration = configuration;
         this.introspection = introspections.getSerializableIntrospection(type);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
@@ -117,7 +114,7 @@ final class SerBean<T> {
         boolean allowIgnoredProperties = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_SERIALIZE).orElse(false);
 
         @Nullable
-        Predicate<String> argumentPropertyPredicate = resolveAllowPropertyPredicate(type.getAnnotationMetadata(), allowIgnoredProperties);
+        Predicate<String> argumentPropertyPredicate = serdeArgumentConf == null ? null : serdeArgumentConf.resolveAllowPropertyPredicate(allowIgnoredProperties);
 
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, null);
         final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
@@ -221,8 +218,7 @@ final class SerBean<T> {
                         String resolvedPropertyName = resolveName(
                             propertyAnnotationMetadata,
                             argument.getName(),
-                            propertiesNamePrefix,
-                            propertiesNameSuffix,
+                            serdeArgumentConf,
                             propertyNamingStrategy);
 
                         if (argumentPropertyPredicate != null && !argumentPropertyPredicate.test(resolvedPropertyName)) {
@@ -254,8 +250,7 @@ final class SerBean<T> {
                         final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
                         String resolvedPropertyName = resolveName(jsonGetterAnnotationMetadata,
                             NameUtils.getPropertyNameForGetter(jsonGetter.getName()),
-                            propertiesNamePrefix,
-                            propertiesNameSuffix,
+                            serdeArgumentConf,
                             propertyNamingStrategy);
 
                         if (argumentPropertyPredicate != null && !argumentPropertyPredicate.test(resolvedPropertyName)) {
@@ -283,41 +278,14 @@ final class SerBean<T> {
                 this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             }
         }
-        if (!writeProperties.isEmpty() && type.getAnnotationMetadata().isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)) {
-            List<String> order = Arrays.asList(type.getAnnotationMetadata().stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
-            if (!order.isEmpty()) {
-                writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
-            }
+        if (!writeProperties.isEmpty() && serdeArgumentConf != null && serdeArgumentConf.order() != null) {
+            List<String> order = Arrays.asList(serdeArgumentConf.order());
+            writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
         }
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
         subtyped = isAbstractIntrospection || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
-    }
-
-    @Nullable
-    private static Predicate<String> resolveAllowPropertyPredicate(AnnotationMetadata annotationMetadata,
-                                                                   boolean allowIgnoredProperties) {
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
-            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
-            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
-            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored) && !allowIgnoredProperties;
-            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
-            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
-            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
-            if (hasIgnored || hasIncluded) {
-                return propertyName -> {
-                    if (hasIgnored && ignoreSet.contains(propertyName)) {
-                        return false;
-                    }
-                    if (hasIncluded && !includedSet.contains(propertyName)) {
-                        return false;
-                    }
-                    return true;
-                };
-            }
-        }
-        return null;
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
@@ -344,39 +312,24 @@ final class SerBean<T> {
 
         Class customSer = prop.annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).orElse(null);
         Serializer<Z> serializer;
+        Argument<Z> argument = prop.argument;
+        if (serdeArgumentConf != null) {
+            argument = serdeArgumentConf.extendArgumentWithPrefixSuffix(argument);
+        }
         if (customSer != null) {
             serializer = encoderContext.findCustomSerializer(customSer);
         } else {
-            serializer = (Serializer<Z>) encoderContext.findSerializer(prop.argument);
+            serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
+        prop.serializer = serializer.createSpecific(encoderContext, argument);
 
         if (prop.serializableInto) {
-            String prefix = prop.annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse(null);
-            String suffix = prop.annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse(null);
-            if (serializer instanceof ObjectSerializer objectSerializer) {
-               if (propertiesNamePrefix != null) {
-                    prefix = propertiesNamePrefix + prefix;
-                }
-                if (propertiesNameSuffix != null) {
-                    suffix = suffix + propertiesNameSuffix;
-                }
-                prop.objectSerializer = (io.micronaut.serde.ObjectSerializer<Z>) objectSerializer.createSpecificUnwrapped(encoderContext, prop.argument, prefix, suffix);
-                prop.serializer = prop.objectSerializer;
+            if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
+                prop.objectSerializer = objectSerializer;
             } else {
-                if (prefix != null || suffix != null) {
-                    throw new SerdeException("Serializer for a property: " + prop.name + " is expected to be the default object serializer to support custom prefix/suffix");
-                }
-                prop.serializer = serializer.createSpecific(encoderContext, prop.argument);
-                if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
-                    prop.objectSerializer = objectSerializer;
-                } else {
-                    throw new SerdeException("Serializer for a property: " + prop.name + " doesn't support serializing into an existing object");
-                }
+                throw new SerdeException("Serializer for a property: " + prop.name + " doesn't support serializing into an existing object");
             }
-        } else {
-            prop.serializer = serializer.createSpecific(encoderContext, prop.argument);
         }
-
         prop.annotationMetadata = null;
     }
 
@@ -407,9 +360,7 @@ final class SerBean<T> {
     private String resolveName(AnnotationMetadata propertyAnnotationMetadata,
                                String name,
                                @Nullable
-                               String prefix,
-                               @Nullable
-                               String suffix,
+                               SerdeArgumentConf serdeArgumentConf,
                                PropertyNamingStrategy propertyNamingStrategy) {
 
         String resolvedName =
@@ -428,11 +379,8 @@ final class SerBean<T> {
         if (resolvedName == null) {
             resolvedName = propertyAnnotationMetadata.stringValue(JK_PROP).orElse(name);
         }
-        if (prefix != null) {
-            resolvedName = prefix + resolvedName;
-        }
-        if (suffix != null) {
-            resolvedName = resolvedName + suffix;
+        if (serdeArgumentConf != null) {
+            return serdeArgumentConf.applyPrefixSuffix(resolvedName);
         }
         return resolvedName;
     }

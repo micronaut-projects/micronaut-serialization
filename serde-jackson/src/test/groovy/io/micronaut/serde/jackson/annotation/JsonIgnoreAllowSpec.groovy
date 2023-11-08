@@ -261,6 +261,99 @@ class Test {
         context.close()
     }
 
+    void "test multiple combined @JsonIgnoreProperties"() {
+        given:
+        def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Other {
+    @JsonIgnoreProperties("ignored2")
+    private Test test;
+
+    private Test test2;
+
+    public void setTest(test.Test test) {
+        this.test = test;
+    }
+    public test.Test getTest() {
+        return test;
+    }
+
+    public void setTest2(test.Test test) {
+        this.test2 = test;
+    }
+    public test.Test getTest2() {
+        return test2;
+    }
+}
+@Serdeable
+@JsonIgnoreProperties("ignored")
+class Test {
+    private String value;
+    private boolean ignored;
+    private boolean ignored2;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+
+    public void setIgnored2(boolean ignored2) {
+        this.ignored2 = ignored2;
+    }
+
+    public boolean isIgnored2() {
+        return ignored2;
+    }
+}
+""")
+
+        def t1 = newInstance(context, 'test.Test')
+        t1.value = 'test1'
+        def t2 = newInstance(context, 'test.Test')
+        t2.value = 'test2'
+        def o = newInstance(context, 'test.Other')
+        o.test = t1
+        o.test.ignored = true
+        o.test.ignored2 = true
+        o.test2 = t2
+        o.test2.ignored = true
+        o.test2.ignored2 = true
+
+        when:
+        def json = writeJson(jsonMapper, o)
+
+        then:
+        json == '{"test":{"value":"test1"},"test2":{"value":"test2","ignored2":true}}'
+
+        when:
+        def bean = jsonMapper.readValue(json, context.classLoader.loadClass("test.Other"))
+
+        then:
+        bean.test.value == "test1"
+        !bean.test.ignored
+        !bean.test.ignored2
+        bean.test2.value == "test2"
+        !bean.test2.ignored
+        bean.test2.ignored2
+
+        cleanup:
+        context.close()
+    }
+
     void "test combined @JsonIncludeProperties"() {
         given:
         def context = buildContext("""
@@ -1582,7 +1675,7 @@ class C {
             bean.a.p2 == null
 
         when:
-            jsonMapper.readValue('{"a":{"f1":"f1","f2":"f2","a2":"a2","a1":"a1","xxx":"yyy}}', root.class)
+            jsonMapper.readValue('{"a":{"f1":"f1","f2":"f2","a2":"a2","a1":"a1","xxx":"yyy"}}', root.class)
 
         then:
             def e = thrown(SerdeException)

@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.support.deserializers;
 
-import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
@@ -33,7 +32,6 @@ import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -60,8 +58,6 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
-
-import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
 
 /**
  * Holder for data about a deserializable bean.
@@ -115,8 +111,9 @@ final class DeserBean<T> {
                      BeanIntrospection<T> introspection,
                      Deserializer.DecoderContext decoderContext,
                      DeserBeanRegistry deserBeanRegistry,
-                     @Nullable String propertiesNamePrefix, @Nullable String propertiesNameSuffix)
+                     @Nullable DeserializationSerdeArgumentConf serdeArgumentConf)
         throws SerdeException {
+        // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
 
         if (type.hasTypeVariables()) {
             bounds = type.getTypeVariables();
@@ -136,20 +133,15 @@ final class DeserBean<T> {
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
-        AnnotationMetadata typeAnnotationMetadata = new AnnotationMetadataHierarchy(
-            type.getAnnotationMetadata(),
-            introspection.getAnnotationMetadata()
-        );
-
         Set<String> ignoredProperties = new HashSet<>();
 
         @Nullable
-        Predicate<String> allowPropertyPredicate = resolveAllowPropertyPredicate(type.getAnnotationMetadata(), false);
+        Predicate<String> allowPropertyPredicate = serdeArgumentConf == null ? null : serdeArgumentConf.resolveAllowPropertyPredicate(false);
 
         // Replicating Jackson behaviour: @JsonIncludeProperties will ignore any not-included properties
-        boolean hasAllowedProperties = type.isAnnotationPresent(SerdeConfig.SerIncluded.class) ||
-            introspection.isAnnotationPresent(SerdeConfig.SerIncluded.class);
-        this.ignoreUnknown = hasAllowedProperties || introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
+        boolean hasIncludedProperties = serdeArgumentConf != null && serdeArgumentConf.getIncluded() != null
+            || introspection.isAnnotationPresent(SerdeConfig.SerIncluded.class);
+        this.ignoreUnknown = hasIncludedProperties || introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
             .orElse(deserializationConfiguration.isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
 
@@ -185,7 +177,7 @@ final class DeserBean<T> {
             }
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
-            final String propertyName = resolveName(propertiesNamePrefix, propertiesNameSuffix, constructorArgument, annotationMetadata, propertyNamingStrategy);
+            final String propertyName = resolveName(serdeArgumentConf, constructorArgument, annotationMetadata, propertyNamingStrategy);
 
             if (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName)) {
                 continue;
@@ -200,18 +192,8 @@ final class DeserBean<T> {
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
             DeserBean<Object> unwrapped = null;
             if (isUnwrapped) {
-                String prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
-                String suffix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
-                if (propertiesNamePrefix != null) {
-                    prefix = propertiesNamePrefix + prefix;
-                }
-                if (propertiesNameSuffix != null) {
-                    suffix = suffix + propertiesNameSuffix;
-                }
-                unwrapped = deserBeanRegistry.getWrappedDeserializableBean(
-                    constructorArgument,
-                    prefix,
-                    suffix,
+                unwrapped = deserBeanRegistry.getDeserializableBean(
+                    serdeArgumentConf == null ? constructorArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(constructorArgument),
                     decoderContext
                 );
             }
@@ -290,8 +272,7 @@ final class DeserBean<T> {
                 for (BeanProperty<T, Object> beanProperty : introspection.getBeanProperties()) {
                     final AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
                     final String propertyName = resolveName(
-                        propertiesNamePrefix,
-                        propertiesNameSuffix,
+                        serdeArgumentConf,
                         beanProperty,
                         annotationMetadata,
                         getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy)
@@ -319,18 +300,8 @@ final class DeserBean<T> {
 
                         DeserBean<Object> unwrapped = null;
                         if (isUnwrapped) {
-                            String prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse("");
-                            String suffix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.SUFFIX).orElse("");
-                            if (propertiesNamePrefix != null) {
-                                prefix = propertiesNamePrefix + prefix;
-                            }
-                            if (propertiesNameSuffix != null) {
-                                suffix = suffix + propertiesNameSuffix;
-                            }
-                            unwrapped = deserBeanRegistry.getWrappedDeserializableBean(
-                                propertyArgument,
-                                prefix,
-                                suffix,
+                            unwrapped = deserBeanRegistry.getDeserializableBean(
+                                serdeArgumentConf == null ? propertyArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(propertyArgument),
                                 decoderContext
                             );
                         }
@@ -358,7 +329,7 @@ final class DeserBean<T> {
 
                 for (BeanMethod<T, Object> jsonSetter : jsonSetters) {
                     PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonSetter.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
-                    final String property = resolveName(propertiesNamePrefix, propertiesNameSuffix,
+                    final String property = resolveName(serdeArgumentConf,
                         new AnnotatedElement() {
                             @Override
                             public String getName() {
@@ -402,17 +373,23 @@ final class DeserBean<T> {
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
-        this.subtypeInfo = createSubtypeInfo(typeAnnotationMetadata, introspection, decoderContext, deserBeanRegistry);
+        AnnotationMetadata typeAnnotationMetadata = new AnnotationMetadataHierarchy(
+            type.getAnnotationMetadata(),
+            introspection.getAnnotationMetadata()
+        );
 
-        String discriminatorProperty = typeAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
-        if (discriminatorProperty != null && !typeAnnotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
+        // TODO: avoid using type argument annotations
+        this.subtypeInfo = SubtypeInfo.create(typeAnnotationMetadata, introspection, decoderContext, deserBeanRegistry);
+
+        String discriminatorProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+        if (discriminatorProperty != null && !introspection.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
             ignoredProperties.add(discriminatorProperty);
         }
         boolean allowIgnoredProperties = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_DESERIALIZE).orElse(false);
-        if (!allowIgnoredProperties) {
+        if (!allowIgnoredProperties && serdeArgumentConf != null && serdeArgumentConf.getIgnored() != null) {
             ignoredProperties.addAll(
                 Arrays.asList(
-                    typeAnnotationMetadata.stringValues(SerdeConfig.SerIgnored.class)
+                    serdeArgumentConf.getIgnored()
                 )
             );
         }
@@ -424,87 +401,6 @@ final class DeserBean<T> {
 
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
-    }
-
-    @Nullable
-    private static Predicate<String> resolveAllowPropertyPredicate(AnnotationMetadata annotationMetadata,
-                                                                   boolean allowIgnoredProperties) {
-        if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerIgnored.class) || annotationMetadata.isAnnotationPresent(SerdeConfig.SerIncluded.class)) {
-            final String[] ignored = annotationMetadata.stringValues(SerdeConfig.SerIgnored.class);
-            final String[] included = annotationMetadata.stringValues(SerdeConfig.SerIncluded.class);
-            final boolean hasIgnored = ArrayUtils.isNotEmpty(ignored) && !allowIgnoredProperties;
-            final boolean hasIncluded = ArrayUtils.isNotEmpty(included);
-            Set<String> ignoreSet = hasIgnored ? CollectionUtils.setOf(ignored) : null;
-            Set<String> includedSet = hasIncluded ? CollectionUtils.setOf(included) : null;
-            if (hasIgnored || hasIncluded) {
-                return propertyName -> {
-                    if (hasIgnored && ignoreSet.contains(propertyName)) {
-                        return false;
-                    }
-                    if (hasIncluded && !includedSet.contains(propertyName)) {
-                        return false;
-                    }
-                    return true;
-                };
-            }
-        }
-        return null;
-    }
-
-    private static <T> SubtypeInfo<T> createSubtypeInfo(AnnotationMetadata annotationMetadata,
-                                                        BeanIntrospection<T> introspection,
-                                                        Deserializer.DecoderContext decoderContext,
-                                                        DeserBeanRegistry deserBeanRegistry) throws SerdeException {
-
-        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
-            return null;
-        }
-
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = annotationMetadata.enumValue(
-            SerdeConfig.SerSubtyped.class,
-            SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,
-            SerdeConfig.SerSubtyped.DiscriminatorType.class
-        ).orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
-        SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValue = annotationMetadata.enumValue(
-            SerdeConfig.SerSubtyped.class,
-            SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE,
-            SerdeConfig.SerSubtyped.DiscriminatorValueKind.class
-        ).orElse(CLASS_NAME);
-        String discriminatorName = annotationMetadata.stringValue(
-            SerdeConfig.SerSubtyped.class,
-            SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP
-        ).orElse(discriminatorValue == CLASS_NAME ? "@class" : "@type");
-
-        final Class<T> superType = introspection.getBeanType();
-        final Collection<BeanIntrospection<? extends T>> subtypeIntrospections =
-            decoderContext.getDeserializableSubtypes(superType);
-        Map<String, DeserBean<? extends T>> subtypes = CollectionUtils.newHashMap(subtypeIntrospections.size());
-        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
-        String defaultDiscriminator = null;
-        for (BeanIntrospection<? extends T> subtypeIntrospection : subtypeIntrospections) {
-            Class<? extends T> subBeanType = subtypeIntrospection.getBeanType();
-            final DeserBean<? extends T> deserBean = deserBeanRegistry.getDeserializableBean(
-                Argument.of(subBeanType),
-                decoderContext
-            );
-            if (defaultType != null && defaultType.equals(subBeanType)) {
-                defaultDiscriminator = subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseThrow();
-            }
-
-            subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, deserBean));
-            String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
-            for (String name : names) {
-                subtypes.put(name, deserBean);
-            }
-        }
-
-        return new SubtypeInfo<>(
-            subtypes,
-            discriminatorType,
-            discriminatorName,
-            defaultDiscriminator,
-            annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)
-        );
     }
 
     void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
@@ -590,7 +486,7 @@ final class DeserBean<T> {
 
     private <A> Argument<A> resolveArgument(Argument<A> argument) {
         if (argument instanceof GenericPlaceholder || argument.hasTypeVariables()) {
-            Map<String, Argument<?>> bounds = getBounds();
+            Map<String, Argument<?>> bounds = this.bounds;
             if (!bounds.isEmpty()) {
                 return resolveArgument(argument, bounds);
             }
@@ -651,27 +547,13 @@ final class DeserBean<T> {
         return differ ? resolvedParameters : typeParameters;
     }
 
-    /**
-     * The generic bounds for this deserializable bean.
-     *
-     * @return The bounds, never {@code null}
-     */
-    protected @NonNull
-    Map<String, Argument<?>> getBounds() {
-        return bounds;
-    }
-
-    private String resolveName(@Nullable String prefix,
-                               @Nullable String suffix,
+    private String resolveName(@Nullable DeserializationSerdeArgumentConf serdeArgumentConf,
                                AnnotatedElement annotatedElement,
                                AnnotationMetadata annotationMetadata,
                                PropertyNamingStrategy namingStrategy) {
         String name = resolveName(annotatedElement, List.of(annotationMetadata), namingStrategy);
-        if (prefix != null) {
-            name = prefix + name;
-        }
-        if (suffix != null) {
-            name = name + suffix;
+        if (serdeArgumentConf != null) {
+            return serdeArgumentConf.applyPrefixSuffix(name);
         }
         return name;
     }
@@ -1104,17 +986,4 @@ final class DeserBean<T> {
         }
     }
 
-    @Internal
-    public record SubtypeInfo<T>(
-        @NonNull
-        Map<String, DeserBean<? extends T>> subtypes,
-        @NonNull
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
-        @NonNull
-        String discriminatorName,
-        @Nullable
-        String defaultImpl,
-        boolean discriminatorVisible
-    ) {
-    }
 }
