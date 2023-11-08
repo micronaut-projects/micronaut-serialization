@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 original authors
+ * Copyright 2017-2023 original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,18 @@
  */
 package io.micronaut.serde.support.deserializers;
 
-import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 
-@Internal
-interface DeserBeanRegistry {
-    <T> DeserBean<T> getDeserializableBean(Argument<T> type, Deserializer.DecoderContext decoderContext) throws SerdeException;
+/**
+ * Extra deserialization configuration placed at the argument.
+ *
+ * @author Denis Stepanov
+ * @since 2.3.2
+ */
+public final class DeserializationSerdeArgumentConf extends SerdeArgumentConf {
 
+    public DeserializationSerdeArgumentConf(AnnotationMetadata annotationMetadata) {
+        super(annotationMetadata);
+    }
 }

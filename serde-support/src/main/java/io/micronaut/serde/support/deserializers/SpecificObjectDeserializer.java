@@ -859,7 +859,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
         @Nullable
         private final DeserBean<? super Object> db;
-        private final DeserBean.SubtypeInfo<? super Object> subtypeInfo;
+        private final SubtypeInfo<? super Object> subtypeInfo;
         private final Conf conf;
         private final Argument<? super Object> argument;
 
@@ -957,7 +957,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
         @Nullable
         private final DeserBean<? super Object> db;
-        private final DeserBean.SubtypeInfo<? super Object> subtypeInfo;
+        private final SubtypeInfo<? super Object> subtypeInfo;
         private final Argument<? super Object> argument;
         private final Conf conf;
 

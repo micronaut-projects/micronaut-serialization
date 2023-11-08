@@ -18,9 +18,9 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.context.BeanContext;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
@@ -29,7 +29,7 @@ import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.util.BeanDefKey;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
@@ -57,7 +57,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
     private final SerializationConfiguration configuration;
     private final BeanContext beanContext;
-    private final Map<BeanDefKey, Supplier<SerBean<?>>> serBeanMap = new ConcurrentHashMap<>(50);
+    private final Map<SerBeanKey, Supplier<SerBean<?>>> serBeanMap = new ConcurrentHashMap<>(50);
 
     public ObjectSerializer(SerdeIntrospections introspections, SerializationConfiguration configuration, BeanContext beanContext) {
         this.introspections = introspections;
@@ -70,34 +70,18 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
         if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
-            Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, null, null, type) : null;
+            Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
             return new RuntimeTypeSerializer(encoderContext, outer, type);
         } else {
-            return createSpecificInternal(encoderContext, null, null, type);
-        }
-    }
-
-    io.micronaut.serde.ObjectSerializer<Object> createSpecificUnwrapped(@NonNull EncoderContext encoderContext,
-                                                                        Argument<?> type,
-                                                                        @Nullable String namePrefix,
-                                                                        @Nullable String nameSuffix) throws SerdeException {
-        boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
-        if (isObjectType || type instanceof GenericPlaceholder) {
-            // dynamic type resolving
-            Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, namePrefix, namePrefix, type) : null;
-            return new RuntimeTypeSerializer(encoderContext, outer, type);
-        } else {
-            return createSpecificInternal(encoderContext, namePrefix, nameSuffix, type);
+            return createSpecificInternal(encoderContext, type);
         }
     }
 
     private io.micronaut.serde.ObjectSerializer<Object> createSpecificInternal(EncoderContext encoderContext,
-                                                                               @Nullable String namePrefix,
-                                                                               @Nullable String nameSuffix,
                                                                                Argument<?> type) throws SerdeException {
         SerBean<Object> serBean;
         try {
-            serBean = (SerBean<Object>) getSerializableBean(type, namePrefix, nameSuffix, encoderContext);
+            serBean = (SerBean<Object>) getSerializableBean(type, encoderContext);
         } catch (IntrospectionException e) {
             // no introspection, create dynamic serialization case
             return new RuntimeTypeSerializer(encoderContext, e, type);
@@ -120,12 +104,15 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         return serializer;
     }
 
-    private <T> SerBean<T> getSerializableBean(Argument<T> type, @Nullable String namePrefix, @Nullable String nameSuffix, EncoderContext context) throws SerdeException {
-        BeanDefKey key = new BeanDefKey(type, namePrefix, nameSuffix);
+    private <T> SerBean<T> getSerializableBean(Argument<T> type,
+                                               EncoderContext context) throws SerdeException {
+        AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
+        SerdeArgumentConf serdeArgumentConf = annotationMetadata.isEmpty() ? null : new SerdeArgumentConf(annotationMetadata);
+        SerBeanKey key = new SerBeanKey(type, serdeArgumentConf);
         // Use suppliers to prevent recursive update because the lambda will call the same method again
         Supplier<SerBean<?>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> {
             try {
-                return new SerBean<>((Argument<Object>) type, introspections, context, configuration, namePrefix, nameSuffix, beanContext);
+                return new SerBean<>(type, introspections, context, configuration, serdeArgumentConf, beanContext);
             } catch (SerdeException e) {
                 throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
             }
