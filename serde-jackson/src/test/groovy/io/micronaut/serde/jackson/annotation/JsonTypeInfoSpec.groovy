@@ -1,11 +1,20 @@
 package io.micronaut.serde.jackson.annotation
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Unroll
 
 class JsonTypeInfoSpec extends JsonCompileSpec {
+
+    @Override
+    protected void configureContext(ApplicationContextBuilder contextBuilder) {
+        super.configureContext(contextBuilder.properties(
+                Map.of("micronaut.serde.deserialization.ignore-unknown", "false")
+        ))
+    }
+
     void "test default implementation - with @DefaultImplementation"() {
         given:
         def context = buildContext("""
