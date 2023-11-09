@@ -224,7 +224,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 return isNull;
             }
 
-            private Decoder provideDecoder(boolean consume) throws IOException {
+            private Decoder provideDecoder(boolean willConsume) throws IOException {
                 if (consumed) {
                     throw new IllegalStateException("Entry already consumed");
                 }
@@ -234,12 +234,14 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 } else {
                     decoder = delegate;
                 }
-                if (!consume) {
+                if (willConsume) {
+                    return decoder;
+                } else {
+                    // if we don't consume it, we need to duplicate the data using a JsonNode.
                     JsonNode node = decoder.decodeNode();
                     buffer = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
                     return JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
                 }
-                return decoder;
             }
 
         }
