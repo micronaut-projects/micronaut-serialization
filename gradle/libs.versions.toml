@@ -13,7 +13,7 @@ kotlin = '1.9.20'
 ksp = '1.9.20-1.0.14'
 graal-svm = "23.1.1"
 aws-lambda-events = '3.11.3'
-oci-sdk = '3.25.4'
+oci-sdk = '3.28.1'
 aws-lambda-serialization = '1.1.4'
 microstream-storage-restclient = '08.01.01-MS-GA'
 
