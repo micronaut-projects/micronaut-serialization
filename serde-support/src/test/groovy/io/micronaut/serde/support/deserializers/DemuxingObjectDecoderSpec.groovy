@@ -53,6 +53,7 @@ class DemuxingObjectDecoderSpec extends Specification {
         arr1.decodeInt() == 1
         arr1.finishStructure()
         demux1.decodeKey() == "b"
+        demux1.decodeNull() == false
         demux1.skipValue()
         demux1.decodeKey() == "c"
         def obj3 = demux1.decodeObject()
@@ -125,6 +126,72 @@ class DemuxingObjectDecoderSpec extends Specification {
 
         cleanup:
         ctx.close()
+    }
+
+    def 'simple structures with null'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def outerDecoder = createDecoder(ctx, """{"a": [1], "b": null, "c": {"fizz": "buzz"}}""")
+
+            def primed = DemuxingObjectDecoder.prime(outerDecoder)
+            def demux1 = primed.decodeObject()
+            def demux2 = primed.decodeObject()
+
+        expect:
+            demux1.decodeKey() == "a"
+            def arr1 = demux1.decodeArray()
+            arr1.decodeInt() == 1
+            arr1.finishStructure()
+            demux1.decodeKey() == "b"
+            demux1.skipValue()
+            demux1.finishStructure(true)
+
+            demux2.decodeKey() == "b"
+            demux2.decodeNull()
+            demux2.decodeKey() == "c"
+            def obj3 = demux2.decodeObject()
+            obj3.decodeKey() == "fizz"
+            obj3.decodeString() == "buzz"
+            obj3.finishStructure()
+            demux2.decodeKey() == null
+            demux2.finishStructure()
+
+        cleanup:
+            ctx.close()
+    }
+
+    def 'simple structures with null not consuming'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def outerDecoder = createDecoder(ctx, """{"a": [1], "b": null, "c": {"fizz": "buzz"}}""")
+
+            def primed = DemuxingObjectDecoder.prime(outerDecoder)
+            def demux1 = primed.decodeObjectNonConsuming()
+            def demux2 = primed.decodeObject()
+
+        expect:
+            demux1.decodeKey() == "a"
+            def arr1 = demux1.decodeArray()
+            arr1.decodeInt() == 1
+            arr1.finishStructure()
+            demux1.decodeKey() == "b"
+            demux1.decodeNull()
+            demux1.finishStructure(true)
+
+            demux2.decodeKey() == "a"
+            demux2.skipValue()
+            demux2.decodeKey() == "b"
+            demux2.decodeNull()
+            demux2.decodeKey() == "c"
+            def obj3 = demux2.decodeObject()
+            obj3.decodeKey() == "fizz"
+            obj3.decodeString() == "buzz"
+            obj3.finishStructure()
+            demux2.decodeKey() == null
+            demux2.finishStructure()
+
+        cleanup:
+            ctx.close()
     }
 
     private static Decoder createDecoder(ApplicationContext ctx, @Language("json") String json) {

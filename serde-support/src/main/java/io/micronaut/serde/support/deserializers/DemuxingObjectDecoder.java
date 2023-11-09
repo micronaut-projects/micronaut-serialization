@@ -107,19 +107,13 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
     @Override
     protected Decoder delegate() throws IOException {
         DemuxerState.Entry entry = entryForValue();
-        Decoder delegate = entry.consume();
-        if (!consumeValues) {
-            JsonNode node = delegate.decodeNode();
-            entry.consumed = false;
-            entry.buffer = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
-            delegate = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
-        }
-        return delegate;
+        return entry.peekOrConsume(consumeValues);
     }
 
     @Override
     public boolean decodeNull() throws IOException {
-        return entryForValue().decodeNull();
+        DemuxerState.Entry entry = entryForValue();
+        return entry.peekOrConsumeNull(consumeValues);
     }
 
     @Override
@@ -213,29 +207,43 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 this.key = key;
             }
 
-            Decoder consume() {
+            Decoder peekOrConsume(boolean consume) throws IOException {
+                Decoder decoder = provideDecoder(consume);
+                if (consume) {
+                    consumed = true;
+                }
+                return decoder;
+            }
+
+            boolean peekOrConsumeNull(boolean consume) throws IOException {
+                Decoder decoder = provideDecoder(consume);
+                boolean isNull = decoder.decodeNull();
+                if (isNull && consume) {
+                    consumed = true;
+                }
+                return isNull;
+            }
+
+            private Decoder provideDecoder(boolean willConsume) throws IOException {
                 if (consumed) {
                     throw new IllegalStateException("Entry already consumed");
                 }
-                consumed = true;
+                Decoder decoder;
                 if (buffer != null) {
-                    return buffer;
+                    decoder = buffer;
                 } else {
-                    return delegate;
+                    decoder = delegate;
+                }
+                if (willConsume) {
+                    return decoder;
+                } else {
+                    // if we don't consume it, we need to duplicate the data using a JsonNode.
+                    JsonNode node = decoder.decodeNode();
+                    buffer = JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
+                    return JsonNodeDecoder.create(node, LimitingStream.DEFAULT_LIMITS);
                 }
             }
 
-            boolean decodeNull() throws IOException {
-                // this call has the expectation that a proper consume() will follow
-                if (consumed) {
-                    throw new IllegalStateException("Entry already consumed");
-                }
-                if (buffer != null) {
-                    return buffer.decodeNull();
-                } else {
-                    return delegate.decodeNull();
-                }
-            }
         }
     }
 
