@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson.annotation
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonCompileSpec
 import spock.lang.Unroll
