@@ -77,9 +77,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         Decoder objectDecoder = decoder.decodeObject(type);
 
         Object instance = null;
+        boolean completed = false;
         while (true) {
             final String propertyName = objectDecoder.decodeKey();
             if (propertyName == null) {
+                completed = true;
                 break;
             }
             if (deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
@@ -102,7 +104,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         if (deserBean.ignoreUnknown) {
             objectDecoder.finishStructure(true);
         } else {
-            if (deserBean.ignoredProperties != null) {
+            if (deserBean.ignoredProperties != null && !completed) {
                 String key = objectDecoder.decodeKey();
                 while (key != null) {
                     handleUnknownProperty(type, objectDecoder, key, deserBean);
