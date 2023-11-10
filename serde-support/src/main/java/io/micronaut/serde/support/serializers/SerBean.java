@@ -143,11 +143,12 @@ final class SerBean<T> {
             final Argument<Object> serType = beanProperty.asArgument();
             AnnotationMetadata propertyAnnotationMetadata = serPropEntry.getValue();
             jsonValue = new PropSerProperty<>(
-                    SerBean.this,
-                    beanProperty.getName(),
-                    serType,
-                    propertyAnnotationMetadata,
-                    beanProperty
+                SerBean.this,
+                beanProperty.getName(),
+                beanProperty.getName(),
+                serType,
+                propertyAnnotationMetadata,
+                beanProperty
             );
             initializers.add(ctx -> initProperty(SerBean.this.jsonValue, ctx));
             writeProperties = Collections.emptyList();
@@ -158,13 +159,13 @@ final class SerBean<T> {
                     .findFirst().orElse(null);
             if (serMethod != null) {
                 wrapperProperty = null;
-                final Argument<Object> serType = serMethod.getReturnType().asArgument();
                 jsonValue = new MethodSerProperty<>(
-                        SerBean.this,
-                        serMethod.getName(),
-                        serType,
-                        serMethod.getAnnotationMetadata(),
-                        serMethod
+                    SerBean.this,
+                    serMethod.getName(),
+                    serMethod.getName(),
+                    serMethod.getReturnType().asArgument(),
+                    serMethod.getAnnotationMetadata(),
+                    serMethod
                 );
                 initializers.add(ctx -> initProperty(SerBean.this.jsonValue, ctx));
                 writeProperties = Collections.emptyList();
@@ -215,9 +216,10 @@ final class SerBean<T> {
                         final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
 
+                        String originalName = argument.getName();
                         String resolvedPropertyName = resolveName(
                             propertyAnnotationMetadata,
-                            argument.getName(),
+                            originalName,
                             serdeArgumentConf,
                             propertyNamingStrategy);
 
@@ -227,11 +229,13 @@ final class SerBean<T> {
 
                         addedProperties.add(resolvedPropertyName);
 
-                        final SerProperty<T, Object> serProperty = new PropSerProperty<>(SerBean.this,
-                                resolvedPropertyName,
-                                argument,
-                                propertyAnnotationMetadata,
-                                property
+                        final SerProperty<T, Object> serProperty = new PropSerProperty<>(
+                            SerBean.this,
+                            resolvedPropertyName,
+                            originalName,
+                            argument,
+                            propertyAnnotationMetadata,
+                            property
                         );
 
                         initializers.add(ctx -> {
@@ -248,8 +252,9 @@ final class SerBean<T> {
                     for (BeanMethod<T, Object> jsonGetter : jsonGetters) {
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonGetter.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
                         final AnnotationMetadata jsonGetterAnnotationMetadata = jsonGetter.getAnnotationMetadata();
+                        String originalName = NameUtils.getPropertyNameForGetter(jsonGetter.getName());
                         String resolvedPropertyName = resolveName(jsonGetterAnnotationMetadata,
-                            NameUtils.getPropertyNameForGetter(jsonGetter.getName()),
+                            originalName,
                             serdeArgumentConf,
                             propertyNamingStrategy);
 
@@ -263,10 +268,12 @@ final class SerBean<T> {
                         }
 
                         final Argument<Object> returnType = jsonGetter.getReturnType().asArgument();
-                        MethodSerProperty<T, Object> prop = new MethodSerProperty<>(SerBean.this, resolvedPropertyName,
-                                returnType,
-                                jsonGetterAnnotationMetadata,
-                                jsonGetter
+                        MethodSerProperty<T, Object> prop = new MethodSerProperty<>(SerBean.this,
+                            resolvedPropertyName,
+                            originalName,
+                            returnType,
+                            jsonGetterAnnotationMetadata,
+                            jsonGetter
                         );
                         writeProperties.add(prop);
                         initializers.add(ctx -> initProperty(prop, ctx));
@@ -280,7 +287,14 @@ final class SerBean<T> {
         }
         if (!writeProperties.isEmpty() && serdeArgumentConf != null && serdeArgumentConf.order() != null) {
             List<String> order = Arrays.asList(serdeArgumentConf.order());
-            writeProperties.sort(Comparator.comparingInt(o -> order.indexOf(o.name)));
+            writeProperties.sort(Comparator.comparingInt(o -> {
+                int index = order.indexOf(o.name);
+                if (index == -1) {
+                    // Try to find the order defined by the original name of the property
+                    return order.indexOf(o.originalName);
+                }
+                return index;
+            }));
         }
 
         simpleBean = isSimpleBean();
@@ -409,8 +423,8 @@ final class SerBean<T> {
 
         private final UnsafeBeanProperty<B, P> beanProperty;
 
-        public PropSerProperty(SerBean<B> bean, String name, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanProperty<B, P> beanProperty) {
-            super(bean, name, argument, annotationMetadata);
+        public PropSerProperty(SerBean<B> bean, String name, String originalName, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanProperty<B, P> beanProperty) {
+            super(bean, name, originalName, argument, annotationMetadata);
             this.beanProperty = (UnsafeBeanProperty<B, P>) beanProperty;
         }
 
@@ -424,8 +438,8 @@ final class SerBean<T> {
 
         private final BeanMethod<B, P> beanMethod;
 
-        public MethodSerProperty(SerBean<B> bean, String name, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanMethod<B, P> beanMethod) {
-            super(bean, name, argument, annotationMetadata);
+        public MethodSerProperty(SerBean<B> bean, String name, String originalName, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanMethod<B, P> beanMethod) {
+            super(bean, name, originalName, argument, annotationMetadata);
             this.beanMethod = beanMethod;
         }
 
@@ -440,7 +454,7 @@ final class SerBean<T> {
         private final Function<B, P> reader;
 
         public CustomSerProperty(SerBean<B> bean, String name, Argument<P> argument, Function<B, P> reader) {
-            super(bean, name, argument);
+            super(bean, name, name, argument);
             this.reader = reader;
         }
 
@@ -455,7 +469,7 @@ final class SerBean<T> {
         private final P injected;
 
         public InjectedSerProperty(SerBean<B> bean, String name, Argument<P> argument, P injected) {
-            super(bean, name, argument);
+            super(bean, name, name, argument);
             this.injected = injected;
         }
 
@@ -469,6 +483,7 @@ final class SerBean<T> {
     abstract static class SerProperty<B, P> {
         // CHECKSTYLE:OFF
         public final String name;
+        public final String originalName;
         public final Argument<P> argument;
         public final Class<?>[] views;
         public final String managedRef;
@@ -485,16 +500,19 @@ final class SerBean<T> {
         public SerProperty(
                 SerBean<B> bean,
                 @NonNull String name,
+                @NonNull String originalName,
                 @NonNull Argument<P> argument) {
-            this(bean, name, argument, argument.getAnnotationMetadata());
+            this(bean, name, originalName, argument, argument.getAnnotationMetadata());
         }
 
         public SerProperty(
                 SerBean<B> bean,
                 @NonNull String name,
+                @NonNull String originalName,
                 @NonNull Argument<P> argument,
                 @NonNull AnnotationMetadata annotationMetadata) {
             this.name = name;
+            this.originalName = originalName;
             this.argument = argument;
             final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
             final AnnotationMetadata hierarchy =
