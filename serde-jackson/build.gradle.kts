@@ -24,4 +24,5 @@ dependencies {
     testImplementation(libs.aws.lambda.serialization)
     testImplementation(libs.aws.lambda.events)
     testImplementation(libs.micronaut.discovery)
+    testImplementation(projects.micronautSerdeJacksonTck)
 }

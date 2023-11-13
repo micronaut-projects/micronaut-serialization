@@ -1,90 +1,14 @@
-package io.micronaut.serde.jackson.annotation
+package io.micronaut.serde.jackson
 
-import io.micronaut.serde.jackson.JsonCompileSpec
-
-class JsonSerializeDeserializeSpec extends JsonCompileSpec {
-
-    void 'test errors'() {
-        when:
-            buildContext('test.Test', """
-package test;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.micronaut.serde.annotation.Serdeable;
-import java.util.LinkedList;
-import java.util.List;
-import java.time.LocalDate;
-
-@Serdeable.Deserializable(as = LinkedList.class)
-@Serdeable.Serializable(as = LocalDate.class)
-public interface Test {}
-
-""")
-        then:
-        def e = thrown(RuntimeException)
-        e.message.contains "Type to serialize as [java.time.LocalDate], must be a subtype of the annotated type: test.Test"
-    }
-
-    void 'test json deserialize on collection'() {
-        given:
-        def context = buildContext('test.Test', """
-package test;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.micronaut.serde.annotation.Serdeable;
-import java.util.LinkedList;
-import java.util.List;
-
-@Serdeable.Deserializable
-record Test(
-    @JsonDeserialize(as = LinkedList.class) List<Integer> list
-) {}
-
-""")
-
-        when:
-        def result = jsonMapper.readValue('{"list": [1, 2, 3]}', typeUnderTest);
-        then:
-        result.getClass().name == 'test.Test'
-        result.list instanceof LinkedList
-        result.list == [1, 2, 3] as LinkedList
-
-        cleanup:
-        context.close()
-    }
-
-    void 'test basic json deserialize on collection'() {
-        given:
-        def context = buildContext('test.Test', """
-package test;
-
-import io.micronaut.serde.annotation.Serdeable;
-import java.util.LinkedList;
-import java.util.List;
-
-@Serdeable.Deserializable
-record Test(
-    @Serdeable.Deserializable(as = LinkedList.class) List<Integer> list
-) {}
-
-""")
-
-        when:
-        def result = jsonMapper.readValue('{"list": [1, 2, 3]}', typeUnderTest);
-        then:
-        result.getClass().name == 'test.Test'
-        result.list instanceof LinkedList
-        result.list == [1, 2, 3] as LinkedList
-
-        cleanup:
-        context.close()
-    }
+abstract class JsonSerializeDeserializeSpec extends JsonCompileSpec {
 
     void 'test json serialize/deserialize as'() {
         given:
         def context = buildContext('test.Test', """
 package test;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.micronaut.serde.annotation.Serdeable;
@@ -97,8 +21,11 @@ interface Test {
 
 @Serdeable
 class TestImpl implements Test {
+
     private final String value;
-    TestImpl(String value) {
+
+    @JsonCreator
+    TestImpl(@JsonProperty("value") String value) {
         this.value = value;
     }
 
@@ -128,6 +55,8 @@ class TestImpl implements Test {
         def context = buildContext("""
 package test;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.micronaut.serde.annotation.Serdeable;
@@ -140,7 +69,9 @@ interface Authentication {
 
 @Serdeable
 class ClientAuthentication extends ServerAuthentication implements Authentication {
-    ClientAuthentication(String value) {
+
+    @JsonCreator
+    ClientAuthentication(@JsonProperty("value") String value) {
         super(value);
     }
 
@@ -151,8 +82,11 @@ class ClientAuthentication extends ServerAuthentication implements Authenticatio
 
 @Serdeable
 class ServerAuthentication implements Authentication {
+
     private final String value;
-    ServerAuthentication(String value) {
+
+    @JsonCreator
+    ServerAuthentication(@JsonProperty("value") String value) {
         this.value = value;
     }
 

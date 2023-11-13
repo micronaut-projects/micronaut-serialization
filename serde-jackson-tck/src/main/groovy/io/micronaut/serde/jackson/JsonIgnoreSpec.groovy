@@ -1,10 +1,11 @@
-package io.micronaut.serde.jackson.annotation
+package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.exceptions.SerdeException
-import io.micronaut.serde.jackson.JsonCompileSpec
 
-class JsonIgnoreSpec extends JsonCompileSpec {
+abstract class JsonIgnoreSpec extends JsonCompileSpec {
+
+    abstract protected String unknownPropertyMessage(String propertyName, String className)
+
     void "test @JsonIgnoreType"() {
         given:
         def context = buildContext("""
@@ -182,8 +183,8 @@ class Test {
         jsonMapper.readValue('{"value":"test","unknown":true}', typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: Test'
+        def e = thrown(Exception)
+        e.message.contains unknownPropertyMessage("unknown", "test.Test")
 
         cleanup:
         context.close()
@@ -505,8 +506,8 @@ record DeserializableRecord(String value) {
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+        def e = thrown(Exception)
+        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -536,8 +537,8 @@ record DeserializableRecord(String value) {
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+        def e = thrown(Exception)
+        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -608,8 +609,8 @@ class DeserializableRecord {
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+        def e = thrown(Exception)
+        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -649,8 +650,8 @@ class DeserializableRecord {
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+        def e = thrown(Exception)
+        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()

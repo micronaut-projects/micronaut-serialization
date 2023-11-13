@@ -1,8 +1,7 @@
-package io.micronaut.serde.jackson.annotation
+package io.micronaut.serde.jackson
 
-import io.micronaut.serde.jackson.JsonCompileSpec
+abstract class JsonAliasSpec extends JsonCompileSpec {
 
-class JsonAliasSpec extends JsonCompileSpec {
     void 'test JsonAlias with simple properties'() {
         given:
         def context = buildContext('''
