@@ -594,7 +594,7 @@ final class DeserBean<T> {
 
     private boolean isIgnored(BeanProperty<T, Object> bp) {
         final AnnotationMetadata annotationMetadata = bp.getAnnotationMetadata();
-        return annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+        return annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false);
     }

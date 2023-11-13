@@ -1,14 +1,212 @@
-package io.micronaut.serde.tck.jackson.databind
+package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.jackson.JsonUnwrappedSpec
-import spock.lang.PendingFeature
 
-class DatabindJsonUnwrappedSpec extends JsonUnwrappedSpec {
+class SerdeJsonUnwrappedSpec extends JsonUnwrappedSpec {
 
-     // This cases are not supported by Jackson
+    // This cases are not supported by Databind
 
-    @PendingFeature
+     // TODO: Correct properties order in the Databind output (unwrappeded should keep it's position)
+     void "test @JsonUnwrapped - levels 2 - Serde"() {
+        given:
+        def ctx = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+import java.sql.Timestamp;
+import java.util.Date;
+import io.micronaut.core.annotation.NonNull;
+
+@Serdeable
+class NestedEntity {
+
+    @JsonUnwrapped(prefix = "hk_")
+    private NestedEntityId hashKey;
+
+    private String value;
+
+    @JsonUnwrapped(prefix = "addr_")
+    private Address address;
+
+    @JsonUnwrapped
+    private Audit audit = new Audit();
+
+    public NestedEntityId getHashKey() {
+        return hashKey;
+    }
+
+    public void setHashKey(NestedEntityId hashKey) {
+        this.hashKey = hashKey;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Audit getAudit() {
+        return audit;
+    }
+
+    public void setAudit(Audit audit) {
+        this.audit = audit;
+    }
+
+}
+
+@Serdeable
+class NestedEntityId {
+
+    private Integer theInt;
+
+    private String theString;
+
+    public Integer getTheInt() {
+        return theInt;
+    }
+
+    public void setTheInt(Integer theInt) {
+        this.theInt = theInt;
+    }
+
+    public String getTheString() {
+        return theString;
+    }
+
+    public void setTheString(String theString) {
+        this.theString = theString;
+    }
+}
+
+@Serdeable
+class Address {
+
+    @JsonUnwrapped(prefix = "cd_")
+    private CityData cityData = new CityData();
+
+    private String street;
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public CityData getCityData() {
+        return cityData;
+    }
+
+    public void setCityData(CityData cityData) {
+        this.cityData = cityData;
+    }
+}
+
+@Serdeable
+class Audit {
+
+    static final Timestamp MIN_TIMESTAMP = new Timestamp(new Date(0).getTime());
+
+    private Long version  = 1L;
+
+    // Init manually because cannot be nullable and not getting populated by the event
+    private Timestamp dateCreated = MIN_TIMESTAMP;
+
+    private Timestamp dateUpdated = MIN_TIMESTAMP;
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
+    public Timestamp getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Timestamp dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public Timestamp getDateUpdated() {
+        return dateUpdated;
+    }
+
+    public void setDateUpdated(Timestamp dateUpdated) {
+        this.dateUpdated = dateUpdated;
+    }
+}
+
+@Serdeable
+class CityData {
+
+    @NonNull
+    private String zipCode;
+
+    private String city;
+
+    public String getZipCode() {
+        return zipCode;
+    }
+
+    public void setZipCode(String zipCode) {
+        this.zipCode = zipCode;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+}
+
+
+""")
+
+        when:
+        def nestedJsonStr = '{"hk_theInt":100,"hk_theString":"MyString","value":"test1","addr_street":"Blvd 11","addr_cd_zipCode":"22000","addr_cd_city":"NY","version":1,"dateCreated":"1970-01-01T00:00:00Z","dateUpdated":"1970-01-01T00:00:00Z"}'
+        def deserNestedEntity = jsonMapper.readValue(nestedJsonStr, Argument.of(ctx.classLoader.loadClass('unwrapped.NestedEntity')))
+
+        then:
+        deserNestedEntity
+        deserNestedEntity.hashKey.theInt == 100
+        deserNestedEntity.hashKey.theString == "MyString"
+        deserNestedEntity.value == "test1"
+        deserNestedEntity.address.cityData.zipCode == "22000"
+        deserNestedEntity.address.cityData.city == "NY"
+        deserNestedEntity.address.street == "Blvd 11"
+        deserNestedEntity.audit.version == 1
+        deserNestedEntity.audit.dateCreated
+        deserNestedEntity.audit.dateUpdated == deserNestedEntity.audit.dateCreated
+
+        when:
+        def result = jsonMapper.writeValueAsString(deserNestedEntity)
+
+        then:
+        result == nestedJsonStr
+
+        cleanup:
+        ctx.close()
+    }
+
     void "test @JsonUnwrapped records"() {
         given:
         def context = buildContext("""
@@ -52,7 +250,7 @@ record Name(
         context.close()
     }
 
-    @PendingFeature
+
     void "test @JsonUnwrapped - parent constructor args"() {
         given:
         def context = buildContext("""
@@ -107,7 +305,7 @@ class Name {
         context.close()
     }
 
-    @PendingFeature
+
     void 'test wrapped subtype with property info'() {
         given:
             def context = buildContext('test.Base', """
@@ -203,7 +401,6 @@ class Sub extends Base {
             result.getClass().name != 'test.Sub'
     }
 
-    @PendingFeature
     void 'test wrapped subtype with wrapper info'() {
         given:
             def context = buildContext('test.Base', """

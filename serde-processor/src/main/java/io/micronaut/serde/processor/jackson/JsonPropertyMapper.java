@@ -15,16 +15,16 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Maps the {@code com.fasterxml.jackson.annotation.JsonProperty} annotation to {@link SerdeConfig}.
@@ -42,24 +42,21 @@ public class JsonPropertyMapper implements NamedAnnotationMapper {
             values.add(AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY).build());
         }
 
-        annotation.stringValue("defaultValue")
-                .ifPresent(s ->
-                       values.add(AnnotationValue.builder(Bindable.class)
-                                          .member("defaultValue", s).build())
+        annotation.stringValue("defaultValue").ifPresent(s ->
+                       values.add(AnnotationValue.builder(Bindable.class).member("defaultValue", s).build())
                 );
-        final String access = annotation.stringValue("access").orElse(null);
-        if (access != null) {
+        annotation.stringValue("access").ifPresent(access -> {
             switch (access) {
-            case "READ_ONLY":
-                builder.member("readOnly", true);
-                break;
-            case "WRITE_ONLY":
-                builder.member("writeOnly", true);
-                break;
-            default:
-                // no-op
+                case "READ_ONLY":
+                    builder.member("readOnly", true);
+                    break;
+                case "WRITE_ONLY":
+                    builder.member("writeOnly", true);
+                    break;
+                default:
+                    // no-op
             }
-        }
+        });
         if (annotation.booleanValue("required").orElse(false)) {
             builder.member(SerdeConfig.REQUIRED, true);
         }
