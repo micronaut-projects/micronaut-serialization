@@ -82,8 +82,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private FieldElement anySetterField;
     private MethodElement jsonValueMethod;
     private FieldElement jsonValueField;
-    private final Set<String> readMethods = new HashSet<>(20);
-    private final Set<String> writeMethods = new HashSet<>(20);
+    private final Set<MethodElement> readMethods = new HashSet<>(20);
+    private final Set<MethodElement> writeMethods = new HashSet<>(20);
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
     private SerdeConfig.SerCreatorMode creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
 
@@ -182,12 +182,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             } else if (parameters.length == 0) {
                 if (element.getReturnType().getName().equals("void")) {
                     throw new ProcessingException(element, "A method annotated with JsonProperty cannot return void");
-                } else if (!readMethods.contains(element.getName())) {
+                } else if (!readMethods.contains(element)) {
                     element.annotate(Executable.class);
                     element.annotate(SerdeConfig.SerGetter.class);
                 }
             } else if (parameters.length == 1) {
-                if (!writeMethods.contains(element.getName())) {
+                if (!writeMethods.contains(element)) {
                     element.annotate(Executable.class);
                     element.annotate(SerdeConfig.SerSetter.class);
                 }
@@ -262,11 +262,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         if (!failOnError) {
             return;
         }
-        if (element instanceof MethodElement) {
-            if (readMethods.contains(element.getName()) && !((MethodElement) element).hasParameters()) {
+        if (element instanceof MethodElement methodElement) {
+            if (readMethods.contains(methodElement) && !methodElement.hasParameters()) {
                 // handled by PropertyElement
                 return;
-            } else if (writeMethods.contains(element.getName()) && ((MethodElement) element).getParameters().length == 1) {
+            } else if (writeMethods.contains(methodElement) && methodElement.getParameters().length == 1) {
                 // handled by PropertyElement
                 return;
             }
@@ -436,7 +436,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 element instanceof PropertyElement && element.hasAnnotation(managedRefClass));
     }
 
-    private String resolveJsonName(TypedElement thisProperty) {
+    private String resolvePropertyName(TypedElement thisProperty) {
         return thisProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                                       .orElseGet(() -> {
                                           if (thisProperty instanceof MethodElement) {
@@ -537,10 +537,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         return typeElements
-            .map(this::resolveJsonName)
-            .filter(s -> (ignoreSet == null || !ignoreSet.contains(s)) &&
-                (includeSet == null || includeSet.contains(s)))
-            .collect(Collectors.toList());
+            .map(this::resolvePropertyName)
+            .filter(s -> (ignoreSet == null || !ignoreSet.contains(s)) && (includeSet == null || includeSet.contains(s)))
+            .toList();
     }
 
     private boolean isMappedCandidate(Class<? extends Annotation> refType, String thisSide, AnnotationMetadata p) {
@@ -995,25 +994,30 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
             if (beanProperty instanceof PropertyElement pm) {
-                pm.getReadMethod().ifPresent(rm -> readMethods.add(rm.getName()));
-                pm.getWriteMethod().ifPresent(rm -> writeMethods.add(rm.getName()));
+                pm.getReadMethod().ifPresent(readMethods::add);
+                pm.getWriteMethod().ifPresent(writeMethods::add);
             }
             if (!beanProperty.isPrimitive() && !beanProperty.isArray()) {
                 final ClassElement t = beanProperty.getGenericType();
                 handleJsonIgnoreType(context, beanProperty, t);
             }
 
-            final String propertyName = beanProperty.getName();
+            final String propertyName = resolvePropertyName(beanProperty);
             if (propertyNamingStrategy != null) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
                     builder.member(SerdeConfig.PROPERTY, propertyNamingStrategy.translate(beanProperty))
                 );
             }
             if (CollectionUtils.isNotEmpty(order)) {
-                final int i = order.indexOf(propertyName);
-                if (i > -1) {
+                int index = order.indexOf(propertyName);
+                if (index == -1) {
+                    // Try to find the order defined by the original name of the property
+                    index = order.indexOf(beanProperty.getName());
+                }
+                if (index > -1) {
+                    int finalIndex = index;
                     beanProperty.annotate(Order.class, (builder) ->
-                        builder.value(-(i + 1))
+                        builder.value(-(finalIndex + 1))
                     );
                 }
             }

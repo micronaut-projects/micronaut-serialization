@@ -1105,6 +1105,194 @@ class Cat implements Animal {
             context.close()
     }
 
+    void "test @JsonTypeInfo(visible=true) renamed property"() {
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type",
+  visible = true)
+abstract class Animal {
+
+    @JsonProperty("type")
+    private String objType;
+
+    public abstract String getName();
+
+    public void setObjType(String objType) {
+        this.objType = objType;
+    }
+
+    public String getObjType() {
+        return objType;
+    }
+}
+
+@JsonTypeName("dog")
+class Dog extends Animal {
+
+    public double barkVolume;
+    private String name;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat extends Animal {
+    public boolean likesCream;
+    public int lives;
+    private String name;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
+            dog.objType = "dog"
+            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+            cat.objType = "cat"
+            def dogJson = writeJson(jsonMapper, dog)
+            def catJson = writeJson(jsonMapper, cat)
+
+        then: // We have two `type` properties
+            dogJson == '{"type":"dog","type":"dog","name":"Fred","barkVolume":1.1}'
+            catJson == '{"type":"cat","type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonTypeInfo(visible=true) renamed property and @JsonIgnoreProperties(allowSetters=true)"() {
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.Optional;
+
+@JsonTypeInfo(
+   use = JsonTypeInfo.Id.NAME,
+   property = "type",
+   visible = true)
+@JsonIgnoreProperties(
+    value = "type",
+    allowSetters = true
+)
+abstract class Animal {
+
+    @JsonProperty("type")
+    private String objType;
+
+    public abstract String getName();
+
+    public void setObjType(String objType) {
+        this.objType = objType;
+    }
+
+    public String getObjType() {
+        return objType;
+    }
+
+    @JsonIgnore
+    public Optional<String> getObjTypeOptional() {
+        return Optional.ofNullable(objType);
+    }
+
+}
+
+@JsonTypeName("dog")
+class Dog extends Animal {
+
+    public double barkVolume;
+    private String name;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat extends Animal {
+    public boolean likesCream;
+    public int lives;
+    private String name;
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+            def dog = newInstance(context, 'test.Dog', [name:"Fred", barkVolume:1.1d])
+            dog.objType = "dog"
+            def cat = newInstance(context, 'test.Cat', [name:"Joe", likesCream:true, lives: 9])
+            cat.objType = "cat"
+            def dogJson = writeJson(jsonMapper, dog)
+            def catJson = writeJson(jsonMapper, cat)
+
+        then:
+            dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+            catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+
+        when:
+            def dog2 = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Dog'))
+            def cat2 = jsonMapper.readValue(catJson, argumentOf(context, 'test.Cat'))
+
+        then:
+            dog.class.isInstance(dog2)
+            cat.class.isInstance(cat2)
+            dog2.name == "Fred"
+            dog2.barkVolume == 1.1d
+            dog2.objType == "dog"
+            cat2.name == "Joe"
+            cat2.likesCream
+            cat2.lives == 9
+            cat2.objType == "cat"
+
+        when:
+            def dog3 = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Animal'))
+            def cat3 = jsonMapper.readValue(catJson, argumentOf(context, 'test.Animal'))
+
+        then:
+            dog.class.isInstance(dog2)
+            cat.class.isInstance(cat2)
+            dog3.name == "Fred"
+            dog3.barkVolume == 1.1d
+            dog3.objType == "dog"
+            cat3.name == "Joe"
+            cat3.likesCream
+            cat3.lives == 9
+            cat3.objType == "cat"
+
+        cleanup:
+            context.close()
+    }
+
     void "test JsonIgnoreProperties on supertype"() {
         given:
             def context = buildContext("""

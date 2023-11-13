@@ -115,6 +115,62 @@ class Test {
         context.close()
     }
 
+    void "test simple @JsonIgnoreProperties with renamed property"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIgnoreProperties("xyz")
+class Test {
+    private String value;
+    @JsonProperty("xyz")
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+""", [value:'test'])
+
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"value":"test"}'
+
+        when:"deserialization happens"
+        def value = jsonMapper.readValue('{"value":"test","xyz":true}', typeUnderTest)
+
+        then:"the property is ignored for the purposes of deserialization"
+        value.ignored == false
+
+        when:
+        jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message == 'Unknown property [ignored] encountered during deserialization of type: Test'
+
+        cleanup:
+        context.close()
+    }
+
     void "test simple @JsonIncludeProperties"() {
         given:
         def context = buildContext('test.Test', """
@@ -154,6 +210,55 @@ class Test {
 
         when:"deserialization happens"
         def value = jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
+
+        then:"the property is ignored for the purposes of deserialization"
+        value.ignored == false
+
+        cleanup:
+        context.close()
+    }
+
+    void "test simple @JsonIncludeProperties with renamed property"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIncludeProperties("xyz")
+class Test {
+    @JsonProperty("xyz")
+    private String value;
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+""", [value:'test'])
+
+
+        when:
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"xyz":"test"}'
+
+        when:"deserialization happens"
+        def value = jsonMapper.readValue('{"xyz":"test","ignored":true}', typeUnderTest)
 
         then:"the property is ignored for the purposes of deserialization"
         value.ignored == false
@@ -800,8 +905,6 @@ class DeserializableRecord {
 
     }
 
-    //
-
     void "test @JsonIgnoreProperties inheritance"() {
         given:
             def context = buildContext('test.A', """
@@ -1002,7 +1105,7 @@ class A {
             context.close()
     }
 
-    void "test @JsonIgnoreProperties(allowSetters = true, gnoreUnknown = true)"() {
+    void "test @JsonIgnoreProperties(allowSetters = true, ignoreUnknown = true)"() {
         given:
             def context = buildContext('test.A', """
 package test;
