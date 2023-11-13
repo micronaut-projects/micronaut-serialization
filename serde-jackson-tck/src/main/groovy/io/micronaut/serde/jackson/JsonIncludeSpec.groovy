@@ -1,10 +1,15 @@
-package io.micronaut.serde.jackson.annotation
+package io.micronaut.serde.jackson
 
-import io.micronaut.serde.jackson.JsonCompileSpec
+
 import spock.lang.Unroll
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.*
 
-class JsonIncludeSpec extends JsonCompileSpec {
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+
+
+abstract class JsonIncludeSpec extends JsonCompileSpec {
 
     @Unroll
     void "test @JsonInclude(#include) for #type with #value"() {

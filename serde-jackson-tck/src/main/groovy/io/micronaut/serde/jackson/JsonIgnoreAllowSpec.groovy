@@ -1,12 +1,10 @@
-package io.micronaut.serde.jackson.annotation
+package io.micronaut.serde.jackson
 
 import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.exceptions.SerdeException
-import io.micronaut.serde.jackson.JsonCompileSpec
-import spock.lang.PendingFeature
+import spock.lang.Ignore
 
-class JsonIgnoreAllowSpec extends JsonCompileSpec {
+abstract class JsonIgnoreAllowSpec extends JsonCompileSpec {
 
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
@@ -15,9 +13,11 @@ class JsonIgnoreAllowSpec extends JsonCompileSpec {
         ))
     }
 
+    abstract protected String unknownPropertyMessage(String propertyName, String className)
+
     void "test @JsonIgnoreType"() {
         given:
-        def context = buildContext("""
+            def context = buildContext("""
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -47,30 +47,30 @@ class Test {
     }
 }
 """)
-        def t = newInstance(context, 'test.Test')
-        t.value = 'test'
-        def o = newInstance(context, 'test.Other')
-        o.test = t
+            def t = newInstance(context, 'test.Test')
+            t.value = 'test'
+            def o = newInstance(context, 'test.Other')
+            o.test = t
 
         when:
-        def result = writeJson(jsonMapper, o)
+            def result = writeJson(jsonMapper, o)
 
         then:
-        result == '{}'
+            result == '{}'
 
         when:
-        def read = jsonMapper.readValue('{"test":{"value":"test"}}', Argument.of(o.getClass()))
+            def read = jsonMapper.readValue('{"test":{"value":"test"}}', Argument.of(o.getClass()))
 
         then:"ignored for deserialization"
-        read.test == null
+            read.test == null
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test simple @JsonIgnoreProperties"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -100,24 +100,24 @@ class Test {
 
 
         when:
-        def result = writeJson(jsonMapper, beanUnderTest)
+            def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
-        result == '{"value":"test"}'
+            result == '{"value":"test"}'
 
         when:"deserialization happens"
-        def value = jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
+            def value = jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
 
         then:"the property is ignored for the purposes of deserialization"
-        value.ignored == false
+            value.ignored == false
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test simple @JsonIgnoreProperties with renamed property"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -149,31 +149,31 @@ class Test {
 
 
         when:
-        def result = writeJson(jsonMapper, beanUnderTest)
+            def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
-        result == '{"value":"test"}'
+            result == '{"value":"test"}'
 
         when:"deserialization happens"
-        def value = jsonMapper.readValue('{"value":"test","xyz":true}', typeUnderTest)
+            def value = jsonMapper.readValue('{"value":"test","xyz":true}', typeUnderTest)
 
         then:"the property is ignored for the purposes of deserialization"
-        value.ignored == false
+            value.ignored == false
 
         when:
-        jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
+            jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [ignored] encountered during deserialization of type: Test'
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("ignored", "test.Test")
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test simple @JsonIncludeProperties"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
@@ -203,24 +203,24 @@ class Test {
 
 
         when:
-        def result = writeJson(jsonMapper, beanUnderTest)
+            def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
-        result == '{"value":"test"}'
+            result == '{"value":"test"}'
 
         when:"deserialization happens"
-        def value = jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
+            def value = jsonMapper.readValue('{"value":"test","ignored":true}', typeUnderTest)
 
         then:"the property is ignored for the purposes of deserialization"
-        value.ignored == false
+            value.ignored == false
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test simple @JsonIncludeProperties with renamed property"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
@@ -252,24 +252,24 @@ class Test {
 
 
         when:
-        def result = writeJson(jsonMapper, beanUnderTest)
+            def result = writeJson(jsonMapper, beanUnderTest)
 
         then:
-        result == '{"xyz":"test"}'
+            result == '{"xyz":"test"}'
 
         when:"deserialization happens"
-        def value = jsonMapper.readValue('{"xyz":"test","ignored":true}', typeUnderTest)
+            def value = jsonMapper.readValue('{"xyz":"test","ignored":true}', typeUnderTest)
 
         then:"the property is ignored for the purposes of deserialization"
-        value.ignored == false
+            value.ignored == false
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test ignoreUnknown=false with @JsonIgnoreProperties"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -288,25 +288,25 @@ class Test {
 }
 """, [value:'test'])
         when:
-        def result = jsonMapper.readValue('{"value":"test"}', typeUnderTest)
+            def result = jsonMapper.readValue('{"value":"test"}', typeUnderTest)
 
         then:
-        result.value == 'test'
+            result.value == 'test'
 
         when:
-        jsonMapper.readValue('{"value":"test","unknown":true}', typeUnderTest)
+            jsonMapper.readValue('{"value":"test","unknown":true}', typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: Test'
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("unknown", "test.Test")
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test combined @JsonIgnoreProperties"() {
         given:
-        def context = buildContext("""
+            def context = buildContext("""
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -354,21 +354,21 @@ class Test {
     }
 }
 """)
-        def t = newInstance(context, 'test.Test')
-        t.value = 'test'
-        def o = newInstance(context, 'test.Other')
-        o.test = t
+            def t = newInstance(context, 'test.Test')
+            t.value = 'test'
+            def o = newInstance(context, 'test.Other')
+            o.test = t
 
         expect:
-        writeJson(jsonMapper, o) == '{"test":{"value":"test"}}'
+            writeJson(jsonMapper, o) == '{"test":{"value":"test"}}'
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test multiple combined @JsonIgnoreProperties"() {
         given:
-        def context = buildContext("""
+            def context = buildContext("""
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -426,42 +426,42 @@ class Test {
 }
 """)
 
-        def t1 = newInstance(context, 'test.Test')
-        t1.value = 'test1'
-        def t2 = newInstance(context, 'test.Test')
-        t2.value = 'test2'
-        def o = newInstance(context, 'test.Other')
-        o.test = t1
-        o.test.ignored = true
-        o.test.ignored2 = true
-        o.test2 = t2
-        o.test2.ignored = true
-        o.test2.ignored2 = true
+            def t1 = newInstance(context, 'test.Test')
+            t1.value = 'test1'
+            def t2 = newInstance(context, 'test.Test')
+            t2.value = 'test2'
+            def o = newInstance(context, 'test.Other')
+            o.test = t1
+            o.test.ignored = true
+            o.test.ignored2 = true
+            o.test2 = t2
+            o.test2.ignored = true
+            o.test2.ignored2 = true
 
         when:
-        def json = writeJson(jsonMapper, o)
+            def json = writeJson(jsonMapper, o)
 
         then:
-        json == '{"test":{"value":"test1"},"test2":{"value":"test2","ignored2":true}}'
+            json == '{"test":{"value":"test1"},"test2":{"value":"test2","ignored2":true}}'
 
         when:
-        def bean = jsonMapper.readValue(json, context.classLoader.loadClass("test.Other"))
+            def bean = jsonMapper.readValue(json, context.classLoader.loadClass("test.Other"))
 
         then:
-        bean.test.value == "test1"
-        !bean.test.ignored
-        !bean.test.ignored2
-        bean.test2.value == "test2"
-        !bean.test2.ignored
-        bean.test2.ignored2
+            bean.test.value == "test1"
+            !bean.test.ignored
+            !bean.test.ignored2
+            bean.test2.value == "test2"
+            !bean.test2.ignored
+            bean.test2.ignored2
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test combined @JsonIncludeProperties"() {
         given:
-        def context = buildContext("""
+            def context = buildContext("""
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
@@ -509,21 +509,21 @@ class Test {
     }
 }
 """)
-        def t = newInstance(context, 'test.Test')
-        t.value = 'test'
-        def o = newInstance(context, 'test.Other')
-        o.test = t
+            def t = newInstance(context, 'test.Test')
+            t.value = 'test'
+            def o = newInstance(context, 'test.Other')
+            o.test = t
 
         expect:
-        writeJson(jsonMapper, o) == '{"test":{"value":"test"}}'
+            writeJson(jsonMapper, o) == '{"test":{"value":"test"}}'
 
         cleanup:
-        context.close()
+            context.close()
     }
 
     void "test @JsonIgnore on field"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -551,16 +551,16 @@ class Test {
 }
 """, [value:'test'])
         expect:
-        writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
+            writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
 
         cleanup:
-        context.close()
+            context.close()
 
     }
 
     void "test @JsonIgnore on method"() {
         given:
-        def context = buildContext('test.Test', """
+            def context = buildContext('test.Test', """
 package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -590,10 +590,10 @@ class Test {
 }
 """, [value:'test'])
         expect:
-        writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
+            writeJson(jsonMapper, beanUnderTest) == '{"value":"test"}'
 
         cleanup:
-        context.close()
+            context.close()
 
     }
 
@@ -706,15 +706,15 @@ record DeserializableRecord(String value) {
 
 """)
         when:
-            Object deserialized = jsonMapper.readValue("""
+            jsonMapper.readValue("""
         {
             "unknown": "abc",
             "value": "xyz"
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -744,8 +744,8 @@ record DeserializableRecord(String value) {
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -809,15 +809,15 @@ class DeserializableRecord {
 
 """)
         when:
-            Object deserialized = jsonMapper.readValue("""
+            jsonMapper.readValue("""
         {
             "unknown": "abc",
             "value": "xyz"
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -857,8 +857,8 @@ class DeserializableRecord {
         }""", typeUnderTest)
 
         then:
-        def e = thrown(SerdeException)
-        e.message == 'Unknown property [unknown] encountered during deserialization of type: DeserializableRecord'
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
 
         cleanup:
             context.close()
@@ -1001,7 +1001,7 @@ class C {
 
     }
 
-    @PendingFeature
+    @Ignore // TODO
     void "test @JsonIgnoreProperties inheritance 2"() {
         given:
             def context = buildContext('test.C3', """
@@ -1098,8 +1098,8 @@ class A {
             jsonMapper.readValue('{"p1":"abc","p2":"xyz","p3":"foobar"}', a.class)
 
         then:
-            def e = thrown(SerdeException)
-            e.message == "Unknown property [p3] encountered during deserialization of type: A"
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("p3", "test.A")
 
         cleanup:
             context.close()
@@ -1216,8 +1216,8 @@ class A {
             jsonMapper.readValue('{"p1":"abc","p2":"xyz","p3":"foobar"}', a.class)
 
         then:
-            def e = thrown(SerdeException)
-            e.message == "Unknown property [p3] encountered during deserialization of type: A"
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("p3", "test.A")
 
         cleanup:
             context.close()
@@ -1650,8 +1650,8 @@ class C {
             jsonMapper.readValue('{"a":{"a1":"a1","a2":"a2","xx":"yy"},"b":"123"}', root.class)
 
         then: "Root doesn't allow any extra properties"
-            def e = thrown(SerdeException)
-            e.message == "Unknown property [b] encountered during deserialization of type: Root"
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("b", "test.Root")
 
         cleanup:
             context.close()
@@ -1781,8 +1781,8 @@ class C {
             jsonMapper.readValue('{"a":{"f1":"f1","f2":"f2","a2":"a2","a1":"a1","xxx":"yyy"}}', root.class)
 
         then:
-            def e = thrown(SerdeException)
-            e.cause.message == "Unknown property [xxx] encountered during deserialization of type: A a"
+            def e = thrown(Exception)
+            e.message.contains unknownPropertyMessage("xxx", "test.A")
 
         cleanup:
             context.close()
