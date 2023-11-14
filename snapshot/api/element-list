@@ -11,7 +11,6 @@ io.micronaut.serde.jackson
 io.micronaut.serde.jackson.builder
 io.micronaut.serde.jackson.enumjsonvalue
 io.micronaut.serde.jackson.maps
-io.micronaut.serde.jackson.nested
 io.micronaut.serde.jackson.outerinterface
 io.micronaut.serde.json.stream
 io.micronaut.serde.json.stream.graalvm
