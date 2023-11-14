@@ -1,10 +1,7 @@
 package io.micronaut.serde.jackson
 
-import spock.lang.PendingFeature
-
 abstract class JsonValueSpec extends JsonCompileSpec {
 
-    @PendingFeature(reason = "Jackson always return null")
     void "test json value on toString()"() {
         given:
         def context = buildContext('''
@@ -16,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-@JsonInclude(JsonInclude.Include.NON_ABSENT)
 class Other {
     private Test test;
     public void setTest(jsonvalue.Test test) {

@@ -1,10 +1,12 @@
-package io.micronaut.serde.tck.jackson.databind
+package io.micronaut.serde.jackson.annotation
 
 
 import io.micronaut.serde.jackson.JsonValueSpec
+import spock.lang.PendingFeature
 
-class DatabindJsonValueSpec extends JsonValueSpec {
+class SerdeJsonValueSpec extends JsonValueSpec {
 
+    @PendingFeature(reason = "Align with Databind behaviour of @JsonInclude(JsonInclude.Include.NON_ABSENT)")
     void "test json value on toString() - NON_ABSENT"() {
         given:
         def context = buildContext('''
@@ -66,5 +68,4 @@ class Test {
         cleanup:
         context.close()
     }
-
 }
