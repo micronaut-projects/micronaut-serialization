@@ -74,6 +74,8 @@ import java.util.stream.Stream;
  */
 public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
+    private static final String DEFAULT_REF_ALIAS_NAME = "defaultReference";
+
     private boolean failOnError = true;
     private ClassElement currentClass;
     private MethodElement anyGetterMethod;
@@ -328,8 +330,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         }
 
-        handleManagedRef(element, context, propertyType, isBasicType);
-        handleBackRef(element, context, propertyType, isBasicType);
+        handleReferences(element, context, propertyType, isBasicType);
 
         if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
             if (isBasicType(propertyType)) {
@@ -347,55 +348,37 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
-    private void handleBackRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
-        if (hasAnnotationOnElement(element, SerdeConfig.SerBackRef.class)) {
-            if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
-                throw new ProcessingException(element, "Managed references cannot be unwrapped");
-            }
-            if (isBasicType) {
-                throw new ProcessingException(element, "Back references cannot be declared on basic types");
-            } else if (isCollectionType(propertyType)) {
-                throw new ProcessingException(element, "Back references cannot be declared on collection, array or Map types and must be simple beans");
-            }
-            final String otherSide = element.stringValue(SerdeConfig.SerBackRef.class).orElse(null);
-            final List<TypedElement> inverseElements = resolveInverseElements(
-                    context,
-                    propertyType,
-                    SerdeConfig.SerManagedRef.class,
-                    element.getName()
-            );
-            if (otherSide == null) {
-                final int i = inverseElements.size();
-                if (i > 1) {
-                    throw new ProcessingException(element, "More than one potential inverse property found  " + inverseElements +
-                                         ", consider specifying a value to the reference to configure the association");
-                } else if (i == 0) {
-                    throw new ProcessingException(element, "No inverse property found for reference of type " + propertyType.getName());
-                } else {
-                    final TypedElement otherElement = inverseElements.iterator().next();
-                    if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                        throw new ProcessingException(element, "Back reference declares an incompatible inverse property [" + otherElement + "]. The "
-                                             + "inverse side should be a map, collection, bean or array of the same type as the property.");
-                    }
-                    element.annotate(SerdeConfig.SerBackRef.class, (builder) ->
-                        builder.value(otherElement.getName())
-                    );
-                }
-            } else {
-                final TypedElement otherElement = inverseElements.stream()
-                        .filter(p -> p.getName().equals(otherSide))
-                        .findFirst().orElse(null);
-                if (otherElement == null) {
-                    throw new ProcessingException(element, "Back reference declares an inverse property [" + otherSide + "] that doesn't exist in type " + propertyType.getName());
-                } else if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                    throw new ProcessingException(element, "Back reference declares an incompatible inverse property [" + otherSide + "]. The inverse side should be a map, collection, bean or array of the same type as the property.");
-                }
-            }
-        }
+    private void handleReferences(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
+        handleReferenceProperty(
+            element,
+            context,
+            propertyType,
+            isBasicType,
+            SerdeConfig.SerManagedRef.class,
+            SerdeConfig.SerBackRef.class,
+            SerdeConfig.SerManagedRef.ALIAS);
+        handleReferenceProperty(
+            element,
+            context,
+            propertyType,
+            isBasicType,
+            SerdeConfig.SerBackRef.class,
+            SerdeConfig.SerManagedRef.class,
+            SerdeConfig.SerBackRef.ALIAS);
     }
 
-    private void handleManagedRef(Element element, VisitorContext context, ClassElement propertyType, boolean isBasicType) {
-        if (hasAnnotationOnElement(element, SerdeConfig.SerManagedRef.class)) {
+    private void handleReferenceProperty(Element element,
+                                           VisitorContext context,
+                                           ClassElement propertyType,
+                                           boolean isBasicType,
+                                           Class<? extends Annotation> refClass,
+                                           Class<? extends Annotation> inverseRefClass,
+                                           String aliasProperty) {
+        if (hasAnnotationOnElement(element, refClass)) {
+            if (element.stringValue(refClass).isPresent()) {
+                // Already managed
+                return;
+            }
             if (hasAnnotationOnElement(element, SerdeConfig.SerUnwrapped.class)) {
                 throw new ProcessingException(element, "Managed references cannot be unwrapped");
             }
@@ -403,29 +386,28 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "Managed references cannot be declared on basic types");
             }
 
-            final String otherSide = element.stringValue(SerdeConfig.SerManagedRef.class).orElse(null);
-            if (otherSide == null) {
-                final List<TypedElement> inverseElements = resolveInverseElements(
-                        context,
-                        resolveRefType(propertyType),
-                        SerdeConfig.SerBackRef.class,
-                        element.getName());
+            final String refName = element.stringValue(refClass, aliasProperty).orElse(DEFAULT_REF_ALIAS_NAME);
+            final List<TypedElement> inverseElements = resolveInverseElements(
+                context,
+                resolveRefType(propertyType),
+                inverseRefClass,
+                aliasProperty,
+                refName);
 
-                final int i = inverseElements.size();
-                if (i == 0) {
-                    throw new ProcessingException(element, "No inverse property found for reference of type " + propertyType.getName());
-                } else if (i > 1) {
-                    throw new ProcessingException(element, "More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association");
+            final int i = inverseElements.size();
+            if (i == 0) {
+                throw new ProcessingException(element, "No inverse property found for reference of type " + propertyType.getName() + " and reference: " + refName);
+            } else if (i > 1) {
+                throw new ProcessingException(element, "More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association");
+            } else {
+                final TypedElement otherElement = inverseElements.iterator().next();
+                if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                    throw new ProcessingException(element, "Managed reference declares an incompatible inverse property [" + otherElement +
+                        "]. The inverse side should be a map, collection, bean or array of the same type as the property.");
                 } else {
-                    final TypedElement otherElement = inverseElements.iterator().next();
-                    if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
-                        throw new ProcessingException(element, "Managed reference declares an incompatible inverse property [" + otherElement +
-                                             "]. The inverse side should be a map, collection, bean or array of the same type as the property.");
-                    } else {
-                        element.annotate(SerdeConfig.SerManagedRef.class, (builder) ->
-                                builder.value(otherElement.getName())
-                        );
-                    }
+                    element.annotate(refClass, (builder) ->
+                        builder.value(otherElement.getName())
+                    );
                 }
             }
         }
@@ -465,14 +447,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private List<TypedElement> resolveInverseElements(VisitorContext context,
                                                       ClassElement propertyType,
                                                       Class<? extends Annotation> refType,
-                                                      String thisSide) {
+                                                      String aliasPropertyName,
+                                                      String ref) {
         Set<Introspected.AccessKind> accessKindSet = resolveAccessSet(context, propertyType);
         final List<TypedElement> otherElements = new ArrayList<>();
         if (accessKindSet.contains(Introspected.AccessKind.METHOD)) {
             propertyType.getBeanProperties()
                     .stream()
                     .filter(p ->
-                       isMappedCandidate(refType, thisSide, p) &&
+                       isMappedCandidate(refType, aliasPropertyName, ref, p) &&
                         p.hasAnnotation(refType) &&
                         isCompatibleInverseSide(p.getGenericType(), currentClass)
                     ).forEach(otherElements::add);
@@ -481,7 +464,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final List<FieldElement> fields = propertyType
                     .getEnclosedElements(ElementQuery.ALL_FIELDS
                                                  .onlyInstance()
-                                                 .annotated(ann -> isMappedCandidate(refType, thisSide, ann) && ann.hasDeclaredAnnotation(refType))
+                                                 .annotated(ann -> isMappedCandidate(refType, aliasPropertyName, ref, ann)
+                                                     && ann.hasDeclaredAnnotation(refType))
                                                  .modifiers(m -> m.contains(ElementModifier.PUBLIC))
                                                  .typed(t -> isCompatibleInverseSide(t.getGenericType(),
                                                                                      currentClass)));
@@ -542,9 +526,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             .toList();
     }
 
-    private boolean isMappedCandidate(Class<? extends Annotation> refType, String thisSide, AnnotationMetadata p) {
-        final String mappedName = p.stringValue(refType).orElse(null);
-        return mappedName == null || mappedName.equals(thisSide);
+    private boolean isMappedCandidate(Class<? extends Annotation> refType,
+                                      String aliasPropertyName,
+                                      String ref,
+                                      AnnotationMetadata p) {
+        return p.stringValue(refType, aliasPropertyName).orElse(DEFAULT_REF_ALIAS_NAME).equals(ref);
     }
 
     private Set<Introspected.AccessKind> resolveAccessSet(VisitorContext context, ClassElement propertyType) {
