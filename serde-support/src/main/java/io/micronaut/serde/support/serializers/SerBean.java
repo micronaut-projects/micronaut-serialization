@@ -416,7 +416,7 @@ final class SerBean<T> {
         return !property.isWriteOnly()
             && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
-            && !property.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false);
+            && !property.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false);
     }
 
     static final class PropSerProperty<B, P> extends SerProperty<B, P> {
