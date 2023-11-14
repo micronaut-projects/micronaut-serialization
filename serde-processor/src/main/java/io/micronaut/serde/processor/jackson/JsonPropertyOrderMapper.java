@@ -15,15 +15,15 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Support for @JsonPropertyOrder.
@@ -39,7 +39,7 @@ public class JsonPropertyOrderMapper extends ValidatingAnnotationMapper {
                                                       VisitorContext visitorContext) {
         return Collections.singletonList(
                 AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-                        .member(AnnotationMetadata.VALUE_MEMBER, annotation.stringValues())
+                        .values(annotation.stringValues())
                         .build()
         );
     }

@@ -555,10 +555,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return false;
     }
 
-    private boolean isCollectionType(ClassElement element) {
-        return element.isArray() || element.isAssignable(Iterable.class) || element.isAssignable(Map.class);
-    }
-
     private boolean isNumberType(ClassElement type) {
         if (type == null) {
             return false;
@@ -571,17 +567,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private @Nullable ClassElement resolvePropertyType(Element element) {
         ClassElement type = null;
-        if (element instanceof FieldElement) {
-            type = ((FieldElement) element).getGenericField().getType();
-        } else if (element instanceof MethodElement) {
-            MethodElement methodElement = (MethodElement) element;
+        if (element instanceof FieldElement fieldElement) {
+            type = fieldElement.getGenericField().getType();
+        } else if (element instanceof MethodElement methodElement) {
             if (!methodElement.hasParameters()) {
                 type = methodElement.getGenericReturnType();
             } else {
                 type = methodElement.getParameters()[0].getGenericType();
             }
-        } else if (element instanceof PropertyElement) {
-            return ((PropertyElement) element).getGenericType();
+        } else if (element instanceof PropertyElement propertyElement) {
+            return propertyElement.getGenericType();
         }
         return type;
     }
@@ -966,7 +961,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void processProperties(VisitorContext context,
                                    List<? extends TypedElement> beanProperties,
-                                   List<String> order,
+                                   List<String> orderDef,
                                    String[] ignoresProperties,
                                    String[] includeProperties,
                                    boolean ignoreOnlyDeserialization,
@@ -974,6 +969,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                    @Nullable PropertyNamingStrategy namingStrategy) {
         final Set<String> ignoredSet = CollectionUtils.setOf(ignoresProperties);
         final Set<String> includeSet = CollectionUtils.setOf(includeProperties);
+        final List<String> order = new ArrayList<>(orderDef);
         for (TypedElement beanProperty : beanProperties) {
             checkForErrors(beanProperty, context);
 
@@ -1001,6 +997,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     index = order.indexOf(beanProperty.getName());
                 }
                 if (index > -1) {
+                    // Set as used
+                    order.set(index, "");
                     int finalIndex = index;
                     beanProperty.annotate(Order.class, (builder) ->
                         builder.value(-(finalIndex + 1))
