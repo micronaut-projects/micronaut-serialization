@@ -1,26 +1,9 @@
-package io.micronaut.serde.tck.jackson.databind
+package io.micronaut.serde.jackson.annotation
 
-import io.micronaut.inject.ast.ClassElement
-import io.micronaut.inject.visitor.TypeElementVisitor
-import io.micronaut.inject.visitor.VisitorContext
 import io.micronaut.serde.jackson.JsonGetterSetterSpec
-import spock.lang.PendingFeature
 
-class DatabindJsonGetterSetterSpec extends JsonGetterSetterSpec {
+class SerdeJsonGetterSetterSpec extends JsonGetterSetterSpec {
 
-    @Override
-    protected Collection<TypeElementVisitor> getLocalTypeElementVisitors() {
-        // Disable Micronaut annotation processors
-        return [new TypeElementVisitor() {
-            @Override
-            void visitClass(ClassElement element, VisitorContext context) {
-            }
-        }]
-    }
-
-    // Not supported cases by Jackson Databind
-
-    @PendingFeature(reason = "@JsonAnySetter on setter needs to be (String key, Object value)")
     void "test json any getter / setter - map parameter"() {
         given:
             def context = buildContext('''
@@ -82,7 +65,6 @@ class Test {
             context.close()
     }
 
-    @PendingFeature(reason = "https://github.com/FasterXML/jackson-databind/issues/3439")
     void "test json any getter / setter - records"() {
         given:
             def context = buildContext('''
@@ -132,4 +114,30 @@ record Test(
             context.close()
     }
 
+    void "test json any getter / setter - records fail on invalid component"() {
+        when:
+        buildBeanIntrospection('jsongetterrecord.Test', '''
+package jsongetterrecord;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import java.util.*;
+
+@Serdeable
+record Test(
+    String name,
+    @JsonAnyGetter
+    @JsonAnySetter
+    String attributes) {
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message.contains("A field annotated with AnyGetter must be a Map")
+    }
 }
