@@ -1,8 +1,11 @@
-package io.micronaut.serde.jackson
+package io.micronaut.serde.jackson.annotation
 
-abstract class JsonRootNameSpec extends JsonCompileSpec {
 
-    void "test basic JsonRootName"() {
+import io.micronaut.serde.jackson.JsonRootNameSpec
+
+class SerdeJsonRootNameSpec extends JsonRootNameSpec {
+
+      void "test deserialize from null value"() {
         given:
         def context = buildContext("""
 package test;
@@ -16,24 +19,16 @@ record SampleClass(String a, String b) {}
 """)
 
         when:
-        def instance = newInstance(context, 'test.SampleClass', "xyz", "abc")
-        def json = writeJson(jsonMapper, instance)
+        def deserNull = jsonMapper.readValue("""{"sampleClass":null}""", argumentOf(context, 'test.SampleClass'))
 
         then:
-        json == """{"sampleClass":{"a":"xyz","b":"abc"}}"""
-
-        when:
-        def deser = jsonMapper.readValue(json, argumentOf(context, 'test.SampleClass'))
-
-        then:
-        deser.a == "xyz"
-        deser.b == "abc"
+        deserNull == null
 
         cleanup:
         context.close()
     }
 
-     void "test deserialize from root value {}"() {
+    void "test deserialize from {}"() {
         given:
         def context = buildContext("""
 package test;
@@ -47,14 +42,12 @@ record SampleClass(String a, String b) {}
 """)
 
         when:
-        def deserNull = jsonMapper.readValue("""{"sampleClass":{}}""", argumentOf(context, 'test.SampleClass'))
+        def deserNull2 = jsonMapper.readValue("""{}""", argumentOf(context, 'test.SampleClass'))
 
         then:
-        deserNull.a == null
-        deserNull.b == null
+        deserNull2 == null
 
         cleanup:
         context.close()
     }
-
 }
