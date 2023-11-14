@@ -15,15 +15,15 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
+import java.lang.annotation.Annotation;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Managed ref support.
@@ -38,7 +38,7 @@ public class JsonManagedReferenceMapper implements NamedAnnotationMapper {
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final AnnotationValueBuilder<SerdeConfig.SerManagedRef> builder =
                 AnnotationValue.builder(SerdeConfig.SerManagedRef.class);
-        annotation.stringValue().ifPresent(builder::value);
+        annotation.stringValue().ifPresent(alias -> builder.member(SerdeConfig.SerManagedRef.ALIAS, alias));
         return Collections.singletonList(builder.build());
     }
 }

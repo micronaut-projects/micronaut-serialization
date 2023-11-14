@@ -277,6 +277,12 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerManagedRef {
+
+        /**
+         * The managed property alias.
+         */
+        String ALIAS = "alias";
+
     }
 
     /**
@@ -284,6 +290,11 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerBackRef {
+
+        /**
+         * The managed property alias.
+         */
+        String ALIAS = "alias";
     }
 
     /**
