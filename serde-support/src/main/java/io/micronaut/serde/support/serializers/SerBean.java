@@ -286,15 +286,18 @@ final class SerBean<T> {
             }
         }
         if (!writeProperties.isEmpty() && serdeArgumentConf != null && serdeArgumentConf.order() != null) {
-            List<String> order = Arrays.asList(serdeArgumentConf.order());
-            writeProperties.sort(Comparator.comparingInt(o -> {
-                int index = order.indexOf(o.name);
-                if (index == -1) {
-                    // Try to find the order defined by the original name of the property
-                    return order.indexOf(o.originalName);
-                }
-                return index;
-            }));
+            List<SerBean.SerProperty<T, Object>> orderProps = new ArrayList<>(writeProperties);
+            List<SerProperty<T, Object>> order = Arrays.stream(serdeArgumentConf.order())
+                    .flatMap(propName -> {
+                        Optional<SerProperty<T, Object>> prop = orderProps.stream()
+                            .filter(p -> p.name.equals(propName) || p.originalName.equals(propName))
+                            .findFirst();
+                        // Make sure we reference the property only oncemas
+                        prop.ifPresent(orderProps::remove);
+                        return prop.stream();
+                    })
+                .toList();
+            writeProperties.sort(Comparator.comparingInt(order::indexOf));
         }
 
         simpleBean = isSimpleBean();
