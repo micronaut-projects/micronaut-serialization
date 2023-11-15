@@ -3,7 +3,6 @@ package io.micronaut.serde.jackson
 
 import spock.lang.Issue
 
-// NOTE: Jackson will fail on unknown subtype
 class JsonSubtypesSpec extends JsonCompileSpec {
 
     void 'test json sub types using name deserialization'() {
