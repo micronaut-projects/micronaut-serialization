@@ -453,6 +453,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return new DefaultEncoderContext(this) {
                 @Override
                 public boolean hasView(Class<?>... views) {
+                    if (view == null || view == Object.class) {
+                        return true;
+                    }
                     for (Class<?> candidate : views) {
                         if (candidate.isAssignableFrom(view)) {
                             return true;
@@ -471,6 +474,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return new DefaultDecoderContext(this) {
                 @Override
                 public boolean hasView(Class<?>... views) {
+                    if (view == null || view == Object.class) {
+                        return true;
+                    }
                     for (Class<?> candidate : views) {
                         if (candidate.isAssignableFrom(view)) {
                             return true;
