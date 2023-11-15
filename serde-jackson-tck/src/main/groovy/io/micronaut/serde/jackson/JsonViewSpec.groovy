@@ -1,6 +1,120 @@
 package io.micronaut.serde.jackson
 
+import spock.lang.Ignore
+
 abstract class JsonViewSpec extends JsonCompileSpec {
+
+    @Ignore // TODO: Align with Jackson
+    def 'simple views'() {
+        given:
+        def ctx = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonView(Public.class)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class WithViews {
+    public String firstName;
+    public String lastName;
+    @JsonView(Internal.class)
+    public String birthdate;
+    @JsonView(Admin.class)
+    public String password; // don't do plaintext passwords at home please
+}
+
+class Public {}
+
+class Internal extends Public {}
+
+class Admin extends Internal {}
+''')
+
+        def withViews = newInstance(ctx, 'example.WithViews')
+        withViews.firstName = 'Bob'
+        withViews.lastName = 'Jones'
+        withViews.birthdate = '08/01/1980'
+        withViews.password = 'secret'
+
+        def viewPublic = ctx.classLoader.loadClass('example.Public')
+        def viewInternal = ctx.classLoader.loadClass('example.Internal')
+        def viewAdmin = ctx.classLoader.loadClass('example.Admin')
+
+        expect:
+        serializeToString(jsonMapper, withViews, viewAdmin) ==
+                '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}'
+        serializeToString(jsonMapper, withViews, viewInternal) ==
+                '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980"}'
+        serializeToString(jsonMapper, withViews, viewPublic) ==
+                '{"firstName":"Bob","lastName":"Jones"}'
+        serializeToString(jsonMapper, withViews) == '{}'
+
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}')
+                .firstName == null
+
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewPublic)
+                .firstName == 'Bob'
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewPublic)
+                .birthdate == null
+
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewInternal)
+                .firstName == 'Bob'
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewInternal)
+                .birthdate == '08/01/1980'
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewInternal)
+                .password == null
+
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewAdmin)
+                .firstName == 'Bob'
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewAdmin)
+                .birthdate == '08/01/1980'
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewAdmin)
+                .password == 'secret'
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'unwrapped view'() {
+        given:
+        def ctx = buildContext('example.Outer', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Outer {
+    public String a;
+    @JsonView(Runnable.class)
+    @JsonUnwrapped public Nested nested;
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Nested {
+    public String b;
+}
+''')
+
+        def outer = newInstance(ctx, 'example.Outer')
+        outer.a = 'a'
+        outer.nested = newInstance(ctx, 'example.Nested')
+        outer.nested.b = 'b'
+
+        expect:
+        serializeToString(jsonMapper, outer) ==  '{"a":"a","b":"b"}'
+        // abuse Runnable as the view class
+        serializeToString(jsonMapper, outer, Runnable) == '{"a":"a","b":"b"}'
+
+        jsonMapper.readValue('{"a":"a","b":"b"}', typeUnderTest).nested?.b == 'b'
+        deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Outer"), '{"a":"a","b":"b"}', Runnable).nested.b == 'b'
+    }
 
     void 'test JsonView with simple properties'() {
         given:

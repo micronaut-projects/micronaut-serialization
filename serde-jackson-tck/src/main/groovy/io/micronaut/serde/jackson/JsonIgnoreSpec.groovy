@@ -6,6 +6,69 @@ abstract class JsonIgnoreSpec extends JsonCompileSpec {
 
     abstract protected String unknownPropertyMessage(String propertyName, String className)
 
+     void 'JsonIgnoreType'() {
+        given:
+        def compiled = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
+import io.micronaut.core.annotation.Introspected;
+
+@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    public String foo;
+    public Used used;
+}
+@JsonIgnoreType
+@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Used {
+    public String bar;
+}
+''')
+        def bean = newInstance(compiled, 'example.Test')
+        bean.foo = '42'
+        bean.used = newInstance(compiled, 'example.Used')
+        bean.used.bar = '56'
+
+        expect:
+        serializeToString(jsonMapper, bean) == '{"foo":"42"}'
+        deserializeFromString(jsonMapper, bean.getClass(), '{"foo":"42","used":{"bar":"56"}}').used == null
+    }
+
+    void "json ignore"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    @JsonIgnore
+    public String foo;
+    public String bar;
+}
+''', [:])
+
+        def des = jsonMapper.readValue('{"foo": "1", "bar": "2"}', typeUnderTest)
+        beanUnderTest.foo = "1"
+        beanUnderTest.bar = "2"
+        def serialized = writeJson(jsonMapper, beanUnderTest)
+
+        expect:
+        des.foo == null
+        des.bar == "2"
+        serialized == '{"bar":"2"}'
+
+        cleanup:
+        context.close()
+    }
+
     void "test @JsonIgnoreType"() {
         given:
         def context = buildContext("""

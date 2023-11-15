@@ -7,6 +7,101 @@ class SerdeJsonUnwrappedSpec extends JsonUnwrappedSpec {
 
     // This cases are not supported by Databind
 
+     void 'unwrapped ignore unknown neither'() {
+        given:
+        def context = buildContext('example.Outer', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Outer {
+    @JsonUnwrapped B b;
+}
+
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
+class B {
+}
+''')
+
+        when:
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest)
+
+        then:
+        def e = thrown Exception
+        expect: 'error should have the name of the outer class'
+        e.message.contains("Outer")
+
+        cleanup:
+        context.close()
+    }
+
+   void 'unwrapped ignore unknown outer'() {
+        given:
+        def context = buildContext('example.A', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = true)
+class A {
+    @JsonUnwrapped B b;
+}
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
+class B {
+}
+''')
+
+        expect:
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest) != null
+
+        cleanup:
+        context.close()
+    }
+
+    void 'unwrapped ignore unknown inner'() {
+        given:
+        def context = buildContext('example.A', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = false)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class A {
+    @JsonUnwrapped B b;
+}
+
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class B {
+}
+''')
+
+        when:
+        jsonMapper.readValue('{"foo":"bar"}', typeUnderTest) != null
+
+        then:
+        def e = thrown Exception
+        expect: 'error should have the name of the outer class'
+        e.message.contains("A")
+
+        cleanup:
+        context.close()
+    }
+
      // TODO: Correct properties order in the Databind output (unwrappeded should keep it's position)
      void "test @JsonUnwrapped - levels 2 - Serde"() {
         given:

@@ -4,6 +4,43 @@ import io.micronaut.core.type.Argument
 
 class JsonUnwrappedSpec extends JsonCompileSpec {
 
+    void "unwrapped"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    @JsonUnwrapped public Name name = new Name();
+}
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Name {
+    public String first;
+    public String last;
+}
+''', [:])
+
+        def des = jsonMapper.readValue('{"first":"foo","last":"bar"}', typeUnderTest)
+        beanUnderTest.name.first = "foo"
+        beanUnderTest.name.last = "bar"
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"first":"foo","last":"bar"}'
+        des.name != null
+        des.name.first == "foo"
+        des.name.last == "bar"
+
+        cleanup:
+        context.close()
+    }
+
     void "test @JsonUnwrapped conflict"() {
         when:
         def context = buildContext("""

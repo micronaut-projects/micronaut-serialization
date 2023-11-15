@@ -2,6 +2,60 @@ package io.micronaut.serde.jackson
 
 abstract class JsonGetterSetterSpec extends JsonCompileSpec {
 
+    void "@JsonAnyGetter"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    @JsonAnyGetter
+    Map<String, String> anyGetter() {
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("foo", "bar");
+        map.put("123", "456");
+        return map;
+    }
+}
+''', [:])
+
+        expect:
+        writeJson(jsonMapper, beanUnderTest) == '{"foo":"bar","123":"456"}'
+    }
+
+    void "@JsonAnySetter"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private Map<String, String> anySetter = new HashMap<>();
+
+    @JsonAnySetter
+    void put(String key, String value) {
+        anySetter.put(key, value);
+    }
+}
+''')
+
+        expect:
+        jsonMapper.readValue('{"foo":"bar","123":"456"}', typeUnderTest).anySetter == ['foo': 'bar', '123': '456']
+
+        cleanup:
+        context.close()
+    }
+
+
     void "test json getter / setter"() {
         given:
         def context = buildContext('''
