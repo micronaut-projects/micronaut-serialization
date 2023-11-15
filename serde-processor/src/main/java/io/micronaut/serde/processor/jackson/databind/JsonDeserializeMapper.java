@@ -15,19 +15,20 @@
  */
 package io.micronaut.serde.processor.jackson.databind;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import io.micronaut.core.annotation.AccessorsStyle;
 import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.inject.visitor.VisitorContext;
+import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.processor.jackson.ValidatingAnnotationMapper;
+
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Support for JsonDeserialize(as=MyType).
@@ -35,15 +36,14 @@ import io.micronaut.serde.processor.jackson.ValidatingAnnotationMapper;
 public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
     @Override
     protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        AnnotationClassValue<?> acv = annotation.annotationClassValue("as").orElse(null);
         List<AnnotationValue<?>> annotations = new ArrayList<>();
-        if (acv != null) {
+        annotation.annotationClassValue("as").ifPresent(as ->
             annotations.add(
-                    AnnotationValue.builder(SerdeConfig.class)
-                            .member(SerdeConfig.DESERIALIZE_AS, acv)
-                            .build()
-            );
-        }
+                AnnotationValue.builder(SerdeConfig.class)
+                    .member(SerdeConfig.DESERIALIZE_AS, as)
+                    .build())
+        );
+        annotations.add(AnnotationValue.builder(Serdeable.Deserializable.class).build());
         AnnotationClassValue<?> builderClass = annotation.annotationClassValue("builder").orElse(null);
         if (builderClass != null) {
             AnnotationValueBuilder<Introspected.IntrospectionBuilder> builderDef = AnnotationValue.builder(Introspected.IntrospectionBuilder.class);
