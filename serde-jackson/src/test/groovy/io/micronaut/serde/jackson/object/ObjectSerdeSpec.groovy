@@ -996,10 +996,10 @@ class Admin extends Internal {}
                 '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980"}'
         serializeToString(jsonMapper, withViews, viewPublic) ==
                 '{"firstName":"Bob","lastName":"Jones"}'
-        serializeToString(jsonMapper, withViews) == '{}'
+        serializeToString(jsonMapper, withViews) == '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}'
 
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}')
-                .firstName == null
+                .firstName == 'Bob'
 
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.WithViews"), '{"firstName":"Bob","lastName":"Jones","birthdate":"08/01/1980","password":"secret"}', viewPublic)
                 .firstName == 'Bob'
@@ -1052,11 +1052,11 @@ class Nested {
         outer.nested.b = 'b'
 
         expect:
-        serializeToString(jsonMapper, outer) == '{"a":"a"}'
+        serializeToString(jsonMapper, outer) ==  '{"a":"a","b":"b"}'
         // abuse Runnable as the view class
         serializeToString(jsonMapper, outer, Runnable) == '{"a":"a","b":"b"}'
 
-        jsonMapper.readValue('{"a":"a","b":"b"}', typeUnderTest).nested?.b == null
+        jsonMapper.readValue('{"a":"a","b":"b"}', typeUnderTest).nested?.b == 'b'
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Outer"), '{"a":"a","b":"b"}', Runnable).nested.b == 'b'
     }
 

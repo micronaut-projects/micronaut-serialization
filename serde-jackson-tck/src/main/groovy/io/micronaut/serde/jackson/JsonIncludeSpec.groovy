@@ -8,8 +8,190 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 
-
 abstract class JsonIncludeSpec extends JsonCompileSpec {
+
+    @Unroll
+    void "test basic deserialize #result of type #type"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
+
+@com.fasterxml.jackson.annotation.JsonClassDescription
+class Test {
+    private $type value;
+    public void setValue($type value) {
+        this.value = value;
+    }
+    public $type getValue() {
+        return value;
+    }
+}
+""", data)
+        when:
+            def bean = jsonMapper.readValue(result, beanUnderTest.class)
+        then:
+            bean.value == data.value
+
+        cleanup:
+            context.close()
+
+        where:
+            type                           | data                            | result
+            "Optional<String>"             | [value: Optional.empty()]       | '{"value":null}'
+            "OptionalInt"                  | [value: OptionalInt.empty()]    | '{"value":null}'
+            "OptionalDouble"               | [value: OptionalDouble.empty()] | '{"value":null}'
+            "OptionalLong"                 | [value: OptionalLong.empty()]   | '{"value":null}'
+            "List<String>"                 | [value: ["Test"]]               | '{"value":["Test"]}'
+            "Optional<String>"             | [value: Optional.of("Test")]    | '{"value":"Test"}'
+            "List<? extends CharSequence>" | [value: ["Test"]]               | '{"value":["Test"]}'
+            "List<Boolean>"                | [value: [true]]                 | '{"value":[true]}'
+            "Iterable<String>"             | [value: ["Test"]]               | '{"value":["Test"]}'
+            "Iterable<Boolean>"            | [value: [true]]                 | '{"value":[true]}'
+            "Set<String>"                  | [value: ["Test"] as Set]        | '{"value":["Test"]}'
+            "Set<Boolean>"                 | [value: [true] as Set]          | '{"value":[true]}'
+            "Collection<String>"           | [value: ["Test"]]               | '{"value":["Test"]}'
+            "Collection<Boolean>"          | [value: [true]]                 | '{"value":[true]}'
+            "Map<String, Boolean>"         | [value: [foo: true]]            | '{"value":{"foo":true}}'
+            "Collection<Boolean>"          | [value: []]                     | '{"value":[]}'
+            "Map<String, Boolean>"         | [value: [:]]                    | '{"value":{}}'
+            "Collection<Boolean>"          | [value: null]                   | '{}'
+            "Map<String, Boolean>"         | [value: null]                   | '{}'
+    }
+
+    @Unroll
+    void "test serialize #data of type #type with include #include"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
+
+@com.fasterxml.jackson.annotation.JsonClassDescription
+class Test {
+    @JsonInclude(${include.name()})
+    private $type value;
+    public void setValue($type value) {
+        this.value = value;
+    }
+    public $type getValue() {
+        return value;
+    }
+}
+""", data)
+        when:
+            def bean = newInstance(context, "test.Test")
+            bean.value = data.value
+            def json = jsonMapper.writeValueAsString(bean)
+        then:
+            json == result
+
+        cleanup:
+            context.close()
+
+        where:
+            include    | type                           | data                            | result
+            NON_ABSENT | "Optional<String>"             | [value: null]                   | '{}'
+            NON_ABSENT | "OptionalInt"                  | [value: null]                   | '{}'
+            NON_ABSENT | "OptionalDouble"               | [value: null]                   | '{}'
+            NON_ABSENT | "OptionalLong"                 | [value: null]                   | '{}'
+            NON_ABSENT | "Optional<String>"             | [value: Optional.empty()]       | '{}'
+            NON_ABSENT | "OptionalInt"                  | [value: OptionalInt.empty()]    | '{}'
+            NON_ABSENT | "OptionalDouble"               | [value: OptionalDouble.empty()] | '{}'
+            NON_ABSENT | "OptionalLong"                 | [value: OptionalLong.empty()]   | '{}'
+            NON_ABSENT | "List<String>"                 | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_ABSENT | "Optional<String>"             | [value: Optional.of("Test")]    | '{"value":"Test"}'
+            NON_ABSENT | "List<? extends CharSequence>" | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_ABSENT | "List<Boolean>"                | [value: [true]]                 | '{"value":[true]}'
+            NON_ABSENT | "Iterable<String>"             | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_ABSENT | "Iterable<Boolean>"            | [value: [true]]                 | '{"value":[true]}'
+            NON_ABSENT | "Set<String>"                  | [value: ["Test"] as Set]        | '{"value":["Test"]}'
+            NON_ABSENT | "Set<Boolean>"                 | [value: [true] as Set]          | '{"value":[true]}'
+            NON_ABSENT | "Collection<String>"           | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_ABSENT | "Collection<Boolean>"          | [value: [true]]                 | '{"value":[true]}'
+            NON_ABSENT | "Map<String, Boolean>"         | [value: [foo: true]]            | '{"value":{"foo":true}}'
+            NON_ABSENT | "Collection<Boolean>"          | [value: []]                     | '{"value":[]}'
+            NON_ABSENT | "Map<String, Boolean>"         | [value: [:]]                    | '{"value":{}}'
+            NON_ABSENT | "Collection<Boolean>"          | [value: null]                   | '{}'
+            NON_ABSENT | "Map<String, Boolean>"         | [value: null]                   | '{}'
+
+            NON_NULL   | "Optional<String>"             | [value: null]                   | '{}'
+            NON_NULL   | "OptionalInt"                  | [value: null]                   | '{}'
+            NON_NULL   | "OptionalDouble"               | [value: null]                   | '{}'
+            NON_NULL   | "OptionalLong"                 | [value: null]                   | '{}'
+            NON_NULL   | "Optional<String>"             | [value: Optional.empty()]       | '{"value":null}'
+            NON_NULL   | "OptionalInt"                  | [value: OptionalInt.empty()]    | '{"value":null}'
+            NON_NULL   | "OptionalDouble"               | [value: OptionalDouble.empty()] | '{"value":null}'
+            NON_NULL   | "OptionalLong"                 | [value: OptionalLong.empty()]   | '{"value":null}'
+            NON_NULL   | "List<String>"                 | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_NULL   | "Optional<String>"             | [value: Optional.of("Test")]    | '{"value":"Test"}'
+            NON_NULL   | "List<? extends CharSequence>" | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_NULL   | "List<Boolean>"                | [value: [true]]                 | '{"value":[true]}'
+            NON_NULL   | "Iterable<String>"             | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_NULL   | "Iterable<Boolean>"            | [value: [true]]                 | '{"value":[true]}'
+            NON_NULL   | "Set<String>"                  | [value: ["Test"] as Set]        | '{"value":["Test"]}'
+            NON_NULL   | "Set<Boolean>"                 | [value: [true] as Set]          | '{"value":[true]}'
+            NON_NULL   | "Collection<String>"           | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_NULL   | "Collection<Boolean>"          | [value: [true]]                 | '{"value":[true]}'
+            NON_NULL   | "Map<String, Boolean>"         | [value: [foo: true]]            | '{"value":{"foo":true}}'
+            NON_NULL   | "Collection<Boolean>"          | [value: []]                     | '{"value":[]}'
+            NON_NULL   | "Map<String, Boolean>"         | [value: [:]]                    | '{"value":{}}'
+            NON_NULL   | "Collection<Boolean>"          | [value: null]                   | '{}'
+            NON_NULL   | "Map<String, Boolean>"         | [value: null]                   | '{}'
+
+            NON_EMPTY  | "Optional<String>"             | [value: null]                   | '{}'
+            NON_EMPTY  | "OptionalInt"                  | [value: null]                   | '{}'
+            NON_EMPTY  | "OptionalDouble"               | [value: null]                   | '{}'
+            NON_EMPTY  | "OptionalLong"                 | [value: null]                   | '{}'
+            NON_EMPTY  | "Optional<String>"             | [value: Optional.empty()]       | '{}'
+            NON_EMPTY  | "OptionalInt"                  | [value: OptionalInt.empty()]    | '{}'
+            NON_EMPTY  | "OptionalDouble"               | [value: OptionalDouble.empty()] | '{}'
+            NON_EMPTY  | "OptionalLong"                 | [value: OptionalLong.empty()]   | '{}'
+            NON_EMPTY  | "List<String>"                 | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_EMPTY  | "Optional<String>"             | [value: Optional.of("Test")]    | '{"value":"Test"}'
+            NON_EMPTY  | "List<? extends CharSequence>" | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_EMPTY  | "List<Boolean>"                | [value: [true]]                 | '{"value":[true]}'
+            NON_EMPTY  | "Iterable<String>"             | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_EMPTY  | "Iterable<Boolean>"            | [value: [true]]                 | '{"value":[true]}'
+            NON_EMPTY  | "Set<String>"                  | [value: ["Test"] as Set]        | '{"value":["Test"]}'
+            NON_EMPTY  | "Set<Boolean>"                 | [value: [true] as Set]          | '{"value":[true]}'
+            NON_EMPTY  | "Collection<String>"           | [value: ["Test"]]               | '{"value":["Test"]}'
+            NON_EMPTY  | "Collection<Boolean>"          | [value: [true]]                 | '{"value":[true]}'
+            NON_EMPTY  | "Map<String, Boolean>"         | [value: [foo: true]]            | '{"value":{"foo":true}}'
+            NON_EMPTY  | "Collection<Boolean>"          | [value: []]                     | '{}'
+            NON_EMPTY  | "Map<String, Boolean>"         | [value: [:]]                    | '{}'
+            NON_EMPTY  | "Collection<Boolean>"          | [value: null]                   | '{}'
+            NON_EMPTY  | "Map<String, Boolean>"         | [value: null]                   | '{}'
+
+            ALWAYS     | "Optional<String>"             | [value: Optional.empty()]       | '{"value":null}'
+            ALWAYS     | "OptionalInt"                  | [value: OptionalInt.empty()]    | '{"value":null}'
+            ALWAYS     | "OptionalDouble"               | [value: OptionalDouble.empty()] | '{"value":null}'
+            ALWAYS     | "OptionalLong"                 | [value: OptionalLong.empty()]   | '{"value":null}'
+            ALWAYS     | "Optional<String>"             | [value: Optional.empty()]       | '{"value":null}'
+            ALWAYS     | "OptionalInt"                  | [value: OptionalInt.empty()]    | '{"value":null}'
+            ALWAYS     | "OptionalDouble"               | [value: OptionalDouble.empty()] | '{"value":null}'
+            ALWAYS     | "OptionalLong"                 | [value: OptionalLong.empty()]   | '{"value":null}'
+            ALWAYS     | "List<String>"                 | [value: ["Test"]]               | '{"value":["Test"]}'
+            ALWAYS     | "Optional<String>"             | [value: Optional.of("Test")]    | '{"value":"Test"}'
+            ALWAYS     | "List<? extends CharSequence>" | [value: ["Test"]]               | '{"value":["Test"]}'
+            ALWAYS     | "List<Boolean>"                | [value: [true]]                 | '{"value":[true]}'
+            ALWAYS     | "Iterable<String>"             | [value: ["Test"]]               | '{"value":["Test"]}'
+            ALWAYS     | "Iterable<Boolean>"            | [value: [true]]                 | '{"value":[true]}'
+            ALWAYS     | "Set<String>"                  | [value: ["Test"] as Set]        | '{"value":["Test"]}'
+            ALWAYS     | "Set<Boolean>"                 | [value: [true] as Set]          | '{"value":[true]}'
+            ALWAYS     | "Collection<String>"           | [value: ["Test"]]               | '{"value":["Test"]}'
+            ALWAYS     | "Collection<Boolean>"          | [value: [true]]                 | '{"value":[true]}'
+            ALWAYS     | "Map<String, Boolean>"         | [value: [foo: true]]            | '{"value":{"foo":true}}'
+            ALWAYS     | "Collection<Boolean>"          | [value: []]                     | '{"value":[]}'
+            ALWAYS     | "Map<String, Boolean>"         | [value: [:]]                    | '{"value":{}}'
+            ALWAYS     | "Collection<Boolean>"          | [value: null]                   | '{"value":null}'
+            ALWAYS     | "Map<String, Boolean>"         | [value: null]                   | '{"value":null}'
+    }
 
     @Unroll
     void "test @JsonInclude(#include) for #type with #value"() {
