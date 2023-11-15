@@ -5,6 +5,49 @@ import spock.lang.Issue
 
 abstract class JsonSubtypesSpec extends JsonCompileSpec {
 
+    def 'test JsonSubTypes with wrapper object'() {
+        given:
+        def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+class Base {
+}
+
+class A extends Base {
+    public String fieldA;
+}
+
+class B extends Base {
+    public String fieldB;
+}
+''')
+
+        def baseClass = compiled.classLoader.loadClass('example.Base')
+        def a = newInstance(compiled, 'example.A')
+        a.fieldA = 'foo'
+
+        expect:
+        deserializeFromString(jsonMapper, baseClass, '{"a":{"fieldA":"foo"}}').fieldA == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"b":{"fieldB":"foo"}}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"c":{"fieldB":"foo"}}').fieldB == 'foo'
+
+        serializeToString(jsonMapper, a) == '{"a":{"fieldA":"foo"}}'
+
+        cleanup:
+        compiled.close()
+    }
+
     void 'test json sub types using name deserialization'() {
         given:
         def context = buildContext('test.Base', """
