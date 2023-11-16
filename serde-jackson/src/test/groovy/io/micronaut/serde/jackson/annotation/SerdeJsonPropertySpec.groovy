@@ -2,8 +2,87 @@ package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.serde.jackson.JsonPropertySpec
+import spock.lang.PendingFeature
 
 class SerdeJsonPropertySpec extends JsonPropertySpec {
+
+    void "implicit creator with parameter names"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+class Test {
+    public final String foo;
+    public final String bar;
+
+    public Test(String foo, String bar) {
+        this.foo = foo;
+        this.bar = bar;
+    }
+}
+''')
+        def deserialized = jsonMapper.readValue('{"foo": "42", "bar": "56"}', typeUnderTest)
+
+        expect:
+        deserialized.foo == "42"
+        deserialized.bar == "56"
+
+        cleanup:
+        context.close()
+    }
+
+    void "JsonCreator with single parameter of same name"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+class Test {
+    public final String foo;
+
+    @JsonCreator
+    public Test(String foo) {
+        this.foo = foo;
+    }
+}
+''')
+        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+
+        expect:
+        deserialized.foo == "42"
+
+        cleanup:
+        context.close()
+    }
+
+    @PendingFeature(reason = 'single-parameter json creator. Dont think we should support this, can be done with delegating mode for JsonCreator')
+    void "JsonCreator with single parameter of different name"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+class Test {
+    public final String foo;
+
+    @JsonCreator
+    public Test(String bar) {
+        this.foo = bar;
+    }
+}
+''')
+        def deserialized = jsonMapper.readValue('"42"', typeUnderTest)
+
+        expect:
+        deserialized.foo == "42"
+
+        cleanup:
+        context.close()
+    }
 
     void "test required primitive field"() {
         given:
@@ -39,7 +118,6 @@ class Test {
         cleanup:
         ctx.close()
     }
-
 
     void "test @JsonProperty on field"() {
         // Jackson is using 'defaultValue' only for documentation

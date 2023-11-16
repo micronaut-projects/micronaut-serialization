@@ -12,9 +12,11 @@ import io.micronaut.serde.MockSerdeIntrospections
 import io.micronaut.serde.ObjectMapper
 import org.intellij.lang.annotations.Language
 
+import java.nio.charset.StandardCharsets
+
 class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
-    ObjectMapper jsonMapper
+    JsonMapper jsonMapper
     Object beanUnderTest
     Argument<?> typeUnderTest
 
@@ -82,4 +84,13 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
             (MockSerdeIntrospections.ENABLED):true
         )
     }
+
+    static String serializeToString(JsonMapper jsonMapper, Object value, Class<?> view = Object.class) {
+        return new String(jsonMapper.cloneWithViewClass(view).writeValueAsBytes(value), StandardCharsets.UTF_8)
+    }
+
+    static <T> T deserializeFromString(JsonMapper jsonMapper, Class<T> type, @Language("json") String json, Class<?> view = Object.class) {
+        return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
+    }
+
 }

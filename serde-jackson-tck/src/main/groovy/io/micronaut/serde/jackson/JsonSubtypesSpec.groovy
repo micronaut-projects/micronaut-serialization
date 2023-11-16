@@ -3,7 +3,7 @@ package io.micronaut.serde.jackson
 
 import spock.lang.Issue
 
-class JsonSubtypesSpec extends JsonCompileSpec {
+abstract class JsonSubtypesSpec extends JsonCompileSpec {
 
     void 'test json sub types using name deserialization'() {
         given:

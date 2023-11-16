@@ -4,6 +4,46 @@ import io.micronaut.serde.jackson.JsonSubtypesSpec
 
 class SerdeJsonSubtypesSpec extends JsonSubtypesSpec {
 
+  void 'test @JsonIgnoreProperties unknown property handling on subtypes'() {
+        given: // TODO: disable global ignore unknown
+        def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class),
+    @JsonSubTypes.Type(value = B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS, include = JsonTypeInfo.As.PROPERTY, property = "type")
+class Base {
+}
+@JsonIgnoreProperties(ignoreUnknown = true)
+class A extends Base {
+}
+@JsonIgnoreProperties(ignoreUnknown = false)
+class B extends Base {
+}
+''', true)
+        def baseClass = compiled.classLoader.loadClass('example.Base')
+        def cl = Thread.currentThread().getContextClassLoader()
+        Thread.currentThread().setContextClassLoader(compiled.classLoader)
+
+        expect:
+        deserializeFromString(jsonMapper, baseClass, '{"type":".A","foo":"bar"}').class.simpleName == 'A'
+
+        when:
+        deserializeFromString(jsonMapper, baseClass, '{"type":".B","foo":"bar"}')
+        then:
+        thrown Exception
+
+        cleanup:
+        Thread.currentThread().setContextClassLoader(cl)
+        compiled.close()
+    }
+
     // Jackson will fail on unknown type - Serde will deserialize the base type
 
     void 'test json sub types using name deserialization with unknown type'() {

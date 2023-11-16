@@ -8,6 +8,8 @@ import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import org.intellij.lang.annotations.Language
 
+import java.nio.charset.StandardCharsets
+
 abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
     JsonMapper jsonMapper
@@ -58,6 +60,7 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
     @Override
     ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
         def context = super.buildContext(className, cls, true)
+        Thread.currentThread().setContextClassLoader(context.classLoader)
         jsonMapper = context.getBean(JsonMapper)
         return context
     }
@@ -70,6 +73,20 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
         typeUnderTest = Argument.of(t)
         jsonMapper = context.getBean(JsonMapper)
         return context
+    }
+
+    static String serializeToString(JsonMapper jsonMapper, Object value, Class<?> view = null) {
+        if (view != null) {
+            jsonMapper = jsonMapper.cloneWithViewClass(view)
+        }
+        return new String(jsonMapper.writeValueAsBytes(value), StandardCharsets.UTF_8)
+    }
+
+    static <T> T deserializeFromString(JsonMapper jsonMapper, Class<T> type, @Language("json") String json, Class<?> view = null) {
+        if (view != null) {
+            jsonMapper = jsonMapper.cloneWithViewClass(view)
+        }
+        return jsonMapper.readValue(json, Argument.of(type))
     }
 
 }
