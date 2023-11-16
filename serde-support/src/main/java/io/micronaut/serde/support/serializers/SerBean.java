@@ -84,6 +84,8 @@ final class SerBean<T> {
     @Nullable
     public final String wrapperProperty;
     @Nullable
+    public final String arrayWrapperProperty;
+    @Nullable
     public SerProperty<T, Object> jsonValue;
     public final SerializationConfiguration configuration;
     public final boolean simpleBean;
@@ -299,6 +301,8 @@ final class SerBean<T> {
                 .toList();
             writeProperties.sort(Comparator.comparingInt(order::indexOf));
         }
+
+        this.arrayWrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.ARRAY_WRAPPER_PROPERTY).orElse(null);
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());

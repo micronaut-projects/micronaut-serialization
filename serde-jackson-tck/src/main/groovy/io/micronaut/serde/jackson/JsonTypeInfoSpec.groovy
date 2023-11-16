@@ -6,6 +6,206 @@ abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
 
+    def 'test @JsonTypeInfo(include = JsonTypeInfo.As.#include) with @JsonUnwrapped and @JsonAnySetter'(String include) {
+        given:
+            def ctx = buildContext('example.Wrapper', """
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.*;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
+class Wrapper {
+    public Base base;
+    public String other;
+    @JsonUnwrapped
+    public Name name;
+    @JsonAnyGetter
+    @JsonAnySetter
+    public Map<String, Object> attributes = new LinkedHashMap<>();
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "x1234"),
+    @JsonSubTypes.Type(value = B.class, names = {"y1234", "z1234"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$include)
+class Base {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
+class Name {
+    public String fieldX;
+    public String fieldY;
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+""", true)
+            def wrapperClass = ctx.classLoader.loadClass('example.Wrapper')
+
+        when:
+            def name = newInstance(ctx, 'example.Name')
+            name.fieldX = "X"
+            name.fieldY = "Y"
+            def a = newInstance(ctx, 'example.A')
+            a.fieldA = 'foo'
+            def wrapper = newInstance(ctx, 'example.Wrapper')
+            wrapper.base = a
+            wrapper.other = "abc"
+            wrapper.name = name
+            wrapper.attributes.put("extra1", "obj123")
+            wrapper.attributes.put("extra2", "obj999")
+
+            def json = serializeToString(jsonMapper, wrapper)
+            def wrapperBean = deserializeFromString(jsonMapper, wrapperClass, json)
+
+        then:
+            wrapperBean.other == "abc"
+            wrapperBean.base.fieldA == "foo"
+            wrapperBean.name.fieldX == "X"
+            wrapperBean.name.fieldY == "Y"
+            wrapperBean.attributes.extra1 == "obj123"
+            wrapperBean.attributes.extra2 == "obj999"
+
+        when:
+            def b = newInstance(ctx, 'example.B')
+            b.fieldB = 'bar'
+            wrapper = newInstance(ctx, 'example.Wrapper')
+            wrapper.base = b
+            wrapper.other = "abc"
+            wrapper.name = name
+            wrapper.attributes.put("extra1", "obj123")
+            wrapper.attributes.put("extra2", "obj999")
+
+            json = serializeToString(jsonMapper, wrapper)
+            wrapperBean = deserializeFromString(jsonMapper, wrapperClass, json)
+
+        then:
+            json.contains "y1234"
+            wrapperBean.other == "abc"
+            wrapperBean.base.fieldB == "bar"
+            wrapperBean.name.fieldX == "X"
+            wrapperBean.name.fieldY == "Y"
+            wrapperBean.attributes.extra1 == "obj123"
+            wrapperBean.attributes.extra2 == "obj999"
+
+        when:
+            wrapperBean = deserializeFromString(jsonMapper, wrapperClass, json.replace("y1234", "z1234"))
+
+        then:
+            wrapperBean.other == "abc"
+            wrapperBean.base.fieldB == "bar"
+            wrapperBean.name.fieldX == "X"
+            wrapperBean.name.fieldY == "Y"
+            wrapperBean.attributes.extra1 == "obj123"
+            wrapperBean.attributes.extra2 == "obj999"
+
+        cleanup:
+            ctx.close()
+
+        where:
+            include << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY"]
+    }
+
+
+     def 'test JsonTypeInfo with wrapper array'() {
+        given:
+        def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_ARRAY)
+class Base {
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+        def baseClass = compiled.classLoader.loadClass('example.Base')
+        def a = newInstance(compiled, 'example.A')
+        a.fieldA = 'foo'
+
+        expect:
+        deserializeFromString(jsonMapper, baseClass, '["a",{"fieldA":"foo"}]').fieldA == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '["b",{"fieldB":"foo"}]').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '["c",{"fieldB":"foo"}]').fieldB == 'foo'
+
+        serializeToString(jsonMapper, a) == '["a",{"fieldA":"foo"}]'
+    }
+
+    def 'test JsonTypeInfo with wrapper array in constructor X'() {
+        given:
+        def ctx = buildContext('example.Wrapper', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Wrapper(Base base, String other) {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_ARRAY)
+class Base {
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+        def wrapperClass = ctx.classLoader.loadClass('example.Wrapper')
+        def a = newInstance(ctx, 'example.A')
+        a.fieldA = 'foo'
+        def wrapper = newInstance(ctx, 'example.Wrapper', a, "abc")
+
+        expect:
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["a",{"fieldA":"foo"}], "other":"xyz"}').base.fieldA == 'foo'
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["b",{"fieldB":"foo"}], "other":"xyz"}').base.fieldB == 'foo'
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["c",{"fieldB":"foo"}], "other":"xyz"}').base.fieldB == 'foo'
+
+        serializeToString(jsonMapper, wrapper) == '{"base":["a",{"fieldA":"foo"}],"other":"abc"}'
+
+        cleanup:
+        ctx.close()
+    }
+
     def 'test JsonTypeInfo with wrapper object'() {
         given:
         def compiled = buildContext('example.Base', '''

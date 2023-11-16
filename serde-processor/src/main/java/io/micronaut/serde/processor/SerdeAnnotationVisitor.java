@@ -670,10 +670,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             builder.member(SerdeConfig.TYPE_NAME, allNames.get(0));
             builder.member(SerdeConfig.TYPE_NAMES, allNames.toArray(new String[0]));
 
-            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
-                builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
-            } else {
-                builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+            switch (discriminatorType) {
+                case WRAPPER_OBJECT -> builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
+                case WRAPPER_ARRAY -> builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
+                default -> builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
             }
 
             if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {

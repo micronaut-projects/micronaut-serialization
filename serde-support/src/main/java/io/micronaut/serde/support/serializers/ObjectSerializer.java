@@ -66,7 +66,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     }
 
     @Override
-    public io.micronaut.serde.ObjectSerializer<Object> createSpecific(@NonNull EncoderContext encoderContext, Argument<?> type) throws SerdeException {
+    public io.micronaut.serde.Serializer<Object> createSpecific(@NonNull EncoderContext encoderContext, Argument<?> type) throws SerdeException {
         boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
         if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
@@ -77,7 +77,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
     }
 
-    private io.micronaut.serde.ObjectSerializer<Object> createSpecificInternal(EncoderContext encoderContext,
+    private io.micronaut.serde.Serializer<Object> createSpecificInternal(EncoderContext encoderContext,
                                                                                Argument<?> type) throws SerdeException {
         SerBean<Object> serBean;
         try {
@@ -87,7 +87,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             return new RuntimeTypeSerializer(encoderContext, e, type);
         }
 
-        io.micronaut.serde.ObjectSerializer<Object> serializer;
+        io.micronaut.serde.Serializer<Object> serializer;
         if (serBean.simpleBean) {
             serializer = new SimpleObjectSerializer<>(serBean);
         } else if (serBean.jsonValue != null) {
@@ -100,6 +100,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
         if (serBean.wrapperProperty != null) {
             serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
+        } else if (serBean.arrayWrapperProperty != null) {
+            serializer = new WrappedArraySerializer<>(serializer, serBean.arrayWrapperProperty);
         }
         return serializer;
     }
