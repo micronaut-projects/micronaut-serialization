@@ -6,6 +6,49 @@ abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
 
+    def 'test JsonTypeInfo with wrapper object'() {
+        given:
+        def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+class Base {
+}
+
+class A extends Base {
+    public String fieldA;
+}
+
+class B extends Base {
+    public String fieldB;
+}
+''')
+
+        def baseClass = compiled.classLoader.loadClass('example.Base')
+        def a = newInstance(compiled, 'example.A')
+        a.fieldA = 'foo'
+
+        expect:
+        deserializeFromString(jsonMapper, baseClass, '{"a":{"fieldA":"foo"}}').fieldA == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"b":{"fieldB":"foo"}}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"c":{"fieldB":"foo"}}').fieldB == 'foo'
+
+        serializeToString(jsonMapper, a) == '{"a":{"fieldA":"foo"}}'
+
+        cleanup:
+        compiled.close()
+    }
+
     void 'test @JsonSubTypes with @AnySetter'() {
         given:
             def compiled = buildContext('example.Base', '''
@@ -104,7 +147,7 @@ class B extends Base {
             compiled.close()
     }
 
-    def 'test JsonSubTypes with property'() {
+    def 'test @JsonTypeInfo with property'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -146,8 +189,8 @@ class B extends Base {
 
     void "test find type info in record interface"() {
         given:
-        def context = buildContext("""package recordtypeinfo;
-
+        def context = buildContext("""
+package recordtypeinfo;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
