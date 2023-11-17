@@ -18,40 +18,34 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 
 import java.io.IOException;
 
 /**
- * A wrapped object serializer.
+ * A wrapped array serializer.
  *
  * @param <T> The type
  * @author Denis Stepanov
- * @since 2.3
+ * @since 2.4
  */
 @Internal
-final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
+final class WrappedArraySerializer<T> implements Serializer<T> {
 
     private final Serializer<T> serializer;
     private final String wrapperProperty;
 
-    WrappedObjectSerializer(Serializer<T> serializer, String wrapperProperty) {
+    WrappedArraySerializer(Serializer<T> serializer, String wrapperProperty) {
         this.serializer = serializer;
         this.wrapperProperty = wrapperProperty;
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        try (Encoder wrapperEncoder = encoder.encodeObject(Argument.OBJECT_ARGUMENT)) {
-            wrapperEncoder.encodeKey(wrapperProperty);
+        try (Encoder wrapperEncoder = encoder.encodeArray(Argument.OBJECT_ARGUMENT)) {
+            wrapperEncoder.encodeString(wrapperProperty);
             serializer.serialize(wrapperEncoder, context, type, value);
         }
     }
 
-    @Override
-    public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        encoder.encodeKey(wrapperProperty);
-        serializer.serialize(encoder, context, type, value);
-    }
 }

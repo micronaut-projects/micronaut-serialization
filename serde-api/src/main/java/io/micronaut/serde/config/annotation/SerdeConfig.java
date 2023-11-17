@@ -140,6 +140,11 @@ public @interface SerdeConfig {
     String WRAPPER_PROPERTY = "wrapperProperty";
 
     /**
+     * A property that should be used as a first item and the value as the second in the array wrap when serializing.
+     */
+    String ARRAY_WRAPPER_PROPERTY = "arrayWrapperProperty";
+
+    /**
      * A pattern to use.
      */
     String PATTERN = "pattern";
@@ -332,7 +337,7 @@ public @interface SerdeConfig {
          * The discriminator type.
          */
         enum DiscriminatorType {
-            PROPERTY, WRAPPER_OBJECT
+            PROPERTY, WRAPPER_OBJECT, WRAPPER_ARRAY
         }
 
         /**

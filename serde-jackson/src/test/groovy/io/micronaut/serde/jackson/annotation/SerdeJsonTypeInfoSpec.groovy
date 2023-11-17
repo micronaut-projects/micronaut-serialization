@@ -20,6 +20,210 @@ class SerdeJsonTypeInfoSpec extends JsonTypeInfoSpec {
         return false
     }
 
+    void 'test wrapped subtype with @JsonTypeInfo(include = JsonTypeInfo.As.#include)'(String include) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public final String foo;
+  @JsonUnwrapped
+  public final Base base;
+
+  Wrapper(String foo, @JsonUnwrapped Base base) {
+      this.base = base;
+      this.foo = foo;
+  }
+}
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$include)
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+)
+class Base {
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    public Sub(String string, Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            def wrapper = newInstance(context, 'test.Wrapper', "bar", base)
+
+            def result = writeJson(jsonMapper, wrapper)
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base.getClass().name == 'test.Sub'
+            bean.base.string == 'a'
+            bean.base.integer == 1
+
+        cleanup:
+            context.close()
+
+        where:
+            include << ["WRAPPER_OBJECT", "PROPERTY"]
+    }
+
+    void 'test wrapped subtype with @JsonTypeInfo(include = WRAPPER_ARRAY)'() {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public final String foo;
+  @JsonUnwrapped
+  public final Base base;
+
+  Wrapper(String foo, @JsonUnwrapped Base base) {
+      this.base = base;
+      this.foo = foo;
+  }
+}
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_ARRAY)
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+)
+class Base {
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    public Sub(String string, Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            def wrapper = newInstance(context, 'test.Wrapper', "bar", base)
+
+            def result = writeJson(jsonMapper, wrapper)
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains "Sub doesn't support serializing into an existing object"
+
+        cleanup:
+            context.close()
+    }
+
+    // Unsupported Jackson Databind: Cannot define Creator property "name" as `@JsonUnwrapped`: combination not yet supported
+    def 'test JsonTypeInfo with wrapper array in constructor and @JsonUnwrapped'() {
+        given:
+        def ctx = buildContext('example.Wrapper', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Wrapper(Base base, String other, @JsonUnwrapped Name name) {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_ARRAY)
+class Base {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
+class Name {
+    public String fieldX;
+    public String fieldY;
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+        def wrapperClass = ctx.classLoader.loadClass('example.Wrapper')
+        def name = newInstance(ctx, 'example.Name')
+        name.fieldX = "X"
+        name.fieldY = "Y"
+        def a = newInstance(ctx, 'example.A')
+        a.fieldA = 'foo'
+        def wrapper = newInstance(ctx, 'example.Wrapper', a, "abc", name)
+
+        expect:
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["a",{"fieldA":"foo"}], "other":"xyz"}').base.fieldA == 'foo'
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["b",{"fieldB":"foo"}], "other":"xyz"}').base.fieldB == 'foo'
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["c",{"fieldB":"foo"}], "other":"xyz"}').base.fieldB == 'foo'
+        deserializeFromString(jsonMapper, wrapperClass, '{"base": ["c",{"fieldB":"foo"}], "other":"xyz","fieldX":"ABC"}').name.fieldX == 'ABC'
+
+        serializeToString(jsonMapper, wrapper) == '{"base":["a",{"fieldA":"foo"}],"other":"abc","fieldX":"X","fieldY":"Y"}'
+
+        cleanup:
+        ctx.close()
+    }
+
     @PendingFeature(reason = "JsonTypeInfo.Id.DEDUCTION not supported")
     def 'test JsonTypeInfo with deduction'() {
         given:
@@ -169,103 +373,6 @@ class B2 extends Base2 {
         compiled.close()
     }
 
-    @PendingFeature(reason = "Support for WRAPPER_ARRAY not implemented yet")
-    def 'test JsonTypeInfo with wrapper array'() {
-        given:
-        def compiled = buildContext('example.Base', '''
-package example;
-
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = A.class, name = "a"),
-    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
-})
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_ARRAY)
-class Base {
-}
-
-class A extends Base {
-    public String fieldA;
-}
-class B extends Base {
-    public String fieldB;
-}
-''', true)
-        def baseClass = compiled.classLoader.loadClass('example.Base')
-        def a = newInstance(compiled, 'example.A')
-        a.fieldA = 'foo'
-
-        expect:
-        deserializeFromString(jsonMapper, baseClass, '["a",{"fieldA":"foo"}]').fieldA == 'foo'
-        deserializeFromString(jsonMapper, baseClass, '["b",{"fieldB":"foo"}]').fieldB == 'foo'
-        deserializeFromString(jsonMapper, baseClass, '["c",{"fieldB":"foo"}]').fieldB == 'foo'
-
-        serializeToString(jsonMapper, a) == '["a",{"fieldA":"foo"}]'
-    }
-
-    void "test default implementation - with @JsonDeserialize(as) X"() {
-        given:
-        def context = buildContext("""
-package defaultimpl;
-
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.micronaut.context.annotation.DefaultImplementation;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
-
-@JsonDeserialize(as = Dog.class)
-@Serdeable.Serializable
-interface Animal {
-    String getName();
-}
-
-@Serdeable
-class Dog implements Animal {
-    private String name;
-    private double barkVolume;
-
-    @Override
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public void setBarkVolume(double barkVolume) {
-        this.barkVolume = barkVolume;
-    }
-    public double getBarkVolume() {
-        return barkVolume;
-    }
-}
-
-""")
-
-        when:
-        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
-        def dogJson = writeJson(jsonMapper, dog)
-
-        then:
-        dogJson == '{"name":"Fred","barkVolume":1.1}'
-
-        when:"No discriminator is used the default impl is chosen"
-        def dogClass = dog.getClass()
-        def dogBean = jsonMapper.readValue(dogJson, argumentOf(context, 'defaultimpl.Animal'))
-
-
-        then:
-        dogClass.isInstance(dogBean)
-        dogBean.name == "Fred"
-        dogBean.barkVolume == 1.1d
-        cleanup:
-        context.close()
-    }
-
     @Unroll
     void "test fail compilation on unsupported 'use' #use"() {
         when:
@@ -312,10 +419,10 @@ class Test {
 """)
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("Only 'include' of type PROPERTY or WRAPPER_OBJECT are supported")
+        e.message.contains("Only 'include' of type PROPERTY, WRAPPER_OBJECT or WRAPPER_ARRAY are supported")
 
         where:
-        include << JsonTypeInfo.As.values() - [JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.WRAPPER_OBJECT]
+        include << JsonTypeInfo.As.values() - [JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.WRAPPER_OBJECT, JsonTypeInfo.As.WRAPPER_ARRAY]
     }
 
     void "test default implementation - with @DefaultImplementation"() {

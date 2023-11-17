@@ -27,7 +27,6 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.config.DeserializationConfiguration;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import jakarta.inject.Singleton;
@@ -78,16 +77,22 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 );
             }
             Deserializer<Object> supertypeDeserializer = findDeserializer(deserBean, false);
-            if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
-                return new WrappedObjectSubtypedDeserializer(
+            return switch (subtypeInfo.discriminatorType()) {
+                case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
                     deserBean.ignoreUnknown
                 );
-            }
-            if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-                return new SubtypedPropertyObjectDeserializer(deserBean, subtypeDeserializers, supertypeDeserializer, subtypeInfo.discriminatorVisible());
-            }
-            throw new IllegalStateException("Unrecognized discriminator type: " + subtypeInfo.discriminatorType());
+                case WRAPPER_ARRAY -> new WrappedArraySubtypedDeserializer(
+                    subtypeDeserializers,
+                    deserBean.ignoreUnknown
+                );
+                case PROPERTY -> new SubtypedPropertyObjectDeserializer(
+                    deserBean,
+                    subtypeDeserializers,
+                    supertypeDeserializer,
+                    subtypeInfo.discriminatorVisible()
+                );
+            };
         }
 
         return findDeserializer(deserBean, false);

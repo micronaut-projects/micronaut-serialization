@@ -49,15 +49,13 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
 
     @Override
     protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        boolean discriminatorVisible = annotation.booleanValue("visible").orElse(false);
         String use = annotation.stringValue("use").orElse(null);
-        String include = annotation.stringValue("include").orElse("PROPERTY");
-        AnnotationClassValue<?> defaultImpl = annotation.annotationClassValue("defaultImpl").orElse(null);
-        List<AnnotationValue<?>> values = new ArrayList<>(2);
         if (use == null) {
             return mapError("You must specify 'use' member when using @JsonTypeInfo");
         }
+        List<AnnotationValue<?>> values = new ArrayList<>(2);
 
+        AnnotationClassValue<?> defaultImpl = annotation.annotationClassValue("defaultImpl").orElse(null);
         if (defaultImpl != null) {
             values.add(
                 AnnotationValue.builder(DefaultImplementation.class)
@@ -67,11 +65,16 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
         }
 
         AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
-        builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE, discriminatorVisible);
-        if ("PROPERTY".equals(include) || "WRAPPER_OBJECT".equals(include)) {
-            builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
-        } else {
-            return mapError("Only 'include' of type PROPERTY or WRAPPER_OBJECT are supported");
+        builder.member(
+            SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE,
+            annotation.booleanValue("visible").orElse(false)
+        );
+        String include = annotation.stringValue("include").orElse("PROPERTY");
+        switch (include) {
+            case "PROPERTY", "WRAPPER_OBJECT", "WRAPPER_ARRAY" -> builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
+            default -> {
+                return mapError("Only 'include' of type PROPERTY, WRAPPER_OBJECT or WRAPPER_ARRAY are supported");
+            }
         }
 
         Optional<String> propertyValue = annotation.stringValue("property");

@@ -400,7 +400,6 @@ class Name {
         context.close()
     }
 
-
     void 'test wrapped subtype with property info'() {
         given:
             def context = buildContext('test.Base', """
