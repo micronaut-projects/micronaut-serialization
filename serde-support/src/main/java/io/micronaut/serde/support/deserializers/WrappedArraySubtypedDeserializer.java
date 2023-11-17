@@ -65,7 +65,7 @@ final class WrappedArraySubtypedDeserializer implements Deserializer<Object> {
                                boolean isNullable) throws IOException {
 
         Decoder unwrappedDecoder = decoder.decodeArray();
-        String discriminator = unwrappedDecoder.decodeString();
+        String discriminator = unwrappedDecoder.decodeStringNullable();
         if (discriminator == null) {
             if (isNullable) {
                 return null;
