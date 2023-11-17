@@ -1,6 +1,7 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
 
 abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
