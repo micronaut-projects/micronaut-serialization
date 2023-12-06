@@ -282,7 +282,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
             final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consume(propertyName);
-            if (property != null && (property.beanProperty != null)) {
+            if (property != null && property.beanProperty != null) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
                     decoder.skipValue();
                     return true;
