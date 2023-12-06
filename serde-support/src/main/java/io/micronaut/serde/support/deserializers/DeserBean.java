@@ -328,6 +328,7 @@ final class DeserBean<T> {
                 }
 
                 for (BeanMethod<T, Object> jsonSetter : jsonSetters) {
+                    i++;
                     PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(jsonSetter.getAnnotationMetadata(), decoderContext, entityPropertyNamingStrategy);
                     final String property = resolveName(serdeArgumentConf,
                         new AnnotatedElement() {
@@ -348,7 +349,7 @@ final class DeserBean<T> {
                     final DerProperty<T, Object> derProperty = new DerProperty<>(
                         conversionService,
                         introspection,
-                        0,
+                        i,
                         property,
                         argument,
                         null,
@@ -363,7 +364,7 @@ final class DeserBean<T> {
                 injectProperties = null;
             }
         }
-        this.injectPropertiesSize = injectProperties == null ? 0 : injectProperties.getProperties().size();
+        this.injectPropertiesSize = injectProperties == null ? 0 : injectProperties.getDerProperties().size();
         this.wrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
 
         this.anySetter = anySetterValue;
