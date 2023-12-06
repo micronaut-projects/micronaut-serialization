@@ -81,6 +81,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object beanInstance)
             throws IOException {
         Decoder objectDecoder = decoder.decodeObject(beanType);
+        boolean completed = false;
 
         if (properties != null) {
             PropertiesBag<Object>.Consumer propertiesConsumer = properties.newConsumer();
@@ -89,6 +90,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             while (!allConsumed) {
                 final String prop = objectDecoder.decodeKey();
                 if (prop == null) {
+                    completed = true;
                     break;
                 }
                 final DeserBean.DerProperty<Object, Object> consumedProperty = propertiesConsumer.consume(prop);
@@ -110,7 +112,9 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             }
         }
 
-        if (ignoreUnknown) {
+        if (completed) {
+            objectDecoder.finishStructure();
+        } else if (ignoreUnknown) {
             objectDecoder.finishStructure(true);
         } else {
             String unknownProp = objectDecoder.decodeKey();
