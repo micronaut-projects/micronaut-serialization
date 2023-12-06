@@ -144,7 +144,9 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             return new BuilderDeserializer(db, conf);
         }
         if (allowSubtype && db.subtypeInfo != null) {
-            if (db.subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+            SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = db.subtypeInfo.discriminatorType();
+            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
+                || discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
                 return new SubtypedPropertyBeanDeserializer(db, argument, conf);
             }
             return new SubtypedWrapperBeanDeserializer(db, argument, conf);

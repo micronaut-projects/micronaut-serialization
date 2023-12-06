@@ -86,7 +86,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                     subtypeDeserializers,
                     deserBean.ignoreUnknown
                 );
-                case PROPERTY -> new SubtypedPropertyObjectDeserializer(
+                case PROPERTY, EXISTING_PROPERTY -> new SubtypedPropertyObjectDeserializer(
                     deserBean,
                     subtypeDeserializers,
                     supertypeDeserializer,

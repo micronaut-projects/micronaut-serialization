@@ -348,7 +348,7 @@ class B extends Base {
             compiled.close()
     }
 
-    def 'test @JsonTypeInfo with property'() {
+    def 'test @JsonTypeInfo with include = JsonTypeInfo.As.PROPERTY'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -383,6 +383,93 @@ class B extends Base {
         deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
 
         serializeToString(jsonMapper, a) == '{"type":"a","fieldA":"foo"}'
+
+        cleanup:
+        compiled.close()
+    }
+
+    def 'test @JsonTypeInfo with include = JsonTypeInfo.As.EXISTING_PROPERTY'() {
+        when:
+        def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+class Base {
+    public String type;
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+        def baseClass = compiled.classLoader.loadClass('example.Base')
+        def a = newInstance(compiled, 'example.A')
+        a.fieldA = 'foo'
+        a.type = "xyz"
+
+        then:
+        serializeToString(jsonMapper, a) == '{"type":"xyz","fieldA":"foo"}'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').fieldA == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"b","fieldB":"foo"}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').type == null
+
+        cleanup:
+        compiled.close()
+    }
+
+    def 'test @JsonTypeInfo with include = JsonTypeInfo.As.EXISTING_PROPERTY and visible = true'() {
+        when:
+        def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "a"),
+    @JsonSubTypes.Type(value = B.class, names = {"b", "c"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type", visible = true)
+class Base {
+    public String type;
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+        def baseClass = compiled.classLoader.loadClass('example.Base')
+        def a = newInstance(compiled, 'example.A')
+        a.fieldA = 'foo'
+        a.type = "xyz"
+
+        then:
+        serializeToString(jsonMapper, a) == '{"type":"xyz","fieldA":"foo"}'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').fieldA == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').type == 'a'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"b","fieldB":"foo"}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
+        deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').type == "c"
 
         cleanup:
         compiled.close()
