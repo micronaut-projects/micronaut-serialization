@@ -43,6 +43,7 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
+import io.micronaut.serde.support.util.SubtypeInfo;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Modifier;
@@ -84,7 +85,6 @@ final class SerBean<T> {
     @Nullable
     public final String wrapperProperty;
     @Nullable
-    public final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType;
     public final String arrayWrapperProperty;
     @Nullable
     public SerProperty<T, Object> jsonValue;
@@ -92,6 +92,7 @@ final class SerBean<T> {
     public final boolean simpleBean;
     public final boolean subtyped;
     public final PropertyFilter propertyFilter;
+    public final SubtypeInfo subtypeInfo;
     @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
 
@@ -113,11 +114,7 @@ final class SerBean<T> {
         this.configuration = configuration;
         this.introspection = introspections.getSerializableIntrospection(type);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
-        this.discriminatorType = introspection.enumValue(
-            SerdeConfig.class,
-            SerdeConfig.TYPE_DISCRIMINATOR_TYPE,
-            SerdeConfig.SerSubtyped.DiscriminatorType.class
-        ).orElse(null);
+        subtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();
 
         boolean allowIgnoredProperties = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_SERIALIZE).orElse(false);
 
@@ -188,41 +185,34 @@ final class SerBean<T> {
                     }
                 }
 
-                Optional<String> subType;
-                if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
-                    subType = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
-                } else {
-                    subType = Optional.empty();
-                }
                 Set<String> addedProperties = CollectionUtils.newHashSet(properties.size());
+                PropertySubtypeDescriptor propertySubtypeDescriptor = findDescriptor(subtypeInfo, annotationMetadata, type);
 
-                if (!properties.isEmpty() || !jsonGetters.isEmpty() || subType.isPresent()) {
+                if (!properties.isEmpty() || !jsonGetters.isEmpty() || propertySubtypeDescriptor != null) {
                     writeProperties = new ArrayList<>(properties.size() + jsonGetters.size());
-                    subType.ifPresent(typeName -> {
-                        String typeProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
-                        if (typeProperty != null) {
-                            SerProperty<T, String> prop;
-                            if (SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER.equals(typeName)) {
-                                prop = new CustomSerProperty<>(SerBean.this,
-                                        typeProperty,
-                                        Argument.of(String.class, typeProperty),
-                                        t -> t.getClass().getSimpleName());
-                            } else {
-                                prop = new InjectedSerProperty<>(SerBean.this,
-                                        typeProperty,
-                                        Argument.of(String.class, typeProperty),
-                                        typeName);
-                            }
-                            writeProperties.add((SerProperty) prop);
-                            initializers.add(context -> {
-                                try {
-                                    initProperty(prop, context);
-                                } catch (SerdeException e) {
-                                    throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
-                                }
-                            });
+                    if (propertySubtypeDescriptor != null) {
+                        SerProperty<T, String> prop;
+                        String propertyName = propertySubtypeDescriptor.name;
+                        if (SerdeConfig.TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER.equals(propertySubtypeDescriptor.value)) {
+                            prop = new CustomSerProperty<>(SerBean.this,
+                                propertyName,
+                                Argument.of(String.class, propertyName),
+                                t -> t.getClass().getSimpleName());
+                        } else {
+                            prop = new InjectedSerProperty<>(SerBean.this,
+                                propertyName,
+                                Argument.of(String.class, propertyName),
+                                propertySubtypeDescriptor.value);
                         }
-                    });
+                        writeProperties.add((SerProperty) prop);
+                        initializers.add(context -> {
+                            try {
+                                initProperty(prop, context);
+                            } catch (SerdeException e) {
+                                throw new IntrospectionException("Error configuring subtype binding for type " + introspection.getBeanType() + ": " + e.getMessage());
+                            }
+                        });
+                    }
                     for (Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> propWithAnnotations : properties) {
                         final BeanProperty<T, Object> property = propWithAnnotations.getKey();
                         final Argument<Object> argument = property.asArgument();
@@ -317,7 +307,41 @@ final class SerBean<T> {
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
-        subtyped = isAbstractIntrospection || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+        subtyped = isAbstractIntrospection || subtypeInfo != null && !subtypeInfo.subtypes().containsKey(type.getType()) || introspection.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class);
+    }
+
+    @Nullable
+    private static PropertySubtypeDescriptor findDescriptor(@Nullable SubtypeInfo subtypeInfo,
+                                                            AnnotationMetadata annotationMetadata,
+                                                            Argument<?> type) {
+        if (subtypeInfo == null) {
+            SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = annotationMetadata.enumValue(
+                SerdeConfig.class,
+                SerdeConfig.TYPE_DISCRIMINATOR_TYPE,
+                SerdeConfig.SerSubtyped.DiscriminatorType.class
+            ).orElse(null);
+            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
+                return null;
+            }
+            String name = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+            if (name == null) {
+                return null;
+            }
+            String value = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElse(null);
+            if (value == null) {
+                return null;
+            }
+            return new PropertySubtypeDescriptor(name, value);
+        } else {
+            if (subtypeInfo.discriminatorType() != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
+                return null;
+            }
+            String[] values = subtypeInfo.subtypes().get(type.getType());
+            if (values == null) {
+                return null;
+            }
+            return new PropertySubtypeDescriptor(subtypeInfo.discriminatorName(), values[0]);
+        }
     }
 
     public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
@@ -554,6 +578,9 @@ final class SerBean<T> {
 
         void initialize(Serializer.EncoderContext encoderContext) throws SerdeException;
 
+    }
+
+    private record PropertySubtypeDescriptor(String name, String value) {
     }
 
 }

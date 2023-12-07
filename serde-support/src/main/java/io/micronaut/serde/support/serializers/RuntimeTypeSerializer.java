@@ -136,7 +136,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                         }
                         return outer;
                     } else {
-                        Argument<Object> arg = Argument.of((Class) value.getClass());
+                        Argument<Object> arg = Argument.of((Class) value.getClass(), outerType.getAnnotationMetadata());
                         return encoderContext.findSerializer(arg).createSpecific(context, arg);
                     }
                 } catch (SerdeException ex) {

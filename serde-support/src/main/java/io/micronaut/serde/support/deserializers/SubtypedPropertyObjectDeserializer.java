@@ -45,7 +45,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
         this.deserializers = deserializers;
         this.supertypeDeserializer = supertypeDeserializer;
         this.discriminatorVisible = discriminatorVisible;
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = deserBean.subtypeInfo.discriminatorType();
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = deserBean.subtypeInfo.info().discriminatorType();
         if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
@@ -75,8 +75,10 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
     @NonNull
     private Deserializer<Object> findDeserializer(Decoder objectDecoder) throws IOException {
-        final String defaultImpl = deserBean.subtypeInfo.defaultImpl();
-        final String discriminatorName = deserBean.subtypeInfo.discriminatorName();
+        final DeserializeSubtypeInfo<? super Object> deserializeSubtypeInfo = deserBean.subtypeInfo;
+        final String discriminatorName = deserializeSubtypeInfo.info().discriminatorName();
+        final String defaultDiscriminator = deserializeSubtypeInfo.defaultDiscriminator();
+
         while (true) {
             final String key = objectDecoder.decodeKey();
             if (key == null) {
@@ -96,8 +98,8 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
                 objectDecoder.skipValue();
             }
         }
-        if (defaultImpl != null) {
-            return deserializers.get(defaultImpl);
+        if (defaultDiscriminator != null) {
+            return deserializers.get(defaultDiscriminator);
         }
         return supertypeDeserializer;
     }

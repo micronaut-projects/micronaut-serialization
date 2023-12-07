@@ -1077,7 +1077,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.writeMethods.clear();
     }
 
-    private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(ClassElement typeInfo) {
+    private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {
         return typeInfo.enumValue(
                         SerdeConfig.SerSubtyped.class,
                         SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE,
@@ -1141,7 +1141,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return Optional.empty();
     }
 
-    private SerdeConfig.SerSubtyped.DiscriminatorType getDiscriminatorType(ClassElement element) {
+    private SerdeConfig.SerSubtyped.DiscriminatorType getDiscriminatorType(Element element) {
         return element.enumValue(
                 SerdeConfig.SerSubtyped.class,
                 SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,

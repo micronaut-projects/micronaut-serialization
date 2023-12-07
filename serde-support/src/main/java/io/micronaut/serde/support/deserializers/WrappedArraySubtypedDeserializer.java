@@ -100,5 +100,4 @@ final class WrappedArraySubtypedDeserializer implements Deserializer<Object> {
         return result;
     }
 
-
 }

@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 
 import java.util.Objects;
 
@@ -29,10 +30,10 @@ import java.util.Objects;
 final class DeserBeanKey {
     private final Argument<?> type;
     @Nullable
-    private final DeserializationSerdeArgumentConf serdeArgumentConf;
+    private final SerdeArgumentConf serdeArgumentConf;
     private final int hashCode;
 
-    public DeserBeanKey(@NonNull Argument<?> type, @Nullable DeserializationSerdeArgumentConf serdeArgumentConf) {
+    public DeserBeanKey(@NonNull Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
         this.type = type;
         this.serdeArgumentConf = serdeArgumentConf;
         this.hashCode = type.typeHashCode();

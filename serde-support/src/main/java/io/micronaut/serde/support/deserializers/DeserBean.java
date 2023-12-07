@@ -42,6 +42,8 @@ import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
+import io.micronaut.serde.support.util.SubtypeInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -84,7 +86,7 @@ final class DeserBean<T> {
     @Nullable
     public final String wrapperProperty;
     @Nullable
-    public final SubtypeInfo<T> subtypeInfo;
+    public final DeserializeSubtypeInfo<T> subtypeInfo;
     @Nullable
     public final Set<String> ignoredProperties;
 
@@ -111,7 +113,7 @@ final class DeserBean<T> {
                      BeanIntrospection<T> introspection,
                      Deserializer.DecoderContext decoderContext,
                      DeserBeanRegistry deserBeanRegistry,
-                     @Nullable DeserializationSerdeArgumentConf serdeArgumentConf)
+                     @Nullable SerdeArgumentConf serdeArgumentConf)
         throws SerdeException {
         // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
 
@@ -380,7 +382,8 @@ final class DeserBean<T> {
         );
 
         // TODO: avoid using type argument annotations
-        this.subtypeInfo = SubtypeInfo.create(typeAnnotationMetadata, introspection, decoderContext, deserBeanRegistry);
+        SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.create(typeAnnotationMetadata) : serdeArgumentConf.getSubtypeInfo();
+        subtypeInfo = subtypeInfoBase == null ? DeserializeSubtypeInfo.create(SubtypeInfo.create(typeAnnotationMetadata), introspection, decoderContext, deserBeanRegistry) : DeserializeSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, deserBeanRegistry);
 
         String discriminatorProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
         if (discriminatorProperty != null && !introspection.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
@@ -548,7 +551,7 @@ final class DeserBean<T> {
         return differ ? resolvedParameters : typeParameters;
     }
 
-    private String resolveName(@Nullable DeserializationSerdeArgumentConf serdeArgumentConf,
+    private String resolveName(@Nullable SerdeArgumentConf serdeArgumentConf,
                                AnnotatedElement annotatedElement,
                                AnnotationMetadata annotationMetadata,
                                PropertyNamingStrategy namingStrategy) {
