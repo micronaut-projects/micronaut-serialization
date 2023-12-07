@@ -45,11 +45,12 @@ class Wrapper {
 }
 
 @Serdeable
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$include)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$include, property = "type")
 @JsonSubTypes(
     @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
 )
 class Base {
+    private String type;
     private String string;
 
     public Base(String string) {
@@ -58,6 +59,14 @@ class Base {
 
     public String getString() {
         return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
     }
 }
 
@@ -77,6 +86,9 @@ class Sub extends Base {
 """)
         when:
             def base = newInstance(context, 'test.Sub', "a", 1)
+            if (include == "EXISTING_PROPERTY") {
+                base.type = "sub-class"
+            }
             def wrapper = newInstance(context, 'test.Wrapper', "bar", base)
 
             def result = writeJson(jsonMapper, wrapper)
@@ -92,7 +104,7 @@ class Sub extends Base {
             context.close()
 
         where:
-            include << ["WRAPPER_OBJECT", "PROPERTY"]
+            include << ["WRAPPER_OBJECT", "PROPERTY", "EXISTING_PROPERTY"]
     }
 
     void 'test wrapped subtype with @JsonTypeInfo(include = WRAPPER_ARRAY)'() {
@@ -419,10 +431,10 @@ class Test {
 """)
         then:
         def e = thrown(RuntimeException)
-        e.message.contains("Only 'include' of type PROPERTY, WRAPPER_OBJECT or WRAPPER_ARRAY are supported")
+        e.message.contains("Only 'include' of type PROPERTY, EXISTING_PROPERTY, WRAPPER_OBJECT or WRAPPER_ARRAY are supported")
 
         where:
-        include << JsonTypeInfo.As.values() - [JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.WRAPPER_OBJECT, JsonTypeInfo.As.WRAPPER_ARRAY]
+        include << JsonTypeInfo.As.values() - [JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.EXISTING_PROPERTY, JsonTypeInfo.As.WRAPPER_OBJECT, JsonTypeInfo.As.WRAPPER_ARRAY]
     }
 
     void "test default implementation - with @DefaultImplementation"() {

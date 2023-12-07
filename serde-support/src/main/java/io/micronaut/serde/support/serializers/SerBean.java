@@ -84,6 +84,7 @@ final class SerBean<T> {
     @Nullable
     public final String wrapperProperty;
     @Nullable
+    public final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType;
     public final String arrayWrapperProperty;
     @Nullable
     public SerProperty<T, Object> jsonValue;
@@ -112,6 +113,11 @@ final class SerBean<T> {
         this.configuration = configuration;
         this.introspection = introspections.getSerializableIntrospection(type);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
+        this.discriminatorType = introspection.enumValue(
+            SerdeConfig.class,
+            SerdeConfig.TYPE_DISCRIMINATOR_TYPE,
+            SerdeConfig.SerSubtyped.DiscriminatorType.class
+        ).orElse(null);
 
         boolean allowIgnoredProperties = introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.ALLOW_SERIALIZE).orElse(false);
 
@@ -182,7 +188,12 @@ final class SerBean<T> {
                     }
                 }
 
-                Optional<String> subType = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
+                Optional<String> subType;
+                if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
+                    subType = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
+                } else {
+                    subType = Optional.empty();
+                }
                 Set<String> addedProperties = CollectionUtils.newHashSet(properties.size());
 
                 if (!properties.isEmpty() || !jsonGetters.isEmpty() || subType.isPresent()) {

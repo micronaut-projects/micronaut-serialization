@@ -673,7 +673,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             switch (discriminatorType) {
                 case WRAPPER_OBJECT -> builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
                 case WRAPPER_ARRAY -> builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
-                default -> builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+                case PROPERTY -> builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
+                case EXISTING_PROPERTY -> builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, discriminatorType);
+                default -> throw new IllegalStateException("Unknown " + discriminatorType);
             }
 
             if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {

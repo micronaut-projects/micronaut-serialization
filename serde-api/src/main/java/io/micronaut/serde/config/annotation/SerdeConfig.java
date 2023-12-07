@@ -130,6 +130,11 @@ public @interface SerdeConfig {
     String TYPE_PROPERTY = "typeProperty";
 
     /**
+     * The type discriminator type.
+     */
+    String TYPE_DISCRIMINATOR_TYPE = "typeDiscriminatorType";
+
+    /**
      * If the type property should be visible.
      */
     String TYPE_PROPERTY_VISIBLE = "typePropertyVisible";
@@ -337,7 +342,7 @@ public @interface SerdeConfig {
          * The discriminator type.
          */
         enum DiscriminatorType {
-            PROPERTY, WRAPPER_OBJECT, WRAPPER_ARRAY
+            PROPERTY, WRAPPER_OBJECT, WRAPPER_ARRAY, EXISTING_PROPERTY
         }
 
         /**

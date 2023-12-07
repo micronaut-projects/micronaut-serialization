@@ -25,10 +25,10 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Implementation for deserialization of objects that uses introspection metadata.
+ * Subtyped property deserializer.
  *
- * @author graemerocher
- * @since 1.0.0
+ * @author Denis Stepanov
+ * @since 2.4.0
  */
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
@@ -45,8 +45,10 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
         this.deserializers = deserializers;
         this.supertypeDeserializer = supertypeDeserializer;
         this.discriminatorVisible = discriminatorVisible;
-        if (deserBean.subtypeInfo.discriminatorType() != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY) {
-            throw new IllegalStateException("Unsupported discriminator type: " + deserBean.subtypeInfo.discriminatorType());
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = deserBean.subtypeInfo.discriminatorType();
+        if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
+            && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
+            throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
         }
     }
 
