@@ -134,7 +134,7 @@ implements <a href="../../util/CustomizableSerializer.html" title="interface in 
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../ObjectSerializer.html" title="interface in io.micronaut.serde">ObjectSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;encoderContext,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
@@ -179,10 +179,10 @@ implements <a href="../../util/CustomizableSerializer.html" title="interface in 
 <li>
 <section class="detail" id="createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
 <h3>createSpecific</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../ObjectSerializer.html" title="interface in io.micronaut.serde">ObjectSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull
  @NonNull <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;encoderContext,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                                  throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+                                        throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
 <div class="block"><span class="descfrm-type-label">Description copied from interface:&nbsp;<code><a href="../../Serializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">Serializer</a></code></span></div>
 <div class="block">Create a more specific serializer for the given definition.</div>
 <dl class="notes">
