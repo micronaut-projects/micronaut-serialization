@@ -89,6 +89,8 @@ final class DeserBean<T> {
     public final DeserializeSubtypeInfo<T> subtypeInfo;
     @Nullable
     public final Set<String> ignoredProperties;
+    @Nullable
+    public final Set<String> externalProperties;
 
     public final int creatorSize;
     public final int injectPropertiesSize;
@@ -136,6 +138,7 @@ final class DeserBean<T> {
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
 
         Set<String> ignoredProperties = new HashSet<>();
+        Set<String> externalProperties = new HashSet<>();
 
         @Nullable
         Predicate<String> allowPropertyPredicate = serdeArgumentConf == null ? null : serdeArgumentConf.resolveAllowPropertyPredicate(false);
@@ -176,6 +179,11 @@ final class DeserBean<T> {
                     false
                 );
                 continue;
+            }
+
+            SubtypeInfo propertySubtypeInfo = SubtypeInfo.createForProperty(annotationMetadata);
+            if (propertySubtypeInfo != null && propertySubtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
+                externalProperties.add(propertySubtypeInfo.discriminatorName());
             }
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
@@ -279,6 +287,10 @@ final class DeserBean<T> {
                         annotationMetadata,
                         getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy)
                     );
+                    SubtypeInfo propertySubtypeInfo = SubtypeInfo.createForProperty(annotationMetadata);
+                    if (propertySubtypeInfo != null && propertySubtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
+                        externalProperties.add(propertySubtypeInfo.discriminatorName());
+                    }
                     if (creatorParams != null && creatorParams.propertyIndexOf(propertyName) != -1) {
                         continue;
                     }
@@ -382,8 +394,8 @@ final class DeserBean<T> {
         );
 
         // TODO: avoid using type argument annotations
-        SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.create(typeAnnotationMetadata) : serdeArgumentConf.getSubtypeInfo();
-        subtypeInfo = subtypeInfoBase == null ? DeserializeSubtypeInfo.create(SubtypeInfo.create(typeAnnotationMetadata), introspection, decoderContext, deserBeanRegistry) : DeserializeSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, deserBeanRegistry);
+        SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.createForType(typeAnnotationMetadata) : serdeArgumentConf.getSubtypeInfo();
+        subtypeInfo = subtypeInfoBase == null ? DeserializeSubtypeInfo.create(SubtypeInfo.createForType(typeAnnotationMetadata), introspection, decoderContext, deserBeanRegistry) : DeserializeSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, deserBeanRegistry);
 
         String discriminatorProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
         if (discriminatorProperty != null && !introspection.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {
@@ -401,6 +413,11 @@ final class DeserBean<T> {
             this.ignoredProperties = null;
         } else {
             this.ignoredProperties = ignoredProperties;
+        }
+        if (externalProperties.isEmpty()) {
+            this.externalProperties = null;
+        } else {
+            this.externalProperties = externalProperties;
         }
 
         simpleBean = isSimpleBean();
@@ -447,7 +464,7 @@ final class DeserBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (ignoredProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (injectProperties != null) {
@@ -462,7 +479,7 @@ final class DeserBean<T> {
     }
 
     private boolean isRecordLikeBean() {
-        if (ignoredProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (creatorParams != null) {

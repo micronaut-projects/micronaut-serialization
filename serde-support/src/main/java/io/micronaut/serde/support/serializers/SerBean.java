@@ -219,6 +219,36 @@ final class SerBean<T> {
                         final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
 
+                        SubtypeInfo propSubtypeInfo = SubtypeInfo.createForProperty(propertyAnnotationMetadata);
+                        if (propSubtypeInfo != null && propSubtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
+                            final CustomSerProperty<T, Object> serProperty = new CustomSerProperty<>(
+                                SerBean.this,
+                                propSubtypeInfo.discriminatorName(),
+                                (Argument) Argument.STRING,
+                                bean -> {
+                                    Object subtypeValue = property.get(bean);
+                                    if (subtypeValue == null) {
+                                        return null;
+                                    }
+                                    String[] names = propSubtypeInfo.subtypes().get(subtypeValue.getClass());
+                                    if (names == null) {
+                                        throw new IllegalStateException("Cannot find a subtype definition for class: [" + subtypeValue.getClass().getName() + "] and value [" + subtypeValue + "]");
+                                    }
+                                    return names[0];
+                                }
+                            );
+
+                            initializers.add(ctx -> {
+                                try {
+                                    initProperty(serProperty, ctx);
+                                } catch (SerdeException e) {
+                                    throw new SerdeException("Error resolving serializer for property [" + property + "] of type [" + argument.getType().getName() + "]: " + e.getMessage(), e);
+                                }
+                            });
+
+                            writeProperties.add(serProperty);
+                        }
+
                         String originalName = argument.getName();
                         String resolvedPropertyName = resolveName(
                             propertyAnnotationMetadata,
@@ -320,7 +350,8 @@ final class SerBean<T> {
                 SerdeConfig.TYPE_DISCRIMINATOR_TYPE,
                 SerdeConfig.SerSubtyped.DiscriminatorType.class
             ).orElse(null);
-            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
+            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY ||
+                discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
                 return null;
             }
             String name = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);

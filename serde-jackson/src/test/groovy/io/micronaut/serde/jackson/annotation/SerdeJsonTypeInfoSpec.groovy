@@ -105,7 +105,7 @@ class Sub extends Base {
             context.close()
 
         where:
-            include << ["WRAPPER_OBJECT", "PROPERTY", "EXISTING_PROPERTY"]
+            include << ["WRAPPER_OBJECT", "PROPERTY", "EXISTING_PROPERTY", "EXTERNAL_PROPERTY"]
     }
 
     void 'test wrapped subtype in constructor with @JsonTypeInfo(include = JsonTypeInfo.As.#include)'(String include) {
@@ -497,32 +497,6 @@ class Test {
 
         where:
         use << [JsonTypeInfo.Id.DEDUCTION, JsonTypeInfo.Id.CUSTOM]
-    }
-
-    @Unroll
-    void "test fail compilation on unsupported 'include' #include"() {
-        when:
-        buildBeanIntrospection('subtypeerrors.Test', """
-package subtypeerrors;
-
-import com.fasterxml.jackson.annotation.*;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
-
-@JsonTypeInfo(
-  use = JsonTypeInfo.Id.CLASS,
-  include = JsonTypeInfo.As.$include,
-  property = "type")
-class Test {
-    public String name;
-}
-""")
-        then:
-        def e = thrown(RuntimeException)
-        e.message.contains("Only 'include' of type PROPERTY, EXISTING_PROPERTY, WRAPPER_OBJECT or WRAPPER_ARRAY are supported")
-
-        where:
-        include << JsonTypeInfo.As.values() - [JsonTypeInfo.As.PROPERTY, JsonTypeInfo.As.EXISTING_PROPERTY, JsonTypeInfo.As.WRAPPER_OBJECT, JsonTypeInfo.As.WRAPPER_ARRAY]
     }
 
     void "test default implementation - with @DefaultImplementation"() {

@@ -93,7 +93,223 @@ class Sub extends Base {
             context.close()
 
         where:
-            includeType << ["WRAPPER_OBJECT", "WRAPPER_ARRAY", "PROPERTY", "EXISTING_PROPERTY"]
+            includeType << ["WRAPPER_OBJECT", "WRAPPER_ARRAY", "PROPERTY", "EXISTING_PROPERTY", "EXTERNAL_PROPERTY"]
+    }
+
+    @Unroll
+    void 'test two property field definition of @JsonTypeInfo(include = JsonTypeInfo.As.#includeType)'(String includeType) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public String foo;
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType, property = "type1")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class1")
+  )
+  public Base base1;
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType, property = "type2")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class2")
+  )
+  public Base base2;
+}
+
+@Serdeable
+class Base {
+    private String type;
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Sub(@com.fasterxml.jackson.annotation.JsonProperty("string")
+               String string,
+               @com.fasterxml.jackson.annotation.JsonProperty("integer")
+               Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base1 = newInstance(context, 'test.Sub', "a", 1)
+            def base2 = newInstance(context, 'test.Sub', "b", 2)
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base1 = base1
+            wrapper.base2 = base2
+
+            def result = writeJson(jsonMapper, wrapper)
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base1.getClass().name == 'test.Sub'
+            bean.base1.string == 'a'
+            bean.base1.integer == 1
+            bean.base2.string == 'b'
+            bean.base2.integer == 2
+
+        when:
+            bean = jsonMapper.readValue(json2, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base1.getClass().name == 'test.Sub'
+            bean.base1.string == 'a'
+            bean.base1.integer == 1
+            bean.base2.string == 'b'
+            bean.base2.integer == 2
+
+        cleanup:
+            context.close()
+
+        where:
+            includeType         || json2
+            "WRAPPER_OBJECT"    || '{"foo":"bar","base1":{"sub-class1":{"string":"a","integer":1}},"base2":{"sub-class2":{"string":"b","integer":2}}}'
+            "WRAPPER_ARRAY"     || '{"foo":"bar","base1":["sub-class1",{"string":"a","integer":1}],"base2":["sub-class2",{"string":"b","integer":2}]}'
+            "PROPERTY"          || '{"foo":"bar","base1":{"type1":"sub-class1","string":"a","integer":1},"base2":{"type2":"sub-class2","string":"b","integer":2}}'
+            "EXTERNAL_PROPERTY" || '{"foo":"bar","type1":"sub-class1","base1":{"string":"a","integer":1},"type2":"sub-class2","base2":{"string":"b","integer":2}}'
+            "EXTERNAL_PROPERTY" || '{"foo":"bar","type2":"sub-class2","type1":"sub-class1","base1":{"string":"a","integer":1},"base2":{"string":"b","integer":2}}'
+            "EXTERNAL_PROPERTY" || '{"base1":{"string":"a","integer":1},"base2":{"string":"b","integer":2},"foo":"bar","type1":"sub-class1","type2":"sub-class2"}'
+            "EXTERNAL_PROPERTY" || '{"type1":"sub-class1","base1":{"string":"a","integer":1},"type2":"sub-class2","base2":{"string":"b","integer":2},"foo":"bar"}'
+    }
+
+    void 'test two property field definition of @JsonTypeInfo(include = JsonTypeInfo.As.EXISTING_PROPERTY)'() {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public String foo;
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class1")
+  )
+  public Base base1;
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class2")
+  )
+  public Base base2;
+}
+
+@Serdeable
+class Base {
+    private String type;
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Sub(@com.fasterxml.jackson.annotation.JsonProperty("string")
+               String string,
+               @com.fasterxml.jackson.annotation.JsonProperty("integer")
+               Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base1 = newInstance(context, 'test.Sub', "a", 1)
+            base1.type = "sub-class1"
+            def base2 = newInstance(context, 'test.Sub', "b", 2)
+            base2.type = "sub-class2"
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base1 = base1
+            wrapper.base2 = base2
+
+            def result = writeJson(jsonMapper, wrapper)
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base1.getClass().name == 'test.Sub'
+            bean.base1.string == 'a'
+            bean.base1.integer == 1
+            bean.base2.string == 'b'
+            bean.base2.integer == 2
+
+        when:
+            def json2 = '{"foo":"bar","base1":{"string":"a","type":"sub-class1","integer":1},"base2":{"string":"b","type":"sub-class2","integer":2}}'
+            bean = jsonMapper.readValue(json2, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base1.getClass().name == 'test.Sub'
+            bean.base1.string == 'a'
+            bean.base1.integer == 1
+            bean.base2.string == 'b'
+            bean.base2.integer == 2
+
+        cleanup:
+            context.close()
     }
 
     @Unroll
@@ -194,6 +410,10 @@ class Sub extends Base {
             "WRAPPER_ARRAY"     || '{"base":["sub-class",{"string":"a","integer":1}],"foo":"bar"}'
             "PROPERTY"          || '{"base":{"type":"sub-class","string":"a","integer":1},"foo":"bar"}'
             "EXISTING_PROPERTY" || '{"base":{"string":"a","type":"sub-class","integer":1},"foo":"bar"}'
+            "EXTERNAL_PROPERTY" || '{"type":"sub-class","base":{"string":"a","integer":1},"foo":"bar"}'
+            "EXTERNAL_PROPERTY" || '{"base":{"string":"a","integer":1},"foo":"bar","type":"sub-class"}'
+            "EXTERNAL_PROPERTY" || '{"foo":"bar","base":{"string":"a","integer":1},"type":"sub-class"}'
+            "EXTERNAL_PROPERTY" || '{"foo":"bar","type":"sub-class","base":{"string":"a","integer":1}}'
     }
 
     @Unroll
@@ -293,6 +513,10 @@ class Sub extends Base {
             "WRAPPER_ARRAY"     || '{"base":["sub-class",{"string":"a","integer":1}],"foo":"bar"}'
             "PROPERTY"          || '{"base":{"type":"sub-class","string":"a","integer":1},"foo":"bar"}'
             "EXISTING_PROPERTY" || '{"base":{"string":"a","type":"sub-class","integer":1},"foo":"bar"}'
+            "EXTERNAL_PROPERTY" || '{"type":"sub-class","base":{"string":"a","integer":1},"foo":"bar"}'
+            "EXTERNAL_PROPERTY" || '{"base":{"string":"a","integer":1},"foo":"bar","type":"sub-class"}'
+            "EXTERNAL_PROPERTY" || '{"foo":"bar","base":{"string":"a","integer":1},"type":"sub-class"}'
+            "EXTERNAL_PROPERTY" || '{"foo":"bar","type":"sub-class","base":{"string":"a","integer":1}}'
     }
 
     def 'test @JsonTypeInfo(include = JsonTypeInfo.As.#includeType) with @JsonUnwrapped and @JsonAnySetter'(String includeType) {
@@ -407,9 +631,8 @@ class B extends Base {
             ctx.close()
 
         where:
-            includeType << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY"]
+            includeType << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY", "EXTERNAL_PROPERTY"]
     }
-
 
      def 'test JsonTypeInfo with wrapper array'() {
         given:
