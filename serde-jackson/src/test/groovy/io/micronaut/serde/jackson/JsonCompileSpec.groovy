@@ -93,4 +93,8 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
     }
 
+    static boolean validateJsonWithoutOrder(JsonMapper jsonMapper, String expected, String given) {
+        return jsonMapper.readValue(expected, Map) == jsonMapper.readValue(given, Map)
+    }
+
 }
