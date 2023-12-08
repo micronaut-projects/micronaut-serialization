@@ -180,7 +180,7 @@ class Sub extends Base {
 
         then:
             if (includeType == "EXISTING_PROPERTY") {
-                validateJsonWithoutOrder(expected, result)
+                validateJsonWithoutOrder(jsonMapper, expected, result)
             } else {
                 result == expected
             }
