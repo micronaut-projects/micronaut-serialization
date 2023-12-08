@@ -2,12 +2,300 @@ package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import spock.lang.Unroll
 
 abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
 
-    def 'test @JsonTypeInfo(include = JsonTypeInfo.As.#include) with @JsonUnwrapped and @JsonAnySetter'(String include) {
+    @Unroll
+    void 'test property field definition of @JsonTypeInfo(include = JsonTypeInfo.As.#includeType)'(String includeType) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public String foo;
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType, property = "type")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+  )
+  public Base base;
+}
+
+@Serdeable
+class Base {
+    private String type;
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Sub(@com.fasterxml.jackson.annotation.JsonProperty("string")
+               String string,
+               @com.fasterxml.jackson.annotation.JsonProperty("integer")
+               Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            if (includeType == "EXISTING_PROPERTY") {
+                base.type = "sub-class"
+            }
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base = base
+
+            def result = writeJson(jsonMapper, wrapper)
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base.getClass().name == 'test.Sub'
+            bean.base.string == 'a'
+            bean.base.integer == 1
+
+        cleanup:
+            context.close()
+
+        where:
+            includeType << ["WRAPPER_OBJECT", "WRAPPER_ARRAY", "PROPERTY", "EXISTING_PROPERTY"]
+    }
+
+    @Unroll
+    void 'test property getter definition of @JsonTypeInfo(include = JsonTypeInfo.As.PROPERTY)'(String includeType) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = {Introspected.AccessKind.FIELD, Introspected.AccessKind.METHOD})
+class Wrapper {
+  private Base base;
+  public String foo;
+
+  public void setBase(Base base) {
+    this.base = base;
+  }
+
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType, property = "type")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+  )
+  public Base getBase() {
+    return base;
+  }
+}
+
+@Serdeable
+class Base {
+    private String string;
+    private String type;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Sub(@com.fasterxml.jackson.annotation.JsonProperty("string")
+               String string,
+               @com.fasterxml.jackson.annotation.JsonProperty("integer")
+               Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            if (includeType == "EXISTING_PROPERTY") {
+                base.type = "sub-class"
+            }
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base = base
+
+            def result = writeJson(jsonMapper, wrapper)
+
+        then:
+            if (includeType == "EXISTING_PROPERTY") {
+                validateJsonWithoutOrder(jsonMapper, expected, result)
+            } else {
+                result == expected
+            }
+
+        cleanup:
+            context.close()
+
+        where:
+            includeType         || expected
+            "WRAPPER_OBJECT"    || '{"base":{"sub-class":{"string":"a","integer":1}},"foo":"bar"}'
+            "WRAPPER_ARRAY"     || '{"base":["sub-class",{"string":"a","integer":1}],"foo":"bar"}'
+            "PROPERTY"          || '{"base":{"type":"sub-class","string":"a","integer":1},"foo":"bar"}'
+            "EXISTING_PROPERTY" || '{"base":{"string":"a","type":"sub-class","integer":1},"foo":"bar"}'
+    }
+
+    @Unroll
+    void 'test property setter definition of @JsonTypeInfo(include = JsonTypeInfo.As.PROPERTY)'(String includeType) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = {Introspected.AccessKind.FIELD, Introspected.AccessKind.METHOD})
+class Wrapper {
+  private Base base;
+  public String foo;
+
+  public void setBase(Base base) {
+    this.base = base;
+  }
+
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType, property = "type")
+  @JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+  )
+  public Base getBase() {
+    return base;
+  }
+}
+
+@Serdeable
+class Base {
+    private String string;
+    private String type;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Sub(@com.fasterxml.jackson.annotation.JsonProperty("string")
+               String string,
+               @com.fasterxml.jackson.annotation.JsonProperty("integer")
+               Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            if (includeType == "EXISTING_PROPERTY") {
+                base.type = "sub-class"
+            }
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base = base
+
+            def bean = jsonMapper.readValue(json, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base.getClass().name == 'test.Sub'
+            bean.base.string == 'a'
+            bean.base.integer == 1
+
+        cleanup:
+            context.close()
+
+        where:
+            includeType         || json
+            "WRAPPER_OBJECT"    || '{"base":{"sub-class":{"string":"a","integer":1}},"foo":"bar"}'
+            "WRAPPER_ARRAY"     || '{"base":["sub-class",{"string":"a","integer":1}],"foo":"bar"}'
+            "PROPERTY"          || '{"base":{"type":"sub-class","string":"a","integer":1},"foo":"bar"}'
+            "EXISTING_PROPERTY" || '{"base":{"string":"a","type":"sub-class","integer":1},"foo":"bar"}'
+    }
+
+    def 'test @JsonTypeInfo(include = JsonTypeInfo.As.#includeType) with @JsonUnwrapped and @JsonAnySetter'(String includeType) {
         given:
             def ctx = buildContext('example.Wrapper', """
 package example;
@@ -38,7 +326,7 @@ class Wrapper {
     @JsonSubTypes.Type(value = A.class, name = "x1234"),
     @JsonSubTypes.Type(value = B.class, names = {"y1234", "z1234"})
 })
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$include)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType)
 class Base {
 }
 
@@ -119,7 +407,7 @@ class B extends Base {
             ctx.close()
 
         where:
-            include << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY"]
+            includeType << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY"]
     }
 
 

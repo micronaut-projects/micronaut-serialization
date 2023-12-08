@@ -34,6 +34,94 @@ import io.micronaut.serde.annotation.Serdeable;
 @Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 class Wrapper {
+  public String foo;
+  @JsonUnwrapped
+  public Base base;
+}
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$include, property = "type")
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+)
+class Base {
+    private String type;
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    public Sub(String string, Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        when:
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            if (include == "EXISTING_PROPERTY") {
+                base.type = "sub-class"
+            }
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base = base
+
+            def result = writeJson(jsonMapper, wrapper)
+        then:
+            result
+
+        when:
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base.getClass().name == 'test.Sub'
+            bean.base.string == 'a'
+            bean.base.integer == 1
+
+        cleanup:
+            context.close()
+
+        where:
+            include << ["WRAPPER_OBJECT", "PROPERTY", "EXISTING_PROPERTY"]
+    }
+
+    void 'test wrapped subtype in constructor with @JsonTypeInfo(include = JsonTypeInfo.As.#include)'(String include) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
   public final String foo;
   @JsonUnwrapped
   public final Base base;

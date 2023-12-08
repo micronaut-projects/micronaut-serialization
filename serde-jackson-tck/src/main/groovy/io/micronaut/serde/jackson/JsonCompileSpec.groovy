@@ -89,4 +89,8 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
         return jsonMapper.readValue(json, Argument.of(type))
     }
 
+    static boolean validateJsonWithoutOrder(JsonMapper jsonMapper, String expected, String given) {
+        return jsonMapper.readValue(expected, Map) == jsonMapper.readValue(given, Map)
+    }
+
 }

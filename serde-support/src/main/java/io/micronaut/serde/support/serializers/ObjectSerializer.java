@@ -28,8 +28,10 @@ import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
+import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
 
@@ -78,7 +80,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     }
 
     private io.micronaut.serde.Serializer<Object> createSpecificInternal(EncoderContext encoderContext,
-                                                                               Argument<?> type) throws SerdeException {
+                                                                         Argument<?> type) throws SerdeException {
         SerBean<Object> serBean;
         try {
             serBean = (SerBean<Object>) getSerializableBean(type, encoderContext);
@@ -97,11 +99,28 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         }
         if (serBean.subtyped) {
             serializer = new RuntimeTypeSerializer(encoderContext, serializer, type);
-        }
-        if (serBean.wrapperProperty != null) {
-            serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
-        } else if (serBean.arrayWrapperProperty != null) {
-            serializer = new WrappedArraySerializer<>(serializer, serBean.arrayWrapperProperty);
+        } else {
+            if (serBean.wrapperProperty != null) {
+                serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
+            } else if (serBean.arrayWrapperProperty != null) {
+                serializer = new WrappedArraySerializer<>(serializer, serBean.arrayWrapperProperty);
+            } else {
+                SubtypeInfo subtypeInfo = serBean.subtypeInfo;
+                if (subtypeInfo != null) {
+                    if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT) {
+                        String[] names = subtypeInfo.subtypes().get(type.getType());
+                        if (names != null) {
+                            serializer = new WrappedObjectSerializer<>(serializer, names[0]);
+                        }
+                    }
+                    if (subtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_ARRAY) {
+                        String[] names = subtypeInfo.subtypes().get(type.getType());
+                        if (names != null) {
+                            serializer = new WrappedArraySerializer<>(serializer, names[0]);
+                        }
+                    }
+                }
+            }
         }
         return serializer;
     }

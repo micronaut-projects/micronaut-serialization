@@ -144,7 +144,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             return new BuilderDeserializer(db, conf);
         }
         if (allowSubtype && db.subtypeInfo != null) {
-            SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = db.subtypeInfo.discriminatorType();
+            SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = db.subtypeInfo.info().discriminatorType();
             if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
                 || discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
                 return new SubtypedPropertyBeanDeserializer(db, argument, conf);
@@ -863,7 +863,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
         @Nullable
         private final DeserBean<? super Object> db;
-        private final SubtypeInfo<? super Object> subtypeInfo;
+        private final DeserializeSubtypeInfo<? super Object> subtypeInfo;
         private final Conf conf;
         private final Argument<? super Object> argument;
 
@@ -884,18 +884,18 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
             if (beanDeserializer != null) {
                 return beanDeserializer.tryConsume(propertyName, decoder, decoderContext);
             }
-            if (subtypeInfo.discriminatorName().equals(propertyName)) {
+            if (subtypeInfo.info().discriminatorName().equals(propertyName)) {
                 Decoder bufferedDiscriminatorValue = null;
                 String subtypeName;
-                if (subtypeInfo.discriminatorVisible()) {
+                if (subtypeInfo.info().discriminatorVisible()) {
                     bufferedDiscriminatorValue = decoder.decodeBuffer();
                     subtypeName = bufferedDiscriminatorValue.decodeString();
                 } else {
                     subtypeName = decoder.decodeString();
                 }
                 DeserBean<?> subDeserBean = subtypeInfo.subtypes().get(subtypeName);
-                if (subDeserBean == null && subtypeInfo.defaultImpl() != null) {
-                    subDeserBean = subtypeInfo.subtypes().get(subtypeInfo.defaultImpl());
+                if (subDeserBean == null && subtypeInfo.defaultDiscriminator() != null) {
+                    subDeserBean = subtypeInfo.subtypes().get(subtypeInfo.defaultDiscriminator());
                 }
                 if (subDeserBean == null) {
                     subDeserBean = db;
@@ -961,7 +961,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
 
         @Nullable
         private final DeserBean<? super Object> db;
-        private final SubtypeInfo<? super Object> subtypeInfo;
+        private final DeserializeSubtypeInfo<? super Object> subtypeInfo;
         private final Argument<? super Object> argument;
         private final Conf conf;
 
@@ -978,8 +978,8 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         @Override
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext) throws IOException {
             DeserBean<?> subDeserBean = subtypeInfo.subtypes().get(propertyName);
-            if (subDeserBean == null && subtypeInfo.defaultImpl() != null) {
-                subDeserBean = subtypeInfo.subtypes().get(subtypeInfo.defaultImpl());
+            if (subDeserBean == null && subtypeInfo.defaultDiscriminator() != null) {
+                subDeserBean = subtypeInfo.subtypes().get(subtypeInfo.defaultDiscriminator());
             }
             if (subDeserBean == null) {
                 subDeserBean = db;

@@ -38,7 +38,7 @@ import java.util.function.Predicate;
  * @since 2.3.2
  */
 @Internal
-public class SerdeArgumentConf {
+public final class SerdeArgumentConf {
 
     @Nullable
     private final String prefix;
@@ -50,6 +50,12 @@ public class SerdeArgumentConf {
     private final String[] included;
     @Nullable
     private final String[] order;
+    @Nullable
+    private final String typeName;
+    @Nullable
+    private final String typeProperty;
+    @Nullable
+    private final SubtypeInfo subtypeInfo;
 
     public SerdeArgumentConf(AnnotationMetadata annotationMetadata) {
         prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse(null);
@@ -78,6 +84,9 @@ public class SerdeArgumentConf {
             }
         }
         this.order = order;
+        this.typeName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElse(null);
+        this.typeProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
+        this.subtypeInfo = SubtypeInfo.create(annotationMetadata);
     }
 
     /**
@@ -175,12 +184,15 @@ public class SerdeArgumentConf {
             && Objects.equals(suffix, that.suffix)
             && Arrays.equals(ignored, that.ignored)
             && Arrays.equals(included, that.included)
-            && Arrays.equals(order, that.order);
+            && Arrays.equals(order, that.order)
+            && Objects.equals(typeName, that.typeName)
+            && Objects.equals(typeProperty, that.typeProperty)
+            && Objects.equals(subtypeInfo, that.subtypeInfo);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(prefix, suffix);
+        int result = Objects.hash(prefix, suffix, typeName, typeProperty, subtypeInfo);
         result = 31 * result + Arrays.hashCode(ignored);
         result = 31 * result + Arrays.hashCode(included);
         result = 31 * result + Arrays.hashCode(order);
@@ -209,5 +221,26 @@ public class SerdeArgumentConf {
     @Nullable
     public String[] getIncluded() {
         return included;
+    }
+
+    /**
+     * @return The type name
+     */
+    @Nullable
+    public String getTypeName() {
+        return typeName;
+    }
+
+    /**
+     * @return The type property
+     */
+    @Nullable
+    public String getTypeProperty() {
+        return typeProperty;
+    }
+
+    @Nullable
+    public SubtypeInfo getSubtypeInfo() {
+        return subtypeInfo;
     }
 }

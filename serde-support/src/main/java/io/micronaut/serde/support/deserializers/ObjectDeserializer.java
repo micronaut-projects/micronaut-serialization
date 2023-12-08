@@ -28,6 +28,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import jakarta.inject.Singleton;
 
@@ -68,16 +69,16 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
 
         if (deserBean.subtypeInfo != null) {
-            SubtypeInfo<? super Object> subtypeInfo = deserBean.subtypeInfo;
-            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
-            for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
+            DeserializeSubtypeInfo<? super Object> deserializeSubtypeInfo = deserBean.subtypeInfo;
+            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(deserializeSubtypeInfo.subtypes().size());
+            for (Map.Entry<String, DeserBean<?>> e : deserializeSubtypeInfo.subtypes().entrySet()) {
                 subtypeDeserializers.put(
                     e.getKey(),
                     findDeserializer((DeserBean<? super Object>) e.getValue(), true)
                 );
             }
             Deserializer<Object> supertypeDeserializer = findDeserializer(deserBean, false);
-            return switch (subtypeInfo.discriminatorType()) {
+            return switch (deserializeSubtypeInfo.info().discriminatorType()) {
                 case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
                     deserBean.ignoreUnknown
@@ -90,7 +91,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                     deserBean,
                     subtypeDeserializers,
                     supertypeDeserializer,
-                    subtypeInfo.discriminatorVisible()
+                    deserializeSubtypeInfo.info().discriminatorVisible()
                 );
             };
         }
@@ -121,8 +122,8 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
 
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
-        DeserializationSerdeArgumentConf serdeArgumentConf = type.getAnnotationMetadata().isEmpty() ?
-            null : new DeserializationSerdeArgumentConf(type.getAnnotationMetadata());
+        SerdeArgumentConf serdeArgumentConf = type.getAnnotationMetadata().isEmpty() ?
+            null : new SerdeArgumentConf(type.getAnnotationMetadata());
         DeserBeanKey key = new DeserBeanKey(type, serdeArgumentConf);
         // Use suppliers to prevent recursive update because the lambda can call the same method again
         Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, serdeArgumentConf, decoderContext)));
@@ -132,7 +133,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type,
-                                             @Nullable DeserializationSerdeArgumentConf serdeArgumentConf,
+                                             @Nullable SerdeArgumentConf serdeArgumentConf,
                                              DecoderContext decoderContext) {
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);

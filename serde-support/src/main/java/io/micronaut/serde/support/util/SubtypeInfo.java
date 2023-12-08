@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support.deserializers;
+package io.micronaut.serde.support.util;
 
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.exceptions.SerdeException;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
 
@@ -40,26 +38,22 @@ import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.Discr
  * @param discriminatorName    The discriminator name
  * @param defaultImpl          The default impl
  * @param discriminatorVisible The discriminator visible
- * @param <T>                  The bean type
  * @author Denis Stepanov
  */
 @Internal
-record SubtypeInfo<T>(
+public record SubtypeInfo(
     @NonNull
-    Map<String, DeserBean<? extends T>> subtypes,
+    Map<Class<?>, String[]> subtypes,
     @NonNull
     SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
     @NonNull
     String discriminatorName,
     @Nullable
-    String defaultImpl,
+    Class<?> defaultImpl,
     boolean discriminatorVisible
 ) {
 
-    static <T> SubtypeInfo<T> create(AnnotationMetadata annotationMetadata,
-                                     BeanIntrospection<T> introspection,
-                                     Deserializer.DecoderContext decoderContext,
-                                     DeserBeanRegistry deserBeanRegistry) throws SerdeException {
+    public static SubtypeInfo create(AnnotationMetadata annotationMetadata) {
 
         if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
             return null;
@@ -79,35 +73,25 @@ record SubtypeInfo<T>(
             SerdeConfig.SerSubtyped.class,
             SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP
         ).orElse(discriminatorValue == CLASS_NAME ? "@class" : "@type");
-
-        final Class<T> superType = introspection.getBeanType();
-        final Collection<BeanIntrospection<? extends T>> subtypeIntrospections =
-            decoderContext.getDeserializableSubtypes(superType);
-        Map<String, DeserBean<? extends T>> subtypes = CollectionUtils.newHashMap(subtypeIntrospections.size());
+        List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypesAnn = annotationMetadata.getAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class);
         Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
-        String defaultDiscriminator = null;
-        for (BeanIntrospection<? extends T> subtypeIntrospection : subtypeIntrospections) {
-            Class<? extends T> subBeanType = subtypeIntrospection.getBeanType();
-            final DeserBean<? extends T> deserBean = deserBeanRegistry.getDeserializableBean(
-                Argument.of(subBeanType),
-                decoderContext
-            );
-            if (defaultType != null && defaultType.equals(subBeanType)) {
-                defaultDiscriminator = subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElseThrow();
-            }
-
-            subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, deserBean));
-            String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
-            for (String name : names) {
-                subtypes.put(name, deserBean);
+        Map<Class<?>, String[]> subtypes = CollectionUtils.newHashMap(subtypesAnn.size());
+        for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype : subtypesAnn) {
+            Optional<Class<?>> type = subtype.classValue();
+            if (type.isPresent()) {
+                Class<?> subtypeClass = type.get();
+                String[] names = subtype.stringValues("names");
+                if (names.length == 0) {
+                    continue;
+                }
+                subtypes.put(subtypeClass, names);
             }
         }
-
-        return new SubtypeInfo<>(
+        return new SubtypeInfo(
             subtypes,
             discriminatorType,
             discriminatorName,
-            defaultDiscriminator,
+            defaultType,
             annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)
         );
     }
