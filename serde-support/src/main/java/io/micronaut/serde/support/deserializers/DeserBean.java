@@ -388,14 +388,8 @@ final class DeserBean<T> {
         //noinspection unchecked
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
-        AnnotationMetadata typeAnnotationMetadata = new AnnotationMetadataHierarchy(
-            type.getAnnotationMetadata(),
-            introspection.getAnnotationMetadata()
-        );
-
-        // TODO: avoid using type argument annotations
-        SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.createForType(typeAnnotationMetadata) : serdeArgumentConf.getSubtypeInfo();
-        subtypeInfo = subtypeInfoBase == null ? DeserializeSubtypeInfo.create(SubtypeInfo.createForType(typeAnnotationMetadata), introspection, decoderContext, deserBeanRegistry) : DeserializeSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, deserBeanRegistry);
+        SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.createForType(introspection) : serdeArgumentConf.getSubtypeInfo();
+        subtypeInfo = subtypeInfoBase == null ? DeserializeSubtypeInfo.create(SubtypeInfo.createForType(introspection), introspection, decoderContext, deserBeanRegistry) : DeserializeSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, deserBeanRegistry);
 
         String discriminatorProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
         if (discriminatorProperty != null && !introspection.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {

@@ -43,6 +43,7 @@ final class SubtypedExternalPropertyObjectDeserializer implements Deserializer<O
 
     static PropertyReference<Object, String> createExternalPropertyReference(DecoderContext decoderContext, String discriminator, String value) {
         String referenceName = "externalProperty@" + discriminator;
+        // TODO: We need a better API for this case when there is no introspection
         return decoderContext.resolveReference(
             new PropertyReference<>(
                 referenceName,
