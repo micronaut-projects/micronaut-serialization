@@ -14,7 +14,7 @@ ksp = '1.9.21-1.0.15'
 graal-svm = "23.1.1"
 aws-lambda-events = '3.11.4'
 oci-sdk = '3.28.1'
-aws-lambda-serialization = '1.1.4'
+aws-lambda-serialization = '1.1.5'
 microstream-storage-restclient = '08.01.01-MS-GA'
 
 managed-bson = "4.11.1"
