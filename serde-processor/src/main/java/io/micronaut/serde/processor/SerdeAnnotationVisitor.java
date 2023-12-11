@@ -172,9 +172,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     @Override
     public void visitMethod(MethodElement element, VisitorContext context) {
         checkForErrors(element, context);
-        if (element.getDeclaringType().getAnnotationMetadata().hasAnnotation(SerdeImport.class)) {
-            return;
-        }
         AnnotationMetadata methodMetadata = element.getMethodAnnotationMetadata();
         if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY) ||
             methodMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent()) {
