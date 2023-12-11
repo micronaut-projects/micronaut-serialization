@@ -627,21 +627,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
         final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind =
             getDiscriminatorValueKind(supertype);
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
+        final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
             getDiscriminatorType(supertype);
         if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
-            context.warn("EXTERNAL_PROPERTY can only be used for properties. " +
-                "Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead.", supertype);
-
-            discriminatorType = SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY;
-
-            AnnotationValue<SerdeConfig.SerSubtyped> annotationValue = supertype.getAnnotationMetadata()
-                .getAnnotation(SerdeConfig.SerSubtyped.class)
-                .mutate()
-                .member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY)
-                .build();
-            supertype.removeAnnotation(SerdeConfig.SerSubtyped.class);
-            supertype.annotate(annotationValue);
+            throw new ProcessingException(subtype, "EXTERNAL_PROPERTY can only be used for properties. " +
+                "Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead.");
         }
         final String typeProperty = resolveTypeProperty(supertype).orElseThrow();
 
@@ -680,16 +670,15 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             default -> allNames.add(subtype.getName());
         }
 
-        SerdeConfig.SerSubtyped.DiscriminatorType finalDiscriminatorType = discriminatorType;
         subtype.annotate(SerdeConfig.class, builder -> {
             builder.member(SerdeConfig.TYPE_NAME, allNames.get(0));
             builder.member(SerdeConfig.TYPE_NAMES, allNames.toArray(new String[0]));
 
-            switch (finalDiscriminatorType) {
+            switch (discriminatorType) {
                 case WRAPPER_OBJECT -> builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
                 case WRAPPER_ARRAY -> builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
                 case PROPERTY -> builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
-                case EXISTING_PROPERTY -> builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, finalDiscriminatorType);
+                case EXISTING_PROPERTY -> builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, discriminatorType);
             }
 
             if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {

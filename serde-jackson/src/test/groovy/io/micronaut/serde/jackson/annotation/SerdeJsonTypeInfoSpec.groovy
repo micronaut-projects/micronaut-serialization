@@ -20,6 +20,61 @@ class SerdeJsonTypeInfoSpec extends JsonTypeInfoSpec {
         return false
     }
 
+    def 'test @JsonTypeInfo(include = JsonTypeInfo.As.EXTERNAL_PROPERTY) with @JsonUnwrapped and @JsonAnySetter'() {
+        when:
+            buildContext('example.Wrapper', """
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.*;
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
+class Wrapper {
+    public Base base;
+    public String other;
+    @JsonUnwrapped
+    public Name name;
+    @JsonAnyGetter
+    @JsonAnySetter
+    public Map<String, Object> attributes = new LinkedHashMap<>();
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class, name = "x1234"),
+    @JsonSubTypes.Type(value = B.class, names = {"y1234", "z1234"})
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
+class Base {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@Serdeable
+class Name {
+    public String fieldX;
+    public String fieldY;
+}
+
+class A extends Base {
+    public String fieldA;
+}
+class B extends Base {
+    public String fieldB;
+}
+""", true)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains "EXTERNAL_PROPERTY can only be used for properties. Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead."
+    }
+
     void 'test wrapped subtype with @JsonTypeInfo(include = JsonTypeInfo.As.#include)'(String include) {
         given:
             def context = buildContext('test.Base', """
@@ -105,7 +160,71 @@ class Sub extends Base {
             context.close()
 
         where:
-            include << ["WRAPPER_OBJECT", "PROPERTY", "EXISTING_PROPERTY", "EXTERNAL_PROPERTY"]
+            include << ["WRAPPER_OBJECT", "PROPERTY", "EXISTING_PROPERTY"]
+    }
+
+    void 'test wrapped subtype with @JsonTypeInfo(include = JsonTypeInfo.As.EXTERNAL_PROPERTY)'() {
+        when:
+            buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public String foo;
+  @JsonUnwrapped
+  public Base base;
+}
+
+@Serdeable
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+)
+class Base {
+    private String type;
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    public Sub(String string, Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+        then:
+            def e = thrown(Exception)
+            e.message.contains "EXTERNAL_PROPERTY can only be used for properties. Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead."
     }
 
     void 'test wrapped subtype in constructor with @JsonTypeInfo(include = JsonTypeInfo.As.#include)'(String include) {

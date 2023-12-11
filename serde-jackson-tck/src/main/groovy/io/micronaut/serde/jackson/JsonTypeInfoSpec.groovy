@@ -631,7 +631,7 @@ class B extends Base {
             ctx.close()
 
         where:
-            includeType << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY", "EXTERNAL_PROPERTY"]
+            includeType << ["WRAPPER_ARRAY", "WRAPPER_OBJECT", "PROPERTY"]
     }
 
      def 'test JsonTypeInfo with wrapper array'() {
