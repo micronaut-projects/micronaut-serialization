@@ -33,12 +33,14 @@ public class JdkVersionTest {
 
         //when:
         String json = jsonMapper.writeValueAsString(new Foo(jdk17));
+        String expected = """
+                {"jdk":"JDK_17"}""";
 
         //then:
-        assertEquals("{\"jdk\":\"JDK_17\"}", json);
+        assertEquals(expected, json);
 
         //when:
-        Foo foo = jsonMapper.readValue("{\"jdk\":\"JDK_17\"}", Foo.class);
+        Foo foo = jsonMapper.readValue(expected, Foo.class);
 
         //then:
         assertEquals(jdk17, foo.jdk);
