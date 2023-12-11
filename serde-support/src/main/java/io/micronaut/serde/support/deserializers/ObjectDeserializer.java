@@ -27,6 +27,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
@@ -69,16 +70,18 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
 
         if (deserBean.subtypeInfo != null) {
-            DeserializeSubtypeInfo<? super Object> deserializeSubtypeInfo = deserBean.subtypeInfo;
-            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(deserializeSubtypeInfo.subtypes().size());
-            for (Map.Entry<String, DeserBean<?>> e : deserializeSubtypeInfo.subtypes().entrySet()) {
+            DeserializeSubtypeInfo<? super Object> subtypeInfo = deserBean.subtypeInfo;
+            SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypeInfo.info().discriminatorType();
+            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
+            boolean disallowUnwrap = discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT;
+            for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
                 subtypeDeserializers.put(
                     e.getKey(),
-                    findDeserializer((DeserBean<? super Object>) e.getValue(), true)
+                    findDeserializer((DeserBean<? super Object>) e.getValue(), disallowUnwrap)
                 );
             }
             Deserializer<Object> supertypeDeserializer = findDeserializer(deserBean, false);
-            return switch (deserializeSubtypeInfo.info().discriminatorType()) {
+            return switch (discriminatorType) {
                 case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
                     deserBean.ignoreUnknown
@@ -91,15 +94,16 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                     deserBean,
                     subtypeDeserializers,
                     supertypeDeserializer,
-                    deserializeSubtypeInfo.info().discriminatorVisible()
+                    subtypeInfo.info().discriminatorVisible()
                 );
+                case EXTERNAL_PROPERTY -> new SubtypedExternalPropertyObjectDeserializer(subtypeInfo, subtypeDeserializers);
             };
         }
 
         return findDeserializer(deserBean, false);
     }
 
-    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean isSubtype) {
+    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean disallowUnwrap) {
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
             deserializer = new SimpleObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
@@ -110,7 +114,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         } else {
             deserializer = new SpecificObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         }
-        if (!isSubtype && deserBean.wrapperProperty != null) {
+        if (!disallowUnwrap && deserBean.wrapperProperty != null) {
             deserializer = new WrappedObjectDeserializer(
                 deserializer,
                 deserBean.wrapperProperty,

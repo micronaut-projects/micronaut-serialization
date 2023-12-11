@@ -70,12 +70,7 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
             annotation.booleanValue("visible").orElse(false)
         );
         String include = annotation.stringValue("include").orElse("PROPERTY");
-        switch (include) {
-            case "PROPERTY", "WRAPPER_OBJECT", "WRAPPER_ARRAY", "EXISTING_PROPERTY" -> builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
-            default -> {
-                return mapError("Only 'include' of type PROPERTY, EXISTING_PROPERTY, WRAPPER_OBJECT or WRAPPER_ARRAY are supported");
-            }
-        }
+        builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
 
         Optional<String> propertyValue = annotation.stringValue("property");
         switch (use) {

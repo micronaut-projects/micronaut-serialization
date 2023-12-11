@@ -51,10 +51,6 @@ public final class SerdeArgumentConf {
     @Nullable
     private final String[] order;
     @Nullable
-    private final String typeName;
-    @Nullable
-    private final String typeProperty;
-    @Nullable
     private final SubtypeInfo subtypeInfo;
 
     public SerdeArgumentConf(AnnotationMetadata annotationMetadata) {
@@ -84,9 +80,7 @@ public final class SerdeArgumentConf {
             }
         }
         this.order = order;
-        this.typeName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).orElse(null);
-        this.typeProperty = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
-        this.subtypeInfo = SubtypeInfo.create(annotationMetadata);
+        this.subtypeInfo = SubtypeInfo.createForProperty(annotationMetadata);
     }
 
     /**
@@ -180,19 +174,12 @@ public final class SerdeArgumentConf {
             return false;
         }
         SerdeArgumentConf that = (SerdeArgumentConf) o;
-        return Objects.equals(prefix, that.prefix)
-            && Objects.equals(suffix, that.suffix)
-            && Arrays.equals(ignored, that.ignored)
-            && Arrays.equals(included, that.included)
-            && Arrays.equals(order, that.order)
-            && Objects.equals(typeName, that.typeName)
-            && Objects.equals(typeProperty, that.typeProperty)
-            && Objects.equals(subtypeInfo, that.subtypeInfo);
+        return Objects.equals(prefix, that.prefix) && Objects.equals(suffix, that.suffix) && Arrays.equals(ignored, that.ignored) && Arrays.equals(included, that.included) && Arrays.equals(order, that.order) && Objects.equals(subtypeInfo, that.subtypeInfo);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(prefix, suffix, typeName, typeProperty, subtypeInfo);
+        int result = Objects.hash(prefix, suffix, subtypeInfo);
         result = 31 * result + Arrays.hashCode(ignored);
         result = 31 * result + Arrays.hashCode(included);
         result = 31 * result + Arrays.hashCode(order);
@@ -221,22 +208,6 @@ public final class SerdeArgumentConf {
     @Nullable
     public String[] getIncluded() {
         return included;
-    }
-
-    /**
-     * @return The type name
-     */
-    @Nullable
-    public String getTypeName() {
-        return typeName;
-    }
-
-    /**
-     * @return The type property
-     */
-    @Nullable
-    public String getTypeProperty() {
-        return typeProperty;
     }
 
     @Nullable

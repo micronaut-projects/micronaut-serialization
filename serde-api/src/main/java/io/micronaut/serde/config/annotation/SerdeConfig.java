@@ -342,7 +342,7 @@ public @interface SerdeConfig {
          * The discriminator type.
          */
         enum DiscriminatorType {
-            PROPERTY, WRAPPER_OBJECT, WRAPPER_ARRAY, EXISTING_PROPERTY
+            PROPERTY, WRAPPER_OBJECT, WRAPPER_ARRAY, EXISTING_PROPERTY, EXTERNAL_PROPERTY
         }
 
         /**

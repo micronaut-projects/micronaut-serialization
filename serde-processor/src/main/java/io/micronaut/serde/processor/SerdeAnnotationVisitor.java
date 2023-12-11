@@ -626,6 +626,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             getDiscriminatorValueKind(supertype);
         final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
             getDiscriminatorType(supertype);
+        if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
+            throw new ProcessingException(subtype, "EXTERNAL_PROPERTY can only be used for properties. " +
+                "Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead.");
+        }
         final String typeProperty = resolveTypeProperty(supertype).orElseThrow();
 
         List<String> allNames = new ArrayList<>();
@@ -672,7 +676,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 case WRAPPER_ARRAY -> builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
                 case PROPERTY -> builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
                 case EXISTING_PROPERTY -> builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, discriminatorType);
-                default -> throw new IllegalStateException("Unknown " + discriminatorType);
             }
 
             if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {

@@ -129,7 +129,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeInfo.html[@JsonTypeInfo]
 |✅
-|Only `WRAPPER_OBJECT`, `WRAPPER_ARRAY`, `PROPERTY`, `EXISTING_PROPERTY` for `include` and only `CLASS` & `NAME` for `use`.
+|Only `CLASS` & `NAME` for `use`.
 
 |link:{jacksonAnnotationJavadoc}/JsonTypeName.html[@JsonTypeName]
 |✅

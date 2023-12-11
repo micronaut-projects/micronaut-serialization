@@ -32,8 +32,14 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation for deserialization of objects that uses introspection metadata.
@@ -63,14 +69,22 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
         BeanDeserializer deserializer = newBeanDeserializer(null, deserBean, conf, false, type);
         deserializer.init(decoderContext);
-        return deserialize(decoder, decoderContext, type, deserializer);
+        if (deserBean.externalProperties == null) {
+            return deserialize(decoder, decoderContext, type, deserializer);
+        } else {
+            return deserializeAwaitForExternalProperties(decoder, decoderContext, type, deserializer);
+        }
     }
 
     @Override
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type, Object value) throws IOException {
         BeanDeserializer deserializer = newBeanDeserializer(value, deserBean, conf, false, type);
         deserializer.init(decoderContext);
-        deserialize(decoder, decoderContext, type, deserializer);
+        if (deserBean.externalProperties == null) {
+            deserialize(decoder, decoderContext, type, deserializer);
+        } else {
+            deserializeAwaitForExternalProperties(decoder, decoderContext, type, deserializer);
+        }
     }
 
     private Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type, BeanDeserializer beanDeserializer) throws IOException {
@@ -116,6 +130,96 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         return instance;
     }
 
+    private Object deserializeAwaitForExternalProperties(Decoder decoder,
+                                                         DecoderContext decoderContext,
+                                                         Argument<? super Object> type,
+                                                         BeanDeserializer beanDeserializer) throws IOException {
+        Set<String> missingExternalProperties = new HashSet<>(deserBean.externalProperties);
+        List<PropertyReference<?, ?>> references = new ArrayList<>(missingExternalProperties.size());
+        Map<String, Decoder> cache = new HashMap<>();
+
+        final Decoder rootObjectDecoder = decoder.decodeObject(type);
+        try {
+            Object instance = null;
+            boolean completed = false;
+            Iterator<Map.Entry<String, Decoder>> cacheIterator = null;
+            while (true) {
+                Decoder objectDecoder = rootObjectDecoder;
+
+                final String propertyName;
+                if (cacheIterator == null || !cacheIterator.hasNext()) {
+                    propertyName = objectDecoder.decodeKey();
+                    if (propertyName == null) {
+                        completed = true;
+                        break;
+                    }
+                    if (deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
+                        objectDecoder.skipValue();
+                        continue;
+                    }
+                    if (!missingExternalProperties.isEmpty()) {
+                        if (missingExternalProperties.remove(propertyName)) {
+                            String externalPropertyValue;
+                            if (deserBean.subtypeInfo != null && deserBean.subtypeInfo.info().discriminatorVisible()) {
+                                Decoder cachedBuffer = decoder.decodeBuffer();
+                                cache.put(propertyName, cachedBuffer);
+                                externalPropertyValue = cachedBuffer.decodeString();
+                            } else {
+                                externalPropertyValue = objectDecoder.decodeString();
+                            }
+                            PropertyReference<Object, String> reference = SubtypedExternalPropertyObjectDeserializer
+                                .createExternalPropertyReference(decoderContext, propertyName, externalPropertyValue);
+                            decoderContext.pushManagedRef(reference);
+                            references.add(reference);
+
+                            if (missingExternalProperties.isEmpty()) {
+                                cacheIterator = cache.entrySet().iterator();
+                            }
+                        } else {
+                            cache.put(propertyName, decoder.decodeBuffer());
+                        }
+                        continue;
+                    }
+                } else {
+                    Map.Entry<String, Decoder> entry = cacheIterator.next();
+                    propertyName = entry.getKey();
+                    objectDecoder = entry.getValue();
+                }
+
+                boolean consumed = beanDeserializer.tryConsume(propertyName, objectDecoder, decoderContext);
+                if (!consumed) {
+                    handleUnknownProperty(type, objectDecoder, propertyName, deserBean);
+                }
+                if (beanDeserializer.isAllConsumed()) {
+                    instance = beanDeserializer.provideInstance(decoderContext);
+                    break;
+                }
+            }
+
+            if (instance == null) {
+                instance = beanDeserializer.provideInstance(decoderContext);
+            }
+            if (deserBean.ignoreUnknown) {
+                rootObjectDecoder.finishStructure(true);
+            } else {
+                if (deserBean.ignoredProperties != null && !completed) {
+                    String key = rootObjectDecoder.decodeKey();
+                    while (key != null) {
+                        handleUnknownProperty(type, rootObjectDecoder, key, deserBean);
+                        key = rootObjectDecoder.decodeKey();
+                    }
+                }
+                rootObjectDecoder.finishStructure();
+            }
+            return instance;
+        } finally {
+            for (PropertyReference<?, ?> reference : references) {
+                decoderContext.pushManagedRef(reference);
+            }
+
+        }
+    }
+
     private static void handleUnknownProperty(Argument<? super Object> type,
                                               Decoder objectDecoder,
                                               String propertyName,
@@ -145,11 +249,12 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         }
         if (allowSubtype && db.subtypeInfo != null) {
             SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = db.subtypeInfo.info().discriminatorType();
-            if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
-                || discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
-                return new SubtypedPropertyBeanDeserializer(db, argument, conf);
-            }
-            return new SubtypedWrapperBeanDeserializer(db, argument, conf);
+            return switch (discriminatorType) {
+                case PROPERTY, EXISTING_PROPERTY -> new SubtypedPropertyBeanDeserializer(db, argument, conf);
+                case WRAPPER_OBJECT -> new SubtypedWrapperBeanDeserializer(db, argument, conf);
+                default ->
+                    throw new IllegalStateException(discriminatorType + " not supported in this scenario!");
+            };
         }
         if (db.creatorParams != null) {
             return new ArgsConstructorBeanDeserializer(db, conf);
