@@ -324,6 +324,68 @@ abstract class TestMixin {
         context.close()
     }
 
+    void "test import with mixin - annotation on non-property method"() {
+        def context = buildContext('mixintest.Test','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = Test.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+public class Test {
+    private String name;
+    private int quantity = 10;
+
+    public void name(String name) {
+        this.name = name;
+    }
+    public String name() {
+        return name;
+    }
+
+    public int quantity() {
+        return quantity;
+    }
+
+    public void quantity(int quantity) {
+        this.quantity = quantity;
+    }
+}
+
+abstract class TestMixin {
+    @JsonProperty("n")
+    public abstract String name();
+
+    @JsonProperty("n")
+    public abstract void name(String name);
+
+    @JsonProperty("qty")
+    public abstract int quantity();
+
+    @JsonProperty("qty")
+    public abstract void quantity(int quantity);
+}
+''')
+        def bean = typeUnderTest.type.newInstance()
+        bean.name("test")
+        bean.quantity(10)
+
+        expect:
+        writeJson(jsonMapper, bean) == '{"n":"test","qty":10}'
+
+        def read = jsonMapper.readValue('{"n":"test","qty":15}', typeUnderTest)
+        read.name() == 'test'
+        read.quantity() == 15
+
+        cleanup:
+        context.close()
+    }
+
     void "test import serde - both serialization and deserializer"() {
         given:
         def context = buildContext('importtest.Test','''
