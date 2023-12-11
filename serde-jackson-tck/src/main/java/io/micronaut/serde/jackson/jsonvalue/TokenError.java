@@ -1,4 +1,4 @@
-package io.micronaut.serde.jackson.enumjsonvalue;
+package io.micronaut.serde.jackson.jsonvalue;
 
 
 import com.fasterxml.jackson.annotation.JsonValue;

@@ -1,6 +1,197 @@
 package io.micronaut.serde.jackson
 
+
+import io.micronaut.serde.jackson.jsonvalue.JdkVersion
+
 abstract class JsonValueSpec extends JsonCompileSpec {
+
+    void "enum @JsonValue property"() throws IOException {
+        given:
+            def context = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Foo {
+    private final MyEnum myEnum;
+
+    @JsonCreator
+    Foo(@JsonProperty("myEnum") MyEnum myEnum) {
+        this.myEnum = myEnum;
+    }
+
+    public MyEnum getMyEnum() {
+        return myEnum;
+    }
+}
+
+@Serdeable
+enum MyEnum {
+
+    VALUE1("value1"),
+    VALUE2("value2"),
+    VALUE3("value3");
+
+    private final String value;
+
+    MyEnum(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+}
+''')
+            def enumValue2 = context.classLoader.loadClass('example.MyEnum').VALUE2
+            def testBean = newInstance(context, 'example.Foo', enumValue2)
+        when:
+            String json = jsonMapper.writeValueAsString(testBean)
+        then:
+            '{"myEnum":"value2"}' == json
+
+        when:
+            def foo = jsonMapper.readValue(json, testBean.class)
+
+        then:
+            foo.myEnum == enumValue2
+    }
+
+    void "@JsonValue on constructor"() throws IOException {
+        given:
+            def context = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.jackson.jsonvalue.JdkVersion;
+
+@Serdeable
+class Foo {
+    private final JdkVersion jdk;
+
+    @JsonCreator
+    Foo(@JsonProperty("jdk") JdkVersion jdk) {
+        this.jdk = jdk;
+    }
+
+    public JdkVersion getJdk() {
+        return jdk;
+    }
+}
+''')
+            def testBean = newInstance(context, 'example.Foo', JdkVersion.JDK_17)
+        when:
+            String json = jsonMapper.writeValueAsString(testBean)
+        then:
+            '{"jdk":"JDK_17"}' == json
+
+        when:
+            def foo = jsonMapper.readValue('{"jdk":"JDK_17"}', testBean.class)
+
+        then:
+            foo.jdk == JdkVersion.JDK_17
+    }
+
+    void "@JsonValue on constructor, value with constructor"() throws IOException {
+        given:
+            def context = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Foo {
+    private final JdkVersion jdk;
+
+    @JsonCreator
+    Foo(@JsonProperty("jdk") JdkVersion jdk) {
+        this.jdk = jdk;
+    }
+
+    public JdkVersion getJdk() {
+        return jdk;
+    }
+}
+
+@Serdeable
+final class JdkVersion {
+
+    private final String name;
+
+    @JsonCreator
+    public JdkVersion(String name) {
+        this.name = name;
+    }
+
+    @JsonValue
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return name();
+    }
+}
+''')
+            def val = newInstance(context, 'example.JdkVersion', 'JDK_17')
+            def testBean = newInstance(context, 'example.Foo', val)
+        when:
+            String json = jsonMapper.writeValueAsString(testBean)
+        then:
+            '{"jdk":"JDK_17"}' == json
+
+        when:
+            def foo = jsonMapper.readValue('{"jdk":"JDK_17"}', testBean.class)
+
+        then:
+            foo.jdk.name() == val.name()
+    }
+
+    void "@JsonValue on property"() throws IOException {
+        given:
+            def context = buildContext('''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.jackson.jsonvalue.JdkVersion;
+
+@Serdeable
+class Foo {
+    private JdkVersion jdk;
+
+    public void setJdk(JdkVersion jdk) {
+        this.jdk = jdk;
+    }
+
+    public JdkVersion getJdk() {
+        return jdk;
+    }
+}
+''')
+            def testBean = newInstance(context, 'example.Foo')
+            testBean.jdk = JdkVersion.JDK_17
+        when:
+            String json = jsonMapper.writeValueAsString(testBean)
+        then:
+            '{"jdk":"JDK_17"}' == json
+
+        when:
+            def foo = jsonMapper.readValue('{"jdk":"JDK_17"}', testBean.class)
+
+        then:
+            foo.jdk == JdkVersion.JDK_17
+    }
 
     void "@JsonValue on toString"() {
         given:

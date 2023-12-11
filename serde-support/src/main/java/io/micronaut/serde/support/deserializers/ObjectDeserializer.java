@@ -111,6 +111,8 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             deserializer = new SimpleRecordLikeObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         } else if (deserBean.delegating) {
             deserializer = new DelegatingObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
+        } else if (deserBean.isJsonValueProperty) {
+            deserializer = new JsonValueDeserializer(deserBean);
         } else {
             deserializer = new SpecificObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
         }

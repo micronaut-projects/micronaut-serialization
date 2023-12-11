@@ -1,9 +1,8 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.serde.ObjectMapper
-import io.micronaut.serde.jackson.enumjsonvalue.TokenError
+import io.micronaut.serde.jackson.jsonvalue.TokenError
 import spock.lang.Issue
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 class TokenErrorSpec extends Specification {

@@ -91,6 +91,8 @@ final class DeserBean<T> {
     public final Set<String> ignoredProperties;
     @Nullable
     public final Set<String> externalProperties;
+    @Nullable
+    public final boolean isJsonValueProperty;
 
     public final int creatorSize;
     public final int injectPropertiesSize;
@@ -149,6 +151,19 @@ final class DeserBean<T> {
         this.ignoreUnknown = hasIncludedProperties || introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
             .orElse(deserializationConfiguration.isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
+
+        BeanMethod<T, Object> jsonValueMethod = null;
+        BeanProperty<T, Object> jsonValueProperty = introspection.getBeanProperties()
+            .stream()
+            .filter(m -> m.isAnnotationPresent(SerdeConfig.SerValue.class))
+            .findFirst()
+            .orElse(null);
+
+        if (jsonValueProperty != null) {
+            if (constructorArguments.length != 1) {
+                throw new SerdeException("Cannot have multiple parameters for a json value constructor!");
+            }
+        }
 
         List<DerProperty<T, ?>> creatorUnwrapped = null;
         AnySetter<Object> anySetterValue = null;
@@ -269,6 +284,8 @@ final class DeserBean<T> {
                     jsonSetters.add(method);
                 } else if (method.isAnnotationPresent(SerdeConfig.SerAnySetter.class) && ArrayUtils.isNotEmpty(method.getArguments())) {
                     anySetter = method;
+                } else if (method.isAnnotationPresent(SerdeConfig.SerValue.class) && ArrayUtils.isEmpty(method.getArguments())) {
+                    jsonValueMethod = method;
                 }
             }
 
@@ -414,6 +431,8 @@ final class DeserBean<T> {
             this.externalProperties = externalProperties;
         }
 
+        isJsonValueProperty = jsonValueMethod != null || jsonValueProperty != null;
+
         simpleBean = isSimpleBean();
         recordLikeBean = isRecordLikeBean();
     }
@@ -458,7 +477,7 @@ final class DeserBean<T> {
     }
 
     private boolean isSimpleBean() {
-        if (ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || creatorParams != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (injectProperties != null) {
@@ -473,7 +492,7 @@ final class DeserBean<T> {
     }
 
     private boolean isRecordLikeBean() {
-        if (ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
+        if (isJsonValueProperty || ignoredProperties != null || externalProperties != null || delegating || subtypeInfo != null || injectProperties != null || creatorUnwrapped != null || unwrappedProperties != null || anySetter != null) {
             return false;
         }
         if (creatorParams != null) {
