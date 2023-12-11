@@ -8,6 +8,5 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @Suite
 @SelectPackages("io.micronaut.serde.tck.tests")
 @SuiteDisplayName("Serialization TCK Serde")
-@ExcludeClassNamePatterns("io.micronaut.serde.tck.tests.JdkVersionTest")
 public class SerializationSerdeSuite {
 }
