@@ -9,7 +9,7 @@ micronaut-logging = "1.1.2"
 
 groovy = "4.0.11"
 spock = "2.3-groovy-4.0"
-kotlin = '1.9.20'
+kotlin = '1.9.21'
 ksp = '1.9.21-1.0.15'
 graal-svm = "23.1.1"
 aws-lambda-events = '3.11.3'
