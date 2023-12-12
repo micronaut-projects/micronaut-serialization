@@ -46,7 +46,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         @NonNull SerdeConfiguration configuration,
         @NonNull DateTimeFormatter defaultStringFormatter
     ) {
-        stringFormatter = createFormatter(configuration).orElse(defaultStringFormatter);
+        stringFormatter = createFormatter(configuration, defaultStringFormatter);
     }
 
     @Override
@@ -86,14 +86,15 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     }
 
     @NonNull
-    private static Optional<DateTimeFormatter> createFormatter(@NonNull SerdeConfiguration configuration) {
+    private static DateTimeFormatter createFormatter(@NonNull SerdeConfiguration configuration, @NonNull DateTimeFormatter defaultStringFormatter) {
         // Creates a pattern-based formatter if there is a date format configured
-        return configuration.getDateFormat()
+        final DateTimeFormatter formatter = configuration.getDateFormat()
             .map(pattern -> configuration.getLocale()
                 .map(locale -> DateTimeFormatter.ofPattern(pattern, locale))
-                    .orElseGet(() -> DateTimeFormatter.ofPattern(pattern)))
-            .map(formatter -> configuration.getTimeZone()
-                    .map(tz -> formatter.withZone(tz.toZoneId()))
-                    .orElse(formatter));
+                .orElseGet(() -> DateTimeFormatter.ofPattern(pattern)))
+            .orElse(defaultStringFormatter);
+        return configuration.getTimeZone()
+            .map(tz -> formatter.withZone(tz.toZoneId()))
+            .orElse(formatter);
     }
 }
