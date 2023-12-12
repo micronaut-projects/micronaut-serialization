@@ -291,4 +291,37 @@ class Test {
         context.close()
     }
 
+    void "object with public fields and one readonly"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+class Test {
+    public final String foo;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    public final String bar;
+
+    public Test(String foo, String bar) {
+        this.foo = foo;
+        this.bar = bar;
+    }
+}
+''')
+        def bean = newInstance(context, "example.Test", "21", "28")
+        def deserialized = jsonMapper.readValue('{"foo": "42", "bar": "56"}', typeUnderTest)
+        def serialized = writeJson(jsonMapper, bean)
+
+        expect:
+        deserialized.foo == "42"
+        deserialized.bar == "56"
+        // it is expected that bar field is skipped in serialization
+        // however result is empty {} as all fields are skipped
+        serialized == '{"foo":"21"}'
+
+        cleanup:
+        context.close()
+    }
+
 }
