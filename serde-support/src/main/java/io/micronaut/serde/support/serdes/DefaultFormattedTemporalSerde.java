@@ -62,6 +62,12 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         return TemporalSerde.super.createSpecific(decoderContext, context);
     }
 
+    /**
+     * Create the same serde with new configuration.
+     *
+     * @param configuration The new configuration
+     * @return The updated serde
+     */
     protected DefaultFormattedTemporalSerde<T> createSpecific(SerdeConfiguration configuration) {
         return this;
     }

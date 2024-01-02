@@ -168,6 +168,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param objectArraySerde The object array Serde
      * @param introspections The introspections
      * @param conversionService The conversion service
+     * @param serdeConfiguration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
      */
     public DefaultSerdeRegistry(
             BeanContext beanContext,
@@ -236,6 +239,26 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.objectSerializer = objectSerializer;
         this.objectDeserializer = objectDeserializer;
         this.conversionService = conversionService;
+    }
+
+    /**
+     * @param beanContext The bean context
+     * @param objectSerializer  The object serializer
+     * @param objectDeserializer The object deserializer
+     * @param objectArraySerde The object array Serde
+     * @param introspections The introspections
+     * @param conversionService The conversion service
+     * @deprecated Use {@link #DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)} instead
+     */
+    @Deprecated
+    public DefaultSerdeRegistry(
+        BeanContext beanContext,
+        ObjectSerializer objectSerializer,
+        ObjectDeserializer objectDeserializer,
+        Serde<Object[]> objectArraySerde,
+        SerdeIntrospections introspections,
+        ConversionService conversionService) {
+        this(beanContext, objectSerializer, objectDeserializer, objectArraySerde, introspections, conversionService, beanContext.getBean(SerdeConfiguration.class), beanContext.getBean(SerializationConfiguration.class), beanContext.getBean(DeserializationConfiguration.class));
     }
 
     @Override
@@ -520,15 +543,18 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return this.conversionService;
     }
 
-    public SerdeConfiguration getSerdeConfiguration() {
+    @Internal
+    public final SerdeConfiguration getSerdeConfiguration() {
         return serdeConfiguration;
     }
 
-    public SerializationConfiguration getSerializationConfiguration() {
+    @Internal
+    public final SerializationConfiguration getSerializationConfiguration() {
         return serializationConfiguration;
     }
 
-    public DeserializationConfiguration getDeserializationConfiguration() {
+    @Internal
+    public final DeserializationConfiguration getDeserializationConfiguration() {
         return deserializationConfiguration;
     }
 
