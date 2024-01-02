@@ -35,7 +35,6 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -112,8 +111,7 @@ final class DeserBean<T> {
 
     // CHECKSTYLE:ON
 
-    public DeserBean(DeserializationConfiguration deserializationConfiguration,
-                     Argument<T> type,
+    public DeserBean(Argument<T> type,
                      BeanIntrospection<T> introspection,
                      Deserializer.DecoderContext decoderContext,
                      DeserBeanRegistry deserBeanRegistry,
@@ -149,7 +147,7 @@ final class DeserBean<T> {
         boolean hasIncludedProperties = serdeArgumentConf != null && serdeArgumentConf.getIncluded() != null
             || introspection.isAnnotationPresent(SerdeConfig.SerIncluded.class);
         this.ignoreUnknown = hasIncludedProperties || introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
-            .orElse(deserializationConfiguration.isIgnoreUnknown());
+            .orElse(decoderContext.getDeserializationConfiguration().isIgnoreUnknown());
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
 
         BeanMethod<T, Object> jsonValueMethod = null;

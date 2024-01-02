@@ -56,4 +56,9 @@ public final class ZonedDateTimeSerde
     protected int getNanoPart(ZonedDateTime value) {
         return value.toInstant().getNano();
     }
+
+    @Override
+    protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecific(SerdeConfiguration configuration) {
+        return new ZonedDateTimeSerde(configuration);
+    }
 }

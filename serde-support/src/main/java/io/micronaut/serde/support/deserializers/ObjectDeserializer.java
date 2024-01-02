@@ -48,7 +48,6 @@ import java.util.function.Supplier;
 @BootstrapContextCompatible
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
-    private final DeserializationConfiguration deserializationConfiguration;
     private final Map<DeserBeanKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
@@ -57,7 +56,6 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                               DeserializationConfiguration deserializationConfiguration,
                               @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspections = introspections;
-        this.deserializationConfiguration = deserializationConfiguration;
         this.preInstantiateCallback = preInstantiateCallback;
     }
 
@@ -77,10 +75,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
                 subtypeDeserializers.put(
                     e.getKey(),
-                    findDeserializer((DeserBean<? super Object>) e.getValue(), disallowUnwrap)
+                    findDeserializer(context.getDeserializationConfiguration(), (DeserBean<? super Object>) e.getValue(), disallowUnwrap)
                 );
             }
-            Deserializer<Object> supertypeDeserializer = findDeserializer(deserBean, false);
+            Deserializer<Object> supertypeDeserializer = findDeserializer(context.getDeserializationConfiguration(), deserBean, false);
             return switch (discriminatorType) {
                 case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
@@ -100,10 +98,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             };
         }
 
-        return findDeserializer(deserBean, false);
+        return findDeserializer(context.getDeserializationConfiguration(), deserBean, false);
     }
 
-    private Deserializer<Object> findDeserializer(DeserBean<? super Object> deserBean, boolean disallowUnwrap) {
+    private Deserializer<Object> findDeserializer(DeserializationConfiguration deserializationConfiguration, DeserBean<? super Object> deserBean, boolean disallowUnwrap) {
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
             deserializer = new SimpleObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
@@ -130,7 +128,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
         SerdeArgumentConf serdeArgumentConf = type.getAnnotationMetadata().isEmpty() ?
             null : new SerdeArgumentConf(type.getAnnotationMetadata());
-        DeserBeanKey key = new DeserBeanKey(type, serdeArgumentConf);
+        DeserBeanKey key = new DeserBeanKey(decoderContext.getSerdeConfiguration(), decoderContext.getDeserializationConfiguration(), type, serdeArgumentConf);
         // Use suppliers to prevent recursive update because the lambda can call the same method again
         Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, serdeArgumentConf, decoderContext)));
         DeserBean<?> deserBean = deserBeanSupplier.get();
@@ -143,7 +141,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                                              DecoderContext decoderContext) {
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            return new DeserBean<>(deserializationConfiguration, type, deserializableIntrospection, decoderContext, this, serdeArgumentConf);
+            return new DeserBean<>(type, deserializableIntrospection, decoderContext, this, serdeArgumentConf);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

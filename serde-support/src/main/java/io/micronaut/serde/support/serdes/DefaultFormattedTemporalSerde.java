@@ -18,8 +18,11 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.time.DateTimeException;
@@ -47,6 +50,20 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         @NonNull DateTimeFormatter defaultStringFormatter
     ) {
         stringFormatter = createFormatter(configuration).orElse(defaultStringFormatter);
+    }
+
+    @Override
+    public Serializer<T> createSpecific(EncoderContext context, Argument<? extends T> type) {
+        return TemporalSerde.super.createSpecific(context, type);
+    }
+
+    @Override
+    public Deserializer<T> createSpecific(DecoderContext decoderContext, Argument<? super T> context) throws SerdeException {
+        return TemporalSerde.super.createSpecific(decoderContext, context);
+    }
+
+    protected DefaultFormattedTemporalSerde<T> createSpecific(SerdeConfiguration configuration) {
+        return this;
     }
 
     @Override

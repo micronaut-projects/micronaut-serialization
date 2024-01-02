@@ -50,6 +50,11 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
     }
 
     @Override
+    protected DefaultFormattedTemporalSerde<LocalDate> createSpecific(SerdeConfiguration configuration) {
+        return new LocalDateSerde(configuration);
+    }
+
+    @Override
     void serialize0(Encoder encoder, LocalDate value) throws IOException {
         if (writeNumeric) {
             encoder.encodeLong(value.toEpochDay());

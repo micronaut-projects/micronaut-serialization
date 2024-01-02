@@ -55,4 +55,9 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
     protected Instant fromNanos(long seconds, int nanos) {
         return Instant.ofEpochSecond(seconds, nanos);
     }
+
+    @Override
+    protected DefaultFormattedTemporalSerde<Instant> createSpecific(SerdeConfiguration configuration) {
+        return new InstantSerde(configuration);
+    }
 }

@@ -18,6 +18,9 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionServiceProvider;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 
 /**
  * Represents a registry where specific serializers can be looked up.
@@ -27,6 +30,23 @@ import io.micronaut.core.convert.ConversionServiceProvider;
  *
  */
 public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, NamingStrategyLocator, ConversionServiceProvider {
+
+    /**
+     * Optional feature. Create a new {@link SerdeRegistry} with the given configuration values. A
+     * {@code null} parameter indicates the old configuration should be used.
+     *
+     * @param configuration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
+     * @return A new {@link SerdeRegistry} with the updated config
+     */
+    default SerdeRegistry cloneWithConfiguration(
+        @Nullable SerdeConfiguration configuration,
+        @Nullable SerializationConfiguration serializationConfiguration,
+        @Nullable DeserializationConfiguration deserializationConfiguration
+    ) {
+        return this;
+    }
 
     /**
      * Creates a new encoder context.

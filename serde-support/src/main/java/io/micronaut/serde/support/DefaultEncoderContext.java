@@ -18,8 +18,9 @@ package io.micronaut.serde.support;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
@@ -33,9 +34,9 @@ import io.micronaut.serde.reference.SerializationReference;
  */
 @Internal
 class DefaultEncoderContext extends AbstractPropertyReferenceManager implements Serializer.EncoderContext {
-    private final SerdeRegistry registry;
+    private final DefaultSerdeRegistry registry;
 
-    DefaultEncoderContext(SerdeRegistry registry) {
+    DefaultEncoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
     }
 
@@ -72,5 +73,15 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
             }
         }
         return reference;
+    }
+
+    @Override
+    public SerdeConfiguration getSerdeConfiguration() {
+        return registry.getSerdeConfiguration();
+    }
+
+    @Override
+    public SerializationConfiguration getSerializationConfiguration() {
+        return registry.getSerializationConfiguration();
     }
 }

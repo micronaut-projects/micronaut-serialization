@@ -63,4 +63,9 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
     protected int getNanoPart(OffsetDateTime value) {
         return value.toInstant().getNano();
     }
+
+    @Override
+    protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecific(SerdeConfiguration configuration) {
+        return new OffsetDateTimeSerde(configuration);
+    }
 }

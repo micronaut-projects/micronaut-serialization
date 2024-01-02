@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 
 import java.util.Objects;
@@ -28,12 +30,16 @@ import java.util.Objects;
  */
 @Internal
 final class SerBeanKey {
+    private final SerdeConfiguration serdeConfiguration;
+    private final SerializationConfiguration serializationConfiguration;
     private final Argument<?> type;
     @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
     private final int hashCode;
 
-    public SerBeanKey(@NonNull Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
+    public SerBeanKey(SerdeConfiguration serdeConfiguration, SerializationConfiguration serializationConfiguration, @NonNull Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
+        this.serdeConfiguration = serdeConfiguration;
+        this.serializationConfiguration = serializationConfiguration;
         this.type = type;
         this.serdeArgumentConf = serdeArgumentConf;
         this.hashCode = type.typeHashCode();
@@ -48,7 +54,7 @@ final class SerBeanKey {
             return false;
         }
         SerBeanKey that = (SerBeanKey) o;
-        return type.equalsType(that.type) && Objects.equals(serdeArgumentConf, that.serdeArgumentConf);
+        return type.equalsType(that.type) && Objects.equals(serdeArgumentConf, that.serdeArgumentConf) && serializationConfiguration == that.serializationConfiguration && serdeConfiguration == that.serdeConfiguration;
     }
 
     @Override

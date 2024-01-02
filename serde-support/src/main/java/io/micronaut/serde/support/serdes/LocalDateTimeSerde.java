@@ -39,4 +39,9 @@ public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<Loca
     public TemporalQuery<LocalDateTime> query() {
         return LocalDateTime::from;
     }
+
+    @Override
+    protected DefaultFormattedTemporalSerde<LocalDateTime> createSpecific(SerdeConfiguration configuration) {
+        return new LocalDateTimeSerde(configuration);
+    }
 }
