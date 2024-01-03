@@ -54,12 +54,12 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
 
     @Override
     public Serializer<T> createSpecific(EncoderContext context, Argument<? extends T> type) {
-        return TemporalSerde.super.createSpecific(context, type);
+        return createSpecific(context.getSerdeConfiguration());
     }
 
     @Override
     public Deserializer<T> createSpecific(DecoderContext decoderContext, Argument<? super T> context) throws SerdeException {
-        return TemporalSerde.super.createSpecific(decoderContext, context);
+        return createSpecific(decoderContext.getSerdeConfiguration());
     }
 
     /**
