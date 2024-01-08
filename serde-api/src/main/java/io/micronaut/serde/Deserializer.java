@@ -148,14 +148,18 @@ public interface Deserializer<T> {
          * Get the {@link SerdeConfiguration} for this context.
          *
          * @return The {@link SerdeConfiguration}
+         * @since 2.6.0
          */
+        @NonNull
         SerdeConfiguration getSerdeConfiguration();
 
         /**
          * Get the {@link DeserializationConfiguration} for this context.
          *
          * @return The {@link DeserializationConfiguration}
+         * @since 2.6.0
          */
+        @NonNull
         DeserializationConfiguration getDeserializationConfiguration();
     }
 }

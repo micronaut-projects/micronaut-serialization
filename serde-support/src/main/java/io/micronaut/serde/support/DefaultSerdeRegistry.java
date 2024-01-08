@@ -549,12 +549,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     @Internal
-    public final SerializationConfiguration getSerializationConfiguration() {
+    final SerializationConfiguration getSerializationConfiguration() {
         return serializationConfiguration;
     }
 
     @Internal
-    public final DeserializationConfiguration getDeserializationConfiguration() {
+    final DeserializationConfiguration getDeserializationConfiguration() {
         return deserializationConfiguration;
     }
 

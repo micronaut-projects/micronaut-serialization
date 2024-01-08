@@ -127,14 +127,18 @@ public interface Serializer<T> {
          * Get the {@link SerdeConfiguration} for this context.
          *
          * @return The {@link SerdeConfiguration}
+         * @since 2.6.0
          */
+        @NonNull
         SerdeConfiguration getSerdeConfiguration();
 
         /**
          * Get the {@link SerializationConfiguration} for this context.
          *
          * @return The {@link SerializationConfiguration}
+         * @since 2.6.0
          */
+        @NonNull
         SerializationConfiguration getSerializationConfiguration();
     }
 }
