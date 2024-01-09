@@ -110,7 +110,7 @@ final class SerBean<T> {
             BeanContext beanContext) throws SerdeException {
         // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
         this.serdeArgumentConf = serdeArgumentConf;
-        this.configuration = encoderContext.getSerializationConfiguration();
+        this.configuration = encoderContext.getSerializationConfiguration().orElseGet(() -> beanContext.getBean(SerializationConfiguration.class));
         this.introspection = introspections.getSerializableIntrospection(type);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
         subtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();

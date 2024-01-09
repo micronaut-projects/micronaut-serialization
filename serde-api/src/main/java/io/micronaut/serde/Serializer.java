@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -126,19 +127,23 @@ public interface Serializer<T> {
         /**
          * Get the {@link SerdeConfiguration} for this context.
          *
-         * @return The {@link SerdeConfiguration}
+         * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
          * @since 2.6.0
          */
         @NonNull
-        SerdeConfiguration getSerdeConfiguration();
+        default Optional<SerdeConfiguration> getSerdeConfiguration() {
+            return Optional.empty();
+        }
 
         /**
          * Get the {@link SerializationConfiguration} for this context.
          *
-         * @return The {@link SerializationConfiguration}
+         * @return The {@link SerializationConfiguration}, or an empty optional if the default should be used
          * @since 2.6.0
          */
         @NonNull
-        SerializationConfiguration getSerializationConfiguration();
+        default Optional<SerializationConfiguration> getSerializationConfiguration() {
+            return Optional.empty();
+        }
     }
 }

@@ -27,6 +27,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -49,13 +50,34 @@ import java.util.function.Supplier;
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final Map<DeserBeanKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);
+    private final DeserializationConfiguration deserializationConfiguration;
+    private final SerdeConfiguration serdeConfiguration;
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
 
     public ObjectDeserializer(SerdeIntrospections introspections,
                               DeserializationConfiguration deserializationConfiguration,
+                              SerdeConfiguration serdeConfiguration,
                               @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspections = introspections;
+        this.deserializationConfiguration = deserializationConfiguration;
+        this.serdeConfiguration = serdeConfiguration;
+        this.preInstantiateCallback = preInstantiateCallback;
+    }
+
+    /**
+     *
+     * @param introspections
+     * @param deserializationConfiguration
+     * @param preInstantiateCallback
+     */
+    @Deprecated
+    public ObjectDeserializer(SerdeIntrospections introspections,
+                              DeserializationConfiguration deserializationConfiguration,
+                              @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
+        this.introspections = introspections;
+        this.deserializationConfiguration = deserializationConfiguration;
+        this.serdeConfiguration = null;
         this.preInstantiateCallback = preInstantiateCallback;
     }
 
@@ -75,10 +97,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
                 subtypeDeserializers.put(
                     e.getKey(),
-                    findDeserializer(context.getDeserializationConfiguration(), (DeserBean<? super Object>) e.getValue(), disallowUnwrap)
+                    findDeserializer(context.getDeserializationConfiguration().orElse(deserializationConfiguration), (DeserBean<? super Object>) e.getValue(), disallowUnwrap)
                 );
             }
-            Deserializer<Object> supertypeDeserializer = findDeserializer(context.getDeserializationConfiguration(), deserBean, false);
+            Deserializer<Object> supertypeDeserializer = findDeserializer(context.getDeserializationConfiguration().orElse(deserializationConfiguration), deserBean, false);
             return switch (discriminatorType) {
                 case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(
                     subtypeDeserializers,
@@ -98,7 +120,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             };
         }
 
-        return findDeserializer(context.getDeserializationConfiguration(), deserBean, false);
+        return findDeserializer(context.getDeserializationConfiguration().orElse(deserializationConfiguration), deserBean, false);
     }
 
     private Deserializer<Object> findDeserializer(DeserializationConfiguration deserializationConfiguration, DeserBean<? super Object> deserBean, boolean disallowUnwrap) {
@@ -128,7 +150,12 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
         SerdeArgumentConf serdeArgumentConf = type.getAnnotationMetadata().isEmpty() ?
             null : new SerdeArgumentConf(type.getAnnotationMetadata());
-        DeserBeanKey key = new DeserBeanKey(decoderContext.getSerdeConfiguration(), decoderContext.getDeserializationConfiguration(), type, serdeArgumentConf);
+        DeserBeanKey key = new DeserBeanKey(
+            decoderContext.getSerdeConfiguration().orElse(serdeConfiguration),
+            decoderContext.getDeserializationConfiguration().orElse(deserializationConfiguration),
+            type,
+            serdeArgumentConf
+        );
         // Use suppliers to prevent recursive update because the lambda can call the same method again
         Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, serdeArgumentConf, decoderContext)));
         DeserBean<?> deserBean = deserBeanSupplier.get();
@@ -141,7 +168,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                                              DecoderContext decoderContext) {
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            return new DeserBean<>(type, deserializableIntrospection, decoderContext, this, serdeArgumentConf);
+            return new DeserBean<>(deserializationConfiguration, type, deserializableIntrospection, decoderContext, this, serdeArgumentConf);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }

@@ -1201,12 +1201,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
         @Override
         public @NonNull Serializer<byte[]> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends byte[]> type) throws SerdeException {
-            return new ByteArraySerde(context.getSerdeConfiguration());
+            return context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
         }
 
         @Override
         public @NonNull Deserializer<byte[]> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws SerdeException {
-            return new ByteArraySerde(context.getSerdeConfiguration());
+            return context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
         }
 
         @Override

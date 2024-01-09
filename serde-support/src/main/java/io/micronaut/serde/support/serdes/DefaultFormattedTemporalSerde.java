@@ -58,7 +58,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         if (specific != this) {
             return specific;
         }
-        return createSpecific(context.getSerdeConfiguration());
+        return context.getSerdeConfiguration().map(this::createSpecific).orElse(this);
     }
 
     @Override
@@ -67,7 +67,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
         if (specific != this) {
             return specific;
         }
-        return createSpecific(decoderContext.getSerdeConfiguration());
+        return decoderContext.getSerdeConfiguration().map(this::createSpecific).orElse(this);
     }
 
     /**

@@ -27,6 +27,8 @@ import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -126,7 +128,12 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                                                EncoderContext context) throws SerdeException {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         SerdeArgumentConf serdeArgumentConf = annotationMetadata.isEmpty() ? null : new SerdeArgumentConf(annotationMetadata);
-        SerBeanKey key = new SerBeanKey(context.getSerdeConfiguration(), context.getSerializationConfiguration(), type, serdeArgumentConf);
+        SerBeanKey key = new SerBeanKey(
+            context.getSerdeConfiguration().orElseGet(() -> beanContext.getBean(SerdeConfiguration.class)),
+            context.getSerializationConfiguration().orElseGet(() -> beanContext.getBean(SerializationConfiguration.class)),
+            type,
+            serdeArgumentConf
+        );
         // Use suppliers to prevent recursive update because the lambda will call the same method again
         Supplier<SerBean<?>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> {
             try {

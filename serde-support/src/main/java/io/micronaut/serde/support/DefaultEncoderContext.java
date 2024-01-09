@@ -27,6 +27,8 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
 
+import java.util.Optional;
+
 /**
  * Default implementation of {@link io.micronaut.serde.Serializer.EncoderContext}.
  *
@@ -76,12 +78,12 @@ class DefaultEncoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
-    public SerdeConfiguration getSerdeConfiguration() {
-        return registry.getSerdeConfiguration();
+    public Optional<SerdeConfiguration> getSerdeConfiguration() {
+        return Optional.of(registry.getSerdeConfiguration());
     }
 
     @Override
-    public SerializationConfiguration getSerializationConfiguration() {
-        return registry.getSerializationConfiguration();
+    public Optional<SerializationConfiguration> getSerializationConfiguration() {
+        return Optional.of(registry.getSerializationConfiguration());
     }
 }

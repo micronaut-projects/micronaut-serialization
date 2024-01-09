@@ -21,6 +21,7 @@ import io.micronaut.core.value.OptionalMultiValues;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.CustomizableSerializer;
 import jakarta.inject.Singleton;
@@ -37,10 +38,16 @@ import java.util.Optional;
  */
 @Singleton
 final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<OptionalMultiValues<V>> {
+    private final boolean alwaysSerializeErrorsAsList;
+
+    public OptionalMultiValuesSerializer(SerializationConfiguration jacksonConfiguration) {
+        this.alwaysSerializeErrorsAsList = jacksonConfiguration.isAlwaysSerializeErrorsAsList();
+    }
 
     @Override
     public ObjectSerializer<OptionalMultiValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalMultiValues<V>> type) throws SerdeException {
-        boolean alwaysSerializeErrorsAsList = context.getSerializationConfiguration().isAlwaysSerializeErrorsAsList();
+        boolean alwaysSerializeErrorsAsList = context.getSerializationConfiguration().map(SerializationConfiguration::isAlwaysSerializeErrorsAsList)
+            .orElse(this.alwaysSerializeErrorsAsList);
 
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {

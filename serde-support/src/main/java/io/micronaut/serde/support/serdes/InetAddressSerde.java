@@ -45,12 +45,12 @@ public class InetAddressSerde implements Serde<InetAddress> {
 
     @Override
     public @NonNull Deserializer<InetAddress> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super InetAddress> type) throws SerdeException {
-        return new InetAddressSerde(context.getSerdeConfiguration());
+        return context.getSerdeConfiguration().map(InetAddressSerde::new).orElse(this);
     }
 
     @Override
     public @NonNull Serializer<InetAddress> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends InetAddress> type) throws SerdeException {
-        return new InetAddressSerde(context.getSerdeConfiguration());
+        return context.getSerdeConfiguration().map(InetAddressSerde::new).orElse(this);
     }
 
     @Override

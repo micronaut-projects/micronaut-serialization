@@ -28,6 +28,7 @@ import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -85,12 +86,12 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
     }
 
     @Override
-    public SerdeConfiguration getSerdeConfiguration() {
-        return registry.getSerdeConfiguration();
+    public Optional<SerdeConfiguration> getSerdeConfiguration() {
+        return Optional.of(registry.getSerdeConfiguration());
     }
 
     @Override
-    public DeserializationConfiguration getDeserializationConfiguration() {
-        return registry.getDeserializationConfiguration();
+    public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
+        return Optional.of(registry.getDeserializationConfiguration());
     }
 }
