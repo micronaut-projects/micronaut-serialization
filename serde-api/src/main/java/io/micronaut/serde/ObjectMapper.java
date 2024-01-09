@@ -56,7 +56,7 @@ public interface ObjectMapper extends JsonMapper {
      * @param serializationConfiguration The {@link SerializationConfiguration}
      * @param deserializationConfiguration The {@link DeserializationConfiguration}
      * @return A new {@link JsonMapper} with the updated config
-     * @since 2.6.0
+     * @since 2.7.0
      */
     @NonNull
     default ObjectMapper cloneWithConfiguration(
