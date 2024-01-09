@@ -15,17 +15,20 @@
  */
 package io.micronaut.serde;
 
-import java.io.IOException;
-
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
+
+import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -120,5 +123,27 @@ public interface Serializer<T> {
         <B, P> SerializationReference<B, P> resolveReference(
                 @NonNull SerializationReference<B, P> reference
         );
+
+        /**
+         * Get the {@link SerdeConfiguration} for this context.
+         *
+         * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
+         * @since 2.7.0
+         */
+        @NonNull
+        default Optional<SerdeConfiguration> getSerdeConfiguration() {
+            return Optional.empty();
+        }
+
+        /**
+         * Get the {@link SerializationConfiguration} for this context.
+         *
+         * @return The {@link SerializationConfiguration}, or an empty optional if the default should be used
+         * @since 2.7.0
+         */
+        @NonNull
+        default Optional<SerializationConfiguration> getSerializationConfiguration() {
+            return Optional.empty();
+        }
     }
 }

@@ -46,6 +46,9 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
 
     @Override
     public ObjectSerializer<OptionalMultiValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalMultiValues<V>> type) throws SerdeException {
+        boolean alwaysSerializeErrorsAsList = context.getSerializationConfiguration().map(SerializationConfiguration::isAlwaysSerializeErrorsAsList)
+            .orElse(this.alwaysSerializeErrorsAsList);
+
         final Argument[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw OptionalMultiValues");

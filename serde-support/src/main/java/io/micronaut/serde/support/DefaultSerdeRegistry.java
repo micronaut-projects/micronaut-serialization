@@ -40,7 +40,9 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
@@ -48,6 +50,7 @@ import io.micronaut.serde.support.serdes.NumberSerde;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -144,16 +147,19 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         BOOLEAN_ARRAY_SERDE,
         CHAR_ARRAY_SERDE
     );
-    private final Serializer<Object> objectSerializer;
+    private final ObjectSerializer objectSerializer;
     private final Map<Class<?>, List<BeanDefinition<Serializer>>> serializerDefMap;
     private final Map<Class<?>, List<BeanDefinition<Deserializer>>> deserializerDefMap;
     private final Map<TypeKey, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
-    private final Deserializer<Object> objectDeserializer;
+    private final ObjectDeserializer objectDeserializer;
     private final Serde<Object[]> objectArraySerde;
     private final ConversionService conversionService;
+    private final SerdeConfiguration serdeConfiguration;
+    private final SerializationConfiguration serializationConfiguration;
+    private final DeserializationConfiguration deserializationConfiguration;
 
     /**
      * Default constructor.
@@ -163,14 +169,24 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param objectArraySerde The object array Serde
      * @param introspections The introspections
      * @param conversionService The conversion service
+     * @param serdeConfiguration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
      */
+    @Inject
     public DefaultSerdeRegistry(
-        BeanContext beanContext,
-        ObjectSerializer objectSerializer,
-        ObjectDeserializer objectDeserializer,
-        Serde<Object[]> objectArraySerde,
-        SerdeIntrospections introspections,
-        ConversionService conversionService) {
+            BeanContext beanContext,
+            ObjectSerializer objectSerializer,
+            ObjectDeserializer objectDeserializer,
+            Serde<Object[]> objectArraySerde,
+            SerdeIntrospections introspections,
+            ConversionService conversionService,
+            SerdeConfiguration serdeConfiguration,
+            SerializationConfiguration serializationConfiguration,
+            DeserializationConfiguration deserializationConfiguration) {
+        this.serdeConfiguration = serdeConfiguration;
+        this.serializationConfiguration = serializationConfiguration;
+        this.deserializationConfiguration = deserializationConfiguration;
         final Collection<BeanDefinition<Serializer>> serializers =
                 beanContext.getBeanDefinitions(Serializer.class);
         final Collection<BeanDefinition<Deserializer>> deserializers =
@@ -225,6 +241,41 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.objectSerializer = objectSerializer;
         this.objectDeserializer = objectDeserializer;
         this.conversionService = conversionService;
+    }
+
+    /**
+     * @param beanContext The bean context
+     * @param objectSerializer  The object serializer
+     * @param objectDeserializer The object deserializer
+     * @param objectArraySerde The object array Serde
+     * @param introspections The introspections
+     * @param conversionService The conversion service
+     * @deprecated Use {@link #DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)} instead
+     */
+    @Deprecated
+    public DefaultSerdeRegistry(
+        BeanContext beanContext,
+        ObjectSerializer objectSerializer,
+        ObjectDeserializer objectDeserializer,
+        Serde<Object[]> objectArraySerde,
+        SerdeIntrospections introspections,
+        ConversionService conversionService) {
+        this(beanContext, objectSerializer, objectDeserializer, objectArraySerde, introspections, conversionService, beanContext.getBean(SerdeConfiguration.class), beanContext.getBean(SerializationConfiguration.class), beanContext.getBean(DeserializationConfiguration.class));
+    }
+
+    @Override
+    public SerdeRegistry cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
+        return new DefaultSerdeRegistry(
+            beanContext,
+            objectSerializer,
+            objectDeserializer,
+            objectArraySerde,
+            introspections,
+            conversionService,
+            configuration == null ? this.serdeConfiguration : configuration,
+            serializationConfiguration == null ? this.serializationConfiguration : serializationConfiguration,
+            deserializationConfiguration == null ? this.deserializationConfiguration : deserializationConfiguration
+        );
     }
 
     private void registerBuiltInSerdes() {
@@ -492,6 +543,21 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public ConversionService getConversionService() {
         return this.conversionService;
+    }
+
+    @Internal
+    public final SerdeConfiguration getSerdeConfiguration() {
+        return serdeConfiguration;
+    }
+
+    @Internal
+    final SerializationConfiguration getSerializationConfiguration() {
+        return serializationConfiguration;
+    }
+
+    @Internal
+    final DeserializationConfiguration getDeserializationConfiguration() {
+        return deserializationConfiguration;
     }
 
     private static final class ByteSerde extends SerdeRegistrar<Byte> implements NumberSerde<Byte> {
@@ -1133,6 +1199,16 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         @Internal
         public ByteArraySerde(boolean writeLegacyByteArrays) {
             this.writeLegacyByteArrays = writeLegacyByteArrays;
+        }
+
+        @Override
+        public @NonNull Serializer<byte[]> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends byte[]> type) throws SerdeException {
+            return context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
+        }
+
+        @Override
+        public @NonNull Deserializer<byte[]> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws SerdeException {
+            return context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
         }
 
         @Override

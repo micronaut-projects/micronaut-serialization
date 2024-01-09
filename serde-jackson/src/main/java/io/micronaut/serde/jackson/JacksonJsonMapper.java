@@ -55,7 +55,9 @@ import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.UpdatingDeserializer;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
@@ -78,10 +80,11 @@ import java.util.function.Consumer;
 public final class JacksonJsonMapper implements ObjectMapper {
 
     private final SerdeRegistry registry;
-    private final JsonStreamConfig deserializationConfig;
+    private final JsonStreamConfig streamConfig;
     private final SerdeConfiguration serdeConfiguration;
     private final SerdeJacksonConfiguration jacksonConfiguration;
     private final JsonNodeTreeCodec treeCodec;
+    private final Class<?> view;
     private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
@@ -94,18 +97,30 @@ public final class JacksonJsonMapper implements ObjectMapper {
     }
 
     private JacksonJsonMapper(@NonNull SerdeRegistry registry,
-                              @NonNull JsonStreamConfig deserializationConfig,
+                              @NonNull JsonStreamConfig streamConfig,
                               @NonNull SerdeConfiguration serdeConfiguration,
                               @NonNull SerdeJacksonConfiguration jacksonConfiguration,
                               @Nullable Class<?> view) {
         this.registry = registry;
-        this.deserializationConfig = deserializationConfig;
+        this.streamConfig = streamConfig;
         this.serdeConfiguration = serdeConfiguration;
-        this.treeCodec = JsonNodeTreeCodec.getInstance().withConfig(deserializationConfig);
+        this.treeCodec = JsonNodeTreeCodec.getInstance().withConfig(streamConfig);
+        this.view = view;
         this.encoderContext = registry.newEncoderContext(view);
         this.decoderContext = registry.newDecoderContext(view);
         this.jacksonConfiguration = jacksonConfiguration;
         this.jsonFactory = buildJsonFactory(jacksonConfiguration);
+    }
+
+    @Override
+    public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
+        return new JacksonJsonMapper(
+            registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration),
+            streamConfig,
+            configuration == null ? this.serdeConfiguration : configuration,
+            jacksonConfiguration,
+            view
+        );
     }
 
     private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
@@ -266,12 +281,12 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @NonNull
     @Override
     public JsonStreamConfig getStreamConfig() {
-        return deserializationConfig;
+        return streamConfig;
     }
 
     @Override
     public @NonNull Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe, boolean streamArray) {
-        return new JacksonCoreProcessor(streamArray, jsonFactory, deserializationConfig) {
+        return new JacksonCoreProcessor(streamArray, jsonFactory, streamConfig) {
             @Override
             public void subscribe(Subscriber<? super JsonNode> downstreamSubscriber) {
                 onSubscribe.accept(this);
@@ -283,7 +298,7 @@ public final class JacksonJsonMapper implements ObjectMapper {
     @NonNull
     @Override
     public JsonMapper cloneWithViewClass(@NonNull Class<?> viewClass) {
-        return new JacksonJsonMapper(registry, deserializationConfig, serdeConfiguration, jacksonConfiguration, viewClass);
+        return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, viewClass);
     }
 
     @Override

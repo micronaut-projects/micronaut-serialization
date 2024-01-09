@@ -20,13 +20,15 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.SerdeRegistry;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.AbstractPropertyReferenceManager;
 import io.micronaut.serde.reference.PropertyReference;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Default implementation of {@link io.micronaut.serde.Deserializer.DecoderContext}.
@@ -35,9 +37,9 @@ import java.util.Collection;
  */
 @Internal
 class DefaultDecoderContext extends AbstractPropertyReferenceManager implements Deserializer.DecoderContext {
-    private final SerdeRegistry registry;
+    private final DefaultSerdeRegistry registry;
 
-    DefaultDecoderContext(SerdeRegistry registry) {
+    DefaultDecoderContext(DefaultSerdeRegistry registry) {
         this.registry = registry;
     }
 
@@ -81,5 +83,15 @@ class DefaultDecoderContext extends AbstractPropertyReferenceManager implements 
             }
         }
         return reference;
+    }
+
+    @Override
+    public Optional<SerdeConfiguration> getSerdeConfiguration() {
+        return Optional.of(registry.getSerdeConfiguration());
+    }
+
+    @Override
+    public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
+        return Optional.of(registry.getDeserializationConfiguration());
     }
 }

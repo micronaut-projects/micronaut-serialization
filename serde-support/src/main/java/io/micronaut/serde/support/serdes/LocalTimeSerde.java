@@ -58,4 +58,9 @@ public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime>
     protected int getNanoPart(LocalTime value) {
         return value.getNano();
     }
+
+    @Override
+    protected DefaultFormattedTemporalSerde<LocalTime> createSpecific(SerdeConfiguration configuration) {
+        return new LocalTimeSerde(configuration);
+    }
 }

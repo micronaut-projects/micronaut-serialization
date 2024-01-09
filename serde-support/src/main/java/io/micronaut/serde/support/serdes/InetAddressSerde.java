@@ -19,9 +19,12 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -38,6 +41,16 @@ public class InetAddressSerde implements Serde<InetAddress> {
 
     public InetAddressSerde(SerdeConfiguration serdeConfiguration) {
         this.asNumeric = serdeConfiguration.isInetAddressAsNumeric();
+    }
+
+    @Override
+    public @NonNull Deserializer<InetAddress> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super InetAddress> type) throws SerdeException {
+        return context.getSerdeConfiguration().map(InetAddressSerde::new).orElse(this);
+    }
+
+    @Override
+    public @NonNull Serializer<InetAddress> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends InetAddress> type) throws SerdeException {
+        return context.getSerdeConfiguration().map(InetAddressSerde::new).orElse(this);
     }
 
     @Override

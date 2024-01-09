@@ -21,11 +21,14 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * Interface that represents a deserializer.
@@ -141,5 +144,27 @@ public interface Deserializer<T> {
         <B, P> PropertyReference<B, P> resolveReference(
                 @NonNull PropertyReference<B, P> reference
         );
+
+        /**
+         * Get the {@link SerdeConfiguration} for this context.
+         *
+         * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
+         * @since 2.7.0
+         */
+        @NonNull
+        default Optional<SerdeConfiguration> getSerdeConfiguration() {
+            return Optional.empty();
+        }
+
+        /**
+         * Get the {@link DeserializationConfiguration} for this context.
+         *
+         * @return The {@link DeserializationConfiguration}, or an empty optional if the default should be used
+         * @since 2.7.0
+         */
+        @NonNull
+        default Optional<DeserializationConfiguration> getDeserializationConfiguration() {
+            return Optional.empty();
+        }
     }
 }

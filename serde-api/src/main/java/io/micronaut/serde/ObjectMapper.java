@@ -16,8 +16,12 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.json.JsonFeatures;
 import io.micronaut.json.JsonMapper;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +45,25 @@ public interface ObjectMapper extends JsonMapper {
 
     @Override
     default JsonMapper cloneWithFeatures(JsonFeatures features) {
+        return this;
+    }
+
+    /**
+     * Optional feature. Create a new {@link ObjectMapper} with the given configuration values. A
+     * {@code null} parameter indicates the old configuration should be used.
+     *
+     * @param configuration The {@link SerdeConfiguration}
+     * @param serializationConfiguration The {@link SerializationConfiguration}
+     * @param deserializationConfiguration The {@link DeserializationConfiguration}
+     * @return A new {@link JsonMapper} with the updated config
+     * @since 2.7.0
+     */
+    @NonNull
+    default ObjectMapper cloneWithConfiguration(
+        @Nullable SerdeConfiguration configuration,
+        @Nullable SerializationConfiguration serializationConfiguration,
+        @Nullable DeserializationConfiguration deserializationConfiguration
+    ) {
         return this;
     }
 

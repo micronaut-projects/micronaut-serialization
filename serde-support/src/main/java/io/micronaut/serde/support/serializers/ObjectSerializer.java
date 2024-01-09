@@ -27,6 +27,7 @@ import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -57,13 +58,11 @@ import java.util.function.Supplier;
 @BootstrapContextCompatible
 public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
-    private final SerializationConfiguration configuration;
     private final BeanContext beanContext;
     private final Map<SerBeanKey, Supplier<SerBean<?>>> serBeanMap = new ConcurrentHashMap<>(50);
 
-    public ObjectSerializer(SerdeIntrospections introspections, SerializationConfiguration configuration, BeanContext beanContext) {
+    public ObjectSerializer(SerdeIntrospections introspections, BeanContext beanContext) {
         this.introspections = introspections;
-        this.configuration = configuration;
         this.beanContext = beanContext;
     }
 
@@ -129,11 +128,16 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                                                EncoderContext context) throws SerdeException {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         SerdeArgumentConf serdeArgumentConf = annotationMetadata.isEmpty() ? null : new SerdeArgumentConf(annotationMetadata);
-        SerBeanKey key = new SerBeanKey(type, serdeArgumentConf);
+        SerBeanKey key = new SerBeanKey(
+            context.getSerdeConfiguration().orElseGet(() -> beanContext.getBean(SerdeConfiguration.class)),
+            context.getSerializationConfiguration().orElseGet(() -> beanContext.getBean(SerializationConfiguration.class)),
+            type,
+            serdeArgumentConf
+        );
         // Use suppliers to prevent recursive update because the lambda will call the same method again
         Supplier<SerBean<?>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> {
             try {
-                return new SerBean<>(type, introspections, context, configuration, serdeArgumentConf, beanContext);
+                return new SerBean<>(type, introspections, context, serdeArgumentConf, beanContext);
             } catch (SerdeException e) {
                 throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
             }
