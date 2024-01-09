@@ -50,6 +50,7 @@ import io.micronaut.serde.support.serdes.NumberSerde;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import java.io.IOException;
@@ -172,6 +173,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * @param serializationConfiguration The {@link SerializationConfiguration}
      * @param deserializationConfiguration The {@link DeserializationConfiguration}
      */
+    @Inject
     public DefaultSerdeRegistry(
             BeanContext beanContext,
             ObjectSerializer objectSerializer,
