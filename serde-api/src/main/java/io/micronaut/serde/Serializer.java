@@ -139,7 +139,7 @@ public interface Serializer<T> {
          * Get the {@link SerializationConfiguration} for this context.
          *
          * @return The {@link SerializationConfiguration}, or an empty optional if the default should be used
-         * @since 2.6.0
+         * @since 2.7.0
          */
         @NonNull
         default Optional<SerializationConfiguration> getSerializationConfiguration() {
