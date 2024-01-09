@@ -128,7 +128,7 @@ public interface Serializer<T> {
          * Get the {@link SerdeConfiguration} for this context.
          *
          * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
-         * @since 2.6.0
+         * @since 2.7.0
          */
         @NonNull
         default Optional<SerdeConfiguration> getSerdeConfiguration() {
