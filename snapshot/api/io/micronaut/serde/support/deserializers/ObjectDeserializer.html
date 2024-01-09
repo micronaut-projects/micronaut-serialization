@@ -115,7 +115,14 @@ implements <a href="../../util/CustomizableDeserializer.html" title="interface i
 <div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback)" class="member-name-link">ObjectDeserializer</a><wbr>(<a href="../../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
  <a href="../../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration,
  @Nullable <a href="SerdeDeserializationPreInstantiateCallback.html" title="interface in io.micronaut.serde.support.deserializers">SerdeDeserializationPreInstantiateCallback</a>&nbsp;preInstantiateCallback)</code></div>
-<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span></div>
+</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback)" class="member-name-link">ObjectDeserializer</a><wbr>(<a href="../../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
+ <a href="../../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration,
+ <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration,
+ @Nullable <a href="SerdeDeserializationPreInstantiateCallback.html" title="interface in io.micronaut.serde.support.deserializers">SerdeDeserializationPreInstantiateCallback</a>&nbsp;preInstantiateCallback)</code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -161,12 +168,30 @@ implements <a href="../../util/CustomizableDeserializer.html" title="interface i
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback)">
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback)">
 <h3>ObjectDeserializer</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">ObjectDeserializer</span><wbr><span class="parameters">(<a href="../../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
  <a href="../../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration,
+ <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration,
  @Nullable
  @Nullable <a href="SerdeDeserializationPreInstantiateCallback.html" title="interface in io.micronaut.serde.support.deserializers">SerdeDeserializationPreInstantiateCallback</a>&nbsp;preInstantiateCallback)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.DeserializationConfiguration,io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback)">
+<h3>ObjectDeserializer</h3>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>
+</span><span class="modifiers">public</span>&nbsp;<span class="element-name">ObjectDeserializer</span><wbr><span class="parameters">(<a href="../../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
+ <a href="../../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration,
+ @Nullable
+ @Nullable <a href="SerdeDeserializationPreInstantiateCallback.html" title="interface in io.micronaut.serde.support.deserializers">SerdeDeserializationPreInstantiateCallback</a>&nbsp;preInstantiateCallback)</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>introspections</code> - </dd>
+<dd><code>deserializationConfiguration</code> - </dd>
+<dd><code>preInstantiateCallback</code> - </dd>
+</dl>
 </section>
 </li>
 </ul>

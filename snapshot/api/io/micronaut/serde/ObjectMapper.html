@@ -123,24 +123,31 @@ extends io.micronaut.json.JsonMapper</span></div>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.json.JsonMapper</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#cloneWithFeatures(io.micronaut.json.JsonFeatures)" class="member-name-link">cloneWithFeatures</a><wbr>(io.micronaut.json.JsonFeatures&nbsp;features)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static @NonNull <a href="ObjectMapper.CloseableObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#create(java.util.Map,java.lang.String...)" class="member-name-link">create</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;configuration,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#cloneWithConfiguration(io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">cloneWithConfiguration</a><wbr>(@Nullable <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @Nullable <a href="config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
+ @Nullable <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Optional feature.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.json.JsonMapper</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#cloneWithFeatures(io.micronaut.json.JsonFeatures)" class="member-name-link">cloneWithFeatures</a><wbr>(io.micronaut.json.JsonFeatures&nbsp;features)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static @NonNull <a href="ObjectMapper.CloseableObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper.CloseableObjectMapper</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#create(java.util.Map,java.lang.String...)" class="member-name-link">create</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;&nbsp;configuration,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>...&nbsp;packageNames)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1">
 <div class="block">Creates a new custom <a href="ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a> with additional beans (serializers, deserializers etc.) loaded
  from the given package locations.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static @NonNull <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static @NonNull <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#getDefault()" class="member-name-link">getDefault</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
 <div class="block">Get the default ObjectMapper instance.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(java.lang.Object)" class="member-name-link">writeValueAsString</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(java.lang.Object)" class="member-name-link">writeValueAsString</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -180,6 +187,30 @@ extends io.micronaut.json.JsonMapper</span></div>
 <dl class="notes">
 <dt>Specified by:</dt>
 <dd><code>cloneWithFeatures</code>&nbsp;in interface&nbsp;<code>io.micronaut.json.JsonMapper</code></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="cloneWithConfiguration(io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)">
+<h3>cloneWithConfiguration</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></span>&nbsp;<span class="element-name">cloneWithConfiguration</span><wbr><span class="parameters">(@Nullable
+ @Nullable <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @Nullable
+ @Nullable <a href="config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
+ @Nullable
+ @Nullable <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</span></div>
+<div class="block">Optional feature. Create a new <a href="ObjectMapper.html" title="interface in io.micronaut.serde"><code>ObjectMapper</code></a> with the given configuration values. A
+ <code>null</code> parameter indicates the old configuration should be used.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>configuration</code> - The <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a></dd>
+<dd><code>serializationConfiguration</code> - The <a href="config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerializationConfiguration</code></a></dd>
+<dd><code>deserializationConfiguration</code> - The <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a></dd>
+<dt>Returns:</dt>
+<dd>A new <code>JsonMapper</code> with the updated config</dd>
+<dt>Since:</dt>
+<dd>2.7.0</dd>
 </dl>
 </section>
 </li>

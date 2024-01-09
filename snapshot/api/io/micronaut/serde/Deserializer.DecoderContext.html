@@ -101,6 +101,16 @@ extends <a href="reference/PropertyReferenceManager.html" title="interface in io
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull io.micronaut.core.convert.ConversionService</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getDeserializationConfiguration()" class="member-name-link">getDeserializationConfiguration</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Get the <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a> for this context.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Get the <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a> for this context.</div>
+</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hasView(java.lang.Class...)" class="member-name-link">hasView</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;...&nbsp;views)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
@@ -173,6 +183,34 @@ P&gt;</span>&nbsp;<span class="return-type">@Nullable <a href="reference/Propert
 <dd><code>reference</code> - The reference</dd>
 <dt>Returns:</dt>
 <dd>The existing reference, a new one or <code>null</code> if serialization should be skipped</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getSerdeConfiguration()">
+<h3>getSerdeConfiguration</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&gt;</span>&nbsp;<span class="element-name">getSerdeConfiguration</span>()</div>
+<div class="block">Get the <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a> for this context.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a>, or an empty optional if the default should be used</dd>
+<dt>Since:</dt>
+<dd>2.7.0</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getDeserializationConfiguration()">
+<h3>getDeserializationConfiguration</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&gt;</span>&nbsp;<span class="element-name">getDeserializationConfiguration</span>()</div>
+<div class="block">Get the <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a> for this context.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a>, or an empty optional if the default should be used</dd>
+<dt>Since:</dt>
+<dd>2.7.0</dd>
 </dl>
 </section>
 </li>

@@ -98,20 +98,27 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel">
 <div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#newDecoderContext(java.lang.Class)" class="member-name-link">newDecoderContext</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#cloneWithConfiguration(io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">cloneWithConfiguration</a><wbr>(@Nullable <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @Nullable <a href="config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
+ @Nullable <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Optional feature.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#newDecoderContext(java.lang.Class)" class="member-name-link">newDecoderContext</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Creates a new decoder context.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#newEncoderContext(java.lang.Class)" class="member-name-link">newEncoderContext</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#newEncoderContext(java.lang.Class)" class="member-name-link">newEncoderContext</a><wbr>(@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Creates a new encoder context.</div>
 </div>
 </div>
@@ -140,6 +147,30 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="cloneWithConfiguration(io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)">
+<h3>cloneWithConfiguration</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></span>&nbsp;<span class="element-name">cloneWithConfiguration</span><wbr><span class="parameters">(@Nullable
+ @Nullable <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @Nullable
+ @Nullable <a href="config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
+ @Nullable
+ @Nullable <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</span></div>
+<div class="block">Optional feature. Create a new <a href="SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> with the given configuration values. A
+ <code>null</code> parameter indicates the old configuration should be used.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>configuration</code> - The <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a></dd>
+<dd><code>serializationConfiguration</code> - The <a href="config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerializationConfiguration</code></a></dd>
+<dd><code>deserializationConfiguration</code> - The <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a></dd>
+<dt>Returns:</dt>
+<dd>A new <a href="SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> with the updated config</dd>
+<dt>Since:</dt>
+<dd>2.7.0</dd>
+</dl>
+</section>
+</li>
 <li>
 <section class="detail" id="newEncoderContext(java.lang.Class)">
 <h3>newEncoderContext</h3>
