@@ -160,7 +160,7 @@ public interface Deserializer<T> {
          * Get the {@link DeserializationConfiguration} for this context.
          *
          * @return The {@link DeserializationConfiguration}, or an empty optional if the default should be used
-         * @since 2.6.0
+         * @since 2.7.0
          */
         @NonNull
         default Optional<DeserializationConfiguration> getDeserializationConfiguration() {
