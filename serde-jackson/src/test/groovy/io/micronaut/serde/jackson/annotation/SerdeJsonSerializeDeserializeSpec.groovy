@@ -80,4 +80,47 @@ record Test(
         cleanup:
         context.close()
     }
+
+    void 'test json deserialize primitives'() {
+        given:
+            def context = buildContext('test.CustomIntegerDeserializer', """
+package test;
+
+import java.io.IOException;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.util.LinkedList;
+import java.util.List;
+
+@Singleton
+class CustomIntegerDeserializer implements Deserializer<Integer> {
+    @Override
+    public @Nullable Integer deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Integer> type) throws IOException {
+        return decoder.decodeInt();
+    }
+}
+
+@Serdeable.Deserializable
+record RecordWithPrimitive(int value) {}
+
+@Serdeable.Deserializable
+record RecordWithBoxed(Integer value) {}
+
+""")
+
+        when:
+            def resultPrimitive = jsonMapper.readValue('{"value": 123}', context.getClassLoader().loadClass("test.RecordWithPrimitive"))
+            def resultBoxed = jsonMapper.readValue('{"value": 123}', context.getClassLoader().loadClass("test.RecordWithBoxed"))
+        then:
+            resultPrimitive.value == 123
+            resultBoxed.value == 123
+
+        cleanup:
+            context.close()
+    }
 }
