@@ -82,7 +82,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     // slow path, lookup each value serializer
                     final Encoder childEncoder = encoder.encodeObject(type);
-                    serializeInto(encoder, context, type, value);
+                    serializeInto(childEncoder, context, type, value);
                     childEncoder.finishStructure();
                 }
 
