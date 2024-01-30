@@ -1301,6 +1301,10 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonZonedDateTimeSerde.html#doDeserializeNonNull(io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">doDeserializeNonNull(OracleJdbcJsonParserDecoder, Deserializer.DecoderContext, Argument&lt;? super ZonedDateTime&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonZonedDateTimeSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonZonedDateTimeSerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#doesQualify(java.lang.Class,io.micronaut.inject.BeanType)" class="member-name-link">doesQualify(Class&lt;T&gt;, BeanType&lt;T&gt;)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#doesQualify(java.lang.Class,java.util.Collection)" class="member-name-link">doesQualify(Class&lt;T&gt;, Collection&lt;? extends BeanType&lt;T&gt;&gt;)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html#doSerialize(io.micronaut.serde.bson.BsonWriterEncoder,io.micronaut.serde.Serializer.EncoderContext,java.lang.Object,io.micronaut.core.type.Argument)" class="member-name-link">doSerialize(BsonWriterEncoder, Serializer.EncoderContext, Object, Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/BsonRepresentationSerde.html" title="class in io.micronaut.serde.bson.custom">BsonRepresentationSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html#doSerialize(io.micronaut.serde.bson.BsonWriterEncoder,io.micronaut.serde.Serializer.EncoderContext,T,io.micronaut.core.type.Argument)" class="member-name-link">doSerialize(BsonWriterEncoder, Serializer.EncoderContext, T, Argument&lt;? extends T&gt;)</a> - Method in class io.micronaut.serde.bson.custom.<a href="io/micronaut/serde/bson/custom/AbstractBsonSerde.html" title="class in io.micronaut.serde.bson.custom">AbstractBsonSerde</a></dt>
@@ -1630,6 +1634,8 @@ loadScripts(document, 'script');</script>
 <h2 class="title" id="I:F">F</h2>
 <dl class="index">
 <dt><a href="io/micronaut/serde/data/Users1.User.html#favoriteFruit" class="member-name-link">favoriteFruit</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#filter(java.lang.Class,java.util.Collection)" class="member-name-link">filter(Class&lt;T&gt;, Collection&lt;BT&gt;)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FILTER" class="member-name-link">FILTER</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
@@ -2999,6 +3005,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">The transform method will be called for each instances of the annotation returned via this method.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" class="type-name-link" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a>&lt;<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="type parameter in MatchArgumentQualifier">T</a>&gt; - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">A <code>Qualifier</code> that filters beans according to the type arguments.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#META_ANNOTATION_PROPERTY" class="member-name-link">META_ANNOTATION_PROPERTY</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">The meta annotation for property.</div>
@@ -3164,10 +3174,16 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/support/serializers/ObjectSerializer.html#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.context.BeanContext)" class="member-name-link">ObjectSerializer(SerdeIntrospections, BeanContext)</a> - Constructor for class io.micronaut.serde.support.serializers.<a href="io/micronaut/serde/support/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#ofArgument(io.micronaut.core.type.Argument)" class="member-name-link">ofArgument(Argument&lt;?&gt;)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#ofExtendsVariable(java.lang.Class,io.micronaut.core.type.Argument)" class="member-name-link">ofExtendsVariable(Class&lt;T&gt;, Argument&lt;?&gt;)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
 <dd>
 <div class="block">Serde for OffsetDateTime.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#ofSuperVariable(java.lang.Class,io.micronaut.core.type.Argument)" class="member-name-link">ofSuperVariable(Class&lt;T&gt;, Argument&lt;?&gt;)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#onComplete()" class="member-name-link">onComplete()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#onError(java.lang.Throwable)" class="member-name-link">onError(Throwable)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></dt>
@@ -3462,6 +3478,8 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/jackson/outerinterface/RecordCommandBrokenToo.html" class="type-name-link" title="interface in io.micronaut.serde.jackson.outerinterface">RecordCommandBrokenToo</a> - Interface in <a href="io/micronaut/serde/jackson/outerinterface/package-summary.html">io.micronaut.serde.jackson.outerinterface</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/outerinterface/RecordCommandBrokenToo.PrintCommand.html" class="type-name-link" title="class in io.micronaut.serde.jackson.outerinterface">RecordCommandBrokenToo.PrintCommand</a> - Record Class in <a href="io/micronaut/serde/jackson/outerinterface/package-summary.html">io.micronaut.serde.jackson.outerinterface</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html#reduce(java.lang.Class,java.util.stream.Stream)" class="member-name-link">reduce(Class&lt;T&gt;, Stream&lt;BT&gt;)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/MatchArgumentQualifier.html" title="class in io.micronaut.serde.support.util">MatchArgumentQualifier</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html#refs" class="member-name-link">refs</a> - Variable in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html" title="class in io.micronaut.serde.reference">AbstractPropertyReferenceManager</a></dt>
 <dd>
