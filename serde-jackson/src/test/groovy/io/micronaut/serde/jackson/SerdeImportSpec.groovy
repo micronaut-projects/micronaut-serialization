@@ -6,6 +6,7 @@ import io.micronaut.core.type.Argument
 import io.micronaut.health.HealthStatus
 import io.micronaut.management.health.indicator.HealthResult
 import one.microstream.storage.restadapter.types.ViewerObjectDescription
+import spock.lang.Issue
 
 class SerdeImportSpec extends JsonCompileSpec {
 
@@ -529,5 +530,88 @@ public class Test {
 
         cleanup:
         context.close()
+    }
+
+    @Issue("https://github.com/micronaut-projects/micronaut-serialization/issues/687")
+    void "test import serde with mixin and custom deserializer"() {
+        given:
+            def context = buildContext('customdeser.Box','''
+package customdeser;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+// third-party interface with factory method
+public sealed interface Box<T> permits BoxImpl {
+  T getThings();
+  static <T> Box<T> factoryMethod(T things) { return new BoxImpl<>(things); }
+}
+// third-party internal implementation
+final class BoxImpl<T> implements Box<T> {
+  private final T things;
+  BoxImpl(T things) { this.things = things; }
+  @Override public T getThings() { return things; }
+}
+// custom builder
+@Serdeable.Deserializable
+class BoxBuilder<T> {
+  private T things;
+  public void setThings(T things) { this.things = things; }
+  public Box<T> build() { return Box.factoryMethod(things); }
+}
+// custom deserializer
+@Singleton
+class BoxDeserializer implements Deserializer<Box<?>> {
+  @Override public Box<?> deserialize(Decoder decoder, DecoderContext context, Argument<? super Box<?>> type) throws IOException {
+    Argument<BoxBuilder> builderType = Argument.of(BoxBuilder.class, type.getTypeParameters());
+    return context.findDeserializer(builderType).createSpecific(context, builderType).deserializeNullable(decoder, context, builderType).build();
+  }
+}
+// serde import
+@SerdeImport(value = Box.class, mixin = BoxMixin.class)
+interface BoxSerdeImport {}
+// serde mixin
+@Serdeable.Deserializable(using = BoxDeserializer.class)
+interface BoxMixin {}
+// container with type params
+@Serdeable.Deserializable
+class Generic<T> {
+  private final T stuff;
+  public Generic(T stuff) { this.stuff = stuff; }
+  public T getStuff() { return stuff; }
+}
+// container without type params
+@Serdeable.Deserializable
+class Container {
+  private final Box<Generic<Long>> contents;
+  public Container(Box<Generic<Long>> contents) { this.contents = contents; }
+  public Box<Generic<Long>> getContents() { return contents; }
+}
+''')
+            def typeUnderTestWithTypeParams = Argument.of(typeUnderTest.type, Argument.ofTypeVariable(Long.class, 'T'))
+
+        expect: "type under test can be serialized"
+            writeJson(jsonMapper, typeUnderTest.type.factoryMethod(123L)) == '{"things":123}'
+
+        and: "type under test can be deserialized without type params"
+            jsonMapper.readValue('{"things":"OK"}', typeUnderTest).things == 'OK'
+
+        and: "type under test can be deserialized with type params"
+            jsonMapper.readValue('{"things":123}', typeUnderTestWithTypeParams).things instanceof Long
+
+        when: "type under test is deserialized inside another serdeable object"
+            def container = jsonMapper.readValue('{"contents":{"things":{"stuff":123}}}', argumentOf(context, 'customdeser.Container'))
+
+        then: "type params are honored"
+            container.class.name == 'customdeser.Container'
+            container.contents.class.name == 'customdeser.BoxImpl'
+            container.contents.things.class.name == 'customdeser.Generic'
+            container.contents.things.stuff instanceof Long
+
+        cleanup:
+            context.close()
     }
 }
