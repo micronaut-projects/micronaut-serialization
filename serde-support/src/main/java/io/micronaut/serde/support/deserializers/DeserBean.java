@@ -531,18 +531,18 @@ final class DeserBean<T> {
     @SuppressWarnings("unchecked")
     private <A> Argument<A> resolveArgument(Argument<A> argument, Map<String, Argument<?>> bounds) {
         Argument<?>[] declaredParameters = argument.getTypeParameters();
-        Argument<?>[] typeParameters = resolveParameters(bounds, declaredParameters);
-        if (argument instanceof GenericPlaceholder) {
-            GenericPlaceholder<A> gp = (GenericPlaceholder<A>) argument;
+        if (argument instanceof GenericPlaceholder<A> gp) {
             Argument<?> resolved = bounds.get(gp.getVariableName());
             if (resolved != null) {
                 return (Argument<A>) Argument.of(
                     resolved.getType(),
                     argument.getName(),
                     argument.getAnnotationMetadata(),
-                    typeParameters
+                    resolveParameters(bounds, resolved.getTypeParameters())
                 );
-            } else if (typeParameters != declaredParameters) {
+            }
+            Argument<?>[] typeParameters = resolveParameters(bounds, declaredParameters);
+            if (typeParameters != declaredParameters) {
                 return Argument.ofTypeVariable(
                     argument.getType(),
                     argument.getName(),
@@ -551,18 +551,21 @@ final class DeserBean<T> {
                     typeParameters
                 );
             }
-        } else if (typeParameters != declaredParameters) {
-            return Argument.of(
-                argument.getType(),
-                argument.getName(),
-                argument.getAnnotationMetadata(),
-                typeParameters
-            );
+        } else {
+            Argument<?>[] typeParameters = resolveParameters(bounds, declaredParameters);
+            if (typeParameters != declaredParameters) {
+                return Argument.of(
+                    argument.getType(),
+                    argument.getName(),
+                    argument.getAnnotationMetadata(),
+                    typeParameters
+                );
+            }
         }
         return argument;
     }
 
-    private Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument[] typeParameters) {
+    private Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument<?>[] typeParameters) {
         if (ArrayUtils.isEmpty(typeParameters)) {
             return typeParameters;
         }
