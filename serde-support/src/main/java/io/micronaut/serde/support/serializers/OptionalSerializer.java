@@ -36,52 +36,42 @@ class OptionalSerializer<T> implements CustomizableSerializer<Optional<T>> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)
-            throws SerdeException {
-        final Argument[] generics = type.getTypeParameters();
+        throws SerdeException {
+        final Argument<?>[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
-            throw new SerdeException("Serializing raw optionals is for type: " + type);
-        }
-        final Argument<?>[] generics1 = type.getTypeParameters();
-        if (ArrayUtils.isEmpty(generics1)) {
             throw new SerdeException("Serializing raw optionals is not supported for type: " + type);
         }
         //noinspection unchecked
-        final Argument<T> generic = (Argument<T>) generics1[0];
+        final Argument<T> generic = (Argument<T>) generics[0];
         final Serializer<? super T> componentSerializer = encoderContext.findSerializer(generic).createSpecific(encoderContext, generic);
-        return new Serializer<Optional<T>>() {
+        return new Serializer<>() {
 
             @Override
             public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Optional<T>> type, Optional<T> value) throws IOException {
-                final Argument<?>[] generics1 = type.getTypeParameters();
-                if (ArrayUtils.isEmpty(generics1)) {
-                    throw new SerdeException("Serializing raw optionals is not supported for type: " + type);
-                }
-                //noinspection unchecked
-                final Argument<T> generic = (Argument<T>) generics1[0];
                 final T o = value.orElse(null);
-                if (o != null) {
-                    componentSerializer.serialize(
-                            encoder,
-                            context,
-                            generic, o
-                    );
-                } else {
+                if (o == null) {
                     encoder.encodeNull();
+                } else {
+                    componentSerializer.serialize(
+                        encoder,
+                        context,
+                        generic,
+                        o
+                    );
                 }
             }
 
             @Override
             public boolean isEmpty(EncoderContext context, Optional<T> value) {
-                Optional o = value;
-                if (value != null && o.isPresent()) {
-                    return componentSerializer.isEmpty(context, (T) o.get());
+                if (value != null && value.isPresent()) {
+                    return componentSerializer.isEmpty(context, (T) ((Optional) value).get());
                 }
                 return true;
             }
 
             @Override
             public boolean isAbsent(EncoderContext context, Optional<T> value) {
-                return value == null || !value.isPresent();
+                return value == null || value.isEmpty();
             }
         };
     }

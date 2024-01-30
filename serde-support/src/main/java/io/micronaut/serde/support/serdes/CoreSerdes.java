@@ -42,7 +42,7 @@ public class CoreSerdes {
 
     public static final Serde<Duration> DURATION_SERDE = new DurationSerde();
     public static final Serde<Period> PERIOD_SERDE = new PeriodSerde();
-    public static final CharSequenceSerde CHAR_SEQUENCE_SERDE = new CharSequenceSerde();
+    public static final Serde<CharSequence> CHAR_SEQUENCE_SERDE = new CharSequenceSerde();
 
     /**
      * Serde used for object arrays.
@@ -194,6 +194,11 @@ public class CoreSerdes {
         @Override
         public CharSequence deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super CharSequence> type) throws IOException {
             return decoder.decodeStringNullable();
+        }
+
+        @Override
+        public boolean isEmpty(EncoderContext context, CharSequence value) {
+            return value == null || value.isEmpty();
         }
     }
 }

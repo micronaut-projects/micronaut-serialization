@@ -16,7 +16,7 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.context.BeanContext;
-import io.micronaut.context.BeanRegistration;
+import io.micronaut.context.BeanResolutionContext;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
@@ -27,9 +27,7 @@ import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.order.OrderUtil;
-import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.inject.BeanDefinition;
@@ -48,6 +46,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.serdes.NumberSerde;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
+import io.micronaut.serde.support.util.MatchArgumentQualifier;
 import io.micronaut.serde.support.util.TypeKey;
 import io.micronaut.serde.util.BinaryCodecUtil;
 import jakarta.inject.Inject;
@@ -63,7 +62,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -75,7 +73,6 @@ import java.util.OptionalLong;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -148,8 +145,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         CHAR_ARRAY_SERDE
     );
     private final ObjectSerializer objectSerializer;
-    private final Map<Class<?>, List<BeanDefinition<Serializer>>> serializerDefMap;
-    private final Map<Class<?>, List<BeanDefinition<Deserializer>>> deserializerDefMap;
+    private final List<BeanDefinition<Serializer>> serializers;
+    private final List<BeanDefinition<Deserializer>> deserializers;
     private final Map<TypeKey, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
     private final BeanContext beanContext;
@@ -187,53 +184,33 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
-        final Collection<BeanDefinition<Serializer>> serializers =
+        final Collection<BeanDefinition<Serializer>> serializersBeanDefinitions =
                 beanContext.getBeanDefinitions(Serializer.class);
-        final Collection<BeanDefinition<Deserializer>> deserializers =
+        final Collection<BeanDefinition<Deserializer>> deserializersBeanDefinitions =
                 beanContext.getBeanDefinitions(Deserializer.class);
         this.introspections = introspections;
-        this.serializerDefMap = new HashMap<>(serializers.size() + 30); // some padding
-        this.deserializerDefMap = new HashMap<>(deserializers.size() + 30); // some padding
+        this.serializers = new ArrayList<>(serializersBeanDefinitions.size() + 30); // some padding
+        this.deserializers = new ArrayList<>(deserializersBeanDefinitions.size() + 30); // some padding
         this.objectArraySerde = objectArraySerde;
         this.beanContext = beanContext;
-        for (BeanDefinition<Serializer> serializer : serializers) {
+        for (BeanDefinition<Serializer> serializer : serializersBeanDefinitions) {
             final List<Argument<?>> typeArguments = serializer.getTypeArguments(Serializer.class);
-            if (CollectionUtils.isNotEmpty(typeArguments)) {
-                final Argument<?> argument = typeArguments.iterator().next();
-                if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
-                    final Class<?> t = argument.getType();
-                    serializerDefMap
-                            .computeIfAbsent(t, aClass -> new ArrayList<>(5))
-                            .add(serializer);
-                    final Class<?> primitiveType = ReflectionUtils.getPrimitiveType(t);
-                    if (primitiveType != t) {
-                        serializerDefMap
-                                .computeIfAbsent(primitiveType, aClass -> new ArrayList<>(5))
-                                .add(serializer);
-                    }
-                }
-            } else {
+            if (CollectionUtils.isEmpty(typeArguments)) {
                 throw new ConfigurationException("Serializer without generic types defined: " + serializer.getBeanType());
             }
+            final Argument<?> argument = typeArguments.iterator().next();
+            if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
+                serializers.add(serializer);
+            }
         }
-        for (BeanDefinition<Deserializer> deserializer : deserializers) {
+        for (BeanDefinition<Deserializer> deserializer : deserializersBeanDefinitions) {
             final List<Argument<?>> typeArguments = deserializer.getTypeArguments(Deserializer.class);
-            if (CollectionUtils.isNotEmpty(typeArguments)) {
-                final Argument<?> argument = typeArguments.iterator().next();
-                if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
-                    final Class<?> t = argument.getType();
-                    deserializerDefMap
-                            .computeIfAbsent(t, aClass -> new ArrayList<>(5))
-                            .add(deserializer);
-                    final Class<?> primitiveType = ReflectionUtils.getPrimitiveType(t);
-                    if (primitiveType != t) {
-                        deserializerDefMap
-                                .computeIfAbsent(primitiveType, aClass -> new ArrayList<>(5))
-                                .add(deserializer);
-                    }
-                }
-            } else {
+            if (CollectionUtils.isEmpty(typeArguments)) {
                 throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
+            }
+            final Argument<?> argument = typeArguments.iterator().next();
+            if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
+                deserializers.add(deserializer);
             }
         }
 
@@ -284,14 +261,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private void register(SerdeRegistrar<?> serdeRegistrar) {
         for (Argument<?> type : serdeRegistrar.getTypes()) {
-            final TypeKey typeEntry = new TypeKey(type);
-            // if it hasn't been overridden by a bean
-            if (!deserializerDefMap.containsKey(type.getType())) {
-                DefaultSerdeRegistry.this.deserializerMap.put(typeEntry, serdeRegistrar);
-            }
-            if (!serializerDefMap.containsKey(type.getType())) {
-                DefaultSerdeRegistry.this.serializerMap.put(typeEntry, serdeRegistrar);
-            }
+            deserializers.add(new InternaSerdeBeanDefinition(type, Deserializer.class, serdeRegistrar));
+            serializers.add(new InternaSerdeBeanDefinition(type, Serializer.class, serdeRegistrar));
         }
     }
 
@@ -317,41 +288,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         final Deserializer<?> deserializer = deserializerMap.get(key);
         if (deserializer != null) {
             return (Deserializer<? extends T>) deserializer;
-        } else {
-            final Argument<Deserializer> deserializerArgument = Argument.of(Deserializer.class, type);
-            final Collection<BeanRegistration<Deserializer>> beanRegistrations = beanContext
-                    .getBeanRegistrations(deserializerArgument, null);
-            Deserializer<?> deser = null;
-            if (beanRegistrations.size() == 1) {
-                deser = beanRegistrations.iterator().next().bean();
-            } else if (!beanRegistrations.isEmpty()) {
-                final List<BeanRegistration<Deserializer>> results = beanRegistrations.stream()
-                        .filter((r) -> {
-                            final Class<?>[] typeParameters = r.getBeanDefinition().getTypeParameters(Deserializer.class);
-                            return typeParameters.length == 1 && typeParameters[0].equals(type.getType());
-                        })
-                        .collect(Collectors.toList());
-                if (results.size() == 1) {
-                    deser = results.iterator().next().bean();
-                } else {
-                    deser = beanContext.findBean(deserializerArgument).orElse(null);
-                }
-            } else {
-                List<BeanDefinition<Deserializer>> possibles = deserializerDefMap.get(type.getType());
-                if (possibles != null) {
-                    if (possibles.size() == 1) {
-                        BeanDefinition<Deserializer> definition = possibles.iterator().next();
-                        deser = beanContext.getBean(definition);
-                    } else if (possibles.size() > 1) {
-                        BeanDefinition<Deserializer> definition = lastChanceResolveDeserializer(type, possibles);
-                        deser = beanContext.getBean(definition);
-                    }
-                }
-            }
-            if (deser != null) {
-                deserializerMap.put(key, deser);
-                return (Deserializer<? extends T>) deser;
-            }
+        }
+        if (type.getType().equals(Object.class)) {
+            return (Deserializer<? extends T>) objectDeserializer;
+        }
+        if (type.getType().equals(Object[].class)) {
+            return (Deserializer<? extends T>) objectArraySerde;
+        }
+
+        Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.ofSuperVariable(Deserializer.class, type)
+            .filter(Deserializer.class, deserializers);
+        Deserializer<?> deser = null;
+        if (beanDefinitions.size() == 1) {
+            deser = getBean(beanDefinitions.iterator().next());
+        } else if (!beanDefinitions.isEmpty()) {
+            deser = getBean(lastChanceResolveDeserializer(type, beanDefinitions));
+        }
+        if (deser != null) {
+            deserializerMap.put(key, deser);
+            return (Deserializer<? extends T>) deser;
         }
         if (key.getType().isArray()) {
             deserializerMap.put(key, objectArraySerde);
@@ -360,6 +315,13 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             deserializerMap.put(key, objectDeserializer);
             return (Deserializer<? extends T>) objectDeserializer;
         }
+    }
+
+    private <T> T getBean(BeanDefinition<T> definition) {
+        if (definition instanceof InternaSerdeBeanDefinition<?> internaSerdeBeanDefinition) {
+            return (T) internaSerdeBeanDefinition.getSerde();
+        }
+        return beanContext.getBean(definition);
     }
 
     @Override
@@ -373,115 +335,69 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         final TypeKey key = new TypeKey(type);
         final Serializer<?> serializer = serializerMap.get(key);
         if (serializer != null) {
-            //noinspection unchecked
             return (Serializer<? super T>) serializer;
-        } else {
-            List<BeanDefinition<Serializer>> possibles = serializerDefMap.get(type.getType());
-            if (possibles == null) {
-                for (Map.Entry<Class<?>, List<BeanDefinition<Serializer>>> entry : serializerDefMap.entrySet()) {
-                    final Class<?> targetType = entry.getKey();
-                    if (targetType.isAssignableFrom(type.getType())) {
-                        possibles = entry.getValue();
-                        final Argument<?>[] params = type.getTypeParameters();
-                        if (ArrayUtils.isNotEmpty(params)) {
-                            // narrow for generics
-                            possibles = new ArrayList<>(possibles);
-                            final Iterator<BeanDefinition<Serializer>> i = possibles.iterator();
-                            while (i.hasNext()) {
-                                final BeanDefinition<Serializer> bd = i.next();
-                                final Argument<?>[] candidateParams = bd.getTypeArguments(Serializer.class).get(0)
-                                        .getTypeParameters();
-                                if (candidateParams.length == params.length) {
-                                    for (int j = 0; j < params.length; j++) {
-                                        Argument<?> param = params[j];
-                                        final Argument<?> candidateParam = candidateParams[j];
-                                        if (!(
-                                                (param.getType() == candidateParam.getType()) ||
-                                                        (
-                                                                candidateParam.isTypeVariable() && candidateParam.getType()
-                                                                        .isAssignableFrom(param.getType())))) {
-                                            i.remove();
-                                        }
-                                    }
-                                } else {
-                                    i.remove();
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-            if (possibles != null) {
-                if (possibles.size() == 1) {
-                    final BeanDefinition<Serializer> definition = possibles.iterator().next();
-                    final Serializer locatedSerializer = beanContext.getBean(definition);
-                    serializerMap.put(key, locatedSerializer);
-                    return locatedSerializer;
-                } else if (possibles.isEmpty()) {
-                    throw new SerdeException("No serializers found for type: " + type);
-                } else {
+        }
 
-                    final BeanDefinition<Serializer> definition = lastChanceResolveSerializer(type, possibles);
-                    final Serializer locatedSerializer = beanContext.getBean(definition);
-                    serializerMap.put(key, locatedSerializer);
-                    return locatedSerializer;
-                }
-            } else {
-                serializerMap.put(key, objectSerializer);
-            }
+        Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.ofExtendsVariable(Serializer.class, type)
+            .filter(Serializer.class, serializers);
+        Serializer<?> ser = null;
+        if (beanDefinitions.size() == 1) {
+            ser = getBean(beanDefinitions.iterator().next());
+        } else if (!beanDefinitions.isEmpty()) {
+            BeanDefinition<Serializer> definition = lastChanceResolveSerializer(type, beanDefinitions);
+            ser = getBean(definition);
+        }
+        if (ser != null) {
+            serializerMap.put(key, ser);
+            return (Serializer<? super T>) ser;
         }
         return objectSerializer;
     }
 
-    private <T> BeanDefinition<T> lastChanceResolve(
-            Argument<?> type,
-            Collection<BeanDefinition<T>> candidates,
-            String beansResolved) throws SerdeException {
-
+    @NonNull
+    private <T> BeanDefinition<T> lastChanceResolve(Argument<?> type,
+                                                    Collection<BeanDefinition<T>> candidates,
+                                                    String beansResolved) throws SerdeException {
         if (candidates.size() > 1) {
-            List<BeanDefinition<T>> primary = candidates.stream()
-                    .filter(BeanDefinition::isPrimary)
-                    .collect(Collectors.toList());
+            // Filter out internal definitions to find possible overrides
+            candidates = candidates.stream().filter(bd -> !(bd instanceof InternaSerdeBeanDefinition<?>)).toList();
+        }
+        if (candidates.size() > 1) {
+            List<BeanDefinition<T>> primary = candidates.stream().filter(BeanDefinition::isPrimary).toList();
             if (!primary.isEmpty()) {
                 candidates = primary;
             }
         }
         if (candidates.size() == 1) {
             return candidates.iterator().next();
-        } else {
-            candidates = candidates.stream().filter(candidate -> !candidate.hasDeclaredStereotype(Secondary.class)).collect(Collectors.toList());
-            if (candidates.size() == 1) {
-                return candidates.iterator().next();
-            } else {
-                if (candidates.stream().anyMatch(candidate -> candidate.hasAnnotation(Order.class))) {
-                    // pick the bean with the highest priority
-                    final Iterator<BeanDefinition<T>> i = candidates.stream()
-                            .sorted((bean1, bean2) -> {
-                                int order1 = OrderUtil.getOrder(bean1.getAnnotationMetadata());
-                                int order2 = OrderUtil.getOrder(bean2.getAnnotationMetadata());
-                                return Integer.compare(order1, order2);
-                            })
-                            .iterator();
-                    if (i.hasNext()) {
-                        final BeanDefinition<T> bean = i.next();
-                        if (i.hasNext()) {
-                            // check there are not 2 beans with the same order
-                            final BeanDefinition<T> next = i.next();
-                            if (OrderUtil.getOrder(bean.getAnnotationMetadata()) == OrderUtil.getOrder(next.getAnnotationMetadata())) {
-                                throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
-                            }
-                        }
-
-                        return bean;
-                    } else {
+        }
+        candidates = candidates.stream().filter(candidate -> !candidate.hasDeclaredStereotype(Secondary.class)).toList();
+        if (candidates.size() == 1) {
+            return candidates.iterator().next();
+        }
+        if (candidates.stream().anyMatch(candidate -> candidate.hasAnnotation(Order.class))) {
+            // pick the bean with the highest priority
+            final Iterator<BeanDefinition<T>> i = candidates.stream()
+                    .sorted((bean1, bean2) -> {
+                        int order1 = OrderUtil.getOrder(bean1.getAnnotationMetadata());
+                        int order2 = OrderUtil.getOrder(bean2.getAnnotationMetadata());
+                        return Integer.compare(order1, order2);
+                    })
+                    .iterator();
+            if (i.hasNext()) {
+                final BeanDefinition<T> bean = i.next();
+                if (i.hasNext()) {
+                    // check there are not 2 beans with the same order
+                    final BeanDefinition<T> next = i.next();
+                    if (OrderUtil.getOrder(bean.getAnnotationMetadata()) == OrderUtil.getOrder(next.getAnnotationMetadata())) {
                         throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
                     }
-                } else {
-                    throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
                 }
+                return bean;
             }
+            throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
         }
+        throw new SerdeException("Multiple possible " + beansResolved + " found for type [" + type + "]: " + candidates);
     }
 
     private BeanDefinition<Serializer> lastChanceResolveSerializer(
@@ -1680,5 +1596,50 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         Argument<OptionalLong> getType() {
             return Argument.of(OptionalLong.class);
         }
+    }
+
+    private static final class InternaSerdeBeanDefinition<T extends Serde<?>> implements BeanDefinition<T> {
+        private final Argument<?> argument;
+        private final Serde<?> serde;
+
+        private InternaSerdeBeanDefinition(Argument<?> argument,
+                                           Class<?> container,
+                                           Serde<?> serde) {
+            this.argument = Argument.of(container, argument);
+            this.serde = serde;
+        }
+
+        @Override
+        public @NonNull Argument<T> asArgument() {
+            return (Argument<T>) argument;
+        }
+
+        @Override
+        public @NonNull List<Argument<?>> getTypeArguments() {
+            return List.of(argument.getTypeParameters());
+        }
+
+        @Override
+        public @NonNull List<Argument<?>> getTypeArguments(Class<?> type) {
+            if (type == Serializer.class || type == Deserializer.class) {
+                return List.of(argument.getTypeParameters());
+            }
+            return List.of();
+        }
+
+        @Override
+        public Class<T> getBeanType() {
+            return (Class) Serde.class;
+        }
+
+        @Override
+        public boolean isEnabled(@NonNull BeanContext context, @Nullable BeanResolutionContext resolutionContext) {
+            return true;
+        }
+
+        Serde<?> getSerde() {
+            return serde;
+        }
+
     }
 }

@@ -31,32 +31,6 @@ import java.util.Map;
 @Factory
 public final class CoreSerializers {
 
-    /**
-     * A serializer for all instances of {@link java.lang.CharSequence}.
-     *
-     * @return A char sequence serializer
-     */
-    @Singleton
-    Serializer<CharSequence> charSequenceSerializer() {
-        return new Serializer<CharSequence>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  Argument<? extends CharSequence> type, CharSequence value) throws IOException {
-                if (value instanceof String) {
-                    encoder.encodeString((String) value);
-                } else {
-                    encoder.encodeString(value.toString());
-                }
-            }
-
-            @Override
-            public boolean isEmpty(EncoderContext context, CharSequence value) {
-                return value == null || value.length() == 0;
-            }
-        };
-    }
-
     @Singleton
     @Order(1000) // prioritize over character
     Serializer<String> stringSerializer() {
@@ -70,7 +44,7 @@ public final class CoreSerializers {
 
             @Override
             public boolean isEmpty(EncoderContext context, String value) {
-                return value == null || value.length() == 0;
+                return value == null || value.isEmpty();
             }
         };
     }
