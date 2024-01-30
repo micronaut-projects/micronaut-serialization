@@ -83,6 +83,7 @@ class Test {
         Float      | [value: 10.1f]                         | '{"value":10.1}'
         Character  | [value: 'a' as char]                   | '{"value":97}'
         HttpStatus | [value: HttpStatus.ACCEPTED]           | '{"value":"ACCEPTED"}'
+      CharSequence | [value: "Xyz"]                         | '{"value":"Xyz"}'
 
         // other common classes
         URI        | [value: URI.create("https://foo.com")] | '{"value":"https://foo.com"}'
@@ -170,6 +171,8 @@ class Test {
         Double     | [value: null] | '{"value":null}'
         Float      | [value: null] | '{"value":null}'
         Character  | [value: null] | '{"value":null}'
+     CharSequence  | [value: null] | '{"value":null}'
+
     }
 
     @Unroll

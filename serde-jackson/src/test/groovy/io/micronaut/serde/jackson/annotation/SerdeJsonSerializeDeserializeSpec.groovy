@@ -123,4 +123,49 @@ record RecordWithBoxed(Integer value) {}
         cleanup:
             context.close()
     }
+
+    void 'test json deserialize a custom container'() {
+        given:
+            def context = buildContext('test.SomeModel', """
+package test;
+
+import java.io.IOException;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.util.LinkedList;
+import java.util.List;
+
+record Something(String s) {}
+
+@Serdeable.Deserializable
+record SomeModel(List<Something> specificList, List<String> genericList) {}
+
+@Singleton
+class ListSomethingDeserializer implements Deserializer<List<Something>> {
+    @Override
+    public @Nullable List<Something> deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super List<Something>> type) throws IOException {
+        var stringValue = decoder.decodeString();
+        return java.util.Arrays.stream(stringValue.split("\\\\|"))
+            .map(Something::new)
+            .toList();
+    }
+}
+""")
+
+        when:
+            def result = jsonMapper.readValue("""{
+                "specificList": "a|b|c",
+                "genericList": ["a", "b", "c"]
+            }""", context.getClassLoader().loadClass("test.SomeModel"))
+        then:
+            result
+
+        cleanup:
+            context.close()
+    }
 }

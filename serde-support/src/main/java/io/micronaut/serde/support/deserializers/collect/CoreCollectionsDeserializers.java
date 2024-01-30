@@ -325,7 +325,7 @@ public class CoreCollectionsDeserializers {
 
         @Override
         public Deserializer<C> createSpecific(DecoderContext context, Argument<? super C> type) throws SerdeException {
-            final Argument[] generics = type.getTypeParameters();
+            final Argument<?>[] generics = type.getTypeParameters();
             if (ArrayUtils.isEmpty(generics)) {
                 throw new SerdeException("Cannot deserialize raw list");
             }
