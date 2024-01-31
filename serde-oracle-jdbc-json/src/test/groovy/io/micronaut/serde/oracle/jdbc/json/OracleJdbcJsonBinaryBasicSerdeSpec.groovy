@@ -48,6 +48,13 @@ class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
     }
 
     @Override
+    String writeJson(JsonMapper jsonMapper, Argument argument, Object bean) {
+        def bytes = jsonMapper.writeValueAsBytes(argument, bean)
+        def object = osonMapper.readValue(bytes, argument)
+        return new String(textJsonMapper.writeValueAsBytes(argument, object), StandardCharsets.UTF_8)
+    }
+
+    @Override
     byte[] jsonAsBytes(String json) {
         def object = textJsonMapper.readValue(json, OracleJsonObject)
         return osonMapper.writeValueAsBytes(object)

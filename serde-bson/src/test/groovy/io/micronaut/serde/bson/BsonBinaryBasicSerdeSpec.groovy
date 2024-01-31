@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson
 
+import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -20,6 +21,11 @@ class BsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec implements BsonBin
     @Override
     String writeJson(JsonMapper jsonMapper, Object bean) {
         return encodeAsBinaryDecodeJson(bean)
+    }
+
+    @Override
+    String writeJson(JsonMapper jsonMapper, Argument argument, Object bean) {
+        return encodeAsBinaryDecodeJson(argument, bean)
     }
 
     @Override

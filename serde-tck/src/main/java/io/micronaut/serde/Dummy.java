@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 original authors
+ * Copyright 2017-2024 original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde
+package io.micronaut.serde;
 
-import io.micronaut.core.type.Argument
-import io.micronaut.json.JsonMapper
+import io.micronaut.serde.annotation.Serdeable;
 
-trait JsonSpec {
-    String writeJson(JsonMapper jsonMapper, Object bean) {
-        new String(jsonMapper.writeValueAsBytes(bean))
-    }
-
-    String writeJson(JsonMapper jsonMapper, Argument argument, Object bean) {
-        new String(jsonMapper.writeValueAsBytes(argument, bean))
-    }
+@Serdeable
+public record Dummy(String name) {
 }
