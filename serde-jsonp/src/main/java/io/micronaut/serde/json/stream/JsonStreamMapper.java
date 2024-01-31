@@ -94,6 +94,13 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
+    public JsonNode readValueToTree(InputStream is, Argument<?> type) throws IOException {
+        try (JsonParser parser = Json.createParser(is)) {
+            return new JsonParserDecoder(parser, limits()).decodeNode();
+        }
+    }
+
+    @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);

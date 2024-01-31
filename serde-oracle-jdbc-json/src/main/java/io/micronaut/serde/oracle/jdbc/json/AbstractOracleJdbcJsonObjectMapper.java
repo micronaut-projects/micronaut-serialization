@@ -78,6 +78,13 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     abstract OracleJsonGenerator createJsonGenerator(OutputStream outputStream);
 
     @Override
+    public JsonNode readValueToTree(InputStream is, Argument<?> type) throws IOException {
+        try (OracleJsonParser parser = getJsonParser(is)) {
+            return new OracleJdbcJsonParserDecoder(parser, limits()).decodeNode();
+        }
+    }
+
+    @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);

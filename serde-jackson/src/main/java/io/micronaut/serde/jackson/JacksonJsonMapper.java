@@ -197,6 +197,28 @@ public final class JacksonJsonMapper implements ObjectMapper {
     }
 
     @Override
+    public JsonNode readValueToTree(byte[] byteArray, Argument<?> type) throws IOException {
+        try (JsonParser parser = jsonFactory.createParser(byteArray)) {
+            configureParser(parser);
+            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
+            return decoder.decodeNode();
+        } catch (JsonParseException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    @Override
+    public JsonNode readValueToTree(InputStream is, Argument<?> type) throws IOException {
+        try (JsonParser parser = jsonFactory.createParser(is)) {
+            configureParser(parser);
+            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
+            return decoder.decodeNode();
+        } catch (JsonParseException pe) {
+            throw new JsonSyntaxException(pe);
+        }
+    }
+
+    @Override
     public <T> T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
         return readValue(treeCodec.treeAsTokens(tree), type);
     }

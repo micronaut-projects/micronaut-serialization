@@ -78,6 +78,20 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     @Override
+    public JsonNode readValueToTree(byte[] byteArray, Argument<?> type) throws IOException {
+        try (BsonReader bsonReader = createBsonReader(ByteBuffer.wrap(byteArray))) {
+            return new BsonReaderDecoder(bsonReader, limits()).decodeNode();
+        }
+    }
+
+    @Override
+    public JsonNode readValueToTree(InputStream is, Argument<?> type) throws IOException {
+        try (BsonReader bsonReader = createBsonReader(toByteBuffer(is))) {
+            return new BsonReaderDecoder(bsonReader, limits()).decodeNode();
+        }
+    }
+
+    @Override
     public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);

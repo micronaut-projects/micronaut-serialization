@@ -30,7 +30,7 @@ import javax.tools.JavaFileObject
 
 abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
-    JsonMapper jsonMapper
+    ObjectMapper jsonMapper
     Object beanUnderTest
     Argument<?> typeUnderTest
 

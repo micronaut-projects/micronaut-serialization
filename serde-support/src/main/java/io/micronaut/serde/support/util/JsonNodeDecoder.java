@@ -77,6 +77,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isString()) {
             skipValue();
             return peeked.getStringValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.STRING)) {
+                String unwrapped = decoder.decodeString();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one string, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a string", toArbitrary(peeked));
         }
@@ -88,6 +97,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isBoolean()) {
             skipValue();
             return peeked.getBooleanValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.BOOLEAN)) {
+                boolean unwrapped = decoder.decodeBoolean();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one boolean, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a boolean", toArbitrary(peeked));
         }
@@ -99,6 +117,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return (byte) peeked.getIntValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.BYTE)) {
+                byte unwrapped = decoder.decodeByte();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one byte, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -110,6 +137,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return (short) peeked.getIntValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.SHORT)) {
+                short unwrapped = decoder.decodeShort();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one short, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -121,6 +157,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return (char) peeked.getIntValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.CHAR)) {
+                char unwrapped = decoder.decodeChar();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one char, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -132,6 +177,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getIntValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.INT)) {
+                int unwrapped = decoder.decodeInt();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one int, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -143,6 +197,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getLongValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.LONG)) {
+                long unwrapped = decoder.decodeLong();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one long, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -154,6 +217,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getFloatValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.FLOAT)) {
+                float unwrapped = decoder.decodeFloat();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one float, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -165,6 +237,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getDoubleValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray(Argument.DOUBLE)) {
+                double unwrapped = decoder.decodeDouble();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one double, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -176,6 +257,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getBigIntegerValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray()) {
+                BigInteger unwrapped = decoder.decodeBigInteger();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one BigInteger, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
@@ -187,6 +277,15 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getBigDecimalValue();
+        } else if (peeked.isArray()) {
+            try (Decoder decoder = decodeArray()) {
+                BigDecimal unwrapped = decoder.decodeBigDecimal();
+                if (decoder.hasNextArrayValue()) {
+                    throw createDeserializationException("Expected one BigDecimal, but got array of multiple values", null);
+                } else {
+                    return unwrapped;
+                }
+            }
         } else {
             throw createDeserializationException("Not a number", toArbitrary(peeked));
         }
