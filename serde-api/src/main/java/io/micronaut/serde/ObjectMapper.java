@@ -17,19 +17,16 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonFeatures;
 import io.micronaut.json.JsonMapper;
-import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Sub-interface of {@link JsonMapper} with customizations.
@@ -38,41 +35,12 @@ import java.util.Map;
  */
 public interface ObjectMapper extends JsonMapper {
 
-    /**
-     * Read value directly to as {@link JsonNode}.
-     * @param byteArray The byte array
-     * @param type The type
-     * @return new {@link JsonNode} representing the JSON
-     * @throws IOException
-     * @since 2.9.0
-     */
-    default JsonNode readValueToTree(byte[] byteArray, @NonNull Argument<?> type) throws IOException {
-        return readValueToTree(new ByteArrayInputStream(byteArray), type);
-    }
-
-    /**
-     * Read value directly to as {@link JsonNode}.
-     * @param string The string
-     * @param type The type
-     * @return new {@link JsonNode} representing the JSON
-     * @throws IOException
-     * @since 2.9.0
-     */
-    default JsonNode readValueToTree(@NonNull String string, @NonNull Argument<?> type) throws IOException {
-        return readValueToTree(string.getBytes(StandardCharsets.UTF_8), type);
-    }
-
-    /**
-     * Read value directly to as {@link JsonNode}.
-     * @param is The input stream
-     * @param type The type
-     * @return new {@link JsonNode} representing the JSON
-     * @throws IOException
-     * @since 2.9.0
-     */
-    default JsonNode readValueToTree(@NonNull InputStream is, @NonNull Argument<?> type) throws IOException {
-        Object o = readValue(is, type);
-        return writeValueToTree((Argument<? super Object>) type, o);
+    // Delete when this is merged and core is released in RC2 https://github.com/micronaut-projects/micronaut-core/pull/9453
+    @Override
+    @NonNull
+    default String writeValueAsString(@NonNull Object object) throws IOException {
+        Objects.requireNonNull(object, "Object cannot be null");
+        return new String(writeValueAsBytes(object), StandardCharsets.UTF_8);
     }
 
     @Override

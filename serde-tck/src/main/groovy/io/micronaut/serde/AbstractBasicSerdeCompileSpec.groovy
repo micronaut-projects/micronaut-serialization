@@ -16,6 +16,7 @@
 package io.micronaut.serde
 
 import io.micronaut.http.HttpStatus
+import io.micronaut.json.tree.JsonNode
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
@@ -118,7 +119,7 @@ class Test {
         read.value == data.value
 
         and:
-        def node = jsonMapper.readValueToTree(jsonAsBytes(result), typeUnderTest)
+        def node = jsonMapper.readValue(jsonAsBytes(result), JsonNode)
         def read2 = jsonMapper.readValueFromTree(node, typeUnderTest)
         typeUnderTest.type.isInstance(read2)
         read2.value == data.value
