@@ -44,6 +44,7 @@ public interface ObjectMapper extends JsonMapper {
      * @param type The type
      * @return new {@link JsonNode} representing the JSON
      * @throws IOException
+     * @since 2.9.0
      */
     default JsonNode readValueToTree(byte[] byteArray, @NonNull Argument<?> type) throws IOException {
         return readValueToTree(new ByteArrayInputStream(byteArray), type);
@@ -55,6 +56,7 @@ public interface ObjectMapper extends JsonMapper {
      * @param type The type
      * @return new {@link JsonNode} representing the JSON
      * @throws IOException
+     * @since 2.9.0
      */
     default JsonNode readValueToTree(@NonNull String string, @NonNull Argument<?> type) throws IOException {
         return readValueToTree(string.getBytes(StandardCharsets.UTF_8), type);
@@ -66,6 +68,7 @@ public interface ObjectMapper extends JsonMapper {
      * @param type The type
      * @return new {@link JsonNode} representing the JSON
      * @throws IOException
+     * @since 2.9.0
      */
     default JsonNode readValueToTree(@NonNull InputStream is, @NonNull Argument<?> type) throws IOException {
         Object o = readValue(is, type);
