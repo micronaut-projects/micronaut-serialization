@@ -1,0 +1,14 @@
+example:
+  root:
+    config:
+      some-value: "foo"
+      some-nested:
+        nested-value: "bar"
+      some-list-nested:
+        - nestedListValue: "baz1"
+        - nestedListValue: "baz2"
+      some-raw-nested:
+        abc_def:
+          raw-nested-value: "abc123"
+        def_ghi:
+          raw-nested-value: "def456"

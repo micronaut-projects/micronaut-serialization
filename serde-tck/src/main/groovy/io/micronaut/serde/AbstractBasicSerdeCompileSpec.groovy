@@ -16,6 +16,7 @@
 package io.micronaut.serde
 
 import io.micronaut.http.HttpStatus
+import io.micronaut.json.tree.JsonNode
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
@@ -91,6 +92,72 @@ class Test {
         Charset    | [value: StandardCharsets.UTF_8]        | '{"value":"UTF-8"}'
         TimeZone   | [value: TimeZone.getTimeZone("GMT")]   | '{"value":"GMT"}'
         Locale     | [value: Locale.CANADA_FRENCH]          | '{"value":"fr-CA"}'
+    }
+
+    @Unroll
+    void "test unwrap basic type #type"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private $type.name value;
+    public void setValue($type.name value) {
+        this.value = value;
+    }
+    public $type.name getValue() {
+        return value;
+    }
+}
+""", data)
+        expect:
+        def read = jsonMapper.readValue(jsonAsBytes(result), typeUnderTest)
+        typeUnderTest.type.isInstance(read)
+        read.value == data.value
+
+        and:
+        def node = jsonMapper.readValue(jsonAsBytes(result), JsonNode)
+        def read2 = jsonMapper.readValueFromTree(node, typeUnderTest)
+        typeUnderTest.type.isInstance(read2)
+        read2.value == data.value
+
+        cleanup:
+        context?.close()
+
+        where:
+        type       | data                                   | result
+        BigDecimal | [value: 10.1]                          | '{"value":[10.1]}'
+        BigInteger | [value: BigInteger.valueOf(10l)]       | '{"value":[10]}'
+        String     | [value: "Test"]                        | '{"value":["Test"]}'
+        boolean    | [value: true]                          | '{"value":[true]}'
+        byte       | [value: 10]                            | '{"value":[10]}'
+        short      | [value: 10]                            | '{"value":[10]}'
+        int        | [value: 10]                            | '{"value":[10]}'
+        long       | [value: 10]                            | '{"value":[10]}'
+        double     | [value: 10.1d]                         | '{"value":[10.1]}'
+        float      | [value: 10.1f]                         | '{"value":[10.1]}'
+        char       | [value: 'a' as char]                   | '{"value":[97]}'
+        //wrappers
+        Boolean    | [value: true]                          | '{"value":[true]}'
+        Byte       | [value: 10]                            | '{"value":[10]}'
+        Short      | [value: 10]                            | '{"value":[10]}'
+        Integer    | [value: 10]                            | '{"value":[10]}'
+        Long       | [value: 10]                            | '{"value":[10]}'
+        Double     | [value: 10.1d]                         | '{"value":[10.1]}'
+        Float      | [value: 10.1f]                         | '{"value":[10.1]}'
+        Character  | [value: 'a' as char]                   | '{"value":[97]}'
+        HttpStatus | [value: HttpStatus.ACCEPTED]           | '{"value":["ACCEPTED"]}'
+      CharSequence | [value: "Xyz"]                         | '{"value":["Xyz"]}'
+
+        // other common classes
+        URI        | [value: URI.create("https://foo.com")] | '{"value":["https://foo.com"]}'
+        URL        | [value: new URL("https://foo.com")]    | '{"value":["https://foo.com"]}'
+        Charset    | [value: StandardCharsets.UTF_8]        | '{"value":["UTF-8"]}'
+        TimeZone   | [value: TimeZone.getTimeZone("GMT")]   | '{"value":["GMT"]}'
+        Locale     | [value: Locale.CANADA_FRENCH]          | '{"value":["fr-CA"]}'
     }
 
     @Unroll

@@ -142,7 +142,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected Number getBestNumber() {
         return switch (currentEvent) {
-            case VALUE_DECIMAL -> jsonParser.getLong();
+            case VALUE_DECIMAL -> jsonParser.getBigDecimal();
             case VALUE_DOUBLE -> jsonParser.getDouble();
             case VALUE_FLOAT -> jsonParser.getFloat();
             default ->

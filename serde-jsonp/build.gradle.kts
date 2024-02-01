@@ -35,6 +35,7 @@ dependencies {
     testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mnReactor.micronaut.reactor)
+    testRuntimeOnly("org.yaml:snakeyaml")
 }
 
 tasks {
