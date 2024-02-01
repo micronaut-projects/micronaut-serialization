@@ -77,7 +77,6 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
 
     abstract OracleJsonGenerator createJsonGenerator(OutputStream outputStream);
 
-
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
