@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NextMajorVersion;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -177,22 +178,6 @@ final class DeserBean<T> {
             }
             if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
                 anySetterValue = new AnySetter<>(constructorArgument, i);
-                final String n = constructorArgument.getName();
-                creatorPropertiesBuilder.register(
-                    n,
-                    new DerProperty<>(
-                        conversionService,
-                        introspection,
-                        i,
-                        n,
-                        constructorArgument,
-                        null,
-                        null,
-                        null,
-                        null
-                    ),
-                    false
-                );
                 continue;
             }
 
@@ -743,7 +728,7 @@ final class DeserBean<T> {
         // Null when DeserBean not initialized
         public Deserializer<P> deserializer;
 
-        public DerProperty(ConversionService conversionService,
+        DerProperty(ConversionService conversionService,
                            BeanIntrospection<B> introspection,
                            int index,
                            String property,
@@ -765,7 +750,7 @@ final class DeserBean<T> {
             );
         }
 
-        public DerProperty(ConversionService conversionService,
+        DerProperty(ConversionService conversionService,
                            BeanIntrospection<B> instrospection,
                            int index,
                            String property,
@@ -822,72 +807,34 @@ final class DeserBean<T> {
         }
 
         public void setDefaultPropertyValue(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
-            if (!explicitlyRequired) {
-                P def = defaultValue;
-                if (def == null) {
-                    if (!mustSetField) {
-                        return;
-                    }
-                    def = deserializer.getDefaultValue(decoderContext, argument);
-                }
-                if (def != null) {
-                    if (beanProperty != null) {
-                        beanProperty.setUnsafe(bean, def);
-                        return;
-                    }
-                }
+            if (explicitlyRequired) {
+                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                    "] is not present in supplied data");
             }
-            throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                "] is not present in supplied data");
+            P value = provideDefaultValue(decoderContext);
+            if (value != null) {
+                beanProperty.setUnsafe(bean, value);
+            }
         }
 
         public void setDefaultConstructorValue(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
-            if (!explicitlyRequired) {
-                if (defaultValue != null) {
-                    params[index] = defaultValue;
-                    return;
-                }
-                if (!mustSetField && !argument.isPrimitive()) {
-                    return;
-                }
-                P newDefaultValue = deserializer.getDefaultValue(decoderContext, argument);
-                if (newDefaultValue != null) {
-                    params[index] = newDefaultValue;
-                    return;
-                }
+            if (explicitlyRequired) {
+                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
             }
-            throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
+            params[index] = provideDefaultValue(decoderContext, mustSetField || argument.isPrimitive());
         }
 
-        public void set(@NonNull B obj, @Nullable P v) throws SerdeException {
-            if (v == null && nonNull) {
-                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                    "] is not present in supplied data");
-
-            }
-            if (beanProperty != null) {
-                beanProperty.setUnsafe(obj, v);
+        public void set(@NonNull Deserializer.DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
+            if (value == null) {
+                setDefaultPropertyValue(decoderContext, obj);
+            } else {
+                beanProperty.setUnsafe(obj, value);
             }
         }
 
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
             try {
-                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-                if (value == null && !nullable) {
-                    if (!explicitlyRequired) {
-                        value = defaultValue;
-                        if (value == null) {
-                            if (!mustSetField) {
-                                return;
-                            }
-                            value = deserializer.getDefaultValue(decoderContext, argument);
-                        }
-                    } else {
-                        throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                            "] is not present in supplied data");
-                    }
-                }
-                values[index] = value;
+                values[index] = deserializeValue(objectDecoder, decoderContext);
             } catch (InvalidFormatException e) {
                 throw new InvalidPropertyFormatException(e, argument);
             } catch (Exception e) {
@@ -895,25 +842,13 @@ final class DeserBean<T> {
             }
         }
 
-        @Nullable
+        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an expection")
         public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
             try {
-                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-                if (value == null && !nullable) {
-                    if (!explicitlyRequired) {
-                        value = defaultValue;
-                        if (value == null) {
-                            if (!mustSetField) {
-                                return;
-                            }
-                            value = deserializer.getDefaultValue(decoderContext, argument);
-                        }
-                    } else {
-                        throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                            "] is not present in supplied data");
-                    }
+                P value = deserializeValue(objectDecoder, decoderContext);
+                if (value != null || nullable) {
+                    beanProperty.setUnsafe(beanInstance, value);
                 }
-                beanProperty.setUnsafe(beanInstance, value);
             } catch (InvalidFormatException e) {
                 throw new InvalidPropertyFormatException(e, argument);
             } catch (Exception e) {
@@ -921,25 +856,12 @@ final class DeserBean<T> {
             }
         }
 
-        @Nullable
         public void deserializeAndCallBuilder(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, BeanIntrospection.Builder<B> builder) throws IOException {
             try {
-                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-                if (value == null && !nullable) {
-                    if (!explicitlyRequired) {
-                        value = defaultValue;
-                        if (value == null) {
-                            if (!mustSetField) {
-                                return;
-                            }
-                            value = deserializer.getDefaultValue(decoderContext, argument);
-                        }
-                    } else {
-                        throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
-                            "] is not present in supplied data");
-                    }
+                P value = deserializeValue(objectDecoder, decoderContext);
+                if (value != null || nullable) {
+                    builder.with(index, argument, value);
                 }
-                builder.with(index, argument, value);
             } catch (InvalidFormatException e) {
                 throw new InvalidPropertyFormatException(e, argument);
             } catch (Exception e) {
@@ -947,6 +869,29 @@ final class DeserBean<T> {
             }
         }
 
+        private P deserializeValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+            P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
+            if (value != null || nullable) {
+                return value;
+            }
+            if (explicitlyRequired) {
+                throw new SerdeException("Unable to deserialize type [" + instrospection.getBeanType().getName() + "]. Required property [" + argument +
+                        "] is not present in supplied data");
+            }
+            return provideDefaultValue(decoderContext);
+        }
+
+        private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {
+            return provideDefaultValue(decoderContext, mustSetField);
+        }
+
+        private P provideDefaultValue(Deserializer.DecoderContext decoderContext, boolean mustSetField) {
+            P value = defaultValue;
+            if (value == null && mustSetField) {
+                value = deserializer.getDefaultValue(decoderContext, argument);
+            }
+            return value;
+        }
 
     }
 

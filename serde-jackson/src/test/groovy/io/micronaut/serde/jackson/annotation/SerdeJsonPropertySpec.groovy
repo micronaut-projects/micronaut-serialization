@@ -6,6 +6,56 @@ import spock.lang.PendingFeature
 
 class SerdeJsonPropertySpec extends JsonPropertySpec {
 
+    void "test optional by default primitive field in constructor XXX"() {
+
+        given:
+            def ctx = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Nullable;
+
+@Serdeable
+class Test {
+    private final $type value;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    Test(@JsonProperty("value") $type value) {
+        this.value = value;
+    }
+
+    public $type getValue() {
+        return value;
+    }
+}
+""")
+
+        when:
+            def bean = jsonMapper.readValue('{}', argumentOf(ctx, 'test.Test'))
+        then:
+            bean.value == value
+
+        cleanup:
+            ctx.close()
+
+        where:
+            type      | value
+            "byte"    | (byte) 0
+            "short"   | (short) 0
+            "int"     | 0
+            "long"    | 0L
+            "float"   | 0F
+            "double"  | 0D
+
+            "@Nullable Byte"    | null
+            "@Nullable Short"   | null
+            "@Nullable Integer" | null
+            "@Nullable Long"    | null
+            "@Nullable Float"   | null
+            "@Nullable Double"  | null
+    }
+
     void "implicit creator with parameter names"() {
         given:
         def context = buildContext('example.Test', '''

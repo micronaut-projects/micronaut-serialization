@@ -614,4 +614,63 @@ class Container {
         cleanup:
             context.close()
     }
+
+    void "test custom deserializer"() {
+        given:
+            def context = buildContext('custom.CustomValue','''
+package custom;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+record CustomValue(
+        @Serdeable.Deserializable(using = CustomSerde.class)
+        @JsonProperty("value")
+        @NonNull
+        Integer value
+) {
+    @JsonCreator
+    public CustomValue {
+    }
+}
+
+@Singleton
+class CustomSerde implements Deserializer<Integer> {
+    @Override
+    public Integer getDefaultValue(DecoderContext ignoredContext, Argument<? super Integer> ignoredType) {
+        return -2;
+    }
+
+    @Override
+    public Integer deserialize(Decoder decoder, DecoderContext context, Argument<? super Integer> type) throws IOException {
+        return decoder.decodeInt();
+    }
+
+    @Override
+    public Integer deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Integer> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return -1;
+        }
+        return decoder.decodeInt();
+    }
+}
+''')
+
+        expect:
+            jsonMapper.readValue('{"value":1}', typeUnderTest).value() == 1
+            jsonMapper.readValue('{"value":null}', typeUnderTest).value() == -1
+            jsonMapper.readValue('{}', typeUnderTest).value() == -2
+
+        cleanup:
+            context.close()
+    }
 }
