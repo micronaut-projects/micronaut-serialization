@@ -39,6 +39,22 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
         jsonMatches(result, '{"name":"Test"}')
     }
 
+    void "test nested"() {
+        when:
+        def bean = new ApiResponse(List.of(new Dummy("Xyz")))
+        def argument = Argument.of(ApiResponse, Argument.listOf(Dummy))
+        def result = writeJson(jsonMapper, argument, bean)
+
+        then:
+        jsonMatches(result, '{"content":[{"name":"Xyz"}]}')
+
+        when:
+        bean = jsonMapper.readValue(jsonAsBytes(result), argument)
+
+        then:
+        bean.content[0].name == "Xyz"
+    }
+
     void "test read/write constructor args"() {
         when:
         def bean = new ConstructorArgs("test", 100)

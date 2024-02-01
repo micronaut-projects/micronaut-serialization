@@ -25,4 +25,6 @@ dependencies {
     testImplementation(libs.aws.lambda.events)
     testImplementation(libs.micronaut.discovery)
     testImplementation(projects.micronautSerdeJacksonTck)
+    testImplementation(mn.micronaut.http.client)
+    testImplementation(mn.micronaut.http.server.netty)
 }

@@ -22,6 +22,11 @@ trait BsonBinarySpec {
         return readByteArrayAsJson(data)
     }
 
+    String encodeAsBinaryDecodeJson(Argument argument, Object obj) {
+        def data = getBsonBinaryMapper().writeValueAsBytes(argument, obj)
+        return readByteArrayAsJson(data)
+    }
+
     def <T> T encodeAsBinaryDecodeAsObject(BsonDocument ob, Class<T> type) {
         def bytes = writeToByteArray(ob)
         return bsonBinaryMapper.readValue(bytes, Argument.of(type))
