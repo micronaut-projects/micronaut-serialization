@@ -5,6 +5,31 @@ import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
 
+    void "missing nullable properties are not overwritten"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Nullable;
+import java.util.Optional;
+
+@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    @Nullable
+    public String foo = "bar";
+}
+''')
+
+        expect:
+            jsonMapper.readValue('{}', typeUnderTest).foo == 'bar'
+            jsonMapper.readValue('{"foo":null}', typeUnderTest).foo == null
+
+        cleanup:
+            context.close()
+    }
+
     void "optional nullable mix"() {
         given:
         def context = buildContext('example.Test', '''

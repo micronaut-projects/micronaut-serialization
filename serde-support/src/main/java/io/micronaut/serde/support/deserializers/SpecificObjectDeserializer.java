@@ -262,10 +262,10 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         return new NoArgsConstructorDeserializer(instance, db, conf);
     }
 
-    private static Object deserializeValue(DecoderContext decoderContext,
-                                           Decoder objectDecoder,
-                                           DeserBean.DerProperty<Object, Object> derProperty,
-                                           @NonNull Object instance) throws IOException {
+    private static void deserializeAndSetPropertyValue(DecoderContext decoderContext,
+                                                       Decoder objectDecoder,
+                                                       DeserBean.DerProperty<Object, Object> derProperty,
+                                                       @NonNull Object instance) throws IOException {
         final boolean hasRef = derProperty.managedRef != null;
 
         try {
@@ -279,10 +279,10 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     )
                 );
             }
-            return derProperty.deserializer.deserializeNullable(
+            derProperty.deserializeAndSetPropertyValue(
                 objectDecoder,
                 decoderContext,
-                derProperty.argument
+                instance
             );
         } catch (InvalidFormatException e) {
             throw new InvalidPropertyFormatException(e, derProperty.argument);
@@ -421,7 +421,6 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 if (property.views != null && !decoderContext.hasView(property.views)) {
                     continue;
                 }
-                Object value;
                 if (property.backRef != null) {
                     final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                         new PropertyReference<>(
@@ -431,23 +430,18 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                             null
                         )
                     );
+                    Object value = null;
                     if (ref != null) {
                         value = ref.getReference();
-                    } else {
-                        value = null;
                     }
+                    property.set(decoderContext, instance, value);
                 } else {
                     Decoder bufferedDecoder = buffered[i];
                     if (bufferedDecoder != null) {
-                        value = deserializeValue(decoderContext, bufferedDecoder, property, instance);
+                        deserializeAndSetPropertyValue(decoderContext, bufferedDecoder, property, instance);
                     } else {
-                        value = values[i];
+                        property.set(decoderContext, instance, values[i]);
                     }
-                }
-                if (value == null) {
-                    property.setDefaultPropertyValue(decoderContext, instance);
-                } else {
-                    property.set(instance, value);
                 }
             }
             if (unwrappedProperties != null) {
@@ -456,12 +450,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                         continue;
                     }
-                    Object value = unwrappedProperty.beanDeserializer.provideInstance(decoderContext);
-                    if (value == null) {
-                        wrappedProperty.setDefaultPropertyValue(decoderContext, instance);
-                    } else {
-                        wrappedProperty.set(instance, value);
-                    }
+                    wrappedProperty.set(
+                        decoderContext,
+                        instance,
+                        unwrappedProperty.beanDeserializer.provideInstance(decoderContext)
+                    );
                 }
             }
         }
@@ -524,7 +517,6 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     decoder.skipValue();
                     return true;
                 }
-                Object value;
                 if (property.backRef != null) {
                     final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                         new PropertyReference<>(
@@ -534,18 +526,13 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                             instance
                         )
                     );
+                    Object value = null;
                     if (ref != null) {
                         value = ref.getReference();
-                    } else {
-                        value = null;
                     }
+                    property.set(decoderContext, instance, value);
                 } else {
-                    value = deserializeValue(decoderContext, decoder, property, instance);
-                }
-                if (value == null) {
-                    property.setDefaultPropertyValue(decoderContext, instance);
-                } else {
-                    property.set(instance, value);
+                    deserializeAndSetPropertyValue(decoderContext, decoder, property, instance);
                 }
                 return true;
             }
@@ -558,8 +545,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                                 continue;
                             }
                             propertiesConsumer.consume(wrappedProperty.index);
-                            Object wrappedInstance = up.beanDeserializer.provideInstance(decoderContext);
-                            wrappedProperty.set(instance, wrappedInstance);
+                            wrappedProperty.set(
+                                decoderContext,
+                                instance,
+                                up.beanDeserializer.provideInstance(decoderContext)
+                            );
                         }
                         return true;
                     }
@@ -578,12 +568,11 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                         continue;
                     }
-                    Object value = unwrappedProperty.beanDeserializer.provideInstance(decoderContext);
-                    if (value == null) {
-                        wrappedProperty.setDefaultPropertyValue(decoderContext, instance);
-                    } else {
-                        wrappedProperty.set(instance, value);
-                    }
+                    wrappedProperty.set(
+                        decoderContext,
+                        instance,
+                        unwrappedProperty.beanDeserializer.provideInstance(decoderContext)
+                    );
                 }
             }
             DeserBean.DerProperty<Object, Object>[] propertiesArray = properties.getPropertiesArray();
