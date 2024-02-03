@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     testAnnotationProcessor(mn.micronaut.inject.java)
+
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(projects.micronautSerdeJacksonTck)
 }

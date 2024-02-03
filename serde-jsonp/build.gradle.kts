@@ -11,15 +11,20 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.micronautSerdeProcessor)
 
+    compileOnly(libs.graal.svm)
+    compileOnly(mn.micronaut.jackson.databind)
+
     api(libs.managed.jakarta.json.api)
     api(mn.micronaut.context)
     api(projects.micronautSerdeApi)
+
     implementation(projects.micronautSerdeSupport)
     implementation(libs.managed.eclipse.parsson)
-    compileOnly(libs.graal.svm)
-    compileOnly(mn.micronaut.jackson.databind)
+
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
+
+    testCompileOnly(mn.micronaut.inject.groovy)
 
     testImplementation(mn.jackson.annotations)
     testImplementation(libs.managed.jakarta.json.bindApi)
@@ -29,13 +34,11 @@ dependencies {
     testImplementation(mnTest.micronaut.test.junit5)
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.http.client)
-    testRuntimeOnly(
-        "org.junit.jupiter:junit-jupiter-engine"
-    )
-    testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mnReactor.micronaut.reactor)
-    testRuntimeOnly("org.yaml:snakeyaml")
+
+    testRuntimeOnly(mn.snakeyaml)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 tasks {

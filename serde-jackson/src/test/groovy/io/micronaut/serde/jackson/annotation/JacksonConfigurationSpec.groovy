@@ -15,6 +15,8 @@ class JacksonConfigurationSpec extends JsonCompileSpec {
 
         when:
         def result = context.getBean(JsonMapper).writeValueAsString(new MyUser(firstName: "Joe", lastName: "Doe", age: 33))
+                // Fix for windows
+                .replaceAll("\r\n", "\n")
 
         then:
         result == """{

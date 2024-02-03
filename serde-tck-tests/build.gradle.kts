@@ -3,10 +3,11 @@ plugins {
 }
 
 dependencies {
+    annotationProcessor(projects.micronautSerdeProcessor)
+
     api(mnTest.micronaut.test.junit5)
     api(mn.micronaut.json.core)
     api(mn.jackson.annotations)
-    annotationProcessor(projects.micronautSerdeProcessor)
     api(projects.micronautSerdeApi)
 }
 
