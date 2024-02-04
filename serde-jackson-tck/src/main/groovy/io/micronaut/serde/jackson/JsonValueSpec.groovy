@@ -2,6 +2,7 @@ package io.micronaut.serde.jackson
 
 
 import io.micronaut.serde.jackson.jsonvalue.JdkVersion
+import spock.lang.PendingFeature
 
 abstract class JsonValueSpec extends JsonCompileSpec {
 
@@ -191,6 +192,65 @@ class Foo {
 
         then:
             foo.jdk == JdkVersion.JDK_17
+    }
+
+    @PendingFeature(reason = "@JsonValue on enum property level not supported")
+    void "@JsonValue on property2"() throws IOException {
+        given:
+        def context = buildContext('''
+package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+
+@Serdeable
+class Foo {
+    private final MyEnum myEnum;
+
+    @JsonCreator
+    Foo(@JsonProperty("myEnum") MyEnum myEnum) {
+        this.myEnum = myEnum;
+    }
+
+    public MyEnum getMyEnum() {
+        return myEnum;
+    }
+}
+
+@Serdeable
+enum MyEnum {
+
+    VALUE1("value1"),
+    VALUE2("value2"),
+    VALUE3("value3");
+
+    @JsonValue
+    private final String value;
+
+    MyEnum(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+}
+''')
+        def enumValue2 = context.classLoader.loadClass('example.MyEnum').VALUE2
+        def testBean = newInstance(context, 'example.Foo', enumValue2)
+        when:
+        String json = jsonMapper.writeValueAsString(testBean)
+        then:
+        '{"myEnum":"value2"}' == json
+
+        when:
+        def foo = jsonMapper.readValue(json, testBean.class)
+
+        then:
+        foo.myEnum == enumValue2
     }
 
     void "@JsonValue on toString"() {
