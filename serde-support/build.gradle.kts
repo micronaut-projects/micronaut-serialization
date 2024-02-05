@@ -15,10 +15,12 @@ dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
     compileOnly(mn.micronaut.management)
+
     api(projects.micronautSerdeApi)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
+
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mn.micronaut.http.server.netty)

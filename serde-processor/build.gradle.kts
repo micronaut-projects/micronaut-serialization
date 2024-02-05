@@ -3,10 +3,14 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.micronautSerdeApi)
     compileOnly(mn.micronaut.core.processor)
+
+    implementation(projects.micronautSerdeApi)
+
     testAnnotationProcessor(mn.micronaut.inject.java)
-    testImplementation(mn.micronaut.inject.java.test)
+
     testCompileOnly(mn.micronaut.inject.groovy)
+
+    testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.spock)
 }

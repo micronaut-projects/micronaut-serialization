@@ -6,13 +6,16 @@ plugins {
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.micronautSerdeProcessor)
+
+    compileOnly(mn.micronaut.inject.groovy)
+
+    api(libs.jetbrains.annotations)
+
     implementation(projects.micronautSerdeApi)
     implementation(projects.micronautSerdeSupport)
     implementation(projects.micronautSerdeProcessor)
     implementation(mn.micronaut.inject.java.test)
-    compileOnly(mn.micronaut.inject.groovy)
     implementation(mnTest.micronaut.test.spock)
-    api(libs.jetbrains.annotations)
 }
 
 tasks.named("spotlessGroovyCheck").configure {

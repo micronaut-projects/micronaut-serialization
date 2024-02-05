@@ -10,13 +10,17 @@ dependencies {
     api(mn.jackson.annotations)
     api(mn.micronaut.context)
     api(projects.micronautSerdeApi)
+
     implementation(projects.micronautSerdeSupport)
+
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
+
+    testCompileOnly(mn.micronaut.inject.groovy)
+
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
     testImplementation(mn.micronaut.inject.java.test)
-    testCompileOnly(mn.micronaut.inject.groovy)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mn.jackson.databind)
     testImplementation(mn.micronaut.management)
