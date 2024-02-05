@@ -727,7 +727,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 String serializeAs = declaredAnnotation.stringValue(SerdeConfig.SERIALIZE_AS).orElse(null);
                 if (serializeAs != null) {
                     ClassElement thatType = context.getClassElement(serializeAs).orElse(null);
-                    if (thatType != null && !thatType.isAssignable(element)) {
+                    if (thatType != null && !thatType.isAssignable(element) && failOnError) {
                         throw new ProcessingException(element, "Type to serialize as [" + serializeAs + "], must be a subtype of the annotated type: " + element.getName());
                     }
                 }
@@ -735,7 +735,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 String deserializeAs = declaredAnnotation.stringValue(SerdeConfig.DESERIALIZE_AS).orElse(null);
                 if (deserializeAs != null) {
                     ClassElement thatType = context.getClassElement(deserializeAs).orElse(null);
-                    if (thatType != null && !thatType.isAssignable(element)) {
+                    if (thatType != null && !thatType.isAssignable(element) && failOnError) {
                         throw new ProcessingException(element, "Type to deserialize as [" + deserializeAs + "], must be a subtype of the annotated type: " + element.getName());
                     }
                 }
@@ -1065,7 +1065,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void resetForNewClass(ClassElement element) {
         this.currentClass = element;
-        this.failOnError = element.booleanValue(SerdeConfig.class, "validate").orElse(true);
+        // TODO: Investigate why the `AliasFor` doesn't work here
+        this.failOnError = element.booleanValue(SerdeConfig.class, SerdeConfig.VALIDATE)
+            .or(() -> element.booleanValue(Serdeable.class, SerdeConfig.VALIDATE))
+            .orElse(true);
         this.creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
         this.anyGetterMethod = null;
         this.anySetterMethod = null;
