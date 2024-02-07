@@ -398,9 +398,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Internal
     public <T> Serde<T> findInternalSerde(Argument<T> type) {
         for (BeanDefinition<Serde> serdeBeanDefinition : internalSerdes) {
-            if (serdeBeanDefinition instanceof InternaSerdeBeanDefinition<?> internaSerdeBeanDefinition
-                && internaSerdeBeanDefinition.typeArgument.equalsType(type)) {
-                return (Serde<T>) internaSerdeBeanDefinition.value;
+            if (serdeBeanDefinition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition
+                && internalSerdeBeanDefinition.typeArgument.equalsType(type)) {
+                return (Serde<T>) internalSerdeBeanDefinition.value;
             }
         }
         return null;
@@ -409,19 +409,19 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private void registerBuiltInSerdes() {
         Serdes.register(serdeConfiguration, introspections, serdeRegistrar -> {
             for (Argument<?> type : serdeRegistrar.getTypes()) {
-                deserializers.add(new InternaSerdeBeanDefinition<>(type, Deserializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
-                serializers.add(new InternaSerdeBeanDefinition<>(type, Serializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
-                internalSerdes.add(new InternaSerdeBeanDefinition<>(type, Serde.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                deserializers.add(new InternalSerdeBeanDefinition<>(type, Deserializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                serializers.add(new InternalSerdeBeanDefinition<>(type, Serializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                internalSerdes.add(new InternalSerdeBeanDefinition<>(type, Serde.class, serdeRegistrar, serdeRegistrar.getOrder()));
             }
         });
         CoreCollectionsDeserializers.register(conversionService, deserializerRegistrar -> {
             for (Argument<?> type : deserializerRegistrar.getTypes()) {
-                deserializers.add(new InternaSerdeBeanDefinition<>(type, Deserializer.class, deserializerRegistrar, deserializerRegistrar.getOrder()));
+                deserializers.add(new InternalSerdeBeanDefinition<>(type, Deserializer.class, deserializerRegistrar, deserializerRegistrar.getOrder()));
             }
         });
         CoreSerializers.register(serializationConfiguration, serializerRegistrar -> {
             for (Argument<?> type : serializerRegistrar.getTypes()) {
-                serializers.add(new InternaSerdeBeanDefinition<>(type, Serializer.class, serializerRegistrar, serializerRegistrar.getOrder()));
+                serializers.add(new InternalSerdeBeanDefinition<>(type, Serializer.class, serializerRegistrar, serializerRegistrar.getOrder()));
             }
         });
     }
@@ -486,8 +486,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private <T> T getBean(BeanDefinition<T> definition) {
-        if (definition instanceof InternaSerdeBeanDefinition<?> internaSerdeBeanDefinition) {
-            return (T) internaSerdeBeanDefinition.value;
+        if (definition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition) {
+            return (T) internalSerdeBeanDefinition.value;
         }
         return beanContext.getBean(definition);
     }
@@ -648,17 +648,17 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return deserializationConfiguration;
     }
 
-    private static final class InternaSerdeBeanDefinition<T> implements BeanDefinition<T> {
+    private static final class InternalSerdeBeanDefinition<T> implements BeanDefinition<T> {
         private final Argument<?> argument;
         private final Argument<?> typeArgument;
         private final T value;
         private final List<Argument<?>> typeParameters;
         private final AnnotationMetadata annotationMetadata;
 
-        private InternaSerdeBeanDefinition(Argument<?> typeArgument,
-                                           Class<T> container,
-                                           T value,
-                                           int order) {
+        private InternalSerdeBeanDefinition(Argument<?> typeArgument,
+                                            Class<T> container,
+                                            T value,
+                                            int order) {
             this.argument = Argument.of(container, typeArgument);
             this.value = value;
             this.typeArgument = typeArgument;
