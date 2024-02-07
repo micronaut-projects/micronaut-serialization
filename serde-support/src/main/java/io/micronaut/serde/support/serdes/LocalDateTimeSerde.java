@@ -31,7 +31,7 @@ import java.time.temporal.TemporalQuery;
 public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<LocalDateTime>
         implements TemporalSerde<LocalDateTime>, SerdeRegistrar<LocalDateTime> {
 
-    LocalDateTimeSerde(SerdeConfiguration configuration) {
+    public LocalDateTimeSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_DATE_TIME);
     }
 

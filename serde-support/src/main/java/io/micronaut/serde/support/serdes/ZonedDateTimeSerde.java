@@ -33,7 +33,7 @@ public final class ZonedDateTimeSerde
     extends NumericSupportTemporalSerde<ZonedDateTime>
         implements TemporalSerde<ZonedDateTime>, SerdeRegistrar<ZonedDateTime> {
 
-    ZonedDateTimeSerde(SerdeConfiguration configuration) {
+    public ZonedDateTimeSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_ZONED_DATE_TIME, SerdeConfiguration.NumericTimeUnit.MILLISECONDS);
     }
 

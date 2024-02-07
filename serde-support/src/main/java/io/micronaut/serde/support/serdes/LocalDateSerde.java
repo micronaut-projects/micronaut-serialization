@@ -39,7 +39,7 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
      *
      * @param configuration The configuration
      */
-    LocalDateSerde(SerdeConfiguration configuration) {
+    public LocalDateSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_LOCAL_DATE);
         this.writeNumeric = configuration.getTimeWriteShape() != SerdeConfiguration.TimeShape.STRING;
     }

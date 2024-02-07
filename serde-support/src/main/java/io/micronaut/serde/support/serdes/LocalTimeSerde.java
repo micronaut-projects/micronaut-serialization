@@ -35,7 +35,7 @@ public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime>
      *
      * @param configuration The configuration
      */
-    LocalTimeSerde(SerdeConfiguration configuration) {
+    public LocalTimeSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_LOCAL_TIME, SerdeConfiguration.NumericTimeUnit.NANOSECONDS);
     }
 

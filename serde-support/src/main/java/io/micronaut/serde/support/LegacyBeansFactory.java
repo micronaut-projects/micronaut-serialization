@@ -32,7 +32,15 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback;
+import io.micronaut.serde.support.serdes.InetAddressSerde;
+import io.micronaut.serde.support.serdes.InstantSerde;
+import io.micronaut.serde.support.serdes.LocalDateSerde;
+import io.micronaut.serde.support.serdes.LocalDateTimeSerde;
+import io.micronaut.serde.support.serdes.LocalTimeSerde;
 import io.micronaut.serde.support.serdes.ObjectArraySerde;
+import io.micronaut.serde.support.serdes.OffsetDateTimeSerde;
+import io.micronaut.serde.support.serdes.YearSerde;
+import io.micronaut.serde.support.serdes.ZonedDateTimeSerde;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Singleton;
@@ -48,15 +56,15 @@ final class LegacyBeansFactory {
     @Any
     @Prototype
     @BootstrapContextCompatible
-    <T> Serde<T> provideSerde(InjectionPoint<Serde<T>> serdeInjectionPoint,
-                                        BeanProvider<DefaultSerdeRegistry> serdeRegistry) {
+    <S extends Serde<T>, T> S provideSerde(InjectionPoint<Serde<T>> serdeInjectionPoint,
+                                           BeanProvider<DefaultSerdeRegistry> serdeRegistry) {
         if (serdeInjectionPoint instanceof ArgumentInjectionPoint<?, ?> argumentInjectionPoint) {
             Argument typeParameter = argumentInjectionPoint.getArgument().getTypeParameters()[0];
             if (typeParameter.getType() == Object[].class) {
-                return (Serde<T>) new ObjectArraySerde();
+                return (S) new ObjectArraySerde();
             }
             DefaultSerdeRegistry defaultSerdeRegistry = serdeRegistry.get();
-            return defaultSerdeRegistry.findInternalSerde(typeParameter);
+            return (S) defaultSerdeRegistry.findInternalSerde(typeParameter);
         }
         return null;
     }
@@ -64,9 +72,9 @@ final class LegacyBeansFactory {
     @Singleton
     @BootstrapContextCompatible
     ObjectSerializer provideObjectSerializer(BeanContext beanContext,
-                                                       SerdeIntrospections introspections,
-                                                       SerdeConfiguration serdeConfiguration,
-                                                       SerializationConfiguration serializationConfiguration) {
+                                             SerdeIntrospections introspections,
+                                             SerdeConfiguration serdeConfiguration,
+                                             SerializationConfiguration serializationConfiguration) {
 
         return new ObjectSerializer(
             introspections,
@@ -78,9 +86,9 @@ final class LegacyBeansFactory {
     @Singleton
     @BootstrapContextCompatible
     ObjectDeserializer provideObjectDeserializer(SerdeIntrospections introspections,
-                                                           SerdeConfiguration serdeConfiguration,
-                                                           DeserializationConfiguration deserializationConfiguration,
-                                                           @Nullable SerdeDeserializationPreInstantiateCallback instantiateCallback) {
+                                                 SerdeConfiguration serdeConfiguration,
+                                                 DeserializationConfiguration deserializationConfiguration,
+                                                 @Nullable SerdeDeserializationPreInstantiateCallback instantiateCallback) {
         return new ObjectDeserializer(introspections,
             deserializationConfiguration,
             serdeConfiguration,
@@ -90,7 +98,55 @@ final class LegacyBeansFactory {
 
     @Singleton
     @BootstrapContextCompatible
-    protected ObjectArraySerde provideObjectArraySerde() {
+    ObjectArraySerde provideObjectArraySerde() {
         return new ObjectArraySerde();
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    InetAddressSerde inetAddressSerde(SerdeConfiguration serdeConfiguration) {
+        return new InetAddressSerde(serdeConfiguration);
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    InstantSerde instantSerde(SerdeConfiguration serdeConfiguration) {
+        return new InstantSerde(serdeConfiguration);
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    LocalDateSerde localDateSerde(SerdeConfiguration serdeConfiguration) {
+        return new LocalDateSerde(serdeConfiguration);
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    LocalDateTimeSerde localDateTimeSerde(SerdeConfiguration serdeConfiguration) {
+        return new LocalDateTimeSerde(serdeConfiguration);
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    LocalTimeSerde localTimeSerde(SerdeConfiguration serdeConfiguration) {
+        return new LocalTimeSerde(serdeConfiguration);
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    OffsetDateTimeSerde offsetDateTimeSerde(SerdeConfiguration serdeConfiguration) {
+        return new OffsetDateTimeSerde(serdeConfiguration);
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    YearSerde yearSerde() {
+        return new YearSerde();
+    }
+
+    @Singleton
+    @BootstrapContextCompatible
+    ZonedDateTimeSerde zonedDateTimeSerde(SerdeConfiguration serdeConfiguration) {
+        return new ZonedDateTimeSerde(serdeConfiguration);
     }
 }

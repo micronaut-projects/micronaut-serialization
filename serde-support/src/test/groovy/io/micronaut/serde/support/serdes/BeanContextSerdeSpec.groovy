@@ -54,4 +54,12 @@ class BeanContextSerdeSpec extends Specification {
         then:
         byteArraySerde.getClass() == ByteArraySerde
     }
+
+    void "test retrieving InstantSerde"() {
+        when:
+        def byteArraySerde = beanContext.getBean(InstantSerde)
+
+        then:
+        byteArraySerde.getClass() == InstantSerde
+    }
 }

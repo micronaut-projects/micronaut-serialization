@@ -33,7 +33,7 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
      *
      * @param configuration The configuration
      */
-    OffsetDateTimeSerde(SerdeConfiguration configuration) {
+    public OffsetDateTimeSerde(SerdeConfiguration configuration) {
         super(
             configuration,
             DateTimeFormatter.ISO_OFFSET_DATE_TIME,

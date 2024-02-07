@@ -32,7 +32,7 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
 
     private static final TemporalQuery<Instant> QUERY = Instant::from;
 
-    InstantSerde(SerdeConfiguration configuration) {
+    public InstantSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_INSTANT, SerdeConfiguration.NumericTimeUnit.MILLISECONDS);
     }
 
