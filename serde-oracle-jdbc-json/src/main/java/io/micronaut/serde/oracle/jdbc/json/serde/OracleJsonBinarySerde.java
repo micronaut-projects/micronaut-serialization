@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
@@ -35,9 +36,9 @@ import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 @Singleton
 @Order(-100)
 public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
-    private final DefaultSerdeRegistry.ByteArraySerde byteArraySerde;
+    private final Serde<byte[]> byteArraySerde;
 
-    public OracleJsonBinarySerde(DefaultSerdeRegistry.ByteArraySerde byteArraySerde) {
+    public OracleJsonBinarySerde(@Secondary Serde<byte[]> byteArraySerde) {
         this.byteArraySerde = byteArraySerde;
     }
 

@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
@@ -29,6 +30,7 @@ import java.util.Collection;
  * @author Denis Stepanov
  * @since 1.0
  */
+@Internal
 final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
 
     private final Argument<T> generic;
@@ -41,11 +43,11 @@ final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value)
-            throws IOException {
+        throws IOException {
         try (Encoder array = encoder.encodeArray(type)) {
             for (T t : value) {
                 if (t == null) {
-                    encoder.encodeNull();
+                    array.encodeNull();
                 } else {
                     componentSerializer.serialize(array, context, generic, t);
                 }

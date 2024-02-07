@@ -15,10 +15,11 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.support.DeserializerRegistrar;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,12 +29,8 @@ import java.util.ArrayList;
  *
  * @author Denis Stepanov
  */
-final class StringListDeserializer implements Deserializer<ArrayList<String>> {
-
-    static final StringListDeserializer INSTANCE = new StringListDeserializer();
-
-    private StringListDeserializer() {
-    }
+@Internal
+final class StringListDeserializer implements DeserializerRegistrar<ArrayList<String>> {
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
@@ -57,5 +54,10 @@ final class StringListDeserializer implements Deserializer<ArrayList<String>> {
     @Override
     public ArrayList<String> getDefaultValue(DecoderContext context, Argument<? super ArrayList<String>> type) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Argument<ArrayList<String>> getType() {
+        return (Argument) Argument.of(ArrayList.class, String.class);
     }
 }

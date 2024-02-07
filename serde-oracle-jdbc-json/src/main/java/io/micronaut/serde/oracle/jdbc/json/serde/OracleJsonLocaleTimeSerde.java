@@ -15,13 +15,13 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.support.serdes.LocalTimeSerde;
 import jakarta.inject.Singleton;
 
 import java.time.LocalDate;
@@ -37,9 +37,9 @@ import java.time.LocalTime;
 @Order(-100)
 public class OracleJsonLocaleTimeSerde extends AbstractOracleJsonSerde<LocalTime> {
 
-    private final LocalTimeSerde localTimeSerde;
+    private final Serde<LocalTime> localTimeSerde;
 
-    public OracleJsonLocaleTimeSerde(LocalTimeSerde localTimeSerde) {
+    public OracleJsonLocaleTimeSerde(@Secondary Serde<LocalTime> localTimeSerde) {
         this.localTimeSerde = localTimeSerde;
     }
 

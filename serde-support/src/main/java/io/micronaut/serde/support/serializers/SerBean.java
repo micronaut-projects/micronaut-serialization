@@ -107,10 +107,11 @@ final class SerBean<T> {
             SerdeIntrospections introspections,
             Serializer.EncoderContext encoderContext,
             @Nullable SerdeArgumentConf serdeArgumentConf,
-            BeanContext beanContext) throws SerdeException {
+            SerializationConfiguration serializationConfiguration,
+            @Nullable BeanContext beanContext) throws SerdeException {
         // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
         this.serdeArgumentConf = serdeArgumentConf;
-        this.configuration = encoderContext.getSerializationConfiguration().orElseGet(() -> beanContext.getBean(SerializationConfiguration.class));
+        this.configuration = encoderContext.getSerializationConfiguration().orElse(serializationConfiguration);
         this.introspection = introspections.getSerializableIntrospection(type);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
         subtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();
@@ -471,9 +472,9 @@ final class SerBean<T> {
         return resolvedName;
     }
 
-    private PropertyFilter getPropertyFilterIfPresent(BeanContext beanContext, String typeName) {
+    private PropertyFilter getPropertyFilterIfPresent(@Nullable BeanContext beanContext, String typeName) {
         Optional<String> filterName = introspection.stringValue(SerdeConfig.class, SerdeConfig.FILTER);
-        if (filterName.isPresent() && !filterName.get().isEmpty()) {
+        if (beanContext != null && filterName.isPresent() && !filterName.get().isEmpty()) {
             return beanContext.findBean(PropertyFilter.class, Qualifiers.byName(filterName.get()))
                 .orElseGet(() -> {
                     LoggerFactory.getLogger(SerBean.class)

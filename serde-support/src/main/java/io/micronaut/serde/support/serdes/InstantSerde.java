@@ -15,8 +15,9 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -27,8 +28,7 @@ import java.time.temporal.TemporalQuery;
  *
  * @since 1.0.0
  */
-@Singleton
-public final class InstantSerde extends NumericSupportTemporalSerde<Instant> implements TemporalSerde<Instant> {
+public final class InstantSerde extends NumericSupportTemporalSerde<Instant> implements TemporalSerde<Instant>, SerdeRegistrar<Instant> {
 
     private static final TemporalQuery<Instant> QUERY = Instant::from;
 
@@ -59,5 +59,10 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
     @Override
     protected DefaultFormattedTemporalSerde<Instant> createSpecific(SerdeConfiguration configuration) {
         return new InstantSerde(configuration);
+    }
+
+    @Override
+    public Argument<Instant> getType() {
+        return Argument.of(Instant.class);
     }
 }

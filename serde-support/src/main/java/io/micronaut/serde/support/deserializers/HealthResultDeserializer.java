@@ -16,6 +16,7 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.context.annotation.Requires;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
@@ -31,6 +32,7 @@ import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.util.Map;
 
+@Internal
 @Singleton
 @Requires(classes = HealthResult.class)
 final class HealthResultDeserializer implements CustomizableDeserializer<HealthResult> {

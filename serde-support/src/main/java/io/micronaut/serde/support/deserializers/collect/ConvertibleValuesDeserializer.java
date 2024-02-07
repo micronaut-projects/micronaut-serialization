@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support.deserializers;
+package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionService;
@@ -26,14 +27,14 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.DeserializerRegistrar;
 
 import java.io.IOException;
 import java.util.Optional;
 
-@Singleton
+@Internal
 @SuppressWarnings("rawtypes")
-final class ConvertibleValuesDeserializer implements Deserializer<ConvertibleValues> {
+final class ConvertibleValuesDeserializer implements DeserializerRegistrar<ConvertibleValues> {
     @NonNull
     private final ConversionService conversionService;
 
@@ -62,6 +63,11 @@ final class ConvertibleValuesDeserializer implements Deserializer<ConvertibleVal
         return new JsonNodeConvertibleValues(node, conversionService);
     }
 
+    @Override
+    public Argument<ConvertibleValues> getType() {
+        return Argument.of(ConvertibleValues.class, Argument.ofTypeVariable(Object.class, "V"));
+    }
+
     private class Specialized implements Deserializer<ConvertibleValues> {
         @Nullable
         private final Argument<Object> componentType;
@@ -84,7 +90,7 @@ final class ConvertibleValuesDeserializer implements Deserializer<ConvertibleVal
                 if (key == null) {
                     break;
                 }
-                map.put(key, componentDeserializer.deserialize(decoder, context, componentType));
+                map.put(key, componentDeserializer.deserialize(obj, context, componentType));
             }
             obj.finishStructure();
             return map;

@@ -15,8 +15,9 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -28,10 +29,9 @@ import java.time.temporal.TemporalQuery;
  *
  * @since 1.0.0
  */
-@Singleton
 public final class ZonedDateTimeSerde
     extends NumericSupportTemporalSerde<ZonedDateTime>
-        implements TemporalSerde<ZonedDateTime> {
+        implements TemporalSerde<ZonedDateTime>, SerdeRegistrar<ZonedDateTime> {
 
     ZonedDateTimeSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_ZONED_DATE_TIME, SerdeConfiguration.NumericTimeUnit.MILLISECONDS);
@@ -60,5 +60,10 @@ public final class ZonedDateTimeSerde
     @Override
     protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecific(SerdeConfiguration configuration) {
         return new ZonedDateTimeSerde(configuration);
+    }
+
+    @Override
+    public Argument<ZonedDateTime> getType() {
+        return Argument.of(ZonedDateTime.class);
     }
 }

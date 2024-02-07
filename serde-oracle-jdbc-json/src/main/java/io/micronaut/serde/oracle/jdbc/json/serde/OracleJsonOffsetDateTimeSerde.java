@@ -15,12 +15,12 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.support.serdes.OffsetDateTimeSerde;
 import jakarta.inject.Singleton;
 
 import java.time.OffsetDateTime;
@@ -34,9 +34,9 @@ import java.time.OffsetDateTime;
 @Singleton
 @Order(-100)
 public class OracleJsonOffsetDateTimeSerde extends AbstractOracleJsonSerde<OffsetDateTime> {
-    private final OffsetDateTimeSerde offsetDateTimeSerde;
+    private final Serde<OffsetDateTime> offsetDateTimeSerde;
 
-    public OracleJsonOffsetDateTimeSerde(OffsetDateTimeSerde offsetDateTimeSerde) {
+    public OracleJsonOffsetDateTimeSerde(@Secondary Serde<OffsetDateTime> offsetDateTimeSerde) {
         this.offsetDateTimeSerde = offsetDateTimeSerde;
     }
 

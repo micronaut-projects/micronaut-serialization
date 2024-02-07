@@ -15,8 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.Primary;
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
@@ -32,7 +31,6 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
-import jakarta.inject.Singleton;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,9 +42,7 @@ import java.util.function.Supplier;
  * @author graemerocher
  * @since 1.0.0
  */
-@Singleton
-@Primary
-@BootstrapContextCompatible
+@Internal
 public class ObjectDeserializer implements CustomizableDeserializer<Object>, DeserBeanRegistry {
     private final SerdeIntrospections introspections;
     private final Map<DeserBeanKey, Supplier<DeserBean<?>>> deserBeanMap = new ConcurrentHashMap<>(50);

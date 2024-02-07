@@ -15,18 +15,19 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
-import jakarta.inject.Singleton;
 
 /**
  * A serializer for any iterable.
  * @param <T> The generic type
  */
-@Singleton
-final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>> {
+@Internal
+final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>, SerializerRegistrar<Iterable<T>> {
     @Override
     public Serializer<Iterable<T>> createSpecific(EncoderContext context, Argument<? extends Iterable<T>> type)
             throws SerdeException {
@@ -43,4 +44,8 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
         return new RuntimeValueIterableSerializer<>();
     }
 
+    @Override
+    public Argument<Iterable<T>> getType() {
+        return (Argument) Argument.of(Iterable.class, Argument.ofTypeVariable(Object.class, "T"));
+    }
 }

@@ -15,15 +15,13 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -32,9 +30,7 @@ import java.time.Instant;
 /**
  * Serde for SQL timestamps.
  */
-@Singleton
-@Secondary
-final class SqlTimestampSerde implements Serde<Timestamp> {
+final class SqlTimestampSerde implements SerdeRegistrar<Timestamp> {
     private static final Argument<Instant> INSTANT_ARGUMENT = Argument.of(Instant.class);
     private final InstantSerde instantSerde;
 
@@ -91,6 +87,11 @@ final class SqlTimestampSerde implements Serde<Timestamp> {
                 decoderContext,
                 INSTANT_ARGUMENT
         ));
+    }
+
+    @Override
+    public Argument<Timestamp> getType() {
+        return Argument.of(Timestamp.class);
     }
 }
 

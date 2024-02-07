@@ -15,70 +15,24 @@
  */
 package io.micronaut.serde.support.serializers;
 
-import io.micronaut.context.annotation.Factory;
-import io.micronaut.core.annotation.Order;
-import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serializer;
-import jakarta.inject.Singleton;
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.support.SerializerRegistrar;
 
-import java.io.IOException;
-import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- * Factory class for core serializers.
+ * Core serializers.
  */
-@Factory
+@Internal
 public final class CoreSerializers {
 
-    @Singleton
-    @Order(1000) // prioritize over character
-    Serializer<String> stringSerializer() {
-        return new Serializer<String>() {
-            @Override
-            public void serialize(Encoder encoder,
-                                  EncoderContext context,
-                                  Argument<? extends String> type, String value) throws IOException {
-                encoder.encodeString(value);
-            }
-
-            @Override
-            public boolean isEmpty(EncoderContext context, String value) {
-                return value == null || value.isEmpty();
-            }
-        };
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Character}.
-     *
-     * @return A Character serializer
-     */
-    @Singleton
-    Serializer<Character> charSerializer() {
-        return (encoder, context, type, value) -> encoder.encodeChar(value);
-    }
-
-    /**
-     * A serializer for all instances of {@link java.lang.Boolean}.
-     *
-     * @return A boolean serializer
-     */
-    @Singleton
-    Serializer<Boolean> booleanSerializer() {
-        return (encoder, context, type, value) -> encoder.encodeBoolean(value);
-    }
-
-    /**
-     * A serializer for maps.
-     *
-     * @param <K> The key type
-     * @param <V> The value type
-     * @return A bit decimal serializer
-     */
-    @Singleton
-    <K, V> Serializer<Map<K, V>> mapSerializer() {
-        return new CustomizedMapSerializer<>();
+    public static void register(SerializationConfiguration serializationConfiguration, Consumer<SerializerRegistrar<?>> consumer) {
+        consumer.accept(new CustomizedMapSerializer<>());
+        consumer.accept(new IterableSerializer<>());
+        consumer.accept(new OptionalMultiValuesSerializer<>(serializationConfiguration));
+        consumer.accept(new OptionalValuesSerializer<>());
+        consumer.accept(new StreamSerializer<>());
     }
 
 }

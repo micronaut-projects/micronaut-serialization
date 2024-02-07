@@ -17,9 +17,9 @@ package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
 
@@ -29,11 +29,11 @@ import io.micronaut.serde.util.CustomizableSerializer;
  * @author graemerocher
  * @since 1.0.0
  */
-public class ObjectArraySerde implements Serde<Object[]>, CustomizableSerializer<Object[]>, CustomizableDeserializer<Object[]> {
+public class ObjectArraySerde implements SerdeRegistrar<Object[]>, CustomizableSerializer<Object[]>, CustomizableDeserializer<Object[]> {
+
     @Override
     public Deserializer<Object[]> createSpecific(DecoderContext context, Argument<? super Object[]> type)
             throws SerdeException {
-
         final Argument<Object> componentType = Argument.of((Class<Object>) type.getType().getComponentType());
         final Deserializer<?> deserializer = context.findDeserializer(componentType).createSpecific(context, componentType);
         return new CustomizedObjectArrayDeserializer(componentType, deserializer);
@@ -41,12 +41,13 @@ public class ObjectArraySerde implements Serde<Object[]>, CustomizableSerializer
 
     @Override
     public Serializer<Object[]> createSpecific(EncoderContext context, Argument<? extends Object[]> type) throws SerdeException {
-        Class<?> arrayItemType = type.getType().getComponentType();
-        if (arrayItemType == String.class) {
-            return (Serializer) StringArraySerializer.INSTANCE;
-        }
-        final Argument<Object> componentType = Argument.of((Class<Object>) arrayItemType);
+        final Argument<Object> componentType = Argument.of((Class<Object>) type.getType().getComponentType());
         final Serializer<? super Object> serializer = context.findSerializer(componentType).createSpecific(context, componentType);
         return new CustomizedObjectArraySerializer(componentType, serializer);
+    }
+
+    @Override
+    public Argument<Object[]> getType() {
+        return Argument.of(Object[].class);
     }
 }

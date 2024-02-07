@@ -16,11 +16,10 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.context.BeanContext;
-import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
@@ -34,7 +33,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableSerializer;
-import jakarta.inject.Singleton;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,17 +51,38 @@ import java.util.function.Supplier;
  * </ul>
  */
 @Internal
-@Singleton
-@Primary
-@BootstrapContextCompatible
 public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final SerdeIntrospections introspections;
-    private final BeanContext beanContext;
+    private final SerdeConfiguration serdeConfiguration;
+    private final SerializationConfiguration serializationConfiguration;
     private final Map<SerBeanKey, Supplier<SerBean<?>>> serBeanMap = new ConcurrentHashMap<>(50);
+    @Nullable
+    private final BeanContext beanContext;
 
-    public ObjectSerializer(SerdeIntrospections introspections, BeanContext beanContext) {
+    public ObjectSerializer(SerdeIntrospections introspections,
+                            SerdeConfiguration serdeConfiguration,
+                            SerializationConfiguration serializationConfiguration) {
+        this(introspections, serdeConfiguration, serializationConfiguration, null);
+    }
+
+    public ObjectSerializer(SerdeIntrospections introspections,
+                            SerdeConfiguration serdeConfiguration,
+                            SerializationConfiguration serializationConfiguration,
+                            @Nullable BeanContext beanContext) {
         this.introspections = introspections;
+        this.serdeConfiguration = serdeConfiguration;
+        this.serializationConfiguration = serializationConfiguration;
         this.beanContext = beanContext;
+    }
+
+    /**
+     * @param introspections The introspections
+     * @param beanContext The bean context
+     * @deprecated Replaced by {@link #ObjectSerializer(SerdeIntrospections, SerdeConfiguration, SerializationConfiguration)}
+     */
+    @Deprecated(since = "2.9", forRemoval = true)
+    public ObjectSerializer(SerdeIntrospections introspections, BeanContext beanContext) {
+        this(introspections, beanContext.getBean(SerdeConfiguration.class), beanContext.getBean(SerializationConfiguration.class));
     }
 
     @Override
@@ -129,15 +148,15 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         SerdeArgumentConf serdeArgumentConf = annotationMetadata.isEmpty() ? null : new SerdeArgumentConf(annotationMetadata);
         SerBeanKey key = new SerBeanKey(
-            context.getSerdeConfiguration().orElseGet(() -> beanContext.getBean(SerdeConfiguration.class)),
-            context.getSerializationConfiguration().orElseGet(() -> beanContext.getBean(SerializationConfiguration.class)),
+            context.getSerdeConfiguration().orElse(serdeConfiguration),
+            context.getSerializationConfiguration().orElse(serializationConfiguration),
             type,
             serdeArgumentConf
         );
         // Use suppliers to prevent recursive update because the lambda will call the same method again
         Supplier<SerBean<?>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> {
             try {
-                return new SerBean<>(type, introspections, context, serdeArgumentConf, beanContext);
+                return new SerBean<>(type, introspections, context, serdeArgumentConf, serializationConfiguration, beanContext);
             } catch (SerdeException e) {
                 throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
             }

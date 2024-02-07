@@ -25,7 +25,7 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -34,8 +34,7 @@ import java.net.InetAddress;
  * {@link Serde} implementation of {@link InetAddress}.
  * This is a based on `com.fasterxml.jackson.databind.ser.std.InetAddressSerializer` which is licenced under the Apache 2.0 licence.
  */
-@Singleton
-public class InetAddressSerde implements Serde<InetAddress> {
+public class InetAddressSerde implements SerdeRegistrar<InetAddress> {
 
     private final boolean asNumeric;
 
@@ -75,5 +74,10 @@ public class InetAddressSerde implements Serde<InetAddress> {
             }
         }
         encoder.encodeString(str);
+    }
+
+    @Override
+    public Argument<InetAddress> getType() {
+        return Argument.of(InetAddress.class);
     }
 }

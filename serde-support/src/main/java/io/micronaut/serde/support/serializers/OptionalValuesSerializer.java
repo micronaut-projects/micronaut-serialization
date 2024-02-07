@@ -15,21 +15,22 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalValues;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
-import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Optional;
 
-@Singleton
-class OptionalValuesSerializer<V> implements CustomizableSerializer<OptionalValues<V>> {
+@Internal
+final class OptionalValuesSerializer<V> implements CustomizableSerializer<OptionalValues<V>>, SerializerRegistrar<OptionalValues<V>> {
 
     @Override
     public io.micronaut.serde.ObjectSerializer<OptionalValues<V>> createSpecific(EncoderContext context, Argument<? extends OptionalValues<V>> type) throws SerdeException {
@@ -70,5 +71,10 @@ class OptionalValuesSerializer<V> implements CustomizableSerializer<OptionalValu
     @Override
     public boolean isEmpty(EncoderContext context, OptionalValues<V> value) {
         return value.isEmpty();
+    }
+
+    @Override
+    public Argument<OptionalValues<V>> getType() {
+        return (Argument) Argument.of(OptionalValues.class, Argument.ofTypeVariable(Object.class, "V"));
     }
 }

@@ -15,15 +15,13 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.context.annotation.Secondary;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -34,9 +32,7 @@ import java.time.LocalDate;
  *
  * @since 1.0.0
  */
-@Singleton
-@Secondary
-final class SqlDateSerde implements Serde<Date> {
+final class SqlDateSerde implements SerdeRegistrar<Date> {
     private static final Argument<LocalDate> LOCAL_DATE_ARGUMENT = Argument.of(LocalDate.class);
     private final LocalDateSerde localDateSerde;
 
@@ -104,5 +100,10 @@ final class SqlDateSerde implements Serde<Date> {
             return Date.valueOf(localDate);
         }
         return null;
+    }
+
+    @Override
+    public Argument<Date> getType() {
+        return Argument.of(Date.class);
     }
 }

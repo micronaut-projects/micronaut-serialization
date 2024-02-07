@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -29,6 +30,7 @@ import java.util.TreeMap;
  * @param <V> The map value type
  * @author Denis Stepanov
  */
+@Internal
 final class TreeMapDeserializer<K, V> extends MapDeserializer<K, V, TreeMap<K, V>> {
 
     TreeMapDeserializer(Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {

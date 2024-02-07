@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
@@ -23,6 +24,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
 
 import java.io.IOException;
@@ -35,11 +37,12 @@ import java.util.Map;
  * @param <V> The value type
  * @author Denis Stepanov
  */
-final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<K, V>> {
+@Internal
+final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<K, V>>, SerializerRegistrar<Map<K, V>> {
 
     @Override
     public ObjectSerializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
-        final Argument[] generics = type.getTypeParameters();
+        final Argument<?>[] generics = type.getTypeParameters();
         final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
         if (hasGenerics) {
             final Argument<V> valueGeneric = (Argument<V>) generics[1];
@@ -132,4 +135,8 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
         }
     }
 
+    @Override
+    public Argument<Map<K, V>> getType() {
+        return (Argument) Argument.mapOf(Argument.ofTypeVariable(Object.class, "K"), Argument.ofTypeVariable(Object.class, "V"));
+    }
 }

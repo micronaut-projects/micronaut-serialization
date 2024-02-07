@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -32,6 +33,7 @@ import java.io.IOException;
  *
  * @author Denis Stepanov
  */
+@Internal
 final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
     private final BeanIntrospection<Object> introspection;
     private final PropertiesBag<Object> constructorParameters;

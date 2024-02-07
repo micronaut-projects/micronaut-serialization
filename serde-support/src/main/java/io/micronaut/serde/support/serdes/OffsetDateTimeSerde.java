@@ -15,8 +15,9 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -26,8 +27,7 @@ import java.time.temporal.TemporalQuery;
 /**
  * Serde for OffsetDateTime.
  */
-@Singleton
-public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<OffsetDateTime> {
+public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<OffsetDateTime> implements SerdeRegistrar<OffsetDateTime> {
     /**
      * Allows configuring a default time format for temporal date/time types.
      *
@@ -67,5 +67,10 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
     @Override
     protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecific(SerdeConfiguration configuration) {
         return new OffsetDateTimeSerde(configuration);
+    }
+
+    @Override
+    public Argument<OffsetDateTime> getType() {
+        return Argument.of(OffsetDateTime.class);
     }
 }

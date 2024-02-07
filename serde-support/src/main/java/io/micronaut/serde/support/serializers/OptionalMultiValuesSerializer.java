@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalMultiValues;
@@ -23,8 +24,8 @@ import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
-import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,8 +37,8 @@ import java.util.Optional;
  *
  * @param <V> The value type
  */
-@Singleton
-final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<OptionalMultiValues<V>> {
+@Internal
+final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<OptionalMultiValues<V>>, SerializerRegistrar<OptionalMultiValues<V>> {
     private final boolean alwaysSerializeErrorsAsList;
 
     public OptionalMultiValuesSerializer(SerializationConfiguration jacksonConfiguration) {
@@ -110,4 +111,8 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
         };
     }
 
+    @Override
+    public Argument<OptionalMultiValues<V>> getType() {
+        return (Argument) Argument.of(OptionalMultiValues.class, Argument.ofTypeVariable(Object.class, "V"));
+    }
 }

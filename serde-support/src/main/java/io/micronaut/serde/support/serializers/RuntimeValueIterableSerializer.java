@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
@@ -28,6 +29,7 @@ import java.util.Collection;
  * @param <T> The iterable type
  * @author Denis Stepanov
  */
+@Internal
 final class RuntimeValueIterableSerializer<T> implements Serializer<Iterable<T>> {
 
     @Override
@@ -39,7 +41,7 @@ final class RuntimeValueIterableSerializer<T> implements Serializer<Iterable<T>>
         Argument<T> generic = null;
         for (T t : value) {
             if (t == null) {
-                encoder.encodeNull();
+                childEncoder.encodeNull();
                 continue;
             }
             if (lastValueClass != t.getClass() || componentSerializer == null) {
@@ -57,8 +59,8 @@ final class RuntimeValueIterableSerializer<T> implements Serializer<Iterable<T>>
         if (value == null) {
             return true;
         }
-        if (value instanceof Collection) {
-            return ((Collection<T>) value).isEmpty();
+        if (value instanceof Collection<?> collection) {
+            return collection.isEmpty();
         } else {
             return !value.iterator().hasNext();
         }

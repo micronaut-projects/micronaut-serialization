@@ -15,24 +15,25 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
-import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-@Singleton
-final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>> {
+@Internal
+final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>>, SerializerRegistrar<Stream<T>> {
 
     @Override
     public Serializer<Stream<T>> createSpecific(EncoderContext context, Argument<? extends Stream<T>> type) throws SerdeException {
-        final Argument[] generics = type.getTypeParameters();
+        final Argument<?>[] generics = type.getTypeParameters();
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot serialize raw stream");
         }
@@ -48,13 +49,18 @@ final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>> {
                 Iterator<T> itr = value.iterator();
                 while (itr.hasNext()) {
                     componentSerializer
-                            .serialize(
-                                    encoder,
-                                    context, generic, itr.next()
-                            );
+                        .serialize(
+                            arrayEncoder,
+                            context, generic, itr.next()
+                        );
                 }
                 arrayEncoder.finishStructure();
             }
         };
+    }
+
+    @Override
+    public Argument<Stream<T>> getType() {
+        return (Argument) Argument.of(Stream.class, Argument.ofTypeVariable(Object.class, "T"));
     }
 }

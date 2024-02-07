@@ -21,7 +21,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,8 +30,8 @@ import java.nio.ByteBuffer;
  * {@link Serde} implementation of {@link java.nio.ByteBuffer}.
  * This is a based on `com.fasterxml.jackson.databind.ser.std.ByteBufferSerializer` which is licenced under the Apache 2.0 licence.
  */
-@Singleton
-public class ByteBufferSerde implements Serde<ByteBuffer> {
+public class ByteBufferSerde implements SerdeRegistrar<ByteBuffer> {
+
     @Override
     public @Nullable ByteBuffer deserialize(@NonNull Decoder decoder,
                                             @NonNull DecoderContext context,
@@ -49,5 +49,10 @@ public class ByteBufferSerde implements Serde<ByteBuffer> {
         ByteBuffer copy = ByteBuffer.allocate(slice.remaining());
         copy.put(slice);
         encoder.encodeBinary(copy.array());
+    }
+
+    @Override
+    public Argument<ByteBuffer> getType() {
+        return Argument.of(ByteBuffer.class);
     }
 }
