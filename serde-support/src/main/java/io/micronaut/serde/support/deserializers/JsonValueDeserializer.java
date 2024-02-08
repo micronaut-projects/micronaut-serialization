@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
@@ -30,6 +31,7 @@ import java.io.IOException;
  * @author Denis Stepanov
  * @since 2.5.0
  */
+@Internal
 final class JsonValueDeserializer implements Deserializer<Object> {
     private final DeserBean<? super Object> deserBean;
 

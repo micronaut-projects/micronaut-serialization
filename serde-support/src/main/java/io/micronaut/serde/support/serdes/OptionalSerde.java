@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support.serializers;
+package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
-import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -31,8 +36,9 @@ import java.util.Optional;
  *
  * @param <T> The generic type
  */
-@Singleton
-class OptionalSerializer<T> implements CustomizableSerializer<Optional<T>> {
+@Internal
+final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, CustomizableDeserializer<Optional<T>>, SerdeRegistrar<Optional<T>> {
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)
@@ -76,4 +82,48 @@ class OptionalSerializer<T> implements CustomizableSerializer<Optional<T>> {
         };
     }
 
+    @Override
+    public Deserializer<Optional<T>> createSpecific(DecoderContext context, Argument<? super Optional<T>> type) throws SerdeException {
+        @SuppressWarnings("unchecked") final Argument<T> generic =
+            (Argument<T>) type.getFirstTypeVariable().orElse(null);
+        if (generic == null) {
+            throw new SerdeException("Cannot deserialize raw optional");
+        }
+        final Deserializer<? extends T> deserializer = context.findDeserializer(generic)
+            .createSpecific(context, generic);
+
+        return new Deserializer<>() {
+
+            @Override
+            public Optional<T> deserialize(Decoder decoder, DecoderContext context, Argument<? super Optional<T>> type)
+                throws IOException {
+                if (decoder.decodeNull()) {
+                    return Optional.empty();
+                } else {
+                    return Optional.ofNullable(
+                        deserializer.deserialize(
+                            decoder,
+                            context,
+                            generic
+                        )
+                    );
+                }
+            }
+
+            @Override
+            public Optional<T> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Optional<T>> type) throws IOException {
+                return deserialize(decoder, context, type);
+            }
+
+            @Override
+            public Optional<T> getDefaultValue(DecoderContext context, Argument<? super Optional<T>> type) {
+                return Optional.empty();
+            }
+        };
+    }
+
+    @Override
+    public Argument<Optional<T>> getType() {
+        return (Argument) Argument.of(Optional.class, Argument.ofTypeVariable(Object.class, "T")) ;
+    }
 }

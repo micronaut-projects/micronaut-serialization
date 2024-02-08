@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -29,6 +30,7 @@ import java.util.TreeSet;
  * @param <E> The item type
  * @author Denis Stepanov
  */
+@Internal
 final class TreeSetDeserializer<E> extends CollectionDeserializer<E, TreeSet<E>> {
 
     TreeSetDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {

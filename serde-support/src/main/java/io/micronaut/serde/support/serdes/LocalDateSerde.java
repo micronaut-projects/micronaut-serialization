@@ -15,9 +15,10 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.time.DateTimeException;
@@ -30,8 +31,7 @@ import java.time.temporal.TemporalQuery;
  * Local date serde. Slightly different to {@link NumericSupportTemporalSerde}, we only support one
  * unit (epoch day)
  */
-@Singleton
-public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate> {
+public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDate> implements TemporalSerde<LocalDate>, SerdeRegistrar<LocalDate> {
     private final boolean writeNumeric;
 
     /**
@@ -39,7 +39,7 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
      *
      * @param configuration The configuration
      */
-    LocalDateSerde(SerdeConfiguration configuration) {
+    public LocalDateSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_LOCAL_DATE);
         this.writeNumeric = configuration.getTimeWriteShape() != SerdeConfiguration.TimeShape.STRING;
     }
@@ -73,5 +73,10 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
             throw exc;
         }
         return LocalDate.ofEpochDay(l);
+    }
+
+    @Override
+    public Argument<LocalDate> getType() {
+        return Argument.of(LocalDate.class);
     }
 }

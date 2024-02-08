@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -30,6 +31,7 @@ import java.util.Map;
  * @author Denis Stepanov
  * @since 2.4.0
  */
+@Internal
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
     private final DeserBean<? super Object> deserBean;

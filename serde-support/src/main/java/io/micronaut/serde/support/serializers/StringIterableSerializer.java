@@ -36,7 +36,7 @@ final class StringIterableSerializer implements Serializer<Iterable<String>> {
         final Encoder childEncoder = encoder.encodeArray(type);
         for (String value : values) {
             if (value == null) {
-                encoder.encodeNull();
+                childEncoder.encodeNull();
                 continue;
             }
             childEncoder.encodeString(value);
@@ -49,8 +49,8 @@ final class StringIterableSerializer implements Serializer<Iterable<String>> {
         if (value == null) {
             return true;
         }
-        if (value instanceof Collection) {
-            return ((Collection<String>) value).isEmpty();
+        if (value instanceof Collection<?> collection) {
+            return collection.isEmpty();
         } else {
             return !value.iterator().hasNext();
         }

@@ -15,8 +15,9 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -28,14 +29,13 @@ import java.time.temporal.TemporalQuery;
  *
  * @since 1.0.0
  */
-@Singleton
-public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime> {
+public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime> implements SerdeRegistrar<LocalTime> {
     /**
      * Allows configuring a default time format for temporal date/time types.
      *
      * @param configuration The configuration
      */
-    LocalTimeSerde(SerdeConfiguration configuration) {
+    public LocalTimeSerde(SerdeConfiguration configuration) {
         super(configuration, DateTimeFormatter.ISO_LOCAL_TIME, SerdeConfiguration.NumericTimeUnit.NANOSECONDS);
     }
 
@@ -62,5 +62,10 @@ public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime>
     @Override
     protected DefaultFormattedTemporalSerde<LocalTime> createSpecific(SerdeConfiguration configuration) {
         return new LocalTimeSerde(configuration);
+    }
+
+    @Override
+    public Argument<LocalTime> getType() {
+        return Argument.of(LocalTime.class);
     }
 }

@@ -15,14 +15,14 @@
  */
 package io.micronaut.serde.support.serdes;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -31,8 +31,8 @@ import java.util.Date;
 /**
  * Serde for dates.
  */
-@Singleton
-final class DateSerde implements Serde<Date> {
+@Internal
+final class DateSerde implements SerdeRegistrar<Date> {
     private static final Argument<Instant> INSTANT_ARGUMENT = Argument.of(Instant.class);
     private final InstantSerde instantSerde;
 
@@ -90,5 +90,10 @@ final class DateSerde implements Serde<Date> {
                 decoderContext,
                 INSTANT_ARGUMENT
         ));
+    }
+
+    @Override
+    public Argument<Date> getType() {
+        return Argument.of(Date.class);
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
  * @author Denis Stepanov
  * @since 1.0.0
  */
+@Internal
 final class PropertiesBag<T> {
 
     private final BeanIntrospection<T> beanIntrospection;

@@ -18,7 +18,7 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import jakarta.inject.Singleton;
+import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.time.Year;
@@ -30,8 +30,7 @@ import java.time.temporal.TemporalQuery;
  *
  * @since 1.0.0
  */
-@Singleton
-public class YearSerde implements TemporalSerde<Year> {
+public class YearSerde implements TemporalSerde<Year>, SerdeRegistrar<Year> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Year> type, Year value) throws IOException {
         encoder.encodeInt(value.getValue());
@@ -46,5 +45,10 @@ public class YearSerde implements TemporalSerde<Year> {
     public Year deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Year> type)
             throws IOException {
         return Year.of(decoder.decodeInt());
+    }
+
+    @Override
+    public Argument<Year> getType() {
+        return Argument.of(Year.class);
     }
 }

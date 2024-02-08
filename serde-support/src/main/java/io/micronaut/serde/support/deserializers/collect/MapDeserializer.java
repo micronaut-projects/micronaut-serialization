@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.deserializers.collect;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
@@ -33,6 +34,7 @@ import java.util.Map;
  * @param <V> The map value type
  * @author Denis Stepanov
  */
+@Internal
 abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserializer<M> {
 
     private final Deserializer<? extends V> valueDeser;
