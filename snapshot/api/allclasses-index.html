@@ -196,7 +196,7 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/deserializers/collect/CoreCollectionsDeserializers.html" title="class in io.micronaut.serde.support.deserializers.collect">CoreCollectionsDeserializers</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Core deserializers.</div>
+<div class="block">Core collections deserializers.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serdes/CoreSerdes.html" title="class in io.micronaut.serde.support.serdes">CoreSerdes</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
@@ -204,7 +204,7 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serializers/CoreSerializers.html" title="class in io.micronaut.serde.support.serializers">CoreSerializers</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Factory class for core serializers.</div>
+<div class="block">Core serializers.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;<a href="io/micronaut/serde/util/CustomizableDeserializer.html" title="type parameter in CustomizableDeserializer">T</a>&gt;</div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
@@ -241,29 +241,29 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Default implementation of the <a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> interface.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Serde for byte arrays.</div>
-</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Decoder that delegates to another decoder.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Configuration for deserialization.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&gt;</div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="io/micronaut/serde/Deserializer.html" title="type parameter in Deserializer">T</a>&gt;</div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Interface that represents a deserializer.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Context object passed to the <a href="io/micronaut/serde/Deserializer.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)"><code>Deserializer.deserialize(Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)</code></a> method along with the decoder.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/DeserializerLocator.html" title="interface in io.micronaut.serde">DeserializerLocator</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Locator strategy interface for deserializers.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/support/DeserializerRegistrar.html" title="interface in io.micronaut.serde.support">DeserializerRegistrar</a>&lt;<a href="io/micronaut/serde/support/DeserializerRegistrar.html" title="type parameter in DeserializerRegistrar">T</a>&gt;</div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
+<div class="block">The registrar of <a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a>.</div>
 </div>
 <div class="col-first even-row-color all-classes-table all-classes-table-tab4"><a href="io/micronaut/serde/Dummy.html" title="class in io.micronaut.serde">Dummy</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab4">&nbsp;</div>
@@ -781,9 +781,17 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">An implementation of the <code>JsonMapperSupplier</code> interface for Micronaut Serialization.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/support/SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="io/micronaut/serde/support/SerdeRegistrar.html" title="type parameter in SerdeRegistrar">T</a>&gt;</div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="block">The registrar of <a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde"><code>Serde</code></a>.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Represents a registry where specific serializers can be looked up.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Internal Serdes registrar.</div>
 </div>
 <div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
@@ -806,98 +814,102 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Locator strategy interface for serializers.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/Simple.html" title="class in io.micronaut.serde">Simple</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html" title="class in io.micronaut.serde.config.naming">SnakeCaseStrategy</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/support/SerializerRegistrar.html" title="interface in io.micronaut.serde.support">SerializerRegistrar</a>&lt;<a href="io/micronaut/serde/support/SerializerRegistrar.html" title="type parameter in SerializerRegistrar">T</a>&gt;</div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="block">The registrar of <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a>.</div>
+</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/Simple.html" title="class in io.micronaut.serde">Simple</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/config/naming/SnakeCaseStrategy.html" title="class in io.micronaut.serde.config.naming">SnakeCaseStrategy</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Snake case implementation.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab4"><a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab4">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab4"><a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab4">
 <div class="block">The subtype info.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="type parameter in TemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="type parameter in TemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Interface for serializing and deserializing temporals.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe.Builder</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe2</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe.Builder</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe2.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe2.Builder</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe2</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildName.html" title="class in io.micronaut.serde.jackson.builder">TestBuildName</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildMe2.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe2.Builder</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildName.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildName.Builder</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildName.html" title="class in io.micronaut.serde.jackson.builder">TestBuildName</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildName.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildName.Builder</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype.Builder</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype2</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype.Builder</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype2.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype2.Builder</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype2</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSupertype.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSupertype</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSubtype2.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSubtype2.Builder</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSupertype2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSupertype2</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSupertype.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSupertype</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSupertype2.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSupertype2.Builder</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSupertype2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSupertype2</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab3"><a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html" title="enum class in io.micronaut.serde.jackson.jsonvalue">TokenError</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/util/TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/jackson/builder/TestBuildSupertype2.Builder.html" title="class in io.micronaut.serde.jackson.builder">TestBuildSupertype2.Builder</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab3"><a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html" title="enum class in io.micronaut.serde.jackson.jsonvalue">TokenError</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/util/TypeKey.html" title="class in io.micronaut.serde.support.util">TypeKey</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Can be used as a key for type.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;<a href="io/micronaut/serde/UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt;</div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab1">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab1"><a href="io/micronaut/serde/UpdatingDeserializer.html" title="interface in io.micronaut.serde">UpdatingDeserializer</a>&lt;<a href="io/micronaut/serde/UpdatingDeserializer.html" title="type parameter in UpdatingDeserializer">T</a>&gt;</div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab1">
 <div class="block">Interface that represents a deserializer capable of updating an existing object.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategy</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategy.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategy</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">camel case but first letter always upper.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategyWithSpaces</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/config/naming/UpperCamelCaseStrategyWithSpaces.html" title="class in io.micronaut.serde.config.naming">UpperCamelCaseStrategyWithSpaces</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Upper camel case separated by spaces.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users1.html" title="class in io.micronaut.serde.data">Users1</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
-<div class="block">Created by frenaud on 7/3/16.</div>
-</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users1.Friend.html" title="class in io.micronaut.serde.data">Users1.Friend</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users2.html" title="class in io.micronaut.serde.data">Users2</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users1.html" title="class in io.micronaut.serde.data">Users1</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Created by frenaud on 7/3/16.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users2.User.html" title="class in io.micronaut.serde.data">Users2.User</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users1.Friend.html" title="class in io.micronaut.serde.data">Users1.Friend</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users3.html" title="class in io.micronaut.serde.data">Users3</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users2.html" title="class in io.micronaut.serde.data">Users2</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Created by frenaud on 7/3/16.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users3.Friend.html" title="class in io.micronaut.serde.data">Users3.Friend</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users2.User.html" title="class in io.micronaut.serde.data">Users2.User</a></div>
 <div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/processor/jackson/ValidatingAnnotationMapper.html" title="class in io.micronaut.serde.processor.jackson">ValidatingAnnotationMapper</a></div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users3.html" title="class in io.micronaut.serde.data">Users3</a></div>
 <div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="block">Created by frenaud on 7/3/16.</div>
+</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users3.Friend.html" title="class in io.micronaut.serde.data">Users3.Friend</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">&nbsp;</div>
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/processor/jackson/ValidatingAnnotationMapper.html" title="class in io.micronaut.serde.processor.jackson">ValidatingAnnotationMapper</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Abstract transformer that validate supported members returned by <a href="io/micronaut/serde/processor/jackson/ValidatingAnnotationMapper.html#getSupportedMemberNames()"><code>ValidatingAnnotationMapper.getSupportedMemberNames()</code></a>.</div>
 </div>
-<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serdes/YearSerde.html" title="class in io.micronaut.serde.support.serdes">YearSerde</a></div>
-<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serdes/YearSerde.html" title="class in io.micronaut.serde.support.serdes">YearSerde</a></div>
+<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Serde for year.</div>
 </div>
-<div class="col-first odd-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></div>
-<div class="col-last odd-row-color all-classes-table all-classes-table-tab2">
+<div class="col-first even-row-color all-classes-table all-classes-table-tab2"><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></div>
+<div class="col-last even-row-color all-classes-table all-classes-table-tab2">
 <div class="block">Zoned date time serde.</div>
 </div>
 </div>

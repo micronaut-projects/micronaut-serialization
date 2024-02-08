@@ -46,13 +46,13 @@ loadScripts(document, 'script');</script>
 <li>Summary:&nbsp;</li>
 <li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field-summary">Field</a>&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor-summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
 </ul>
 <ul class="sub-nav-list">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor-detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method-detail">Method</a></li>
 </ul>
 </div>
@@ -79,13 +79,12 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></dd>
+<dd><code>io.micronaut.core.order.Ordered</code>, <code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../DeserializerRegistrar.html" title="interface in io.micronaut.serde.support">DeserializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code>, <code><a href="../SerializerRegistrar.html" title="interface in io.micronaut.serde.support">SerializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></dd>
 </dl>
 <hr>
-<div class="type-signature"><span class="annotations">@Singleton
-</span><span class="modifiers">public final class </span><span class="element-name type-name-label">LocalDateSerde</span>
+<div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">LocalDateSerde</span>
 <span class="extends-implements">extends <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;
-implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</span></div>
+implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;, <a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</span></div>
 <div class="block">Local date serde. Slightly different to <code>NumericSupportTemporalSerde</code>, we only support one
  unit (epoch day)</div>
 </section>
@@ -108,8 +107,26 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <section class="field-summary" id="field-summary">
 <h2>Field Summary</h2>
 <div class="inherited-list">
+<h3 id="fields-inherited-from-class-io.micronaut.core.order.Ordered">Fields inherited from interface&nbsp;io.micronaut.core.order.Ordered</h3>
+<code>HIGHEST_PRECEDENCE, LOWEST_PRECEDENCE</code></div>
+<div class="inherited-list">
 <h3 id="fields-inherited-from-class-io.micronaut.serde.support.serdes.TemporalSerde">Fields inherited from interface&nbsp;io.micronaut.serde.support.serdes.<a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a></h3>
 <code><a href="TemporalSerde.html#UTC">UTC</a></code></div>
+</section>
+</li>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<li>
+<section class="constructor-summary" id="constructor-summary">
+<h2>Constructor Summary</h2>
+<div class="caption"><span>Constructors</span></div>
+<div class="summary-table two-column-summary">
+<div class="table-header col-first">Constructor</div>
+<div class="table-header col-last">Description</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">LocalDateSerde</a><wbr>(<a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Allows configuring a default time format for temporal date/time types.</div>
+</div>
+</div>
 </section>
 </li>
 <!-- ========== METHOD SUMMARY =========== -->
@@ -128,9 +145,12 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create the same serde with new configuration.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/TemporalQuery.html" title="class or interface in java.time.temporal" class="external-link">TemporalQuery</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query()" class="member-name-link">query</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.core.type.Argument&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getType()" class="member-name-link">getType</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/temporal/TemporalQuery.html" title="class or interface in java.time.temporal" class="external-link">TemporalQuery</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#query()" class="member-name-link">query</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -144,6 +164,12 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Deserializer">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a></h3>
 <code><a href="../../Deserializer.html#allowNull()">allowNull</a>, <a href="../../Deserializer.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">deserialize</a>, <a href="../../Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">deserializeNullable</a>, <a href="../../Deserializer.html#getDefaultValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">getDefaultValue</a></code></div>
 <div class="inherited-list">
+<h3 id="methods-inherited-from-class-io.micronaut.core.order.Ordered">Methods inherited from interface&nbsp;io.micronaut.core.order.Ordered</h3>
+<code>getOrder</code></div>
+<div class="inherited-list">
+<h3 id="methods-inherited-from-class-io.micronaut.serde.support.SerdeRegistrar">Methods inherited from interface&nbsp;io.micronaut.serde.support.<a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a></h3>
+<code><a href="../SerdeRegistrar.html#getTypes()">getTypes</a></code></div>
+<div class="inherited-list">
 <h3 id="methods-inherited-from-class-io.micronaut.serde.Serializer">Methods inherited from interface&nbsp;io.micronaut.serde.<a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a></h3>
 <code><a href="../../Serializer.html#isAbsent(io.micronaut.serde.Serializer.EncoderContext,T)">isAbsent</a>, <a href="../../Serializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)">isEmpty</a>, <a href="../../Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">serialize</a></code></div>
 <div class="inherited-list">
@@ -155,6 +181,25 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 </section>
 <section class="details">
 <ul class="details-list">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<li>
+<section class="constructor-details" id="constructor-detail">
+<h2>Constructor Details</h2>
+<ul class="member-list">
+<li>
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.config.SerdeConfiguration)">
+<h3>LocalDateSerde</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">LocalDateSerde</span><wbr><span class="parameters">(<a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</span></div>
+<div class="block">Allows configuring a default time format for temporal date/time types.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>configuration</code> - The configuration</dd>
+</dl>
+</section>
+</li>
+</ul>
+</section>
+</li>
 <!-- ============ METHOD DETAIL ========== -->
 <li>
 <section class="method-details" id="method-detail">
@@ -185,6 +230,22 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <dd><code>configuration</code> - The new configuration</dd>
 <dt>Returns:</dt>
 <dd>The updated serde</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getType()">
+<h3>getType</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">io.micronaut.core.type.Argument&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</span>&nbsp;<span class="element-name">getType</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../DeserializerRegistrar.html#getType()">getType</a></code>&nbsp;in interface&nbsp;<code><a href="../DeserializerRegistrar.html" title="interface in io.micronaut.serde.support">DeserializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></dd>
+<dt>Specified by:</dt>
+<dd><code><a href="../SerdeRegistrar.html#getType()">getType</a></code>&nbsp;in interface&nbsp;<code><a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></dd>
+<dt>Specified by:</dt>
+<dd><code><a href="../SerializerRegistrar.html#getType()">getType</a></code>&nbsp;in interface&nbsp;<code><a href="../SerializerRegistrar.html" title="interface in io.micronaut.serde.support">SerializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/LocalDate.html" title="class or interface in java.time" class="external-link">LocalDate</a>&gt;</code></dd>
+<dt>Returns:</dt>
+<dd>The serde argument type</dd>
 </dl>
 </section>
 </li>

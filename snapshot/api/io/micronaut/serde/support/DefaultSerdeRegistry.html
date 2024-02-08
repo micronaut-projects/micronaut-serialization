@@ -44,7 +44,7 @@ loadScripts(document, 'script');</script>
 <div>
 <ul class="sub-nav-list">
 <li>Summary:&nbsp;</li>
-<li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
+<li>Nested&nbsp;|&nbsp;</li>
 <li><a href="#field-summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor-summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
@@ -88,23 +88,6 @@ implements <a href="../SerdeRegistry.html" title="interface in io.micronaut.serd
 </section>
 <section class="summary">
 <ul class="summary-list">
-<!-- ======== NESTED CLASS SUMMARY ======== -->
-<li>
-<section class="nested-class-summary" id="nested-class-summary">
-<h2>Nested Class Summary</h2>
-<div class="caption"><span>Nested Classes</span></div>
-<div class="summary-table three-column-summary">
-<div class="table-header col-first">Modifier and Type</div>
-<div class="table-header col-second">Class</div>
-<div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static final class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="DefaultSerdeRegistry.ByteArraySerde.html" class="type-name-link" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></code></div>
-<div class="col-last even-row-color">
-<div class="block">Serde for byte arrays.</div>
-</div>
-</div>
-</section>
-</li>
 <!-- =========== FIELD SUMMARY =========== -->
 <li>
 <section class="field-summary" id="field-summary">
@@ -114,97 +97,209 @@ implements <a href="../SerdeRegistry.html" title="interface in io.micronaut.serd
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.BigDecimalSerde</code></div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#BIG_DECIMAL_SERDE" class="member-name-link">BIG_DECIMAL_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.BigIntegerSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#BIG_INTEGER_SERDE" class="member-name-link">BIG_INTEGER_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.BooleanArraySerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;boolean[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#BOOLEAN_ARRAY_SERDE" class="member-name-link">BOOLEAN_ARRAY_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.BooleanSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#BOOLEAN_SERDE" class="member-name-link">BOOLEAN_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final <a href="DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;byte[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#BYTE_ARRAY_SERDE" class="member-name-link">BYTE_ARRAY_SERDE</a></code></div>
 <div class="col-last even-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">This serde needs configuration now.</div>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
 </div>
 </div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.ByteSerde</code></div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html" title="class or interface in java.lang" class="external-link">Byte</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#BYTE_SERDE" class="member-name-link">BYTE_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.CharArraySerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;char[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#CHAR_ARRAY_SERDE" class="member-name-link">CHAR_ARRAY_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.CharSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html" title="class or interface in java.nio.charset" class="external-link">Charset</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#CHAR_SERDE" class="member-name-link">CHAR_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.CharsetSerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html" title="class or interface in java.nio.charset" class="external-link">Charset</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#CHARSET_SERDE" class="member-name-link">CHARSET_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;io.micronaut.serde.support.DefaultSerdeRegistry.SerdeRegistrar&lt;?&gt;&gt;</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;?&gt;&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#DEFAULT_SERDES" class="member-name-link">DEFAULT_SERDES</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.DoubleArraySerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;double[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#DOUBLE_ARRAY_SERDE" class="member-name-link">DOUBLE_ARRAY_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.DoubleSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#DOUBLE_SERDE" class="member-name-link">DOUBLE_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.FloatArraySerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;float[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#FLOAT_ARRAY_SERDE" class="member-name-link">FLOAT_ARRAY_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.FloatSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html" title="class or interface in java.lang" class="external-link">Float</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#FLOAT_SERDE" class="member-name-link">FLOAT_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.IntArraySerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;int[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#INT_ARRAY_SERDE" class="member-name-link">INT_ARRAY_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.IntegerSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html" title="class or interface in java.lang" class="external-link">Integer</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#INTEGER_SERDE" class="member-name-link">INTEGER_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.LocaleSerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html" title="class or interface in java.util" class="external-link">Locale</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#LOCALE_SERDE" class="member-name-link">LOCALE_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.LongArraySerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;long[]&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#LONG_ARRAY_SERDE" class="member-name-link">LONG_ARRAY_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.LongSerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#LONG_SERDE" class="member-name-link">LONG_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.OptionalDoubleSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalDouble.html" title="class or interface in java.util" class="external-link">OptionalDouble</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#OPTIONAL_DOUBLE_SERDE" class="member-name-link">OPTIONAL_DOUBLE_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.OptionalIntSerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalInt.html" title="class or interface in java.util" class="external-link">OptionalInt</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#OPTIONAL_INT_SERDE" class="member-name-link">OPTIONAL_INT_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.OptionalLongSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalLong.html" title="class or interface in java.util" class="external-link">OptionalLong</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#OPTIONAL_LONG_SERDE" class="member-name-link">OPTIONAL_LONG_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.ShortArraySerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;short[]&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#SHORT_ARRAY_SERDE" class="member-name-link">SHORT_ARRAY_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.ShortSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html" title="class or interface in java.lang" class="external-link">Short</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#SHORT_SERDE" class="member-name-link">SHORT_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.StringSerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#STRING_SERDE" class="member-name-link">STRING_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.TimeZoneSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TimeZone.html" title="class or interface in java.util" class="external-link">TimeZone</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#TIME_ZONE_SERDE" class="member-name-link">TIME_ZONE_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.URISerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URI.html" title="class or interface in java.net" class="external-link">URI</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#URI_SERDE" class="member-name-link">URI_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.URLSerde</code></div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html" title="class or interface in java.net" class="external-link">URL</a>&gt;</code></div>
 <div class="col-second odd-row-color"><code><a href="#URL_SERDE" class="member-name-link">URL_SERDE</a></code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>static final io.micronaut.serde.support.DefaultSerdeRegistry.UUIDSerde</code></div>
+<div class="col-last odd-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&gt;</code></div>
 <div class="col-second even-row-color"><code><a href="#UUID_SERDE" class="member-name-link">UUID_SERDE</a></code></div>
-<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
+</div>
 </div>
 </section>
 </li>
@@ -216,18 +311,27 @@ implements <a href="../SerdeRegistry.html" title="interface in io.micronaut.serd
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(io.micronaut.context.BeanContext&nbsp;beanContext,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(@Nullable io.micronaut.context.BeanContext&nbsp;beanContext,
+ <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
+ io.micronaut.core.convert.ConversionService&nbsp;conversionService,
+ <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration,
+ <a href="../config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
+ <a href="../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Default constructor.</div>
+</div>
+<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(io.micronaut.context.BeanContext&nbsp;beanContext,
  <a href="serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a>&nbsp;objectSerializer,
  <a href="deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a>&nbsp;objectDeserializer,
  <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;objectArraySerde,
  <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
  io.micronaut.core.convert.ConversionService&nbsp;conversionService)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span>
 <div class="deprecation-comment">Use <a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)"><code>DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code></a> instead</div>
 </div>
 </div>
-<div class="col-constructor-name odd-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(io.micronaut.context.BeanContext&nbsp;beanContext,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">DefaultSerdeRegistry</a><wbr>(io.micronaut.context.BeanContext&nbsp;beanContext,
  <a href="serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a>&nbsp;objectSerializer,
  <a href="deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a>&nbsp;objectDeserializer,
  <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;objectArraySerde,
@@ -236,8 +340,10 @@ implements <a href="../SerdeRegistry.html" title="interface in io.micronaut.serd
  <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration,
  <a href="../config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
  <a href="../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Default constructor.</div>
+<div class="col-last even-row-color">
+<div class="block"><span class="deprecated-label">Deprecated, for removal: This API element is subject to removal in a future version.</span>
+<div class="deprecation-comment">Use <a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)"><code>DefaultSerdeRegistry(BeanContext, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code></a></div>
+</div>
 </div>
 </div>
 </section>
@@ -277,35 +383,40 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Finds a deserializer for the given type.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;D extends <a href="../config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;<br>D</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findNamingStrategy(java.lang.Class)" class="member-name-link">findNamingStrategy</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends D&gt;&nbsp;namingStrategyClass)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;@Nullable <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findInternalSerde(io.micronaut.core.type.Argument)" class="member-name-link">findInternalSerde</a><wbr>(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Find internal serde by type.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;D extends <a href="../config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a>&gt;<br>D</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findNamingStrategy(java.lang.Class)" class="member-name-link">findNamingStrategy</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;? extends D&gt;&nbsp;namingStrategyClass)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Gets a naming strategy.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findSerializer(io.micronaut.core.type.Argument)" class="member-name-link">findSerializer</a><wbr>(io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;? super T&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#findSerializer(io.micronaut.core.type.Argument)" class="member-name-link">findSerializer</a><wbr>(io.micronaut.core.type.Argument&lt;? extends T&gt;&nbsp;type)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Finds a serializer for the given type.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.core.convert.ConversionService</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDeserializableSubtypes(java.lang.Class)" class="member-name-link">getDeserializableSubtypes</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;superType)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.core.convert.ConversionService</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>&lt;T&gt;&nbsp;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;io.micronaut.core.beans.BeanIntrospection&lt;? extends T&gt;&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getDeserializableSubtypes(java.lang.Class)" class="member-name-link">getDeserializableSubtypes</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;T&gt;&nbsp;superType)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Locates desrializable subtypes for the given super type.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newDecoderContext(java.lang.Class)" class="member-name-link">newDecoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newDecoderContext(java.lang.Class)" class="member-name-link">newDecoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates a new decoder context.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newEncoderContext(java.lang.Class)" class="member-name-link">newEncoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#newEncoderContext(java.lang.Class)" class="member-name-link">newEncoderContext</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;&nbsp;view)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates a new encoder context.</div>
 </div>
 </div>
@@ -334,179 +445,291 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <li>
 <section class="detail" id="INTEGER_SERDE">
 <h3>INTEGER_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.IntegerSerde</span>&nbsp;<span class="element-name">INTEGER_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html" title="class or interface in java.lang" class="external-link">Integer</a>&gt;</span>&nbsp;<span class="element-name">INTEGER_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="LONG_SERDE">
 <h3>LONG_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.LongSerde</span>&nbsp;<span class="element-name">LONG_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</span>&nbsp;<span class="element-name">LONG_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="SHORT_SERDE">
 <h3>SHORT_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.ShortSerde</span>&nbsp;<span class="element-name">SHORT_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html" title="class or interface in java.lang" class="external-link">Short</a>&gt;</span>&nbsp;<span class="element-name">SHORT_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="FLOAT_SERDE">
 <h3>FLOAT_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.FloatSerde</span>&nbsp;<span class="element-name">FLOAT_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html" title="class or interface in java.lang" class="external-link">Float</a>&gt;</span>&nbsp;<span class="element-name">FLOAT_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="BYTE_SERDE">
 <h3>BYTE_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.ByteSerde</span>&nbsp;<span class="element-name">BYTE_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html" title="class or interface in java.lang" class="external-link">Byte</a>&gt;</span>&nbsp;<span class="element-name">BYTE_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="DOUBLE_SERDE">
 <h3>DOUBLE_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.DoubleSerde</span>&nbsp;<span class="element-name">DOUBLE_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html" title="class or interface in java.lang" class="external-link">Double</a>&gt;</span>&nbsp;<span class="element-name">DOUBLE_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="OPTIONAL_INT_SERDE">
 <h3>OPTIONAL_INT_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.OptionalIntSerde</span>&nbsp;<span class="element-name">OPTIONAL_INT_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalInt.html" title="class or interface in java.util" class="external-link">OptionalInt</a>&gt;</span>&nbsp;<span class="element-name">OPTIONAL_INT_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="OPTIONAL_DOUBLE_SERDE">
 <h3>OPTIONAL_DOUBLE_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.OptionalDoubleSerde</span>&nbsp;<span class="element-name">OPTIONAL_DOUBLE_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalDouble.html" title="class or interface in java.util" class="external-link">OptionalDouble</a>&gt;</span>&nbsp;<span class="element-name">OPTIONAL_DOUBLE_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="OPTIONAL_LONG_SERDE">
 <h3>OPTIONAL_LONG_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.OptionalLongSerde</span>&nbsp;<span class="element-name">OPTIONAL_LONG_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalLong.html" title="class or interface in java.util" class="external-link">OptionalLong</a>&gt;</span>&nbsp;<span class="element-name">OPTIONAL_LONG_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="BIG_DECIMAL_SERDE">
 <h3>BIG_DECIMAL_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.BigDecimalSerde</span>&nbsp;<span class="element-name">BIG_DECIMAL_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link">BigDecimal</a>&gt;</span>&nbsp;<span class="element-name">BIG_DECIMAL_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="BIG_INTEGER_SERDE">
 <h3>BIG_INTEGER_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.BigIntegerSerde</span>&nbsp;<span class="element-name">BIG_INTEGER_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html" title="class or interface in java.math" class="external-link">BigInteger</a>&gt;</span>&nbsp;<span class="element-name">BIG_INTEGER_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="UUID_SERDE">
 <h3>UUID_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.UUIDSerde</span>&nbsp;<span class="element-name">UUID_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/UUID.html" title="class or interface in java.util" class="external-link">UUID</a>&gt;</span>&nbsp;<span class="element-name">UUID_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="URL_SERDE">
 <h3>URL_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.URLSerde</span>&nbsp;<span class="element-name">URL_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URL.html" title="class or interface in java.net" class="external-link">URL</a>&gt;</span>&nbsp;<span class="element-name">URL_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="URI_SERDE">
 <h3>URI_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.URISerde</span>&nbsp;<span class="element-name">URI_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URI.html" title="class or interface in java.net" class="external-link">URI</a>&gt;</span>&nbsp;<span class="element-name">URI_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="CHARSET_SERDE">
 <h3>CHARSET_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.CharsetSerde</span>&nbsp;<span class="element-name">CHARSET_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html" title="class or interface in java.nio.charset" class="external-link">Charset</a>&gt;</span>&nbsp;<span class="element-name">CHARSET_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="TIME_ZONE_SERDE">
 <h3>TIME_ZONE_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.TimeZoneSerde</span>&nbsp;<span class="element-name">TIME_ZONE_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TimeZone.html" title="class or interface in java.util" class="external-link">TimeZone</a>&gt;</span>&nbsp;<span class="element-name">TIME_ZONE_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="LOCALE_SERDE">
 <h3>LOCALE_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.LocaleSerde</span>&nbsp;<span class="element-name">LOCALE_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html" title="class or interface in java.util" class="external-link">Locale</a>&gt;</span>&nbsp;<span class="element-name">LOCALE_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="INT_ARRAY_SERDE">
 <h3>INT_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.IntArraySerde</span>&nbsp;<span class="element-name">INT_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;int[]&gt;</span>&nbsp;<span class="element-name">INT_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="LONG_ARRAY_SERDE">
 <h3>LONG_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.LongArraySerde</span>&nbsp;<span class="element-name">LONG_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;long[]&gt;</span>&nbsp;<span class="element-name">LONG_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="FLOAT_ARRAY_SERDE">
 <h3>FLOAT_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.FloatArraySerde</span>&nbsp;<span class="element-name">FLOAT_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;float[]&gt;</span>&nbsp;<span class="element-name">FLOAT_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="SHORT_ARRAY_SERDE">
 <h3>SHORT_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.ShortArraySerde</span>&nbsp;<span class="element-name">SHORT_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;short[]&gt;</span>&nbsp;<span class="element-name">SHORT_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="DOUBLE_ARRAY_SERDE">
 <h3>DOUBLE_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.DoubleArraySerde</span>&nbsp;<span class="element-name">DOUBLE_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;double[]&gt;</span>&nbsp;<span class="element-name">DOUBLE_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="BOOLEAN_ARRAY_SERDE">
 <h3>BOOLEAN_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.BooleanArraySerde</span>&nbsp;<span class="element-name">BOOLEAN_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;boolean[]&gt;</span>&nbsp;<span class="element-name">BOOLEAN_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="BYTE_ARRAY_SERDE">
 <h3>BYTE_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>
-</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="DefaultSerdeRegistry.ByteArraySerde.html" title="class in io.micronaut.serde.support">DefaultSerdeRegistry.ByteArraySerde</a></span>&nbsp;<span class="element-name">BYTE_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;byte[]&gt;</span>&nbsp;<span class="element-name">BYTE_ARRAY_SERDE</span></div>
 <div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
-<div class="deprecation-comment">This serde needs configuration now.</div>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
 </div>
 </section>
 </li>
 <li>
 <section class="detail" id="CHAR_ARRAY_SERDE">
 <h3>CHAR_ARRAY_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.CharArraySerde</span>&nbsp;<span class="element-name">CHAR_ARRAY_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;char[]&gt;</span>&nbsp;<span class="element-name">CHAR_ARRAY_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="STRING_SERDE">
 <h3>STRING_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.StringSerde</span>&nbsp;<span class="element-name">STRING_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">STRING_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="BOOLEAN_SERDE">
 <h3>BOOLEAN_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.BooleanSerde</span>&nbsp;<span class="element-name">BOOLEAN_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</span>&nbsp;<span class="element-name">BOOLEAN_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="CHAR_SERDE">
 <h3>CHAR_SERDE</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">io.micronaut.serde.support.DefaultSerdeRegistry.CharSerde</span>&nbsp;<span class="element-name">CHAR_SERDE</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html" title="class or interface in java.nio.charset" class="external-link">Charset</a>&gt;</span>&nbsp;<span class="element-name">CHAR_SERDE</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 <li>
 <section class="detail" id="DEFAULT_SERDES">
 <h3>DEFAULT_SERDES</h3>
-<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;io.micronaut.serde.support.DefaultSerdeRegistry.SerdeRegistrar&lt;?&gt;&gt;</span>&nbsp;<span class="element-name">DEFAULT_SERDES</span></div>
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
+</span><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;?&gt;&gt;</span>&nbsp;<span class="element-name">DEFAULT_SERDES</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated.</span>
+<div class="deprecation-comment">Internal serdes shouldn't be accessed as a static field</div>
+</div>
 </section>
 </li>
 </ul>
@@ -520,7 +743,8 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <li>
 <section class="detail" id="&lt;init&gt;(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)">
 <h3>DefaultSerdeRegistry</h3>
-<div class="member-signature"><span class="annotations">@Inject
+<div class="member-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html" title="class or interface in java.lang" class="external-link">@Deprecated</a>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#forRemoval()" title="class or interface in java.lang" class="external-link">forRemoval</a>=true,
+            <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Deprecated.html#since()" title="class or interface in java.lang" class="external-link">since</a>="2.9.0")
 </span><span class="modifiers">public</span>&nbsp;<span class="element-name">DefaultSerdeRegistry</span><wbr><span class="parameters">(io.micronaut.context.BeanContext&nbsp;beanContext,
  <a href="serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a>&nbsp;objectSerializer,
  <a href="deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a>&nbsp;objectDeserializer,
@@ -530,6 +754,9 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
  <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration,
  <a href="../config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
  <a href="../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</span></div>
+<div class="deprecation-block"><span class="deprecated-label">Deprecated, for removal: This API element is subject to removal in a future version.</span>
+<div class="deprecation-comment">Use <a href="#%3Cinit%3E(io.micronaut.context.BeanContext,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)"><code>DefaultSerdeRegistry(BeanContext, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code></a></div>
+</div>
 <div class="block">Default constructor.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -537,6 +764,29 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <dd><code>objectSerializer</code> - The object serializer</dd>
 <dd><code>objectDeserializer</code> - The object deserializer</dd>
 <dd><code>objectArraySerde</code> - The object array Serde</dd>
+<dd><code>introspections</code> - The introspections</dd>
+<dd><code>conversionService</code> - The conversion service</dd>
+<dd><code>serdeConfiguration</code> - The <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a></dd>
+<dd><code>serializationConfiguration</code> - The <a href="../config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerializationConfiguration</code></a></dd>
+<dd><code>deserializationConfiguration</code> - The <a href="../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="&lt;init&gt;(io.micronaut.context.BeanContext,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)">
+<h3>DefaultSerdeRegistry</h3>
+<div class="member-signature"><span class="annotations">@Inject
+</span><span class="modifiers">public</span>&nbsp;<span class="element-name">DefaultSerdeRegistry</span><wbr><span class="parameters">(@Nullable
+ @Nullable io.micronaut.context.BeanContext&nbsp;beanContext,
+ <a href="../SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a>&nbsp;introspections,
+ io.micronaut.core.convert.ConversionService&nbsp;conversionService,
+ <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;serdeConfiguration,
+ <a href="../config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;serializationConfiguration,
+ <a href="../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;deserializationConfiguration)</span></div>
+<div class="block">Default constructor.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>beanContext</code> - The bean context</dd>
 <dd><code>introspections</code> - The introspections</dd>
 <dd><code>conversionService</code> - The conversion service</dd>
 <dd><code>serdeConfiguration</code> - The <a href="../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a></dd>
@@ -598,6 +848,23 @@ D extends <a href="../Serializer.html" title="interface in io.micronaut.serde">S
 <dd><code>deserializationConfiguration</code> - The <a href="../config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a></dd>
 <dt>Returns:</dt>
 <dd>A new <a href="../SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> with the updated config</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="findInternalSerde(io.micronaut.core.type.Argument)">
+<h3>findInternalSerde</h3>
+<div class="member-signature"><span class="annotations">@Nullable
+@Internal
+</span><span class="modifiers">public</span>&nbsp;<span class="type-parameters">&lt;T&gt;</span>&nbsp;<span class="return-type">@Nullable <a href="../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;</span>&nbsp;<span class="element-name">findInternalSerde</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;T&gt;&nbsp;type)</span></div>
+<div class="block">Find internal serde by type.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><code>T</code> - The serde type</dd>
+<dt>Parameters:</dt>
+<dd><code>type</code> - The serde type</dd>
+<dt>Returns:</dt>
+<dd>a serde or null</dd>
 </dl>
 </section>
 </li>
