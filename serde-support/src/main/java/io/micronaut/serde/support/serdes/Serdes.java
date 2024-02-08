@@ -98,7 +98,8 @@ public final class Serdes {
         new PeriodSerde(),
         new ByteBufferSerde(),
         new StringArraySerde(),
-        new OptionalSerde<>()
+        new OptionalSerde<>(),
+        new NumberTypeSerde()
     );
 
     public static void register(SerdeConfiguration serdeConfiguration,

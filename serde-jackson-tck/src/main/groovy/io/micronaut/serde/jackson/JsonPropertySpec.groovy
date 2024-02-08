@@ -5,6 +5,43 @@ import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
 
+    @Unroll
+    void "serde Number"(Number number) {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Nullable;
+import java.util.Optional;
+
+@io.micronaut.serde.annotation.Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    public Number foo;
+}
+''', [:])
+        beanUnderTest.@foo = number
+
+        expect:
+            jsonMapper.readValue(json, typeUnderTest).@foo == result
+            writeJson(jsonMapper, beanUnderTest) == json
+
+        cleanup:
+            context.close()
+
+        where:
+            number                      || result                      || json
+            123.456                     || 123.456                     || '{"foo":123.456}'
+            Double.valueOf(123.123)     || Double.valueOf(123.123)     || '{"foo":123.123}'
+            Float.valueOf(123.123)      || Double.valueOf(123.123)     || '{"foo":123.123}'
+            BigDecimal.valueOf(123.123) || BigDecimal.valueOf(123.123) || '{"foo":123.123}'
+            Integer.valueOf(123)        || Integer.valueOf(123)        || '{"foo":123}'
+            Short.valueOf((short) 123)  || Short.valueOf((short) 123)  || '{"foo":123}'
+            BigInteger.valueOf(123)     || BigInteger.valueOf(123)     || '{"foo":123}'
+
+    }
+
     void "missing nullable properties are not overwritten"() {
         given:
             def context = buildContext('example.Test', '''

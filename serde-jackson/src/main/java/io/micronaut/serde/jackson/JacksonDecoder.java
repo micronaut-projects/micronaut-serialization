@@ -774,9 +774,18 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
-    private Number decodeNumber() throws IOException {
+    private Number doDecodeNumber() throws IOException {
         nextToken();
         return parser.getNumberValue();
+    }
+
+    @Override
+    public Number decodeNumber() throws IOException {
+        return switch (peekToken()) {
+            case VALUE_STRING -> decodeBigDecimal();
+            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> doDecodeNumber();
+            default -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, nextToken());
+        };
     }
 
     @Override
@@ -969,7 +978,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
                         return this;
                     }
                     case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> {
-                        put(key, elementDecoder.decodeNumber());
+                        put(key, elementDecoder.doDecodeNumber());
                         return this;
                     }
                     case VALUE_TRUE, VALUE_FALSE -> {

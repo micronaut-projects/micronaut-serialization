@@ -175,6 +175,28 @@ public interface Decoder extends AutoCloseable {
     }
 
     /**
+     * Decodes a number.
+     * @return The number
+     * @throws IOException If an unrecoverable error occurs
+     * @since 2.9.0
+     */
+    default Number decodeNumber() throws IOException {
+        return decodeBigDecimal();
+    }
+
+    /**
+     * Equivalent to {@code decodeNull() ? null : decodeNumber()}.
+     *
+     * @return The number
+     * @throws IOException If an unrecoverable error occurs
+     * @since 2.9.0
+     */
+    @Nullable
+    default Number decodeNumberNullable() throws IOException {
+        return decodeNull() ? null : decodeNumber();
+    }
+
+    /**
      * Decodes a int.
      * @return The int
      * @throws IOException If an unrecoverable error occurs
