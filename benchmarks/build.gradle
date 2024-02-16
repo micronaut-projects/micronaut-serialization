@@ -22,7 +22,10 @@ dependencies {
 }
 
 jmh {
-    includes = ["io.micronaut.serde.JacksonBenchmark"]
+    includes = ["io.micronaut.serde.StartupBenchmark"]
+    fork = 10
+    iterations = 1
+    warmupIterations = 0
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
