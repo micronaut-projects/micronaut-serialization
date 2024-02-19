@@ -1,8 +1,7 @@
 plugins {
-    java
-}
-repositories {
-    mavenCentral()
+    id ("java")
+    id ("io.micronaut.build.internal.serde-base")
+    id ("org.graalvm.buildtools.native")
 }
 
 dependencies {
@@ -23,6 +22,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(mnValidation.micronaut.validation)
 }
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

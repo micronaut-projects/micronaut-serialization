@@ -3,9 +3,6 @@ plugins {
     id("io.micronaut.application")
 }
 
-configurations.all {
-    resolutionStrategy.preferProjectModules()
-}
 micronaut {
     version libs.versions.micronaut.platform.get()
 }
