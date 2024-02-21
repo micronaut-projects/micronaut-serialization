@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.micronaut.build.internal.serde-examples")
+    id("io.micronaut.build.internal.serde-native-examples")
 }
 
 micronaut {
