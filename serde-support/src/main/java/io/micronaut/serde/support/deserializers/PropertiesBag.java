@@ -20,8 +20,8 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.naming.Named;
+import io.micronaut.core.util.StringIntMap;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -50,11 +50,7 @@ final class PropertiesBag<T> {
     @Nullable
     private final Map<String, Integer> nameToPropertiesMapping;
     private final long propertiesMask;
-    // hash table with open addressing and linear probing that associates the key with the index
-    // similar to JDK maps but with int values
-    private final String[] keyTable;
-    private final int[] indexTable;
-    private final int tableMask;
+    private final StringIntMap nameToPosition;
 
     private PropertiesBag(BeanIntrospection<T> beanIntrospection,
                           int[] originalNameToPropertiesMapping,
@@ -74,56 +70,10 @@ final class PropertiesBag<T> {
             propStream = Stream.concat(propStream, nameToPropertiesMapping.keySet().stream());
         }
         Set<String> props = propStream.collect(Collectors.toSet());
-        int tableSize = (props.size() * 2) + 1;
-        tableSize = Integer.highestOneBit(tableSize) * 2; // round to next power of two
-        tableMask = tableSize - 1;
-        this.keyTable = new String[tableSize];
-        this.indexTable = new int[keyTable.length];
+        nameToPosition = new StringIntMap(props.size());
         for (String prop : props) {
-            int tableIndex = ~probe(prop);
-            keyTable[tableIndex] = prop;
-            indexTable[tableIndex] = propertyIndexOfSlow(prop);
+            nameToPosition.put(prop, propertyIndexOfSlow(prop));
         }
-    }
-
-    private int probe(String key) {
-        int n = keyTable.length;
-        int i = key.hashCode() & tableMask;
-        while (true) {
-            String candidate = keyTable[i];
-            if (candidate == null) {
-                return ~i;
-            } else if (candidate.equals(key)) {
-                return i;
-            } else {
-                i++;
-                if (i == n) {
-                    i = 0;
-                }
-            }
-        }
-    }
-
-    /**
-     * Get the properties in this bag with their property names.
-     *
-     * @return All properties in this bag
-     */
-    public List<Map.Entry<String, DeserBean.DerProperty<T, Object>>> getProperties() {
-        Stream<AbstractMap.SimpleEntry<String, DeserBean.DerProperty<T, Object>>> originalProperties = Arrays.stream(originalNameToPropertiesMapping)
-            .filter(index -> index != -1)
-            .mapToObj(index -> {
-                DeserBean.DerProperty<T, Object> prop = properties[index];
-                if (prop.beanProperty == null) {
-                    return null;
-                }
-                return new AbstractMap.SimpleEntry<>(prop.beanProperty.getName(), prop);
-            });
-        Stream<AbstractMap.SimpleEntry<String, DeserBean.DerProperty<T, Object>>> mappedByName = nameToPropertiesMapping == null ? Stream.empty() : nameToPropertiesMapping.entrySet()
-            .stream()
-            .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), properties[e.getValue()]));
-        return Stream.concat(originalProperties, mappedByName)
-            .collect(Collectors.toList());
     }
 
     /**
@@ -131,17 +81,38 @@ final class PropertiesBag<T> {
      *
      * @return All properties in this bag
      */
-    public List<DeserBean.DerProperty<T, Object>> getDerProperties() {
+    List<DeserBean.DerProperty<T, Object>> getProperties() {
+        Stream<DeserBean.DerProperty<T, Object>> originalProperties = Arrays.stream(originalNameToPropertiesMapping)
+            .filter(index -> index != -1)
+            .mapToObj(index -> {
+                DeserBean.DerProperty<T, Object> prop = properties[index];
+                if (prop.beanProperty == null) {
+                    return null;
+                }
+                return prop;
+            });
+        Stream<DeserBean.DerProperty<T, Object>> mappedByName = nameToPropertiesMapping == null ? Stream.empty() : nameToPropertiesMapping.values()
+            .stream()
+            .map(index -> properties[index]);
+        return Stream.concat(originalProperties, mappedByName)
+            .toList();
+    }
+
+    /**
+     * Get the properties in this bag.
+     *
+     * @return All properties in this bag
+     */
+    List<DeserBean.DerProperty<T, Object>> getDerProperties() {
         return Collections.unmodifiableList(Arrays.asList(properties));
     }
 
-    public DeserBean.DerProperty<T, Object>[] getPropertiesArray() {
+    DeserBean.DerProperty<T, Object>[] getPropertiesArray() {
         return properties;
     }
 
-    public int propertyIndexOf(@NonNull String name) {
-        int i = probe(name);
-        return i < 0 ? -1 : indexTable[i];
+    int propertyIndexOf(@NonNull String name) {
+        return nameToPosition.get(name, -1);
     }
 
     private int propertyIndexOfSlow(@NonNull String name) {
@@ -156,32 +127,19 @@ final class PropertiesBag<T> {
         return nameToPropertiesMapping == null ? -1 : nameToPropertiesMapping.getOrDefault(name, -1);
     }
 
-    public Consumer newConsumer() {
+    Consumer newConsumer() {
         return propertiesMask == 0 ? new ConsumerBig() : new ConsumerSmall();
     }
 
     /**
      * Properties consumer.
      */
-    public abstract sealed class Consumer {
+    abstract sealed class Consumer {
         private Consumer() {
         }
 
-        public boolean isNotConsumed(String name) {
-            int propertyIndex = propertyIndexOf(name);
-            return propertyIndex != -1 && !isConsumed(propertyIndex);
-        }
-
-        public DeserBean.DerProperty<T, Object> findNotConsumed(String name) {
-            int propertyIndex = propertyIndexOf(name);
-            if (propertyIndex == -1 || isConsumed(propertyIndex)) {
-                return null;
-            }
-            return properties[propertyIndex];
-        }
-
         public DeserBean.DerProperty<T, Object> consume(String name) {
-            int propertyIndex = propertyIndexOf(name);
+            int propertyIndex = nameToPosition.get(name, -1);
             if (propertyIndex == -1 || isConsumed(propertyIndex)) {
                 return null;
             }
@@ -189,12 +147,11 @@ final class PropertiesBag<T> {
             return properties[propertyIndex];
         }
 
-        public DeserBean.DerProperty<T, Object> consume(int propertyIndex) {
+        public void consume(int propertyIndex) {
             if (propertyIndex == -1 || isConsumed(propertyIndex)) {
-                return null;
+                return;
             }
             setConsumed(propertyIndex);
-            return properties[propertyIndex];
         }
 
         public List<DeserBean.DerProperty<T, Object>> getNotConsumed() {
@@ -255,7 +212,7 @@ final class PropertiesBag<T> {
         }
     }
 
-    public static class Builder<T> {
+    static class Builder<T> {
 
         private final BeanIntrospection<T> beanIntrospection;
         private final int[] originalNameToPropertiesMapping;
@@ -264,11 +221,11 @@ final class PropertiesBag<T> {
 
         private final List<DeserBean.DerProperty<T, Object>> mutableProperties;
 
-        public Builder(BeanIntrospection<T> beanIntrospection) {
+        Builder(BeanIntrospection<T> beanIntrospection) {
             this(beanIntrospection, beanIntrospection.getBeanProperties().size());
         }
 
-        public Builder(BeanIntrospection<T> beanIntrospection, int expectedPropertiesSize) {
+        Builder(BeanIntrospection<T> beanIntrospection, int expectedPropertiesSize) {
             this.beanIntrospection = beanIntrospection;
             int beanPropertiesSize = beanIntrospection.getBeanProperties().size();
             this.originalNameToPropertiesMapping = new int[beanPropertiesSize];
@@ -276,7 +233,7 @@ final class PropertiesBag<T> {
             this.mutableProperties = new ArrayList<>(expectedPropertiesSize);
         }
 
-        public void register(String name, DeserBean.DerProperty<T, Object> derProperty, boolean addAliases) {
+        void register(String name, DeserBean.DerProperty<T, Object> derProperty, boolean addAliases) {
             int newPropertyIndex = mutableProperties.size();
             if (derProperty.beanProperty != null && derProperty.beanProperty.getDeclaringBean() == beanIntrospection && name.equals(derProperty.beanProperty.getName())) {
                 originalNameToPropertiesMapping[beanIntrospection.propertyIndexOf(name)] = newPropertyIndex;
@@ -295,11 +252,10 @@ final class PropertiesBag<T> {
                 }
             }
             mutableProperties.add(derProperty);
-
         }
 
         @Nullable
-        public PropertiesBag<T> build() {
+        PropertiesBag<T> build() {
             if (mutableProperties.isEmpty()) {
                 return null;
             }
