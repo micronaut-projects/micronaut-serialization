@@ -438,16 +438,12 @@ final class DeserBean<T> {
 
     private void initializeInternal(Deserializer.DecoderContext decoderContext) throws SerdeException {
         if (injectProperties != null) {
-            List<Map.Entry<String, DerProperty<T, Object>>> properties = injectProperties.getProperties();
-            for (Map.Entry<String, DerProperty<T, Object>> e : properties) {
-                DerProperty<T, Object> property = e.getValue();
+            for (DerProperty<T, Object> property : injectProperties.getProperties()) {
                 initProperty(property, decoderContext);
             }
         }
         if (creatorParams != null) {
-            List<Map.Entry<String, DerProperty<T, Object>>> properties = creatorParams.getProperties();
-            for (Map.Entry<String, DerProperty<T, Object>> e : properties) {
-                DerProperty<T, Object> property = e.getValue();
+            for (DerProperty<T, Object> property : creatorParams.getProperties()) {
                 initProperty(property, decoderContext);
             }
         }
@@ -466,8 +462,7 @@ final class DeserBean<T> {
             return false;
         }
         if (injectProperties != null) {
-            for (Map.Entry<String, DerProperty<T, Object>> e : injectProperties.getProperties()) {
-                DerProperty<T, Object> property = e.getValue();
+            for (DerProperty<T, Object> property : injectProperties.getProperties()) {
                 if (property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.instrospection || property.backRef != null || property.beanProperty == null) {
                     return false;
                 }
@@ -481,8 +476,7 @@ final class DeserBean<T> {
             return false;
         }
         if (creatorParams != null) {
-            for (Map.Entry<String, DerProperty<T, Object>> e : creatorParams.getProperties()) {
-                DerProperty<T, Object> property = e.getValue();
+            for (DerProperty<T, Object> property : creatorParams.getProperties()) {
                 if (property.beanProperty != null && !property.beanProperty.isReadOnly() || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.instrospection || property.backRef != null) {
                     return false;
                 }
