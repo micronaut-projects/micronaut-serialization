@@ -172,10 +172,6 @@ final class DeserBean<T> {
         for (int i = 0; i < constructorArguments.length; i++) {
             Argument<Object> constructorArgument = resolveArgument((Argument<Object>) constructorArguments[i]);
             final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument, constructorArgument.getAnnotationMetadata());
-            if (annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED)
-                || annotationMetadata.isTrue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION)) {
-                continue;
-            }
             if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
                 anySetterValue = new AnySetter<>(constructorArgument, i);
                 continue;
@@ -189,8 +185,8 @@ final class DeserBean<T> {
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
             final String propertyName = resolveName(serdeArgumentConf, constructorArgument, annotationMetadata, propertyNamingStrategy);
 
-            if (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName)) {
-                continue;
+            if (isIgnored(annotationMetadata) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName))) {
+                ignoredProperties.add(propertyName);
             }
 
             Argument<Object> constructorWithPropertyArgument = Argument.of(
@@ -608,8 +604,7 @@ final class DeserBean<T> {
         return (Deserializer<T>) decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
     }
 
-    private boolean isIgnored(BeanProperty<T, Object> bp) {
-        final AnnotationMetadata annotationMetadata = bp.getAnnotationMetadata();
+    private boolean isIgnored(AnnotationMetadata annotationMetadata) {
         return annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_DESERIALIZATION).orElse(false);

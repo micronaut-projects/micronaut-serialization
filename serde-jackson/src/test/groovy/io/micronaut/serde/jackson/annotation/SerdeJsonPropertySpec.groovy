@@ -6,6 +6,92 @@ import spock.lang.PendingFeature
 
 class SerdeJsonPropertySpec extends JsonPropertySpec {
 
+    void "test @JsonProperty.Access.READ_ONLY (get only) - constructor"() {
+        // Jackson cannot deserialize READ_ONLY as null
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+
+    private String value;
+    private String ignored;
+
+    @JsonCreator
+    public Test(@JsonProperty("value") String value, @JsonProperty(value = "ignored", access = JsonProperty.Access.READ_ONLY) String ignored) {
+        this.value = value;
+        this.ignored = ignored;
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
+    public String getIgnored() {
+        return this.ignored;
+    }
+
+}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test', "test", "xyz")
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            result == '{"value":"test","ignored":"xyz"}'
+
+        when:
+            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+
+        then:
+            bean.value == 'test'
+            bean.ignored == null
+
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonProperty.Access.READ_ONLY (get only) - record"() {
+        // Jackson cannot deserialize READ_ONLY as null
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test(
+    @JsonProperty
+    String value,
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    String ignored
+) {}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test', "test", "xyz")
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            result == '{"value":"test","ignored":"xyz"}'
+
+        when:
+            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+
+        then:
+            bean.value == 'test'
+            bean.ignored == null
+
+        cleanup:
+            context.close()
+    }
+
     void "test optional by default primitive field in constructor XXX"() {
 
         given:
@@ -238,7 +324,7 @@ import io.micronaut.serde.annotation.Serdeable;
 record Test(
     @JsonProperty(value = "other", defaultValue = "default")
     String value,
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY, defaultValue = "false")
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY, defaultValue = "false") // Get only
     boolean ignored
 ) {}
 """)
@@ -250,7 +336,7 @@ record Test(
         result == '{"other":"test","ignored":false}'
 
         when:
-        bean = jsonMapper.readValue(result, argumentOf(context, 'test.Test'))
+        bean = jsonMapper.readValue('{"other":"test","ignored":true}', argumentOf(context, 'test.Test'))
 
         then:
         bean.ignored == false

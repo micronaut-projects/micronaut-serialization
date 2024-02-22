@@ -5,6 +5,91 @@ import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
 
+    void "test @JsonProperty.Access.WRITE_ONLY (set only) - records"() {
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test(
+    @JsonProperty
+    String value,
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    String ignored
+) {}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test', "test", "xyz")
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            result == '{"value":"test"}'
+
+        when:
+            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+
+        then:
+            bean.value == 'test'
+            bean.ignored == 'xyz'
+
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonProperty.Access.WRITE_ONLY (set only) - constructor"() {
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+
+    private String value;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String ignored;
+
+    @JsonCreator
+    public Test(@JsonProperty("value") String value, @JsonProperty("ignored") String ignored) {
+        this.value = value;
+        this.ignored = ignored;
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
+    public String getIgnored() {
+        return this.ignored;
+    }
+
+}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test', "test", "xyz")
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            result == '{"value":"test"}'
+
+        when:
+            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+
+        then:
+            bean.value == 'test'
+            bean.ignored == 'xyz'
+
+        cleanup:
+            context.close()
+    }
+
+
     @Unroll
     void "serde Number"(Number number) {
         given:
