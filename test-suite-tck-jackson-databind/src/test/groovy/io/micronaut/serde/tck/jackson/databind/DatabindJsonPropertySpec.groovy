@@ -13,6 +13,94 @@ class DatabindJsonPropertySpec extends JsonPropertySpec {
         ))
     }
 
+    @PendingFeature
+    void "test @JsonProperty.Access.READ_ONLY (get only) - constructor"() {
+        // Jackson cannot deserialize READ_ONLY as null
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+
+    private String value;
+    private String ignored;
+
+    @JsonCreator
+    public Test(@JsonProperty("value") String value, @JsonProperty(value = "ignored", access = JsonProperty.Access.READ_ONLY) String ignored) {
+        this.value = value;
+        this.ignored = ignored;
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
+    public String getIgnored() {
+        return this.ignored;
+    }
+
+}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test', "test", "xyz")
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            result == '{"value":"test","ignored":"xyz"}'
+
+        when:
+            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+
+        then:
+            bean.value == 'test'
+            bean.ignored == null
+
+        cleanup:
+            context.close()
+    }
+
+    @PendingFeature
+    void "test @JsonProperty.Access.READ_ONLY (get only) - record"() {
+        // Jackson cannot deserialize READ_ONLY as null
+        given:
+            def context = buildContext("""
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test(
+    @JsonProperty
+    String value,
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    String ignored
+) {}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test', "test", "xyz")
+            def result = writeJson(jsonMapper, bean)
+
+        then:
+            result == '{"value":"test","ignored":"xyz"}'
+
+        when:
+            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+
+        then:
+            bean.value == 'test'
+            bean.ignored == null
+
+        cleanup:
+            context.close()
+    }
+
     void "test required primitive field"() {
 
         given:
