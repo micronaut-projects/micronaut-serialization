@@ -181,7 +181,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                 declaredMetadata.hasDeclaredAnnotation(DefaultImplementation.class)) {
                 deserializeType = introspection.classValue(DefaultImplementation.class).orElse(null);
             }
-            if (deserializeType != null) {
+            if (deserializeType != null && !deserializeType.equals(type.getType())) {
                 Argument resolved = Argument.of(
                         deserializeType,
                         type.getName(),
@@ -197,10 +197,9 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
         }
     }
 
-    private <T> Class<?> resolveDeserAsType(
-                                   Class<?> beanType,
-                                   AnnotationValue<SerdeConfig> serdeConfig,
-                                   String configMember) {
+    private Class<?> resolveDeserAsType(Class<?> beanType,
+                                        AnnotationValue<SerdeConfig> serdeConfig,
+                                        String configMember) {
         Class<?> deserializeType = null;
         if (serdeConfig != null) {
             deserializeType = serdeConfig.classValue(configMember).orElse(null);
