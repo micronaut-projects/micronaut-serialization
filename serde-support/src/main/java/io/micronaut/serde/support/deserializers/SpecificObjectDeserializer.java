@@ -273,7 +273,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 decoderContext.pushManagedRef(
                     new PropertyReference<>(
                         derProperty.managedRef,
-                        derProperty.instrospection,
+                        derProperty.introspection,
                         derProperty.argument,
                         instance
                     )
@@ -314,10 +314,10 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
      */
     private static final class AnyValuesDeserializer {
 
-        private final DeserBean.AnySetter<Object> anySetter;
+        private final DeserBean.AnySetter anySetter;
         private Map<String, Object> values;
 
-        AnyValuesDeserializer(DeserBean.AnySetter<Object> anySetter) {
+        AnyValuesDeserializer(DeserBean.AnySetter anySetter) {
             this.anySetter = anySetter;
         }
 
@@ -425,7 +425,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                         new PropertyReference<>(
                             property.backRef,
-                            property.instrospection,
+                            property.introspection,
                             property.argument,
                             null
                         )
@@ -521,7 +521,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                         new PropertyReference<>(
                             property.backRef,
-                            property.instrospection,
+                            property.introspection,
                             property.argument,
                             instance
                         )
@@ -677,7 +677,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                 final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                     new PropertyReference<>(
                         property.backRef,
-                        property.instrospection,
+                        property.introspection,
                         property.argument,
                         null
                     )
@@ -749,7 +749,7 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
                     final PropertyReference<? super Object, ?> ref = decoderContext.resolveReference(
                         new PropertyReference<>(
                             property.backRef,
-                            property.instrospection,
+                            property.introspection,
                             property.argument,
                             null
                         )
