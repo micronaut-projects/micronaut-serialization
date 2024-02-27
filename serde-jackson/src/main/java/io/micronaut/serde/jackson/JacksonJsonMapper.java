@@ -77,7 +77,7 @@ import java.util.function.Consumer;
 @Singleton
 @Primary
 @BootstrapContextCompatible
-public final class JacksonJsonMapper implements ObjectMapper {
+public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     private final SerdeRegistry registry;
     private final JsonStreamConfig streamConfig;
@@ -118,6 +118,17 @@ public final class JacksonJsonMapper implements ObjectMapper {
             registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration),
             streamConfig,
             configuration == null ? this.serdeConfiguration : configuration,
+            jacksonConfiguration,
+            view
+        );
+    }
+
+    @Override
+    public JacksonObjectMapper cloneWithConfiguration(SerdeJacksonConfiguration jacksonConfiguration) {
+        return new JacksonJsonMapper(
+            registry,
+            streamConfig,
+            serdeConfiguration,
             jacksonConfiguration,
             view
         );

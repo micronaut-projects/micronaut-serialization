@@ -1,5 +1,6 @@
 package io.micronaut.serde.jackson
 
+import com.fasterxml.jackson.core.JsonParser
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.ConfigurationProperties
@@ -45,6 +46,38 @@ class ConfigCloneSpec extends Specification {
 
         cleanup:
         ctx.close()
+    }
+
+    def 'jackson clone'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def newConf = new SerdeJacksonConfiguration()
+            newConf.setParserFeatures(Map.of(JsonParser.Feature.ALLOW_COMMENTS, true))
+            def original = ctx.getBean(JacksonObjectMapper)
+
+        when:
+            original.readValue('''
+{
+    // Some comment
+    "hello": "world"
+}
+''', Map)
+        then:
+            def e = thrown(Exception)
+            e.message.contains  "Feature 'ALLOW_COMMENTS' not enabled"
+
+        when:
+            def result = original.cloneWithConfiguration(newConf).readValue('''
+{
+    // Some comment
+    "hello": "world"
+}
+''', Map)
+        then:
+            result.hello == "world"
+
+        cleanup:
+            ctx.close()
     }
 
     @Serdeable
