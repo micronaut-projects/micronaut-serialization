@@ -24,7 +24,7 @@ micronaut-discovery = "4.2.0"
 micronaut-logging = "1.2.3"
 micronaut-reactor = "3.2.1"
 micronaut-validation = "4.4.3"
-micronaut-gradle-plugin = "4.3.0"
+micronaut-gradle-plugin = "4.3.4"
 
 [libraries]
 # Micronaut
