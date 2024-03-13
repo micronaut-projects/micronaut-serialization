@@ -8,7 +8,6 @@ kotlin = "1.9.23"
 ksp = "1.9.23-1.0.19"
 graal-svm = "23.1.2"
 aws-lambda-events = "3.11.4"
-oci-sdk = "3.32.1"
 aws-lambda-serialization = "1.1.5"
 microstream-storage-restclient = "08.01.01-MS-GA"
 oracle-jdbc-driver = "23.3.0.23.09"
@@ -22,6 +21,7 @@ micronaut-docs = "2.0.0"
 micronaut-test = "4.2.1"
 micronaut-discovery = "4.2.0"
 micronaut-logging = "1.2.3"
+micronaut-oracle-cloud = "3.7.1"
 micronaut-reactor = "3.2.1"
 micronaut-validation = "4.4.3"
 micronaut-gradle-plugin = "4.3.4"
@@ -32,6 +32,7 @@ micronaut-core = { module = "io.micronaut:micronaut-core-bom", version.ref = "mi
 micronaut-platform = { module = "io.micronaut.platform:micronaut-platform", version.ref = "micronaut-platform"}
 micronaut-test = { module = "io.micronaut.test:micronaut-test-bom", version.ref = "micronaut-test" }
 micronaut-logging = { module = "io.micronaut.logging:micronaut-logging-bom", version.ref = "micronaut-logging" }
+micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecloud-bom', version.ref = 'micronaut-oracle-cloud' }
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation-bom", version.ref = "micronaut-validation" }
 micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
@@ -54,7 +55,7 @@ junit-platform-engine = { module = "org.junit.platform:junit-platform-suite-engi
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
-oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument", version.ref = "oci-sdk"}
+oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
 
 #PLUGINS
 
