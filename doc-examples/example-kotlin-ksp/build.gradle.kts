@@ -13,9 +13,12 @@ micronaut {
 
 dependencies {
     ksp(projects.micronautSerdeProcessor)
+    ksp(mnValidation.micronaut.validation.processor)
 
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)
+    implementation(mnValidation.micronaut.validation)
+    implementation("jakarta.validation:jakarta.validation-api")
 
     runtimeOnly(mnLogging.logback.classic)
 
