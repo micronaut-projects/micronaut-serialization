@@ -67,6 +67,25 @@ class OffsetDateTimeSerdeSpec extends Specification {
         ctx.close()
     }
 
+    @Unroll
+    void "deserialization should apply timezone config for serializing"() {
+        given:
+        def ctx = ApplicationContext.run([
+                'micronaut.serde.time-zone': 'UTC',
+        ])
+        OffsetDateTimePojo pojo = new OffsetDateTimePojo()
+        pojo.timeCreated = OffsetDateTime.parse('2022-01-01T14:30:00.123+02:00')
+
+        when:
+        String json = ctx.getBean(ObjectMapper).writeValueAsString(pojo)
+
+        then:
+        '{"timeCreated":"2022-01-01T12:30:00.123Z"}' == json
+
+        cleanup:
+        ctx.close()
+    }
+
     @Serdeable.Deserializable
     static class OffsetDateTimePojo {
         private OffsetDateTime timeCreated;
