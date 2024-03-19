@@ -48,7 +48,7 @@ class MockSerdeIntrospections extends DefaultSerdeIntrospections {
             f.setAccessible(true)
             def files = f.get(classLoader)
             def resolvedTypes = files.findAll({ JavaFileObject jfo ->
-                jfo.name.contains('$IntrospectionRef')
+                jfo.name.contains('$Introspection')
             }).collect( { JavaFileObject jfo ->
                 String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
                 try {
@@ -108,7 +108,7 @@ class MockSerdeIntrospections extends DefaultSerdeIntrospections {
         f.setAccessible(true)
         def files = f.get(classLoader)
         def resolvedTypes = files.findAll({ JavaFileObject jfo ->
-            jfo.name.endsWith('$IntrospectionRef.class')
+            jfo.name.endsWith('$Introspection.class')
         }).collect( { JavaFileObject jfo ->
             String className = jfo.name.substring(14, jfo.name.length() - 6).replace('/', '.')
             classLoader.loadClass(className)
