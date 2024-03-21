@@ -399,7 +399,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     public <T> Serde<T> findInternalSerde(Argument<T> type) {
         for (BeanDefinition<Serde> serdeBeanDefinition : internalSerdes) {
             if (serdeBeanDefinition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition
-                && internalSerdeBeanDefinition.typeArgument.equalsType(type)) {
+                && internalSerdeBeanDefinition.typeArgument.isAssignableFrom(type)) {
                 return (Serde<T>) internalSerdeBeanDefinition.value;
             }
         }
