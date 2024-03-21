@@ -5,9 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation(mn.micronaut.http.server.tck) {
-        exclude("io.micronaut", "micronaut-jackson-databind")
-    }
+    implementation(mn.micronaut.http.server.tck)
     implementation(projects.micronautSerdeJackson)
 
     runtimeOnly(mnLogging.logback.classic)
