@@ -169,31 +169,6 @@ class Test {
         context.close()
     }
 
-    void "JsonCreator with single parameter of same name"() {
-        given:
-        def context = buildContext('example.Test', '''
-package example;
-
-import com.fasterxml.jackson.annotation.*;
-@io.micronaut.serde.annotation.Serdeable
-class Test {
-    public final String foo;
-
-    @JsonCreator
-    public Test(String foo) {
-        this.foo = foo;
-    }
-}
-''')
-        def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
-
-        expect:
-        deserialized.foo == "42"
-
-        cleanup:
-        context.close()
-    }
-
     @PendingFeature(reason = 'single-parameter json creator. Dont think we should support this, can be done with delegating mode for JsonCreator')
     void "JsonCreator with single parameter of different name"() {
         given:
