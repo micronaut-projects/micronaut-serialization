@@ -10,10 +10,13 @@ micronaut {
 
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
+    annotationProcessor(mnValidation.micronaut.validation.processor)
 
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)
     implementation(libs.oci.aidocument)
+    implementation(mnValidation.micronaut.validation)
+    implementation("jakarta.validation:jakarta.validation-api")
 
     runtimeOnly(mnLogging.logback.classic)
 
