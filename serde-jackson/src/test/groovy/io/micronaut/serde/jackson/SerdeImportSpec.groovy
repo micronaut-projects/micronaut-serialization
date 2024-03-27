@@ -108,6 +108,60 @@ abstract class TestMixin  {
         context.close()
     }
 
+    void "test mixin constructor with parameter renamed"() {
+        def context = buildContext('mixintest.Test','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+@SerdeImport(
+    value = Test.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+public class Test {
+    private int code;
+    Test(int code) {
+        this.code = code;
+    }
+    public int getCode() {
+        return code;
+    }
+}
+
+abstract class TestMixin  {
+
+    @JsonCreator
+    TestMixin(@JsonProperty("customWrite") int code) {
+    }
+
+    @JsonProperty("customRead")
+    abstract int getCode();
+
+}
+
+''')
+        def impl = argumentOf(context, 'mixintest.Test')
+        def bean = impl.type.newInstance(200)
+
+        expect:
+        writeJson(jsonMapper, bean) == '{"customRead":200}'
+
+        def read = jsonMapper.readValue('{"customWrite":200}', typeUnderTest)
+        read.getCode() == 200
+
+        cleanup:
+        context.close()
+    }
+
     void "test import with interface"() {
         def context = buildContext('mixintest.HttpStatusInfo','''
 package mixintest;

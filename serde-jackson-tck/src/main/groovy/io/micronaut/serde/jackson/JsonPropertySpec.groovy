@@ -5,6 +5,121 @@ import spock.lang.Unroll
 
 class JsonPropertySpec extends JsonCompileSpec {
 
+    void "simple JsonCreator"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+class Test {
+    public final String foo;
+
+    @JsonCreator
+    public Test(@JsonProperty("foo") String foo) {
+        this.foo = foo;
+    }
+}
+
+''')
+            def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+
+        expect:
+            deserialized.foo == "42"
+
+        cleanup:
+            context.close()
+    }
+
+    void "static JsonCreator"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+class Test {
+    public final String foo;
+
+    private Test(@JsonProperty("foo") String foo) {
+        this.foo = foo;
+    }
+
+    @JsonCreator
+    public static Test creator(@JsonProperty("foo") String foo) {
+        return new Test(foo + "xyz");
+    }
+}
+''')
+            def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+
+        expect:
+            deserialized.foo == "42xyz"
+
+        cleanup:
+            context.close()
+    }
+
+    void "static JsonCreator on interface"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+@io.micronaut.serde.annotation.Serdeable
+interface Test {
+
+    String getFoo();
+
+    @JsonCreator
+    static Test creator(@JsonProperty("foo") String foo) {
+        return (example.Test) () -> foo + "abc";
+    }
+
+}
+''')
+            def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+
+        expect:
+            deserialized.foo == "42abc"
+
+        cleanup:
+            context.close()
+    }
+
+    void "static JsonCreator(mode = JsonCreator.Mode.DELEGATING) on interface"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+interface Test {
+
+    String getFoo();
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    static Test creator(Data data) {
+        return (example.Test) () -> data.foo() + "abc";
+    }
+
+}
+
+@Serdeable
+record Data(String foo) {
+}
+''')
+            def deserialized = jsonMapper.readValue('{"foo": "42"}', typeUnderTest)
+
+        expect:
+            deserialized.foo == "42abc"
+
+        cleanup:
+            context.close()
+    }
+
     void "test @JsonProperty.Access.WRITE_ONLY (set only) - records"() {
         given:
             def context = buildContext("""
