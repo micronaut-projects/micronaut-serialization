@@ -75,16 +75,6 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         this.beanContext = beanContext;
     }
 
-    /**
-     * @param introspections The introspections
-     * @param beanContext The bean context
-     * @deprecated Replaced by {@link #ObjectSerializer(SerdeIntrospections, SerdeConfiguration, SerializationConfiguration)}
-     */
-    @Deprecated(since = "2.9", forRemoval = true)
-    public ObjectSerializer(SerdeIntrospections introspections, BeanContext beanContext) {
-        this(introspections, beanContext.getBean(SerdeConfiguration.class), beanContext.getBean(SerializationConfiguration.class));
-    }
-
     @Override
     public io.micronaut.serde.Serializer<Object> createSpecific(@NonNull EncoderContext encoderContext, Argument<?> type) throws SerdeException {
         boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);

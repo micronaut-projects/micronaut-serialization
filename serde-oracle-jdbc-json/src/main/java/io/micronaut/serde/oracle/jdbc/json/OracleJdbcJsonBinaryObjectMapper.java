@@ -40,16 +40,6 @@ import java.io.OutputStream;
 @Order(200) // lower precedence than Jackson
 public final class OracleJdbcJsonBinaryObjectMapper extends AbstractOracleJdbcJsonObjectMapper {
 
-    @Deprecated
-    public OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry) {
-        this(registry, (SerdeConfiguration) null);
-    }
-
-    @Deprecated
-    public OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, Class<?> view) {
-        this(registry, null, view);
-    }
-
     @Internal
     @Inject
     public OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {

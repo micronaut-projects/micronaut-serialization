@@ -208,5 +208,225 @@
     "type": "io.micronaut.serde.config.$SerializationConfiguration$Intercepted$Definition$Reference",
     "member": "Implemented interface io.micronaut.inject.BeanDefinitionReference",
     "reason": "Internal"
+  },
+  {
+    "type": "io.micronaut.serde.bson.BsonJsonMapper",
+    "member": "Constructor io.micronaut.serde.bson.BsonJsonMapper(io.micronaut.serde.SerdeRegistry)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.bson.BsonJsonMapper",
+    "member": "Constructor io.micronaut.serde.bson.BsonJsonMapper(io.micronaut.serde.SerdeRegistry,java.lang.Class)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field OPTIONAL_DOUBLE_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field URI_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field FLOAT_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field LOCALE_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field DOUBLE_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field BOOLEAN_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field FLOAT_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field BOOLEAN_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field LONG_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field URL_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field DOUBLE_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field INT_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field SHORT_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field BIG_INTEGER_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field LONG_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field STRING_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field OPTIONAL_LONG_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field BIG_DECIMAL_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field CHAR_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field DEFAULT_SERDES",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field BYTE_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field INTEGER_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field OPTIONAL_INT_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field TIME_ZONE_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field CHAR_ARRAY_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field BYTE_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field SHORT_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field UUID_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Field CHARSET_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Constructor io.micronaut.serde.support.DefaultSerdeRegistry(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.serde.config.DeserializationConfiguration)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.DefaultSerdeRegistry",
+    "member": "Constructor io.micronaut.serde.support.DefaultSerdeRegistry(io.micronaut.context.BeanContext,io.micronaut.serde.support.serializers.ObjectSerializer,io.micronaut.serde.support.deserializers.ObjectDeserializer,io.micronaut.serde.Serde,io.micronaut.serde.SerdeIntrospections,io.micronaut.core.convert.ConversionService)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.serdes.CoreSerdes",
+    "member": "Field DURATION_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.serdes.CoreSerdes",
+    "member": "Field PERIOD_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.serdes.CoreSerdes",
+    "member": "Field CHAR_SEQUENCE_SERDE",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.support.serdes.CoreSerdes",
+    "member": "Constructor io.micronaut.serde.support.serdes.CoreSerdes()",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.json.stream.JsonStreamMapper",
+    "member": "Constructor io.micronaut.serde.json.stream.JsonStreamMapper(io.micronaut.serde.SerdeRegistry)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.json.stream.JsonStreamMapper",
+    "member": "Constructor io.micronaut.serde.json.stream.JsonStreamMapper(io.micronaut.serde.SerdeRegistry,java.lang.Class)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper",
+    "member": "Constructor io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper(io.micronaut.serde.SerdeRegistry)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper",
+    "member": "Constructor io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper(io.micronaut.serde.SerdeRegistry,java.lang.Class)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper",
+    "member": "Constructor io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper(io.micronaut.serde.SerdeRegistry,java.lang.Class)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper",
+    "member": "Constructor io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper(io.micronaut.serde.SerdeRegistry)",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
+  },
+  {
+    "type": "io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde",
+    "member": "Constructor io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde()",
+    "reason": "Removed deprecated code for Micronuat Framework 5"
   }
 ]

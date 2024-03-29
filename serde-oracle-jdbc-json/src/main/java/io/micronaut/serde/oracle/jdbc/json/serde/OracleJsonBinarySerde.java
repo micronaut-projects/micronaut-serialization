@@ -22,7 +22,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
-import io.micronaut.serde.support.DefaultSerdeRegistry;
 import jakarta.inject.Singleton;
 import oracle.jdbc.driver.json.tree.OracleJsonBinaryImpl;
 
@@ -40,11 +39,6 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
 
     public OracleJsonBinarySerde(@Secondary Serde<byte[]> byteArraySerde) {
         this.byteArraySerde = byteArraySerde;
-    }
-
-    @Deprecated
-    public OracleJsonBinarySerde() {
-        this(DefaultSerdeRegistry.BYTE_ARRAY_SERDE);
     }
 
     @Override
