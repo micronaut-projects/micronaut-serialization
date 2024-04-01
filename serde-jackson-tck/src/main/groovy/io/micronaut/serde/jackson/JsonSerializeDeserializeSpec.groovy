@@ -2,6 +2,54 @@ package io.micronaut.serde.jackson
 
 abstract class JsonSerializeDeserializeSpec extends JsonCompileSpec {
 
+    void 'test json serialize/deserialize as self'() {
+        given:
+            def context = buildContext('test.TestImpl', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.micronaut.serde.annotation.Serdeable;
+
+interface Test {
+    String getValue();
+}
+
+@Serdeable
+@JsonSerialize(as = TestImpl.class)
+@JsonDeserialize(as = TestImpl.class)
+class TestImpl implements Test {
+
+    private final String value;
+
+    @JsonCreator
+    TestImpl(@JsonProperty("value") String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String getValue() {
+        return value;
+    }
+}
+""")
+
+        when:
+            def result = jsonMapper.readValue('{"value":"test"}', typeUnderTest)
+
+        then:
+            result.getClass().name == 'test.TestImpl'
+            result.value == 'test'
+
+        when:
+            def json = writeJson(jsonMapper, result)
+
+        then:
+            json == '{"value":"test"}'
+    }
+
     void 'test json serialize/deserialize as'() {
         given:
         def context = buildContext('test.Test', """

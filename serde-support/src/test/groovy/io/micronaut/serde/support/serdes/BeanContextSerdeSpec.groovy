@@ -62,4 +62,14 @@ class BeanContextSerdeSpec extends Specification {
         then:
         byteArraySerde.getClass() == InstantSerde
     }
+
+    void "test retrieving EnumSerde"() {
+        when:
+        def enumSerde = beanContext.getBean(Argument.of(Serde, MyEnum))
+
+        then:
+        enumSerde.getClass() == EnumSerde
+    }
+
+    static enum MyEnum {}
 }

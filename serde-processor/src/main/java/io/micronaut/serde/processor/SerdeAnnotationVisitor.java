@@ -842,9 +842,28 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         ));
 
         final MethodElement mixinCtor = mixinType.getPrimaryConstructor().orElse(null);
-        final MethodElement targetCtor = type.getPrimaryConstructor().orElse(null);
-        if (mixinCtor != null && targetCtor != null && argumentsMatch(mixinCtor, targetCtor)) {
-            replicateAnnotations(mixinCtor, targetCtor);
+        MethodElement targetCtor = type.getPrimaryConstructor().orElse(null);
+        if (mixinCtor != null && targetCtor != null) {
+            if (!argumentsMatch(mixinCtor, targetCtor)) {
+                // The mixin constructor and the primary constructor doesn't match,
+                // lets try to find a matching one and mark it as a primary
+                MethodElement prevCtor = targetCtor;
+                targetCtor = type.getAccessibleConstructors().stream().filter(c -> argumentsMatch(mixinCtor, c)).findFirst().orElse(null);
+                if (targetCtor != null) {
+                    targetCtor.annotate(Creator.class);
+                    prevCtor.removeAnnotation(Creator.class);
+                }
+            }
+            if (targetCtor != null) {
+                replicateAnnotations(mixinCtor, targetCtor);
+                ParameterElement[] mixinCtorParameters = mixinCtor.getParameters();
+                ParameterElement[] targetCtorParameters = targetCtor.getParameters();
+                for (int i = 0; i < mixinCtorParameters.length; i++) {
+                    ParameterElement mixinCtorParameter = mixinCtorParameters[i];
+                    ParameterElement targetCtorParameter = targetCtorParameters[i];
+                    replicateAnnotations(mixinCtorParameter, targetCtorParameter);
+                }
+            }
         }
 
         final List<MethodElement> serdeMethods = mixinType.isRecord() ? Collections.emptyList() : new ArrayList<>(mixinType.getEnclosedElements(
