@@ -22,7 +22,7 @@ micronaut-test = "4.2.1"
 micronaut-discovery = "4.2.0"
 micronaut-logging = "1.2.3"
 micronaut-oracle-cloud = "3.7.2"
-micronaut-reactor = "3.2.1"
+micronaut-reactor = "3.3.0"
 micronaut-validation = "4.4.4"
 micronaut-gradle-plugin = "4.3.5"
 
