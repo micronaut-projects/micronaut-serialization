@@ -211,7 +211,9 @@ final class DeserBean<T> {
                 i,
                 propertyName,
                 constructorWithPropertyArgument,
-                isIgnored ? null : introspection.getProperty(propertyName).orElse(null),
+                isIgnored ? null : introspection.getProperty(propertyName)
+                    .or(() -> introspection.getProperty(constructorArgument.getName()))
+                    .orElse(null),
                 null,
                 unwrapped,
                 null
@@ -250,7 +252,7 @@ final class DeserBean<T> {
                     i,
                     jsonProperty,
                     builderArgument,
-                    null,
+                    matchingOuterProperty.orElse(null),
                     null,
                     null,
                     null
