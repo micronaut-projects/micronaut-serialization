@@ -186,7 +186,8 @@ final class DeserBean<T> {
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
             final String propertyName = resolveName(serdeArgumentConf, constructorArgument, annotationMetadata, propertyNamingStrategy);
 
-            if (isIgnored(annotationMetadata) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName))) {
+            boolean isIgnored = isIgnored(annotationMetadata) || (allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName));
+            if (isIgnored) {
                 ignoredProperties.add(propertyName);
             }
 
@@ -210,10 +211,13 @@ final class DeserBean<T> {
                 i,
                 propertyName,
                 constructorWithPropertyArgument,
-                introspection.getProperty(propertyName).orElse(null),
+                isIgnored ? null : introspection.getProperty(propertyName)
+                    .or(() -> introspection.getProperty(constructorArgument.getName()))
+                    .orElse(null),
                 null,
                 unwrapped,
-                null
+                null,
+                isIgnored
             );
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
@@ -252,7 +256,8 @@ final class DeserBean<T> {
                     null,
                     null,
                     null,
-                    null
+                    null,
+                    false
                 );
                 readPropertiesBuilder.register(jsonProperty, derProperty, true);
             }
@@ -326,7 +331,8 @@ final class DeserBean<T> {
                             beanProperty,
                             null,
                             unwrapped,
-                            null
+                            null,
+                            false
                         );
                         if (isUnwrapped) {
                             if (unwrappedProperties == null) {
@@ -366,7 +372,8 @@ final class DeserBean<T> {
                         null,
                         jsonSetter,
                         null,
-                        null
+                        null,
+                        false
                     );
                     readPropertiesBuilder.register(property, derProperty, true);
                 }
@@ -481,7 +488,9 @@ final class DeserBean<T> {
     }
 
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
-        property.deserializer = findDeserializer(decoderContext, property.argument);
+        if (!property.ignored) {
+            property.deserializer = findDeserializer(decoderContext, property.argument);
+        }
     }
 
     private PropertyNamingStrategy getPropertyNamingStrategy(AnnotationMetadata annotationMetadata,
@@ -703,6 +712,7 @@ final class DeserBean<T> {
         public final DerProperty<?, ?> unwrappedProperty;
         public final String managedRef;
         public final String backRef;
+        public final boolean ignored;
 
         // Null when DeserBean not initialized
         public Deserializer<P> deserializer;
@@ -715,7 +725,8 @@ final class DeserBean<T> {
                     @Nullable BeanWriteProperty<B, P> beanProperty,
                     @Nullable BeanMethod<B, P> beanMethod,
                     @Nullable DeserBean<P> unwrapped,
-                    @Nullable DerProperty<?, ?> unwrappedProperty) throws SerdeException {
+                    @Nullable DerProperty<?, ?> unwrappedProperty,
+                    boolean ignored) throws SerdeException {
             this(conversionService,
                 introspection,
                 index,
@@ -725,7 +736,8 @@ final class DeserBean<T> {
                 beanProperty,
                 beanMethod,
                 unwrapped,
-                unwrappedProperty
+                unwrappedProperty,
+                ignored
             );
         }
 
@@ -738,10 +750,12 @@ final class DeserBean<T> {
                     @Nullable BeanWriteProperty<B, P> beanProperty,
                     @Nullable BeanMethod<B, P> beanMethod,
                     @Nullable DeserBean<P> unwrapped,
-                    @Nullable DerProperty<?, ?> unwrappedProperty) throws SerdeException {
+                    @Nullable DerProperty<?, ?> unwrappedProperty,
+                    boolean ignored) throws SerdeException {
             this.introspection = introspection;
             this.index = index;
             this.argument = argument;
+            this.ignored = ignored;
             Class<?> type = argument.getType();
             this.mustSetField = argument.isNonNull() || type.equals(Optional.class)
                 || type.equals(OptionalLong.class)

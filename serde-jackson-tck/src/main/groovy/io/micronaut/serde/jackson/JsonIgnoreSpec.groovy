@@ -69,6 +69,36 @@ class Test {
         context.close()
     }
 
+    void "json ignore on a bean"() {
+        given:
+        def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    @JsonIgnore
+    public Ignored foo;
+    public String bar;
+}
+class Ignored {
+}
+''', [:])
+
+        def des = jsonMapper.readValue('{"foo": "1", "bar": "2"}', typeUnderTest)
+
+        expect:
+        des.foo == null
+        des.bar == "2"
+
+        cleanup:
+        context.close()
+    }
+
     void "test @JsonIgnoreType"() {
         given:
         def context = buildContext("""
