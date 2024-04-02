@@ -24,8 +24,8 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
-import io.micronaut.core.beans.BeanProperty;
-import io.micronaut.core.beans.UnsafeBeanProperty;
+import io.micronaut.core.beans.BeanReadProperty;
+import io.micronaut.core.beans.UnsafeBeanReadProperty;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.order.OrderUtil;
@@ -62,7 +62,7 @@ import java.util.function.Predicate;
 
 @Internal
 final class SerBean<T> {
-    private static final Comparator<BeanProperty<?, Object>> BEAN_PROPERTY_COMPARATOR = (o1, o2) -> OrderUtil.COMPARATOR.compare(
+    private static final Comparator<BeanReadProperty<?, Object>> BEAN_PROPERTY_COMPARATOR = (o1, o2) -> OrderUtil.COMPARATOR.compare(
             new Ordered() {
                 @Override
                 public int getOrder() {
@@ -122,15 +122,15 @@ final class SerBean<T> {
         Predicate<String> argumentPropertyPredicate = serdeArgumentConf == null ? null : serdeArgumentConf.resolveAllowPropertyPredicate(allowIgnoredProperties);
 
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, null);
-        final Collection<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>> properties =
-                introspection.getBeanProperties().stream()
+        final Collection<Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata>> properties =
+                introspection.getBeanReadProperties().stream()
                         .filter(this::filterProperty)
-                        .sorted(getPropertyComparator())
+                        .sorted(BEAN_PROPERTY_COMPARATOR)
                         .map(beanProperty -> {
                             Optional<Argument<?>> constructorArgument = Arrays.stream(introspection.getConstructor().getArguments())
                                     .filter(a -> a.getName().equals(beanProperty.getName()) && a.getType().equals(beanProperty.getType()))
                                     .findFirst();
-                            return constructorArgument.<Map.Entry<BeanProperty<T, Object>, AnnotationMetadata>>map(argument -> new AbstractMap.SimpleEntry<>(
+                            return constructorArgument.<Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata>>map(argument -> new AbstractMap.SimpleEntry<>(
                                     beanProperty,
                                     new AnnotationMetadataHierarchy(argument.getAnnotationMetadata(), beanProperty.getAnnotationMetadata())
                             )).orElseGet(() -> new AbstractMap.SimpleEntry<>(
@@ -139,12 +139,12 @@ final class SerBean<T> {
                             ));
                         })
                         .toList();
-        final Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
+        final Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> serPropEntry = properties.stream()
                 .filter(bp -> bp.getValue().hasAnnotation(SerdeConfig.SerValue.class) || bp.getValue().hasAnnotation(JACKSON_VALUE))
                 .findFirst().orElse(null);
         if (serPropEntry != null) {
             wrapperProperty = null;
-            BeanProperty<T, Object> beanProperty = serPropEntry.getKey();
+            BeanReadProperty<T, Object> beanProperty = serPropEntry.getKey();
             final Argument<Object> serType = beanProperty.asArgument();
             AnnotationMetadata propertyAnnotationMetadata = serPropEntry.getValue();
             jsonValue = new PropSerProperty<>(
@@ -213,8 +213,8 @@ final class SerBean<T> {
                             }
                         });
                     }
-                    for (Map.Entry<BeanProperty<T, Object>, AnnotationMetadata> propWithAnnotations : properties) {
-                        final BeanProperty<T, Object> property = propWithAnnotations.getKey();
+                    for (Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata> propWithAnnotations : properties) {
+                        final BeanReadProperty<T, Object> property = propWithAnnotations.getKey();
                         final Argument<Object> argument = property.asArgument();
                         final AnnotationMetadata propertyAnnotationMetadata = propWithAnnotations.getValue();
                         PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(property.getAnnotationMetadata(), encoderContext, entityPropertyNamingStrategy);
@@ -440,10 +440,6 @@ final class SerBean<T> {
         return namingStrategyClass == null ? defaultNamingStrategy : encoderContext.findNamingStrategy(namingStrategyClass);
     }
 
-    private Comparator<BeanProperty<?, Object>> getPropertyComparator() {
-        return BEAN_PROPERTY_COMPARATOR;
-    }
-
     private String resolveName(AnnotationMetadata propertyAnnotationMetadata,
                                String name,
                                @Nullable
@@ -485,20 +481,19 @@ final class SerBean<T> {
         return null;
     }
 
-    private boolean filterProperty(BeanProperty<T, Object> property) {
-        return !property.isWriteOnly()
-            && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
+    private boolean filterProperty(BeanReadProperty<T, Object> property) {
+        return !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED).orElse(false)
             && !property.booleanValue(SerdeConfig.class, SerdeConfig.IGNORED_SERIALIZATION).orElse(false)
             && !property.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false);
     }
 
     static final class PropSerProperty<B, P> extends SerProperty<B, P> {
 
-        private final UnsafeBeanProperty<B, P> beanProperty;
+        private final UnsafeBeanReadProperty<B, P> beanProperty;
 
-        public PropSerProperty(SerBean<B> bean, String name, String originalName, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanProperty<B, P> beanProperty) {
+        public PropSerProperty(SerBean<B> bean, String name, String originalName, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanReadProperty<B, P> beanProperty) {
             super(bean, name, originalName, argument, annotationMetadata);
-            this.beanProperty = (UnsafeBeanProperty<B, P>) beanProperty;
+            this.beanProperty = (UnsafeBeanReadProperty<B, P>) beanProperty;
         }
 
         @Override

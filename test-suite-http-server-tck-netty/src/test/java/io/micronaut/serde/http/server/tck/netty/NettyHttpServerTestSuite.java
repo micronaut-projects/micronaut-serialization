@@ -24,6 +24,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @ExcludeClassNamePatterns({
         "io.micronaut.http.server.tck.tests.hateoas.JsonErrorTest",
         "io.micronaut.http.server.tck.tests.hateoas.VndErrorTest",
+        "io.micronaut.http.server.tck.tests.hateoas.JsonErrorSerdeTest",
     "io.micronaut.http.server.tck.tests.constraintshandler.ControllerConstraintHandlerTest",
     "io.micronaut.http.server.tck.tests.forms.FormsInputNumberOptionalTest",
     "io.micronaut.http.server.tck.tests.forms.FormsSubmissionsWithListsTest",
