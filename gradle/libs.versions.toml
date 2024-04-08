@@ -1,7 +1,7 @@
 [versions]
 managed-bson = "4.11.2"
 managed-jakarta-json-api = "2.1.3"
-managed-jakarta-json-bindApi = "3.0.0"
+managed-jakarta-json-bindApi = "3.0.1"
 managed-eclipse-parsson = "1.1.5"
 
 kotlin = "1.9.23"
