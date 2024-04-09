@@ -62,7 +62,9 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>10</strong><span>Breaking Changes</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>11</strong><span>Repository</span></a></div>
                                 
                             </div>
                         </div>
@@ -121,7 +123,9 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>10</strong><span>Breaking Changes</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>11</strong><span>Repository</span></a></div>
         
         </div>
     </div>
@@ -2458,7 +2462,125 @@ class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
 </table>
 </div>
 
-<h1 id="repository"><a class="anchor" href="#repository"></a>10 Repository</h1>
+<h1 id="breaks"><a class="anchor" href="#breaks"></a>10 Breaking Changes</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/breaks.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>This section documents breaking changes between Micronaut Serialization versions:</p>
+</div>
+<div class="sect2">
+<h3 id="_micronaut_serialization_3_0_0">Micronaut Serialization 3.0.0</h3>
+<div class="sect3">
+<h4 id="_deprecations">Deprecations</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>The following constructors of <code>io.micronaut.serde.bson.BsonJsonMapper</code> deprecated previously have been removed.
+Use <code>BsonJsonMapper(SerdeRegistry, SerdeConfiguration)</code> instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>BsonJsonMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>BsonJsonMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The class <code>io.micronaut.serde.support.serdes.CoreSerdes</code> has been removed. It wasn&#8217;t deprecated explicitly, but all it&#8217;s members were, and it is no longer used.</p>
+</li>
+<li>
+<p>The interface method <code>io.micronaut.serde.Deserializer.allowNull()</code> deprecated previously was removed.
+Use the default or override <code>deserializeNullable(Decoder, DecoderContext, Argument&lt;? super T&gt;)</code> instead</p>
+</li>
+<li>
+<p>The method <code>io.micronaut.serde.util.CustomizableDeserializer.allowNull()</code> was removed. This method was deprecated and removed in the super interface <code>Deserializer</code>. It previously raised an <code>IllegalStateException</code> if invoked.</p>
+</li>
+<li>
+<p>All the static fields of <code>io.micronaut.serde.support.DefaultSerdeRegistry</code> deprecated prviously were removed. These were aliases for constants defined in the internal class <code>io.micronaut.serde.support.serdes.Serdes</code> and shouldn&#8217;t be exposed otherwise.</p>
+</li>
+<li>
+<p>The following Singleton constructors of <code>DefaultSerdeRegistry</code> deprecated previously were removed.
+The remaining constructor <code>DefaultSerdeRegistry(BeanContext, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde&lt;Object[]&gt;, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code></p>
+</li>
+<li>
+<p><code>DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde&lt;Object[]&gt;, SerdeIntrospections, ConversionService)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The following Singleton constructors of <code>io.micronaut.serde.json.stream.JsonStreamMapper</code> deprecated previously were removed.
+The remaining constructor <code>JsonStreamMapper(SerdeRegistry, SerdeConfiguration)</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JsonStreamMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>JsonStreamMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The internal class constructor <code>io.micronaut.serde.support.deserializers.ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeDeserializationPreInstantiateCallback)</code> deprecated previously has been removed.
+<code>ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, `SerdeDeserializationPreInstantiateCallback)</code> is used instead.</p>
+</li>
+<li>
+<p>The internal class constructor <code>io.micronaut.serde.support.serializers.ObjectSerializer(SerdeIntrospections, BeanContext)</code> deprecated previously has been removed.
+<code>ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)</code> is used instead.</p>
+</li>
+<li>
+<p>The following constructors of <code>io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper</code> deprecated previously have been removed.
+The internal constructor <code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The following constructors of <code>io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper</code> deprecated previously have been removed.
+The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OracleJdbcJsonTextObjectMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>OracleJdbcJsonTextObjectMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The Singleton constructor <code>io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde()</code> deprecated previously have been removed.
+<code>OracleJsonBinarySerde(Serde&lt;byte[]&gt;)</code> is used instead.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<h1 id="repository"><a class="anchor" href="#repository"></a>11 Repository</h1>
 
 <div class='contribute-btn'>
     <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/repository.adoc"'>
