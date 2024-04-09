@@ -62,16 +62,6 @@ public class JsonStreamMapper implements ObjectMapper {
     @Nullable
     private final Class<?> view;
 
-    @Deprecated
-    public JsonStreamMapper(@NonNull SerdeRegistry registry) {
-        this(registry, (Class<?>) null);
-    }
-
-    @Deprecated
-    public JsonStreamMapper(@NonNull SerdeRegistry registry, @Nullable Class<?> view) {
-        this(registry, null, view);
-    }
-
     @Inject
     public JsonStreamMapper(@NonNull SerdeRegistry registry, @NonNull SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);

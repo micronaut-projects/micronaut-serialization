@@ -44,16 +44,6 @@ import java.nio.charset.StandardCharsets;
 @Order(100) // lower precedence than Jackson
 public final class BsonJsonMapper extends AbstractBsonMapper {
 
-    @Deprecated
-    public BsonJsonMapper(SerdeRegistry registry) {
-        super(registry, null);
-    }
-
-    @Deprecated
-    public BsonJsonMapper(SerdeRegistry registry, Class<?> view) {
-        super(registry, null, view);
-    }
-
     @Inject
     public BsonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
         super(registry, serdeConfiguration);

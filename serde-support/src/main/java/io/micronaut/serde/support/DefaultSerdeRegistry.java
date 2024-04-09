@@ -51,26 +51,14 @@ import io.micronaut.serde.support.serializers.CoreSerializers;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.MatchArgumentQualifier;
 import io.micronaut.serde.support.util.TypeKey;
-import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.TimeZone;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -79,151 +67,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 @BootstrapContextCompatible
 public class DefaultSerdeRegistry implements SerdeRegistry {
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Integer> INTEGER_SERDE = Serdes.INTEGER_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Long> LONG_SERDE = Serdes.LONG_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Short> SHORT_SERDE = Serdes.SHORT_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Float> FLOAT_SERDE = Serdes.FLOAT_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Byte> BYTE_SERDE = Serdes.BYTE_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Double> DOUBLE_SERDE = Serdes.DOUBLE_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<OptionalInt> OPTIONAL_INT_SERDE = Serdes.OPTIONAL_INT_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<OptionalDouble> OPTIONAL_DOUBLE_SERDE = Serdes.OPTIONAL_DOUBLE_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<OptionalLong> OPTIONAL_LONG_SERDE = Serdes.OPTIONAL_LONG_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<BigDecimal> BIG_DECIMAL_SERDE = Serdes.BIG_DECIMAL_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<BigInteger> BIG_INTEGER_SERDE = Serdes.BIG_INTEGER_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<UUID> UUID_SERDE = Serdes.UUID_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<URL> URL_SERDE = Serdes.URL_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<URI> URI_SERDE = Serdes.URI_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Charset> CHARSET_SERDE = Serdes.CHARSET_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<TimeZone> TIME_ZONE_SERDE = Serdes.TIME_ZONE_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Locale> LOCALE_SERDE = Serdes.LOCALE_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<int[]> INT_ARRAY_SERDE = Serdes.INT_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<long[]> LONG_ARRAY_SERDE = Serdes.LONG_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<float[]> FLOAT_ARRAY_SERDE = Serdes.FLOAT_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<short[]> SHORT_ARRAY_SERDE = Serdes.SHORT_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<double[]> DOUBLE_ARRAY_SERDE = Serdes.DOUBLE_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<boolean[]> BOOLEAN_ARRAY_SERDE = Serdes.BOOLEAN_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<byte[]> BYTE_ARRAY_SERDE = Serdes.BYTE_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<char[]> CHAR_ARRAY_SERDE = Serdes.CHAR_ARRAY_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<String> STRING_SERDE = Serdes.STRING_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Boolean> BOOLEAN_SERDE = Serdes.BOOLEAN_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final Serde<Charset> CHAR_SERDE = Serdes.CHARSET_SERDE;
-    /**
-     * @deprecated Internal serdes shouldn't be accessed as a static field
-     */
-    @Deprecated(since = "2.9.0")
-    public static final List<SerdeRegistrar<?>> DEFAULT_SERDES = Serdes.LEGACY_DEFAULT_SERDES;
 
     private final List<BeanDefinition<Serializer>> serializers = new ArrayList<>(100);
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
@@ -246,53 +89,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
      * Default constructor.
      *
      * @param beanContext                  The bean context
-     * @param objectSerializer             The object serializer
-     * @param objectDeserializer           The object deserializer
-     * @param objectArraySerde             The object array Serde
-     * @param introspections               The introspections
-     * @param conversionService            The conversion service
-     * @param serdeConfiguration           The {@link SerdeConfiguration}
-     * @param serializationConfiguration   The {@link SerializationConfiguration}
-     * @param deserializationConfiguration The {@link DeserializationConfiguration}
-     * @deprecated Use {@link #DefaultSerdeRegistry(BeanContext, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)}
-     */
-    @Deprecated(forRemoval = true, since = "2.9.0")
-    public DefaultSerdeRegistry(
-        BeanContext beanContext,
-        ObjectSerializer objectSerializer,
-        ObjectDeserializer objectDeserializer,
-        Serde<Object[]> objectArraySerde,
-        SerdeIntrospections introspections,
-        ConversionService conversionService,
-        SerdeConfiguration serdeConfiguration,
-        SerializationConfiguration serializationConfiguration,
-        DeserializationConfiguration deserializationConfiguration) {
-        this.serdeConfiguration = serdeConfiguration;
-        this.serializationConfiguration = serializationConfiguration;
-        this.deserializationConfiguration = deserializationConfiguration;
-        this.introspections = introspections;
-        this.objectArraySerde = objectArraySerde;
-        this.beanContext = beanContext;
-        this.conversionService = conversionService;
-
-        registerSerializersDeserializersFromBeanContext(beanContext);
-        registerBuiltInSerdes();
-
-        this.objectSerializer = objectSerializer;
-        this.objectDeserializer = objectDeserializer;
-    }
-
-    /**
-     * Default constructor.
-     *
-     * @param beanContext                  The bean context
      * @param introspections               The introspections
      * @param conversionService            The conversion service
      * @param serdeConfiguration           The {@link SerdeConfiguration}
      * @param serializationConfiguration   The {@link SerializationConfiguration}
      * @param deserializationConfiguration The {@link DeserializationConfiguration}
      */
-    @Inject
     public DefaultSerdeRegistry(
         @Nullable BeanContext beanContext,
         SerdeIntrospections introspections,
@@ -321,26 +123,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             beanContext == null ? null : beanContext.findBean(SerdeDeserializationPreInstantiateCallback.class).orElse(null)
         );
         this.objectArraySerde = new ObjectArraySerde();
-    }
-
-    /**
-     * @param beanContext        The bean context
-     * @param objectSerializer   The object serializer
-     * @param objectDeserializer The object deserializer
-     * @param objectArraySerde   The object array Serde
-     * @param introspections     The introspections
-     * @param conversionService  The conversion service
-     * @deprecated Use {@link #DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)} instead
-     */
-    @Deprecated
-    public DefaultSerdeRegistry(
-        BeanContext beanContext,
-        ObjectSerializer objectSerializer,
-        ObjectDeserializer objectDeserializer,
-        Serde<Object[]> objectArraySerde,
-        SerdeIntrospections introspections,
-        ConversionService conversionService) {
-        this(beanContext, objectSerializer, objectDeserializer, objectArraySerde, introspections, conversionService, beanContext.getBean(SerdeConfiguration.class), beanContext.getBean(SerializationConfiguration.class), beanContext.getBean(DeserializationConfiguration.class));
     }
 
     private void registerSerializersDeserializersFromBeanContext(@Nullable BeanContext beanContext) {

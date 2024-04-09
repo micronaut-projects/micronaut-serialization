@@ -41,11 +41,6 @@ public interface CustomizableDeserializer<T> extends Deserializer<T> {
     }
 
     @Override
-    default boolean allowNull() {
-        throw new IllegalStateException("Specific deserializer required!");
-    }
-
-    @Override
     default T getDefaultValue(DecoderContext context, Argument<? super T> type) {
         throw new IllegalStateException("Specific deserializer required!");
     }

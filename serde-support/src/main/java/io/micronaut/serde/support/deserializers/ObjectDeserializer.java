@@ -61,22 +61,6 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         this.preInstantiateCallback = preInstantiateCallback;
     }
 
-    /**
-     *
-     * @param introspections
-     * @param deserializationConfiguration
-     * @param preInstantiateCallback
-     */
-    @Deprecated
-    public ObjectDeserializer(SerdeIntrospections introspections,
-                              DeserializationConfiguration deserializationConfiguration,
-                              @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
-        this.introspections = introspections;
-        this.deserializationConfiguration = deserializationConfiguration;
-        this.serdeConfiguration = null;
-        this.preInstantiateCallback = preInstantiateCallback;
-    }
-
     @Override
     public Deserializer<Object> createSpecific(DecoderContext context, Argument<? super Object> type) throws SerdeException {
         if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
