@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.DeserializerRegistrar;
 
@@ -44,9 +45,10 @@ final class EnumSetDeserializer<E extends Enum<E>> implements DeserializerRegist
         final Decoder arrayDecoder = decoder.decodeArray();
         Class<E> enumType = generic.getType();
         EnumSet<E> enumSet = EnumSet.noneOf(enumType);
+        Deserializer<? extends E> enumDeser = context.findDeserializer(enumType).createSpecific(context, generic);
         while (arrayDecoder.hasNextArrayValue()) {
             enumSet.add(
-                Enum.valueOf(enumType, arrayDecoder.decodeString())
+                enumDeser.deserialize(arrayDecoder, context, generic)
             );
         }
         arrayDecoder.finishStructure();
