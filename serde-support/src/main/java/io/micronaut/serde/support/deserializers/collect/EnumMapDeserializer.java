@@ -52,19 +52,19 @@ final class EnumMapDeserializer<E extends Enum<E>, V> implements CustomizableDes
         return (decoder, decoderContext, mapType) -> {
             final EnumMap<E, V> map = new EnumMap<>(enumType.getType());
             final RemainingLimits remainingLimits = decoderContext.getSerdeConfiguration().map(LimitingStream::limitsFromConfiguration).orElse(LimitingStream.DEFAULT_LIMITS);
-            final Decoder objectDecoder = decoder.decodeObject(mapType);
-            String key = objectDecoder.decodeKey();
-            while (key != null) {
-                JsonNodeDecoder keyDecoder = JsonNodeDecoder.create(JsonNode.createStringNode(key), remainingLimits);
-                E k = enumDeser.deserialize(keyDecoder, decoderContext, enumType);
-                if (valueDeser == null) {
-                    map.put(k, (V) objectDecoder.decodeArbitrary());
-                } else {
-                    map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueType));
+            try (Decoder objectDecoder = decoder.decodeObject(mapType)) {
+                String key = objectDecoder.decodeKey();
+                while (key != null) {
+                    JsonNodeDecoder keyDecoder = JsonNodeDecoder.create(JsonNode.createStringNode(key), remainingLimits);
+                    E k = enumDeser.deserialize(keyDecoder, decoderContext, enumType);
+                    if (valueDeser == null) {
+                        map.put(k, (V) objectDecoder.decodeArbitrary());
+                    } else {
+                        map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueType));
+                    }
+                    key = objectDecoder.decodeKey();
                 }
-                key = objectDecoder.decodeKey();
             }
-            objectDecoder.finishStructure();
             return map;
         };
     }
