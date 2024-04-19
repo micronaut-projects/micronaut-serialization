@@ -21,6 +21,7 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.beans.EnumBeanIntrospection;
+import io.micronaut.core.beans.EnumBeanIntrospection.EnumConstant;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -33,9 +34,12 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
+import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -47,6 +51,7 @@ import java.util.stream.Collectors;
  */
 final class EnumSerde<E extends Enum<E>> implements SerdeRegistrar<E> {
     private final SerdeIntrospections introspections;
+    private final EnumCache<E> enumCache = new EnumCache<>();
 
     EnumSerde(SerdeIntrospections introspections) {
         this.introspections = introspections;
@@ -78,26 +83,23 @@ final class EnumSerde<E extends Enum<E>> implements SerdeRegistrar<E> {
             if (deserializableIntrospection.getConstructor().isAnnotationPresent(Creator.class)) {
                 return createEnumCreatorDeserializer(context, deserializableIntrospection);
             }
-            if (deserializableIntrospection instanceof EnumBeanIntrospection<? super E> enumIntrospection) {
-                for (BeanMethod<? super E, Object> beanMethod : deserializableIntrospection.getBeanMethods()) {
-                    if (beanMethod.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                        Argument<Object> valueType = beanMethod.getReturnType().asArgument();
-                        Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
-                        return new EnumValueDeserializer<E>(valueType, valueDeserializer, enumIntrospection, beanMethod::invoke, valueType.isNullable());
-                    }
+            EnumValueCache<E> valueCache = enumCache.forDeserialization(deserializableIntrospection);
+            for (BeanMethod<? super E, Object> beanMethod : deserializableIntrospection.getBeanMethods()) {
+                if (beanMethod.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+                    Argument<Object> valueType = beanMethod.getReturnType().asArgument();
+                    Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
+                    return new EnumValueDeserializer<E>(valueType, valueDeserializer, beanMethod::invoke, valueType.isNullable(), valueCache);
                 }
-                for (BeanProperty<? super E, Object> beanProperty : deserializableIntrospection.getBeanProperties()) {
-                    if (beanProperty.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                        var valueType = beanProperty.asArgument();
-                        Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
-                        return new EnumValueDeserializer<E>(valueType, valueDeserializer, enumIntrospection, beanProperty::get, valueType.isNullable());
-                    }
+            }
+            for (BeanProperty<? super E, Object> beanProperty : deserializableIntrospection.getBeanProperties()) {
+                if (beanProperty.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
+                    Argument<Object> valueType = beanProperty.asArgument();
+                    Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
+                    return new EnumValueDeserializer<E>(valueType, valueDeserializer, beanProperty::get, valueType.isNullable(), valueCache);
                 }
-                boolean hasPropertyAnnotation = enumIntrospection.getConstants().stream()
-                    .anyMatch(enumConstant -> enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent());
-                if (hasPropertyAnnotation) {
-                    return new EnumPropertyDeserializer<E>(enumIntrospection);
-                }
+            }
+            if (valueCache.hasPropertyAnnotation()) {
+                return new EnumPropertyDeserializer<E>(valueCache);
             }
             return createEnumCreatorDeserializer(context, deserializableIntrospection);
         } catch (IntrospectionException | SerdeException e) {
@@ -148,12 +150,9 @@ final class EnumSerde<E extends Enum<E>> implements SerdeRegistrar<E> {
                     };
                 }
             }
-            if (si instanceof EnumBeanIntrospection<? extends E> enumIntrospection) {
-                boolean hasPropertyAnnotation = enumIntrospection.getConstants().stream()
-                    .anyMatch(enumConstant -> enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent());
-                if (hasPropertyAnnotation) {
-                    return new EnumPropertySerializer<>(enumIntrospection);
-                }
+            EnumValueCache<E> valueCache = enumCache.forSerialization(si);
+            if (valueCache.hasPropertyAnnotation()) {
+                return new EnumPropertySerializer<>(valueCache);
             }
             return this;
         } catch (IntrospectionException e) {
@@ -233,35 +232,29 @@ final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> 
 
     private final Argument<Object> valueType;
     private final Deserializer<?> valueDeserializer;
-    private final EnumBeanIntrospection<? super E> enumIntrospection;
-    private final Function<E, Object> valueExtractor;
+    private final Function<EnumConstant<E>, Optional<Object>> valueExtractor;
     private final boolean allowNull;
+    private final EnumValueCache<E> valueCache;
 
-    public EnumValueDeserializer(Argument<Object> valueType, Deserializer<?> valueDeserializer, EnumBeanIntrospection<? super E> enumIntrospection, Function<E, Object> valueExtractor, boolean allowNull) {
+    EnumValueDeserializer(Argument<Object> valueType, Deserializer<?> valueDeserializer, Function<E, Object> valueExtractor, boolean allowNull, EnumValueCache<E> valueCache) {
         this.valueType = valueType;
         this.valueDeserializer = valueDeserializer;
-        this.enumIntrospection = enumIntrospection;
-        this.valueExtractor = valueExtractor;
+        this.valueExtractor = enumConstant -> Optional.ofNullable(valueExtractor.apply(enumConstant.getValue()));
         this.allowNull = allowNull;
+        this.valueCache = valueCache;
     }
 
     @NonNull
     private E transform(@NonNull Decoder decoder, Object value) throws IOException {
-        for (EnumBeanIntrospection.EnumConstant<? super E> enumConstant : enumIntrospection.getConstants()) {
-            E enumValue = (E) enumConstant.getValue();
-            Object extractedValue = valueExtractor.apply(enumValue);
-            if (Objects.equals(extractedValue, value)) {
-                return enumValue;
-            }
-        }
+        valueCache.calculateValues(valueExtractor);
 
-        var allowedValues = enumIntrospection.getConstants().stream()
-            .map(EnumBeanIntrospection.EnumConstant::getValue)
-            .map(enumValue -> valueExtractor.apply((E) enumValue))
-            .map(Object::toString)
-            .collect(Collectors.joining(", "));
-
-        throw decoder.createDeserializationException("Expected one of [%s] but was '%s'".formatted(allowedValues, value), value);
+        return valueCache.getDeserialized(value)
+            .orElseThrow(() -> {
+                String allowedValues = valueCache.getSerializedValues().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining(", "));
+                return decoder.createDeserializationException("Expected one of [%s] but was '%s'".formatted(allowedValues, value), value);
+            });
     }
 
     @Override
@@ -281,40 +274,40 @@ final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> 
 
 final class EnumPropertySerializer<E extends Enum<E>> implements Serializer<E> {
 
-    private final EnumBeanIntrospection<? extends E> enumIntrospection;
+    private final EnumValueCache<E> valueCache;
 
-    EnumPropertySerializer(EnumBeanIntrospection<? extends E> enumIntrospection) {
-        this.enumIntrospection = enumIntrospection;
+    EnumPropertySerializer(EnumValueCache<E> valueCache) {
+        this.valueCache = valueCache;
     }
 
     @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends E> type, E value) throws IOException {
-        for (EnumBeanIntrospection.EnumConstant<? extends E> enumConstant : enumIntrospection.getConstants()) {
-            if (enumConstant.getValue() == value) {
-                encoder.encodeString(enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(value.name()));
-            }
-        }
+        valueCache.calculateValues(enumConstant -> enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY));
+
+        String result = valueCache.getSerialized(value)
+            .map(String.class::cast)
+            .orElse(value.name());
+
+        encoder.encodeString(result);
     }
 }
 
 final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<E> {
+    private final EnumValueCache<E> valueCache;
 
-    private final EnumBeanIntrospection<? super E> enumIntrospection;
-
-    EnumPropertyDeserializer(EnumBeanIntrospection<? super E> enumIntrospection) {
-        this.enumIntrospection = enumIntrospection;
+    EnumPropertyDeserializer(EnumValueCache<E> valueCache) {
+        this.valueCache = valueCache;
     }
-
 
     @Override
     public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
-        var value = decoder.decodeString();
+        valueCache.calculateValues(enumConstant -> enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY));
 
-        for (EnumBeanIntrospection.EnumConstant<? super E> enumConstant : enumIntrospection.getConstants()) {
-            Optional<String> matchingProperty = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).filter(propertyValue -> propertyValue.equals(value));
-            if (matchingProperty.isPresent()) {
-                return (E) enumConstant.getValue();
-            }
+        String value = decoder.decodeString();
+
+        Optional<E> result = valueCache.getDeserialized(value);
+        if (result.isPresent()) {
+            return result.get();
         }
 
         @SuppressWarnings("rawtypes") final Class t = type.getType();
@@ -329,5 +322,79 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<
                 throw e;
             }
         }
+    }
+}
+
+final class EnumCache<E extends Enum<E>> {
+    private final Map<Argument<E>, EnumValueCache<E>> cache = new HashMap<>();
+
+    @SuppressWarnings("unchecked")
+    @NonNull
+    EnumValueCache<E> forSerialization(@NonNull BeanIntrospection<? extends E> introspection) {
+        return forEnum((BeanIntrospection<E>) introspection);
+    }
+
+    @SuppressWarnings("unchecked")
+    @NonNull
+    public EnumValueCache<E> forDeserialization(@NonNull BeanIntrospection<? super E> introspection) {
+        return forEnum((BeanIntrospection<E>) introspection);
+    }
+
+    private EnumValueCache<E> forEnum(BeanIntrospection<E> introspection) {
+        return cache.computeIfAbsent(introspection.asArgument(), key -> new EnumValueCache<>(introspection));
+    }
+}
+
+final class EnumValueCache<E extends Enum<E>> {
+    private final EnumBeanIntrospection<E> introspection;
+    private final Map<E, Object> deserializedCache;
+    private final Map<Object, E> serializedCache;
+    private Boolean hasPropertyAnnotation = null;
+    private boolean calculated = false;
+
+    public EnumValueCache(BeanIntrospection<E> introspection) {
+        this.introspection = (EnumBeanIntrospection<E>) introspection;
+        this.deserializedCache = new EnumMap<>(introspection.getBeanType());
+        this.serializedCache = new HashMap<>();
+    }
+
+    public Optional<E> getDeserialized(Object value) {
+        return Optional.ofNullable(serializedCache.get(value));
+    }
+
+    public Optional<Object> getSerialized(E value) {
+        return Optional.ofNullable(deserializedCache.get(value));
+    }
+
+    public Set<Object> getSerializedValues() {
+        return serializedCache.keySet();
+    }
+
+    public <V> void calculateValues(Function<EnumConstant<E>, Optional<V>> valueExtractor) {
+        if (calculated) {
+            return;
+        }
+
+        for (EnumConstant<E> enumConstant : introspection.getConstants()) {
+            E deserialized = enumConstant.getValue();
+            valueExtractor.apply(enumConstant)
+                .ifPresent(serialized -> store(deserialized, serialized));
+        }
+
+        calculated = true;
+    }
+
+    public boolean hasPropertyAnnotation() {
+        if (hasPropertyAnnotation == null) {
+            hasPropertyAnnotation = introspection.getConstants().stream()
+                .anyMatch(enumConstant -> enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent());
+        }
+
+        return hasPropertyAnnotation;
+    }
+
+    private void store(E deserialized, Object serialized) {
+        deserializedCache.put(deserialized, serialized);
+        serializedCache.put(serialized, deserialized);
     }
 }
