@@ -12,6 +12,7 @@ io.micronaut.serde.jackson.builder
 io.micronaut.serde.jackson.jsonvalue
 io.micronaut.serde.jackson.maps
 io.micronaut.serde.jackson.outerinterface
+io.micronaut.serde.jackson.tst
 io.micronaut.serde.json.stream
 io.micronaut.serde.json.stream.graalvm
 io.micronaut.serde.oracle.jdbc.json
