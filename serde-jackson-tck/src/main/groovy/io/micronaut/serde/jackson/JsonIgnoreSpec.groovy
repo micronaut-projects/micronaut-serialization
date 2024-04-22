@@ -1,10 +1,36 @@
 package io.micronaut.serde.jackson
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
+import io.micronaut.serde.jackson.tst.AfterCareStatsEntry
+import io.micronaut.serde.jackson.tst.ClassificationAndStats
+import io.micronaut.serde.jackson.tst.ClassificationVars
+import io.micronaut.serde.jackson.tst.MainAggregationVm
 
 abstract class JsonIgnoreSpec extends JsonCompileSpec {
 
     abstract protected String unknownPropertyMessage(String propertyName, String className)
+
+    def 'JsonIgnore and enum as map keys'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def jsonMapper = ctx.getBean(JsonMapper)
+            def obj = new MainAggregationVm(
+                    List.of(
+                            new ClassificationAndStats(
+                                    new ClassificationVars("01"),
+                                    new AfterCareStatsEntry()
+                            )
+                    )
+            )
+            def json = '{"afterCare":[{"klassifisering":{"regionKode":"01"},"stats":{"SomeField1":0,"SomeField2":0}}]}'
+        expect:
+            serializeToString(jsonMapper, obj) == json
+
+        cleanup:
+            ctx.close()
+    }
 
      void 'JsonIgnoreType'() {
         given:

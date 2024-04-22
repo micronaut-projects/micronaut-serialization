@@ -16,15 +16,18 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
+import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.util.CustomizableSerializer;
 
 import java.io.IOException;
@@ -43,8 +46,11 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
     @Override
     public ObjectSerializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
-        final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
+        final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length == 2;
         if (hasGenerics) {
+            final Argument<K> keyGeneric = (Argument<K>) generics[0];
+            final Serializer<K> keySerializer = findKeySerializer(context, keyGeneric);
+            final boolean isStringKey = keyGeneric.getType().equals(String.class) || CharSequence.class.isAssignableFrom(keyGeneric.getType());
             final Argument<V> valueGeneric = (Argument<V>) generics[1];
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
             return new ObjectSerializer<>() {
@@ -58,17 +64,20 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
 
                 @Override
                 public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    for (K k : value.keySet()) {
-                        encodeMapKey(context, encoder, k);
-                        final V v = value.get(k);
+                    for (Map.Entry<K, V> entry : value.entrySet()) {
+                        K k = entry.getKey();
+                        if (k == null) {
+                            encoder.encodeNull();
+                        } else if (isStringKey) {
+                            encoder.encodeKey(k.toString());
+                        } else {
+                            encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
+                        }
+                        V v = entry.getValue();
                         if (v == null) {
                             encoder.encodeNull();
                         } else {
-                            valSerializer.serialize(
-                                encoder,
-                                context,
-                                valueGeneric, v
-                            );
+                            valSerializer.serialize(encoder, context, valueGeneric, v);
                         }
                     }
                 }
@@ -91,20 +100,30 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
 
                 @Override
                 public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
+                    Argument<K> keyGeneric = null;
+                    Serializer<? super K> keySerializer = null;
+                    Argument<V> valueGeneric = null;
+                    Serializer<? super V> valSerializer = null;
                     for (Map.Entry<K, V> entry : value.entrySet()) {
-                        encodeMapKey(context, encoder, entry.getKey());
+                        K k = entry.getKey();
+                        if (k instanceof CharSequence) {
+                            encoder.encodeKey(k.toString());
+                        } else {
+                            if (keyGeneric == null || !keyGeneric.getType().equals(k.getClass())) {
+                                keyGeneric = (Argument<K>) Argument.of(k.getClass());
+                                keySerializer = findKeySerializer(context, keyGeneric);
+                            }
+                            encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
+                        }
                         final V v = entry.getValue();
                         if (v == null) {
                             encoder.encodeNull();
                         } else {
-                            @SuppressWarnings("unchecked") final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric)
-                                .createSpecific(context, valueGeneric);
-                            valSerializer.serialize(
-                                encoder,
-                                context,
-                                valueGeneric, v
-                            );
+                            if (valueGeneric == null || !valueGeneric.getType().equals(v.getClass())) {
+                                valueGeneric = (Argument<V>) Argument.of(v.getClass());
+                                valSerializer = context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+                            }
+                            valSerializer.serialize(encoder, context, valueGeneric, v);
                         }
                     }
                 }
@@ -117,21 +136,55 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
         }
     }
 
-    private void encodeMapKey(EncoderContext context, Encoder childEncoder, K k) throws IOException {
-        // relies on the key type implementing toString() correctly
-        // perhaps we should supply conversion service
-        if (k instanceof CharSequence) {
-            childEncoder.encodeKey(k.toString());
-        } else {
-            try {
-                final String result = context.getConversionService().convertRequired(
-                        k,
-                        Argument.STRING
-                );
-                childEncoder.encodeKey(result != null ? result : k.toString());
-            } catch (ConversionErrorException e) {
-                throw new SerdeException("Error converting Map key [" + k + "] to String: " + e.getMessage(), e);
+    private Serializer<K> findKeySerializer(EncoderContext context, Argument<K> keyGeneric) throws SerdeException {
+        try {
+            return (Serializer<K>) context.findSerializer(keyGeneric).createSpecific(context, keyGeneric);
+        } catch (SerdeException e) {
+            if (e.getCause() instanceof IntrospectionException) {
+                // The key is not introspected
+                return (encoder, ctx, type, value) -> convertMapKeyToStringAndEncode(ctx, encoder, value);
             }
+            throw e;
+        }
+    }
+
+    private void encodeMapKey(EncoderContext context,
+                              Encoder encoder,
+                              Argument<K> keyGeneric,
+                              Serializer<? super K> keySerializer,
+                              K k) throws IOException {
+        JsonNodeEncoder keyEncoder = JsonNodeEncoder.create();
+        try {
+            keySerializer.serialize(keyEncoder, context, keyGeneric, k);
+        } catch (SerdeException e) {
+            if (e.getCause() instanceof IntrospectionException) {
+                // The key is not introspected
+                convertMapKeyToStringAndEncode(context, encoder, k);
+                return;
+            }
+            throw e;
+        }
+        JsonNode keyNode = keyEncoder.getCompletedValue();
+        if (keyNode.isString()) {
+            encoder.encodeKey(keyNode.getStringValue());
+        } else if (keyNode.isNull()) {
+            throw new SerdeException("Null key for a Map not allowed in JSON");
+        } else if (keyNode.isBoolean() || keyNode.isNumber()) {
+            encoder.encodeString(keyNode.coerceStringValue());
+        } else {
+            convertMapKeyToStringAndEncode(context, encoder, keyNode.getValue());
+        }
+    }
+
+    private void convertMapKeyToStringAndEncode(EncoderContext context, Encoder encoder, Object keyValue) throws IOException {
+        try {
+            final String result = context.getConversionService().convertRequired(keyValue, Argument.STRING);
+            if (result == null) {
+                throw new SerdeException("Null key for a Map not allowed in JSON");
+            }
+            encoder.encodeKey(result);
+        } catch (ConversionErrorException ce) {
+            throw new SerdeException("Error converting Map key [" + keyValue + "] to String: " + ce.getMessage(), ce);
         }
     }
 
