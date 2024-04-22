@@ -864,4 +864,41 @@ record Test(
         URL       | 'ws://junk'
     }
 
+    void "test @JsonProperty on enum constant"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+enum Test {
+    @JsonProperty("value_1") VALUE1,
+    @JsonProperty("value_2") VALUE2,
+    VALUE_WITHOUT_ANNOTATION
+}
+""")
+        when:
+        def enumConstant = context.classLoader.loadClass('test.Test')[constant]
+        def result = writeJson(jsonMapper, enumConstant)
+
+        then:
+        result == "\"$serialized\""
+
+        when:
+        def deserialized = jsonMapper.readValue(result, argumentOf(context, 'test.Test'))
+        then:
+        deserialized == enumConstant
+
+        cleanup:
+        context.close()
+
+        where:
+        constant                   | serialized
+        'VALUE1'                   | 'value_1'
+        'VALUE2'                   | 'value_2'
+        'VALUE_WITHOUT_ANNOTATION' | 'VALUE_WITHOUT_ANNOTATION'
+    }
+
 }

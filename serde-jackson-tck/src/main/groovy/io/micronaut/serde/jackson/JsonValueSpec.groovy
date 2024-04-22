@@ -31,9 +31,9 @@ class Foo {
 @Serdeable
 enum MyEnum {
 
-    VALUE1("value1"),
-    VALUE2("value2"),
-    VALUE3("value3");
+    VALUE1("value_1"),
+    VALUE2("value_2"),
+    VALUE3("value_3");
 
     private final String value;
 
@@ -52,16 +52,21 @@ enum MyEnum {
         when:
             String json = jsonMapper.writeValueAsString(testBean)
         then:
-            '{"myEnum":"value2"}' == json
+            '{"myEnum":"value_2"}' == json
 
         when:
             def foo = jsonMapper.readValue(json, testBean.class)
 
         then:
             foo.myEnum == enumValue2
+
+        when:
+            jsonMapper.readValue('{"myEnum":"invalid"}', testBean.class)
+        then:
+            thrown IOException
     }
 
-    void "@JsonValue on field"() throws IOException {
+    void "enum @JsonValue on field"() throws IOException {
         given:
             def context = buildContext('''
 package example;
@@ -82,9 +87,9 @@ class Foo {
 }
 @Serdeable
 enum MyEnum {
-    VALUE1("value1"),
-    VALUE2("value2"),
-    VALUE3("value3");
+    VALUE1("value_1"),
+    VALUE2("value_2"),
+    VALUE3("value_3");
     @JsonValue
     private final String value;
     MyEnum(String value) {
@@ -100,13 +105,18 @@ enum MyEnum {
         when:
             String json = jsonMapper.writeValueAsString(testBean)
         then:
-            '{"myEnum":"value2"}' == json
+            '{"myEnum":"value_2"}' == json
 
         when:
             def foo = jsonMapper.readValue(json, testBean.class)
 
         then:
             foo.myEnum == enumValue2
+
+        when:
+            jsonMapper.readValue('{"myEnum":"invalid"}', testBean.class)
+        then:
+            thrown IOException
     }
 
     void "@JsonValue on constructor"() throws IOException {
