@@ -1,7 +1,6 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.serde.jackson.jsonvalue.JdkVersion
-import spock.lang.PendingFeature
 
 abstract class JsonValueSpec extends JsonCompileSpec {
 
@@ -487,7 +486,6 @@ class Test {
         context.close()
     }
 
-    @PendingFeature(reason = "JsonProperty on enum constant level not supported")
     void "JsonProperty on enum"() {
         given:
         def context = buildContext('''
