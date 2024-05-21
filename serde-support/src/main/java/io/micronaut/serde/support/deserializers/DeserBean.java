@@ -38,6 +38,7 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -129,6 +130,7 @@ final class DeserBean<T> {
             bounds = Collections.emptyMap();
         }
 
+        PropertyNamingStrategy defaultPropertyNamingStrategy = decoderContext.getSerdeConfiguration().map(SerdeConfiguration::getPropertyNamingStrategy).orElse(null);
         this.conversionService = decoderContext.getConversionService();
         this.introspection = introspection;
         final SerdeConfig.SerCreatorMode creatorMode = introspection
@@ -139,7 +141,7 @@ final class DeserBean<T> {
         hasBuilder = introspection.hasBuilder();
         final Argument<?>[] constructorArguments = hasBuilder ? introspection.builder().getBuildMethodArguments() : introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
-        PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, null);
+        PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, defaultPropertyNamingStrategy);
 
         Set<String> ignoredProperties = new HashSet<>();
         Set<String> externalProperties = new HashSet<>();

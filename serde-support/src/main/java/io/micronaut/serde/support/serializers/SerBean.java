@@ -37,6 +37,7 @@ import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
@@ -121,7 +122,8 @@ final class SerBean<T> {
         @Nullable
         Predicate<String> argumentPropertyPredicate = serdeArgumentConf == null ? null : serdeArgumentConf.resolveAllowPropertyPredicate(allowIgnoredProperties);
 
-        PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, null);
+        PropertyNamingStrategy defaultPropertyNamingStrategy = encoderContext.getSerdeConfiguration().map(SerdeConfiguration::getPropertyNamingStrategy).orElse(null);
+        PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, encoderContext, defaultPropertyNamingStrategy);
         final Collection<Map.Entry<BeanReadProperty<T, Object>, AnnotationMetadata>> properties =
                 introspection.getBeanReadProperties().stream()
                         .filter(this::filterProperty)
