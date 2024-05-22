@@ -18,8 +18,10 @@ package io.micronaut.serde.config;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
 import java.util.List;
 import java.util.Locale;
@@ -44,6 +46,8 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final List<String> includedIntrospectionPackages;
     private final int maximumNestingDepth;
     private final boolean inetAddressAsNumeric;
+    private final String propertyNamingStrategyName;
+    private final PropertyNamingStrategy propertyNamingStrategy;
 
     @ConfigurationInject
     DefaultSerdeConfiguration(Optional<String> dateFormat,
@@ -54,7 +58,8 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
                               Optional<TimeZone> timeZone,
                               @Bindable(defaultValue = "io.micronaut") List<String> includedIntrospectionPackages,
                               @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth,
-                              @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric) {
+                              @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric,
+                              @Nullable String propertyNamingStrategy) {
         this.dateFormat = dateFormat;
         this.timeWriteShape = timeWriteShape;
         this.numericTimeUnit = numericTimeUnit;
@@ -64,6 +69,18 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
         this.includedIntrospectionPackages = includedIntrospectionPackages;
         this.maximumNestingDepth = maximumNestingDepth;
         this.inetAddressAsNumeric = inetAddressAsNumeric;
+        this.propertyNamingStrategyName = propertyNamingStrategy;
+        this.propertyNamingStrategy = PropertyNamingStrategy.forName(propertyNamingStrategy).orElse(null);
+    }
+
+    @Override
+    public PropertyNamingStrategy getPropertyNamingStrategy() {
+        return propertyNamingStrategy;
+    }
+
+    @Override
+    public String getPropertyNamingStrategyName() {
+        return propertyNamingStrategyName;
     }
 
     @Override

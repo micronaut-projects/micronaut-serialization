@@ -15,8 +15,10 @@
  */
 package io.micronaut.serde.config;
 
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
 import java.net.InetAddress;
 import java.util.List;
@@ -104,6 +106,24 @@ public interface SerdeConfiguration {
      */
     @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "")
     int getMaximumNestingDepth();
+
+    /**
+     * @return The property naming strategy name
+     * @since 2.10
+     */
+    @Nullable
+    default String getPropertyNamingStrategyName() {
+        return null;
+    }
+
+    /**
+     * @return The property naming strategy
+     * @since 2.10
+     */
+    @Nullable
+    default PropertyNamingStrategy getPropertyNamingStrategy() {
+        return PropertyNamingStrategy.forName(getPropertyNamingStrategyName()).orElse(null);
+    }
 
     /**
      * Shape to use for time serialization.
