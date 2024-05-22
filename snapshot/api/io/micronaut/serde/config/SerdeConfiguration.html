@@ -157,6 +157,12 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">The unit to use for serializing and deserializing dates to or from numbers.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @Nullable <a href="naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getPropertyNamingStrategy()" class="member-name-link">getPropertyNamingStrategy</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getPropertyNamingStrategyName()" class="member-name-link">getPropertyNamingStrategyName</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTimeWriteShape()" class="member-name-link">getTimeWriteShape</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
@@ -328,6 +334,32 @@ loadScripts(document, 'script');</script>
 <dd>The maximum nesting depth for serialization and deserialization</dd>
 <dt>Since:</dt>
 <dd>2.0.0</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getPropertyNamingStrategyName()">
+<h3>getPropertyNamingStrategyName</h3>
+<div class="member-signature"><span class="annotations">@Nullable
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@Nullable <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getPropertyNamingStrategyName</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The property naming strategy name</dd>
+<dt>Since:</dt>
+<dd>2.10</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getPropertyNamingStrategy()">
+<h3>getPropertyNamingStrategy</h3>
+<div class="member-signature"><span class="annotations">@Nullable
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@Nullable <a href="naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a></span>&nbsp;<span class="element-name">getPropertyNamingStrategy</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The property naming strategy</dd>
+<dt>Since:</dt>
+<dd>2.10</dd>
 </dl>
 </section>
 </li>
