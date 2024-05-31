@@ -42,6 +42,7 @@ class ObjectWithMapSerializerSpec extends Specification {
         then:
         deserResult.name == obj.name
         deserResult.stringLongMap == obj.stringLongMap
+        deserResult.integerLongMap == obj.integerLongMap
     }
 
 }
