@@ -5,7 +5,6 @@ import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeRegistry
-import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.serde.support.ObjectWithMap
 import io.micronaut.serde.support.util.JsonNodeDecoder
 import io.micronaut.serde.support.util.JsonNodeEncoder
@@ -24,7 +23,7 @@ class ObjectWithMapSerializerSpec extends Specification {
 
     def 'test serialize object with map'() {
         given:
-        def obj = new ObjectWithMap("Object1", Map.of("item1", 1L))
+        def obj = new ObjectWithMap("Object1", Map.of("item1", 1L), Map.of(1, 1L))
         def encoderContext = serdeRegistry.newEncoderContext(null)
         def decoderContext = serdeRegistry.newDecoderContext(null)
         def argument = Argument.of(ObjectWithMap)
@@ -36,13 +35,13 @@ class ObjectWithMapSerializerSpec extends Specification {
         def jsonNode = encoder.getCompletedValue()
         def str = jsonMapper.writeValueAsString(jsonNode)
         then:
-        str == '{"name":"Object1","mapOfLongs":{"item1":1}}'
+        str == '{"name":"Object1","stringLongMap":{"item1":1},"integerLongMap":{"1":1}}'
         when:
         def decoder = JsonNodeDecoder.create(jsonNode, LimitingStream.DEFAULT_LIMITS)
         def deserResult = deserializer.deserialize(decoder, decoderContext, argument)
         then:
         deserResult.name == obj.name
-        deserResult.mapOfLongs == obj.mapOfLongs
+        deserResult.stringLongMap == obj.stringLongMap
     }
 
 }

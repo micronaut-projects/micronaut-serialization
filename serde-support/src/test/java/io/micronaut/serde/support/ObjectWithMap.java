@@ -7,18 +7,24 @@ import java.util.Map;
 @Serdeable
 public class ObjectWithMap {
     private final String name;
-    private final Map<String, Long> mapOfLongs;
+    private final Map<String, Long> stringLongMap;
+    private final Map<Integer, Long> integerLongMap;
 
-    public ObjectWithMap(String name, Map<String, Long> mapOfLongs) {
+    public ObjectWithMap(String name, Map<String, Long> stringLongMap, Map<Integer, Long> integerLongMap) {
         this.name = name;
-        this.mapOfLongs = mapOfLongs;
+        this.stringLongMap = stringLongMap;
+        this.integerLongMap = integerLongMap;
     }
 
     public String getName() {
         return name;
     }
 
-    public Map<String, Long> getMapOfLongs() {
-        return mapOfLongs;
+    public Map<String, Long> getStringLongMap() {
+        return stringLongMap;
+    }
+
+    public Map<Integer, Long> getIntegerLongMap() {
+        return integerLongMap;
     }
 }
