@@ -170,7 +170,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
         } else if (keyNode.isNull()) {
             throw new SerdeException("Null key for a Map not allowed in JSON");
         } else if (keyNode.isBoolean() || keyNode.isNumber()) {
-            encoder.encodeString(keyNode.coerceStringValue());
+            encoder.encodeKey(keyNode.coerceStringValue());
         } else {
             convertMapKeyToStringAndEncode(context, encoder, keyNode.getValue());
         }
