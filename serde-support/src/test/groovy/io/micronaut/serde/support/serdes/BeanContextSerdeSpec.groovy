@@ -2,7 +2,9 @@ package io.micronaut.serde.support.serdes
 
 import io.micronaut.context.BeanContext
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.Serde
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.support.deserializers.ObjectDeserializer
 import io.micronaut.serde.support.serializers.ObjectSerializer
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -69,6 +71,22 @@ class BeanContextSerdeSpec extends Specification {
 
         then:
         enumSerde.getClass() == EnumSerde
+    }
+
+    void "test retrieving Map deserializer"() {
+        when:
+        def deserializer = beanContext.getBean(Argument.of(Deserializer, Argument.mapOf(String, Object)))
+
+        then:
+        deserializer
+    }
+
+    void "test retrieving Map serializer"() {
+        when:
+        def deserializer = beanContext.getBean(Argument.of(Serializer, Argument.mapOf(String, Object)))
+
+        then:
+        deserializer
     }
 
     static enum MyEnum {}
