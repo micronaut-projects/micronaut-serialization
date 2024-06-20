@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -97,7 +98,7 @@ final class SerBean<T> {
     @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
 
-    volatile boolean initialized;
+    private volatile boolean initialized;
     private volatile boolean initializing;
 
     private List<Initializer> initializers = new ArrayList<>();
@@ -377,15 +378,23 @@ final class SerBean<T> {
         }
     }
 
-    void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
-        if (!initialized && !initializing) {
-            initializing = true;
-            for (Initializer initializer : initializers) {
-                initializer.initialize(encoderContext);
+    public void initialize(ReentrantLock lock, Serializer.EncoderContext encoderContext) throws SerdeException {
+        // Double check locking
+        if (!initialized) {
+            lock.lock();
+            try {
+                if (!initialized && !initializing) {
+                    initializing = true;
+                    for (Initializer initializer : initializers) {
+                        initializer.initialize(encoderContext);
+                    }
+                    initializers = null;
+                    initialized = true;
+                    initializing = false;
+                }
+            } finally {
+                lock.unlock();
             }
-            initializers = null;
-            initialized = true;
-            initializing = false;
         }
     }
 

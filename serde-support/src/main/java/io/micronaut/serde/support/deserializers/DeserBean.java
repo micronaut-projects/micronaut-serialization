@@ -61,6 +61,7 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -110,7 +111,7 @@ final class DeserBean<T> {
 
     private final Map<String, Argument<?>> bounds;
 
-    volatile boolean initialized;
+    private volatile boolean initialized;
     private volatile boolean initializing;
 
     // CHECKSTYLE:ON
@@ -426,12 +427,20 @@ final class DeserBean<T> {
         recordLikeBean = isRecordLikeBean();
     }
 
-    void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
-        if (!initialized && !initializing) {
-            initializing = true;
-            initializeInternal(decoderContext);
-            initialized = true;
-            initializing = false;
+    void initialize(ReentrantLock lock, Deserializer.DecoderContext decoderContext) throws SerdeException {
+        // Double check locking
+        if (!initialized) {
+            lock.lock();
+            try {
+                if (!initialized && !initializing) {
+                    initializing = true;
+                    initializeInternal(decoderContext);
+                    initialized = true;
+                    initializing = false;
+                }
+            } finally {
+                lock.unlock();
+            }
         }
     }
 

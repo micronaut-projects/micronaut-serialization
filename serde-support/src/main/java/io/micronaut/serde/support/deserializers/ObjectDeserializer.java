@@ -34,6 +34,7 @@ import io.micronaut.serde.util.CustomizableDeserializer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -50,6 +51,8 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     private final SerdeConfiguration serdeConfiguration;
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     public ObjectDeserializer(SerdeIntrospections introspections,
                               DeserializationConfiguration deserializationConfiguration,
@@ -155,12 +158,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         // Use suppliers to prevent recursive update because the lambda can call the same method again
         Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, serdeArgumentConf, decoderContext)));
         DeserBean<?> deserBean = deserBeanSupplier.get();
-        // Double check locking
-        if (!deserBean.initialized) {
-            synchronized (this) {
-                deserBean.initialize(decoderContext);
-            }
-        }
+        deserBean.initialize(lock, decoderContext);
         return (DeserBean<T>) deserBean;
     }
 
