@@ -139,7 +139,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                 registry.findDeserializer(type).createSpecific(decoderContext, (Argument) type),
                 registry.findSerializer(type).createSpecific(encoderContext, (Argument) type)
             );
-        } catch (SerdeException e) {
+        } catch (Exception e) {
             // In a case of unknown type return this non-specific mapper
             return this;
         }
