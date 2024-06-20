@@ -110,7 +110,7 @@ final class DeserBean<T> {
 
     private final Map<String, Argument<?>> bounds;
 
-    private volatile boolean initialized;
+    volatile boolean initialized;
     private volatile boolean initializing;
 
     // CHECKSTYLE:ON
@@ -427,16 +427,11 @@ final class DeserBean<T> {
     }
 
     void initialize(Deserializer.DecoderContext decoderContext) throws SerdeException {
-        // Double check locking
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized && !initializing) {
-                    initializing = true;
-                    initializeInternal(decoderContext);
-                    initialized = true;
-                    initializing = false;
-                }
-            }
+        if (!initialized && !initializing) {
+            initializing = true;
+            initializeInternal(decoderContext);
+            initialized = true;
+            initializing = false;
         }
     }
 

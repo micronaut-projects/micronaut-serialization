@@ -162,7 +162,12 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             }
         }));
         SerBean<?> serBean = serBeanSupplier.get();
-        serBean.initialize(context);
+        // Double check locking
+        if (!serBean.initialized) {
+            synchronized (this) {
+                serBean.initialize(context);
+            }
+        }
         return (SerBean<T>) serBean;
     }
 }

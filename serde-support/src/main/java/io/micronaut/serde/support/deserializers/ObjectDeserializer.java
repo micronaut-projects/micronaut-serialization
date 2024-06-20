@@ -155,7 +155,12 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         // Use suppliers to prevent recursive update because the lambda can call the same method again
         Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, serdeArgumentConf, decoderContext)));
         DeserBean<?> deserBean = deserBeanSupplier.get();
-        deserBean.initialize(decoderContext);
+        // Double check locking
+        if (!deserBean.initialized) {
+            synchronized (this) {
+                deserBean.initialize(decoderContext);
+            }
+        }
         return (DeserBean<T>) deserBean;
     }
 

@@ -97,7 +97,7 @@ final class SerBean<T> {
     @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
 
-    private volatile boolean initialized;
+    volatile boolean initialized;
     private volatile boolean initializing;
 
     private List<Initializer> initializers = new ArrayList<>();
@@ -377,19 +377,15 @@ final class SerBean<T> {
         }
     }
 
-    public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized && !initializing) {
-                    initializing = true;
-                    for (Initializer initializer : initializers) {
-                        initializer.initialize(encoderContext);
-                    }
-                    initializers = null;
-                    initialized = true;
-                    initializing = false;
-                }
+    void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
+        if (!initialized && !initializing) {
+            initializing = true;
+            for (Initializer initializer : initializers) {
+                initializer.initialize(encoderContext);
             }
+            initializers = null;
+            initialized = true;
+            initializing = false;
         }
     }
 
