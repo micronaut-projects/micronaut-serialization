@@ -2,11 +2,16 @@ package io.micronaut.serde.support.serdes
 
 import io.micronaut.context.BeanContext
 import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
 import io.micronaut.serde.Deserializer
+import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.Serde
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.Serializer
 import io.micronaut.serde.support.deserializers.ObjectDeserializer
 import io.micronaut.serde.support.serializers.ObjectSerializer
+import io.micronaut.serde.support.util.JsonNodeDecoder
+import io.micronaut.serde.support.util.JsonNodeEncoder
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -73,20 +78,29 @@ class BeanContextSerdeSpec extends Specification {
         enumSerde.getClass() == EnumSerde
     }
 
-    void "test retrieving Map deserializer"() {
+    void "test retrieving Map serializer / deserializer"() {
         when:
-        def deserializer = beanContext.getBean(Argument.of(Deserializer, Argument.mapOf(String, Object)))
+        def value = Map.of("name", "Denis")
+        def serdeRegistry = beanContext.getBean(SerdeRegistry)
+        def jsonMapper = beanContext.getBean(JsonMapper)
+        def encoderContext = serdeRegistry.newEncoderContext(null)
+        def decoderContext = serdeRegistry.newDecoderContext(null)
+        def argument = Argument.mapOf(String, Object)
+        def serializer =  beanContext.getBean(Argument.of(Serializer, argument)).createSpecific(encoderContext, argument)
+        def deserializer = beanContext.getBean(Argument.of(Deserializer, argument)).createSpecific(decoderContext, argument)
+        def encoder = JsonNodeEncoder.create()
 
         then:
-        deserializer
-    }
-
-    void "test retrieving Map serializer"() {
-        when:
-        def deserializer = beanContext.getBean(Argument.of(Serializer, Argument.mapOf(String, Object)))
-
+            serializer.serialize(encoder, encoderContext, argument, value)
+            def jsonNode = encoder.getCompletedValue()
+            def str = jsonMapper.writeValueAsString(jsonNode)
         then:
-        deserializer
+            str == '{"name":"Denis"}'
+        when:
+            def decoder = JsonNodeDecoder.create(jsonNode, LimitingStream.DEFAULT_LIMITS)
+            def deserResult = deserializer.deserialize(decoder, decoderContext, argument)
+        then:
+            deserResult == value
     }
 
     static enum MyEnum {}
