@@ -58,6 +58,7 @@ import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
@@ -89,18 +90,27 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
     private final JsonFactory jsonFactory;
+    @Nullable
+    private final Argument<?> specificType;
+    @Nullable
+    private final Deserializer<?> specificDeserializer;
+    @Nullable
+    private final Serializer<?> specificSerializer;
 
     @Inject
     @Internal
     public JacksonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, SerdeJacksonConfiguration jacksonConfiguration) {
-        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, jacksonConfiguration, Object.class);
+        this(registry, JsonStreamConfig.DEFAULT, serdeConfiguration, jacksonConfiguration, Object.class, null, null, null);
     }
 
     private JacksonJsonMapper(@NonNull SerdeRegistry registry,
                               @NonNull JsonStreamConfig streamConfig,
                               @NonNull SerdeConfiguration serdeConfiguration,
                               @NonNull SerdeJacksonConfiguration jacksonConfiguration,
-                              @Nullable Class<?> view) {
+                              @Nullable Class<?> view,
+                              @Nullable Argument<?> specificType,
+                              @Nullable Deserializer<?> specificDeserializer,
+                              @Nullable Serializer<?> serializer) {
         this.registry = registry;
         this.streamConfig = streamConfig;
         this.serdeConfiguration = serdeConfiguration;
@@ -110,6 +120,28 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         this.decoderContext = registry.newDecoderContext(view);
         this.jacksonConfiguration = jacksonConfiguration;
         this.jsonFactory = buildJsonFactory(jacksonConfiguration);
+        this.specificType = specificType;
+        this.specificDeserializer = specificDeserializer;
+        this.specificSerializer = serializer;
+    }
+
+    @NonNull
+    @Override
+    public JsonMapper createSpecific(@NonNull Argument<?> type) {
+        try {
+            return new JacksonJsonMapper(
+                registry,
+                streamConfig,
+                serdeConfiguration,
+                jacksonConfiguration,
+                view,
+                type,
+                registry.findDeserializer(type).createSpecific(decoderContext, (Argument) type),
+                registry.findSerializer(type).createSpecific(encoderContext, (Argument) type)
+            );
+        } catch (SerdeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -119,7 +151,10 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             streamConfig,
             configuration == null ? this.serdeConfiguration : configuration,
             jacksonConfiguration,
-            view
+            view,
+            specificType,
+            specificDeserializer,
+            specificSerializer
         );
     }
 
@@ -130,7 +165,10 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             streamConfig,
             serdeConfiguration,
             jacksonConfiguration,
-            view
+            view,
+            specificType,
+            specificDeserializer,
+            specificSerializer
         );
     }
 
@@ -181,13 +219,17 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
         configureGenerator(gen);
 
-        Serializer<? super T> serializer = encoderContext.findSerializer(argument)
-                                                   .createSpecific(encoderContext, argument);
+        Serializer<? super T> serializer;
+        if (argument.equalsType(specificType)) {
+            serializer = (Serializer<? super T>) specificSerializer;
+        } else {
+            serializer = encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+        }
         final Encoder encoder = JacksonEncoder.create(gen, LimitingStream.limitsFromConfiguration(serdeConfiguration));
         serializer.serialize(
-                encoder,
-                encoderContext,
-                argument, value
+            encoder,
+            encoderContext,
+            argument, value
         );
     }
 
@@ -198,12 +240,17 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
         configureParser(parser);
-        Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+        Deserializer deserializer;
+        if (type.equalsType(specificType)) {
+            deserializer = specificDeserializer;
+        } else {
+            deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+        }
         final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
         return (T) deserializer.deserializeNullable(
-                decoder,
-                decoderContext,
-                type
+            decoder,
+            decoderContext,
+            type
         );
     }
 
@@ -309,14 +356,19 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @NonNull
     @Override
     public JsonMapper cloneWithViewClass(@NonNull Class<?> viewClass) {
-        return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, viewClass);
+        return new JacksonJsonMapper(registry, streamConfig, serdeConfiguration, jacksonConfiguration, viewClass, specificType, specificDeserializer, specificSerializer);
     }
 
     @Override
     public void updateValueFromTree(Object value, JsonNode tree) throws IOException {
         if (tree != null && value != null) {
             Argument<Object> type = (Argument<Object>) Argument.of(value.getClass());
-            Deserializer deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+            Deserializer deserializer;
+            if (type.equalsType(specificType)) {
+                deserializer = specificDeserializer;
+            } else {
+                deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, (Argument) type);
+            }
             if (deserializer instanceof UpdatingDeserializer) {
 
                 try (JsonParser parser = treeCodec.treeAsTokens(tree)) {
@@ -328,10 +380,10 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
                     if (parser.currentToken() != JsonToken.VALUE_NULL) {
                         final Decoder decoder = JacksonDecoder.create(parser, LimitingStream.limitsFromConfiguration(serdeConfiguration));
                         ((UpdatingDeserializer<Object>) deserializer).deserializeInto(
-                                decoder,
-                                decoderContext,
-                                type,
-                                value
+                            decoder,
+                            decoderContext,
+                            type,
+                            value
                         );
                     }
                 }
