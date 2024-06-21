@@ -36,6 +36,7 @@ import io.micronaut.serde.util.CustomizableSerializer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 /**
@@ -58,6 +59,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private final Map<SerBeanKey, Supplier<SerBean<?>>> serBeanMap = new ConcurrentHashMap<>(50);
     @Nullable
     private final BeanContext beanContext;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     public ObjectSerializer(SerdeIntrospections introspections,
                             SerdeConfiguration serdeConfiguration,
@@ -162,7 +165,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             }
         }));
         SerBean<?> serBean = serBeanSupplier.get();
-        serBean.initialize(context);
+        serBean.initialize(lock, context);
         return (SerBean<T>) serBean;
     }
 }

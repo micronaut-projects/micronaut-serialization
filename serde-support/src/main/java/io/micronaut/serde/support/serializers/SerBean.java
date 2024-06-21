@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -377,9 +378,11 @@ final class SerBean<T> {
         }
     }
 
-    public void initialize(Serializer.EncoderContext encoderContext) throws SerdeException {
+    public void initialize(ReentrantLock lock, Serializer.EncoderContext encoderContext) throws SerdeException {
+        // Double check locking
         if (!initialized) {
-            synchronized (this) {
+            lock.lock();
+            try {
                 if (!initialized && !initializing) {
                     initializing = true;
                     for (Initializer initializer : initializers) {
@@ -389,6 +392,8 @@ final class SerBean<T> {
                     initialized = true;
                     initializing = false;
                 }
+            } finally {
+                lock.unlock();
             }
         }
     }
