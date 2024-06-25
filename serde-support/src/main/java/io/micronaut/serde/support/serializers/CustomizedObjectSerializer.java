@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
@@ -53,35 +52,15 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        try {
-            Encoder childEncoder = encoder.encodeObject(type);
-            serializeIntoInternal(childEncoder, value, context);
-            childEncoder.finishStructure();
-        } catch (StackOverflowError e) {
-            throw new SerdeException("Infinite recursion serializing type: " + type.getType()
-                    .getSimpleName() + " at path " + encoder.currentPath(), e);
-        } catch (IntrospectionException e) {
-            throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for "
-                                             + "type: " + type, e);
-        }
+        Encoder childEncoder = encoder.encodeObject(type);
+        serializeInto(childEncoder, context, type, value);
+        childEncoder.finishStructure();
     }
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        try {
-            serializeIntoInternal(encoder, value, context);
-        } catch (StackOverflowError e) {
-            throw new SerdeException("Infinite recursion serializing type: " + type.getType()
-                .getSimpleName() + " at path " + encoder.currentPath(), e);
-        } catch (IntrospectionException e) {
-            throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for "
-                + "type: " + type, e);
-        }
-    }
-
-    private void serializeIntoInternal(Encoder objectEncoder, T objectValue, EncoderContext context) throws IOException {
         for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
-            final Object propertyValue = property.get(objectValue);
+            final Object propertyValue = property.get(value);
             final String backRef = property.backRef;
             if (backRef != null) {
                 final PropertyReference<T, Object> ref = context.resolveReference(
@@ -99,7 +78,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
             final Serializer<Object> serializer = property.serializer;
 
             if (serBean.propertyFilter != null) {
-                if (!serBean.propertyFilter.shouldInclude(context, serializer, objectValue, property.name, propertyValue)) {
+                if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, propertyValue)) {
                     continue;
                 }
             } else {
@@ -137,7 +116,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                                 managedRef,
                                 serBean.introspection,
                                 property.argument,
-                            objectValue,
+                            value,
                                 property.serializer
                         )
                 );
@@ -145,16 +124,16 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
             try {
                 if (property.serializableInto) {
                     if (property.objectSerializer != null) {
-                        property.objectSerializer.serializeInto(objectEncoder, context, property.argument, propertyValue);
+                        property.objectSerializer.serializeInto(encoder, context, property.argument, propertyValue);
                     } else {
                         throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
                     }
                 } else {
-                    objectEncoder.encodeKey(property.name);
+                    encoder.encodeKey(property.name);
                     if (propertyValue == null) {
-                        objectEncoder.encodeNull();
+                        encoder.encodeNull();
                     } else {
-                        serializer.serialize(objectEncoder, context, property.argument, propertyValue);
+                        serializer.serialize(encoder, context, property.argument, propertyValue);
                     }
                 }
             } finally {

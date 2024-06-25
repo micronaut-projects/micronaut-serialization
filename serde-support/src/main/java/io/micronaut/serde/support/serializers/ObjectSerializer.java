@@ -143,7 +143,10 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
                 }
             }
         }
-        return serializer;
+        if (serializer instanceof io.micronaut.serde.ObjectSerializer<Object> objectSerializer) {
+            return new ErrorCatchingObjectSerializer<>(objectSerializer);
+        }
+        return new ErrorCatchingSerializer<>(serializer);
     }
 
     private <T> SerBean<T> getSerializableBean(Argument<T> type,
