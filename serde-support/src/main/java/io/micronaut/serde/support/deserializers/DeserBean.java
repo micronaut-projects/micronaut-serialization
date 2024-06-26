@@ -710,6 +710,7 @@ final class DeserBean<T> {
         @Nullable
         public final P defaultValue;
         public final boolean mustSetField;
+        public final boolean mustSetFieldForConstructor;
         public final boolean explicitlyRequired;
         public final boolean explicitlyRequiredForConstructor;
         public final boolean nonNull;
@@ -779,6 +780,7 @@ final class DeserBean<T> {
                 || type.equals(OptionalLong.class)
                 || type.equals(OptionalDouble.class)
                 || type.equals(OptionalInt.class);
+            this.mustSetFieldForConstructor = mustSetField || argument.isPrimitive();
             this.nonNull = argument.isNonNull();
             this.nullable = argument.isNullable();
             if (beanProperty != null) {
@@ -833,7 +835,7 @@ final class DeserBean<T> {
             if (explicitlyRequiredForConstructor) {
                 throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
             }
-            params[index] = provideDefaultValue(decoderContext, mustSetField || argument.isPrimitive());
+            params[index] = provideDefaultValue(decoderContext, mustSetFieldForConstructor);
         }
 
         public void set(@NonNull Deserializer.DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
