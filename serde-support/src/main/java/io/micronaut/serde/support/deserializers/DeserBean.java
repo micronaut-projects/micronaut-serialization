@@ -102,6 +102,7 @@ final class DeserBean<T> {
     public final int injectPropertiesSize;
 
     public final boolean ignoreUnknown;
+    public final boolean failOnNullForPrimitives;
     public final boolean delegating;
     public final boolean simpleBean;
     public final boolean recordLikeBean;
@@ -153,8 +154,11 @@ final class DeserBean<T> {
         // Replicating Jackson behaviour: @JsonIncludeProperties will ignore any not-included properties
         boolean hasIncludedProperties = serdeArgumentConf != null && serdeArgumentConf.getIncluded() != null
             || introspection.isAnnotationPresent(SerdeConfig.SerIncluded.class);
+        DeserializationConfiguration deserializationConfiguration = decoderContext.getDeserializationConfiguration().orElse(defaultDeserializationConfiguration);
         this.ignoreUnknown = hasIncludedProperties || introspection.booleanValue(SerdeConfig.SerIgnored.class, SerdeConfig.SerIgnored.IGNORE_UNKNOWN)
-            .orElse(decoderContext.getDeserializationConfiguration().orElse(defaultDeserializationConfiguration).isIgnoreUnknown());
+            .orElse(deserializationConfiguration.isIgnoreUnknown());
+        this.failOnNullForPrimitives = deserializationConfiguration.isFailOnNullForPrimitives();
+
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
 
         BeanMethod<T, Object> jsonValueMethod = null;
@@ -220,7 +224,8 @@ final class DeserBean<T> {
                 null,
                 unwrapped,
                 null,
-                isIgnored
+                isIgnored,
+                failOnNullForPrimitives
             );
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
@@ -260,7 +265,8 @@ final class DeserBean<T> {
                     null,
                     null,
                     null,
-                    false
+                    false,
+                    failOnNullForPrimitives
                 );
                 readPropertiesBuilder.register(jsonProperty, derProperty, true);
             }
@@ -335,7 +341,8 @@ final class DeserBean<T> {
                             null,
                             unwrapped,
                             null,
-                            false
+                            false,
+                            failOnNullForPrimitives
                         );
                         if (isUnwrapped) {
                             if (unwrappedProperties == null) {
@@ -376,7 +383,8 @@ final class DeserBean<T> {
                         jsonSetter,
                         null,
                         null,
-                        false
+                        false,
+                        failOnNullForPrimitives
                     );
                     readPropertiesBuilder.register(property, derProperty, true);
                 }
@@ -703,6 +711,7 @@ final class DeserBean<T> {
         public final P defaultValue;
         public final boolean mustSetField;
         public final boolean explicitlyRequired;
+        public final boolean explicitlyRequiredForConstructor;
         public final boolean nonNull;
         public final boolean nullable;
         public final boolean isAnySetter;
@@ -732,7 +741,8 @@ final class DeserBean<T> {
                     @Nullable BeanMethod<B, P> beanMethod,
                     @Nullable DeserBean<P> unwrapped,
                     @Nullable DerProperty<?, ?> unwrappedProperty,
-                    boolean ignored) throws SerdeException {
+                    boolean ignored,
+                    boolean failOnNullForPrimitives) throws SerdeException {
             this(conversionService,
                 introspection,
                 index,
@@ -743,7 +753,8 @@ final class DeserBean<T> {
                 beanMethod,
                 unwrapped,
                 unwrappedProperty,
-                ignored
+                ignored,
+                failOnNullForPrimitives
             );
         }
 
@@ -757,7 +768,8 @@ final class DeserBean<T> {
                     @Nullable BeanMethod<B, P> beanMethod,
                     @Nullable DeserBean<P> unwrapped,
                     @Nullable DerProperty<?, ?> unwrappedProperty,
-                    boolean ignored) throws SerdeException {
+                    boolean ignored,
+                    boolean failOnNullForPrimitives) throws SerdeException {
             this.introspection = introspection;
             this.index = index;
             this.argument = argument;
@@ -803,6 +815,7 @@ final class DeserBean<T> {
                 .orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
+            this.explicitlyRequiredForConstructor = explicitlyRequired || argument.isPrimitive() && failOnNullForPrimitives;
         }
 
         public void setDefaultPropertyValue(Deserializer.DecoderContext decoderContext, @NonNull B bean) throws SerdeException {
@@ -817,7 +830,7 @@ final class DeserBean<T> {
         }
 
         public void setDefaultConstructorValue(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
-            if (explicitlyRequired) {
+            if (explicitlyRequiredForConstructor) {
                 throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
             }
             params[index] = provideDefaultValue(decoderContext, mustSetField || argument.isPrimitive());
@@ -841,7 +854,7 @@ final class DeserBean<T> {
             }
         }
 
-        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an expection")
+        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
         public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
             try {
                 P value = deserializeValue(objectDecoder, decoderContext);
