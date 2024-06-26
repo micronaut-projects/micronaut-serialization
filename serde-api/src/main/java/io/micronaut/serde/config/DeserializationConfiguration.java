@@ -45,7 +45,6 @@ public interface DeserializationConfiguration {
     boolean isStrictNullable();
 
     /**
-     /**
      * Whether a null field or a missing value for a primitive should fail the deserialization. Defaults to {@code false}
      * @return True if a null field or a missing value for a primitive should fail the deserialization
      */
