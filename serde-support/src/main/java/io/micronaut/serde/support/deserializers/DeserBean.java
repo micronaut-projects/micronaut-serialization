@@ -585,9 +585,6 @@ final class DeserBean<T> {
     }
 
     private String resolveName(AnnotatedElement annotatedElement, List<AnnotationMetadata> annotationMetadata, PropertyNamingStrategy namingStrategy) {
-        if (namingStrategy != null) {
-            return namingStrategy.translate(annotatedElement);
-        }
         for (AnnotationMetadata metadataElement : annotationMetadata) {
             Optional<String> serde = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY);
             if (serde.isPresent()) {
@@ -597,6 +594,9 @@ final class DeserBean<T> {
             if (jackson.isPresent()) {
                 return jackson.get();
             }
+        }
+        if (namingStrategy != null) {
+            return namingStrategy.translate(annotatedElement);
         }
         return annotatedElement.getName();
     }

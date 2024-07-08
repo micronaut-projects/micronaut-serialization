@@ -453,19 +453,22 @@ final class SerBean<T> {
                                SerdeArgumentConf serdeArgumentConf,
                                PropertyNamingStrategy propertyNamingStrategy) {
 
-        String resolvedName =
-                propertyNamingStrategy == null ? propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null) :
-                        propertyNamingStrategy.translate(new AnnotatedElement() {
-                            @Override
-                            public String getName() {
-                                return name;
-                            }
+        String resolvedName = propertyAnnotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElseGet(() -> {
+            if (propertyNamingStrategy == null) {
+                return null;
+            }
+            return propertyNamingStrategy.translate(new AnnotatedElement() {
+                @Override
+                public String getName() {
+                    return name;
+                }
 
-                            @Override
-                            public AnnotationMetadata getAnnotationMetadata() {
-                                return propertyAnnotationMetadata;
-                            }
-                        });
+                @Override
+                public AnnotationMetadata getAnnotationMetadata() {
+                    return propertyAnnotationMetadata;
+                }
+            });
+        });
         if (resolvedName == null) {
             resolvedName = propertyAnnotationMetadata.stringValue(JK_PROP).orElse(name);
         }
