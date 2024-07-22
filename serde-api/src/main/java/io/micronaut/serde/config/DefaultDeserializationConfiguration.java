@@ -32,14 +32,17 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean ignoreUnknown;
     private final int arraySizeThreshold;
     private final boolean strictNullable;
+    private final boolean failOnNullForPrimitives;
 
     @ConfigurationInject
     DefaultDeserializationConfiguration(@Bindable(defaultValue = StringUtils.TRUE) boolean ignoreUnknown,
                                         @Bindable(defaultValue = "100") int arraySizeThreshold,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean failOnNullForPrimitives) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
+        this.failOnNullForPrimitives = failOnNullForPrimitives;
     }
 
     @Override
@@ -55,5 +58,10 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean isStrictNullable() {
         return strictNullable;
+    }
+
+    @Override
+    public boolean isFailOnNullForPrimitives() {
+        return failOnNullForPrimitives;
     }
 }

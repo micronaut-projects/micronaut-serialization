@@ -23,7 +23,6 @@ import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -49,7 +48,7 @@ import java.util.Set;
  * @since 1.0.0
  */
 @Internal
-final class SpecificObjectDeserializer implements Deserializer<Object>, UpdatingDeserializer<Object> {
+final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
     private static final String PREFIX_UNABLE_TO_DESERIALIZE_TYPE = "Unable to deserialize type [";
     private final Conf conf;
     private final DeserBean<? super Object> deserBean;
@@ -74,6 +73,14 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         } else {
             return deserializeAwaitForExternalProperties(decoder, decoderContext, type, deserializer);
         }
+    }
+
+    @Override
+    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserialize(decoder, context, type);
     }
 
     @Override
@@ -231,14 +238,6 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         }
     }
 
-    @Override
-    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
     private static BeanDeserializer newBeanDeserializer(Object instance,
                                                         DeserBean<? super Object> db,
                                                         Conf conf,
@@ -250,7 +249,8 @@ final class SpecificObjectDeserializer implements Deserializer<Object>, Updating
         if (allowSubtype && db.subtypeInfo != null) {
             SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = db.subtypeInfo.info().discriminatorType();
             return switch (discriminatorType) {
-                case PROPERTY, EXISTING_PROPERTY -> new SubtypedPropertyBeanDeserializer(db, argument, conf);
+                case PROPERTY, EXISTING_PROPERTY ->
+                    new SubtypedPropertyBeanDeserializer(db, argument, conf);
                 case WRAPPER_OBJECT -> new SubtypedWrapperBeanDeserializer(db, argument, conf);
                 default ->
                     throw new IllegalStateException(discriminatorType + " not supported in this scenario!");

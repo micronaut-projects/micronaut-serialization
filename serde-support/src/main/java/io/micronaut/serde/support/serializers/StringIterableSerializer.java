@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
@@ -27,6 +28,7 @@ import java.util.Collection;
  *
  * @author Denis Stepanov
  */
+@Internal
 final class StringIterableSerializer implements Serializer<Iterable<String>> {
 
     static final StringIterableSerializer INSTANCE = new StringIterableSerializer();

@@ -25,6 +25,7 @@ import io.micronaut.core.util.SupplierUtil;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.SerdeIntrospections;
+import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -142,7 +143,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 deserBean.ignoreUnknown
             );
         }
-        return deserializer;
+        if (deserializer instanceof UpdatingDeserializer<Object> updatingDeserializer) {
+            return new ErrorCatchingUpdatingDeserializer<>(updatingDeserializer);
+        }
+        return new ErrorCatchingDeserializer<>(deserializer);
     }
 
     @Override
