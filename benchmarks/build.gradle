@@ -5,6 +5,13 @@ plugins {
     id("me.champeau.jmh") version "0.7.2"
 }
 
+sourceSets {
+    create("typeCheckTest") {
+        compileClasspath += sourceSets.jmh.output
+        runtimeClasspath += sourceSets.jmh.output
+    }
+}
+
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
     annotationProcessor(mn.micronaut.inject.java)
@@ -19,6 +26,16 @@ dependencies {
 
     jmh(libs.jmh.core)
     runtimeOnly(mnLogging.logback.classic)
+
+    typeCheckTestImplementation(mnTest.junit.jupiter.engine)
+    typeCheckTestImplementation(mnTest.micronaut.test.type.pollution)
+    typeCheckTestImplementation(mnTest.bytebuddy)
+    typeCheckTestImplementation(mnTest.bytebuddy.agent)
+}
+
+configurations {
+    typeCheckTestImplementation.extendsFrom(jmhImplementation, implementation)
+    typeCheckTestRuntimeOnly.extendsFrom(jmhRuntimeOnly, runtimeOnly)
 }
 
 jmh {
@@ -28,6 +45,18 @@ jmh {
     warmupIterations = 0
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+tasks.register('typeCheckTest', Test) {
+    description = "Runs type check tests."
+    group = "verification"
+
+    testClassesDirs = sourceSets.typeCheckTest.output.classesDirs
+    classpath = sourceSets.typeCheckTest.runtimeClasspath
+
+    useJUnitPlatform()
+}
+
+check.dependsOn typeCheckTest
 
 shadowJar {
     mergeServiceFiles()

@@ -229,7 +229,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
     private final List<BeanDefinition<Serde>> internalSerdes = new ArrayList<>(100);
 
-    private final Map<TypeKey, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
+    // if there is a single Serde that is part of the serializerMap *and* deserializerMap, this can
+    // lead to interface type check thrashing. For that reason, we wrap the serializer side with
+    // a wrapper object.
+    private final Map<TypeKey, SerializerWrapper> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
 
     private final BeanContext beanContext;
@@ -501,9 +504,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
-        final Serializer<?> serializer = serializerMap.get(key);
-        if (serializer != null) {
-            return (Serializer<? super T>) serializer;
+        SerializerWrapper wrapper = serializerMap.get(key);
+        if (wrapper != null) {
+            return (Serializer<? super T>) wrapper.serializer;
         }
         if (type.getType().equals(Object.class)) {
             return objectSerializer;
@@ -522,14 +525,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             ser = getBean(definition);
         }
         if (ser != null) {
-            serializerMap.put(key, ser);
+            serializerMap.put(key, new SerializerWrapper(ser));
             return (Serializer<? super T>) ser;
         }
         if (key.getType().isArray()) {
-            serializerMap.put(key, objectArraySerde);
+            serializerMap.put(key, new SerializerWrapper(objectArraySerde));
             return (Serializer<? super T>) objectArraySerde;
         }
-        serializerMap.put(key, objectSerializer);
+        serializerMap.put(key, new SerializerWrapper(objectSerializer));
         return objectSerializer;
     }
 
@@ -714,4 +717,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     }
 
+    private record SerializerWrapper(Serializer<?> serializer) {
+    }
 }
