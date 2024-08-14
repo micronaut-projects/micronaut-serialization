@@ -46,7 +46,7 @@ oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref =
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 aws-lambda-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-events" }
 aws-lambda-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-serialization" }
-graal-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graal-svm" }
+graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" }
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
