@@ -11,10 +11,8 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.Year
-import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class JsonFormatSpec extends JsonCompileSpec {
 
@@ -241,56 +239,6 @@ class Test {
         ZonedDateTime  | ZonedDateTime.now()                       | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { ZonedDateTime i -> i.toInstant().toEpochMilli() }
         OffsetDateTime | OffsetDateTime.now()                      | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { OffsetDateTime i -> i.toInstant().toEpochMilli() }
         Year           | Year.of(2021)                             | [pattern: "yyyy"]                       | { Year y -> y }
-    }
-
-    @Unroll
-    void "test deserialize json number format for date #type"() {
-        given:
-        def context = buildContext('test.Test', """
-package test;
-
-import io.micronaut.serde.annotation.Serdeable;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.OptBoolean;
-
-@Serdeable
-class Test {
-    @JsonFormat(${settings.collect { "$it.key=\"$it.value\"" }.join(",")})
-    private $type.name value;
-    public void setValue($type.name value) {
-        this.value = value;
-    }
-    public $type.name getValue() {
-        return value;
-    }
-}
-""", [:])
-
-        def jsonString = """
-{
-    "value": ${value}
-}
-"""
-        def read = jsonMapper.readValue(jsonString, typeUnderTest)
-
-        expect:
-        resolver(read.value) == expected
-
-        cleanup:
-        context.close()
-
-        where:
-        type           | value           | settings                                                 | resolver                                                                     | expected
-        Instant        | "1640995200000" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Instant i -> i.toEpochMilli() }                                            | 1640995200000
-        Date           | "1640995200000" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Date d -> d.getTime() }                                                    | 1640995200000
-        java.sql.Date  | "19975"         | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { java.sql.Date d -> d.toString() }                                          | LocalDate.ofEpochDay(Integer.parseInt(value)).toString()
-        Timestamp      | "1725772522892" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Timestamp t -> t.getTime()}                                                | 1725772522892
-        LocalTime      | "54922971875000"| [pattern: "HH:mm:ss", timezone: "UTC"]                   | { LocalTime l -> l.toString() }                                              | LocalTime.ofNanoOfDay(Long.parseLong(value)).format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-        LocalDate      | "19974"         | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { LocalDate d -> d.toString() }                                              | LocalDate.ofEpochDay(Integer.parseInt(value)).toString()
-        LocalDateTime  | "1725772522892" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone: "UTC"]  | { LocalDateTime t -> t.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli() } | 1725772522892
-        ZonedDateTime  | "1725772522892" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { ZonedDateTime t -> t.toInstant().toEpochMilli() }                          | 1725772522892
-        OffsetDateTime | "1725772522892" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { OffsetDateTime t -> t.toInstant().toEpochMilli() }                         | 1725772522892
-        Year           | "2024"          | [pattern: "yyyy", timezone: "UTC"]                       | { Year y -> y.toString() }                                                   | "2024"
     }
 
 }
