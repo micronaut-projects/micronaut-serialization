@@ -33,8 +33,8 @@ import java.util.Optional;
  * @since 2.12
  */
 @Internal
-public final class ViewUtil {
-    private ViewUtil() {
+public final class JsonViewUtil {
+    private JsonViewUtil() {
     }
 
     /**

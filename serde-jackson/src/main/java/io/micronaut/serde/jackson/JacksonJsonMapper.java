@@ -58,7 +58,7 @@ import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.support.util.ViewUtil;
+import io.micronaut.serde.support.util.JsonViewUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.reactivestreams.Processor;
@@ -144,7 +144,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             // In a case of unknown type return this non-specific mapper
             mapper = this;
         }
-        Class<?> viewClass = ViewUtil.extractView(serdeConfiguration, type, view);
+        Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
         if (viewClass != view) {
             return mapper.cloneWithViewClass(viewClass);
         }
@@ -231,7 +231,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         if (argument.equalsType(specificType)) {
             serializer = (Serializer<? super T>) specificSerializer;
         } else {
-            Class<?> viewClass = ViewUtil.extractView(serdeConfiguration, argument, view);
+            Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, argument, view);
             if (viewClass != view) {
                 encoderContext = registry.newEncoderContext(viewClass);
             }
@@ -257,7 +257,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         if (type.equalsType(specificType)) {
             deserializer = specificDeserializer;
         } else {
-            Class<?> viewClass = ViewUtil.extractView(serdeConfiguration, type, view);
+            Class<?> viewClass = JsonViewUtil.extractView(serdeConfiguration, type, view);
             if (viewClass != view) {
                 decoderContext = registry.newDecoderContext(viewClass);
             }

@@ -62,7 +62,8 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
                               @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth,
                               @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric,
                               @Nullable String propertyNamingStrategy,
-                              @Property(name = "jackson.json-view.enabled", defaultValue = "false") boolean jsonViewEnabled) {
+                              @Bindable(defaultValue = "false") boolean jsonViewEnabled,
+                              @Property(name = "jackson.json-view.enabled", defaultValue = "false") boolean jacksonJsonViewEnabled) {
         this.dateFormat = dateFormat;
         this.timeWriteShape = timeWriteShape;
         this.numericTimeUnit = numericTimeUnit;
@@ -74,7 +75,7 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
         this.inetAddressAsNumeric = inetAddressAsNumeric;
         this.propertyNamingStrategyName = propertyNamingStrategy;
         this.propertyNamingStrategy = PropertyNamingStrategy.forName(propertyNamingStrategy).orElse(null);
-        this.jsonViewEnabled = jsonViewEnabled;
+        this.jsonViewEnabled = jsonViewEnabled || jacksonJsonViewEnabled;
     }
 
     @Override

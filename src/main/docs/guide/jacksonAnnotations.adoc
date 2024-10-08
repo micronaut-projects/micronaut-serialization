@@ -183,3 +183,9 @@ or Maven:
   <scope>provided</scope>
 </dependency>
 ----
+
+=== `@JsonView` on controllers
+
+The Micronaut HTTP server supports declaring the Jackson `@JsonView` annotation on controllers to configure a subset of
+fields to be serialized. `micronaut-serialization` supports this feature when enabled through the
+`jackson.json-view.enabled` or `micronaut.serde.json-view-enabled` configuration property.
