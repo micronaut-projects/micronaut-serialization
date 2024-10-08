@@ -174,9 +174,15 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isInetAddressAsNumeric()" class="member-name-link">isInetAddressAsNumeric</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isJsonViewEnabled()" class="member-name-link">isJsonViewEnabled</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">When <code>true</code>, mappers should respect JsonView annotations on arguments passed to
+ read/write methods.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Control whether to use legacy behavior for writing byte arrays.</div>
 </div>
 </div>
@@ -360,6 +366,20 @@ loadScripts(document, 'script');</script>
 <dd>The property naming strategy</dd>
 <dt>Since:</dt>
 <dd>2.10</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="isJsonViewEnabled()">
+<h3>isJsonViewEnabled</h3>
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isJsonViewEnabled</span>()</div>
+<div class="block">When <code>true</code>, mappers should respect JsonView annotations on arguments passed to
+ read/write methods.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>Whether to respect view annotations</dd>
+<dt>Since:</dt>
+<dd>2.12</dd>
 </dl>
 </section>
 </li>
