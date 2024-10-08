@@ -30,6 +30,7 @@ dependencies {
     testImplementation(libs.managed.jakarta.json.bindApi)
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)
+    testImplementation(projects.micronautSerdeJacksonTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.junit5)
     testImplementation(mn.micronaut.http.server.netty)
