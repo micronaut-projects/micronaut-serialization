@@ -32,6 +32,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
+import io.micronaut.inject.qualifiers.MatchArgumentQualifier;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
@@ -49,7 +50,6 @@ import io.micronaut.serde.support.serdes.ObjectArraySerde;
 import io.micronaut.serde.support.serdes.Serdes;
 import io.micronaut.serde.support.serializers.CoreSerializers;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
-import io.micronaut.serde.support.util.MatchArgumentQualifier;
 import io.micronaut.serde.support.util.TypeKey;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -468,7 +468,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return (Deserializer<? extends T>) objectArraySerde;
         }
 
-        Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.ofSuperVariable(Deserializer.class, type)
+        Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
         Deserializer<?> deser = null;
         if (beanDefinitions.size() == 1) {
@@ -515,7 +515,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return (Serializer<? super T>) objectArraySerde;
         }
 
-        Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.ofExtendsVariable(Serializer.class, type)
+        Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
             .filter(Serializer.class, serializers);
         Serializer<?> ser = null;
         if (beanDefinitions.size() == 1) {
@@ -711,6 +711,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     }
 
+    // Prevent type check thrashing
     private record SerializerWrapper(Serializer<?> serializer) {
     }
 }
