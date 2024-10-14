@@ -84,6 +84,11 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
+    public SerdeRegistry getSerdeRegistry() {
+        return this.registry;
+    }
+
+    @Override
     public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
         return new JsonStreamMapper(registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration), configuration == null ? serdeConfiguration : configuration, view);
     }
