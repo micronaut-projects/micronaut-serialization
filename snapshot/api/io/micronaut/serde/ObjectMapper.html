@@ -145,9 +145,14 @@ extends io.micronaut.json.JsonMapper</span></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
 <div class="block">Get the default ObjectMapper instance.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(java.lang.Object)" class="member-name-link">writeValueAsString</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getSerdeRegistry()" class="member-name-link">getSerdeRegistry</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Returns the <a href="SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> used by this object mapper, if possible.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeValueAsString(java.lang.Object)" class="member-name-link">writeValueAsString</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;object)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -211,6 +216,18 @@ extends io.micronaut.json.JsonMapper</span></div>
 <dd>A new <code>JsonMapper</code> with the updated config</dd>
 <dt>Since:</dt>
 <dd>2.7.0</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getSerdeRegistry()">
+<h3>getSerdeRegistry</h3>
+<div class="member-signature"><span class="annotations">@NonNull
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="SerdeRegistry.html" title="interface in io.micronaut.serde">SerdeRegistry</a></span>&nbsp;<span class="element-name">getSerdeRegistry</span>()</div>
+<div class="block">Returns the <a href="SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> used by this object mapper, if possible.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The serde registry</dd>
 </dl>
 </section>
 </li>
