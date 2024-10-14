@@ -68,6 +68,15 @@ public interface ObjectMapper extends JsonMapper {
     }
 
     /**
+     * Returns the {@link SerdeRegistry} used by this object mapper, if possible.
+     *
+     * @return The serde registry
+     */
+    default @NonNull SerdeRegistry getSerdeRegistry() {
+        throw new UnsupportedOperationException("No accessible SerdeRegistry");
+    }
+
+    /**
      * Get the default ObjectMapper instance.
      *
      * <p>Note that this method returns

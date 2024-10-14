@@ -73,6 +73,11 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         this.view = view;
     }
 
+    @Override
+    public SerdeRegistry getSerdeRegistry() {
+        return this.registry;
+    }
+
     abstract OracleJsonParser getJsonParser(InputStream inputStream);
 
     abstract OracleJsonGenerator createJsonGenerator(OutputStream outputStream);
