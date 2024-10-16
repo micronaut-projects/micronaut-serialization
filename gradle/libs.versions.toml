@@ -11,7 +11,7 @@ aws-lambda-events = "3.13.0"
 aws-lambda-serialization = "1.1.5"
 microstream-storage-restclient = "08.01.02-MS-GA"
 oracle-jdbc-driver = "23.5.0.24.07"
-jetbrains-annotations = "24.1.0"
+jetbrains-annotations = "26.0.1"
 jmh = "1.37"
 groovy = "4.0.18"
 
