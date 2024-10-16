@@ -150,7 +150,6 @@ public final class BsonWriterEncoder extends LimitingStream implements Encoder {
     @Override
     public void encodeBigInteger(BigInteger value) {
         encodeBigDecimal(new BigDecimal(value));
-        postEncodeValue();
     }
 
     @Override
