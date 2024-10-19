@@ -42,10 +42,12 @@ import java.util.Locale;
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
     final DateTimeFormatter formatter;
     final TemporalQuery<T> query;
+    final TemporalSerde<T> originalTemporalSerde;
 
     FormattedTemporalSerde(@NonNull String pattern,
                            @NonNull AnnotationMetadata annotationMetadata,
-                           TemporalQuery<T> query) {
+                           TemporalQuery<T> query,
+                           TemporalSerde<T> originalTemporalSerde) {
 
         Locale locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
                 .map(StringUtils::parseLocale)
@@ -59,12 +61,16 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
 
         this.formatter = f.withZone(zone);
         this.query = query;
+        this.originalTemporalSerde = originalTemporalSerde;
+
     }
 
     FormattedTemporalSerde(DateTimeFormatter formatter,
-                           TemporalQuery<T> query) {
+                           TemporalQuery<T> query,
+                           TemporalSerde<T> originalTemporalSerde) {
         this.formatter = formatter;
         this.query = query;
+        this.originalTemporalSerde = originalTemporalSerde;
     }
 
     @Override
@@ -80,7 +86,12 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
         try {
             return formatter.parse(str, query());
         } catch (DateTimeException e) {
-            return deserializeFallback(e, str, type);
+            if (originalTemporalSerde instanceof DefaultFormattedTemporalSerde<T> defaultFormattedTemporalSerde) {
+                return defaultFormattedTemporalSerde.deserializeFallback(e, str);
+            } else {
+                throw e;
+            }
+            //return deserializeFallback(e, str, type);
         }
     }
 
@@ -100,13 +111,13 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
 
         String formattedStr = switch (type.getTypeName()) {
             case "java.time.Instant",
-                "java.time.ZonedDateTime",
-                "java.time.OffsetDateTime"
-                -> Instant.ofEpochMilli(raw.longValue()).atZone(formatter.getZone()).format(formatter);
+                 "java.time.ZonedDateTime",
+                 "java.time.OffsetDateTime"
+                 -> Instant.ofEpochMilli(raw.longValue()).atZone(formatter.getZone()).format(formatter);
             case "java.time.LocalDate" -> LocalDate.ofEpochDay(raw.longValue()).format(formatter);
             case "java.time.LocalTime" -> convertLocalTime(raw.longValue());
             case "java.time.LocalDateTime"
-                -> LocalDateTime.ofInstant(Instant.ofEpochMilli(raw.longValue()), formatter.getZone()).format(formatter);
+                 -> LocalDateTime.ofInstant(Instant.ofEpochMilli(raw.longValue()), formatter.getZone()).format(formatter);
             case "java.time.Year" -> Year.of(Integer.parseInt(str)).format(formatter);
             default -> throw new IllegalStateException("The type: " + type.getTypeName() + " with value: " + str);
         };
