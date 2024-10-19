@@ -1,5 +1,6 @@
 package io.micronaut.serde.jackson
 
+
 import io.micronaut.serde.config.SerdeConfiguration
 import spock.lang.Unroll
 

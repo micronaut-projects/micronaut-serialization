@@ -1,5 +1,6 @@
 package io.micronaut.serde.jackson.annotation
 
+
 import io.micronaut.serde.jackson.JsonCompileSpec
 import io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit
 import spock.lang.Unroll
