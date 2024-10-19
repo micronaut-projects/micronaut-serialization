@@ -1,8 +1,7 @@
 package io.micronaut.serde.jackson.annotation
 
-import io.micronaut.context.ApplicationContext
-import io.micronaut.serde.config.SerdeConfiguration
 import io.micronaut.serde.jackson.JsonCompileSpec
+import io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit
 import spock.lang.Unroll
 
 import java.sql.Timestamp
@@ -16,7 +15,6 @@ import java.time.Year
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 class JsonFormatSpec extends JsonCompileSpec {
 
@@ -266,7 +264,7 @@ class Test {
         return value;
     }
 }
-""", [:])
+""", [:], ['micronaut.serde.numeric-time-unit': timeUnit])
 
         def jsonString = """
 {
@@ -282,16 +280,14 @@ class Test {
         context.close()
 
         where:
-        type           | value                         | settings                                                 | resolver                                                                     | expected
-        Instant        | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Instant i -> i.toString() }                                                | "2022-01-01T00:00:00Z"
-        Date           | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Date d -> new SimpleDateFormat("yyy/MM/dd HH:mm:ss").format(d.getTime()) } | "2022/01/01 11:00:00"
-        java.sql.Date  | "712875"                      | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { java.sql.Date d -> d.toString() }                                          | LocalDate.ofEpochDay(Integer.parseInt(value)).toString()
-        Timestamp      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Timestamp t -> t.toString()}                                               | "2022-01-01 11:00:00.0"
-        LocalTime      | "83184"                       | [pattern: "HH:mm:ss", timezone: "UTC"]                   | { LocalTime l -> l.toString() }                                              | LocalTime.ofSecondOfDay(Long.parseLong(value)).format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-        LocalDate      | "19974"                       | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { LocalDate d -> d.toString() }                                              | LocalDate.ofEpochDay(Integer.parseInt(value)).toString()
-        LocalDateTime  | "\"2024-10-18T23:06:24.722\"" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone: "UTC"]  | { LocalDateTime t -> t.atZone(ZoneId.of("UTC")).toInstant().toString() }     | "2024-10-18T23:06:24.722Z"
-        ZonedDateTime  | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { ZonedDateTime t -> t.toString() }                                          | "2022-01-01T00:00Z"
-        OffsetDateTime | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { OffsetDateTime t -> t.toString() }                                         | "2022-01-01T00:00Z"
-        Year           | "2024"                        | [pattern: "yyyy", timezone: "UTC"]                       | { Year y -> y.toString() }                                                   | "2024"
+        type           | timeUnit                     | value                         | settings                                                 | resolver                                                                     | expected
+        Instant        | NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Instant i -> i.toString() }                                                | "2022-01-01T00:00:00Z"
+        Date           | NumericTimeUnit.MILLISECONDS | "1640995200000"               | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Date d -> new SimpleDateFormat("yyy/MM/dd HH:mm:ss").format(d.getTime()) } | "2022/01/01 11:00:00"
+        Timestamp      | NumericTimeUnit.MILLISECONDS | "1640995200000"               | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Timestamp t -> t.toString()}                                               | "2022-01-01 11:00:00.0"
+        LocalDate      | NumericTimeUnit.SECONDS      | "19974"                       | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { LocalDate d -> d.toString() }                                              | LocalDate.ofEpochDay(Integer.parseInt(value)).toString()
+        LocalDateTime  | NumericTimeUnit.SECONDS      | "\"2024-10-18T23:06:24.722\"" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone: "UTC"]  | { LocalDateTime t -> t.atZone(ZoneId.of("UTC")).toInstant().toString() }     | "2024-10-18T23:06:24.722Z"
+        ZonedDateTime  | NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { ZonedDateTime t -> t.toString() }                                          | "2022-01-01T00:00Z"
+        OffsetDateTime | NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { OffsetDateTime t -> t.toString() }                                         | "2022-01-01T00:00Z"
+        Year           | NumericTimeUnit.SECONDS      | "2024"                        | [pattern: "yyyy", timezone: "UTC"]                       | { Year y -> y.toString() }                                                   | "2024"
     }
 }
