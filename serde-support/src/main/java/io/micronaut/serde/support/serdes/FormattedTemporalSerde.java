@@ -25,13 +25,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.DateTimeException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Year;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -42,10 +36,12 @@ import java.util.Locale;
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
     final DateTimeFormatter formatter;
     final TemporalQuery<T> query;
+    final TemporalSerde<T> originalTemporalSerde;
 
     FormattedTemporalSerde(@NonNull String pattern,
                            @NonNull AnnotationMetadata annotationMetadata,
-                           TemporalQuery<T> query) {
+                           TemporalQuery<T> query,
+                           TemporalSerde<T> originalTemporalSerde) {
 
         Locale locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
                 .map(StringUtils::parseLocale)
@@ -59,12 +55,16 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
 
         this.formatter = f.withZone(zone);
         this.query = query;
+        this.originalTemporalSerde = originalTemporalSerde;
+
     }
 
     FormattedTemporalSerde(DateTimeFormatter formatter,
-                           TemporalQuery<T> query) {
+                           TemporalQuery<T> query,
+                           TemporalSerde<T> originalTemporalSerde) {
         this.formatter = formatter;
         this.query = query;
+        this.originalTemporalSerde = originalTemporalSerde;
     }
 
     @Override
@@ -80,47 +80,16 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
         try {
             return formatter.parse(str, query());
         } catch (DateTimeException e) {
-            return deserializeFallback(e, str, type);
+            if (originalTemporalSerde instanceof DefaultFormattedTemporalSerde<T> defaultFormattedTemporalSerde) {
+                return defaultFormattedTemporalSerde.deserializeFallback(e, str);
+            } else {
+                throw e;
+            }
         }
     }
 
     @Override
     public TemporalQuery<T> query() {
         return query;
-    }
-
-    private T deserializeFallback(DateTimeException exc, String str, Argument<? super T> type) {
-        BigDecimal raw;
-        try {
-            raw = new BigDecimal(str);
-        } catch (NumberFormatException e) {
-            exc.addSuppressed(e);
-            throw exc;
-        }
-
-        String formattedStr = switch (type.getTypeName()) {
-            case "java.time.Instant",
-                "java.time.ZonedDateTime",
-                "java.time.OffsetDateTime"
-                -> Instant.ofEpochMilli(raw.longValue()).atZone(formatter.getZone()).format(formatter);
-            case "java.time.LocalDate" -> LocalDate.ofEpochDay(raw.longValue()).format(formatter);
-            case "java.time.LocalTime" -> convertLocalTime(raw.longValue());
-            case "java.time.LocalDateTime"
-                -> LocalDateTime.ofInstant(Instant.ofEpochMilli(raw.longValue()), formatter.getZone()).format(formatter);
-            case "java.time.Year" -> Year.of(Integer.parseInt(str)).format(formatter);
-            default -> throw new IllegalStateException("The type: " + type.getTypeName() + " with value: " + str);
-        };
-
-        return formatter.parse(formattedStr, query());
-    }
-
-    private String convertLocalTime(Long value) {
-        try {
-            return LocalTime.ofSecondOfDay(value).format(formatter);
-        } catch (DateTimeException exc) {
-            // The value was not deserialized as second of day.
-            // We will ignore this error and try to deserialize it as a nano of day.
-        }
-        return LocalTime.ofNanoOfDay(value).format(formatter);
     }
 }
