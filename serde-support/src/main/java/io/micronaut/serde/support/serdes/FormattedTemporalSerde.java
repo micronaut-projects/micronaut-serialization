@@ -25,6 +25,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -35,10 +36,12 @@ import java.util.Locale;
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
     final DateTimeFormatter formatter;
     final TemporalQuery<T> query;
+    final TemporalSerde<T> originalTemporalSerde;
 
     FormattedTemporalSerde(@NonNull String pattern,
                            @NonNull AnnotationMetadata annotationMetadata,
-                           TemporalQuery<T> query) {
+                           TemporalQuery<T> query,
+                           TemporalSerde<T> originalTemporalSerde) {
 
         Locale locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
                 .map(StringUtils::parseLocale)
@@ -52,12 +55,16 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
 
         this.formatter = f.withZone(zone);
         this.query = query;
+        this.originalTemporalSerde = originalTemporalSerde;
+
     }
 
     FormattedTemporalSerde(DateTimeFormatter formatter,
-                           TemporalQuery<T> query) {
+                           TemporalQuery<T> query,
+                           TemporalSerde<T> originalTemporalSerde) {
         this.formatter = formatter;
         this.query = query;
+        this.originalTemporalSerde = originalTemporalSerde;
     }
 
     @Override
@@ -70,7 +77,15 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
     @Override
     public T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         final String str = decoder.decodeString();
-        return formatter.parse(str, query());
+        try {
+            return formatter.parse(str, query());
+        } catch (DateTimeException e) {
+            if (originalTemporalSerde instanceof DefaultFormattedTemporalSerde<T> defaultFormattedTemporalSerde) {
+                return defaultFormattedTemporalSerde.deserializeFallback(e, str);
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override

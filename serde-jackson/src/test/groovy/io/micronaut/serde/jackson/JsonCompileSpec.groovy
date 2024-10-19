@@ -27,8 +27,12 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
     }
 
     ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties) {
+        return buildContext(className, source, properties, [:])
+    }
+
+    ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties, Map contextProperties) {
         ApplicationContext context =
-                buildContext(className, source, true)
+                buildContext(className, source, true, contextProperties)
 
         jsonMapper = context.getBean(ObjectMapper)
 
@@ -51,6 +55,12 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         return Argument.of(context.classLoader.loadClass(name))
     }
 
+    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans, Map contextProperties) {
+        def context = super.buildContext(className, cls, true, contextProperties)
+        jsonMapper = context.getBean(JsonMapper)
+        return context
+    }
+
     @Override
     ApplicationContext buildContext(@Language("java") String source) {
         ApplicationContext context =
@@ -63,9 +73,7 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
 
     @Override
     ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
-        def context = super.buildContext(className, cls, true)
-        jsonMapper = context.getBean(JsonMapper)
-        return context
+        return buildContext(className, cls, includeAllBeans, [:])
     }
 
     @Override
