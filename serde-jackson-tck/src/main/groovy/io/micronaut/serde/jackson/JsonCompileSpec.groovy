@@ -38,8 +38,12 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
     }
 
     ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties) {
+        return buildContext(className, source, properties, [:])
+    }
+
+    ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties, Map contextProperty) {
         ApplicationContext context =
-                buildContext(className, source, true)
+                buildContext(className, source, true, contextProperty)
 
         jsonMapper = context.getBean(JsonMapper)
 
@@ -72,12 +76,16 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
         return context
     }
 
-    @Override
-    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
-        def context = super.buildContext(className, cls, true)
+    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans, Map contextProperty) {
+        def context = super.buildContext(className, cls, true, contextProperty)
         Thread.currentThread().setContextClassLoader(context.classLoader)
         jsonMapper = context.getBean(JsonMapper)
         return context
+    }
+
+    @Override
+    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
+        return buildContext(className, cls, includeAllBeans, [:])
     }
 
     @Override
