@@ -957,4 +957,56 @@ class SubClass extends SuperClass {
         context.close()
     }
 
+    void "test @JsonUnwrapped - with Builder"() {
+        given:
+        def ctx = buildContext("""
+package unwrapped.test;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.jackson.builder.introspected.Address;
+
+@Serdeable
+class TestNestedEntity {
+
+    private String value;
+
+    @JsonUnwrapped(prefix = "addr_")
+    private Address address;
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+}
+
+""")
+
+        when:
+        def nestedJsonStr = '{"value":"test1","addr_street":"Blvd 11","addr_city":"NY"}'
+        def deserNestedEntity = jsonMapper.readValue(nestedJsonStr, Argument.of(ctx.classLoader.loadClass('unwrapped.test.TestNestedEntity')))
+
+        then:
+        deserNestedEntity
+        deserNestedEntity.value == "test1"
+        deserNestedEntity.address.city == "NY"
+        deserNestedEntity.address.street == "Blvd 11"
+
+        cleanup:
+        ctx.close()
+    }
+
 }
