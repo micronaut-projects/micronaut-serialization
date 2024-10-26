@@ -16,11 +16,10 @@
 package io.micronaut.serde.jackson
 
 
-import io.micronaut.serde.config.SerdeConfiguration
+import io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit
 import spock.lang.Unroll
 
 import java.sql.Timestamp
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -295,14 +294,14 @@ class Test {
         context.close()
 
         where:
-        type           | timeUnit                                        | value                         | settings                                                 | resolver                                                                     | expected
-        Instant        | SerdeConfiguration.NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Instant i -> i.toString() }                                                | "2022-01-01T00:00:00Z"
-        Date           | SerdeConfiguration.NumericTimeUnit.MILLISECONDS | "1640995200000"               | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Date d -> new SimpleDateFormat("yyy/MM/dd HH:mm:ss").format(d.getTime()) } | "2022/01/01 11:00:00"
-        Timestamp      | SerdeConfiguration.NumericTimeUnit.MILLISECONDS | "1640995200000"               | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Timestamp t -> t.toString()}                                               | "2022-01-01 11:00:00.0"
-        LocalDate      | SerdeConfiguration.NumericTimeUnit.SECONDS      | "19974"                       | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { LocalDate d -> d.toString() }                                              | "2024-09-08"
-        LocalDateTime  | SerdeConfiguration.NumericTimeUnit.SECONDS      | "\"2024-10-18T23:06:24.722\"" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone: "UTC"]  | { LocalDateTime t -> t.atZone(ZoneId.of("UTC")).toInstant().toString() }     | "2024-10-18T23:06:24.722Z"
-        ZonedDateTime  | SerdeConfiguration.NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { ZonedDateTime t -> t.toString() }                                          | "2022-01-01T00:00Z"
-        OffsetDateTime | SerdeConfiguration.NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { OffsetDateTime t -> t.toString() }                                         | "2022-01-01T00:00Z"
-        Year           | SerdeConfiguration.NumericTimeUnit.SECONDS      | "2024"                        | [pattern: "yyyy", timezone: "UTC"]                       | { Year y -> y.toString() }                                                   | "2024"
+        type           | timeUnit                     | value                         | settings                                                 | resolver                                                                 | expected
+        Instant        | NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Instant i -> i.getEpochSecond() }                                      | 1640995200
+        Date           | NumericTimeUnit.MILLISECONDS | "1640995200000"               | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Date d -> d.getTime() }                                                | 1640995200000
+        Timestamp      | NumericTimeUnit.MILLISECONDS | "1640995200000"               | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { Timestamp t -> t.getTime()}                                            | 1640995200000
+        LocalDate      | NumericTimeUnit.SECONDS      | "19974"                       | [pattern: "yyyy-MM-dd", timezone: "UTC"]                 | { LocalDate d -> d.toString() }                                          | "2024-09-08"
+        LocalDateTime  | NumericTimeUnit.SECONDS      | "\"2024-10-18T23:06:24.722\"" | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone: "UTC"]  | { LocalDateTime t -> t.atZone(ZoneId.of("UTC")).toInstant().toString() } | "2024-10-18T23:06:24.722Z"
+        ZonedDateTime  | NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { ZonedDateTime t -> t.toString() }                                      | "2022-01-01T00:00Z"
+        OffsetDateTime | NumericTimeUnit.SECONDS      | "1640995200"                  | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone: "UTC"] | { OffsetDateTime t -> t.toString() }                                     | "2022-01-01T00:00Z"
+        Year           | NumericTimeUnit.SECONDS      | "2024"                        | [pattern: "yyyy", timezone: "UTC"]                       | { Year y -> y.toString() }                                               | "2024"
     }
 }
