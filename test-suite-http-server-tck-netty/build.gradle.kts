@@ -5,10 +5,10 @@ plugins {
 }
 
 dependencies {
-    implementation(mn.micronaut.http.server.tck)
-    implementation(projects.micronautSerdeJackson)
 
-    runtimeOnly(mnLogging.logback.classic)
+    testImplementation(mn.micronaut.http.server.tck)
+    testImplementation(projects.micronautSerdeJackson)
+    testRuntimeOnly(mnLogging.logback.classic)
 
     testAnnotationProcessor(platform(mn.micronaut.core.bom))
     testAnnotationProcessor(mn.micronaut.inject.java)
