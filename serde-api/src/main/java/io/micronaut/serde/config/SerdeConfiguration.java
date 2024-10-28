@@ -126,6 +126,17 @@ public interface SerdeConfiguration {
     }
 
     /**
+     * When {@code true}, mappers should respect JsonView annotations on arguments passed to
+     * read/write methods.
+     *
+     * @return Whether to respect view annotations
+     * @since 2.12
+     */
+    default boolean isJsonViewEnabled() {
+        return false;
+    }
+
+    /**
      * Shape to use for time serialization.
      *
      * @since 2.0.0

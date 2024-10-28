@@ -591,13 +591,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public Serializer.EncoderContext newEncoderContext(Class<?> view) {
-        if (view != null) {
+        if (view != null && view != Object.class) {
             return new DefaultEncoderContext(this) {
                 @Override
                 public boolean hasView(Class<?>... views) {
-                    if (view == Object.class) {
-                        return true;
-                    }
                     for (Class<?> candidate : views) {
                         if (candidate.isAssignableFrom(view)) {
                             return true;
@@ -612,13 +609,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public Deserializer.DecoderContext newDecoderContext(Class<?> view) {
-        if (view != null) {
+        if (view != null && view != Object.class) {
             return new DefaultDecoderContext(this) {
                 @Override
                 public boolean hasView(Class<?>... views) {
-                    if (view == Object.class) {
-                        return true;
-                    }
                     for (Class<?> candidate : views) {
                         if (candidate.isAssignableFrom(view)) {
                             return true;

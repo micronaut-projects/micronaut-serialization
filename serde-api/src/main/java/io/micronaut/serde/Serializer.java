@@ -108,7 +108,7 @@ public interface Serializer<T> {
          * @return {@code true} iff any of the given views is enabled.
          */
         default boolean hasView(Class<?>... views) {
-            return false;
+            return true;
         }
 
         /**

@@ -15,6 +15,7 @@ dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
     compileOnly(mn.micronaut.management)
+    compileOnly(libs.jetbrains.annotations)
 
     api(projects.micronautSerdeApi)
 

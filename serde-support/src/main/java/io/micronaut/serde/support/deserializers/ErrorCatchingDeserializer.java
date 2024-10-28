@@ -52,7 +52,7 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
             throw new SerdeException("Infinite recursion deserializing type: " + type, e);
         } catch (IntrospectionException e) {
             throw new SerdeException("Error deserializing. No deserializing found for type: " + type, e);
-        } catch (SerdeException e) {
+        } catch (IOException e) {
             throw e;
         } catch (Exception e) {
             throw new SerdeException("Error deserializing type: " + type, e);
@@ -67,7 +67,7 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
             throw new SerdeException("Infinite recursion deserializing type: " + type.getType(), e);
         } catch (IntrospectionException e) {
             throw new SerdeException("Error deserializing. No deserializing found for type: " + type, e);
-        } catch (SerdeException e) {
+        } catch (IOException e) {
             throw e;
         } catch (Exception e) {
             throw new SerdeException("Error deserializing type: " + type, e);
