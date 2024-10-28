@@ -22,7 +22,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 
 @Suite
 @ExcludeClassNamePatterns({
-        "^io\\.micronaut\\.http\\.server\\.tck\\.tests\\.jsonview\\.JsonViewsTest$",
+        "^io\\.micronaut\\.http\\.server\\.tck\\.tests\\.jsonview\\.JsonViewsTest$", // it uses introspected classes which were not compiled with the serde processor
         "^io\\.micronaut\\.http\\.server\\.tck\\.tests\\.hateoas\\.JsonErrorTest$",
         "^io\\.micronaut\\.http\\.server\\.tck\\.tests\\.hateoas\\.VndErrorTest$",
         "^io\\.micronaut\\.http\\.server\\.tck\\.tests\\.hateoas\\.JsonErrorSerdeTest$",
