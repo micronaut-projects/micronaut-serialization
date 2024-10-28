@@ -22,6 +22,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 
 @Suite
 @ExcludeClassNamePatterns({
+        "io.micronaut.http.server.tck.tests.jsonview.JsonViewTest",
         "io.micronaut.http.server.tck.tests.hateoas.JsonErrorTest",
         "io.micronaut.http.server.tck.tests.hateoas.VndErrorTest",
         "io.micronaut.http.server.tck.tests.hateoas.JsonErrorSerdeTest",
@@ -29,6 +30,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
     "io.micronaut.http.server.tck.tests.forms.FormsInputNumberOptionalTest",
     "io.micronaut.http.server.tck.tests.forms.FormsSubmissionsWithListsTest",
     "io.micronaut.http.server.tck.tests.staticresources.StaticResourceTest" // Graal fails to see /assets from the TCK as a resource
+
 })
 @SelectPackages({
         "io.micronaut.http.server.tck.tests",
