@@ -125,6 +125,11 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         this.specificSerializer = serializer;
     }
 
+    @Override
+    public SerdeRegistry getSerdeRegistry() {
+        return this.registry;
+    }
+
     @NonNull
     @Override
     public JsonMapper createSpecific(@NonNull Argument<?> type) {

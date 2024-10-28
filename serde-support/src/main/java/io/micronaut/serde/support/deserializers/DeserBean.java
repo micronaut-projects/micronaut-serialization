@@ -249,6 +249,7 @@ final class DeserBean<T> {
                 Optional<BeanProperty<T, Object>> matchingOuterProperty = introspection.getProperty(builderArgument.getName());
                 PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(annotationMetadata, decoderContext, entityPropertyNamingStrategy);
                 final String jsonProperty = resolveName(
+                    serdeArgumentConf,
                     builderArgument,
                     matchingOuterProperty
                         .map(outer -> List.of(annotationMetadata, outer.getAnnotationMetadata()))
@@ -585,14 +586,23 @@ final class DeserBean<T> {
                                AnnotatedElement annotatedElement,
                                AnnotationMetadata annotationMetadata,
                                PropertyNamingStrategy namingStrategy) {
-        String name = resolveName(annotatedElement, List.of(annotationMetadata), namingStrategy);
+        return resolveName(serdeArgumentConf, annotatedElement, List.of(annotationMetadata), namingStrategy);
+    }
+
+    private String resolveName(@Nullable SerdeArgumentConf serdeArgumentConf,
+                               AnnotatedElement annotatedElement,
+                               List<AnnotationMetadata> annotationMetadata,
+                               PropertyNamingStrategy namingStrategy) {
+        String name = resolveName(annotatedElement, annotationMetadata, namingStrategy);
         if (serdeArgumentConf != null) {
             return serdeArgumentConf.applyPrefixSuffix(name);
         }
         return name;
     }
 
-    private String resolveName(AnnotatedElement annotatedElement, List<AnnotationMetadata> annotationMetadata, PropertyNamingStrategy namingStrategy) {
+    private String resolveName(AnnotatedElement annotatedElement,
+                               List<AnnotationMetadata> annotationMetadata,
+                               PropertyNamingStrategy namingStrategy) {
         for (AnnotationMetadata metadataElement : annotationMetadata) {
             Optional<String> serde = metadataElement.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY);
             if (serde.isPresent()) {

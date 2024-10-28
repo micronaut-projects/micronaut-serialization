@@ -103,6 +103,11 @@ final class ObjectMappers {
         return new ObjectMapper.CloseableObjectMapper() {
 
             @Override
+            public SerdeRegistry getSerdeRegistry() {
+                return objectMapper.getSerdeRegistry();
+            }
+
+            @Override
             public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
                 return objectMapper.readValueFromTree(tree, type);
             }
