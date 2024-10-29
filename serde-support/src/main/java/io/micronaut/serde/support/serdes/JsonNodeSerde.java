@@ -48,8 +48,14 @@ final class JsonNodeSerde implements SerdeRegistrar<JsonNode> {
             encoder.encodeString(value.getStringValue());
         } else if (value.isNumber()) {
             Number numberValue = value.getNumberValue();
-            if (numberValue instanceof Integer || numberValue instanceof Byte || numberValue instanceof Short || numberValue instanceof Long) {
+            if (numberValue instanceof Integer) {
+                encoder.encodeInt(numberValue.intValue());
+            } else if (numberValue instanceof Long) {
                 encoder.encodeLong(numberValue.longValue());
+            } else if (numberValue instanceof Short) {
+                encoder.encodeShort(numberValue.shortValue());
+            } else if (numberValue instanceof Byte) {
+                encoder.encodeByte(numberValue.byteValue());
             } else if (numberValue instanceof BigInteger bi) {
                 encoder.encodeBigInteger(bi);
             } else if (numberValue instanceof BigDecimal bd) {
