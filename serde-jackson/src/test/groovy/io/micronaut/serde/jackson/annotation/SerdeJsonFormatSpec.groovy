@@ -1,20 +1,12 @@
 package io.micronaut.serde.jackson.annotation
 
-
-import io.micronaut.serde.jackson.JsonCompileSpec
+import io.micronaut.serde.jackson.JsonFormatSpec
 import spock.lang.Unroll
 
-import java.sql.Timestamp
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.OffsetDateTime
-import java.time.Year
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 
-class JsonFormatSpec extends JsonCompileSpec {
+class SerdeJsonFormatSpec extends JsonFormatSpec {
 
     void "test disable validation"() {
         when:
@@ -191,11 +183,10 @@ class Test {
         BigDecimal | new BigDecimal("100000.12") | [pattern: '$###,###.###']                  | '{"value":"$100,000.12"}'
         BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
         BigInteger | new BigInteger("100000")    | [pattern: '$###,###.###']                  | '{"value":"$100,000"}'
-
     }
 
     @Unroll
-    void "test json format for date #type and settings #settings"() {
+    void "INSTANT + SQL DATE test json format for date #type and settings #settings"() {
         given:
         def context = buildContext('test.Test', """
 package test;
@@ -230,15 +221,7 @@ class Test {
         where:
         type           | value                                     | settings                                | resolver
         Instant        | Instant.now()                             | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { Instant i -> i.toEpochMilli() }
-        Date           | new Date()                                | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { Date d -> d.time }
         java.sql.Date  | new java.sql.Date(2021, 9, 15)            | [pattern: "yyyy-MM-dd"]                 | { java.sql.Date d -> d }
-        Timestamp      | new Timestamp(System.currentTimeMillis()) | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { Timestamp d -> d }
-        LocalTime      | LocalTime.now()                           | [pattern: "HH:mm:ss"]                   | { LocalTime i -> i.toSecondOfDay() }
-        LocalDate      | LocalDate.now()                           | [pattern: "yyyy-MM-dd"]                 | { LocalDate d -> d }
-        LocalDateTime  | LocalDateTime.now()                       | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSS"]  | { LocalDateTime i -> i.toInstant(ZoneOffset.from(ZoneOffset.UTC)).toEpochMilli() }
-        ZonedDateTime  | ZonedDateTime.now()                       | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { ZonedDateTime i -> i.toInstant().toEpochMilli() }
-        OffsetDateTime | OffsetDateTime.now()                      | [pattern: "yyyy-MM-dd'T'HH:mm:ss.SSSZ"] | { OffsetDateTime i -> i.toInstant().toEpochMilli() }
-        Year           | Year.of(2021)                             | [pattern: "yyyy"]                       | { Year y -> y }
     }
 
 }
