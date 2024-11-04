@@ -24,7 +24,7 @@ micronaut-logging = "1.5.0"
 micronaut-oracle-cloud = "4.2.1"
 micronaut-reactor = "3.6.0"
 micronaut-validation = "4.8.0"
-micronaut-gradle-plugin = "4.4.3"
+micronaut-gradle-plugin = "4.4.4"
 
 [libraries]
 # Micronaut
