@@ -16,6 +16,7 @@ dependencies {
 
     compileOnly(mn.micronaut.management)
     compileOnly(libs.jetbrains.annotations)
+    compileOnly(mn.jackson.databind)
 
     api(projects.micronautSerdeApi)
 
