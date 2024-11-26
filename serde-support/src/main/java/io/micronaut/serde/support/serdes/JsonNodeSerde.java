@@ -29,7 +29,6 @@ import java.util.Map;
 
 @Internal
 final class JsonNodeSerde implements SerdeRegistrar<JsonNode> {
-
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends JsonNode> type, JsonNode value)
         throws IOException {
@@ -47,23 +46,7 @@ final class JsonNodeSerde implements SerdeRegistrar<JsonNode> {
         } else if (value.isString()) {
             encoder.encodeString(value.getStringValue());
         } else if (value.isNumber()) {
-            Number numberValue = value.getNumberValue();
-            if (numberValue instanceof Integer) {
-                encoder.encodeInt(numberValue.intValue());
-            } else if (numberValue instanceof Long) {
-                encoder.encodeLong(numberValue.longValue());
-            } else if (numberValue instanceof Short) {
-                encoder.encodeShort(numberValue.shortValue());
-            } else if (numberValue instanceof Byte) {
-                encoder.encodeByte(numberValue.byteValue());
-            } else if (numberValue instanceof BigInteger bi) {
-                encoder.encodeBigInteger(bi);
-            } else if (numberValue instanceof BigDecimal bd) {
-                encoder.encodeBigDecimal(bd);
-            } else {
-                // double, float, other number types
-                encoder.encodeDouble(numberValue.doubleValue());
-            }
+            encodeNumber(encoder, value.getNumberValue());
         } else if (value.isObject()) {
             Encoder objectEncoder = encoder.encodeObject(Argument.of(JsonNode.class));
             for (Map.Entry<String, JsonNode> entry : value.entries()) {
@@ -79,6 +62,25 @@ final class JsonNodeSerde implements SerdeRegistrar<JsonNode> {
             arrayEncoder.finishStructure();
         } else {
             throw new IllegalArgumentException("Unsupported JSON node");
+        }
+    }
+
+    static void encodeNumber(Encoder encoder, Number numberValue) throws IOException {
+        if (numberValue instanceof Integer) {
+            encoder.encodeInt(numberValue.intValue());
+        } else if (numberValue instanceof Long) {
+            encoder.encodeLong(numberValue.longValue());
+        } else if (numberValue instanceof Short) {
+            encoder.encodeShort(numberValue.shortValue());
+        } else if (numberValue instanceof Byte) {
+            encoder.encodeByte(numberValue.byteValue());
+        } else if (numberValue instanceof BigInteger bi) {
+            encoder.encodeBigInteger(bi);
+        } else if (numberValue instanceof BigDecimal bd) {
+            encoder.encodeBigDecimal(bd);
+        } else {
+            // double, float, other number types
+            encoder.encodeDouble(numberValue.doubleValue());
         }
     }
 
