@@ -2,6 +2,9 @@ package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.annotation.processing.test.AbstractKotlinCompilerSpec
 import io.micronaut.context.ApplicationContext
+import io.micronaut.core.beans.BeanIntrospector
+import io.micronaut.core.beans.DefaultBeanIntrospector
+import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import org.intellij.lang.annotations.Language
@@ -41,8 +44,16 @@ class SerdeJsonSubtypesKotlinSpec extends AbstractKotlinCompilerSpec {
     ApplicationContext buildContext(String className, @Language("kotlin") String cls, boolean includeAllBeans) {
         def context = super.buildContext(className, cls, true)
         Thread.currentThread().setContextClassLoader(context.classLoader)
+        resetLoadedIntrospections(context.classLoader)
         jsonMapper = context.getBean(JsonMapper)
         return context
+    }
+
+    private static void resetLoadedIntrospections(ClassLoader classLoader) {
+        // Introspection were loaded in a different classloader
+        BeanIntrospector shared = BeanIntrospector.SHARED
+        shared.@introspectionMap = null
+        ReflectionUtils.setField(DefaultBeanIntrospector, "classLoader", shared, classLoader)
     }
 
     Argument<Object> argumentOf(ApplicationContext context, String name) {
@@ -77,7 +88,7 @@ import java.math.BigDecimal
         value = ["class"],
         allowSetters = true
 )
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class", visible = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class", visible = false)
 @JsonSubTypes(
         JsonSubTypes.Type(value = Bird::class, name = "ave")
 )
@@ -169,20 +180,7 @@ enum class ColorEnum(
             "featherDescription": "this is description",
             "class": "ave",
             "color": "red"
-        }""").class.simpleName == 'tests.Bird'
-//
-//        def baseArg = argumentOf(context, "test.Animal")
-//        def result = jsonMapper.readValue("""{
-//            "numWings": 2,
-//            "beakLength": 12.1,
-//            "featherDescription": "this is description",
-//            "class": "ave",
-//            "color": "red"
-//        }""", baseArg)
-//
-//        then:
-//        result.class.name == 'tests.Bird'
-//        result.propertyClass == 'ave'
+        }""").class.name == 'test.Bird'
 
         cleanup:
         Thread.currentThread().setContextClassLoader(cl)
