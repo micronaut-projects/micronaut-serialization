@@ -88,7 +88,7 @@ import java.math.BigDecimal
         value = ["class"],
         allowSetters = true
 )
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class", visible = false)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "class", visible = true)
 @JsonSubTypes(
         JsonSubTypes.Type(value = Bird::class, name = "ave")
 )
