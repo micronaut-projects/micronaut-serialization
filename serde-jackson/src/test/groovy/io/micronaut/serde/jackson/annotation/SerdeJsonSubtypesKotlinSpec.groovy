@@ -74,11 +74,9 @@ package test
 
 import com.fasterxml.jackson.annotation.*
 import io.micronaut.core.annotation.Nullable
-import io.micronaut.core.annotation.Introspected
 import io.micronaut.serde.annotation.Serdeable
 import java.math.BigDecimal
 
-@Introspected
 @Serdeable
 @JsonPropertyOrder(
         Animal.JSON_PROPERTY_PROPERTY_CLASS,
@@ -93,14 +91,16 @@ import java.math.BigDecimal
         JsonSubTypes.Type(value = Bird::class, name = "ave")
 )
 open class Animal(
-        @Nullable
-        @JsonProperty(JSON_PROPERTY_COLOR)
-        @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-        open var color: ColorEnum? = null,
-        @Nullable
-        @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
-        @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-        open var propertyClass: String? = null,
+
+    @field:Nullable
+    @field:JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
+    @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    open var propertyClass: String? = null,
+
+    @field:Nullable
+    @field:JsonProperty(JSON_PROPERTY_COLOR)
+    @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    open var color: ColorEnum? = null,
 ) {
 
     companion object {
@@ -110,37 +110,48 @@ open class Animal(
     }
 }
 
-@Introspected
 @Serdeable
 @JsonPropertyOrder(
-        Bird.JSON_PROPERTY_NUM_WINGS,
-        Bird.JSON_PROPERTY_BEAK_LENGTH,
-        Bird.JSON_PROPERTY_FEATHER_DESCRIPTION
+    Bird.JSON_PROPERTY_NUM_WINGS,
+    Bird.JSON_PROPERTY_BEAK_LENGTH,
+    Bird.JSON_PROPERTY_FEATHER_DESCRIPTION,
 )
-data class Bird(
-        @Nullable
-        @JsonProperty(JSON_PROPERTY_NUM_WINGS)
-        @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-        var numWings: Int? = null,
-        @Nullable
-        @JsonProperty(JSON_PROPERTY_BEAK_LENGTH)
-        @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-        var beakLength: BigDecimal? = null,
-        @Nullable
-        @JsonProperty(JSON_PROPERTY_FEATHER_DESCRIPTION)
-        @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
-        var featherDescription: String? = null,
-) : Animal() {
+class Bird(
+
+    @field:Nullable
+    @field:JsonProperty(JSON_PROPERTY_NUM_WINGS)
+    @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    var numWings: Int? = null,
+
+    @field:Nullable
+    @field:JsonProperty(JSON_PROPERTY_BEAK_LENGTH)
+    @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    var beakLength: BigDecimal? = null,
+
+    @field:Nullable
+    @field:JsonProperty(JSON_PROPERTY_FEATHER_DESCRIPTION)
+    @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    var featherDescription: String? = null,
+
+    @Nullable
+    @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    propertyClass: String? = null,
+
+    @Nullable
+    @JsonProperty(JSON_PROPERTY_COLOR)
+    @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
+    color: ColorEnum? = null,
+) : Animal(propertyClass, color) {
 
     companion object {
 
-        const val JSON_PROPERTY_NUM_WINGS = "numWings"
+        const val JSON_PROPERTY_NUM_WINGS = "numWings1"
         const val JSON_PROPERTY_BEAK_LENGTH = "beakLength"
         const val JSON_PROPERTY_FEATHER_DESCRIPTION = "featherDescription"
     }
 }
 
-@Introspected
 @Serdeable
 enum class ColorEnum(
         @get:JsonValue val value: String
@@ -173,14 +184,130 @@ enum class ColorEnum(
         def cl = Thread.currentThread().getContextClassLoader()
         Thread.currentThread().setContextClassLoader(context.classLoader)
 
-        expect:
-        deserializeFromString(jsonMapper, baseClass, """{
-            "numWings": 2,
+        when:
+        var result = deserializeFromString(jsonMapper, baseClass, """{
+            "class": "ave",
+            "numWings1": 2,
             "beakLength": 12.1,
             "featherDescription": "this is description",
-            "class": "ave",
             "color": "red"
-        }""").class.name == 'test.Bird'
+        }""")
+
+        then:
+        result.class.name == 'test.Bird'
+        result.properties["propertyClass"] == 'ave'
+
+        when:
+        result.properties["propertyClass"] = 'Bird'
+        var serialized = jsonMapper.writeValueAsString(result)
+
+        then:
+        serialized == '{"class":"ave","numWings1":2,"beakLength":12.1,"featherDescription":"this is description","color":"red"}'
+
+        cleanup:
+        Thread.currentThread().setContextClassLoader(cl)
+        context.close()
+    }
+
+    def 'test @JsonSubTypes with constructor argument annotations'() {
+        given:
+        def context = buildContext('test.BookInfo', """
+package test
+
+import com.fasterxml.jackson.annotation.*
+import io.micronaut.serde.annotation.Serdeable
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
+
+@Serdeable
+@JsonIgnoreProperties(
+    value = ["myType"], // ignore manually set type, it will be automatically generated by Jackson during serialization
+    allowSetters = true, // allows the type to be set during deserialization
+)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "myType", visible = true)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = BasicBookInfo::class, name = "BASIC"),
+    JsonSubTypes.Type(value = DetailedBookInfo::class, name = "DETAILED"),
+)
+open class BookInfo(
+
+    var name: String,
+    @field:JsonProperty("myType")
+    var type: BookInfoType? = null,
+)
+
+@Serdeable
+open class BasicBookInfo(
+
+    @field:NotNull
+    @field:Size(min = 3)
+    var author: String,
+
+    name: String,
+    type: BookInfoType? = null,
+) : BookInfo(name, type)
+
+@Serdeable
+class DetailedBookInfo(
+
+    @field:Pattern(regexp = "[0-9]{13}")
+    var isbn: String,
+
+    author: String,
+    name: String,
+    type: BookInfoType? = null,
+) : BasicBookInfo(author, name, type)
+
+@Serdeable
+enum class BookInfoType(
+    @get:JsonValue val value: String,
+) {
+
+    @JsonProperty("BASIC")
+    BASIC("BASIC"),
+    @JsonProperty("DETAILED")
+    DETAILED("DETAILED"),
+    ;
+
+    override fun toString(): String = value
+
+    companion object {
+
+        @JvmField
+        val VALUE_MAPPING = entries.associateBy { it.value }
+
+        /**
+         * Create this enum from a value.
+         *
+         * @param value The value
+         *
+         * @return The enum
+         */
+        @JsonCreator
+        @JvmStatic
+        fun fromValue(value: String): BookInfoType {
+            require(VALUE_MAPPING.containsKey(value)) { "Unexpected value '\$value'" }
+            return VALUE_MAPPING[value]!!
+        }
+    }
+}
+
+""", true)
+
+        def baseClass = context.classLoader.loadClass('test.BookInfo')
+        def cl = Thread.currentThread().getContextClassLoader()
+        Thread.currentThread().setContextClassLoader(context.classLoader)
+
+        expect:
+        var result = deserializeFromString(jsonMapper, baseClass, """{
+            "myType": "DETAILED",
+            "author": "Some author",
+            "name": "Book name",
+            "isbn": "1234567890"
+        }""")
+
+        result.class.name == 'test.DetailedBookInfo'
 
         cleanup:
         Thread.currentThread().setContextClassLoader(cl)
