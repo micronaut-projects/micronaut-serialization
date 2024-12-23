@@ -25,6 +25,7 @@ micronaut-oracle-cloud = "4.3.1"
 micronaut-reactor = "3.6.0"
 micronaut-validation = "4.8.0"
 micronaut-gradle-plugin = "4.4.4"
+sonatype-scan = "2.8.3"
 
 [libraries]
 # Micronaut
@@ -56,6 +57,7 @@ jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
 oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
+sonatype-scan = { module = "org.sonatype.gradle.plugins:scan-gradle-plugin", version.ref = "sonatype-scan" }
 
 #PLUGINS
 
