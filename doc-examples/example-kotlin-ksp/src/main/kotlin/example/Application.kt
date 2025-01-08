@@ -6,7 +6,7 @@ import io.micronaut.serde.annotation.SerdeImport
 fun main(args: Array<String>) {
     build()
         .args(*args)
-        .packages("com.example")
+        .packages("example")
         .start()
 }
 

@@ -20,6 +20,7 @@ dependencies {
     runtimeOnly(mnLogging.logback.classic)
 
     testImplementation(mnTest.micronaut.test.junit5)
+    testImplementation(mnTest.junit.jupiter.params)
 }
 
 java {
