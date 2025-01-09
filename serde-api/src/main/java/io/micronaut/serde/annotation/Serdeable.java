@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.annotation;
 
-import io.micronaut.context.annotation.AliasFor;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
@@ -48,13 +47,11 @@ public @interface Serdeable {
     /**
      * @return Whether build time validation should fail compilation on definition errors.
      */
-    @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.VALIDATE)
     boolean validate() default true;
 
     /**
      * @return Naming strategy to use for both serialization and deserialization.
      */
-    @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.NAMING)
     Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
 
     /**
@@ -67,26 +64,22 @@ public @interface Serdeable {
         /**
          * @return The {@link io.micronaut.serde.Serializer} to use.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.SERIALIZER_CLASS) 
         Class<? extends Serializer> using() default Serializer.class;
 
         /**
          * @return Whether build time validation should fail compilation on definition errors.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.VALIDATE)
         boolean validate() default true;
 
         /**
          * Use the given class to serialize this type.
          * @return A type that is a subclass of the annotated type.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.SERIALIZE_AS)
         Class<?> as() default void.class;
 
         /**
          * @return Naming strategy to use.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.NAMING)
         Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
     }
 
@@ -100,26 +93,22 @@ public @interface Serdeable {
         /**
          * @return The deserializer.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.DESERIALIZER_CLASS) 
         Class<? extends Deserializer> using() default Deserializer.class;
 
         /**
          * @return Whether build time validation should fail compilation on definition errors.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.VALIDATE)
         boolean validate() default true;
 
         /**
          * Use the given class to deserialize this type.
          * @return A type that is a subclass of the annotated type.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.DESERIALIZE_AS)
         Class<?> as() default void.class;
 
         /**
          * @return Naming strategy to use.
          */
-        @AliasFor(annotation = SerdeConfig.class, member = SerdeConfig.NAMING)
         Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
     }
 }
