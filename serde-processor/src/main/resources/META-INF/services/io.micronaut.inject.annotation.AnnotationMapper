@@ -28,3 +28,6 @@ io.micronaut.serde.processor.jackson.JacksonIgnoreTypeMapper
 io.micronaut.serde.processor.jackson.JsonUnwrappedMapper
 io.micronaut.serde.processor.jackson.JsonGetterMapper
 io.micronaut.serde.processor.jackson.JsonPropertyMapper
+io.micronaut.serde.processor.serde.DeserializableMapper
+io.micronaut.serde.processor.serde.SerializableMapper
+io.micronaut.serde.processor.serde.SerdeableMapper
