@@ -179,6 +179,10 @@ final class DeserBean<T> {
         List<DerProperty<T, ?>> unwrappedProperties = null;
         for (int i = 0; i < constructorArguments.length; i++) {
             Argument<Object> constructorArgument = resolveArgument((Argument<Object>) constructorArguments[i]);
+            String unresolvedTypeVariableName = null;
+            if (constructorArgument instanceof GenericPlaceholder<?> genericPlaceholder) {
+                unresolvedTypeVariableName = genericPlaceholder.getVariableName();
+            }
             final AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, constructorArgument, constructorArgument.getAnnotationMetadata());
             if (annotationMetadata.isAnnotationPresent(SerdeConfig.SerAnySetter.class)) {
                 anySetterValue = new AnySetter(constructorArgument, i);
@@ -198,12 +202,7 @@ final class DeserBean<T> {
                 ignoredProperties.add(propertyName);
             }
 
-            Argument<Object> constructorWithPropertyArgument = Argument.of(
-                constructorArgument.getType(),
-                constructorArgument.getName(),
-                annotationMetadata,
-                constructorArgument.getTypeParameters()
-            );
+            Argument<Object> constructorWithPropertyArgument = constructorArgument.withAnnotationMetadata(annotationMetadata);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
             DeserBean<Object> unwrapped = null;
             if (isUnwrapped) {
@@ -212,6 +211,7 @@ final class DeserBean<T> {
                     decoderContext
                 );
             }
+            Argument<Object> finalConstructorArgument = constructorArgument;
             DerProperty<T, Object> derProperty = new DerProperty<>(
                 conversionService,
                 introspection,
@@ -219,13 +219,14 @@ final class DeserBean<T> {
                 propertyName,
                 constructorWithPropertyArgument,
                 isIgnored ? null : introspection.getProperty(propertyName)
-                    .or(() -> introspection.getProperty(constructorArgument.getName()))
+                    .or(() -> introspection.getProperty(finalConstructorArgument.getName()))
                     .orElse(null),
                 null,
                 unwrapped,
                 null,
                 isIgnored,
-                failOnNullForPrimitives
+                failOnNullForPrimitives,
+                unresolvedTypeVariableName
             );
             if (isUnwrapped) {
                 if (creatorUnwrapped == null) {
@@ -267,7 +268,8 @@ final class DeserBean<T> {
                     null,
                     null,
                     false,
-                    failOnNullForPrimitives
+                    failOnNullForPrimitives,
+                    null
                 );
                 readPropertiesBuilder.register(jsonProperty, derProperty, true);
             }
@@ -323,6 +325,10 @@ final class DeserBean<T> {
                     } else {
                         final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
                         final Argument<Object> propertyArgument = resolveArgument(beanProperty.asArgument());
+                        String unresolvedTypeVariableName = null;
+                        if (propertyArgument instanceof GenericPlaceholder<?> genericPlaceholder) {
+                            unresolvedTypeVariableName = genericPlaceholder.getVariableName();
+                        }
 
                         DeserBean<Object> unwrapped = null;
                         if (isUnwrapped) {
@@ -343,7 +349,8 @@ final class DeserBean<T> {
                             unwrapped,
                             null,
                             false,
-                            failOnNullForPrimitives
+                            failOnNullForPrimitives,
+                            unresolvedTypeVariableName
                         );
                         if (isUnwrapped) {
                             if (unwrappedProperties == null) {
@@ -374,6 +381,10 @@ final class DeserBean<T> {
                         propertyNamingStrategy
                     );
                     final Argument<Object> argument = resolveArgument((Argument<Object>) jsonSetter.getArguments()[0]);
+                    String unresolvedTypeVariableName = null;
+                    if (argument instanceof GenericPlaceholder<?> genericPlaceholder) {
+                        unresolvedTypeVariableName = genericPlaceholder.getVariableName();
+                    }
                     final DerProperty<T, Object> derProperty = new DerProperty<>(
                         conversionService,
                         introspection,
@@ -385,7 +396,8 @@ final class DeserBean<T> {
                         null,
                         null,
                         false,
-                        failOnNullForPrimitives
+                        failOnNullForPrimitives,
+                        unresolvedTypeVariableName
                     );
                     readPropertiesBuilder.register(property, derProperty, true);
                 }
@@ -480,7 +492,7 @@ final class DeserBean<T> {
         }
         if (injectProperties != null) {
             for (DerProperty<T, Object> property : injectProperties.getProperties()) {
-                if (property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.introspection || property.backRef != null || property.beanProperty == null) {
+                if (property.unresolvedTypeVariableName != null || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.introspection || property.backRef != null || property.beanProperty == null) {
                     return false;
                 }
             }
@@ -494,7 +506,7 @@ final class DeserBean<T> {
         }
         if (creatorParams != null) {
             for (DerProperty<T, Object> property : creatorParams.getProperties()) {
-                if (property.beanProperty != null || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.introspection || property.backRef != null) {
+                if (property.unresolvedTypeVariableName != null || property.beanProperty != null || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.introspection || property.backRef != null) {
                     return false;
                 }
             }
@@ -739,6 +751,8 @@ final class DeserBean<T> {
         public final String managedRef;
         public final String backRef;
         public final boolean ignored;
+        @Nullable
+        public final String unresolvedTypeVariableName;
 
         // Null when DeserBean not initialized
         public Deserializer<P> deserializer;
@@ -753,7 +767,8 @@ final class DeserBean<T> {
                     @Nullable DeserBean<P> unwrapped,
                     @Nullable DerProperty<?, ?> unwrappedProperty,
                     boolean ignored,
-                    boolean failOnNullForPrimitives) throws SerdeException {
+                    boolean failOnNullForPrimitives,
+                    String unresolvedTypeVariableName) throws SerdeException {
             this(conversionService,
                 introspection,
                 index,
@@ -765,7 +780,8 @@ final class DeserBean<T> {
                 unwrapped,
                 unwrappedProperty,
                 ignored,
-                failOnNullForPrimitives
+                failOnNullForPrimitives,
+                unresolvedTypeVariableName
             );
         }
 
@@ -780,11 +796,12 @@ final class DeserBean<T> {
                     @Nullable DeserBean<P> unwrapped,
                     @Nullable DerProperty<?, ?> unwrappedProperty,
                     boolean ignored,
-                    boolean failOnNullForPrimitives) throws SerdeException {
+                    boolean failOnNullForPrimitives, String unresolvedTypeVariableName) throws SerdeException {
             this.introspection = introspection;
             this.index = index;
             this.argument = argument;
             this.ignored = ignored;
+            this.unresolvedTypeVariableName = unresolvedTypeVariableName;
             Class<?> type = argument.getType();
             this.mustSetField = argument.isNonNull() || type.equals(Optional.class)
                 || type.equals(OptionalLong.class)
@@ -858,7 +875,7 @@ final class DeserBean<T> {
 
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
             try {
-                values[index] = deserializeValue(objectDecoder, decoderContext);
+                values[index] = deserializeValue(deserializer, objectDecoder, decoderContext);
             } catch (InvalidFormatException e) {
                 throw new InvalidPropertyFormatException(e, argument);
             } catch (Exception e) {
@@ -866,10 +883,17 @@ final class DeserBean<T> {
             }
         }
 
-        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
         public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
+            deserializeAndSetPropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
+        }
+
+        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
+        public void deserializeAndSetPropertyValue(Deserializer<P> deserializer,
+                                                   Decoder objectDecoder,
+                                                   Deserializer.DecoderContext decoderContext,
+                                                   B beanInstance) throws IOException {
             try {
-                P value = deserializeValue(objectDecoder, decoderContext);
+                P value = deserializeValue(deserializer, objectDecoder, decoderContext);
                 if (value != null || nullable) {
                     beanProperty.setUnsafe(beanInstance, value);
                 }
@@ -882,7 +906,7 @@ final class DeserBean<T> {
 
         public void deserializeAndCallBuilder(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, BeanIntrospection.Builder<B> builder) throws IOException {
             try {
-                P value = deserializeValue(objectDecoder, decoderContext);
+                P value = deserializeValue(deserializer, objectDecoder, decoderContext);
                 if (value != null || nullable) {
                     builder.with(index, argument, value);
                 }
@@ -893,7 +917,7 @@ final class DeserBean<T> {
             }
         }
 
-        private P deserializeValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+        private P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
             if (value != null || nullable) {
                 return value;
