@@ -86,7 +86,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
                     Argument<Object> valueType = beanMethod.getReturnType().asArgument();
                     Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
                     Map<Object, E> cache = new HashMap<>();
-                    for (E enumValue: EnumSet.allOf((Class<E>) type.getType())) {
+                    for (E enumValue: (E[]) type.getType().getEnumConstants()) {
                         Object deserializedValue = beanMethod.invoke(enumValue);
                         cache.put(deserializedValue, enumValue);
                     }
@@ -98,7 +98,7 @@ final class EnumSerde<E extends Enum<E>> implements NullableSerde<E> {
                     Argument<Object> valueType = beanProperty.asArgument();
                     Deserializer<?> valueDeserializer = context.findDeserializer(valueType);
                     Map<Object, E> cache = new HashMap<>();
-                    for (E enumValue: EnumSet.allOf((Class<E>) type.getType())) {
+                    for (E enumValue: (E[]) type.getType().getEnumConstants()) {
                         Object deserializedValue = beanProperty.get(enumValue);
                         cache.put(deserializedValue, enumValue);
                     }
