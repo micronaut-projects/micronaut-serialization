@@ -140,7 +140,9 @@ final class DeserBean<T> {
             .enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class)
             .orElse(null);
         delegating = creatorMode == SerdeConfig.SerCreatorMode.DELEGATING;
-        hasBuilder = introspection.hasBuilder();
+        hasBuilder = introspection.hasBuilder() &&
+            // always deserialize with record constructor
+            !introspection.getBeanType().isRecord();
         final Argument<?>[] constructorArguments = hasBuilder ? introspection.builder().getBuildMethodArguments() : introspection.getConstructorArguments();
         creatorSize = constructorArguments.length;
         PropertyNamingStrategy entityPropertyNamingStrategy = getPropertyNamingStrategy(introspection, decoderContext, defaultPropertyNamingStrategy);
