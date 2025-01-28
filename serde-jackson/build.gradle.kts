@@ -17,6 +17,8 @@ dependencies {
     testAnnotationProcessor(projects.micronautSerdeProcessor)
 
     testCompileOnly(mn.micronaut.inject.groovy)
+    testImplementation(libs.lombok)
+    testAnnotationProcessor(libs.lombok)
 
     testImplementation(projects.micronautSerdeProcessor)
     testImplementation(projects.micronautSerdeTck)

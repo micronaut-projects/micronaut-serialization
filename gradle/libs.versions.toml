@@ -14,6 +14,7 @@ oracle-jdbc-driver = "23.6.0.24.10"
 jetbrains-annotations = "24.1.0"
 jmh = "1.37"
 groovy = "4.0.22"
+lombok = "1.18.36"
 
 micronaut = "4.7.12"
 micronaut-platform = "4.7.4"
@@ -48,6 +49,8 @@ jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "j
 aws-lambda-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-events" }
 aws-lambda-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-serialization" }
 graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
