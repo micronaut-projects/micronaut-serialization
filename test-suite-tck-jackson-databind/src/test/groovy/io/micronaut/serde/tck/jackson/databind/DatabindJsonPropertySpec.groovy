@@ -13,7 +13,6 @@ class DatabindJsonPropertySpec extends JsonPropertySpec {
         ))
     }
 
-    @PendingFeature
     void "test @JsonProperty.Access.READ_ONLY (get only) - constructor"() {
         // Jackson cannot deserialize READ_ONLY as null
         given:
@@ -64,7 +63,6 @@ class Test {
             context.close()
     }
 
-    @PendingFeature
     void "test @JsonProperty.Access.READ_ONLY (get only) - record"() {
         // Jackson cannot deserialize READ_ONLY as null
         given:

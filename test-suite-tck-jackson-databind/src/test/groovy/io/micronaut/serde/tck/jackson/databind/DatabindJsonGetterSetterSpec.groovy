@@ -82,7 +82,6 @@ class Test {
             context.close()
     }
 
-    @PendingFeature(reason = "https://github.com/FasterXML/jackson-databind/issues/3439")
     void "test json any getter / setter - records"() {
         given:
             def context = buildContext('''
