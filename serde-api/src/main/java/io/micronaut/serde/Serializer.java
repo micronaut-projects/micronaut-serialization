@@ -90,6 +90,30 @@ public interface Serializer<T> {
     }
 
     /**
+     * Used for content {@code JsonInclude.Include#NON_EMPTY} checking.
+     *
+     * @param context The encoder context
+     * @param value The check to check
+     * @return Return {@code true} if the value is empty
+     * @since 2.15
+     */
+    default boolean isContentEmpty(@NonNull EncoderContext context, @Nullable T value) {
+        return false;
+    }
+
+    /**
+     * Used for content {@code JsonInclude.Include#NON_ABSENT} checking.
+     *
+     * @param context The encoder context
+     * @param value The value to check
+     * @return Return {@code true} if the value is absent
+     * @since 2.15
+     */
+    default boolean isContentAbsent(@NonNull EncoderContext context, @Nullable T value) {
+        return false;
+    }
+
+    /**
      * Context object passes to the
      * {@link #serialize(Encoder, EncoderContext, Argument, Object)}  method.
      */

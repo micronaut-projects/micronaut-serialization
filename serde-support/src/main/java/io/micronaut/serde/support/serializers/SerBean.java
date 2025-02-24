@@ -432,7 +432,7 @@ final class SerBean<T> {
             return false;
         }
         for (SerProperty<T, Object> property : writeProperties) {
-            if (property.serializableInto || property.backRef != null || property.include != SerdeConfig.SerInclude.ALWAYS || property.views != null || property.managedRef != null) {
+            if (property.serializableInto || property.backRef != null || property.include != SerdeConfig.SerInclude.ALWAYS || property.includeContent != SerdeConfig.SerInclude.ALWAYS || property.views != null || property.managedRef != null) {
                 return false;
             }
         }
@@ -567,6 +567,7 @@ final class SerBean<T> {
         public final String managedRef;
         public final String backRef;
         public final SerdeConfig.SerInclude include;
+        public final SerdeConfig.SerInclude includeContent;
         public final boolean serializableInto;
         // Null when not initialized SerBean
         public Serializer<P> serializer;
@@ -599,6 +600,9 @@ final class SerBean<T> {
             this.include = hierarchy
                     .enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
                     .orElse(bean.configuration.getInclusion());
+            this.includeContent = hierarchy
+                .enumValue(SerdeConfig.class.getName(), SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
+                .orElse(SerdeConfig.SerInclude.ALWAYS);
             this.managedRef = annotationMetadata.stringValue(SerdeConfig.SerManagedRef.class)
                     .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)

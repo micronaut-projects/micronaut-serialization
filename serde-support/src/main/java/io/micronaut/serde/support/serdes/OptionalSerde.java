@@ -39,7 +39,7 @@ import java.util.Optional;
 @Internal
 final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, CustomizableDeserializer<Optional<T>>, SerdeRegistrar<Optional<T>> {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     @Override
     public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)
         throws SerdeException {
@@ -49,7 +49,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
         }
         //noinspection unchecked
         final Argument<T> generic = (Argument<T>) generics[0];
-        final Serializer<? super T> componentSerializer = encoderContext.findSerializer(generic).createSpecific(encoderContext, generic);
+        final Serializer<? super T> contentSerializer = encoderContext.findSerializer(generic).createSpecific(encoderContext, generic);
         return new Serializer<>() {
 
             @Override
@@ -58,7 +58,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
                 if (o == null) {
                     encoder.encodeNull();
                 } else {
-                    componentSerializer.serialize(
+                    contentSerializer.serialize(
                         encoder,
                         context,
                         generic,
@@ -69,15 +69,22 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
 
             @Override
             public boolean isEmpty(EncoderContext context, Optional<T> value) {
-                if (value != null && value.isPresent()) {
-                    return componentSerializer.isEmpty(context, (T) ((Optional) value).get());
-                }
-                return true;
+                return value == null || value.isEmpty();
             }
 
             @Override
             public boolean isAbsent(EncoderContext context, Optional<T> value) {
-                return value == null || value.isEmpty();
+                return isEmpty(context, value);
+            }
+
+            @Override
+            public boolean isContentAbsent(EncoderContext context, Optional<T> value) {
+                return value != null && value.isPresent() && contentSerializer.isAbsent(context, value.get());
+            }
+
+            @Override
+            public boolean isContentEmpty(EncoderContext context, Optional<T> value) {
+                return value != null && value.isPresent() && contentSerializer.isEmpty(context, value.get());
             }
         };
     }

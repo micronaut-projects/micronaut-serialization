@@ -25,6 +25,7 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
@@ -47,6 +48,9 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
     public ObjectSerializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
         final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length == 2;
+        SerdeConfig.SerInclude includeContent = type.getAnnotationMetadata()
+            .enumValue(SerdeConfig.class.getName(), SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
+            .orElse(SerdeConfig.SerInclude.ALWAYS);
         if (hasGenerics) {
             final Argument<K> keyGeneric = (Argument<K>) generics[0];
             final Serializer<K> keySerializer = findKeySerializer(context, keyGeneric);
@@ -66,6 +70,28 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     for (Map.Entry<K, V> entry : value.entrySet()) {
                         K k = entry.getKey();
+                        V v = entry.getValue();
+
+                        switch (includeContent) {
+                            case NON_ABSENT:
+                                if (valSerializer.isAbsent(context, v)) {
+                                    continue;
+                                }
+                                break;
+                            case NON_EMPTY:
+                                if (valSerializer.isEmpty(context, v)) {
+                                    continue;
+                                }
+                                break;
+                            case NON_NULL:
+                                if (v == null) {
+                                    continue;
+                                }
+                                break;
+                            default:
+                                // fall through
+                        }
+
                         if (k == null) {
                             encoder.encodeNull();
                         } else if (isStringKey) {
@@ -73,7 +99,6 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                         } else {
                             encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
                         }
-                        V v = entry.getValue();
                         if (v == null) {
                             encoder.encodeNull();
                         } else {
@@ -83,12 +108,49 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 }
 
                 @Override
+                public boolean isAbsent(EncoderContext context, Map<K, V> value) {
+                    return value == null;
+                }
+
+                @Override
                 public boolean isEmpty(EncoderContext context, Map<K, V> value) {
-                    return CollectionUtils.isEmpty(value);
+                    if (CollectionUtils.isEmpty(value)) {
+                        return true;
+                    }
+                    if (includeContent != SerdeConfig.SerInclude.ALWAYS) {
+                        for (V v : value.values()) {
+                            switch (includeContent) {
+                                case NON_ABSENT:
+                                    if (!valSerializer.isAbsent(context, v)) {
+                                        return false;
+                                    }
+                                    break;
+                                case NON_EMPTY:
+                                    if (!valSerializer.isEmpty(context, v)) {
+                                        return false;
+                                    }
+                                    break;
+                                case NON_NULL:
+                                    if (v != null) {
+                                        return false;
+                                    }
+                                    break;
+                                default:
+                                    return false;
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
                 }
             };
         } else {
             return new ObjectSerializer<>() {
+
+                Argument<K> keyGeneric = null;
+                Serializer<? super K> internalKeySerializer = null;
+                Argument<V> valueGeneric = null;
+                Serializer<? super V> internalValSerializer = null;
 
                 @Override
                 public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
@@ -100,37 +162,80 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
 
                 @Override
                 public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    Argument<K> keyGeneric = null;
-                    Serializer<? super K> keySerializer = null;
-                    Argument<V> valueGeneric = null;
-                    Serializer<? super V> valSerializer = null;
                     for (Map.Entry<K, V> entry : value.entrySet()) {
                         K k = entry.getKey();
                         if (k instanceof CharSequence) {
                             encoder.encodeKey(k.toString());
                         } else {
-                            if (keyGeneric == null || !keyGeneric.getType().equals(k.getClass())) {
-                                keyGeneric = (Argument<K>) Argument.of(k.getClass());
-                                keySerializer = findKeySerializer(context, keyGeneric);
-                            }
+                            Serializer<? super K> keySerializer = getKeySerializer(context, k);
                             encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
                         }
                         final V v = entry.getValue();
                         if (v == null) {
                             encoder.encodeNull();
                         } else {
-                            if (valueGeneric == null || !valueGeneric.getType().equals(v.getClass())) {
-                                valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                                valSerializer = context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
-                            }
+                            Serializer<? super V> valSerializer = getValueSerializer(context, v);
                             valSerializer.serialize(encoder, context, valueGeneric, v);
                         }
                     }
                 }
 
+                private Serializer<? super K> getKeySerializer(EncoderContext context, K k) throws SerdeException {
+                    if (keyGeneric == null || !keyGeneric.getType().equals(k.getClass())) {
+                        keyGeneric = (Argument<K>) Argument.of(k.getClass());
+                        internalKeySerializer = findKeySerializer(context, keyGeneric);
+                    }
+                    return internalKeySerializer;
+                }
+
+                private Serializer<? super V> getValueSerializer(EncoderContext context, V v) throws SerdeException {
+                    if (valueGeneric == null || !valueGeneric.getType().equals(v.getClass())) {
+                        valueGeneric = (Argument<V>) Argument.of(v.getClass());
+                        internalValSerializer = context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+                    }
+                    return internalValSerializer;
+                }
+
+                @Override
+                public boolean isAbsent(EncoderContext context, Map<K, V> value) {
+                    return value == null;
+                }
+
                 @Override
                 public boolean isEmpty(EncoderContext context, Map<K, V> value) {
-                    return CollectionUtils.isEmpty(value);
+                    if (CollectionUtils.isEmpty(value)) {
+                        return true;
+                    }
+                    if (includeContent != SerdeConfig.SerInclude.ALWAYS) {
+                        for (V v : value.values()) {
+                            try {
+                                Serializer<? super V> valueSerializer = getValueSerializer(context, v);
+                                switch (includeContent) {
+                                    case NON_ABSENT:
+                                        if (!valueSerializer.isAbsent(context, v)) {
+                                            return false;
+                                        }
+                                        break;
+                                    case NON_EMPTY:
+                                        if (!valueSerializer.isEmpty(context, v)) {
+                                            return false;
+                                        }
+                                        break;
+                                    case NON_NULL:
+                                        if (v != null) {
+                                            return false;
+                                        }
+                                        break;
+                                    default:
+                                        return false;
+                                }
+                            } catch (SerdeException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
                 }
             };
         }

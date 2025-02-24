@@ -733,7 +733,7 @@ class B extends Base {
         ctx.close()
     }
 
-    def 'test JsonTypeInfo with wrapper object'() {
+    def 'test JsonTypeInfo with wrapper object 2'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -776,7 +776,7 @@ class B extends Base {
         compiled.close()
     }
 
-    void 'test @JsonSubTypes with @AnySetter'() {
+    void 'test @JsonSubTypes with @AnySetter 2'() {
         given:
             def compiled = buildContext('example.Base', '''
 package example;
@@ -832,7 +832,7 @@ class B extends Base {
             Thread.currentThread().setContextClassLoader(cl)
     }
 
-    def 'test @JsonSubTypes with @JsonTypeName'() {
+    def 'test @JsonSubTypes with @JsonTypeName 2'() {
         given:
             def compiled = buildContext('example.Base', '''
 package example;
@@ -874,7 +874,7 @@ class B extends Base {
             compiled.close()
     }
 
-    def 'test @JsonTypeInfo with include = JsonTypeInfo.As.PROPERTY'() {
+    def 'test @JsonTypeInfo with include = JsonTypeInfo.As.PROPERTY 2'() {
         given:
         def compiled = buildContext('example.Base', '''
 package example;
@@ -1001,7 +1001,7 @@ class B extends Base {
         compiled.close()
     }
 
-    void "test find type info in record interface"() {
+    void "test find type info in record interface 2"() {
         given:
         def context = buildContext("""
 package recordtypeinfo;

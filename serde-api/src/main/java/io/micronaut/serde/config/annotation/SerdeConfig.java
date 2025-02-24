@@ -93,6 +93,11 @@ public @interface SerdeConfig {
     String INCLUDE = "include";
 
     /**
+     * Include content strategy.
+     */
+    String INCLUDE_CONTENT = "includeContent";
+
+    /**
      * Property filter name.
      */
     String FILTER = "filter";
