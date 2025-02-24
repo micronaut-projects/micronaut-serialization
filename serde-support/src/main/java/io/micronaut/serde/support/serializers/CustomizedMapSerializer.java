@@ -230,7 +230,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                                         return false;
                                 }
                             } catch (SerdeException e) {
-                                throw new RuntimeException(e);
+                                throw new RuntimeException("Failed to get a serializer: " + e.getMessage(), e);
                             }
                         }
                         return true;
