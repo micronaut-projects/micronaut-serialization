@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
@@ -103,22 +102,6 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                         continue;
                     default:
                         // fall through
-                }
-                if (property.include != SerdeConfig.SerInclude.ALWAYS && property.include != SerdeConfig.SerInclude.NON_NULL) {
-                    switch (property.includeContent) {
-                        case NON_ABSENT:
-                            if (serializer.isContentAbsent(context, propertyValue)) {
-                                continue;
-                            }
-                            break;
-                        case NON_EMPTY:
-                            if (serializer.isContentEmpty(context, propertyValue)) {
-                                continue;
-                            }
-                            break;
-                        default:
-                            // fall through
-                    }
                 }
             }
 

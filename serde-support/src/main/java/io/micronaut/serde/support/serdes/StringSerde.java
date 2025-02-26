@@ -49,11 +49,6 @@ final class StringSerde implements SerdeRegistrar<String> {
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, String value) {
-        return value == null;
-    }
-
-    @Override
     public boolean isEmpty(EncoderContext context, String value) {
         return value == null || value.isEmpty();
     }

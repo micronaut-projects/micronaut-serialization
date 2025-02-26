@@ -485,10 +485,10 @@ class Test {
             nullOptional.nonEmpty = null
 
         expect:
-//            writeJson(jsonMapper, setOptional) == setOptionalValue
+            writeJson(jsonMapper, setOptional) == setOptionalValue
             writeJson(jsonMapper, setEmptyStringOptional) == setEmptyStringOptionalValue
-//            writeJson(jsonMapper, emptyOptional) == emptyOptionalValue
-//            writeJson(jsonMapper, nullOptional) == nullOptionalValue
+            writeJson(jsonMapper, emptyOptional) == emptyOptionalValue
+            writeJson(jsonMapper, nullOptional) == nullOptionalValue
 
         where:
             contentType << [
