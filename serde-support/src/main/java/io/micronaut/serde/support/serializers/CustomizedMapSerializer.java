@@ -230,7 +230,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                                         return false;
                                 }
                             } catch (SerdeException e) {
-                                throw new RuntimeException("Failed to get a serializer: " + e.getMessage(), e);
+                                return sneakyThrow(e);
                             }
                         }
                         return true;
@@ -239,6 +239,10 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 }
             };
         }
+    }
+
+    private static <T extends Throwable, R> R sneakyThrow(Throwable t) throws T {
+        throw (T) t;
     }
 
     private Serializer<K> findKeySerializer(EncoderContext context, Argument<K> keyGeneric) throws SerdeException {
