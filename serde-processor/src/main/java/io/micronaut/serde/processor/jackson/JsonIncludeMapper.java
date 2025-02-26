@@ -15,14 +15,13 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.List;
-
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * Maps the {@code com.fasterxml.jackson.annotation.JsonInclude} annotation to {@link SerdeConfig}.
@@ -31,15 +30,12 @@ public class JsonIncludeMapper implements NamedAnnotationMapper {
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        final SerdeConfig.SerInclude v = annotation.enumValue(SerdeConfig.SerInclude.class).orElse(null);
-        if (v != null) {
-            return Collections.singletonList(
-                    AnnotationValue.builder(SerdeConfig.class)
-                            .member(SerdeConfig.INCLUDE, v.name())
-                            .build()
-            );
-        }
-        return Collections.emptyList();
+        return List.of(
+                AnnotationValue.builder(SerdeConfig.class)
+                        .member(SerdeConfig.INCLUDE, annotation.enumValue(SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
+                        .member(SerdeConfig.INCLUDE_CONTENT, annotation.enumValue("content", SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
+                        .build()
+        );
     }
 
     @Override

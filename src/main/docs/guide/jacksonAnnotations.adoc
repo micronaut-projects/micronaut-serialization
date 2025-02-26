@@ -81,7 +81,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonInclude.html[@JsonInclude]
 |✅
-|unsupported members: `content`, `contentFilter`, `valueFilter`
+|unsupported members: `contentFilter`, `valueFilter`
 
 |link:{jacksonAnnotationJavadoc}/JsonKey.html[@JsonKey]
 |❌
