@@ -354,7 +354,7 @@ public @interface SerdeConfig {
          * The discriminator value kind.
          */
         enum DiscriminatorValueKind {
-            CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS
+            CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS, DEDUCTION
         }
 
         /**
