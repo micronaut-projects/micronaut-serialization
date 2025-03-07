@@ -1214,6 +1214,12 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decrease the current depth, always needs a corresponding <a href="io/micronaut/serde/LimitingStream.html#increaseDepth()"><code>LimitingStream.increaseDepth()</code></a> call.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#deduct()" class="member-name-link">deduct()</a> - Method in record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/support/util/SubtypeInfo.html#param-deduct"><code>deduct</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html#DEDUCTION" class="member-name-link">DEDUCTION</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorValueKind</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#DEFAULT_INET_ADDRESS_AS_NUMERIC" class="member-name-link">DEFAULT_INET_ADDRESS_AS_NUMERIC</a> - Static variable in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/LimitingStream.html#DEFAULT_LIMITS" class="member-name-link">DEFAULT_LIMITS</a> - Static variable in class io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></dt>
@@ -2602,6 +2608,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#INCLUDE" class="member-name-link">INCLUDE</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Include strategy.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#INCLUDE_CONTENT" class="member-name-link">INCLUDE_CONTENT</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">Include content strategy.</div>
 </dd>
 <dt><a href="io/micronaut/serde/LimitingStream.html#increaseDepth()" class="member-name-link">increaseDepth()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></dt>
 <dd>
@@ -4317,7 +4327,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">The subtype info.</div>
 </dd>
-<dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#%3Cinit%3E(java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorType,java.lang.String,java.lang.Class,boolean)" class="member-name-link">SubtypeInfo(Map&lt;Class&lt;?&gt;, String[]&gt;, SerdeConfig.SerSubtyped.DiscriminatorType, String, Class&lt;?&gt;, boolean)</a> - Constructor for record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
+<dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#%3Cinit%3E(java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorType,java.lang.String,java.lang.Class,boolean,boolean)" class="member-name-link">SubtypeInfo(Map&lt;Class&lt;?&gt;, String[]&gt;, SerdeConfig.SerSubtyped.DiscriminatorType, String, Class&lt;?&gt;, boolean, boolean)</a> - Constructor for record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>SubtypeInfo</code> record class.</div>
 </dd>
