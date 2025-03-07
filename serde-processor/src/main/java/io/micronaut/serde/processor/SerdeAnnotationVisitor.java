@@ -624,6 +624,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
         final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind =
             getDiscriminatorValueKind(supertype);
+        if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION) {
+            subtype.annotate(SerdeConfig.class, builder
+                -> builder.member(SerdeConfig.TYPE_NAME, subtype.getName()));
+            return;
+        }
+
         final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
             getDiscriminatorType(supertype);
         if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {

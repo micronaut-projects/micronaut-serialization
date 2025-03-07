@@ -23,6 +23,194 @@ abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
 
+    def 'test JsonTypeInfo with record deduction'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class),
+    @JsonSubTypes.Type(value = B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
+interface Base {
+}
+
+record A(String fieldA) implements Base {
+}
+
+record B(String fieldB) implements Base {
+}
+''', true)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+            def a = newInstance(compiled, 'example.A', 'foo')
+
+        expect:
+            deserializeFromString(jsonMapper, baseClass, '{"fieldA":"foo"}').fieldA == 'foo'
+            deserializeFromString(jsonMapper, baseClass, '{"fieldB":"foo"}').fieldB == 'foo'
+
+            serializeToString(jsonMapper, a) == '{"fieldA":"foo"}'
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test JsonTypeInfo with constructor deduction'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class),
+    @JsonSubTypes.Type(value = B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
+class Base {
+}
+
+class A extends Base {
+    private final String fieldA;
+
+    @JsonCreator
+    public A(@JsonProperty("fieldA") String fieldA) {
+        this.fieldA = fieldA;
+    }
+
+    public String getFieldA() {
+        return fieldA;
+    }
+}
+
+class B extends Base {
+    private final String fieldB;
+
+    @JsonCreator
+    public B(@JsonProperty("fieldB") String fieldB) {
+        this.fieldB = fieldB;
+    }
+
+    public String getFieldB() {
+        return fieldB;
+    }
+}
+''', true)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+            def a = newInstance(compiled, 'example.A', 'foo')
+
+        expect:
+            deserializeFromString(jsonMapper, baseClass, '{"fieldA":"foo"}').fieldA == 'foo'
+            deserializeFromString(jsonMapper, baseClass, '{"fieldB":"foo"}').fieldB == 'foo'
+
+            serializeToString(jsonMapper, a) == '{"fieldA":"foo"}'
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test JsonTypeInfo with properties deduction'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class),
+    @JsonSubTypes.Type(value = B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
+class Base {
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class A extends Base {
+    public String fieldA;
+}
+
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+            def a = newInstance(compiled, 'example.A')
+            a.fieldA = 'foo'
+
+        expect:
+            deserializeFromString(jsonMapper, baseClass, '{"fieldA":"foo"}').fieldA == 'foo'
+            deserializeFromString(jsonMapper, baseClass, '{"fieldB":"foo"}').fieldB == 'foo'
+
+            serializeToString(jsonMapper, a) == '{"fieldA":"foo"}'
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test JsonTypeInfo with deduction with supertype prop'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = A.class),
+    @JsonSubTypes.Type(value = B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Base {
+    public String sup;
+}
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class A extends Base {
+    public String fieldA;
+}
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+            def a = newInstance(compiled, 'example.A')
+            a.sup = 'x'
+            a.fieldA = 'foo'
+
+        expect:
+            deserializeFromString(jsonMapper, baseClass, '{"sup":"x","fieldA":"foo"}').sup == 'x'
+            deserializeFromString(jsonMapper, baseClass, '{"sup":"x","fieldA":"foo"}').fieldA == 'foo'
+            deserializeFromString(jsonMapper, baseClass, '{"sup":"x","fieldB":"foo"}').sup == 'x'
+            deserializeFromString(jsonMapper, baseClass, '{"sup":"x","fieldB":"foo"}').fieldB == 'foo'
+
+            validateJsonWithoutOrder(jsonMapper, '{"fieldA":"foo","sup":"x"}', serializeToString(jsonMapper, a))
+        cleanup:
+            compiled.close()
+    }
+
     @Unroll
     void 'test property field definition of @JsonTypeInfo(include = JsonTypeInfo.As.#includeType)'(String includeType) {
         given:

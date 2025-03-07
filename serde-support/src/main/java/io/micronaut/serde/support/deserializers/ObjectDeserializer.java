@@ -100,6 +100,11 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                     findDeserializer(context.getDeserializationConfiguration().orElse(deserializationConfiguration), (DeserBean<? super Object>) e.getValue(), disallowUnwrap)
                 );
             }
+            if (subtypeInfo.info().deduct()) {
+                return new SubtypedDeductionDeserializer(
+                    deserBean,
+                    subtypeDeserializers);
+            }
             Deserializer<Object> supertypeDeserializer = findDeserializer(context.getDeserializationConfiguration().orElse(deserializationConfiguration), deserBean, false);
             return switch (discriminatorType) {
                 case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(
