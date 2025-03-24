@@ -822,6 +822,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void visitMixin(ClassElement mixinType, ClassElement type) {
+        AnnotationValue<Introspected> introspectedAnnotation = mixinType.getAnnotation(Introspected.class);
+        if (introspectedAnnotation != null) {
+            type.annotate(introspectedAnnotation);
+        }
         mixinType.getAnnotationNames()
                 .stream().filter(n -> n.startsWith("io.micronaut.serde"))
                 .forEach(n -> {
