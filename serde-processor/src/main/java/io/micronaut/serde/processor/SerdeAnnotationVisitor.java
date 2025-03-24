@@ -825,6 +825,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         AnnotationValue<Introspected> introspectedAnnotation = mixinType.getAnnotation(Introspected.class);
         if (introspectedAnnotation != null) {
             type.annotate(introspectedAnnotation);
+            // We don't need to introspect the mixin
+            mixinType.removeAnnotation(Introspected.class);
         }
         mixinType.getAnnotationNames()
                 .stream().filter(n -> n.startsWith("io.micronaut.serde"))
@@ -839,7 +841,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ElementQuery.ALL_FIELDS
                         .onlyInstance()
                         .onlyDeclared()
-                        .annotated((ann) -> ann.hasAnnotation(SerdeConfig.class))
         ).stream().collect(Collectors.toMap(
                 FieldElement::getName,
                 (e) -> e
