@@ -14,7 +14,7 @@ oracle-jdbc-driver = "23.7.0.25.01"
 jetbrains-annotations = "24.1.0"
 jmh = "1.37"
 groovy = "4.0.22"
-lombok = "1.18.36"
+lombok = "1.18.38"
 
 micronaut = "4.8.8"
 micronaut-platform = "4.7.6"
