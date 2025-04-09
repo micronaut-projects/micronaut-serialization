@@ -142,7 +142,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                                                          DecoderContext decoderContext,
                                                          Argument<? super Object> type,
                                                          BeanDeserializer beanDeserializer) throws IOException {
-        Set<String> missingExternalProperties = new HashSet<>(deserBean.externalProperties);
+        Set<String> missingExternalProperties = deserBean.externalProperties == null ? Set.of() : new HashSet<>(deserBean.externalProperties);
         List<PropertyReference<?, ?>> references = new ArrayList<>(missingExternalProperties.size());
         Map<String, Decoder> cache = new HashMap<>();
 

@@ -624,6 +624,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
         final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind =
             getDiscriminatorValueKind(supertype);
+        if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION) {
+            subtype.annotate(SerdeConfig.class, builder
+                -> builder.member(SerdeConfig.TYPE_NAME, subtype.getName()));
+            return;
+        }
+
         final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
             getDiscriminatorType(supertype);
         if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
@@ -822,6 +828,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private void visitMixin(ClassElement mixinType, ClassElement type) {
+        AnnotationValue<Introspected> introspectedAnnotation = mixinType.getAnnotation(Introspected.class);
+        if (introspectedAnnotation != null) {
+            type.annotate(introspectedAnnotation);
+            // We don't need to introspect the mixin
+            mixinType.removeAnnotation(Introspected.class);
+        }
         mixinType.getAnnotationNames()
                 .stream().filter(n -> n.startsWith("io.micronaut.serde"))
                 .forEach(n -> {
@@ -835,7 +847,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ElementQuery.ALL_FIELDS
                         .onlyInstance()
                         .onlyDeclared()
-                        .annotated((ann) -> ann.hasAnnotation(SerdeConfig.class))
         ).stream().collect(Collectors.toMap(
                 FieldElement::getName,
                 (e) -> e

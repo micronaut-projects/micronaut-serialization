@@ -93,6 +93,11 @@ public @interface SerdeConfig {
     String INCLUDE = "include";
 
     /**
+     * Include content strategy.
+     */
+    String INCLUDE_CONTENT = "includeContent";
+
+    /**
      * Property filter name.
      */
     String FILTER = "filter";
@@ -349,7 +354,7 @@ public @interface SerdeConfig {
          * The discriminator value kind.
          */
         enum DiscriminatorValueKind {
-            CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS
+            CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS, DEDUCTION
         }
 
         /**

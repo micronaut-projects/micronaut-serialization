@@ -23,6 +23,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.util.CustomizableDeserializer;
@@ -39,7 +40,7 @@ import java.util.Optional;
 @Internal
 final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, CustomizableDeserializer<Optional<T>>, SerdeRegistrar<Optional<T>> {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     @Override
     public Serializer<Optional<T>> createSpecific(EncoderContext encoderContext, Argument<? extends Optional<T>> type)
         throws SerdeException {
@@ -49,7 +50,10 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
         }
         //noinspection unchecked
         final Argument<T> generic = (Argument<T>) generics[0];
-        final Serializer<? super T> componentSerializer = encoderContext.findSerializer(generic).createSpecific(encoderContext, generic);
+        final Serializer<? super T> contentSerializer = encoderContext.findSerializer(generic).createSpecific(encoderContext, generic);
+        SerdeConfig.SerInclude includeContent = type.getAnnotationMetadata()
+            .enumValue(SerdeConfig.class.getName(), SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
+            .orElse(SerdeConfig.SerInclude.ALWAYS);
         return new Serializer<>() {
 
             @Override
@@ -58,7 +62,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
                 if (o == null) {
                     encoder.encodeNull();
                 } else {
-                    componentSerializer.serialize(
+                    contentSerializer.serialize(
                         encoder,
                         context,
                         generic,
@@ -69,16 +73,27 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
 
             @Override
             public boolean isEmpty(EncoderContext context, Optional<T> value) {
-                if (value != null && value.isPresent()) {
-                    return componentSerializer.isEmpty(context, (T) ((Optional) value).get());
+                if (value == null || value.isEmpty()) {
+                    return true;
                 }
-                return true;
+                if (includeContent == SerdeConfig.SerInclude.NON_EMPTY) {
+                    return contentSerializer.isEmpty(context, value.get());
+                }
+                return false;
             }
 
             @Override
             public boolean isAbsent(EncoderContext context, Optional<T> value) {
-                return value == null || value.isEmpty();
+                if (value == null || value.isEmpty()) {
+                    return true;
+                }
+                return switch (includeContent) {
+                    case NON_ABSENT -> contentSerializer.isAbsent(context, value.get());
+                    case NON_EMPTY -> contentSerializer.isEmpty(context, value.get());
+                    default -> false;
+                };
             }
+
         };
     }
 

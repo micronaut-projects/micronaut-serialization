@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
+import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION;
 
 /**
  * The subtype info.
@@ -38,6 +39,7 @@ import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.Discr
  * @param discriminatorName    The discriminator name
  * @param defaultImpl          The default impl
  * @param discriminatorVisible The discriminator visible
+ * @param deduct               The deduct subtype
  * @author Denis Stepanov
  */
 @Internal
@@ -50,7 +52,8 @@ public record SubtypeInfo(
     String discriminatorName,
     @Nullable
     Class<?> defaultImpl,
-    boolean discriminatorVisible
+    boolean discriminatorVisible,
+    boolean deduct
 ) {
 
     public static SubtypeInfo createForProperty(AnnotationMetadata annotationMetadata) {
@@ -103,7 +106,8 @@ public record SubtypeInfo(
             discriminatorType,
             discriminatorName,
             defaultType,
-            annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)
+            annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false),
+            discriminatorValue == DEDUCTION
         );
     }
 
