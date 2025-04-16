@@ -3,7 +3,6 @@ package io.micronaut.serde.jackson.annotation
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.serde.jackson.JsonTypeInfoSpec
-import spock.lang.PendingFeature
 import spock.lang.Unroll
 
 class SerdeJsonTypeInfoSpec extends JsonTypeInfoSpec {
@@ -11,11 +10,13 @@ class SerdeJsonTypeInfoSpec extends JsonTypeInfoSpec {
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
-                Map.of("micronaut.serde.deserialization.ignore-unknown", "false")
+                Map.of(
+                        "micronaut.serde.deserialization.ignore-unknown", "false",
+                        "micronaut.serde.deserialization.avoid-supertype-subtype", "true"
+                ),
         ))
     }
 
-    @PendingFeature
     def 'test JsonTypeInfo with deduction unwrapped'() {
         given:
             def compiled = buildContext('example.Base', '''
@@ -78,7 +79,7 @@ class B2 extends Base2 {
             parsed.base2.sup == 'x'
             parsed.base2.fieldA2 == 'bar'
 
-            serializeToString(jsonMapper, a1) == '{"fieldA1":"foo","fieldA2":"bar","sup":"x"}'
+            serializeToString(jsonMapper, a1) == '{"sup":"x","fieldA2":"bar","fieldA1":"foo"}'
 
         cleanup:
             compiled.close()

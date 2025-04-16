@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.config;
 
+import io.micronaut.core.annotation.NextMajorVersion;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 
@@ -50,6 +51,16 @@ public interface DeserializationConfiguration {
      */
     @Bindable(defaultValue = StringUtils.FALSE)
     default boolean isFailOnNullForPrimitives() {
+        return false;
+    }
+
+    /**
+     * Whether the supertype is used by default when no supertype is resolved.
+     * @return True to avoid the supertype and use `defaultImpl` property
+     */
+    @NextMajorVersion("Inline to true to have the behaviour the same as for Jackson")
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean isAvoidSupertypeSubtype() {
         return false;
     }
 }

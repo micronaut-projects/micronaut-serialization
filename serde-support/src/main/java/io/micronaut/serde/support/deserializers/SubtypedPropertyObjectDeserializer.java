@@ -23,7 +23,6 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Subtyped property deserializer.
@@ -34,20 +33,11 @@ import java.util.Map;
 @Internal
 final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
 
-    private final DeserBean<? super Object> deserBean;
-    private final Map<String, Deserializer<Object>> deserializers;
-    private final Deserializer<Object> supertypeDeserializer;
-    private final boolean discriminatorVisible;
+    private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
 
-    public SubtypedPropertyObjectDeserializer(DeserBean<? super Object> deserBean,
-                                              Map<String, Deserializer<Object>> deserializers,
-                                              Deserializer<Object> supertypeDeserializer,
-                                              boolean discriminatorVisible) {
-        this.deserBean = deserBean;
-        this.deserializers = deserializers;
-        this.supertypeDeserializer = supertypeDeserializer;
-        this.discriminatorVisible = discriminatorVisible;
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = deserBean.subtypeInfo.info().discriminatorType();
+    public SubtypedPropertyObjectDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo) {
+        this.subtypeInfo = subtypeInfo;
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypeInfo.parent().info().discriminatorType();
         if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
@@ -59,7 +49,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
         throws IOException {
         try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
             Decoder typeFinder;
-            if (discriminatorVisible) {
+            if (subtypeInfo.parent().info().discriminatorVisible()) {
                 typeFinder = primed.decodeObjectNonConsuming(type);
             } else {
                 typeFinder = primed.decodeObject(type);
@@ -76,10 +66,9 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     }
 
     @NonNull
-    private Deserializer<Object> findDeserializer(Decoder objectDecoder) throws IOException {
-        final DeserializeSubtypeInfo<? super Object> deserializeSubtypeInfo = deserBean.subtypeInfo;
-        final String discriminatorName = deserializeSubtypeInfo.info().discriminatorName();
-        final String defaultDiscriminator = deserializeSubtypeInfo.defaultDiscriminator();
+    private Deserializer<? super Object> findDeserializer(Decoder objectDecoder) throws IOException {
+        final DeserBeanSubtypeInfo<?> deserBeanSubtypeInfo = subtypeInfo.parent();
+        final String discriminatorName = deserBeanSubtypeInfo.info().discriminatorName();
 
         while (true) {
             final String key = objectDecoder.decodeKey();
@@ -88,22 +77,16 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
             }
 
             if (key.equals(discriminatorName)) {
-                if (!objectDecoder.decodeNull()) {
-                    final String subtypeName = objectDecoder.decodeString();
-                    final Deserializer<Object> deserializer = deserializers.get(subtypeName);
-                    if (deserializer != null) {
-                        return deserializer;
-                    }
+                if (objectDecoder.decodeNull()) {
+                    return subtypeInfo.findDeserializer(null);
                 }
-                break;
+                String discriminatorValue = objectDecoder.decodeString();
+                return subtypeInfo.findDeserializer(discriminatorValue);
             } else {
                 objectDecoder.skipValue();
             }
         }
-        if (defaultDiscriminator != null) {
-            return deserializers.get(defaultDiscriminator);
-        }
-        return supertypeDeserializer;
+        return subtypeInfo.findDeserializer(null);
     }
 
 }

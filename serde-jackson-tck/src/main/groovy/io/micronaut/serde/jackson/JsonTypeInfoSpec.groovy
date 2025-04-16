@@ -1573,6 +1573,234 @@ class Cat implements Animal {
         context.close()
     }
 
+    void "test missing default implementation - interface"() {
+        given:
+        def context = buildContext("""
+package defaultimpl;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(Dog.class),
+  @JsonSubTypes.Type(Cat.class)
+})
+interface Animal {
+    String getName();
+}
+
+@JsonTypeName("dog")
+class Dog implements Animal {
+
+    private String name;
+    public double barkVolume;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat implements Animal {
+
+    private String name;
+    public boolean likesCream;
+    public int lives;
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
+        def cat = newInstance(context, 'defaultimpl.Cat', [name:"Joe", likesCream:true, lives: 9])
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+
+        when:
+        jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'defaultimpl.Animal'))
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains "Could not resolve subtype of"
+        e.message.contains "defaultimpl.Animal"
+        e.message.contains "missing type id property 'type'"
+
+
+        cleanup:
+        context.close()
+    }
+
+    void "test missing default implementation - class"() {
+        given:
+        def context = buildContext("""
+package defaultimpl;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(Dog.class),
+  @JsonSubTypes.Type(Cat.class)
+})
+class Animal {
+    public String getName() {
+        return null;
+    }
+}
+
+@JsonTypeName("dog")
+class Dog extends Animal {
+
+    private String name;
+    public double barkVolume;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat extends Animal {
+
+    private String name;
+    public boolean likesCream;
+    public int lives;
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
+        def cat = newInstance(context, 'defaultimpl.Cat', [name:"Joe", likesCream:true, lives: 9])
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+
+        when:
+        jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'defaultimpl.Animal'))
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains "Could not resolve subtype of"
+        e.message.contains "defaultimpl.Animal"
+        e.message.contains "missing type id property 'type'"
+
+        cleanup:
+        context.close()
+    }
+
+    void "test missing default implementation - class - empty payload and defaultImpl = JsonTypeInfo.class"() {
+        given:
+        def context = buildContext("""
+package defaultimpl;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME,
+  defaultImpl = JsonTypeInfo.class,
+  property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(Dog.class),
+  @JsonSubTypes.Type(Cat.class)
+})
+class Animal {
+    public String getName() {
+        return null;
+    }
+}
+
+@JsonTypeName("dog")
+class Dog extends Animal {
+
+    private String name;
+    public double barkVolume;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+@JsonTypeName("cat")
+class Cat extends Animal {
+
+    private String name;
+    public boolean likesCream;
+    public int lives;
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+""")
+
+        when:
+        def dog = newInstance(context, 'defaultimpl.Dog', [name:"Fred", barkVolume:1.1d])
+        def cat = newInstance(context, 'defaultimpl.Cat', [name:"Joe", likesCream:true, lives: 9])
+        def dogJson = writeJson(jsonMapper, dog)
+        def catJson = writeJson(jsonMapper, cat)
+
+        then:
+        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
+        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+
+        when:
+        jsonMapper.readValue('{}', argumentOf(context, 'defaultimpl.Animal'))
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains "Could not resolve subtype of"
+        e.message.contains "defaultimpl.Animal"
+        e.message.contains "missing type id property 'type'"
+
+        cleanup:
+        context.close()
+    }
+
     void "test MINIMAL_CLASS implementation"() {
         given:
         def context = buildContext("""

@@ -324,6 +324,11 @@ public @interface SerdeConfig {
         SerSubtype[] value() default {};
 
         /**
+         * Is default implementation.
+         */
+        String DEFAULT_IMPL = "defaultImpl";
+
+        /**
          * Is discriminator visible.
          */
         String DISCRIMINATOR_VISIBLE = "discriminatorVisible";

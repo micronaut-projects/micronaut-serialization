@@ -1,6 +1,5 @@
 package io.micronaut.serde.jackson.annotation
 
-
 import io.micronaut.core.naming.NameUtils
 import io.micronaut.serde.jackson.JsonIgnoreSpec
 

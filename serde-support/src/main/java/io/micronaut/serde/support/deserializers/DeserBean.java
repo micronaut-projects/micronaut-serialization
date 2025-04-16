@@ -90,7 +90,7 @@ final class DeserBean<T> {
     @Nullable
     public final String wrapperProperty;
     @Nullable
-    public final DeserializeSubtypeInfo<T> subtypeInfo;
+    public final DeserBeanSubtypeInfo<T> subtypeInfo;
     @Nullable
     public final Set<String> ignoredProperties;
     @Nullable
@@ -419,7 +419,8 @@ final class DeserBean<T> {
         this.unwrappedProperties = unwrappedProperties != null ? unwrappedProperties.toArray(new DerProperty[0]) : null;
 
         SubtypeInfo subtypeInfoBase = serdeArgumentConf == null ? SubtypeInfo.createForType(introspection) : serdeArgumentConf.getSubtypeInfo();
-        subtypeInfo = subtypeInfoBase == null ? DeserializeSubtypeInfo.create(SubtypeInfo.createForType(introspection), introspection, decoderContext, deserBeanRegistry) : DeserializeSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, deserBeanRegistry);
+        subtypeInfo = subtypeInfoBase == null ? DeserBeanSubtypeInfo.create(SubtypeInfo.createForType(introspection), introspection, decoderContext, this, deserializationConfiguration, deserBeanRegistry)
+            : DeserBeanSubtypeInfo.create(subtypeInfoBase, introspection, decoderContext, this, deserializationConfiguration, deserBeanRegistry);
 
         String discriminatorProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY).orElse(null);
         if (discriminatorProperty != null && !introspection.booleanValue(SerdeConfig.class, SerdeConfig.TYPE_PROPERTY_VISIBLE).orElse(false)) {

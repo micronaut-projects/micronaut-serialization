@@ -33,16 +33,19 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final int arraySizeThreshold;
     private final boolean strictNullable;
     private final boolean failOnNullForPrimitives;
+    private final boolean avoidSupertypeSubtype;
 
     @ConfigurationInject
     DefaultDeserializationConfiguration(@Bindable(defaultValue = StringUtils.TRUE) boolean ignoreUnknown,
                                         @Bindable(defaultValue = "100") int arraySizeThreshold,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean failOnNullForPrimitives) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean failOnNullForPrimitives,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean avoidSupertypeSubtype) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
         this.failOnNullForPrimitives = failOnNullForPrimitives;
+        this.avoidSupertypeSubtype = avoidSupertypeSubtype;
     }
 
     @Override
@@ -63,5 +66,10 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean isFailOnNullForPrimitives() {
         return failOnNullForPrimitives;
+    }
+
+    @Override
+    public boolean isAvoidSupertypeSubtype() {
+        return avoidSupertypeSubtype;
     }
 }
