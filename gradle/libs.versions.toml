@@ -6,7 +6,7 @@ managed-eclipse-parsson = "1.1.7"
 
 kotlin = "1.9.25"
 ksp = "1.9.25-1.0.20"
-graal-svm = "23.1.6"
+graal-svm = "23.1.7"
 aws-lambda-events = "3.14.0"
 aws-lambda-serialization = "1.1.5"
 microstream-storage-restclient = "08.01.02-MS-GA"
