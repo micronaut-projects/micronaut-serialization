@@ -807,11 +807,11 @@ final class DeserBean<T> {
             Class<?> type = argument.getType();
             this.nonNull = argument.isNonNull();
             this.nullable = argument.isNullable();
-            this.mustSetField = nonNull && !nullable || type.equals(Optional.class)
+            this.mustSetField = (nonNull && !nullable) || type.equals(Optional.class)
                 || type.equals(OptionalLong.class)
                 || type.equals(OptionalDouble.class)
                 || type.equals(OptionalInt.class);
-            this.mustSetFieldForConstructor = mustSetField || argument.isPrimitive() && !nullable; // Kotlin primitives with defaults can be nullable
+            this.mustSetFieldForConstructor = (mustSetField || argument.isPrimitive()) && !nullable; // Kotlin primitives with defaults can be nullable
 
             if (beanProperty != null) {
                 this.beanProperty = (UnsafeBeanWriteProperty<B, P>) beanProperty;
