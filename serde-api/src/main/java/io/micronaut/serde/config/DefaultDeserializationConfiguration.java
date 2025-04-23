@@ -69,7 +69,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     }
 
     @Override
-    public boolean isAvoidSupertypeSubtype() {
+    public boolean isSubtypesRequireDefaultImpl() {
         return avoidSupertypeSubtype;
     }
 }

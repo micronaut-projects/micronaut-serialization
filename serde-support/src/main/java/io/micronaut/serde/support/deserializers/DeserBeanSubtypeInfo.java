@@ -98,7 +98,7 @@ record DeserBeanSubtypeInfo<T>(
         Map<String, DeserBean<? extends T>> subtypes = CollectionUtils.newHashMap(subtypeIntrospections.size());
         Class<? extends T> defaultType = introspection.classValue(DefaultImplementation.class)
             .orElseGet(() -> introspection.classValue(SerdeConfig.SerSubtyped.DEFAULT_IMPL).orElse(null));
-        if (defaultType == null && !deserializationConfiguration.isAvoidSupertypeSubtype()) {
+        if (defaultType == null && !deserializationConfiguration.isSubtypesRequireDefaultImpl()) {
             // Jackson always requires to use `defaultImpl` but our initial implementation always takes the supertype
             defaultType = introspection.getBeanType();
         }

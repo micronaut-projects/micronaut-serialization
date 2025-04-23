@@ -60,7 +60,7 @@ public interface DeserializationConfiguration {
      */
     @NextMajorVersion("Inline to true to have the behaviour the same as for Jackson")
     @Bindable(defaultValue = StringUtils.FALSE)
-    default boolean isAvoidSupertypeSubtype() {
+    default boolean isSubtypesRequireDefaultImpl() {
         return false;
     }
 }
