@@ -35,7 +35,7 @@ class NoSerdeSpec extends Specification {
 
         then:
         def e = thrown(SerdeException)
-        e.message == 'Error deserializing value: WithNpeToString of type: WithNpe'
+        e.message == 'Unsupported deserialize into immutable [WithNpe]'
     }
 
     void "test NPE 3"() {

@@ -508,7 +508,7 @@ final class DeserBean<T> {
         }
         if (creatorParams != null) {
             for (DerProperty<T, Object> property : creatorParams.getProperties()) {
-                if (property.unresolvedTypeVariableName != null || property.beanProperty != null || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.introspection || property.backRef != null) {
+                if (property.unresolvedTypeVariableName != null || property.isAnySetter || property.views != null || property.managedRef != null || introspection != property.introspection || property.backRef != null) {
                     return false;
                 }
             }
@@ -805,13 +805,15 @@ final class DeserBean<T> {
             this.ignored = ignored;
             this.unresolvedTypeVariableName = unresolvedTypeVariableName;
             Class<?> type = argument.getType();
-            this.mustSetField = argument.isNonNull() || type.equals(Optional.class)
+            this.nonNull = argument.isNonNull();
+            this.nullable = argument.isNullable();
+            boolean optional = type.equals(Optional.class)
                 || type.equals(OptionalLong.class)
                 || type.equals(OptionalDouble.class)
                 || type.equals(OptionalInt.class);
-            this.mustSetFieldForConstructor = mustSetField || argument.isPrimitive();
-            this.nonNull = argument.isNonNull();
-            this.nullable = argument.isNullable();
+            this.mustSetField = (nonNull && !nullable) || optional;
+            this.mustSetFieldForConstructor = mustSetField || argument.isPrimitive() && !nullable; // Kotlin primitives with defaults can be nullable
+
             if (beanProperty != null) {
                 this.beanProperty = (UnsafeBeanWriteProperty<B, P>) beanProperty;
             } else if (beanMethod != null) {
@@ -861,10 +863,14 @@ final class DeserBean<T> {
         }
 
         public void setDefaultConstructorValue(Deserializer.DecoderContext decoderContext, @NonNull Object[] params) throws SerdeException {
+            params[index] = provideDefaultConstructorValue(decoderContext);
+        }
+
+        private P provideDefaultConstructorValue(Deserializer.DecoderContext decoderContext) throws SerdeException {
             if (explicitlyRequiredForConstructor) {
                 throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
             }
-            params[index] = provideDefaultValue(decoderContext, mustSetFieldForConstructor);
+            return provideDefaultValue(decoderContext, mustSetFieldForConstructor);
         }
 
         public void set(@NonNull Deserializer.DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
@@ -877,9 +883,11 @@ final class DeserBean<T> {
 
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
             try {
-                values[index] = deserializeValue(deserializer, objectDecoder, decoderContext);
+                values[index] = deserializeConstructorValue(deserializer, objectDecoder, decoderContext);
             } catch (InvalidFormatException e) {
                 throw new InvalidPropertyFormatException(e, argument);
+            } catch (SerdeException serdeException) {
+                throw serdeException;
             } catch (Exception e) {
                 throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
             }
@@ -929,6 +937,14 @@ final class DeserBean<T> {
                         "] is not present in supplied data");
             }
             return provideDefaultValue(decoderContext);
+        }
+
+        private P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+            P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
+            if (value != null || nullable) {
+                return value;
+            }
+            return provideDefaultConstructorValue(decoderContext);
         }
 
         private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {

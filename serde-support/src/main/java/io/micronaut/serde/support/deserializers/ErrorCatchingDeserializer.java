@@ -83,4 +83,11 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     public T getDefaultValue(DecoderContext context, Argument<? super T> type) {
         return deserializer.getDefaultValue(context, type);
     }
+
+    /**
+     * @return The wrapped deserializer, exposed for testing
+     */
+    Deserializer<T> getDeserializer() {
+        return deserializer;
+    }
 }

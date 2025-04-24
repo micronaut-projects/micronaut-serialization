@@ -2,9 +2,13 @@ package io.micronaut.serde.support.deserializers
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
-import io.micronaut.health.HealthStatus
 import io.micronaut.json.JsonMapper
-import io.micronaut.management.health.indicator.HealthResult
+import io.micronaut.serde.Deserializer
+import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.support.MyConstructorPropertiesBean
+import io.micronaut.serde.support.MyMixSetterConstructorPropertiesBean
+import io.micronaut.serde.support.MyRecord
+import io.micronaut.serde.support.MySetterPropertiesBean
 import io.micronaut.serde.support.TestStatus
 import spock.lang.Specification
 
@@ -32,5 +36,30 @@ class DeserializeSpec extends Specification {
 
         cleanup:
         ctx.close()
+    }
+
+    def 'test types'() {
+        given:
+            def ctx = ApplicationContext.run()
+
+        when:
+            def serdeRegistry = ctx.getBean(SerdeRegistry)
+
+        then:
+            getDeserializer(serdeRegistry, MyRecord) instanceof SimpleRecordLikeObjectDeserializer
+            getDeserializer(serdeRegistry, MyConstructorPropertiesBean) instanceof SimpleRecordLikeObjectDeserializer
+            getDeserializer(serdeRegistry, MySetterPropertiesBean) instanceof SimpleObjectDeserializer
+            getDeserializer(serdeRegistry, MyMixSetterConstructorPropertiesBean) instanceof SpecificObjectDeserializer
+        cleanup:
+            ctx.close()
+    }
+
+    private static Deserializer getDeserializer(SerdeRegistry serdeRegistry, Class clazz) {
+        def deserializer = serdeRegistry.findDeserializer(Argument.of(clazz))
+                .createSpecific(serdeRegistry.newDecoderContext(null), Argument.of(clazz))
+        if (deserializer instanceof ErrorCatchingDeserializer) {
+            return deserializer.deserializer
+        }
+        return deserializer
     }
 }

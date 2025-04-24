@@ -106,7 +106,7 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
 
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object value)
         throws IOException {
-        throw new SerdeException("Unsupported deserialize into for [" + beanType + "]");
+        throw new SerdeException("Unsupported deserialize into immutable [" + beanType + "]");
     }
 
 }
