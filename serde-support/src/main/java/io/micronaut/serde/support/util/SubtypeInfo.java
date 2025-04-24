@@ -88,7 +88,8 @@ public record SubtypeInfo(
             SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP
         ).orElse(discriminatorValue == CLASS_NAME ? "@class" : "@type");
         List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypesAnn = annotationMetadata.getAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class);
-        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
+        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class)
+            .orElseGet(() -> annotationMetadata.classValue(SerdeConfig.SerSubtyped.DEFAULT_IMPL).orElse(null));
         Map<Class<?>, String[]> subtypes = CollectionUtils.newHashMap(subtypesAnn.size());
         for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype : subtypesAnn) {
             Optional<Class<?>> type = subtype.classValue();

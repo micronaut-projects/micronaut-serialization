@@ -23,7 +23,6 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * A wrapped array subtype deserializer.
@@ -34,12 +33,11 @@ import java.util.Map;
 @Internal
 final class WrappedArraySubtypedDeserializer implements Deserializer<Object> {
 
-    private final Map<String, Deserializer<Object>> subtypes;
+    private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
     private final boolean ignoreUnknown;
 
-    WrappedArraySubtypedDeserializer(Map<String, Deserializer<Object>> subtypes,
-                                     boolean ignoreUnknown) {
-        this.subtypes = subtypes;
+    WrappedArraySubtypedDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo, boolean ignoreUnknown) {
+        this.subtypeInfo = subtypeInfo;
         this.ignoreUnknown = ignoreUnknown;
     }
 
@@ -72,10 +70,7 @@ final class WrappedArraySubtypedDeserializer implements Deserializer<Object> {
             }
             throw new SerdeException("Wrapper property is null encountered during deserialization of type: " + type);
         }
-        Deserializer<Object> deserializer = subtypes.get(discriminator);
-        if (deserializer == null) {
-            throw new SerdeException("Unknown wrapper discriminator: [" + discriminator + "] encountered during deserialization of type: " + type);
-        }
+        Deserializer<? super Object> deserializer = subtypeInfo.findDeserializer(discriminator);
         if (!unwrappedDecoder.hasNextArrayValue()) {
             throw new SerdeException("Missing wrapper value for deserialization of type: " + type);
         }
