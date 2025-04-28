@@ -24,6 +24,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
@@ -44,7 +45,7 @@ import java.util.Map;
  * @author Denis Stepanov
  */
 @Internal
-public final class JacksonDecoder extends LimitingStream implements Decoder {
+public final class JacksonDecoder extends LimitingStream implements LookaheadDecoder {
     /**
      * Default value for {@link JsonParser#nextIntValue(int)}. If this value is encountered, we
      * enter the slow parse path.
@@ -78,6 +79,30 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
 
     public static Decoder create(JsonParser parser, RemainingLimits remainingLimits) throws IOException {
         return new JacksonDecoder(parser, remainingLimits);
+    }
+
+    @Override
+    public TokenType lookahead() throws IOException {
+        if (peekedToken == null) {
+            peekedToken = parser.nextToken();
+        }
+        return convertToken(peekedToken);
+    }
+
+    private TokenType convertToken(JsonToken token) {
+        return switch (token) {
+            case NOT_AVAILABLE -> null;
+            case START_OBJECT -> TokenType.START_OBJECT;
+            case END_OBJECT -> TokenType.END_OBJECT;
+            case START_ARRAY -> TokenType.START_ARRAY;
+            case END_ARRAY -> TokenType.END_ARRAY;
+            case FIELD_NAME -> TokenType.KEY;
+            case VALUE_EMBEDDED_OBJECT -> TokenType.OTHER;
+            case VALUE_STRING -> TokenType.STRING;
+            case VALUE_NUMBER_INT, VALUE_NUMBER_FLOAT -> TokenType.NUMBER;
+            case VALUE_TRUE, VALUE_FALSE -> TokenType.BOOLEAN;
+            case VALUE_NULL -> TokenType.NULL;
+        };
     }
 
     @Override

@@ -305,7 +305,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public boolean decodeNull() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isNull()) {
-            skipValue();
+//            skipValue();
             return true;
         } else {
             return false;
@@ -355,6 +355,12 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     public Decoder decodeBuffer() throws IOException {
         JsonNode peeked = peekValue();
         skipValue();
+        if (peeked.isObject()) {
+            return new JsonObjectNodeDecoder(peeked, ourLimits());
+        }
+        if (peeked.isArray()) {
+            return new JsonArrayNodeDecoder(peeked, ourLimits());
+        }
         return new Buffered(peeked, ourLimits());
     }
 

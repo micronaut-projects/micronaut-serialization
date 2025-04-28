@@ -1,0 +1,45 @@
+package io.micronaut.serde.support.deserializers.buffer;
+
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.Decoder;
+
+@Internal
+final class BufferedDecoderRoot extends AbstractBufferedDecoder<Decoder> implements BufferedDecoder {
+
+    Decoder decoder;
+
+    BufferedDecoderRoot(Decoder delegate, boolean consumeValues) {
+        super(delegate, consumeValues);
+    }
+
+    @Override
+    protected boolean consumeArray() {
+        return false;
+    }
+
+    @Override
+    protected boolean consumeObject() {
+        return false;
+    }
+
+    @Override
+    protected Decoder findBufferEntry() {
+        return decoder;
+    }
+
+    @Override
+    protected Decoder getDecoder(Decoder decoder) {
+        return decoder;
+    }
+
+    @Override
+    protected Decoder createItem(Decoder decoder) {
+        this.decoder = decoder;
+        return decoder;
+    }
+
+    @Override
+    protected void valueConsumed() {
+    }
+
+}
