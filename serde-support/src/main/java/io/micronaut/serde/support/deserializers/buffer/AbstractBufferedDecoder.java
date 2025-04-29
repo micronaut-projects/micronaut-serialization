@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Internal
-abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements BufferedDecoder {
+abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder implements BufferedDecoder permits BufferedArrayDecoder, BufferedDecoderRoot, BufferedObjectDecoder {
     protected final Decoder delegate;
     private boolean consumeValues;
 
@@ -36,6 +36,14 @@ abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements B
     }
 
     protected abstract void valueConsumed();
+
+    protected BufferedArrayDecoder createArrayDecoder(Decoder delegate, boolean consumeValues) {
+        return new BufferedArrayDecoder(delegate, consumeValues);
+    }
+
+    protected BufferedObjectDecoder createObjectDecoder(Decoder delegate, boolean consumeValues) {
+        return new BufferedObjectDecoder(delegate, consumeValues);
+    }
 
     @Nullable
     protected E findBufferEntry() {
@@ -144,7 +152,7 @@ abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements B
     public BufferedDecoder decodeArray(Argument<?> type) throws IOException {
         E bufferEntry = findBufferEntry();
         if (bufferEntry == null) {
-            BufferedArrayDecoder decoder = new BufferedArrayDecoder(delegate.decodeArray(type), consumeValues);
+            BufferedArrayDecoder decoder = createArrayDecoder(delegate.decodeArray(type), consumeValues);
             if (!consumeArray()) {
                 putToBuffer(decoder);
             } else {
@@ -158,7 +166,7 @@ abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements B
             bufferedArrayDecoder.reset(consumeValues);
             result = bufferedArrayDecoder;
         } else {
-            result = new BufferedArrayDecoder(bufferedDecoder, consumeValues);
+            result = createArrayDecoder(bufferedDecoder, consumeValues);
             buffer.set(index, createItem(bufferedDecoder));
         }
         return result;
@@ -186,7 +194,7 @@ abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements B
     private BufferedObjectDecoder decodeObject(Argument<?> type, boolean consumeValues) throws IOException {
         E bufferEntry = findBufferEntry();
         if (bufferEntry == null) {
-            BufferedObjectDecoder decoder = new BufferedObjectDecoder(delegate.decodeObject(type), consumeValues);
+            BufferedObjectDecoder decoder = createObjectDecoder(delegate.decodeObject(type), consumeValues);
             if (!consumeObject()) {
                 putToBuffer(decoder);
             } else {
@@ -200,7 +208,7 @@ abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements B
             bufferedObjectDecoder.reset(consumeValues);
             result = bufferedObjectDecoder;
         } else {
-            result = new BufferedObjectDecoder(bufferedDecoder, consumeValues);
+            result = createObjectDecoder(bufferedDecoder, consumeValues);
             buffer.set(index, updateItem(bufferEntry, bufferedDecoder));
         }
         return result;
@@ -236,7 +244,9 @@ abstract class AbstractBufferedDecoder<E> extends DelegatingDecoder implements B
     @Override
     public void close() throws IOException {
         for (E e : buffer) {
-            getDecoder(e).close();
+            if (e instanceof AbstractBufferedDecoder<?> bufferedDecoder) {
+                bufferedDecoder.close();
+            }
         }
         delegate.finishStructure(lastConsumeLeftElements);
     }

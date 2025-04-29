@@ -1,11 +1,14 @@
 package io.micronaut.serde.support.deserializers.buffer;
 
+import io.micronaut.core.annotation.Experimental;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.LookaheadDecoder;
 
 import java.io.IOException;
 
+@Experimental
 public interface BufferedDecoder extends Decoder {
 
     /**
@@ -54,7 +57,14 @@ public interface BufferedDecoder extends Decoder {
      * @return The primed decoder
      */
     static BufferedDecoder of(Decoder decoder) {
+        if (decoder instanceof LookaheadDecoder lookaheadDecoder) {
+            return of(lookaheadDecoder);
+        }
         return new BufferedDecoderRoot(decoder, true);
+    }
+
+    static BufferedLookaheadDecoder of(LookaheadDecoder decoder) {
+        return new BufferedDecoderLookaheadRoot(decoder, true);
     }
 
 }

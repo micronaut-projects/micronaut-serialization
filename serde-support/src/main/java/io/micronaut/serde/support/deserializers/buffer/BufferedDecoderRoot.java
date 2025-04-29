@@ -4,7 +4,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.Decoder;
 
 @Internal
-final class BufferedDecoderRoot extends AbstractBufferedDecoder<Decoder> implements BufferedDecoder {
+sealed class BufferedDecoderRoot extends AbstractBufferedDecoder<Decoder> implements BufferedDecoder permits BufferedDecoderLookaheadRoot {
 
     Decoder decoder;
 

@@ -21,20 +21,8 @@ import io.micronaut.serde.Decoder;
 
 import java.io.IOException;
 
-/**
- * Special decoder that <i>demuxes</i> an object: The same object can be iterated over multiple
- * times with multiple decoders (concurrently or sequentially, though multi-threading is not
- * allowed). Properties that are skipped by one decoder can be read by another.
- * <br>
- * The use for this is subtype detection: An object is iterated over once to find the {@code type}
- * property to detect the subtype, and then the remaining properties (before and after the type)
- * are deserialized as normal.
- *
- * @author Denis Stepanov
- * @author Jonas Konrad
- */
 @Internal
-final class BufferedObjectDecoder extends AbstractBufferedDecoder<BufferedObjectDecoder.Entry> implements BufferedDecoder {
+sealed class BufferedObjectDecoder extends AbstractBufferedDecoder<BufferedObjectDecoder.Entry> implements BufferedDecoder permits BufferedObjectLookaheadDecoder {
 
     private boolean finished;
     private String currentKey;

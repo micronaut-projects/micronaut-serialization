@@ -6,7 +6,7 @@ import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.jmespath.model.ArrayItemAtExpression;
 import io.micronaut.serde.jmespath.model.KeySelectionExpression;
 import io.micronaut.serde.jmespath.model.PathExpression;
-import io.micronaut.serde.support.deserializers.DemuxingObjectDecoder;
+import io.micronaut.serde.support.deserializers.buffer.BufferedDecoder;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -41,10 +41,10 @@ public class SerdeJmesPathDecoder {
                 if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
                     int requiredIndex = arrayItemAtExpression.index();
                     if (requiredIndex < 0) {
-                        try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
-                            int count = countItems(primed);
+                        try (Decoder bufferedDecoder = BufferedDecoder.of(decoder)) {
+                            int count = countItems(bufferedDecoder);
                             int newIndex = count + requiredIndex;
-                            return findArrayItem(primed, newIndex, pathExpressionsIterator);
+                            return findArrayItem(bufferedDecoder, newIndex, pathExpressionsIterator);
                         }
                     }
                     return findArrayItem(decoder, requiredIndex, pathExpressionsIterator);
@@ -73,7 +73,7 @@ public class SerdeJmesPathDecoder {
         return null;
     }
 
-    private static int countItems(DemuxingObjectDecoder.PrimedDecoder primed) throws IOException {
+    private static int countItems(Decoder primed) throws IOException {
         LookaheadDecoder arrayDecoder = (LookaheadDecoder) primed.decodeArray();
         int count = 0;
         while (arrayDecoder.hasNextArrayValue()) {
