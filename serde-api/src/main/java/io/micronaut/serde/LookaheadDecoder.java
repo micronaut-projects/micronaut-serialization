@@ -1,14 +1,26 @@
 package io.micronaut.serde;
 
+import io.micronaut.core.type.Argument;
+
 import java.io.IOException;
 
 public interface LookaheadDecoder extends Decoder {
 
     @Override
-    LookaheadDecoder decodeObject() throws IOException;
+    default LookaheadDecoder decodeObject() throws IOException {
+        return decodeObject(Argument.OBJECT_ARGUMENT);
+    }
 
     @Override
-    LookaheadDecoder decodeArray() throws IOException;
+    LookaheadDecoder decodeObject(Argument<?> type) throws IOException;
+
+    @Override
+    default LookaheadDecoder decodeArray() throws IOException {
+        return decodeArray(Argument.OBJECT_ARGUMENT);
+    }
+
+    @Override
+    LookaheadDecoder decodeArray(Argument<?> type) throws IOException;
 
     TokenType lookahead() throws IOException;
 

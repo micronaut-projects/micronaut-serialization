@@ -22,6 +22,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
@@ -38,7 +39,7 @@ import java.util.Map;
  * uses the {@link io.micronaut.json.tree.JsonNode} abstraction.
  */
 @Internal
-public abstract sealed class JsonNodeDecoder extends LimitingStream implements Decoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder {
+public abstract sealed class JsonNodeDecoder extends LimitingStream implements LookaheadDecoder permits JsonArrayNodeDecoder, JsonNodeDecoder.Buffered, JsonObjectNodeDecoder {
     JsonNodeDecoder(LimitingStream.RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
@@ -50,7 +51,28 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     protected abstract JsonNode peekValue() throws IOException;
 
     @Override
-    public Decoder decodeArray(Argument<?> type) throws IOException {
+    public TokenType lookahead() throws IOException {
+        JsonNode jsonNode = peekValue();
+        if (jsonNode.isObject()) {
+            return TokenType.START_OBJECT;
+        }
+        if (jsonNode.isArray()) {
+            return TokenType.START_ARRAY;
+        }
+        if (jsonNode.isString()) {
+            return TokenType.STRING;
+        }
+        if (jsonNode.isNumber()) {
+            return TokenType.NUMBER;
+        }
+        if (jsonNode.isBoolean()) {
+            return TokenType.BOOLEAN;
+        }
+        throw new IllegalStateException("Unknown json node: " + jsonNode);
+    }
+
+    @Override
+    public LookaheadDecoder decodeArray(Argument<?> type) throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isArray()) {
             skipValue();
@@ -61,7 +83,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     }
 
     @Override
-    public Decoder decodeObject(Argument<?> type) throws IOException {
+    public LookaheadDecoder decodeObject(Argument<?> type) throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isObject()) {
             skipValue();

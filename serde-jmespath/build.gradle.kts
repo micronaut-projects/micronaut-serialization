@@ -11,11 +11,13 @@ dependencies {
     api(projects.micronautSerdeApi)
     implementation(projects.micronautSerdeSupport)
 
-    testRuntimeOnly(mn.snakeyaml)
-    testRuntimeOnly(libs.junit.jupiter.engine)
+    testAnnotationProcessor(mn.micronaut.inject.java)
+    testAnnotationProcessor(projects.micronautSerdeProcessor)
 
     testImplementation(projects.micronautSerdeJackson)
 
+    testRuntimeOnly(mn.snakeyaml)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 
     implementation(libs.antlr.runtime)
     antlr(libs.antlr)

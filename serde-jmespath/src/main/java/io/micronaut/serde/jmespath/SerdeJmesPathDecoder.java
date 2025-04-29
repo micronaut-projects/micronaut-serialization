@@ -29,6 +29,8 @@ public class SerdeJmesPathDecoder {
                         for (String key = objectDecoder.decodeKey(); key != null; key = objectDecoder.decodeKey()) {
                             if (key.equals(keySelectionExpression.propertyName())) {
                                 return process(objectDecoder, pathExpressionsIterator);
+                            } else {
+                                objectDecoder.skipValue();
                             }
                         }
                     } finally {

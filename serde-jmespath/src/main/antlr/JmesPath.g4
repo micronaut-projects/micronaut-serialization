@@ -1,223 +1,182 @@
 grammar JmesPath;
 
+//expression
+//    : expression DOT filterExp //subExpression
+//    | expression arrayExpression // indexExpression
+//    | arrayExpression // indexExpression
+//    | flattenArrayExpression
+//    | expression comparator expression // comparatorExpression
+//    | expression OR expression // orExpression
+//    | expression AND expression // andExpression
+//    | propertySelectionExpression
+//    | NOT expression // notExpression
+//    | LPAREN expression RPAREN // parenExpression
+//    | multiSelectList
+//    | multiSelectHash
+//    | literal
+//    | functionExpression
+//    | expression PIPE expression // pipeExpression
+//    | rawString
+//    | currentNode
+//    | (PLUS | MINUS) expression // arithmeticExpression
+//    | STAR
+//    ;
+//
+//filterExp
+//    : propertySelectionExpression | multiSelectList | multiSelectHash | functionExpression | STAR
+//    ;
+//
+//propertySelectionExpression
+//    : propertyNameExpression
+//    ;
+
+
+//grammar JmesPath;
+
+//jmesPathExpression : expression EOF ;
+
 expression
-    : expression DOT filterExp //subExpression
-    | expression arrayExpression // indexExpression
-    | arrayExpression // indexExpression
-    | flattenArrayExpression
-    | expression comparator expression // comparatorExpression
-    | expression OR expression // orExpression
-    | expression AND expression // andExpression
-    | propertySelectionExpression
-    | NOT expression // notExpression
-    | LPAREN expression RPAREN // parenExpression
-    | multiSelectList
-    | multiSelectHash
-    | literal
-    | functionExpression
-    | expression PIPE expression // pipeExpression
-    | rawString
-    | currentNode
-    | (PLUS | MINUS) expression // arithmeticExpression
-    | STAR
-    ;
+  : expression '.' chainedExpression # chainExpression
+  | expression arrayExpression # bracketedExpression
+  | arrayExpression # bracketExpression
+  | '!' expression # notExpression
+  | expression COMPARATOR expression # comparisonExpression
+  | expression '&&' expression # andExpression
+  | expression '||' expression # orExpression
+  | propertySelectionExpression # identifierExpression
+  | '(' expression ')' # parenExpression
+  | wildcard # wildcardExpression
+  | multiSelectList # multiSelectListExpression
+  | multiSelectHash # multiSelectHashExpression
+  | literal # literalExpression
+  | functionExpression # functionCallExpression
+  | expression '|' expression # pipeExpression
+  | RAW_STRING # rawStringExpression
+  | currentNode # currentNodeExpression
+  ;
 
-filterExp
-    : propertySelectionExpression | multiSelectList | multiSelectHash | functionExpression | STAR
-    ;
-
-propertySelectionExpression
-    : propertyNameExpression
-    ;
-
-flattenArrayExpression
-    : LBRACK RBRACK
-    ;
 
 arrayExpression
-    : LBRACK number RBRACK #arrayIndexExpression
-    | LBRACK number? COLON number? (COLON number?)? RBRACK #arraySliceExpression
-    | LBRACK STAR RBRACK #arrayStarExpression
-    | LBRACK QUESTION expression RBRACK #arrayFilterExpression
+    : '[' SIGNED_INT ']' #arrayIndexExpression
+    | ']' from=SIGNED_INT? ':' to=SIGNED_INT? (':' step=SIGNED_INT?)? ']' #arraySliceExpression
+    | '[*]' #arrayStarExpression
+    | '[?'  expression ']' #arrayFilterExpression
+    | '[]' #flattenArrayExpression
     ;
 
-comparator
-    : LT | LTE | EQ | GTE | GT | NEQ
-    ;
+chainedExpression
+  : propertySelectionExpression
+  | multiSelectList
+  | multiSelectHash
+  | functionExpression
+  | wildcard
+  ;
 
-multiSelectList
-    : LBRACK expression (COMMA expression)* RBRACK
-    ;
+wildcard : '*' ;
 
-multiSelectHash
-    : LBRACE keyValueExpression (COMMA keyValueExpression)* RBRACE
-    ;
+multiSelectList : '[' expression (',' expression)* ']' ;
 
-keyValueExpression
-    : propertyNameExpression COLON expression
-    ;
+multiSelectHash : '{' keyValueExpression (',' keyValueExpression)* '}' ;
+
+keyValueExpression : propertySelectionExpression ':' expression ;
+
+COMPARATOR
+  : '<'
+  | '<='
+  | '=='
+  | '>='
+  | '>'
+  | '!='
+  ;
 
 functionExpression
-    : unquotedString ( noArgs | oneOrMoreArgs )
-    ;
-
-noArgs
-    : LPAREN RPAREN
-    ;
-
-oneOrMoreArgs
-    : LPAREN functionArg (COMMA functionArg)* RPAREN
-    ;
+  : NAME '(' functionArg (',' functionArg)* ')'
+  | NAME '(' ')'
+  ;
 
 functionArg
-    : expression
-    | expressionType
-    ;
+  : expression
+  | expressionType
+  ;
 
-expressionType
-    : AMP expression
-    ;
+currentNode : '@' ;
 
-rawString
-    : SINGLE_QUOTE rawStringChar* SINGLE_QUOTE
-    ;
+expressionType : '&' expression ;
 
-rawStringChar
-    : RAW_CHAR | preservedEscape | rawStringEscape
-    ;
+RAW_STRING : '\'' (RAW_ESC | ~['\\])* '\'' ;
 
-preservedEscape
-    : ESCAPE RAW_CHAR
-    ;
+fragment RAW_ESC : '\\' . ;
 
-rawStringEscape
-    : ESCAPE (SINGLE_QUOTE | ESCAPE)
-    ;
+literal : '`' jsonValue '`' ;
 
-literal
-    : BACKTICK jsonText BACKTICK
-    ;
+propertySelectionExpression
+  : NAME
+  | STRING
+  | JSON_CONSTANT
+  ;
 
-jsonText
-    : WS jsonValue WS
-    ;
+JSON_CONSTANT
+  : 'true'
+  | 'false'
+  | 'null'
+  ;
 
-jsonValue
-    : FALSE
-    | NULL
-    | TRUE
-    | jsonObject
-    | jsonArray
-    | jsonNumber
-    | jsonString
-    ;
+NAME : [a-zA-Z_] [a-zA-Z0-9_]* ;
 
 jsonObject
-    : LBRACE (member (COMMA member)*)? RBRACE
-    ;
+  : '{' jsonObjectPair (',' jsonObjectPair)* '}'
+  | '{' '}'
+  ;
 
-member
-    : jsonString COLON jsonValue
-    ;
+jsonObjectPair
+  : STRING ':' jsonValue
+  ;
 
 jsonArray
-    : LBRACK (jsonValue (COMMA jsonValue)*)? RBRACK
-    ;
+  : '[' jsonValue (',' jsonValue)* ']'
+  | '[' ']'
+  ;
 
-jsonNumber
-    : MINUS? INT (FRAC)? (EXP)?
-    ;
+jsonValue
+  : STRING # jsonStringValue
+  | (REAL_OR_EXPONENT_NUMBER | SIGNED_INT) # jsonNumberValue
+  | jsonObject # jsonObjectValue
+  | jsonArray # jsonArrayValue
+  | JSON_CONSTANT # jsonConstantValue
+  ;
 
-jsonString
-    : QUOTE (jsonUnescaped | jsonEscaped)* QUOTE
-    ;
+STRING
+  : '"' (ESC | ~ ["\\])* '"'
+  ;
 
-jsonUnescaped
-    : UNESCAPED_JSON
-    ;
+fragment ESC
+  : '\\' (["\\/bfnrt`] | UNICODE)
+  ;
 
-jsonEscaped
-    : escapedChar | ESCAPE BACKTICK
-    ;
+fragment UNICODE
+  : 'u' HEX HEX HEX HEX
+  ;
 
-escapedChar
-    : ESCAPE (QUOTE | ESCAPE | SLASH | 'b' | 'f' | 'n' | 'r' | 't' | 'u' HEX HEX HEX HEX)
-    ;
+fragment HEX
+  : [0-9a-fA-F]
+  ;
 
-propertyNameExpression
-    : unquotedString
-    | quotedString
-    ;
+REAL_OR_EXPONENT_NUMBER
+  : '-'? INT '.' [0-9] + EXP?
+  | '-'? INT EXP
+  ;
 
-unquotedString
-    : UNQUOTED
-    ;
+SIGNED_INT : '-'? INT ;
 
-quotedString
-    : QUOTE (unescapedChar | escapedChar)* QUOTE
-    ;
+fragment INT
+  : '0'
+  | [1-9] [0-9]*
+  ;
 
-unescapedChar
-    : UNESCAPED
-    ;
+fragment EXP
+  : [Ee] [+\-]? INT
+  ;
 
-number
-    : MINUS INT | INT
-    ;
-
-currentNode
-    : AT
-    ;
-
-/* LEXER RULES */
-
-DOT           : '.' ;
-PIPE          : '|' ;
-OR            : '||' ;
-AND           : '&&' ;
-NOT           : '!' ;
-PLUS          : '+' ;
-MINUS         : '-' | '–' ;
-STAR          : '*' | '×' ;
-SLASH         : '/' | '÷' ;
-DIV           : '//' ;
-MOD           : '%' ;
-LT            : '<' ;
-LTE           : '<=' ;
-EQ            : '==' ;
-GTE           : '>=' ;
-GT            : '>' ;
-NEQ           : '!=' ;
-LPAREN        : '(' ;
-RPAREN        : ')' ;
-LBRACK        : '[' ;
-RBRACK        : ']' ;
-LBRACE        : '{' ;
-RBRACE        : '}' ;
-COLON         : ':' ;
-COMMA         : ',' ;
-QUOTE         : '"' ;
-SINGLE_QUOTE  : '\'' ;
-ESCAPE        : '\\' ;
-AMP           : '&' ;
-BACKTICK      : '`' ;
-QUESTION      : '?' ;
-AT            : '@' ;
-LET           : 'let' ;
-IN            : 'in' ;
-FALSE         : 'false' ;
-NULL          : 'null' ;
-TRUE          : 'true' ;
-
-INT           : '0' | [1-9] DIGIT* ;
-FRAC          : '.' DIGIT+ ;
-EXP           : [eE] [+-]? DIGIT+ ;
-HEX           : [0-9a-fA-F] ;
-DIGIT         : [0-9] ;
-
-UNQUOTED      : [a-zA-Z_][a-zA-Z0-9_]* ;
-RAW_CHAR      : ~['\\] ;
-UNESCAPED     : [\u0020-\u0021\u0023-\u005B\u005D-\u10FFFF] ;
-UNESCAPED_JSON: [\u0020-\u0021\u0023-\u005B\u005D-\u005F\u0061-\u10FFFF] ;
-
-WS            : [ \t\r\n]+ -> skip ;
+WS
+  : [ \t\n\r] + -> skip
+  ;
