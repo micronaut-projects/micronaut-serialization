@@ -48,7 +48,6 @@ public class SerdeJmesPathParser {
         parser.removeErrorListeners();
         lexer.addErrorListener(errorListener);
         parser.addErrorListener(errorListener);
-//        SerdeJmesPathVisitor visitor = new SerdeJmesPathVisitor();
         SerdeJmesPathListener listener = new SerdeJmesPathListener();
         ParseTreeWalker.DEFAULT.walk(listener, parser.expression());
         return listener.expressions;

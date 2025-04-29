@@ -1,6 +1,7 @@
 package io.micronaut.serde.jmespath;
 
 import io.micronaut.serde.jmespath.model.ArrayAllExpression;
+import io.micronaut.serde.jmespath.model.ArrayFlattenExpression;
 import io.micronaut.serde.jmespath.model.ArrayItemAtExpression;
 import io.micronaut.serde.jmespath.model.ArraySliceExpression;
 import io.micronaut.serde.jmespath.model.KeySelectionExpression;
@@ -13,6 +14,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class SerdeJmesPathListener extends JmesPathBaseListener {
+    private static final StringEscapeHelper IDENTIFIER_ESCAPE_HELPER = new StringEscapeHelper(
+        true,
+        '"', '"',
+        '/', '/',
+        '\\', '\\',
+        'b', '\b',
+        'f', '\f',
+        'n', '\n',
+        'r', '\r',
+        't', '\t'
+    );
+
+    private static final StringEscapeHelper RAW_STRING_ESCAPE_HELPER = new StringEscapeHelper(
+        false,
+        '\'', '\'',
+        '\\', '\\'
+    );
+
+    private static final StringEscapeHelper JSON_LITERAL_ESCAPE_HELPER = new StringEscapeHelper(
+        false,
+        '`', '`'
+    );
 
     List<PathExpression> expressions = new ArrayList<>();
 
@@ -33,7 +56,7 @@ final class SerdeJmesPathListener extends JmesPathBaseListener {
         }
         TerminalNode string = ctx.STRING();
         if (string != null) {
-            expressions.add(new KeySelectionExpression(unquote(string.getText())));
+            expressions.add(new KeySelectionExpression(unquote(IDENTIFIER_ESCAPE_HELPER.unescape(string.getText()))));
             return;
         }
         TerminalNode jsonConstant = ctx.JSON_CONSTANT();
@@ -57,7 +80,14 @@ final class SerdeJmesPathListener extends JmesPathBaseListener {
         );
     }
 
-//    @Nullable
+    @Override
+    public void enterFlattenArrayExpression(JmesPathParser.FlattenArrayExpressionContext ctx) {
+        expressions.add(
+            new ArrayFlattenExpression()
+        );
+    }
+
+    //    @Nullable
 //    private Integer toNumber(@Nullable JmesPathParser.NumberContext ctx) {
 //        return ctx == null ? null : Integer.parseInt(ctx.getText());
 //    }

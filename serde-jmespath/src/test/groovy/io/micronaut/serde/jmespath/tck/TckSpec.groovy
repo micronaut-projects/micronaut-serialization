@@ -14,7 +14,26 @@ class TckSpec extends Specification {
     @Shared
     ObjectMapper objectMapper = ObjectMapper.create(Map.of(), "io.micronaut.serde.jmespath.tck")
 
-    def 'given: #tckTest.givenAsString expression: "#tckTest.expression" result: #tckTest.resultAsString'(TckTest tckTest) {
+    private static def TCK_FILES_LIST = List.of(
+            "basic.json",
+            "benchmarks.json",
+            "boolean.json",
+            "current.json",
+            "escape.json",
+            "filters.json",
+            "functions.json",
+            "identifiers.json",
+            "indices.json",
+            "literal.json",
+            "multiselect.json",
+            "pipe.json",
+            "slice.json",
+            "syntax.json",
+            "unicode.json",
+            "wildcard.json"
+    )
+
+    def '#tckTest.suiteName, given: #tckTest.givenAsString expression: "#tckTest.expression" result: #tckTest.resultAsString '(TckTest tckTest) {
         when:
             def givenDecoder = JsonNodeDecoder.create(tckTest.given(), LimitingStream.DEFAULT_LIMITS)
         then:
@@ -22,11 +41,20 @@ class TckSpec extends Specification {
             def expected = JsonNodeToStringUtil.toString(tckTest.result())
             def actual = JsonNodeToStringUtil.toString(result)
             actual == expected
+
         where:
-            tckTest << objectMapper.readValue(
-                    getClass().getResourceAsStream("/tck/compliance/basic.json"),
+            tckTest << fetchAllTckTests()
+    }
+
+    private List<TckTest> fetchAllTckTests() {
+        def list = TCK_FILES_LIST.stream().flatMap { String fileName ->
+            return objectMapper.readValue(
+                    getClass().getResourceAsStream("/tck/compliance/" + fileName),
                     Argument.listOf(TckDefinition)
-            ).stream().flatMap { it.toTests().stream() }.toList()
+            ).stream().flatMap { it.toTests(fileName.replace(".json", "")).stream() }
+
+        }.toList()
+        return list
     }
 
 }

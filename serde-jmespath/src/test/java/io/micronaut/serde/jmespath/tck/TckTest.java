@@ -5,7 +5,7 @@ import io.micronaut.serde.support.util.JsonNodeToStringUtil;
 
 import java.io.IOException;
 
-public record TckTest(JsonNode given, String expression, JsonNode result) {
+public record TckTest(String suiteName, JsonNode given, String expression, JsonNode result) {
 
     public String getGivenAsString() throws IOException {
         return JsonNodeToStringUtil.toString(given);

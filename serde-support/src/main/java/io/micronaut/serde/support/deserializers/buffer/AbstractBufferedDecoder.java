@@ -248,6 +248,10 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
                 bufferedDecoder.close();
             }
         }
+        internalFinishStructure();
+    }
+
+    protected void internalFinishStructure() throws IOException {
         delegate.finishStructure(lastConsumeLeftElements);
     }
 

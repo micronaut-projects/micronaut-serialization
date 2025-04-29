@@ -68,6 +68,9 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
         if (jsonNode.isBoolean()) {
             return TokenType.BOOLEAN;
         }
+        if (jsonNode.isNull()) {
+            return TokenType.NULL;
+        }
         throw new IllegalStateException("Unknown json node: " + jsonNode);
     }
 

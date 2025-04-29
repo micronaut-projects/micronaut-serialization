@@ -42,4 +42,8 @@ sealed class BufferedDecoderRoot extends AbstractBufferedDecoder<Decoder> implem
     protected void valueConsumed() {
     }
 
+    @Override
+    protected void internalFinishStructure() {
+        // Don't close the first decoder
+    }
 }

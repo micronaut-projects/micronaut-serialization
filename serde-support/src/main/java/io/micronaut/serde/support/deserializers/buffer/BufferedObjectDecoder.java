@@ -32,6 +32,13 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder<BufferedObjec
     }
 
     @Override
+    void reset(boolean consumeValues) {
+        super.reset(consumeValues);
+        finished = false;
+        currentKey = null;
+    }
+
+    @Override
     protected Decoder getDecoder(Entry item) {
         return item.decoder;
     }

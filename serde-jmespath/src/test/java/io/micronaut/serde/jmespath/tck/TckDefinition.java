@@ -8,8 +8,8 @@ import java.util.List;
 @Serdeable
 public record TckDefinition(JsonNode given, List<TckCase> cases) {
 
-    public List<TckTest> toTests() {
-        return cases.stream().map(c -> new TckTest(given, c.expression, c.result)).toList();
+    public List<TckTest> toTests(String suiteName) {
+        return cases.stream().map(c -> new TckTest(suiteName, given, c.expression, c.result)).toList();
     }
 
     @Serdeable

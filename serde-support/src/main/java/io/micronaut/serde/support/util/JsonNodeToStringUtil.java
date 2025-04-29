@@ -16,14 +16,7 @@ public class JsonNodeToStringUtil {
             return "null";
         }
         StringBuilder builder = new StringBuilder();
-        Encoder encoder;
-        if (node.isObject()) {
-            encoder = new SimpleToStringObjectEncoder(builder);
-        } else if (node.isArray()) {
-            encoder = new SimpleToStringArrayEncoder(builder);
-        } else {
-            encoder = new SimpleToStringValueEncoder(builder);
-        }
+        Encoder encoder = new SimpleToStringValueEncoder(builder);
         encode(encoder, node);
         return builder.toString();
     }
@@ -44,6 +37,10 @@ public class JsonNodeToStringUtil {
                     encode(arrayEncoder, value);
                 }
             }
+            return;
+        }
+        if (node.isNull()) {
+            encoder.encodeNull();
             return;
         }
         if (node.isString()) {

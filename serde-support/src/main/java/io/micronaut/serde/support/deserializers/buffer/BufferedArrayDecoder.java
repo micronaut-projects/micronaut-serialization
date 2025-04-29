@@ -31,6 +31,13 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder<Decoder> imple
     }
 
     @Override
+    void reset(boolean consumeValues) {
+        super.reset(consumeValues);
+        finished = false;
+        nextArrayValuePresent = false;
+    }
+
+    @Override
     public boolean hasNextArrayValue() throws IOException {
         if (finished) {
             return false;
