@@ -89,6 +89,68 @@ class JsonNodeDecoderSpec extends Specification {
         objectDecoder.finishStructure()
     }
 
+    def 'object decode lookahead'() {
+
+        when:
+        def decoder = create(JsonNode.createObjectNode([
+                f1: JsonNode.createNumberNode(42),
+                f2: JsonNode.createStringNode('foo'),
+                f3: JsonNode.createBooleanNode(true),
+                f4: JsonNode.createArrayNode([JsonNode.createNumberNode(42), JsonNode.createStringNode('foo')]),
+        ])) as LookaheadDecoder
+
+        then:
+        decoder.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+        def objectDecoder = decoder.decodeObject()
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.KEY
+        objectDecoder.decodeKey() == 'f1'
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.NUMBER
+        objectDecoder.decodeInt() == 42
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.KEY
+        objectDecoder.decodeKey() == 'f2'
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.STRING
+        objectDecoder.decodeString() == 'foo'
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.KEY
+        objectDecoder.decodeKey() == 'f3'
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.BOOLEAN
+        objectDecoder.decodeBoolean()
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.KEY
+        objectDecoder.decodeKey() == 'f4'
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY
+        def arrayDecoder = objectDecoder.decodeArray()
+        arrayDecoder.lookahead() == LookaheadDecoder.TokenType.NUMBER
+        arrayDecoder.skipValue()
+        arrayDecoder.hasNextArrayValue()
+        arrayDecoder.lookahead() == LookaheadDecoder.TokenType.STRING
+        arrayDecoder.hasNextArrayValue()
+        arrayDecoder.skipValue()
+        !arrayDecoder.hasNextArrayValue()
+        arrayDecoder.lookahead() == LookaheadDecoder.TokenType.END_ARRAY
+        objectDecoder.lookahead() == LookaheadDecoder.TokenType.END_OBJECT
+        decoder.lookahead() == LookaheadDecoder.TokenType.END_OBJECT
+    }
+
+    def 'array decode lookahead'() {
+
+        when:
+        def decoder = create(JsonNode.createArrayNode(
+                [JsonNode.createNumberNode(42), JsonNode.createStringNode('foo')]
+        )) as LookaheadDecoder
+
+        then:
+        decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY
+        def arrayDecoder = decoder.decodeArray()
+        arrayDecoder.lookahead() == LookaheadDecoder.TokenType.NUMBER
+        arrayDecoder.skipValue()
+        arrayDecoder.hasNextArrayValue()
+        arrayDecoder.lookahead() == LookaheadDecoder.TokenType.STRING
+        arrayDecoder.hasNextArrayValue()
+        arrayDecoder.skipValue()
+        !arrayDecoder.hasNextArrayValue()
+        arrayDecoder.lookahead() == LookaheadDecoder.TokenType.END_ARRAY
+        decoder.lookahead() == LookaheadDecoder.TokenType.END_ARRAY
+    }
+
     def 'arbitrary decode'() {
         given:
         def decoder = create(JsonNode.createObjectNode([

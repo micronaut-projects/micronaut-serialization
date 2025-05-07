@@ -1,6 +1,6 @@
 package io.micronaut.serde.jmespath;
 
-import io.micronaut.serde.jmespath.model.PathExpression;
+import io.micronaut.serde.jmespath.model.JsonPath;
 import io.micronaut.serde.jmespath.parser.JmesPathLexer;
 import io.micronaut.serde.jmespath.parser.JmesPathParser;
 import org.antlr.v4.runtime.ANTLRErrorListener;
@@ -17,17 +17,16 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.util.BitSet;
-import java.util.List;
 
 public class SerdeJmesPathParser {
 
-    public static List<PathExpression> parse(String query) {
+    public static JsonPath parse(String query) {
         var inputStream = CharStreams.fromString(query);
         var lexer = new JmesPathLexer(inputStream);
         ANTLRErrorListener errorListener = new ANTLRErrorListener() {
             @Override
             public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-                throw new RuntimeException("Failed to parse query: " + prettifyAntlrError(offendingSymbol, line, charPositionInLine, msg, e, query));
+                throw new SerdeJmesPathSyntaxException("Failed to parse query: " + prettifyAntlrError(offendingSymbol, line, charPositionInLine, msg, e, query));
             }
 
             @Override
@@ -50,7 +49,7 @@ public class SerdeJmesPathParser {
         parser.addErrorListener(errorListener);
         SerdeJmesPathListener listener = new SerdeJmesPathListener();
         ParseTreeWalker.DEFAULT.walk(listener, parser.expression());
-        return listener.expressions;
+        return JsonPath.of(listener.expressions);
     }
 
     private static String prettifyAntlrError(Object offendingSymbol,

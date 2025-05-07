@@ -25,7 +25,7 @@ import java.io.IOException;
 sealed class BufferedObjectDecoder extends AbstractBufferedDecoder<BufferedObjectDecoder.Entry> implements BufferedDecoder permits BufferedObjectLookaheadDecoder {
 
     private boolean finished;
-    private String currentKey;
+    protected String currentKey;
 
     BufferedObjectDecoder(Decoder delegate, boolean consumeValues) {
         super(delegate, consumeValues);

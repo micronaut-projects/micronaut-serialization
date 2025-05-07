@@ -34,11 +34,19 @@ final class BufferedObjectLookaheadDecoder extends BufferedObjectDecoder impleme
 
     @Override
     public TokenType lookahead() throws IOException {
+        TokenType lookahead = lookaheadDecoder.lookahead();
+//        if (lookahead == TokenType.START_OBJECT || index == -1) {
+//            return TokenType.START_OBJECT;
+//        }
+
         Entry bufferEntry = findBufferEntry();
         if (bufferEntry != null) {
+            if (currentKey == null) {
+                return TokenType.KEY;
+            }
             return ((LookaheadDecoder) bufferEntry.decoder()).lookahead();
         }
-        return lookaheadDecoder.lookahead();
+        return lookahead;
     }
 
     @Override

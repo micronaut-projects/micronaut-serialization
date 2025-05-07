@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.support.util;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
@@ -92,7 +93,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
             skipValue();
             return new JsonObjectNodeDecoder(peeked, childLimits());
         } else {
-            throw createDeserializationException("Not an array", toArbitrary(peeked));
+            throw createDeserializationException("Not an object", toArbitrary(peeked));
         }
     }
 
@@ -405,6 +406,20 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
         Buffered(JsonNode node, RemainingLimits remainingLimits) {
             super(remainingLimits);
             this.node = node;
+        }
+
+        @Override
+        public TokenType lookahead() throws IOException {
+            if (complete) {
+                if (node.isObject()) {
+                    return TokenType.END_OBJECT;
+                }
+                if (node.isArray()) {
+                    return TokenType.END_ARRAY;
+                }
+                throw new JsonParseException("Expected an object or array but got " + node);
+            }
+            return super.lookahead();
         }
 
         @Override

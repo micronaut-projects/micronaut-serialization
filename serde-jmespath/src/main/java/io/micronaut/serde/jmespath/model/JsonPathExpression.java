@@ -1,4 +1,4 @@
 package io.micronaut.serde.jmespath.model;
 
-public interface PathExpression {
+public interface JsonPathExpression {
 }

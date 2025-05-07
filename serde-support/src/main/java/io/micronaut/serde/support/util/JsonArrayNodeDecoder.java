@@ -17,6 +17,7 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 final class JsonArrayNodeDecoder extends JsonNodeDecoder {
@@ -28,6 +29,14 @@ final class JsonArrayNodeDecoder extends JsonNodeDecoder {
         super(remainingLimits);
         iterator = node.values().iterator();
         skipValue();
+    }
+
+    @Override
+    public TokenType lookahead() throws IOException {
+        if (peeked == null) {
+            return TokenType.END_ARRAY;
+        }
+        return super.lookahead();
     }
 
     @Override

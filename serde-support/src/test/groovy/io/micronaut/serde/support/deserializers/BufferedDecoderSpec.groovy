@@ -5,6 +5,7 @@ import io.micronaut.json.JsonMapper
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.Decoder
 import io.micronaut.serde.LimitingStream
+import io.micronaut.serde.LookaheadDecoder
 import io.micronaut.serde.support.deserializers.buffer.BufferedDecoder
 import io.micronaut.serde.support.util.JsonNodeDecoder
 import org.intellij.lang.annotations.Language
@@ -38,6 +39,187 @@ class BufferedDecoderSpec extends Specification {
         buffered2.decodeKey() == "b"
         buffered2.decodeInt() == 2
         buffered2.finishStructure(true)
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'simple lookup'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "c": 3}""") as LookaheadDecoder
+
+        when:
+        def buffered = BufferedDecoder.of(outerDecoder)
+
+        then:
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+
+        when:
+        def bufferedObject1 = buffered.decodeObject()
+
+        then:
+        bufferedObject1.lookahead() == LookaheadDecoder.TokenType.KEY
+        bufferedObject1.decodeKey() == "a"
+        bufferedObject1.decodeInt() == 1
+        bufferedObject1.decodeKey() == "b"
+        bufferedObject1.skipValue()
+        bufferedObject1.decodeKey() == "c"
+        bufferedObject1.decodeInt() == 3
+        bufferedObject1.decodeKey() == null
+        bufferedObject1.finishStructure()
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+
+        when:
+        def bufferedObject2 = buffered.decodeObject()
+
+        then:
+        bufferedObject2.lookahead() == LookaheadDecoder.TokenType.KEY
+        bufferedObject2.decodeKey() == "b"
+        bufferedObject2.decodeInt() == 2
+        bufferedObject2.finishStructure(true)
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'object lookup'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "c": 3}""") as LookaheadDecoder
+
+        when:
+        def buffered = BufferedDecoder.of(outerDecoder)
+
+        then:
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+
+        when:
+        def bufferedObject1 = buffered.decodeObject()
+
+        then:
+        bufferedObject1.lookahead() == LookaheadDecoder.TokenType.KEY
+        bufferedObject1.decodeKey() == "a"
+        bufferedObject1.skipValue()
+        bufferedObject1.finishStructure(true)
+
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+
+        when:
+        def bufferedObject2 = buffered.decodeObject()
+
+        then:
+        bufferedObject2.lookahead() == LookaheadDecoder.TokenType.KEY
+        bufferedObject2.decodeKey() == "a"
+        bufferedObject2.skipValue()
+        bufferedObject2.finishStructure(true)
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'object nested lookup'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "nested": {"foo" : "bar", "abc" : "xyz"}}""") as LookaheadDecoder
+
+        when:
+        def buffered = BufferedDecoder.of(outerDecoder, false)
+
+        then:
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+
+        when:
+        def bufferedObject1 = buffered.decodeObject()
+
+        then:
+        moveToKeyValue(bufferedObject1, "nested")
+        def nestedDecoder1 = bufferedObject1.decodeObject()
+        moveToKeyValue(nestedDecoder1, "abc")
+        nestedDecoder1.lookahead() == LookaheadDecoder.TokenType.STRING
+        nestedDecoder1.decodeString() == "xyz"
+        bufferedObject1.finishStructure(true)
+
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_OBJECT
+
+        when:
+        def bufferedObject2 = buffered.decodeObject()
+
+        then:
+        moveToKeyValue(bufferedObject2, "nested")
+        def nestedDecoder2 = bufferedObject2.decodeObject()
+        moveToKeyValue(nestedDecoder2, "foo")
+        nestedDecoder2.lookahead() == LookaheadDecoder.TokenType.STRING
+        nestedDecoder2.decodeString() == "bar"
+        bufferedObject2.finishStructure(true)
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'array lookup'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def outerDecoder = createDecoder(ctx, """[1, 2, 3]""") as LookaheadDecoder
+
+        when:
+        def buffered = BufferedDecoder.of(outerDecoder)
+
+        then:
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_ARRAY
+
+        when:
+        def bufferedArray1 = buffered.decodeArray()
+
+        then:
+        bufferedArray1.lookahead() == LookaheadDecoder.TokenType.NUMBER
+        bufferedArray1.decodeInt() == 1
+        bufferedArray1.finishStructure(true)
+
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_ARRAY
+
+        when:
+        def bufferedArray2 = buffered.decodeArray()
+
+        then:
+        bufferedArray2.lookahead() == LookaheadDecoder.TokenType.NUMBER
+        bufferedArray1.decodeInt() == 2
+        bufferedArray2.finishStructure(true)
+        buffered.lookahead() == LookaheadDecoder.TokenType.START_ARRAY
+
+        cleanup:
+        ctx.close()
+    }
+
+    def 'reuse'() {
+        given:
+        def ctx = ApplicationContext.run()
+        def outerDecoder = createDecoder(ctx, """{"a": 1, "b": 2, "c": 3}""")
+
+        def buffered = BufferedDecoder.of(outerDecoder, false)
+
+        when:
+        def bufferedObjectDecoder = buffered.decodeObject()
+
+        then:
+        bufferedObjectDecoder.decodeKey() == "a"
+        bufferedObjectDecoder.decodeInt() == 1
+        bufferedObjectDecoder.decodeKey() == "b"
+        bufferedObjectDecoder.skipValue()
+        bufferedObjectDecoder.decodeKey() == "c"
+        bufferedObjectDecoder.decodeInt() == 3
+        bufferedObjectDecoder.decodeKey() == null
+        bufferedObjectDecoder.finishStructure()
+
+        and:
+        bufferedObjectDecoder.decodeKey() == "a"
+        bufferedObjectDecoder.decodeInt() == 1
+        bufferedObjectDecoder.decodeKey() == "b"
+        bufferedObjectDecoder.skipValue()
+        bufferedObjectDecoder.decodeKey() == "c"
+        bufferedObjectDecoder.decodeInt() == 3
+        bufferedObjectDecoder.decodeKey() == null
+        bufferedObjectDecoder.finishStructure()
 
         cleanup:
         ctx.close()
@@ -155,6 +337,17 @@ class BufferedDecoderSpec extends Specification {
 
         cleanup:
             ctx.close()
+    }
+
+    private static void moveToKeyValue(LookaheadDecoder decoder, String match) {
+        for (String key = decoder.decodeKey(); key != null; key = decoder.decodeKey()) {
+            if (match == key) {
+                return
+            } else {
+                decoder.skipValue()
+            }
+        }
+        throw new IllegalStateException("Not found: " + match)
     }
 
     private static Decoder createDecoder(ApplicationContext ctx, @Language("json") String json) {

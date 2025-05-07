@@ -57,14 +57,34 @@ public interface BufferedDecoder extends Decoder {
      * @return The primed decoder
      */
     static BufferedDecoder of(Decoder decoder) {
+        return of(decoder, true);
+    }
+
+    static BufferedDecoder of(Decoder decoder, boolean consumeValues) {
+        if (decoder instanceof BufferedDecoder bufferedDecoder) {
+            if (bufferedDecoder instanceof AbstractBufferedDecoder<?> abstractBufferedDecoder) {
+                abstractBufferedDecoder.reset(consumeValues);
+            }
+            return bufferedDecoder;
+        }
         if (decoder instanceof LookaheadDecoder lookaheadDecoder) {
             return of(lookaheadDecoder);
         }
-        return new BufferedDecoderRoot(decoder, true);
+        return new BufferedDecoderRoot(decoder, consumeValues);
     }
 
     static BufferedLookaheadDecoder of(LookaheadDecoder decoder) {
-        return new BufferedDecoderLookaheadRoot(decoder, true);
+        return of(decoder, true);
+    }
+
+    static BufferedLookaheadDecoder of(LookaheadDecoder decoder, boolean consumeValues) {
+        if (decoder instanceof BufferedLookaheadDecoder bufferedDecoder) {
+            if (bufferedDecoder instanceof AbstractBufferedDecoder<?> abstractBufferedDecoder) {
+                abstractBufferedDecoder.reset(consumeValues);
+            }
+            return bufferedDecoder;
+        }
+        return new BufferedDecoderLookaheadRoot(decoder, consumeValues);
     }
 
 }

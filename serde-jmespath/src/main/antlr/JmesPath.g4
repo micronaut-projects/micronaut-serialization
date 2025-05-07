@@ -33,7 +33,7 @@ grammar JmesPath;
 
 //grammar JmesPath;
 
-//jmesPathExpression : expression EOF ;
+jmesPathExpression : expression EOF ;
 
 expression
   : expression '.' chainedExpression # chainExpression
@@ -43,11 +43,11 @@ expression
   | expression COMPARATOR expression # comparisonExpression
   | expression '&&' expression # andExpression
   | expression '||' expression # orExpression
-  | propertySelectionExpression # identifierExpression
+  | keyExpression # identifierExpression
   | '(' expression ')' # parenExpression
   | wildcard # wildcardExpression
   | multiSelectList # multiSelectListExpression
-  | multiSelectHash # multiSelectHashExpression
+  | multiSelectKeyValues # multiSelectHashExpression
   | literal # literalExpression
   | functionExpression # functionCallExpression
   | expression '|' expression # pipeExpression
@@ -58,16 +58,16 @@ expression
 
 arrayExpression
     : '[' SIGNED_INT ']' #arrayIndexExpression
-    | ']' from=SIGNED_INT? ':' to=SIGNED_INT? (':' step=SIGNED_INT?)? ']' #arraySliceExpression
+    | '[' from=SIGNED_INT? ':' to=SIGNED_INT? (':' step=SIGNED_INT?)? ']' #arraySliceExpression
     | '[*]' #arrayStarExpression
     | '[?'  expression ']' #arrayFilterExpression
     | '[]' #flattenArrayExpression
     ;
 
 chainedExpression
-  : propertySelectionExpression
+  : keyExpression
   | multiSelectList
-  | multiSelectHash
+  | multiSelectKeyValues
   | functionExpression
   | wildcard
   ;
@@ -76,9 +76,9 @@ wildcard : '*' ;
 
 multiSelectList : '[' expression (',' expression)* ']' ;
 
-multiSelectHash : '{' keyValueExpression (',' keyValueExpression)* '}' ;
+multiSelectKeyValues : '{' keyValueExpression (',' keyValueExpression)* '}' ;
 
-keyValueExpression : propertySelectionExpression ':' expression ;
+keyValueExpression : keyExpression ':' expression ;
 
 COMPARATOR
   : '<'
@@ -109,7 +109,7 @@ fragment RAW_ESC : '\\' . ;
 
 literal : '`' jsonValue '`' ;
 
-propertySelectionExpression
+keyExpression
   : NAME
   | STRING
   | JSON_CONSTANT

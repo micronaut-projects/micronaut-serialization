@@ -28,6 +28,11 @@ sealed class BufferedDecoderRoot extends AbstractBufferedDecoder<Decoder> implem
     }
 
     @Override
+    protected void updateEntry(Decoder decoder) {
+        this.decoder = decoder;
+    }
+
+    @Override
     protected Decoder getDecoder(Decoder decoder) {
         return decoder;
     }

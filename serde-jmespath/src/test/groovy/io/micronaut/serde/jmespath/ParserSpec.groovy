@@ -1,18 +1,18 @@
 package io.micronaut.serde.jmespath
 
-import io.micronaut.serde.jmespath.model.ArrayAllExpression
-import io.micronaut.serde.jmespath.model.ArrayItemAtExpression
-import io.micronaut.serde.jmespath.model.ArraySliceExpression
-import io.micronaut.serde.jmespath.model.KeySelectionExpression
+import io.micronaut.serde.jmespath.model.ArrayWildcardExpressionJson
+import io.micronaut.serde.jmespath.model.ArrayItemAtExpressionJson
+import io.micronaut.serde.jmespath.model.ArraySliceExpressionJson
+import io.micronaut.serde.jmespath.model.KeyExpressionJson
 import spock.lang.Specification
 
 class ParserSpec extends Specification {
 
     def propertySelection() {
         when:
-            def expression = SerdeJmesPathParser.parse(query)[0] as KeySelectionExpression
+            def expression = SerdeJmesPathParser.parse(query)[0] as KeyExpressionJson
         then:
-            expression.propertyName() == value
+            expression.key() == value
 
         where:
             query                  || value
@@ -30,8 +30,8 @@ class ParserSpec extends Specification {
         when:
             def expressions = SerdeJmesPathParser.parse("foo.bar")
         then:
-            (expressions[0] as KeySelectionExpression).propertyName() == "foo"
-            (expressions[1] as KeySelectionExpression).propertyName() == "bar"
+            (expressions[0] as KeyExpressionJson).key() == "foo"
+            (expressions[1] as KeyExpressionJson).key() == "bar"
 
     }
 
@@ -39,9 +39,9 @@ class ParserSpec extends Specification {
         when:
             def expressions = SerdeJmesPathParser.parse("foo.bar[3]")
         then:
-            (expressions[0] as KeySelectionExpression).propertyName() == "foo"
-            (expressions[1] as KeySelectionExpression).propertyName() == "bar"
-            (expressions[2] as ArrayItemAtExpression).index() == 3
+            (expressions[0] as KeyExpressionJson).key() == "foo"
+            (expressions[1] as KeyExpressionJson).key() == "bar"
+            (expressions[2] as ArrayItemAtExpressionJson).index() == 3
 
     }
 
@@ -49,9 +49,9 @@ class ParserSpec extends Specification {
         when:
             def expressions = SerdeJmesPathParser.parse("foo.bar[*]")
         then:
-            (expressions[0] as KeySelectionExpression).propertyName() == "foo"
-            (expressions[1] as KeySelectionExpression).propertyName() == "bar"
-            (expressions[2] as ArrayAllExpression)
+            (expressions[0] as KeyExpressionJson).key() == "foo"
+            (expressions[1] as KeyExpressionJson).key() == "bar"
+            (expressions[2] as ArrayWildcardExpressionJson)
 
     }
 
@@ -59,9 +59,9 @@ class ParserSpec extends Specification {
         when:
             def expressions = SerdeJmesPathParser.parse(query)
         then:
-            (expressions[0] as KeySelectionExpression).propertyName() == "foo"
-            (expressions[1] as KeySelectionExpression).propertyName() == "bar"
-            def slice = (expressions[2] as ArraySliceExpression)
+            (expressions[0] as KeyExpressionJson).key() == "foo"
+            (expressions[1] as KeyExpressionJson).key() == "bar"
+            def slice = (expressions[2] as ArraySliceExpressionJson)
             slice.from() == from
             slice.to() == to
             slice.step() == step
@@ -82,8 +82,8 @@ class ParserSpec extends Specification {
         when:
             def expressions = SerdeJmesPathParser.parse("foo[1]")
         then:
-            (expressions[0] as KeySelectionExpression).propertyName() == "foo"
-            (expressions[1] as ArrayItemAtExpression).index() == 1
+            (expressions[0] as KeyExpressionJson).key() == "foo"
+            (expressions[1] as ArrayItemAtExpressionJson).index() == 1
 
     }
 

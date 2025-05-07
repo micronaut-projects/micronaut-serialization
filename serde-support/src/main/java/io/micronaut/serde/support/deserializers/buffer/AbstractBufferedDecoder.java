@@ -17,7 +17,7 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
     private boolean consumeValues;
 
     private final List<E> buffer = new ArrayList<>();
-    private int index = -1;
+    protected int index = -1;
 
     private boolean lastConsumeLeftElements;
     private boolean finished;
@@ -36,6 +36,10 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
     }
 
     protected abstract void valueConsumed();
+
+    boolean isFinished() {
+        return finished;
+    }
 
     protected BufferedArrayDecoder createArrayDecoder(Decoder delegate, boolean consumeValues) {
         return new BufferedArrayDecoder(delegate, consumeValues);
@@ -57,6 +61,10 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
             return buffer.get(index);
         }
         return null;
+    }
+
+    protected void updateEntry(E item) {
+        buffer.set(index, item);
     }
 
     @Override
@@ -209,7 +217,7 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
             result = bufferedObjectDecoder;
         } else {
             result = createObjectDecoder(bufferedDecoder, consumeValues);
-            buffer.set(index, updateItem(bufferEntry, bufferedDecoder));
+            updateEntry(updateItem(bufferEntry, bufferedDecoder));
         }
         return result;
     }
@@ -226,14 +234,24 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
         }
         lastConsumeLeftElements = consumeLeftElements;
         finished = true;
+        index = -1;
+        for (E e : buffer) {
+            Decoder decoder = getDecoder(e);
+            if (decoder instanceof AbstractBufferedDecoder<?> bufferedDecoder) {
+                bufferedDecoder.finishStructure(consumeLeftElements);
+            }
+        }
     }
 
     void reset(boolean consumeValues) {
         if (!finished) {
             throw new IllegalStateException("Previous decoder didn't finish");
         }
-        this.consumeValues = consumeValues;
-        index = -1;
+        for (E e : buffer) {
+            if (e instanceof AbstractBufferedDecoder<?> bufferedDecoder) {
+                bufferedDecoder.reset(consumeValues);
+            }
+        }
     }
 
     @Override
