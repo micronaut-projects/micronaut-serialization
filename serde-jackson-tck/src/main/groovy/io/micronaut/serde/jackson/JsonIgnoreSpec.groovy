@@ -290,7 +290,7 @@ class Test {
     }
 }
 """)
-        def testInstance = newInstance(context, 'test.Test', [value: 'test'])
+        def testInstance = newInstance(context, 'test.Test', [value: 'test', ignored:true])
         def parent = newInstance(context, 'test.Parent', [map:[foo:testInstance], list:[testInstance]])
 
 
