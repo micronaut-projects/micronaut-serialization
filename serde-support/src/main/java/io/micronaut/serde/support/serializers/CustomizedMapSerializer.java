@@ -54,7 +54,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
             final boolean isStringKey = keyGeneric.getType().equals(String.class) || CharSequence.class.isAssignableFrom(keyGeneric.getType());
             // if there are annotations on the map property we need to combine the annotation metadata with the generic.
             @SuppressWarnings("unchecked")
-            Argument<V> valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
+            final Argument<V> valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
 
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
             return new ObjectSerializer<>() {

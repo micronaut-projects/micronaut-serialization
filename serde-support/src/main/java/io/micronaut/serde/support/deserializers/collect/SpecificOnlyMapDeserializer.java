@@ -42,7 +42,7 @@ abstract class SpecificOnlyMapDeserializer<K, V, M extends Map<K, V>> implements
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length == 2) {
             @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
-            @SuppressWarnings("unchecked") Argument<V> valueType = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
+            @SuppressWarnings("unchecked") final Argument<V> valueType = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
             final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
                 .createSpecific(context, valueType);
             return createSpecific(keyType, valueType, valueDeser);

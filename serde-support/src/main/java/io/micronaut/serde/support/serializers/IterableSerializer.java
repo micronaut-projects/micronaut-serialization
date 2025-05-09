@@ -35,11 +35,11 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
             throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length > 0) {
+            // if there are annotations on the collection property we need to combine the annotation metadata with the generic.
             @SuppressWarnings("unchecked") final Argument<T> generic = reconstructGenericWithParentMetadata(type, (Argument<T>) generics[0]);
             if (generic.getType() == String.class) {
                 return (Serializer) StringIterableSerializer.INSTANCE;
             }
-            // if there are annotations on the collection property we need to combine the annotation metadata with the generic.
             Serializer<? super T> componentSerializer = context.findSerializer(generic)
                     .createSpecific(context, generic);
             return new CustomizedIterableSerializer<>(generic, componentSerializer);
