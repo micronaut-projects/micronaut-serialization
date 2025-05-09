@@ -22,6 +22,8 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
 
+import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGenericWithParentMetadata;
+
 /**
  * A serializer for any iterable.
  * @param <T> The generic type
@@ -33,7 +35,8 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
             throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length > 0) {
-            @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) generics[0];
+            // if there are annotations on the collection property we need to combine the annotation metadata with the generic.
+            @SuppressWarnings("unchecked") final Argument<T> generic = reconstructGenericWithParentMetadata(type, (Argument<T>) generics[0]);
             if (generic.getType() == String.class) {
                 return (Serializer) StringIterableSerializer.INSTANCE;
             }

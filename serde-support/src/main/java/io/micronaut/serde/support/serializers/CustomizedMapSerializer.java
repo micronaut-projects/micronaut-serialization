@@ -28,6 +28,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableSerializer;
 
 import java.io.IOException;
@@ -51,7 +52,10 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
             final Argument<K> keyGeneric = (Argument<K>) generics[0];
             final Serializer<K> keySerializer = findKeySerializer(context, keyGeneric);
             final boolean isStringKey = keyGeneric.getType().equals(String.class) || CharSequence.class.isAssignableFrom(keyGeneric.getType());
-            final Argument<V> valueGeneric = (Argument<V>) generics[1];
+            // if there are annotations on the map property we need to combine the annotation metadata with the generic.
+            @SuppressWarnings("unchecked")
+            final Argument<V> valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
+
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
             return new ObjectSerializer<>() {
 
