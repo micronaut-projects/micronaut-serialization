@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -42,10 +41,7 @@ abstract class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> im
         if (ArrayUtils.isEmpty(generics)) {
             throw new SerdeException("Cannot deserialize raw list");
         }
-        @SuppressWarnings("unchecked") Argument<E> collectionItemArgument = (Argument<E>) generics[0];
-        if (type.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
-            collectionItemArgument = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, collectionItemArgument);
-        }
+        @SuppressWarnings("unchecked") final Argument<E> collectionItemArgument = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<E>) generics[0]);
         final Deserializer<? extends E> valueDeser = context.findDeserializer(collectionItemArgument)
             .createSpecific(context, collectionItemArgument);
 

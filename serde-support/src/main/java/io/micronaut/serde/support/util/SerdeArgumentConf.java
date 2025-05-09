@@ -92,12 +92,12 @@ public final class SerdeArgumentConf {
      * @param <V> The value generic
      */
     public static <V> @NotNull Argument<V> reconstructGenericWithParentMetadata(@NotNull Argument<?> parentType, @NotNull Argument<V> valueGeneric) {
-        return Argument.of(
-            valueGeneric.getType(),
-            valueGeneric.getName(),
-            new AnnotationMetadataHierarchy(true, parentType.getAnnotationMetadata(), valueGeneric.getAnnotationMetadata()),
-            valueGeneric.getTypeParameters()
-        );
+        if (parentType.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
+            AnnotationMetadataHierarchy reconstructed = new AnnotationMetadataHierarchy(true, parentType.getAnnotationMetadata(), valueGeneric.getAnnotationMetadata());
+            return valueGeneric
+                .withAnnotationMetadata(reconstructed);
+        }
+        return valueGeneric;
     }
 
     /**

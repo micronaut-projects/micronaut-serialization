@@ -25,7 +25,6 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
@@ -53,13 +52,11 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
             final Argument<K> keyGeneric = (Argument<K>) generics[0];
             final Serializer<K> keySerializer = findKeySerializer(context, keyGeneric);
             final boolean isStringKey = keyGeneric.getType().equals(String.class) || CharSequence.class.isAssignableFrom(keyGeneric.getType());
-            Argument<V> valueGeneric = (Argument<V>) generics[1];
             // if there are annotations on the map property we need to combine the annotation metadata with the generic.
-            if (type.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
-                valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, valueGeneric);
-            }
+            @SuppressWarnings("unchecked")
+            Argument<V> valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
+
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
-            Argument<V> finalValueGeneric = valueGeneric;
             return new ObjectSerializer<>() {
 
                 @Override
@@ -84,7 +81,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                         if (v == null) {
                             encoder.encodeNull();
                         } else {
-                            valSerializer.serialize(encoder, context, finalValueGeneric, v);
+                            valSerializer.serialize(encoder, context, valueGeneric, v);
                         }
                     }
                 }
