@@ -17,13 +17,13 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -91,7 +91,7 @@ public final class SerdeArgumentConf {
      * @return The new argument
      * @param <V> The value generic
      */
-    public static <V> @NotNull Argument<V> reconstructGenericWithParentMetadata(@NotNull Argument<?> parentType, @NotNull Argument<V> valueGeneric) {
+    public static <V> @NonNull Argument<V> reconstructGenericWithParentMetadata(@NonNull Argument<?> parentType, @NonNull Argument<V> valueGeneric) {
         if (parentType.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
             AnnotationMetadataHierarchy reconstructed = new AnnotationMetadataHierarchy(true, parentType.getAnnotationMetadata(), valueGeneric.getAnnotationMetadata());
             return valueGeneric
