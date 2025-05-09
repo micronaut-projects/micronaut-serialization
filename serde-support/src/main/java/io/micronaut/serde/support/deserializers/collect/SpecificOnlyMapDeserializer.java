@@ -20,8 +20,10 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.DeserializerRegistrar;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
 
 import java.io.IOException;
@@ -41,7 +43,10 @@ abstract class SpecificOnlyMapDeserializer<K, V, M extends Map<K, V>> implements
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length == 2) {
             @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
-            @SuppressWarnings("unchecked") final Argument<V> valueType = (Argument<V>) generics[1];
+            @SuppressWarnings("unchecked") Argument<V> valueType = (Argument<V>) generics[1];
+            if (type.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
+                valueType = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, valueType);
+            }
             final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
                 .createSpecific(context, valueType);
             return createSpecific(keyType, valueType, valueDeser);

@@ -25,9 +25,11 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableSerializer;
 
 import java.io.IOException;
@@ -51,8 +53,13 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
             final Argument<K> keyGeneric = (Argument<K>) generics[0];
             final Serializer<K> keySerializer = findKeySerializer(context, keyGeneric);
             final boolean isStringKey = keyGeneric.getType().equals(String.class) || CharSequence.class.isAssignableFrom(keyGeneric.getType());
-            final Argument<V> valueGeneric = (Argument<V>) generics[1];
+            Argument<V> valueGeneric = (Argument<V>) generics[1];
+            // if there are annotations on the map property we need to combine the annotation metadata with the generic.
+            if (type.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
+                valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, valueGeneric);
+            }
             final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+            Argument<V> finalValueGeneric = valueGeneric;
             return new ObjectSerializer<>() {
 
                 @Override
@@ -77,7 +84,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                         if (v == null) {
                             encoder.encodeNull();
                         } else {
-                            valSerializer.serialize(encoder, context, valueGeneric, v);
+                            valSerializer.serialize(encoder, context, finalValueGeneric, v);
                         }
                     }
                 }

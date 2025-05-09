@@ -240,6 +240,77 @@ class Test {
         context.close()
     }
 
+    void "test @JsonIgnoreProperties on collections"() {
+        given:
+        def context = buildContext('test.Parent', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.Map;
+import java.util.List;
+
+@Serdeable
+class Parent {
+    @JsonIgnoreProperties("ignored")
+    private Map<String, Test> map;
+    @JsonIgnoreProperties("ignored")
+    private List<Test> list;
+    public Map<String, Test> getMap() {
+        return map;
+    }
+    public void setMap(Map<String, Test> map) {
+        this.map = map;
+    }
+    public List<Test> getList() {
+        return list;
+    }
+    public void setList(List<Test> list) {
+        this.list = list;
+    }
+}
+
+@Serdeable
+class Test {
+    private String value;
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+""")
+        def testInstance = newInstance(context, 'test.Test', [value: 'test'])
+        def parent = newInstance(context, 'test.Parent', [map:[foo:testInstance], list:[testInstance]])
+
+
+        when:
+        def result = writeJson(jsonMapper, parent)
+
+        then:
+        result == '{"map":{"foo":{"value":"test"}},"list":[{"value":"test"}]}'
+
+        when:"deserialization happens"
+        def value = jsonMapper.readValue('{"map":{"foo":{"value":"test", "ignored":true}},"list":[{"value":"test", "ignored":true}]}',  parent.getClass())
+
+        then:"the property is ignored for the purposes of deserialization"
+        value.map.foo.ignored == false
+        value.list[0].ignored == false
+
+        cleanup:
+        context.close()
+    }
+
     void "test simple @JsonIncludeProperties"() {
         given:
         def context = buildContext('test.Test', """

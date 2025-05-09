@@ -23,6 +23,7 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -81,6 +82,22 @@ public final class SerdeArgumentConf {
         }
         this.order = order;
         this.subtypeInfo = SubtypeInfo.createForProperty(annotationMetadata);
+    }
+
+    /**
+     * Reconstruct the generic type with parent metadata if necessary.
+     * @param parentType The parent type
+     * @param valueGeneric The generic
+     * @return The new argument
+     * @param <V> The value generic
+     */
+    public static <V> @NotNull Argument<V> reconstructGenericWithParentMetadata(@NotNull Argument<?> parentType, @NotNull Argument<V> valueGeneric) {
+        return Argument.of(
+            valueGeneric.getType(),
+            valueGeneric.getName(),
+            new AnnotationMetadataHierarchy(true, parentType.getAnnotationMetadata(), valueGeneric.getAnnotationMetadata()),
+            valueGeneric.getTypeParameters()
+        );
     }
 
     /**

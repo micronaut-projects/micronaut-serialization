@@ -17,9 +17,12 @@ package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
+import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableSerializer;
 
 /**
@@ -33,9 +36,13 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
             throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
         if (generics.length > 0) {
-            @SuppressWarnings("unchecked") final Argument<T> generic = (Argument<T>) generics[0];
+            @SuppressWarnings("unchecked") Argument<T> generic = (Argument<T>) generics[0];
             if (generic.getType() == String.class) {
                 return (Serializer) StringIterableSerializer.INSTANCE;
+            }
+            // if there are annotations on the collection property we need to combine the annotation metadata with the generic.
+            if (type.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
+                generic = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, generic);
             }
             Serializer<? super T> componentSerializer = context.findSerializer(generic)
                     .createSpecific(context, generic);
