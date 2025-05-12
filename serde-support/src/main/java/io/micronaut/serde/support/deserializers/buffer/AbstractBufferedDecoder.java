@@ -8,34 +8,34 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 @Internal
-abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder implements BufferedDecoder permits BufferedArrayDecoder, BufferedDecoderRoot, BufferedObjectDecoder {
+abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implements BufferedDecoder permits BufferedArrayDecoder, BufferedDecoderRoot, BufferedObjectDecoder {
     protected final Decoder delegate;
     private boolean consumeValues;
 
-    private final List<E> buffer = new ArrayList<>();
     protected int index = -1;
 
     private boolean lastConsumeLeftElements;
-    private boolean finished;
+    private boolean finished = true;
 
     AbstractBufferedDecoder(Decoder delegate, boolean consumeValues) {
         this.delegate = delegate;
         this.consumeValues = consumeValues;
     }
 
-    protected abstract Decoder getDecoder(E item);
+    protected abstract <R extends Decoder> R nextDecoder(boolean consumeValues,
+                                                         DecoderProvider<R> provider,
+                                                         DecoderRemapper<R> remapper) throws IOException;
 
-    protected abstract E createItem(Decoder decoder);
+    protected abstract void skipValue(boolean consumeValues) throws IOException ;
 
-    protected E updateItem(E item, Decoder decoder) {
-        return item;
+    protected final Decoder nextDecoder(boolean consumeValues) throws IOException {
+        return nextDecoder(consumeValues, delegate::decodeBuffer, decoder -> decoder);
     }
 
-    protected abstract void valueConsumed();
+    protected abstract boolean decodeNull(boolean consumeValues) throws IOException;
 
     boolean isFinished() {
         return finished;
@@ -49,24 +49,6 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
         return new BufferedObjectDecoder(delegate, consumeValues);
     }
 
-    @Nullable
-    protected E findBufferEntry() {
-        if (index == -1) {
-            if (!buffer.isEmpty()) {
-                // Start reading from the buffer
-                index = 0;
-                return buffer.get(index);
-            }
-        } else if (buffer.size() > index) {
-            return buffer.get(index);
-        }
-        return null;
-    }
-
-    protected void updateEntry(E item) {
-        buffer.set(index, item);
-    }
-
     @Override
     public boolean hasNextArrayValue() throws IOException {
         throw new UnsupportedOperationException();
@@ -78,72 +60,21 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
         throw new UnsupportedOperationException();
     }
 
+    protected abstract Collection<Decoder> nestedDecoders();
+
     @Override
     protected Decoder delegate() throws IOException {
-        E bufferEntry = findBufferEntry();
-        if (bufferEntry == null) {
-            if (consumeValues) {
-                // Trigger cleanup
-                valueConsumed();
-                return delegate;
-            } else {
-                return bufferCurrentValue();
-            }
-        }
-        consumeValueIfNeeded();
-        return getDecoder(bufferEntry);
-    }
-
-    private void consumeValueIfNeeded() {
-        if (consumeValues) {
-            buffer.remove(index);
-            index = Math.min(index, buffer.size());
-        }
-        valueConsumed();
+        return nextDecoder(consumeValues);
     }
 
     @Override
     public boolean decodeNull() throws IOException {
-        E bufferEntry = findBufferEntry();
-        if (bufferEntry == null) {
-            if (consumeValues) {
-                // Trigger cleanup
-                if (delegate.decodeNull()) {
-                    valueConsumed();
-                    return true;
-                }
-                return false;
-            } else {
-                return bufferCurrentValue().decodeNull();
-            }
-        }
-        consumeValueIfNeeded();
-        return getDecoder(bufferEntry).decodeNull();
+        return decodeNull(consumeValues);
     }
 
     @Override
-    public final void skipValue() throws IOException {
-        E bufferEntry = findBufferEntry();
-        if (bufferEntry == null) {
-            bufferCurrentValue();
-        } else {
-            index++;
-        }
-    }
-
-    private Decoder bufferCurrentValue() throws IOException {
-        Decoder decoder = delegate.decodeBuffer();
-        putToBuffer(decoder);
-        return decoder;
-    }
-
-    private void putToBuffer(Decoder decoder) {
-        if (index != -1 && buffer.size() != index) {
-            throw new IllegalStateException("Illegal state");
-        }
-        buffer.add(createItem(decoder));
-        valueConsumed();
-        index = buffer.size();
+    public void skipValue() throws IOException {
+        skipValue(false);
     }
 
     @Override
@@ -158,26 +89,17 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
 
     @Override
     public BufferedDecoder decodeArray(Argument<?> type) throws IOException {
-        E bufferEntry = findBufferEntry();
-        if (bufferEntry == null) {
-            BufferedArrayDecoder decoder = createArrayDecoder(delegate.decodeArray(type), consumeValues);
-            if (!consumeArray()) {
-                putToBuffer(decoder);
-            } else {
-                valueConsumed();
+        return nextDecoder(
+            consumeArray(),
+            () -> createArrayDecoder(delegate.decodeArray(type), consumeValues),
+            decoder -> {
+                if (decoder instanceof BufferedArrayDecoder arrayDecoder) {
+                    arrayDecoder.reset(consumeValues);
+                    return arrayDecoder;
+                }
+                return createArrayDecoder(decoder, consumeValues);
             }
-            return decoder;
-        }
-        Decoder bufferedDecoder = getDecoder(bufferEntry);
-        BufferedArrayDecoder result;
-        if (bufferedDecoder instanceof BufferedArrayDecoder bufferedArrayDecoder) {
-            bufferedArrayDecoder.reset(consumeValues);
-            result = bufferedArrayDecoder;
-        } else {
-            result = createArrayDecoder(bufferedDecoder, consumeValues);
-            buffer.set(index, createItem(bufferedDecoder));
-        }
-        return result;
+        );
     }
 
     protected boolean consumeArray() {
@@ -200,26 +122,17 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
     }
 
     private BufferedObjectDecoder decodeObject(Argument<?> type, boolean consumeValues) throws IOException {
-        E bufferEntry = findBufferEntry();
-        if (bufferEntry == null) {
-            BufferedObjectDecoder decoder = createObjectDecoder(delegate.decodeObject(type), consumeValues);
-            if (!consumeObject()) {
-                putToBuffer(decoder);
-            } else {
-                valueConsumed();
+        return nextDecoder(
+            consumeObject(),
+            () -> createObjectDecoder(delegate.decodeObject(type), consumeValues),
+            decoder -> {
+                if (decoder instanceof BufferedObjectDecoder d) {
+                    d.reset(consumeValues);
+                    return d;
+                }
+                return createObjectDecoder(decoder, consumeValues);
             }
-            return decoder;
-        }
-        Decoder bufferedDecoder = getDecoder(bufferEntry);
-        BufferedObjectDecoder result;
-        if (bufferedDecoder instanceof BufferedObjectDecoder bufferedObjectDecoder) {
-            bufferedObjectDecoder.reset(consumeValues);
-            result = bufferedObjectDecoder;
-        } else {
-            result = createObjectDecoder(bufferedDecoder, consumeValues);
-            updateEntry(updateItem(bufferEntry, bufferedDecoder));
-        }
-        return result;
+        );
     }
 
     @Override
@@ -229,26 +142,25 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
-        if (!consumeLeftElements && !buffer.isEmpty() && index != buffer.size()) {
-            throw new IllegalStateException("Not all items consumed");
-        }
+//        if (!consumeLeftElements && !buffer.isEmpty() && index != buffer.size()) {
+//            throw new IllegalStateException("Not all items consumed");
+//        }
         lastConsumeLeftElements = consumeLeftElements;
         finished = true;
         index = -1;
-        for (E e : buffer) {
-            Decoder decoder = getDecoder(e);
-            if (decoder instanceof AbstractBufferedDecoder<?> bufferedDecoder) {
+        for (Decoder decoder : nestedDecoders()) {
+            if (decoder instanceof AbstractBufferedDecoder bufferedDecoder) {
                 bufferedDecoder.finishStructure(consumeLeftElements);
             }
         }
     }
 
-    void reset(boolean consumeValues) {
+    protected void reset(boolean consumeValues) {
         if (!finished) {
             throw new IllegalStateException("Previous decoder didn't finish");
         }
-        for (E e : buffer) {
-            if (e instanceof AbstractBufferedDecoder<?> bufferedDecoder) {
+        for (Decoder decoder : nestedDecoders()) {
+            if (decoder instanceof AbstractBufferedDecoder bufferedDecoder) {
                 bufferedDecoder.reset(consumeValues);
             }
         }
@@ -261,8 +173,8 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
 
     @Override
     public void close() throws IOException {
-        for (E e : buffer) {
-            if (e instanceof AbstractBufferedDecoder<?> bufferedDecoder) {
+        for (Decoder decoder : nestedDecoders()) {
+            if (decoder instanceof AbstractBufferedDecoder bufferedDecoder) {
                 bufferedDecoder.close();
             }
         }
@@ -271,6 +183,18 @@ abstract sealed class AbstractBufferedDecoder<E> extends DelegatingDecoder imple
 
     protected void internalFinishStructure() throws IOException {
         delegate.finishStructure(lastConsumeLeftElements);
+    }
+
+    protected interface DecoderProvider<R extends Decoder> {
+
+        R provide() throws IOException;
+
+    }
+
+    protected interface DecoderRemapper<R extends Decoder> {
+
+        R remap(Decoder decoder) throws IOException;
+
     }
 
 }

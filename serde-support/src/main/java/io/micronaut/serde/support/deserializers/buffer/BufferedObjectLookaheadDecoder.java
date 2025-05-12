@@ -25,29 +25,48 @@ import java.io.IOException;
 @Internal
 final class BufferedObjectLookaheadDecoder extends BufferedObjectDecoder implements BufferedLookaheadDecoder {
 
-    private final LookaheadDecoder lookaheadDecoder;
-
     BufferedObjectLookaheadDecoder(LookaheadDecoder delegate, boolean consumeValues) {
         super(delegate, consumeValues);
-        this.lookaheadDecoder = delegate;
     }
 
     @Override
     public TokenType lookahead() throws IOException {
-        TokenType lookahead = lookaheadDecoder.lookahead();
-//        if (lookahead == TokenType.START_OBJECT || index == -1) {
-//            return TokenType.START_OBJECT;
-//        }
-
-        Entry bufferEntry = findBufferEntry();
-        if (bufferEntry != null) {
-            if (currentKey == null) {
+        if (bufferIterator != null) {
+            if (currentEntry != null && currentEntry.getValue() instanceof LookaheadDecoder lookaheadDecoder) {
+                if (lookaheadDecoder instanceof BufferedObjectDecoder) {
+                    return TokenType.START_OBJECT;
+                }
+                if (lookaheadDecoder instanceof BufferedArrayDecoder) {
+                    return TokenType.START_OBJECT;
+                }
+                return lookaheadDecoder.lookahead();
+            }
+            if (bufferIterator.hasNext()) {
                 return TokenType.KEY;
             }
-            return ((LookaheadDecoder) bufferEntry.decoder()).lookahead();
         }
-        return lookahead;
+        if (delegate instanceof LookaheadDecoder lookaheadDecoder) {
+            return lookaheadDecoder.lookahead();
+        }
+        throw new IOException("Unsupported LookaheadDecoder: " + decodeKey());
     }
+
+//    @Override
+//    public TokenType lookahead() throws IOException {
+//        TokenType lookahead = lookaheadDecoder.lookahead();
+////        if (lookahead == TokenType.START_OBJECT || index == -1) {
+////            return TokenType.START_OBJECT;
+////        }
+//
+//        Entry bufferEntry = findBufferEntry();
+//        if (bufferEntry != null) {
+//            if (currentKey == null) {
+//                return TokenType.KEY;
+//            }
+//            return ((LookaheadDecoder) bufferEntry.decoder()).lookahead();
+//        }
+//        return lookahead;
+//    }
 
     @Override
     protected BufferedArrayDecoder createArrayDecoder(Decoder delegate, boolean consumeValues) {

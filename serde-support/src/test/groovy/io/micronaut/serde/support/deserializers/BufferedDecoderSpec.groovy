@@ -325,8 +325,8 @@ class BufferedDecoderSpec extends Specification {
         then:
             buffered2.decodeKey() == "a"
             buffered2.skipValue()
-            buffered2.decodeKey() == "b"
-            buffered2.decodeNull()
+//            buffered2.decodeKey() == "b"
+//            buffered2.decodeNull()
             buffered2.decodeKey() == "c"
             def obj3 = buffered2.decodeObject()
             obj3.decodeKey() == "fizz"

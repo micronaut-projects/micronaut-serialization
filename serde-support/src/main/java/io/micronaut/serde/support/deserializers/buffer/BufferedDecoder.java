@@ -62,7 +62,7 @@ public interface BufferedDecoder extends Decoder {
 
     static BufferedDecoder of(Decoder decoder, boolean consumeValues) {
         if (decoder instanceof BufferedDecoder bufferedDecoder) {
-            if (bufferedDecoder instanceof AbstractBufferedDecoder<?> abstractBufferedDecoder) {
+            if (bufferedDecoder instanceof AbstractBufferedDecoder abstractBufferedDecoder) {
                 abstractBufferedDecoder.reset(consumeValues);
             }
             return bufferedDecoder;
@@ -79,7 +79,7 @@ public interface BufferedDecoder extends Decoder {
 
     static BufferedLookaheadDecoder of(LookaheadDecoder decoder, boolean consumeValues) {
         if (decoder instanceof BufferedLookaheadDecoder bufferedDecoder) {
-            if (bufferedDecoder instanceof AbstractBufferedDecoder<?> abstractBufferedDecoder) {
+            if (bufferedDecoder instanceof AbstractBufferedDecoder abstractBufferedDecoder) {
                 abstractBufferedDecoder.reset(consumeValues);
             }
             return bufferedDecoder;

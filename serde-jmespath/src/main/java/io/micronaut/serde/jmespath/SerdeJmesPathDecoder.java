@@ -63,6 +63,7 @@ public class SerdeJmesPathDecoder {
                                     result = new NodePathResult(JsonNode.nullNode());
                                 }
                                 selection.put(pathEntry.getKey(), result);
+                                bufferedDecoder.close();
                             }
                         }
                         return new ObjectPathResult(selection);

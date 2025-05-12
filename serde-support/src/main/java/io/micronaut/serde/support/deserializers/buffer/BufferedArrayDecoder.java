@@ -16,25 +16,100 @@
 package io.micronaut.serde.support.deserializers.buffer;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.Decoder;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
 
 @Internal
-sealed class BufferedArrayDecoder extends AbstractBufferedDecoder<Decoder> implements BufferedDecoder permits BufferedArrayLookaheadDecoder {
+sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements BufferedDecoder permits BufferedArrayLookaheadDecoder {
 
     private boolean finished;
-    private boolean nextArrayValuePresent;
+    private final List<Decoder> buffer = new ArrayList<>();
+    @Nullable
+    private ListIterator<Decoder> bufferIterator;
 
     BufferedArrayDecoder(Decoder delegate, boolean consumeValues) {
         super(delegate, consumeValues);
     }
 
     @Override
-    void reset(boolean consumeValues) {
-        super.reset(consumeValues);
-        finished = false;
-        nextArrayValuePresent = false;
+    protected Collection<Decoder> nestedDecoders() {
+        return buffer;
+    }
+
+    protected Decoder lookupDecoder() {
+        if (bufferIterator != null) {
+            if (bufferIterator.hasNext()) {
+                Decoder next = bufferIterator.next();
+                bufferIterator.previous();
+                return next;
+            }
+        }
+        return delegate;
+    }
+
+    @Override
+    protected <R extends Decoder> R nextDecoder(boolean consumeValues, DecoderProvider<R> provider, DecoderRemapper<R> remapper) throws IOException {
+        if (bufferIterator != null) {
+            if (bufferIterator.hasNext()) {
+                Decoder decoder = bufferIterator.next();
+                R remapperDecoder = remapper.remap(decoder);
+                if (consumeValues) {
+                    bufferIterator.remove();
+                } else {
+                    bufferIterator.set(remapperDecoder);
+                }
+                return remapperDecoder;
+            }
+            bufferIterator = null; // End of buffered entries
+        }
+        R decoder = provider.provide();
+        if (!consumeValues) {
+            buffer.add(decoder);
+        }
+        return decoder;
+    }
+
+    @Override
+    protected void skipValue(boolean consumeValues) throws IOException {
+        if (bufferIterator != null) {
+            if (bufferIterator.hasNext()) {
+                bufferIterator.next();
+                if (consumeValues) {
+                    bufferIterator.remove();
+                }
+            }
+            bufferIterator = null; // End of buffered entries
+        }
+        if (!consumeValues) {
+            buffer.add(delegate.decodeBuffer());
+        } else {
+            delegate.skipValue();
+        }
+    }
+
+    @Override
+    protected boolean decodeNull(boolean consumeValues) throws IOException {
+        if (bufferIterator != null) {
+            if (bufferIterator.hasNext()) {
+                Decoder decoder = bufferIterator.next();
+                if (consumeValues) {
+                    bufferIterator.remove();
+                }
+                return decoder.decodeNull();
+            }
+            bufferIterator = null; // End of buffered entries
+        }
+        Decoder decoder = delegate.decodeBuffer();
+        if (!consumeValues) {
+            buffer.add(decoder);
+        }
+        return decoder.decodeNull();
     }
 
     @Override
@@ -42,33 +117,36 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder<Decoder> imple
         if (finished) {
             return false;
         }
-        Decoder bufferEntry = findBufferEntry();
-        if (bufferEntry != null) {
-            return true;
+        if (bufferIterator != null) {
+            if (bufferIterator.hasNext()) {
+                return true;
+            }
+            bufferIterator = null; // End of buffered entries
         }
-        if (delegate.hasNextArrayValue()) {
-            nextArrayValuePresent = true;
-            return true;
-        } else {
+        if (!delegate.hasNextArrayValue()) {
             finished = true;
             return false;
         }
+        return true;
     }
 
     @Override
-    protected Decoder getDecoder(Decoder item) {
-        return item;
+    protected void reset(boolean consumeValues) {
+        super.reset(consumeValues);
+        finished = false;
+        bufferIterator = buffer.listIterator();
     }
 
     @Override
-    protected Decoder createItem(Decoder decoder) {
-        return decoder;
+    public void finishStructure() throws IOException {
+        super.finishStructure();
+        bufferIterator = buffer.listIterator();
     }
 
     @Override
-    protected void valueConsumed() {
-        if (nextArrayValuePresent) {
-            nextArrayValuePresent = false;
-        }
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        bufferIterator = buffer.listIterator();
     }
+
 }

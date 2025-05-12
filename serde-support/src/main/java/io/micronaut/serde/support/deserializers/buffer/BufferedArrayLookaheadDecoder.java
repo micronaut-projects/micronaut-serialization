@@ -25,20 +25,18 @@ import java.io.IOException;
 @Internal
 final class BufferedArrayLookaheadDecoder extends BufferedArrayDecoder implements BufferedLookaheadDecoder {
 
-    private final LookaheadDecoder lookaheadDecoder;
 
     BufferedArrayLookaheadDecoder(LookaheadDecoder delegate, boolean consumeValues) {
         super(delegate, consumeValues);
-        this.lookaheadDecoder = delegate;
     }
 
     @Override
     public TokenType lookahead() throws IOException {
-        LookaheadDecoder bufferEntry = (LookaheadDecoder) findBufferEntry();
-        if (bufferEntry != null) {
-            return bufferEntry.lookahead();
+        Decoder decoder = lookupDecoder();
+        if (decoder instanceof LookaheadDecoder lookaheadDecoder) {
+            return lookaheadDecoder.lookahead();
         }
-        return lookaheadDecoder.lookahead();
+        throw new IOException("Unsupported LookaheadDecoder: " + decoder);
     }
 
     @Override
