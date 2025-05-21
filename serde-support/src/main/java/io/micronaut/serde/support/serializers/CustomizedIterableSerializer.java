@@ -48,18 +48,18 @@ final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
         throws IOException {
         int index = 0;
         try (Encoder array = encoder.encodeArray(type)) {
-            try {
-                for (T t : value) {
+            for (T t : value) {
+                try {
                     if (t == null) {
                         array.encodeNull();
                     } else {
                         componentSerializer.serialize(array, context, generic, t);
                     }
+                    index++;
+                } catch (SerdeException e) {
+                    e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
+                    throw e;
                 }
-                index++;
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
-                throw e;
             }
         }
     }

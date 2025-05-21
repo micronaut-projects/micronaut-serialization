@@ -59,6 +59,7 @@ final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>>, Se
                         index++;
                     } catch (SerdeException e) {
                         e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
+                        throw e;
                     }
                 }
                 arrayEncoder.finishStructure();
