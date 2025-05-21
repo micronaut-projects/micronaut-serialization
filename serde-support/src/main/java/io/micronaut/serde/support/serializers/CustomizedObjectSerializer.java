@@ -60,86 +60,95 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
-            final Object propertyValue = property.get(value);
-            final String backRef = property.backRef;
-            if (backRef != null) {
-                final PropertyReference<T, Object> ref = context.resolveReference(
-                        new SerializationReference<>(backRef,
-                                                     serBean.introspection,
-                                                     property.argument,
-                                                     propertyValue,
-                                                     property.serializer)
-                );
-                if (ref == null) {
-                    continue;
-                }
-            }
-
-            final Serializer<Object> serializer = property.serializer;
-
-            if (serBean.propertyFilter != null) {
-                if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, propertyValue)) {
-                    continue;
-                }
-            } else {
-                switch (property.include) {
-                    case NON_NULL:
-                        if (propertyValue == null) {
-                            continue;
-                        }
-                        break;
-                    case NON_ABSENT:
-                        if (serializer.isAbsent(context, propertyValue)) {
-                            continue;
-                        }
-                        break;
-                    case NON_EMPTY:
-                        if (serializer.isEmpty(context, propertyValue)) {
-                            continue;
-                        }
-                        break;
-                    case NEVER:
-                        continue;
-                    default:
-                        // fall through
-                }
-            }
-
-            if (property.views != null && !context.hasView(property.views)) {
-                continue;
-            }
-
-            final String managedRef = property.managedRef;
-            if (managedRef != null) {
-                context.pushManagedRef(
-                        new SerializationReference<>(
-                                managedRef,
-                                serBean.introspection,
-                                property.argument,
-                            value,
-                                property.serializer
-                        )
-                );
-            }
             try {
-                if (property.serializableInto) {
-                    if (property.objectSerializer != null) {
-                        property.objectSerializer.serializeInto(encoder, context, property.argument, propertyValue);
-                    } else {
-                        throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
+                final Object propertyValue = property.get(value);
+                final String backRef = property.backRef;
+                if (backRef != null) {
+                    final PropertyReference<T, Object> ref = context.resolveReference(
+                        new SerializationReference<>(backRef,
+                            serBean.introspection,
+                            property.argument,
+                            propertyValue,
+                            property.serializer)
+                    );
+                    if (ref == null) {
+                        continue;
+                    }
+                }
+
+                final Serializer<Object> serializer = property.serializer;
+
+                if (serBean.propertyFilter != null) {
+                    if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, propertyValue)) {
+                        continue;
                     }
                 } else {
-                    encoder.encodeKey(property.name);
-                    if (propertyValue == null) {
-                        encoder.encodeNull();
-                    } else {
-                        serializer.serialize(encoder, context, property.argument, propertyValue);
+                    switch (property.include) {
+                        case NON_NULL:
+                            if (propertyValue == null) {
+                                continue;
+                            }
+                            break;
+                        case NON_ABSENT:
+                            if (serializer.isAbsent(context, propertyValue)) {
+                                continue;
+                            }
+                            break;
+                        case NON_EMPTY:
+                            if (serializer.isEmpty(context, propertyValue)) {
+                                continue;
+                            }
+                            break;
+                        case NEVER:
+                            continue;
+                        default:
+                            // fall through
                     }
                 }
-            } finally {
-                if (managedRef != null) {
-                    context.popManagedRef();
+
+                if (property.views != null && !context.hasView(property.views)) {
+                    continue;
                 }
+
+                final String managedRef = property.managedRef;
+                if (managedRef != null) {
+                    context.pushManagedRef(
+                        new SerializationReference<>(
+                            managedRef,
+                            serBean.introspection,
+                            property.argument,
+                            value,
+                            property.serializer
+                        )
+                    );
+                }
+                try {
+                    if (property.serializableInto) {
+                        if (property.objectSerializer != null) {
+                            property.objectSerializer.serializeInto(encoder, context, property.argument, propertyValue);
+                        } else {
+                            throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
+                        }
+                    } else {
+                        encoder.encodeKey(property.name);
+                        if (propertyValue == null) {
+                            encoder.encodeNull();
+                        } else {
+                            serializer.serialize(encoder, context, property.argument, propertyValue);
+                        }
+                    }
+                } finally {
+                    if (managedRef != null) {
+                        context.popManagedRef();
+                    }
+                }
+            } catch (SerdeException e) {
+                e.getPath().add(property.getReferencePath());
+                throw e;
+            } catch (Exception e) {
+                SerdeException serdeException = new SerdeException("Error getting property [" + property.argument + "] of type [" + property.beanType + "]: " + e.getMessage(), e);
+                serdeException.getPath().add(property.getReferencePath());
+                throw serdeException;
             }
         }
     }

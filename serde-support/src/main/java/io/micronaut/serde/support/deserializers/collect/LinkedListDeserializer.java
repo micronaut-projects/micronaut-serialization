@@ -40,7 +40,7 @@ final class LinkedListDeserializer<E> extends CollectionDeserializer<E, LinkedLi
     @Override
     public LinkedList<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super LinkedList<E>> type) throws IOException {
         LinkedList<E> collection = new LinkedList<>();
-        doDeserialize(decoder, context, collection);
+        doDeserialize(decoder, context, collection, type);
         return collection;
     }
 

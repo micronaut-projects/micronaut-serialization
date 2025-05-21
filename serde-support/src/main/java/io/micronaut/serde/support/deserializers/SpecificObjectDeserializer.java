@@ -29,6 +29,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.reference.PropertyReference;
 
 import java.io.IOException;
@@ -341,11 +342,13 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
      */
     private static final class AnyValuesDeserializer {
 
+        private final DeserBean<?> deserBean;
         private final DeserBean.AnySetter anySetter;
         private Map<String, Object> values;
 
-        AnyValuesDeserializer(DeserBean.AnySetter anySetter) {
-            this.anySetter = anySetter;
+        AnyValuesDeserializer(DeserBean<?> deserBean) {
+            this.deserBean = deserBean;
+            this.anySetter = deserBean.anySetter;
         }
 
         void bind(Object instance) {
@@ -358,20 +361,28 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (values == null) {
                 values = new LinkedHashMap<>();
             }
+            Object value;
             if (decoder.decodeNull()) {
-                values.put(propertyName, null);
+                value = null;
             } else {
-                if (anySetter.deserializer != null) {
-                    Object deserializedValue = anySetter.deserializer.deserializeNullable(
-                        decoder,
-                        decoderContext,
-                        anySetter.valueType
-                    );
-                    values.put(propertyName, deserializedValue);
-                } else {
-                    values.put(propertyName, decoder.decodeArbitrary());
+                Argument<?> argument = Argument.OBJECT_ARGUMENT;
+                try {
+                    if (anySetter.deserializer != null) {
+                        argument = anySetter.valueType;
+                        value = anySetter.deserializer.deserializeNullable(
+                            decoder,
+                            decoderContext,
+                            anySetter.valueType
+                        );
+                    } else {
+                        value = decoder.decodeArbitrary();
+                    }
+                } catch (SerdeException e) {
+                    e.getPath().add(ReferencePath.ofProperty(deserBean.introspection.getBeanType(), argument.withName(propertyName)));
+                    throw e;
                 }
             }
+            values.put(propertyName, value);
             return true;
         }
     }
@@ -668,7 +679,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (db.anySetter == null || !db.anySetter.constructorArgument) {
                 anyValuesDeserializer = null;
             } else {
-                anyValuesDeserializer = new AnyValuesDeserializer(db.anySetter);
+                anyValuesDeserializer = new AnyValuesDeserializer(db);
             }
         }
 
@@ -856,7 +867,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (db.anySetter == null) {
                 anyValuesDeserializer = null;
             } else {
-                anyValuesDeserializer = new AnyValuesDeserializer(db.anySetter);
+                anyValuesDeserializer = new AnyValuesDeserializer(db);
             }
         }
 
@@ -936,7 +947,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (db.anySetter == null) {
                 anyValuesDeserializer = null;
             } else {
-                anyValuesDeserializer = new AnyValuesDeserializer(db.anySetter);
+                anyValuesDeserializer = new AnyValuesDeserializer(db);
             }
         }
 

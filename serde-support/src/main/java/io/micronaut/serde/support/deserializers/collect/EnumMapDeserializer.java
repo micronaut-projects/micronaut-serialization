@@ -24,6 +24,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.LimitingStream.RemainingLimits;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.CustomizableDeserializer;
@@ -55,14 +56,19 @@ final class EnumMapDeserializer<E extends Enum<E>, V> implements CustomizableDes
             try (Decoder objectDecoder = decoder.decodeObject(mapType)) {
                 String key = objectDecoder.decodeKey();
                 while (key != null) {
-                    JsonNodeDecoder keyDecoder = JsonNodeDecoder.create(JsonNode.createStringNode(key), remainingLimits);
-                    E k = enumDeser.deserialize(keyDecoder, decoderContext, enumType);
-                    if (valueDeser == null) {
-                        map.put(k, (V) objectDecoder.decodeArbitrary());
-                    } else {
-                        map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueType));
+                    try {
+                        JsonNodeDecoder keyDecoder = JsonNodeDecoder.create(JsonNode.createStringNode(key), remainingLimits);
+                        E k = enumDeser.deserialize(keyDecoder, decoderContext, enumType);
+                        if (valueDeser == null) {
+                            map.put(k, (V) objectDecoder.decodeArbitrary());
+                        } else {
+                            map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueType));
+                        }
+                        key = objectDecoder.decodeKey();
+                    } catch (SerdeException e) {
+                        e.getPath().add(ReferencePath.ofMap(map.getClass(), mapType, key));
+                        throw e;
                     }
-                    key = objectDecoder.decodeKey();
                 }
             }
             return map;

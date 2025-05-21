@@ -40,7 +40,7 @@ final class LinkedHashSetDeserializer<E> extends CollectionDeserializer<E, Linke
     @Override
     public LinkedHashSet<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super LinkedHashSet<E>> type) throws IOException {
         LinkedHashSet<E> collection = new LinkedHashSet<>();
-        doDeserialize(decoder, context, collection);
+        doDeserialize(decoder, context, collection, type);
         return collection;
     }
 

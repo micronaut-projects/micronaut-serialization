@@ -26,6 +26,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
@@ -70,18 +71,23 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                 public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
                     for (Map.Entry<K, V> entry : value.entrySet()) {
                         K k = entry.getKey();
-                        if (k == null) {
-                            encoder.encodeNull();
-                        } else if (isStringKey) {
-                            encoder.encodeKey(k.toString());
-                        } else {
-                            encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
-                        }
-                        V v = entry.getValue();
-                        if (v == null) {
-                            encoder.encodeNull();
-                        } else {
-                            valSerializer.serialize(encoder, context, valueGeneric, v);
+                        try {
+                            if (k == null) {
+                                encoder.encodeNull();
+                            } else if (isStringKey) {
+                                encoder.encodeKey(k.toString());
+                            } else {
+                                encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
+                            }
+                            V v = entry.getValue();
+                            if (v == null) {
+                                encoder.encodeNull();
+                            } else {
+                                valSerializer.serialize(encoder, context, valueGeneric, v);
+                            }
+                        } catch (SerdeException e) {
+                            e.getPath().add(ReferencePath.ofMap(value.getClass(), type, k == null ? "<null>" : k.toString()));
+                            throw e;
                         }
                     }
                 }
@@ -110,24 +116,29 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                     Serializer<? super V> valSerializer = null;
                     for (Map.Entry<K, V> entry : value.entrySet()) {
                         K k = entry.getKey();
-                        if (k instanceof CharSequence) {
-                            encoder.encodeKey(k.toString());
-                        } else {
-                            if (keyGeneric == null || !keyGeneric.getType().equals(k.getClass())) {
-                                keyGeneric = (Argument<K>) Argument.of(k.getClass());
-                                keySerializer = findKeySerializer(context, keyGeneric);
+                        try {
+                            if (k instanceof CharSequence) {
+                                encoder.encodeKey(k.toString());
+                            } else {
+                                if (keyGeneric == null || !keyGeneric.getType().equals(k.getClass())) {
+                                    keyGeneric = (Argument<K>) Argument.of(k.getClass());
+                                    keySerializer = findKeySerializer(context, keyGeneric);
+                                }
+                                encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
                             }
-                            encodeMapKey(context, encoder, keyGeneric, keySerializer, k);
-                        }
-                        final V v = entry.getValue();
-                        if (v == null) {
-                            encoder.encodeNull();
-                        } else {
-                            if (valueGeneric == null || !valueGeneric.getType().equals(v.getClass())) {
-                                valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                                valSerializer = context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+                            final V v = entry.getValue();
+                            if (v == null) {
+                                encoder.encodeNull();
+                            } else {
+                                if (valueGeneric == null || !valueGeneric.getType().equals(v.getClass())) {
+                                    valueGeneric = (Argument<V>) Argument.of(v.getClass());
+                                    valSerializer = context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+                                }
+                                valSerializer.serialize(encoder, context, valueGeneric, v);
                             }
-                            valSerializer.serialize(encoder, context, valueGeneric, v);
+                        } catch (SerdeException e) {
+                            e.getPath().add(ReferencePath.ofMap(value.getClass(), type, k.toString()));
+                            throw e;
                         }
                     }
                 }

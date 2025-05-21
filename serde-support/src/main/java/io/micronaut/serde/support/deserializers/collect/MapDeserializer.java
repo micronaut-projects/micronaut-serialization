@@ -22,6 +22,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 import java.util.Map;
@@ -55,20 +56,25 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
         String key = objectDecoder.decodeKey();
         ConversionService conversionService = decoderContext.getConversionService();
         while (key != null) {
-            K k;
-            if (keyArgument.isInstance(key)) {
-                k = (K) key;
-            } else {
-                try {
-                    k = conversionService.convertRequired(key, keyArgument);
-                } catch (ConversionErrorException e) {
-                    throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyArgument + "]: " + e.getMessage(), e);
+            try {
+                K k;
+                if (keyArgument.isInstance(key)) {
+                    k = (K) key;
+                } else {
+                    try {
+                        k = conversionService.convertRequired(key, keyArgument);
+                    } catch (ConversionErrorException e) {
+                        throw new SerdeException("Error converting Map key [" + key + "] to target type [" + keyArgument + "]: " + e.getMessage(), e);
+                    }
                 }
-            }
-            if (valueDeser == null) {
-                map.put(k, (V) objectDecoder.decodeArbitrary());
-            } else {
-                map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
+                if (valueDeser == null) {
+                    map.put(k, (V) objectDecoder.decodeArbitrary());
+                } else {
+                    map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
+                }
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofMap(getDefaultValue(decoderContext, mapType).getClass(), mapType, key));
+                throw e;
             }
             key = objectDecoder.decodeKey();
         }

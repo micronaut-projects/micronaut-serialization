@@ -40,7 +40,7 @@ final class TreeSetDeserializer<E> extends CollectionDeserializer<E, TreeSet<E>>
     @Override
     public TreeSet<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super TreeSet<E>> type) throws IOException {
         TreeSet<E> collection = new TreeSet<>();
-        doDeserialize(decoder, context, collection);
+        doDeserialize(decoder, context, collection, type);
         return collection;
     }
 
