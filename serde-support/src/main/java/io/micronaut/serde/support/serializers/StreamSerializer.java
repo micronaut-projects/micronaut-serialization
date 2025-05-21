@@ -21,6 +21,7 @@ import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
 
@@ -47,12 +48,18 @@ final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>>, Se
                 }
                 Encoder arrayEncoder = encoder.encodeArray(type);
                 Iterator<T> itr = value.iterator();
+                int index = 0;
                 while (itr.hasNext()) {
-                    componentSerializer
-                        .serialize(
-                            arrayEncoder,
-                            context, generic, itr.next()
-                        );
+                    try {
+                        componentSerializer
+                            .serialize(
+                                arrayEncoder,
+                                context, generic, itr.next()
+                            );
+                        index++;
+                    } catch (SerdeException e) {
+                        e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
+                    }
                 }
                 arrayEncoder.finishStructure();
             }

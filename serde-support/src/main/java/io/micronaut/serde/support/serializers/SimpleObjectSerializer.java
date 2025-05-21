@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
+import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,12 +47,17 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
         } else {
             Encoder childEncoder = encoder.encodeObject(type);
             for (SerBean.SerProperty<T, Object> property : writeProperties) {
-                childEncoder.encodeKey(property.name);
-                Object v = property.get(value);
-                if (v == null) {
-                    childEncoder.encodeNull();
-                } else {
-                    property.serializer.serialize(childEncoder, context, property.argument, v);
+                try {
+                    childEncoder.encodeKey(property.name);
+                    Object v = property.get(value);
+                    if (v == null) {
+                        childEncoder.encodeNull();
+                    } else {
+                        property.serializer.serialize(childEncoder, context, property.argument, v);
+                    }
+                } catch (SerdeException e) {
+                    e.getPath().add(property.getReferencePath());
+                    throw e;
                 }
             }
             childEncoder.finishStructure();
