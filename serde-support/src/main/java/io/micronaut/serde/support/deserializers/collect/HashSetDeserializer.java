@@ -40,7 +40,7 @@ final class HashSetDeserializer<E> extends CollectionDeserializer<E, HashSet<E>>
     @Override
     public HashSet<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super HashSet<E>> type) throws IOException {
         HashSet<E> collection = new HashSet<>();
-        doDeserialize(decoder, context, collection);
+        doDeserialize(decoder, context, collection, type);
         return collection;
     }
 

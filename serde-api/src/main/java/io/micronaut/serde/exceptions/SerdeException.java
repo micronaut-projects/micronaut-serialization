@@ -15,12 +15,20 @@
  */
 package io.micronaut.serde.exceptions;
 
+import io.micronaut.serde.exceptions.path.ReferencePath;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Parent exception type for all serialization / deserialization exceptions.
  */
 public class SerdeException extends IOException {
+
+    private final List<ReferencePath> path = new ArrayList<>(10);
+
     public SerdeException() {
     }
 
@@ -34,5 +42,31 @@ public class SerdeException extends IOException {
 
     public SerdeException(Throwable cause) {
         super(cause);
+    }
+
+    /**
+     * The mutable collection of the referenced path.
+     *
+     * @return The refenced path of the exception
+     * @see 2.14
+     */
+    public List<ReferencePath> getPath() {
+        return path;
+    }
+
+    /**
+     * @return The referenced path string representation
+     * @see 2.14
+     */
+    public String getPathAsString() {
+        StringBuilder builder = new StringBuilder();
+        ListIterator<ReferencePath> iterator = path.listIterator(path.size());
+        while (iterator.hasPrevious()) {
+            builder.append(iterator.previous().toString());
+            if (iterator.hasPrevious()) {
+                builder.append("->");
+            }
+        }
+        return builder.toString();
     }
 }

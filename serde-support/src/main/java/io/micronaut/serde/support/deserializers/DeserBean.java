@@ -44,6 +44,7 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
@@ -900,7 +901,11 @@ final class DeserBean<T> {
                     beanProperty.setUnsafe(beanInstance, value);
                 }
             } catch (InvalidFormatException e) {
-                throw new InvalidPropertyFormatException(e, argument);
+                InvalidPropertyFormatException invalidPropertyFormatException = new InvalidPropertyFormatException(e, argument);
+                invalidPropertyFormatException.getPath().addAll(e.getPath());
+                throw invalidPropertyFormatException;
+            } catch (SerdeException e) {
+                throw e;
             } catch (Exception e) {
                 throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
             }
@@ -920,15 +925,24 @@ final class DeserBean<T> {
         }
 
         private P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
-            P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-            if (value != null || nullable) {
-                return value;
-            }
-            if (explicitlyRequired) {
-                throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required property [" + argument +
+            try {
+                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
+                if (value != null || nullable) {
+                    return value;
+                }
+                if (explicitlyRequired) {
+                    throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required property [" + argument +
                         "] is not present in supplied data");
+                }
+                return provideDefaultValue(decoderContext);
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
+                throw e;
+            } catch (Exception e) {
+                SerdeException serdeException = new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
+                serdeException.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
+                throw serdeException;
             }
-            return provideDefaultValue(decoderContext);
         }
 
         private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {

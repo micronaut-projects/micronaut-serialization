@@ -42,6 +42,7 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
@@ -517,7 +518,7 @@ final class SerBean<T> {
         private final BeanMethod<B, P> beanMethod;
 
         public MethodSerProperty(SerBean<B> bean, String name, String originalName, Argument<P> argument, AnnotationMetadata annotationMetadata, BeanMethod<B, P> beanMethod) {
-            super(bean, name, originalName, argument, annotationMetadata);
+            super(bean, name, originalName, argument.withName(name), annotationMetadata);
             this.beanMethod = beanMethod;
         }
 
@@ -560,6 +561,7 @@ final class SerBean<T> {
     @Internal
     abstract static class SerProperty<B, P> {
         // CHECKSTYLE:OFF
+        public final Class<?> beanType;
         public final String name;
         public final String originalName;
         public final Argument<P> argument;
@@ -589,6 +591,7 @@ final class SerBean<T> {
                 @NonNull String originalName,
                 @NonNull Argument<P> argument,
                 @NonNull AnnotationMetadata annotationMetadata) {
+            this.beanType = bean.introspection.getBeanType();
             this.name = name;
             this.originalName = originalName;
             this.argument = argument;
@@ -605,6 +608,10 @@ final class SerBean<T> {
                     .orElse(null);
             this.annotationMetadata = annotationMetadata;
             this.serializableInto = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class) || annotationMetadata.hasAnnotation(SerdeConfig.SerAnyGetter.class);
+        }
+
+        public ReferencePath getReferencePath() {
+            return ReferencePath.ofProperty(beanType, argument);
         }
 
         public abstract P get(B bean);
