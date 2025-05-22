@@ -138,17 +138,23 @@ loadScripts(document, 'script');</script>
 <div class="block">Used for <code>JsonInclude.Include#NON_ABSENT</code> checking.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isEmpty</a><wbr>(@NonNull <a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isDefault(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isDefault</a><wbr>(@NonNull <a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  <a href="Serializer.html" title="type parameter in Serializer">T</a>&nbsp;value)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Used for <code>JsonInclude.Include#NON_DEFAULT</code> checking.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isEmpty</a><wbr>(@NonNull <a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ <a href="Serializer.html" title="type parameter in Serializer">T</a>&nbsp;value)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Used for <code>JsonInclude.Include#NON_EMPTY</code> checking.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(@NonNull <a href="Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(@NonNull <a href="Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
  @NonNull <a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  @NonNull io.micronaut.core.type.Argument&lt;? extends <a href="Serializer.html" title="type parameter in Serializer">T</a>&gt;&nbsp;type,
  <a href="Serializer.html" title="type parameter in Serializer">T</a>&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Serializes the given value using the passed <a href="Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </div>
 </div>
@@ -241,6 +247,25 @@ loadScripts(document, 'script');</script>
 <dd><code>value</code> - The value to check</dd>
 <dt>Returns:</dt>
 <dd>Return <code>true</code> if the value is absent</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="isDefault(io.micronaut.serde.Serializer.EncoderContext,T)">
+<h3 id="isDefault(io.micronaut.serde.Serializer.EncoderContext,java.lang.Object)">isDefault</h3>
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isDefault</span><wbr><span class="parameters">(@NonNull
+ @NonNull <a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull
+ <a href="Serializer.html" title="type parameter in Serializer">T</a>&nbsp;value)</span></div>
+<div class="block">Used for <code>JsonInclude.Include#NON_DEFAULT</code> checking.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>context</code> - The encoder context</dd>
+<dd><code>value</code> - The check to check</dd>
+<dt>Returns:</dt>
+<dd>Return <code>true</code> if the value is the default value</dd>
+<dt>Since:</dt>
+<dd>1.14</dd>
 </dl>
 </section>
 </li>

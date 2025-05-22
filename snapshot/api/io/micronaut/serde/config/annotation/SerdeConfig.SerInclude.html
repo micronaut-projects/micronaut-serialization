@@ -128,13 +128,18 @@ loadScripts(document, 'script');</script>
      {link java.util.concurrent.atomic.AtomicReference}); that is, something
      that would not deference to a non-null value.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="#NON_EMPTY" class="member-name-link">NON_EMPTY</a></code></div>
+<div class="col-first odd-row-color"><code><a href="#NON_DEFAULT" class="member-name-link">NON_DEFAULT</a></code></div>
 <div class="col-last odd-row-color">
+<div class="block">Value that indicates that properties are included unless their value is the default value
+ of the property type as defined by its Java implementation.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="#NON_EMPTY" class="member-name-link">NON_EMPTY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Value that indicates that only properties with null value,
  or what is considered empty, are not to be included.</div>
 </div>
-<div class="col-first even-row-color"><code><a href="#NON_NULL" class="member-name-link">NON_NULL</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code><a href="#NON_NULL" class="member-name-link">NON_NULL</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Value that indicates that only properties with non-null
  values are to be included.</div>
 </div>
@@ -219,6 +224,15 @@ the order they are declared.</div>
 <div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></span>&nbsp;<span class="element-name">NON_EMPTY</span></div>
 <div class="block">Value that indicates that only properties with null value,
  or what is considered empty, are not to be included.</div>
+</section>
+</li>
+<li>
+<section class="detail" id="NON_DEFAULT">
+<h3>NON_DEFAULT</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type"><a href="SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></span>&nbsp;<span class="element-name">NON_DEFAULT</span></div>
+<div class="block">Value that indicates that properties are included unless their value is the default value
+ of the property type as defined by its Java implementation.
+ All values considered "empty" (as per NON_EMPTY) are also excluded.</div>
 </section>
 </li>
 <li>

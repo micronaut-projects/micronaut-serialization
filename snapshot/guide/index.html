@@ -413,10 +413,16 @@ If you don&#8217;t want to add a Micronaut Serialization annotation then you can
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -424,8 +430,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @MicronautTest
 public class BookTest {
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @Test
-    void testWriteReadBook(ObjectMapper objectMapper) throws IOException {
+    void testWriteReadBook() throws IOException {
         String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
 
         Book book = objectMapper.readValue(result, Book.class);
@@ -435,6 +444,58 @@ public class BookTest {
         );
         assertEquals(50, book.getQuantity());
     }
+
+    @Test
+    void testListOfBooks() throws IOException {
+        String result = objectMapper.writeValueAsString(List.of(
+            new Book("The Stand", 50),
+            new Book("Godfather", 10),
+            new Book("VALIS", 100)
+        ));
+
+        List&lt;Book&gt; books = objectMapper.readValue(result, Argument.listOf(Book.class));
+        assertEquals(3, books.size());
+        Book firstBook = books.get(0);
+        assertEquals(
+                "The Stand", firstBook.getTitle()
+        );
+        assertEquals(50, firstBook.getQuantity());
+    }
+
+    @Test
+    void testMapOfBooks() throws IOException {
+        String result = objectMapper.writeValueAsString(Map.of(
+            "myBook", new Book("The Stand", 50),
+            "hisBook", new Book("Godfather", 10),
+            "herBook", new Book("VALIS", 100)
+        ));
+
+        Map&lt;String, Book&gt; books = objectMapper.readValue(result, Argument.mapOf(String.class, Book.class));
+        assertEquals(3, books.size());
+        Book herBook = books.get("herBook");
+        assertEquals(
+            "VALIS", herBook.getTitle()
+        );
+        assertEquals(100, herBook.getQuantity());
+    }
+
+    @Test
+    void testBoxOfBook() throws IOException {
+        String result = objectMapper.writeValueAsString(new Box&lt;&gt;(new Book("The Stand", 50)));
+
+        Box&lt;Book&gt; box = objectMapper.readValue(result, Argument.of(Box.class, Book.class));
+        Book book = box.item();
+        assertNotNull(book);
+        assertEquals(
+            "The Stand", book.getTitle()
+        );
+        assertEquals(50, book.getQuantity());
+    }
+
+    @Serdeable
+    public record Box&lt;I&gt;(I item) {
+    }
+
 }</code></pre>
 </div>
 </div>
@@ -442,7 +503,10 @@ public class BookTest {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
+
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -461,6 +525,59 @@ class BookTest extends Specification {
         book.title == "The Stand"
         book.quantity == 50
     }
+
+    void "test list of books"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(List.of(
+                new Book("The Stand", 50),
+                new Book("Godfather", 10),
+                new Book("VALIS", 100)
+        ));
+
+        List&lt;Book&gt; books = objectMapper.readValue(result, Argument.listOf(Book.class));
+        then:
+        books.size() == 3
+        Book firstBook = books.get(0);
+        firstBook != null
+        firstBook.title == "The Stand"
+        firstBook.quantity == 50
+    }
+
+    void "test map of books"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(Map.of(
+                "myBook", new Book("The Stand", 50),
+                "hisBook", new Book("Godfather", 10),
+                "herBook", new Book("VALIS", 100)
+        ));
+
+        Map&lt;String, Book&gt; books = objectMapper.readValue(result, Argument.mapOf(String.class, Book.class));
+        then:
+        books.size() == 3
+        Book herBook = books.get("herBook");
+        herBook.getTitle() == "VALIS"
+        herBook.getQuantity() == 100
+    }
+
+    void "test a box of a book"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(new Box&lt;&gt;(new Book("The Stand", 50)));
+
+        Box&lt;Book&gt; box = objectMapper.readValue(result, Argument.of(Box.class, Book.class));
+        then:
+        Book book = box.item
+        book.getTitle() == "The Stand"
+        book.getQuantity() == 50
+    }
+
+    @Serdeable
+    static class Box&lt;I&gt; {
+        I item
+
+        Box(I item) {
+            this.item = item
+        }
+    }
 }</code></pre>
 </div>
 </div>
@@ -468,23 +585,87 @@ class BookTest extends Specification {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.Map
 
 @MicronautTest
 class BookTest {
+
     @Test
     fun testWriteReadBook(objectMapper: ObjectMapper) {
         val result = objectMapper.writeValueAsString(Book("The Stand", 50))
         val book = objectMapper.readValue(result, Book::class.java)
         Assertions.assertNotNull(book)
-        Assertions.assertEquals(
+        assertEquals(
             "The Stand", book.title
         )
-        Assertions.assertEquals(50, book.quantity)
+        assertEquals(50, book.quantity)
     }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun testListOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            listOf(
+                Book("The Stand", 50),
+                Book("Godfather", 10),
+                Book("VALIS", 100)
+            )
+        )
+
+        val books: MutableList&lt;Book&gt; =
+            objectMapper.readValue(result, Argument.listOf(Book::class.java))
+        assertEquals(3, books.size)
+        val firstBook = books[0]
+        assertEquals(
+            "The Stand", firstBook.title
+        )
+        assertEquals(50, firstBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testMapOfBooks(objectMapper: ObjectMapper) {
+        val result: String? = objectMapper.writeValueAsString(
+            Map.of&lt;String?, Book?&gt;(
+                "myBook", Book("The Stand", 50),
+                "hisBook", Book("Godfather", 10),
+                "herBook", Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(
+            result,
+            Argument.mapOf(String::class.java, Book::class.java)
+        )
+        assertEquals(3, books.size)
+        val herBook: Book = books["herBook"]!!
+        assertEquals("VALIS", herBook.title)
+        assertEquals(100, herBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testBoxOfBook(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
+
+        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
+        val book = box.item!!
+        Assertions.assertNotNull(book)
+        assertEquals("The Stand", book.title)
+        assertEquals(50, book.quantity)
+    }
+
+    @Serdeable
+    data class Box&lt;I&gt;(val item: I?)
 }</code></pre>
 </div>
 </div>
@@ -588,10 +769,16 @@ public class Book {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -599,8 +786,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @MicronautTest
 public class BookTest {
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @Test
-    void testWriteReadBook(ObjectMapper objectMapper) throws IOException {
+    void testWriteReadBook() throws IOException {
         String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
 
         Book book = objectMapper.readValue(result, Book.class);
@@ -610,6 +800,58 @@ public class BookTest {
         );
         assertEquals(50, book.getQuantity());
     }
+
+    @Test
+    void testListOfBooks() throws IOException {
+        String result = objectMapper.writeValueAsString(List.of(
+            new Book("The Stand", 50),
+            new Book("Godfather", 10),
+            new Book("VALIS", 100)
+        ));
+
+        List&lt;Book&gt; books = objectMapper.readValue(result, Argument.listOf(Book.class));
+        assertEquals(3, books.size());
+        Book firstBook = books.get(0);
+        assertEquals(
+                "The Stand", firstBook.getTitle()
+        );
+        assertEquals(50, firstBook.getQuantity());
+    }
+
+    @Test
+    void testMapOfBooks() throws IOException {
+        String result = objectMapper.writeValueAsString(Map.of(
+            "myBook", new Book("The Stand", 50),
+            "hisBook", new Book("Godfather", 10),
+            "herBook", new Book("VALIS", 100)
+        ));
+
+        Map&lt;String, Book&gt; books = objectMapper.readValue(result, Argument.mapOf(String.class, Book.class));
+        assertEquals(3, books.size());
+        Book herBook = books.get("herBook");
+        assertEquals(
+            "VALIS", herBook.getTitle()
+        );
+        assertEquals(100, herBook.getQuantity());
+    }
+
+    @Test
+    void testBoxOfBook() throws IOException {
+        String result = objectMapper.writeValueAsString(new Box&lt;&gt;(new Book("The Stand", 50)));
+
+        Box&lt;Book&gt; box = objectMapper.readValue(result, Argument.of(Box.class, Book.class));
+        Book book = box.item();
+        assertNotNull(book);
+        assertEquals(
+            "The Stand", book.getTitle()
+        );
+        assertEquals(50, book.getQuantity());
+    }
+
+    @Serdeable
+    public record Box&lt;I&gt;(I item) {
+    }
+
 }</code></pre>
 </div>
 </div>
@@ -617,7 +859,10 @@ public class BookTest {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
+
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -636,6 +881,59 @@ class BookTest extends Specification {
         book.title == "The Stand"
         book.quantity == 50
     }
+
+    void "test list of books"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(List.of(
+                new Book("The Stand", 50),
+                new Book("Godfather", 10),
+                new Book("VALIS", 100)
+        ));
+
+        List&lt;Book&gt; books = objectMapper.readValue(result, Argument.listOf(Book.class));
+        then:
+        books.size() == 3
+        Book firstBook = books.get(0);
+        firstBook != null
+        firstBook.title == "The Stand"
+        firstBook.quantity == 50
+    }
+
+    void "test map of books"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(Map.of(
+                "myBook", new Book("The Stand", 50),
+                "hisBook", new Book("Godfather", 10),
+                "herBook", new Book("VALIS", 100)
+        ));
+
+        Map&lt;String, Book&gt; books = objectMapper.readValue(result, Argument.mapOf(String.class, Book.class));
+        then:
+        books.size() == 3
+        Book herBook = books.get("herBook");
+        herBook.getTitle() == "VALIS"
+        herBook.getQuantity() == 100
+    }
+
+    void "test a box of a book"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(new Box&lt;&gt;(new Book("The Stand", 50)));
+
+        Box&lt;Book&gt; box = objectMapper.readValue(result, Argument.of(Box.class, Book.class));
+        then:
+        Book book = box.item
+        book.getTitle() == "The Stand"
+        book.getQuantity() == 50
+    }
+
+    @Serdeable
+    static class Box&lt;I&gt; {
+        I item
+
+        Box(I item) {
+            this.item = item
+        }
+    }
 }</code></pre>
 </div>
 </div>
@@ -643,23 +941,87 @@ class BookTest extends Specification {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.Map
 
 @MicronautTest
 class BookTest {
+
     @Test
     fun testWriteReadBook(objectMapper: ObjectMapper) {
         val result = objectMapper.writeValueAsString(Book("The Stand", 50))
         val book = objectMapper.readValue(result, Book::class.java)
         Assertions.assertNotNull(book)
-        Assertions.assertEquals(
+        assertEquals(
             "The Stand", book.title
         )
-        Assertions.assertEquals(50, book.quantity)
+        assertEquals(50, book.quantity)
     }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun testListOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            listOf(
+                Book("The Stand", 50),
+                Book("Godfather", 10),
+                Book("VALIS", 100)
+            )
+        )
+
+        val books: MutableList&lt;Book&gt; =
+            objectMapper.readValue(result, Argument.listOf(Book::class.java))
+        assertEquals(3, books.size)
+        val firstBook = books[0]
+        assertEquals(
+            "The Stand", firstBook.title
+        )
+        assertEquals(50, firstBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testMapOfBooks(objectMapper: ObjectMapper) {
+        val result: String? = objectMapper.writeValueAsString(
+            Map.of&lt;String?, Book?&gt;(
+                "myBook", Book("The Stand", 50),
+                "hisBook", Book("Godfather", 10),
+                "herBook", Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(
+            result,
+            Argument.mapOf(String::class.java, Book::class.java)
+        )
+        assertEquals(3, books.size)
+        val herBook: Book = books["herBook"]!!
+        assertEquals("VALIS", herBook.title)
+        assertEquals(100, herBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testBoxOfBook(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
+
+        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
+        val book = box.item!!
+        Assertions.assertNotNull(book)
+        assertEquals("The Stand", book.title)
+        assertEquals(50, book.quantity)
+    }
+
+    @Serdeable
+    data class Box&lt;I&gt;(val item: I?)
 }</code></pre>
 </div>
 </div>
@@ -763,10 +1125,16 @@ public class Book {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package example;
 
+import io.micronaut.core.type.Argument;
 import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -774,8 +1142,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @MicronautTest
 public class BookTest {
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @Test
-    void testWriteReadBook(ObjectMapper objectMapper) throws IOException {
+    void testWriteReadBook() throws IOException {
         String result = objectMapper.writeValueAsString(new Book("The Stand", 50));
 
         Book book = objectMapper.readValue(result, Book.class);
@@ -785,6 +1156,58 @@ public class BookTest {
         );
         assertEquals(50, book.getQuantity());
     }
+
+    @Test
+    void testListOfBooks() throws IOException {
+        String result = objectMapper.writeValueAsString(List.of(
+            new Book("The Stand", 50),
+            new Book("Godfather", 10),
+            new Book("VALIS", 100)
+        ));
+
+        List&lt;Book&gt; books = objectMapper.readValue(result, Argument.listOf(Book.class));
+        assertEquals(3, books.size());
+        Book firstBook = books.get(0);
+        assertEquals(
+                "The Stand", firstBook.getTitle()
+        );
+        assertEquals(50, firstBook.getQuantity());
+    }
+
+    @Test
+    void testMapOfBooks() throws IOException {
+        String result = objectMapper.writeValueAsString(Map.of(
+            "myBook", new Book("The Stand", 50),
+            "hisBook", new Book("Godfather", 10),
+            "herBook", new Book("VALIS", 100)
+        ));
+
+        Map&lt;String, Book&gt; books = objectMapper.readValue(result, Argument.mapOf(String.class, Book.class));
+        assertEquals(3, books.size());
+        Book herBook = books.get("herBook");
+        assertEquals(
+            "VALIS", herBook.getTitle()
+        );
+        assertEquals(100, herBook.getQuantity());
+    }
+
+    @Test
+    void testBoxOfBook() throws IOException {
+        String result = objectMapper.writeValueAsString(new Box&lt;&gt;(new Book("The Stand", 50)));
+
+        Box&lt;Book&gt; box = objectMapper.readValue(result, Argument.of(Box.class, Book.class));
+        Book book = box.item();
+        assertNotNull(book);
+        assertEquals(
+            "The Stand", book.getTitle()
+        );
+        assertEquals(50, book.getQuantity());
+    }
+
+    @Serdeable
+    public record Box&lt;I&gt;(I item) {
+    }
+
 }</code></pre>
 </div>
 </div>
@@ -792,7 +1215,10 @@ public class BookTest {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
+
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import spock.lang.Specification
@@ -811,6 +1237,59 @@ class BookTest extends Specification {
         book.title == "The Stand"
         book.quantity == 50
     }
+
+    void "test list of books"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(List.of(
+                new Book("The Stand", 50),
+                new Book("Godfather", 10),
+                new Book("VALIS", 100)
+        ));
+
+        List&lt;Book&gt; books = objectMapper.readValue(result, Argument.listOf(Book.class));
+        then:
+        books.size() == 3
+        Book firstBook = books.get(0);
+        firstBook != null
+        firstBook.title == "The Stand"
+        firstBook.quantity == 50
+    }
+
+    void "test map of books"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(Map.of(
+                "myBook", new Book("The Stand", 50),
+                "hisBook", new Book("Godfather", 10),
+                "herBook", new Book("VALIS", 100)
+        ));
+
+        Map&lt;String, Book&gt; books = objectMapper.readValue(result, Argument.mapOf(String.class, Book.class));
+        then:
+        books.size() == 3
+        Book herBook = books.get("herBook");
+        herBook.getTitle() == "VALIS"
+        herBook.getQuantity() == 100
+    }
+
+    void "test a box of a book"() throws IOException {
+        when:
+        String result = objectMapper.writeValueAsString(new Box&lt;&gt;(new Book("The Stand", 50)));
+
+        Box&lt;Book&gt; box = objectMapper.readValue(result, Argument.of(Box.class, Book.class));
+        then:
+        Book book = box.item
+        book.getTitle() == "The Stand"
+        book.getQuantity() == 50
+    }
+
+    @Serdeable
+    static class Box&lt;I&gt; {
+        I item
+
+        Box(I item) {
+            this.item = item
+        }
+    }
 }</code></pre>
 </div>
 </div>
@@ -818,23 +1297,87 @@ class BookTest extends Specification {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.Map
 
 @MicronautTest
 class BookTest {
+
     @Test
     fun testWriteReadBook(objectMapper: ObjectMapper) {
         val result = objectMapper.writeValueAsString(Book("The Stand", 50))
         val book = objectMapper.readValue(result, Book::class.java)
         Assertions.assertNotNull(book)
-        Assertions.assertEquals(
+        assertEquals(
             "The Stand", book.title
         )
-        Assertions.assertEquals(50, book.quantity)
+        assertEquals(50, book.quantity)
     }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun testListOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            listOf(
+                Book("The Stand", 50),
+                Book("Godfather", 10),
+                Book("VALIS", 100)
+            )
+        )
+
+        val books: MutableList&lt;Book&gt; =
+            objectMapper.readValue(result, Argument.listOf(Book::class.java))
+        assertEquals(3, books.size)
+        val firstBook = books[0]
+        assertEquals(
+            "The Stand", firstBook.title
+        )
+        assertEquals(50, firstBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testMapOfBooks(objectMapper: ObjectMapper) {
+        val result: String? = objectMapper.writeValueAsString(
+            Map.of&lt;String?, Book?&gt;(
+                "myBook", Book("The Stand", 50),
+                "hisBook", Book("Godfather", 10),
+                "herBook", Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(
+            result,
+            Argument.mapOf(String::class.java, Book::class.java)
+        )
+        assertEquals(3, books.size)
+        val herBook: Book = books["herBook"]!!
+        assertEquals("VALIS", herBook.title)
+        assertEquals(100, herBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testBoxOfBook(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
+
+        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
+        val book = box.item!!
+        Assertions.assertNotNull(book)
+        assertEquals("The Stand", book.title)
+        assertEquals(50, book.quantity)
+    }
+
+    @Serdeable
+    data class Box&lt;I&gt;(val item: I?)
 }</code></pre>
 </div>
 </div>

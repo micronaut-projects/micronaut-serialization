@@ -2796,6 +2796,10 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html#isAlwaysSerializeErrorsAsList()" class="member-name-link">isAlwaysSerializeErrorsAsList()</a> - Method in class io.micronaut.serde.support.config.<a href="io/micronaut/serde/support/config/SerdeJsonConfiguration.html" title="class in io.micronaut.serde.support.config">SerdeJsonConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/Serializer.html#isDefault(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isDefault(Serializer.EncoderContext, T)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a></dt>
+<dd>
+<div class="block">Used for <code>JsonInclude.Include#NON_DEFAULT</code> checking.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Serializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)" class="member-name-link">isEmpty(Serializer.EncoderContext, T)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a></dt>
 <dd>
 <div class="block">Used for <code>JsonInclude.Include#NON_EMPTY</code> checking.</div>
@@ -3460,6 +3464,11 @@ loadScripts(document, 'script');</script>
   "absent" value of a referential type (like Java 8 `Optional`, or
      {link java.util.concurrent.atomic.AtomicReference}); that is, something
      that would not deference to a non-null value.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html#NON_DEFAULT" class="member-name-link">NON_DEFAULT</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></dt>
+<dd>
+<div class="block">Value that indicates that properties are included unless their value is the default value
+ of the property type as defined by its Java implementation.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html#NON_EMPTY" class="member-name-link">NON_EMPTY</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></dt>
 <dd>
