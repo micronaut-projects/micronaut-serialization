@@ -49,6 +49,11 @@ final class DoubleSerde implements SerdeRegistrar<Double>, NumberSerde<Double> {
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Double value) {
+        return value.equals(0D);
+    }
+
+    @Override
     public Argument<Double> getType() {
         return Argument.of(Double.class);
     }

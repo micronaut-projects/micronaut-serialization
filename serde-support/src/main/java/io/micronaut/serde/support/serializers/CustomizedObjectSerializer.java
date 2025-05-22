@@ -98,6 +98,10 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                             if (serializer.isEmpty(context, propertyValue)) {
                                 continue;
                             }
+                        case NON_DEFAULT:
+                            if (serializer.isEmpty(context, propertyValue) || propertyValue != null && serializer.isDefault(context, propertyValue)) {
+                                continue;
+                            }
                             break;
                         case NEVER:
                             continue;

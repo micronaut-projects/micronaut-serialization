@@ -46,6 +46,11 @@ final class BooleanSerde implements SerdeRegistrar<Boolean> {
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Boolean value) {
+        return !value;
+    }
+
+    @Override
     public Argument<Boolean> getType() {
         return Argument.of(Boolean.class);
     }
