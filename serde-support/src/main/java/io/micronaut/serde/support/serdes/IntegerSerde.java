@@ -49,6 +49,11 @@ final class IntegerSerde implements SerdeRegistrar<Integer>, NumberSerde<Integer
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Integer value) {
+        return value.equals(0);
+    }
+
+    @Override
     public Argument<Integer> getType() {
         return Argument.of(Integer.class);
     }

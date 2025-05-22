@@ -18,8 +18,12 @@ package io.micronaut.serde.jackson
 
 import spock.lang.Unroll
 
+import java.sql.Date
+import java.sql.Timestamp
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 
@@ -275,6 +279,32 @@ record Test(
         NON_EMPTY  | "Map<String, String>" | null             | '{}'
         NON_EMPTY  | "Map<String, String>" | ["test": "test"] | '{"test":{"test":"test"}}'
 
+        NON_DEFAULT| "String"              | "test"           | '{"test":"test"}'
+        NON_DEFAULT| "String"              | null             | '{}'
+        NON_DEFAULT| "java.util.List"      | null             | '{}'
+        NON_DEFAULT| "Boolean"             | false            | '{}'
+        NON_DEFAULT| "boolean"             | false            | '{}'
+        NON_DEFAULT| "Integer"             | 0                | '{}'
+        NON_DEFAULT| "int"                 | 0                | '{}'
+        NON_DEFAULT| "Long"                | 0                | '{}'
+        NON_DEFAULT| "long"                | 0                | '{}'
+        NON_DEFAULT| "Double"              | 0                | '{}'
+        NON_DEFAULT| "double"              | 0                | '{}'
+        NON_DEFAULT| "Float"               | 0                | '{}'
+        NON_DEFAULT| "float"               | 0                | '{}'
+        NON_DEFAULT| "Byte"                | 0 as byte        | '{}'
+        NON_DEFAULT| "byte"                | 0 as byte        | '{}'
+        NON_DEFAULT| "Short"               | 0 as short       | '{}'
+        NON_DEFAULT| "short"               | 0 as short       | '{}'
+        NON_DEFAULT| "Character"           | 0 as char        | '{}'
+        NON_DEFAULT| "char"                | 0 as char        | '{}'
+        NON_DEFAULT| "java.util.Date"      | new java.util.Date(0) | '{}'
+        NON_DEFAULT| "java.sql.Date"       | new Date(0)           | '{}'
+        NON_DEFAULT| "java.sql.Timestamp"  | new Timestamp(0)      | '{}'
+        NON_DEFAULT| "java.math.BigInteger"| BigInteger.valueOf(0) | '{"test":0}'
+        NON_DEFAULT| "java.lang.Number"    | 0                     | '{"test":0}'
+        NON_DEFAULT| "int[]"               | new int[0]            | '{}'
+
     }
 
     @Unroll
@@ -306,16 +336,44 @@ record Test(
         include    | type                  | value            | result
         ALWAYS     | "String"              | ""               | '{"test":""}'
         ALWAYS     | "String"              | null             | '{"test":null}'
+        ALWAYS     | "java.util.List"      | null             | '{"test":null}'
         ALWAYS     | "String"              | "test"           | '{"test":"test"}'
         NON_NULL   | "String"              | ""               | '{"test":""}'
         NON_NULL   | "String"              | null             | '{}'
+        NON_NULL   | "java.util.List"      | null             | '{}'
         NON_NULL   | "String"              | "test"           | '{"test":"test"}'
         NON_ABSENT | "String"              | ""               | '{"test":""}'
         NON_ABSENT | "String"              | null             | '{}'
+        NON_ABSENT | "java.util.List"      | null             | '{}'
         NON_ABSENT | "String"              | "test"           | '{"test":"test"}'
         NON_EMPTY  | "String"              | ""               | '{}'
         NON_EMPTY  | "String"              | null             | '{}'
+        NON_EMPTY  | "java.util.List"      | null             | '{}'
         NON_EMPTY  | "String"              | "test"           | '{"test":"test"}'
-
+        NON_DEFAULT| "String"              | "test"           | '{"test":"test"}'
+        NON_DEFAULT| "String"              | null             | '{}'
+        NON_DEFAULT| "java.util.List"      | null             | '{}'
+        NON_DEFAULT| "Boolean"             | false            | '{}'
+        NON_DEFAULT| "boolean"             | false            | '{}'
+        NON_DEFAULT| "Integer"             | 0                | '{}'
+        NON_DEFAULT| "int"                 | 0                | '{}'
+        NON_DEFAULT| "Long"                | 0                | '{}'
+        NON_DEFAULT| "long"                | 0                | '{}'
+        NON_DEFAULT| "Double"              | 0                | '{}'
+        NON_DEFAULT| "double"              | 0                | '{}'
+        NON_DEFAULT| "Float"               | 0                | '{}'
+        NON_DEFAULT| "float"               | 0                | '{}'
+        NON_DEFAULT| "Byte"                | 0 as byte        | '{}'
+        NON_DEFAULT| "byte"                | 0 as byte        | '{}'
+        NON_DEFAULT| "Short"               | 0 as short       | '{}'
+        NON_DEFAULT| "short"               | 0 as short       | '{}'
+        NON_DEFAULT| "Character"           | 0 as char        | '{}'
+        NON_DEFAULT| "char"                | 0 as char        | '{}'
+        NON_DEFAULT| "java.util.Date"      | new java.util.Date(0) | '{}'
+        NON_DEFAULT| "java.sql.Date"       | new Date(0)           | '{}'
+        NON_DEFAULT| "java.sql.Timestamp"  | new Timestamp(0)      | '{}'
+        NON_DEFAULT| "java.math.BigInteger"| BigInteger.valueOf(0) | '{"test":0}'
+        NON_DEFAULT| "java.lang.Number"    | 0                     | '{"test":0}'
+        NON_DEFAULT| "int[]"               | new int[0]            | '{}'
     }
 }

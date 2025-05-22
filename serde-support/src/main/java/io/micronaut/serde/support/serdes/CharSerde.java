@@ -48,6 +48,11 @@ final class CharSerde implements SerdeRegistrar<Character> {
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Character value) {
+        return value.equals('\0');
+    }
+
+    @Override
     public Argument<Character> getType() {
         return Argument.of(Character.class);
     }
