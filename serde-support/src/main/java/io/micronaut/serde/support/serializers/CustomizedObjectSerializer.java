@@ -17,6 +17,7 @@ package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
@@ -36,7 +37,7 @@ import java.util.Map;
  * This class is used in multiple scenarios:
  * <ul>
  *     <li>When the user has an {@link Object} property in a serializable bean.</li>
- *     <li>When the user explicitly calls {@link io.micronaut.json.JsonMapper#writeValue}{@code (gen, }{@link Object}{@code
+ *     <li>When the user explicitly calls {@link JsonMapper#writeValue}{@code (gen, }{@link Object}{@code
  *     .class)}</li>
  * </ul>
  *
@@ -83,30 +84,16 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                         continue;
                     }
                 } else {
-                    switch (property.include) {
-                        case NON_NULL:
-                            if (propertyValue == null) {
-                                continue;
-                            }
-                            break;
-                        case NON_ABSENT:
-                            if (serializer.isAbsent(context, propertyValue)) {
-                                continue;
-                            }
-                            break;
-                        case NON_EMPTY:
-                            if (serializer.isEmpty(context, propertyValue)) {
-                                continue;
-                            }
-                        case NON_DEFAULT:
-                            if (serializer.isEmpty(context, propertyValue) || propertyValue != null && serializer.isDefault(context, propertyValue)) {
-                                continue;
-                            }
-                            break;
-                        case NEVER:
-                            continue;
-                        default:
-                            // fall through
+                    boolean skipped = switch (property.include) {
+                        case ALWAYS -> false;
+                        case NON_NULL -> propertyValue == null;
+                        case NON_ABSENT -> serializer.isAbsent(context, propertyValue);
+                        case NON_DEFAULT -> serializer.isEmpty(context, propertyValue) || propertyValue != null && serializer.isDefault(context, propertyValue);
+                        case NON_EMPTY -> serializer.isEmpty(context, propertyValue);
+                        case NEVER -> true;
+                    };
+                    if (skipped) {
+                        continue;
                     }
                 }
 
