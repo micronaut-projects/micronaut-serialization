@@ -329,12 +329,15 @@ final class SerBean<T> {
                         Optional<SerProperty<T, Object>> prop = orderProps.stream()
                             .filter(p -> p.name.equals(propName) || p.originalName.equals(propName))
                             .findFirst();
-                        // Make sure we reference the property only oncemas
+                        // Make sure we reference the property only once
                         prop.ifPresent(orderProps::remove);
                         return prop.stream();
                     })
                 .toList();
             writeProperties.sort(Comparator.comparingInt(order::indexOf));
+        }
+        if (!writeProperties.isEmpty() && serializationConfiguration.sortPropertiesAlphabetically()) {
+            writeProperties.sort(Comparator.comparing(p -> p.name));
         }
 
         this.arrayWrapperProperty = introspection.stringValue(SerdeConfig.class, SerdeConfig.ARRAY_WRAPPER_PROPERTY).orElse(null);

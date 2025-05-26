@@ -57,7 +57,6 @@ import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -765,7 +764,17 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void visitProperties(ClassElement classElement, VisitorContext context) {
         final List<PropertyElement> beanProperties = classElement.getBeanProperties();
-        final List<String> order = Arrays.asList(classElement.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER));
+        final List<String> order;
+        if (classElement.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false)) {
+            List<String> newOrder = beanProperties.stream()
+                .map(p -> p.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElseGet(p::getName))
+                .sorted()
+                .toList();
+            classElement.annotate(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, b -> b.values(newOrder.toArray(new String[0])));
+            order = new ArrayList<>(newOrder);
+        } else {
+            order = new ArrayList<>(List.of(classElement.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)));
+        }
         Collections.reverse(order);
         final Set<Introspected.AccessKind> access = CollectionUtils.setOf(classElement.enumValues(Introspected.class,
                                                                                              "accessKind",

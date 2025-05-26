@@ -15,33 +15,27 @@
  */
 package io.micronaut.serde.processor.jackson;
 
-import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.AnnotationValueBuilder;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.lang.annotation.Annotation;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Support for @JsonPropertyOrder.
  */
-public class JsonPropertyOrderMapper extends ValidatingAnnotationMapper {
-    @Override
-    protected Set<String> getSupportedMemberNames() {
-        return Collections.singleton(AnnotationMetadata.VALUE_MEMBER);
-    }
+public class JsonPropertyOrderMapper implements NamedAnnotationMapper {
 
     @Override
-    protected List<AnnotationValue<?>> mapValid(AnnotationValue<Annotation> annotation,
-                                                      VisitorContext visitorContext) {
-        return Collections.singletonList(
-                AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-                        .values(annotation.stringValues())
-                        .build()
-        );
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation,
+                                        VisitorContext visitorContext) {
+        AnnotationValueBuilder<Annotation> builder = AnnotationValue.builder(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
+            .values(annotation.stringValues());
+        annotation.booleanValue("alphabetic").ifPresent(v -> builder.member("alphabetic", v));
+        return List.of(builder.build());
     }
 
     @Override
