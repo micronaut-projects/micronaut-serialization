@@ -108,6 +108,7 @@ class B {
         def ctx = buildContext("""
 package unwrapped;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.micronaut.serde.annotation.Serdeable;
 import java.sql.Timestamp;
@@ -193,6 +194,12 @@ class Address {
     private CityData cityData = new CityData();
 
     private String street;
+
+    @JsonCreator
+    public Address(CityData cityData, String street) {
+        this.cityData = cityData;
+        this.street = street;
+    }
 
     public String getStreet() {
         return street;
