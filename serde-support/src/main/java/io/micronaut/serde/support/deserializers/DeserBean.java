@@ -210,11 +210,10 @@ final class DeserBean<T> {
             DeserBean<Object> unwrapped = null;
             if (isUnwrapped) {
                 unwrapped = deserBeanRegistry.getDeserializableBean(
-                    serdeArgumentConf == null ? constructorArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(constructorArgument),
+                    serdeArgumentConf == null ? constructorWithPropertyArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(constructorWithPropertyArgument),
                     decoderContext
                 );
             }
-            Argument<Object> finalConstructorArgument = constructorArgument;
             DerProperty<T, Object> derProperty = new DerProperty<>(
                 conversionService,
                 introspection,
@@ -222,7 +221,7 @@ final class DeserBean<T> {
                 propertyName,
                 constructorWithPropertyArgument,
                 isIgnored ? null : introspection.getProperty(propertyName)
-                    .or(() -> introspection.getProperty(finalConstructorArgument.getName()))
+                    .or(() -> introspection.getProperty(constructorArgument.getName()))
                     .orElse(null),
                 null,
                 unwrapped,
