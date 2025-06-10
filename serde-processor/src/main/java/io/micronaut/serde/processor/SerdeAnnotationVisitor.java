@@ -812,25 +812,33 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
-    private void handleClassImport(VisitorContext context, AnnotationValue<SerdeImport> value, ClassElement c, List<AnnotationClassValue<?>> classValues) {
-        classValues.add(new AnnotationClassValue<>(c.getName()));
+    private void handleClassImport(VisitorContext context,
+                                   AnnotationValue<SerdeImport> value,
+                                   ClassElement type,
+                                   List<AnnotationClassValue<?>> classValues) {
+        classValues.add(new AnnotationClassValue<>(type.getName()));
         final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
                 .orElse(null);
-        if (mixinType != null) {
-            visitMixin(mixinType, c);
-        } else {
-            visitClassInternal(c, context, true);
+        if (value.booleanValue("serializable").orElse(true)) {
+            type.annotate(Serdeable.Serializable.class);
         }
-        c.annotate(value);
-        AnnotationValue<Annotation> jsonPojoAnn = c.getAnnotation("com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder");
+        if (value.booleanValue("deserializable").orElse(true)) {
+            type.annotate(Serdeable.Deserializable.class);
+        }
+        if (mixinType != null) {
+            visitMixin(mixinType, type, context);
+        } else {
+            visitClassInternal(type, context, true);
+        }
+        AnnotationValue<Annotation> jsonPojoAnn = type.getAnnotation("com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder");
         if (jsonPojoAnn != null) {
             String buildMethod = jsonPojoAnn.stringValue("buildMethodName").orElse("build");
-            c.getEnclosedElement(ElementQuery.ALL_METHODS.named(n -> n.equals(buildMethod)))
+            type.getEnclosedElement(ElementQuery.ALL_METHODS.named(n -> n.equals(buildMethod)))
                 .ifPresent(m -> m.annotate(Executable.class));
         }
     }
 
-    private void visitMixin(ClassElement mixinType, ClassElement type) {
+    private void visitMixin(ClassElement mixinType, ClassElement type,  VisitorContext context) {
         AnnotationValue<Introspected> introspectedAnnotation = mixinType.getAnnotation(Introspected.class);
         if (introspectedAnnotation != null) {
             type.annotate(introspectedAnnotation);
@@ -841,7 +849,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 .stream().filter(n -> n.startsWith("io.micronaut.serde"))
                 .forEach(n -> {
                     final AnnotationValue<Annotation> ann = mixinType.getAnnotation(n);
-                    if (ann != null) {
+                    if (ann != null && !ann.getAnnotationName().equals(SerdeImport.class.getName())) {
                         type.annotate(ann);
                     }
                 });
@@ -909,6 +917,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                 i.remove();
                                 replicateAnnotations(serdeMethod, beanProperty);
                                 replicateAnnotations(serdeMethod, readMethod);
+                                visitMethod(readMethod, context);
                             }
                         }
                     }
@@ -918,6 +927,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                 i.remove();
                                 replicateAnnotations(serdeMethod, beanProperty);
                                 replicateAnnotations(serdeMethod, writeMethod);
+                                visitMethod(writeMethod, context);
                             }
                         }
                     }
@@ -937,6 +947,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ).ifPresent(m -> {
                     m.annotate(Executable.class);
                     replicateAnnotations(serdeMethod, m);
+                    visitMethod(m, context);
                 });
             }
         }
