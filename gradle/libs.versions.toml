@@ -24,8 +24,6 @@ micronaut-discovery = "4.5.2"
 micronaut-logging = "1.6.1"
 micronaut-oracle-cloud = "4.3.11"
 micronaut-reactor = "3.7.0"
-micronaut-validation = "4.9.0"
-micronaut-gradle-plugin = "4.4.5"
 sonatype-scan = "3.0.0"
 
 [libraries]
