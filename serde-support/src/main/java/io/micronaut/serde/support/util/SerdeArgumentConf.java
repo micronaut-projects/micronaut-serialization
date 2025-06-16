@@ -17,6 +17,7 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
@@ -81,6 +82,22 @@ public final class SerdeArgumentConf {
         }
         this.order = order;
         this.subtypeInfo = SubtypeInfo.createForProperty(annotationMetadata);
+    }
+
+    /**
+     * Reconstruct the generic type with parent metadata if necessary.
+     * @param parentType The parent type
+     * @param valueGeneric The generic
+     * @return The new argument
+     * @param <V> The value generic
+     */
+    public static <V> @NonNull Argument<V> reconstructGenericWithParentMetadata(@NonNull Argument<?> parentType, @NonNull Argument<V> valueGeneric) {
+        if (parentType.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
+            AnnotationMetadataHierarchy reconstructed = new AnnotationMetadataHierarchy(true, parentType.getAnnotationMetadata(), valueGeneric.getAnnotationMetadata());
+            return valueGeneric
+                .withAnnotationMetadata(reconstructed);
+        }
+        return valueGeneric;
     }
 
     /**

@@ -39,4 +39,15 @@ public interface SerializationConfiguration {
      */
     @Bindable(defaultValue = StringUtils.TRUE)
     boolean isAlwaysSerializeErrorsAsList();
+
+    /**
+     * Determines whether properties should be serialized in alphabetical order.
+     *
+     * @return true if properties should be sorted alphabetically, false otherwise
+     * @since 2.14
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean sortPropertiesAlphabetically() {
+        return false;
+    }
 }

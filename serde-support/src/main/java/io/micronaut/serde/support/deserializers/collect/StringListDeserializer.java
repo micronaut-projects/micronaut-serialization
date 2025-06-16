@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
 
 import java.io.IOException;
@@ -36,8 +38,15 @@ final class StringListDeserializer implements DeserializerRegistrar<ArrayList<St
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
         final Decoder arrayDecoder = decoder.decodeArray();
         ArrayList<String> collection = new ArrayList<>();
+        int index = 0;
         while (arrayDecoder.hasNextArrayValue()) {
-            collection.add(arrayDecoder.decodeStringNullable());
+            try {
+                collection.add(arrayDecoder.decodeStringNullable());
+                index++;
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofCollection(collection.getClass(), type, index));
+                throw e;
+            }
         }
         arrayDecoder.finishStructure();
         return collection;

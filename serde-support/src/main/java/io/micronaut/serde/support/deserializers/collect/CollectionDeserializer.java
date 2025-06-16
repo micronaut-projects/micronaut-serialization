@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -44,17 +46,25 @@ abstract sealed class CollectionDeserializer<E, C extends Collection<E>> impleme
 
     protected final void doDeserialize(Decoder decoder,
                                        DecoderContext decoderContext,
-                                       Collection<E> collection) throws IOException {
-        final Decoder arrayDecoder = decoder.decodeArray();
-        while (arrayDecoder.hasNextArrayValue()) {
-            E deserialize = valueDeser.deserializeNullable(
-                arrayDecoder,
-                decoderContext,
-                collectionItemArgument
-            );
-            collection.add(deserialize);
+                                       Collection<E> collection,
+                                       Argument<? super C> collectionArgument) throws IOException {
+        int index = 0;
+        try {
+            final Decoder arrayDecoder = decoder.decodeArray();
+            while (arrayDecoder.hasNextArrayValue()) {
+                E deserialize = valueDeser.deserializeNullable(
+                    arrayDecoder,
+                    decoderContext,
+                    collectionItemArgument
+                );
+                collection.add(deserialize);
+                index++;
+            }
+            arrayDecoder.finishStructure();
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(getDefaultValue(decoderContext, collectionArgument).getClass(), collectionArgument, index));
+            throw e;
         }
-        arrayDecoder.finishStructure();
     }
 
 }

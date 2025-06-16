@@ -70,11 +70,21 @@ final class SqlDateSerde implements SerdeRegistrar<Date> {
                 encoderContext, argument
         );
         if (specific != localDateSerde) {
-            return (encoder, context, t, value) -> specific.serialize(
-                    encoder,
-                    context,
-                    argument, value.toLocalDate()
-            );
+            return new Serializer<>() {
+                @Override
+                public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Date> t, Date value) throws IOException {
+                    specific.serialize(
+                        encoder,
+                        context,
+                        argument, value.toLocalDate()
+                    );
+                }
+
+                @Override
+                public boolean isDefault(EncoderContext context, Date value) {
+                    return value.getTime() == 0L;
+                }
+            };
         }
         return this;
     }
@@ -100,6 +110,11 @@ final class SqlDateSerde implements SerdeRegistrar<Date> {
             return Date.valueOf(localDate);
         }
         return null;
+    }
+
+    @Override
+    public boolean isDefault(EncoderContext context, Date value) {
+        return value.getTime() == 0L;
     }
 
     @Override

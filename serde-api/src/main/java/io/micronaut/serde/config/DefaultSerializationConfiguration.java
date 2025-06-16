@@ -33,12 +33,15 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
 
     private final SerdeConfig.SerInclude inclusion;
     private final boolean alwaysSerializeErrorsAsList;
+    private final boolean sortPropertiesAlphabetically;
 
     @ConfigurationInject
     DefaultSerializationConfiguration(@Bindable(defaultValue = "NON_EMPTY") SerdeConfig.SerInclude inclusion,
-                                      @Bindable(defaultValue = StringUtils.TRUE) boolean alwaysSerializeErrorsAsList) {
+                                      @Bindable(defaultValue = StringUtils.TRUE) boolean alwaysSerializeErrorsAsList,
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean sortPropertiesAlphabetically) {
         this.inclusion = inclusion;
         this.alwaysSerializeErrorsAsList = alwaysSerializeErrorsAsList;
+        this.sortPropertiesAlphabetically = sortPropertiesAlphabetically;
     }
 
     @Override
@@ -49,6 +52,11 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     @Override
     public boolean isAlwaysSerializeErrorsAsList() {
         return alwaysSerializeErrorsAsList;
+    }
+
+    @Override
+    public boolean sortPropertiesAlphabetically() {
+        return sortPropertiesAlphabetically;
     }
 
 }
