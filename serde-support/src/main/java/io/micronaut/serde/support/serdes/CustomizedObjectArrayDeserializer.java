@@ -18,6 +18,8 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -47,15 +49,21 @@ public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]>
         Object[] buffer = (Object[]) Array.newInstance(componentType.getType(), 50);
         int index = 0;
         while (arrayDecoder.hasNextArrayValue()) {
-            final int l = buffer.length;
-            if (l == index) {
-                buffer = Arrays.copyOf(buffer, l * 2);
-            }
-            buffer[index++] = componentDeserializer.deserializeNullable(
+            try {
+                final int l = buffer.length;
+                if (l == index) {
+                    buffer = Arrays.copyOf(buffer, l * 2);
+                }
+                buffer[index] = componentDeserializer.deserializeNullable(
                     arrayDecoder,
                     decoderContext,
                     componentType
-            );
+                );
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofCollection(buffer.getClass(), type, index));
+                throw e;
+            }
+            index++;
         }
         arrayDecoder.finishStructure();
         return Arrays.copyOf(buffer, index);

@@ -48,6 +48,11 @@ final class ShortSerde implements SerdeRegistrar<Short>, NumberSerde<Short> {
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Short value) {
+        return value.equals((short) 0);
+    }
+
+    @Override
     public Argument<Short> getType() {
         return Argument.of(Short.class);
     }

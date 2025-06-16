@@ -64,6 +64,248 @@ class Test {
             ['c', 'a', 'b'] | '{"c":3,"a":1,"b":2}'
     }
 
+    void "test @JsonPropertyOrder on type where order is alphabetic"() {
+        given:
+            buildContext('jsonorder.Test', """
+package jsonorder;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonPropertyOrder(alphabetic = true)
+class Test {
+    private int c = 3;
+    private int b = 2;
+    private int a = 1;
+    public void setB(int b) {
+        this.b = b;
+    }
+    public void setA(int a) {
+        this.a = a;
+    }
+    public void setC(int c) {
+        this.c = c;
+    }
+    public int getB() {
+        return b;
+    }
+    public int getA() {
+        return a;
+    }
+    public int getC() {
+        return c;
+    }
+}
+""", [:])
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"a":1,"b":2,"c":3}'
+    }
+
+    void "test @JsonPropertyOrder on type where order is alphabetic - PERAPP"() {
+        given:
+            buildContext('jsonorder.Test', """
+package jsonorder;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private int c = 3;
+    private int b = 2;
+    private int a = 1;
+    public void setB(int b) {
+        this.b = b;
+    }
+    public void setA(int a) {
+        this.a = a;
+    }
+    public void setC(int c) {
+        this.c = c;
+    }
+    public int getB() {
+        return b;
+    }
+    public int getA() {
+        return a;
+    }
+    public int getC() {
+        return c;
+    }
+}
+""", [:], [
+                    "micronaut.serde.serialization.sort-properties-alphabetically": true,
+                    "jackson.mapper.sort-properties-alphabetically"               : true
+            ]
+            )
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"a":1,"b":2,"c":3}'
+    }
+
+    void "test @JsonPropertyOrder on type where order is alphabetic and @JsonProperty"() {
+        given:
+            buildContext('jsonorder.Test', """
+package jsonorder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonPropertyOrder(alphabetic = true)
+class Test {
+    private int c = 3;
+    @JsonProperty("d")
+    private int b = 2;
+    private int a = 1;
+    public void setB(int b) {
+        this.b = b;
+    }
+    public void setA(int a) {
+        this.a = a;
+    }
+    public void setC(int c) {
+        this.c = c;
+    }
+    public int getB() {
+        return b;
+    }
+    public int getA() {
+        return a;
+    }
+    public int getC() {
+        return c;
+    }
+}
+""", [:])
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"a":1,"c":3,"d":2}'
+    }
+
+    void "test @JsonPropertyOrder on type where order is alphabetic and @JsonProperty - PERAPP"() {
+        given:
+            buildContext('jsonorder.Test', """
+package jsonorder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private int c = 3;
+    @JsonProperty("d")
+    private int b = 2;
+    private int a = 1;
+    public void setB(int b) {
+        this.b = b;
+    }
+    public void setA(int a) {
+        this.a = a;
+    }
+    public void setC(int c) {
+        this.c = c;
+    }
+    public int getB() {
+        return b;
+    }
+    public int getA() {
+        return a;
+    }
+    public int getC() {
+        return c;
+    }
+}
+""", [:], [
+                    "micronaut.serde.serialization.sort-properties-alphabetically": true,
+                    "jackson.mapper.sort-properties-alphabetically"               : true
+            ]
+            )
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"a":1,"c":3,"d":2}'
+    }
+
+    void "test @JsonPropertyOrder on type where order is alphabetic and @JsonProperty getter"() {
+        given:
+            buildContext('jsonorder.Test', """
+package jsonorder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonPropertyOrder(alphabetic = true)
+class Test {
+    private int c = 3;
+    private int b = 2;
+    private int a = 1;
+    public void setB(int b) {
+        this.b = b;
+    }
+    public void setA(int a) {
+        this.a = a;
+    }
+    public void setC(int c) {
+        this.c = c;
+    }
+
+    @JsonProperty("d")
+    public int getB() {
+        return b;
+    }
+    public int getA() {
+        return a;
+    }
+    public int getC() {
+        return c;
+    }
+}
+""", [:])
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"a":1,"c":3,"d":2}'
+    }
+
+    void "test @JsonPropertyOrder on type where order is alphabetic and @JsonGetter getter"() {
+        given:
+            buildContext('jsonorder.Test', """
+package jsonorder;
+
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@JsonPropertyOrder(alphabetic = true)
+class Test {
+    private int c = 3;
+    private int b = 2;
+    private int a = 1;
+    public void setB(int b) {
+        this.b = b;
+    }
+    public void setA(int a) {
+        this.a = a;
+    }
+    public void setC(int c) {
+        this.c = c;
+    }
+
+    @JsonGetter("d")
+    public int getB() {
+        return b;
+    }
+    public int getA() {
+        return a;
+    }
+    public int getC() {
+        return c;
+    }
+}
+""", [:])
+        expect:
+            writeJson(jsonMapper, beanUnderTest) == '{"a":1,"c":3,"d":2}'
+    }
+
     @Unroll
     void "test @JsonPropertyOrder with renamed property on type where order is #order"() {
         given:

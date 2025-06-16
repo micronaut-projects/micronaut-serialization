@@ -43,8 +43,8 @@ public class JsonPropertyMapper implements NamedAnnotationMapper {
         }
 
         annotation.stringValue("defaultValue").ifPresent(s ->
-                       values.add(AnnotationValue.builder(Bindable.class).member("defaultValue", s).build())
-                );
+            values.add(AnnotationValue.builder(Bindable.class).member("defaultValue", s).build())
+        );
         annotation.stringValue("access").ifPresent(access -> {
             switch (access) {
                 case "READ_ONLY":

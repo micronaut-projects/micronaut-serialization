@@ -44,7 +44,7 @@ class NoSerdeSpec extends Specification {
 
         then:
         def e = thrown(SerdeException)
-        e.message == 'Error serializing value at path: '
+        e.message == 'Error getting property [String someString] of type [class io.micronaut.serde.jackson.errors.WithNpe]: Simulating NPE in getter'
     }
 
     static class Foo {}

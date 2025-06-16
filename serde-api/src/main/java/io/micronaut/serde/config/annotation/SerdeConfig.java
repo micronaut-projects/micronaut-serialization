@@ -413,6 +413,13 @@ public @interface SerdeConfig {
         NON_EMPTY,
 
         /**
+         * Value that indicates that properties are included unless their value is the default value
+         * of the property type as defined by its Java implementation.
+         * All values considered "empty" (as per NON_EMPTY) are also excluded.
+         */
+        NON_DEFAULT,
+
+        /**
          * Ignore the property.
          */
         NEVER

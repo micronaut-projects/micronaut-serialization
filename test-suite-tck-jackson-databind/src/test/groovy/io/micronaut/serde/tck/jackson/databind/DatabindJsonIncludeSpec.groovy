@@ -48,4 +48,42 @@ class Test {
             "OptionalLong"                 | [value: OptionalLong.empty()]   | '{"value":null}'
     }
 
+    @Unroll
+    void "test @JsonInclude(NON_DEFAULT) on class"() {
+        given:
+            def context = buildContext('test.Test', """
+package test;
+
+import java.util.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
+
+@JsonInclude(NON_DEFAULT)
+class Test {
+    private String value = "abc";
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+}
+""")
+        when:
+            def bean = newInstance(context, 'test.Test')
+            bean.value = value
+            String json = writeJson(jsonMapper, bean)
+        then:
+            json == result
+
+        cleanup:
+            context.close()
+
+        where:
+            value | result
+            null  | """{"value":null}"""
+            "abc"  | """{}"""
+            "xyz"  | """{"value":"xyz"}"""
+    }
+
 }

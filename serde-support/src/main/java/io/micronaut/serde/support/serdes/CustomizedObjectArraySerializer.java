@@ -19,6 +19,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 
@@ -42,12 +44,19 @@ public final class CustomizedObjectArraySerializer implements Serializer<Object[
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object[]> type, Object[] value)
             throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
+        int index = 0;
         for (Object v : value) {
-            componentSerializer.serialize(
+            try {
+                componentSerializer.serialize(
                     arrayEncoder,
                     context,
                     componentType, v
-            );
+                );
+                index++;
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofCollection(type.getType().componentType(), type, index));
+                throw e;
+            }
         }
         arrayEncoder.finishStructure();
     }

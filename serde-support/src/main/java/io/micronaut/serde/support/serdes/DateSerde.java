@@ -47,11 +47,21 @@ final class DateSerde implements SerdeRegistrar<Date> {
                 encoderContext, argument
         );
         if (specific != instantSerde) {
-            return (encoder, context, t, value) -> specific.serialize(
-                    encoder,
-                    context,
-                    argument, value.toInstant()
-            );
+            return new Serializer<>() {
+                @Override
+                public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Date> t, Date value) throws IOException {
+                    specific.serialize(
+                        encoder,
+                        context,
+                        argument, value.toInstant()
+                    );
+                }
+
+                @Override
+                public boolean isDefault(EncoderContext context, Date value) {
+                    return value.getTime() == 0L;
+                }
+            };
         }
         return this;
     }
@@ -90,6 +100,11 @@ final class DateSerde implements SerdeRegistrar<Date> {
                 decoderContext,
                 INSTANT_ARGUMENT
         ));
+    }
+
+    @Override
+    public boolean isDefault(EncoderContext context, Date value) {
+        return value.getTime() == 0L;
     }
 
     @Override

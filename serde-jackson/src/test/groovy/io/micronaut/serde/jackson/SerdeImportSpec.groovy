@@ -10,6 +10,71 @@ import spock.lang.Issue
 
 class SerdeImportSpec extends JsonCompileSpec {
 
+    void "test interface mixin @JsonProperty"() {
+        def context = buildContext('mixintest.TestImport','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = io.micronaut.serde.jackson.ITest.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+
+
+abstract class TestMixin  {
+
+    @JsonProperty("foobar")
+    abstract double get95thPercentile();
+
+}
+
+''')
+        def bean = new ITestImpl()
+        bean.code = 123.456
+
+        expect:
+            jsonMapper.writeValueAsString(bean) == '{"foobar":123.456}'
+
+        cleanup:
+            context.close()
+    }
+
+    void "test abstract mixin @JsonProperty"() {
+        def context = buildContext('mixintest.TestImport','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.annotation.Serdeable;
+
+@SerdeImport(
+    value = io.micronaut.serde.jackson.ATest.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+abstract class TestMixin  {
+
+    @JsonProperty("foobar")
+    abstract double get95thPercentile();
+
+}
+
+''')
+        def bean = new ATestImpl()
+        bean.code = 123.456
+
+        expect:
+            jsonMapper.writeValueAsString(bean) == '{"foobar":123.456}'
+
+        cleanup:
+            context.close()
+    }
+
     void "test external mixin and external class"() {
         given:
         def context = buildContext('''

@@ -45,11 +45,21 @@ final class SqlTimestampSerde implements SerdeRegistrar<Timestamp> {
                 encoderContext, argument
         );
         if (specific != instantSerde) {
-            return (encoder, context, t, value) -> specific.serialize(
-                    encoder,
-                    context,
-                    argument, value.toInstant()
-            );
+            return new Serializer<>() {
+                @Override
+                public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Timestamp> t, Timestamp value) throws IOException {
+                    specific.serialize(
+                        encoder,
+                        context,
+                        argument, value.toInstant()
+                    );
+                }
+
+                @Override
+                public boolean isDefault(EncoderContext context, Timestamp value) {
+                    return value.getTime() == 0L;
+                }
+            };
         }
         return this;
     }
@@ -87,6 +97,11 @@ final class SqlTimestampSerde implements SerdeRegistrar<Timestamp> {
                 decoderContext,
                 INSTANT_ARGUMENT
         ));
+    }
+
+    @Override
+    public boolean isDefault(EncoderContext context, Timestamp value) {
+        return value.getTime() == 0L;
     }
 
     @Override

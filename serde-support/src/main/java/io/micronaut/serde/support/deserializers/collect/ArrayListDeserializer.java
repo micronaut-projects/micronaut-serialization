@@ -40,7 +40,7 @@ final class ArrayListDeserializer<E> extends CollectionDeserializer<E, ArrayList
     @Override
     public ArrayList<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<E>> type) throws IOException {
         ArrayList<E> collection = new ArrayList<>();
-        doDeserialize(decoder, context, collection);
+        doDeserialize(decoder, context, collection, type);
         return collection;
     }
 

@@ -24,6 +24,7 @@ import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
 
@@ -65,32 +66,37 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
             @Override
             public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
                 for (CharSequence key : value) {
-                    Optional<? extends List<V>> opt = value.get(key);
-                    if (opt.isPresent()) {
-                        String fieldName = key.toString();
-                        encoder.encodeKey(fieldName);
-                        List<V> list = opt.get();
-                        if (alwaysSerializeErrorsAsList) {
-                            listSerializer.serialize(
-                                encoder,
-                                context,
-                                listGeneric, list
-                            );
-                        } else {
-                            if (list.size() == 1) {
-                                valueSerializer.serialize(
-                                    encoder,
-                                    context,
-                                    generic, list.get(0)
-                                );
-                            } else {
+                    try {
+                        Optional<? extends List<V>> opt = value.get(key);
+                        if (opt.isPresent()) {
+                            String fieldName = key.toString();
+                            encoder.encodeKey(fieldName);
+                            List<V> list = opt.get();
+                            if (alwaysSerializeErrorsAsList) {
                                 listSerializer.serialize(
                                     encoder,
                                     context,
                                     listGeneric, list
                                 );
+                            } else {
+                                if (list.size() == 1) {
+                                    valueSerializer.serialize(
+                                        encoder,
+                                        context,
+                                        generic, list.get(0)
+                                    );
+                                } else {
+                                    listSerializer.serialize(
+                                        encoder,
+                                        context,
+                                        listGeneric, list
+                                    );
+                                }
                             }
                         }
+                    } catch (SerdeException e) {
+                        e.getPath().add(ReferencePath.ofMap(value.getClass(), type, key.toString()));
+                        throw e;
                     }
                 }
             }

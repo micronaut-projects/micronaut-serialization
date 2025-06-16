@@ -411,10 +411,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private void registerBuiltInSerdes() {
         Serdes.register(serdeConfiguration, introspections, serdeRegistrar -> {
-            for (Argument<?> type : serdeRegistrar.getTypes()) {
-                deserializers.add(new InternalSerdeBeanDefinition<>(type, Deserializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
-                serializers.add(new InternalSerdeBeanDefinition<>(type, Serializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
-                internalSerdes.add(new InternalSerdeBeanDefinition<>(type, Serde.class, serdeRegistrar, serdeRegistrar.getOrder()));
+            try {
+                for (Argument<?> type : serdeRegistrar.getTypes()) {
+                    deserializers.add(new InternalSerdeBeanDefinition<>(type, Deserializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                    serializers.add(new InternalSerdeBeanDefinition<>(type, Serializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                    internalSerdes.add(new InternalSerdeBeanDefinition<>(type, Serde.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                }
+            } catch (NoClassDefFoundError ignore) {
+                // Might be a missing sql module
             }
         });
         CoreCollectionsDeserializers.register(conversionService, deserializerRegistrar -> {

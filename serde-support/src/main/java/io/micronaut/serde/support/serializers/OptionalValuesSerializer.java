@@ -22,6 +22,7 @@ import io.micronaut.core.value.OptionalValues;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
 
@@ -46,13 +47,18 @@ final class OptionalValuesSerializer<V> implements CustomizableSerializer<Option
             @Override
             public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends OptionalValues<V>> type, OptionalValues<V> value) throws IOException {
                 for (CharSequence key : value) {
-                    Optional<V> opt = value.get(key);
-                    if (opt.isPresent()) {
-                        encoder.encodeKey(key.toString());
-                        valueSerializer.serialize(
+                    try {
+                        Optional<V> opt = value.get(key);
+                        if (opt.isPresent()) {
+                            encoder.encodeKey(key.toString());
+                            valueSerializer.serialize(
                                 encoder,
                                 context, generic, opt.get()
-                        );
+                            );
+                        }
+                    } catch (SerdeException e) {
+                        e.getPath().add(ReferencePath.ofMap(value.getClass(), type, key.toString()));
+                        throw e;
                     }
                 }
             }

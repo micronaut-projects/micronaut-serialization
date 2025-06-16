@@ -15,11 +15,11 @@
  */
 package io.micronaut.serde.exceptions;
 
-import java.util.Optional;
-
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.convert.ConversionError;
+
+import java.util.Optional;
 
 /**
  * Error for when a value cannot be converted to the desired type.

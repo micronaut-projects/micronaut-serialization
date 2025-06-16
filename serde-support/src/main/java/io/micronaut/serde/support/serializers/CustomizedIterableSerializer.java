@@ -19,6 +19,8 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -44,12 +46,19 @@ final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value)
         throws IOException {
+        int index = 0;
         try (Encoder array = encoder.encodeArray(type)) {
             for (T t : value) {
-                if (t == null) {
-                    array.encodeNull();
-                } else {
-                    componentSerializer.serialize(array, context, generic, t);
+                try {
+                    if (t == null) {
+                        array.encodeNull();
+                    } else {
+                        componentSerializer.serialize(array, context, generic, t);
+                    }
+                    index++;
+                } catch (SerdeException e) {
+                    e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
+                    throw e;
                 }
             }
         }

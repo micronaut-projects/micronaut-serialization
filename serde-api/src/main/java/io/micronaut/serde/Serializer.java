@@ -90,6 +90,18 @@ public interface Serializer<T> {
     }
 
     /**
+     * Used for {@code JsonInclude.Include#NON_DEFAULT} checking.
+     *
+     * @param context The encoder context
+     * @param value The check to check
+     * @return Return {@code true} if the value is the default value
+     * @since 1.14
+     */
+    default boolean isDefault(@NonNull EncoderContext context, @NonNull T value) {
+        return false;
+    }
+
+    /**
      * Context object passes to the
      * {@link #serialize(Encoder, EncoderContext, Argument, Object)}  method.
      */
