@@ -701,7 +701,7 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#createReactiveParser(java.util.function.Consumer,boolean)" class="member-name-link">createReactiveParser(Consumer&lt;Processor&lt;byte[], JsonNode&gt;&gt;, boolean)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#createReactiveParser(java.util.function.Consumer,boolean)" class="member-name-link">createReactiveParser(Consumer&lt;Processor&lt;byte[], JsonNode&gt;&gt;, boolean)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#createReactiveParser(java.util.function.Consumer,boolean)" class="member-name-link">createReactiveParser(Consumer&lt;Processor&lt;byte[], JsonNode&gt;&gt;, boolean)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#createSpecific(io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Argument&lt;?&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -1221,6 +1221,16 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/LimitingStream.html#decreaseDepth()" class="member-name-link">decreaseDepth()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></dt>
 <dd>
 <div class="block">Decrease the current depth, always needs a corresponding <a href="io/micronaut/serde/LimitingStream.html#increaseDepth()"><code>LimitingStream.increaseDepth()</code></a> call.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#deduct()" class="member-name-link">deduct()</a> - Method in record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/support/util/SubtypeInfo.html#param-deduct"><code>deduct</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html#DEDUCTION" class="member-name-link">DEDUCTION</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorValueKind.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorValueKind</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.html#DEFAULT_IMPL" class="member-name-link">DEFAULT_IMPL</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped</a></dt>
+<dd>
+<div class="block">Is default implementation.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#DEFAULT_INET_ADDRESS_AS_NUMERIC" class="member-name-link">DEFAULT_INET_ADDRESS_AS_NUMERIC</a> - Static variable in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -2347,7 +2357,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Returns the <a href="io/micronaut/serde/SerdeRegistry.html" title="interface in io.micronaut.serde"><code>SerdeRegistry</code></a> used by this object mapper, if possible.</div>
 </dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#getSerdeRegistry()" class="member-name-link">getSerdeRegistry()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#getSerdeRegistry()" class="member-name-link">getSerdeRegistry()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SerdeIntrospections.html#getSerializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getSerializableIntrospection(Argument&lt;T&gt;)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></dt>
 <dd>
@@ -2399,7 +2409,7 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#getStreamConfig()" class="member-name-link">getStreamConfig()</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#getStreamConfig()" class="member-name-link">getStreamConfig()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#getStreamConfig()" class="member-name-link">getStreamConfig()</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getStreamFeatures()" class="member-name-link">getStreamFeatures()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -2623,6 +2633,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Include strategy.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#INCLUDE_CONTENT" class="member-name-link">INCLUDE_CONTENT</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">Include content strategy.</div>
+</dd>
 <dt><a href="io/micronaut/serde/LimitingStream.html#increaseDepth()" class="member-name-link">increaseDepth()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></dt>
 <dd>
 <div class="block">Increase the current depth.</div>
@@ -2828,6 +2842,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isStrictNullable()" class="member-name-link">isStrictNullable()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
 <div class="block">Whether null field should be annotated with a nullable annotations.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>
@@ -3648,7 +3666,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonDurationSerde.html#%3Cinit%3E()" class="member-name-link">OracleJsonDurationSerde()</a> - Constructor for class io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonDurationSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonDurationSerde</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#oracleJsonFactory" class="member-name-link">oracleJsonFactory</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#oracleJsonFactory" class="member-name-link">oracleJsonFactory</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/OracleJsonLocaleDateSerde.html" class="type-name-link" title="class in io.micronaut.serde.oracle.jdbc.json.serde">OracleJsonLocaleDateSerde</a> - Class in <a href="io/micronaut/serde/oracle/jdbc/json/serde/package-summary.html">io.micronaut.serde.oracle.jdbc.json.serde</a></dt>
 <dd>
@@ -3841,13 +3859,13 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue(byte[], Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue(byte[], Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue(byte[], Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#readValue(io.micronaut.core.io.buffer.ByteBuffer,io.micronaut.core.type.Argument)" class="member-name-link">readValue(ByteBuffer&lt;?&gt;, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)" class="member-name-link">readValue(OracleJsonParser, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#readValue(oracle.sql.json.OracleJsonParser,io.micronaut.core.type.Argument)" class="member-name-link">readValue(OracleJsonParser, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>
 <div class="block">Read the value using the oracle parser.</div>
 </dd>
@@ -3855,7 +3873,7 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#readValue(java.io.InputStream,io.micronaut.core.type.Argument)" class="member-name-link">readValue(InputStream, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -3863,7 +3881,7 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#readValueFromTree(io.micronaut.json.tree.JsonNode,io.micronaut.core.type.Argument)" class="member-name-link">readValueFromTree(JsonNode, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#reconstructGenericWithParentMetadata(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">reconstructGenericWithParentMetadata(Argument&lt;?&gt;, Argument&lt;V&gt;)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
 <dd>
@@ -3909,7 +3927,7 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#registry" class="member-name-link">registry</a> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#registry" class="member-name-link">registry</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#registry" class="member-name-link">registry</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/AwsRemapper.html#remap(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">remap(AnnotationValue&lt;?&gt;, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/AwsRemapper.html" title="class in io.micronaut.serde.processor.jackson">AwsRemapper</a></dt>
 <dd>&nbsp;</dd>
@@ -4074,7 +4092,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#serdeConfiguration" class="member-name-link">serdeConfiguration</a> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#serdeConfiguration" class="member-name-link">serdeConfiguration</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#serdeConfiguration" class="member-name-link">serdeConfiguration</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html" class="type-name-link" title="interface in io.micronaut.serde.config">SerdeConfiguration</a> - Interface in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
 <dd>&nbsp;</dd>
@@ -4390,7 +4408,7 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">The subtype info.</div>
 </dd>
-<dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#%3Cinit%3E(java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorType,java.lang.String,java.lang.Class,boolean)" class="member-name-link">SubtypeInfo(Map&lt;Class&lt;?&gt;, String[]&gt;, SerdeConfig.SerSubtyped.DiscriminatorType, String, Class&lt;?&gt;, boolean)</a> - Constructor for record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
+<dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#%3Cinit%3E(java.util.Map,io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorType,java.lang.String,java.lang.Class,boolean,boolean)" class="member-name-link">SubtypeInfo(Map&lt;Class&lt;?&gt;, String[]&gt;, SerdeConfig.SerSubtyped.DiscriminatorType, String, Class&lt;?&gt;, boolean, boolean)</a> - Constructor for record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>SubtypeInfo</code> record class.</div>
 </dd>
@@ -4834,7 +4852,7 @@ the order they are declared.</div>
 </dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#view" class="member-name-link">view</a> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#view" class="member-name-link">view</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#view" class="member-name-link">view</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#VIEWS" class="member-name-link">VIEWS</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
@@ -4865,7 +4883,7 @@ the order they are declared.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValue(oracle.sql.json.OracleJsonGenerator,T,io.micronaut.core.type.Argument)" class="member-name-link">writeValue(OracleJsonGenerator, T, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValue(oracle.sql.json.OracleJsonGenerator,T,io.micronaut.core.type.Argument)" class="member-name-link">writeValue(OracleJsonGenerator, T, Argument&lt;T&gt;)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>
 <div class="block">Writes the value to the json generator.</div>
 </dd>
@@ -4875,13 +4893,13 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue(OutputStream, Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue(OutputStream, Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValue(java.io.OutputStream,io.micronaut.core.type.Argument,T)" class="member-name-link">writeValue(OutputStream, Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -4891,13 +4909,13 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes(Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes(Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValueAsBytes(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueAsBytes(Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValueAsBytes(java.lang.Object)" class="member-name-link">writeValueAsBytes(Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/ObjectMapper.html#writeValueAsString(java.lang.Object)" class="member-name-link">writeValueAsString(Object)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/ObjectMapper.html" title="interface in io.micronaut.serde">ObjectMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -4909,13 +4927,13 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValueToTree(io.micronaut.core.type.Argument,T)" class="member-name-link">writeValueToTree(Argument&lt;T&gt;, T)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/JsonStreamMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonStreamMapper.html" title="class in io.micronaut.serde.json.stream">JsonStreamMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonTextObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonTextObjectMapper</a></dt>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#writeValueToTree(java.lang.Object)" class="member-name-link">writeValueToTree(Object)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <h2 class="title" id="I:Y">Y</h2>

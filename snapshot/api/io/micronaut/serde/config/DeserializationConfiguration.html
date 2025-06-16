@@ -122,6 +122,11 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Whether null field should be annotated with a nullable annotations.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
+</div>
 </div>
 </div>
 </div>
@@ -202,6 +207,19 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>True if a null field or a missing value for a primitive should fail the deserialization</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="isSubtypesRequireDefaultImpl()">
+<h3>isSubtypesRequireDefaultImpl</h3>
+<div class="member-signature"><span class="annotations">@NextMajorVersion("Inline to true to have the behaviour the same as for Jackson")
+@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isSubtypesRequireDefaultImpl</span>()</div>
+<div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>True to avoid the supertype and use `defaultImpl` property</dd>
 </dl>
 </section>
 </li>
