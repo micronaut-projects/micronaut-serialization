@@ -4,7 +4,6 @@ import io.micronaut.context.ApplicationContext
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.jackson.mixin.outer.MuxedEvent4
 import io.micronaut.serde.jackson.mixin.outer.MuxedEvent5
-import spock.lang.PendingFeature
 import spock.lang.Specification
 
 class SerdeMixinSpec extends Specification {
@@ -36,7 +35,6 @@ class SerdeMixinSpec extends Specification {
             context.close()
     }
 
-    @PendingFeature(reason = "https://github.com/micronaut-projects/micronaut-core/pull/11680")
     void "should serialize different package with mixin"() {
         given:
             def context = ApplicationContext.run()
@@ -52,7 +50,6 @@ class SerdeMixinSpec extends Specification {
             context.close()
     }
 
-    @PendingFeature(reason = "https://github.com/micronaut-projects/micronaut-core/pull/11680")
     void "should serialize different package with mixin 2"() {
         given:
             def context = ApplicationContext.run()
