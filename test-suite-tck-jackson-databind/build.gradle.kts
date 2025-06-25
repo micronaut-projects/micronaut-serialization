@@ -8,4 +8,5 @@ dependencies {
 
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(projects.micronautSerdeJacksonTck)
+    testImplementation(projects.micronautSerdeTck)
 }

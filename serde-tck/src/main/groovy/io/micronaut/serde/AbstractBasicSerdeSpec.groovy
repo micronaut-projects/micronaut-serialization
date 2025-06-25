@@ -31,6 +31,46 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
 
     abstract JsonMapper getJsonMapper()
 
+    def "missing list"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArray))
+        then:
+            obj
+            obj.vals == null
+    }
+
+    def "missing list - constructor"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArrayConstructor))
+        then:
+            obj
+            obj.vals == null
+    }
+
+    def "missing list - record"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArrayRecord))
+        then:
+            obj
+            obj.vals() == null
+    }
+
+    def "missing list - required"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArrayRequired))
+        then:
+            def e = thrown(Exception)
+            e.message.contains("Required constructor parameter [List<SomeObject E> vals] at index [0] is not present or is null in the supplied data") || e.message.contains("Missing required creator property 'vals'")
+    }
+
     void "test write simple"() {
         when:
         def bean = new Simple(name: "Test")
@@ -229,7 +269,7 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
         then:
             // note that the type of the result may differ from the original as json
             // doesn't keep this information
-            result.value == jsonNode.value
+            result.value == jsonNode.value || result.value.toString() == jsonNode.value.toString()
         where:
             jsonNode << [
                 JsonNode.createBooleanNode(true),
