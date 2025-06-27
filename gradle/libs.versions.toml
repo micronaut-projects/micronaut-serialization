@@ -16,7 +16,7 @@ jmh = "1.37"
 groovy = "4.0.22"
 lombok = "1.18.38"
 
-micronaut-platform = "4.8.3"
+micronaut-platform = "4.9.0"
 micronaut = "4.9.4"
 micronaut-docs = "2.0.0"
 micronaut-test = "4.7.0"
