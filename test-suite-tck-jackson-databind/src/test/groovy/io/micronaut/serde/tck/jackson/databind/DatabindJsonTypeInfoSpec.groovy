@@ -78,7 +78,6 @@ class B2 extends Base2 {
             compiled.close()
     }
 
-    @PendingFeature(reason = "Cannot define Creator property \"name\" as `@JsonUnwrapped`: combination not yet supported")
     def 'test JsonTypeInfo with wrapper array in constructor and @JsonUnwrapped'() {
         given:
             def ctx = buildContext('example.Wrapper', '''

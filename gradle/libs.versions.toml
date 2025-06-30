@@ -16,8 +16,8 @@ jmh = "1.37"
 groovy = "4.0.22"
 lombok = "1.18.38"
 
-micronaut-platform = "4.8.3"
-micronaut = "4.9.4"
+micronaut-platform = "4.9.0"
+micronaut = "4.9.5"
 micronaut-docs = "2.0.0"
 micronaut-test = "4.7.0"
 micronaut-discovery = "4.7.1"
@@ -52,6 +52,7 @@ graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" 
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-engine = { module = "org.junit.platform:junit-platform-suite-engine" }
