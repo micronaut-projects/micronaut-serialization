@@ -52,6 +52,7 @@ graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" 
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-engine = { module = "org.junit.platform:junit-platform-suite-engine" }
