@@ -8,7 +8,6 @@ class DatabindJsonUnwrappedSpec extends JsonUnwrappedSpec {
 
      // This cases are not supported by Jackson
 
-    @PendingFeature
     void "test @JsonUnwrapped records"() {
         given:
         def context = buildContext("""
