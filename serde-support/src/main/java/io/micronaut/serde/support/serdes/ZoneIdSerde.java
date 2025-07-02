@@ -18,6 +18,7 @@ package io.micronaut.serde.support.serdes;
 import java.io.IOException;
 import java.time.ZoneId;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
@@ -25,15 +26,14 @@ import io.micronaut.serde.support.SerdeRegistrar;
 
 /**
  * ZoneId serde.
+ *
+ * @since 2.16
  */
-public class ZoneIdSerde implements SerdeRegistrar<ZoneId> {
+@Internal
+final class ZoneIdSerde implements SerdeRegistrar<ZoneId> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends ZoneId> type, ZoneId value) throws IOException {
-        if (value != null) {
-            encoder.encodeString(value.getId());
-        } else {
-            encoder.encodeNull();
-        }
+        encoder.encodeString(value.getId());
     }
 
     @Override
