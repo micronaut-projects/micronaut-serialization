@@ -131,6 +131,7 @@ public final class Serdes {
         if (jacksonJsonNodeSerde != null) {
             consumer.accept(jacksonJsonNodeSerde);
         }
+        consumer.accept(new ZoneIdSerde());
     }
 
 }
