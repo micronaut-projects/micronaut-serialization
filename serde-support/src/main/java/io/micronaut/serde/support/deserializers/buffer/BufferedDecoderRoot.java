@@ -18,7 +18,7 @@ sealed class BufferedDecoderRoot extends AbstractBufferedDecoder implements Buff
 
     @Override
     protected Collection<Decoder> nestedDecoders() {
-        return List.of(decoder);
+        return decoder == null ? List.of() : List.of(decoder);
     }
 
     @Override
@@ -31,7 +31,7 @@ sealed class BufferedDecoderRoot extends AbstractBufferedDecoder implements Buff
 
     @Override
     protected void skipValue(boolean consumeValues) throws IOException {
-        throw new UnsupportedOperationException("BufferedDecoderRoot doesn't support skipValue");
+//        throw new UnsupportedOperationException("BufferedDecoderRoot doesn't support skipValue");
     }
 
     @Override

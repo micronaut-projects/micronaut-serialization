@@ -41,21 +41,25 @@ public class SerdeJmesPathDecoder {
             }
             JsonPathExpression jsonPathExpression = jsonPathExpressions.get(pathIndex);
             if (jsonPathExpression instanceof MultiSelectListExpressionJson multiSelectListExpression) {
-                List<JsonPath> paths = multiSelectListExpression.paths();
-                List<PathResult> selection = new ArrayList<>(paths.size());
-                try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
-                    for (JsonPath path : paths) {
-                        PathResult result = process(bufferedDecoder, path.expressions(), 0);
-                        if (result == null) {
-                            selection.add(new NodePathResult(JsonNode.nullNode()));
-                        } else {
-                            selection.add(result);
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_OBJECT) {
+                    List<JsonPath> paths = multiSelectListExpression.paths();
+                    List<PathResult> selection = new ArrayList<>(paths.size());
+                    try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder).decodeObject()) {
+                        for (JsonPath path : paths) {
+                            PathResult result = process(bufferedDecoder, path.expressions(), 0);
+                            if (result == null) {
+                                selection.add(new NodePathResult(JsonNode.nullNode()));
+                            } else {
+                                selection.add(result);
+                            }
+                            bufferedDecoder.finishStructure(true);
+                            bufferedDecoder.close();
                         }
+                        // Prevent ArrayPathResult to be flattened
+                        return new NodePathResult(
+                            new ArrayPathResult(selection).asNode()
+                        );
                     }
-                    // Prevent ArrayPathResult to be flattened
-                    return new NodePathResult(
-                        new ArrayPathResult(selection).asNode()
-                    );
                 }
             }
             if (jsonPathExpression instanceof MultiSelectKeyValueExpressionJson multiSelectKeyValueExpression) {
@@ -95,11 +99,13 @@ public class SerdeJmesPathDecoder {
                     return null;
                 }
                 if (lookahead == LookaheadDecoder.TokenType.KEY) {
-                    String key = decoder.decodeKey();
-                    if (key.equals(keyExpression.key())) {
-                        return process(decoder, jsonPathExpressions, pathIndex + 1);
+                    for (String key = decoder.decodeKey(); key != null; key = decoder.decodeKey()) {
+                        if (key.equals(keyExpression.key())) {
+                            return process(decoder, jsonPathExpressions, pathIndex + 1);
+                        } else {
+                            decoder.skipValue();
+                        }
                     }
-                    decoder.skipValue();
                     return null;
                 }
                 decoder.skipValue();
