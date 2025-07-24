@@ -4,8 +4,10 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -52,6 +54,15 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
     @Override
     public boolean hasNextArrayValue() throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public JsonNode decodeNode() throws IOException {
+        Decoder decoder = delegate();
+        if (decoder instanceof JsonNodeDecoder jsonNodeDecoder) {
+            return jsonNodeDecoder.getNode();
+        }
+        return decoder.decodeNode();
     }
 
     @Override

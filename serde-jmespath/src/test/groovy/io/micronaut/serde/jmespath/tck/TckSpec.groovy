@@ -16,21 +16,21 @@ class TckSpec extends Specification {
     ObjectMapper objectMapper = ObjectMapper.create(Map.of(), "io.micronaut.serde.jmespath.tck")
 
     private static def TCK_FILES_LIST = List.of(
-//            "basic.json",
+//            "basic.json", // passing
 //            "benchmarks.json",
 //            "boolean.json",
 //            "current.json",
 //            "escape.json",
 //            "filters.json",
 //            "functions.json",
-//            "identifiers.json",
+//            "identifiers.json", // passing
 //            "indices.json", // passing
 //            "literal.json",
-//            "multiselect.json",
+            "multiselect.json",
 //            "pipe.json",
 //            "slice.json",
 //            "syntax.json",
-//            "unicode.json",
+//            "unicode.json", // passing
 //            "wildcard.json"
     )
 

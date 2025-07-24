@@ -17,9 +17,7 @@ package io.micronaut.serde.support.deserializers.buffer;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
-import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
-import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,16 +71,6 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements Bu
             currentEntry = null;
             return remapedDecoder;
         }
-    }
-
-    @Override
-    public JsonNode decodeNode() throws IOException {
-        Decoder decoder = delegate();
-        if (decoder instanceof JsonNodeDecoder jsonNodeDecoder) {
-            JsonNode node = jsonNodeDecoder.getNode();
-            return node;
-        }
-        return decoder.decodeNode();
     }
 
     @Override

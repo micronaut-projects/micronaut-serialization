@@ -36,188 +36,191 @@ public class SerdeJmesPathDecoder {
     @Nullable
     private static SerdeJmesPathDecoder.PathResult process(LookaheadDecoder decoder, List<JsonPathExpression> jsonPathExpressions, int pathIndex) {
         try {
-            if (jsonPathExpressions.size() > pathIndex) {
-                JsonPathExpression jsonPathExpression = jsonPathExpressions.get(pathIndex);
-                if (jsonPathExpression instanceof MultiSelectListExpressionJson multiSelectListExpression) {
-                    List<JsonPath> paths = multiSelectListExpression.paths();
-                    List<PathResult> selection = new ArrayList<>(paths.size());
-                    try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
-                        for (JsonPath path : paths) {
-                            PathResult result = process(bufferedDecoder, path.expressions(), 0);
+            if (jsonPathExpressions.size() <= pathIndex) {
+                return new NodePathResult(decoder.decodeNode());
+            }
+            JsonPathExpression jsonPathExpression = jsonPathExpressions.get(pathIndex);
+            if (jsonPathExpression instanceof MultiSelectListExpressionJson multiSelectListExpression) {
+                List<JsonPath> paths = multiSelectListExpression.paths();
+                List<PathResult> selection = new ArrayList<>(paths.size());
+                try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
+                    for (JsonPath path : paths) {
+                        PathResult result = process(bufferedDecoder, path.expressions(), 0);
+                        if (result == null) {
+                            selection.add(new NodePathResult(JsonNode.nullNode()));
+                        } else {
+                            selection.add(result);
+                        }
+                    }
+                    // Prevent ArrayPathResult to be flattened
+                    return new NodePathResult(
+                        new ArrayPathResult(selection).asNode()
+                    );
+                }
+            }
+            if (jsonPathExpression instanceof MultiSelectKeyValueExpressionJson multiSelectKeyValueExpression) {
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_OBJECT) {
+                    List<Map.Entry<String, JsonPath>> entries = multiSelectKeyValueExpression.keyValuesExpressions();
+                    LinkedHashMap<String, PathResult> selection = CollectionUtils.newLinkedHashMap(entries.size());
+                    try (BufferedLookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder, false)) {
+                        for (Map.Entry<String, JsonPath> pathEntry : entries) {
+                            PathResult result = process(bufferedDecoder, pathEntry.getValue().expressions(), 0);
                             if (result == null) {
-                                selection.add(new NodePathResult(JsonNode.nullNode()));
+                                result = new NodePathResult(JsonNode.nullNode());
+                            }
+                            selection.put(pathEntry.getKey(), result);
+                            bufferedDecoder.close();
+                        }
+                    }
+                    return new ObjectPathResult(selection);
+                } else {
+                    throw new IllegalStateException();
+                }
+            }
+            if (jsonPathExpression instanceof KeyExpressionJson keyExpression) {
+                LookaheadDecoder.TokenType lookahead = decoder.lookahead();
+                if (lookahead == LookaheadDecoder.TokenType.START_OBJECT) {
+                    LookaheadDecoder objectDecoder = decoder.decodeObject();
+                    try {
+                        for (String key = objectDecoder.decodeKey(); key != null; key = objectDecoder.decodeKey()) {
+                            if (key.equals(keyExpression.key())) {
+                                return process(objectDecoder, jsonPathExpressions, pathIndex + 1);
                             } else {
-                                selection.add(result);
+                                objectDecoder.skipValue();
                             }
                         }
-                        return new ArrayPathResult(selection);
+                    } finally {
+                        objectDecoder.finishStructure(true);
                     }
+                    return null;
                 }
-                if (jsonPathExpression instanceof MultiSelectKeyValueExpressionJson multiSelectKeyValueExpression) {
-                    if (decoder.lookahead() == LookaheadDecoder.TokenType.START_OBJECT) {
-                        List<Map.Entry<String, JsonPath>> entries = multiSelectKeyValueExpression.keyValuesExpressions();
-                        LinkedHashMap<String, PathResult> selection = CollectionUtils.newLinkedHashMap(entries.size());
-                        try (BufferedLookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder, false)) {
-                            for (Map.Entry<String, JsonPath> pathEntry : entries) {
-                                PathResult result = process(bufferedDecoder, pathEntry.getValue().expressions(), 0);
-                                if (result == null) {
-                                    result = new NodePathResult(JsonNode.nullNode());
-                                }
-                                selection.put(pathEntry.getKey(), result);
-                                bufferedDecoder.close();
-                            }
-                        }
-                        return new ObjectPathResult(selection);
-                    } else {
-                        throw new IllegalStateException();
-                    }
-                }
-                if (jsonPathExpression instanceof KeyExpressionJson keyExpression) {
-                    LookaheadDecoder.TokenType lookahead = decoder.lookahead();
-                    if (lookahead == LookaheadDecoder.TokenType.START_OBJECT) {
-                        LookaheadDecoder objectDecoder = decoder.decodeObject();
-                        try {
-                            for (String key = objectDecoder.decodeKey(); key != null; key = objectDecoder.decodeKey()) {
-                                if (key.equals(keyExpression.key())) {
-                                    return process(objectDecoder, jsonPathExpressions, pathIndex + 1);
-                                } else {
-                                    objectDecoder.skipValue();
-                                }
-                            }
-                        } finally {
-                            objectDecoder.finishStructure(true);
-                        }
-                        return null;
-                    }
-                    if (lookahead == LookaheadDecoder.TokenType.KEY) {
-                        String key = decoder.decodeKey();
-                        if (key.equals(keyExpression.key())) {
-                            return process(decoder, jsonPathExpressions, pathIndex + 1);
-                        }
-                        decoder.skipValue();
-                        return null;
+                if (lookahead == LookaheadDecoder.TokenType.KEY) {
+                    String key = decoder.decodeKey();
+                    if (key.equals(keyExpression.key())) {
+                        return process(decoder, jsonPathExpressions, pathIndex + 1);
                     }
                     decoder.skipValue();
                     return null;
                 }
-                if (jsonPathExpression instanceof ArrayItemAtExpressionJson arrayItemAtExpression) {
-                    if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
-                        int requiredIndex = arrayItemAtExpression.index();
-                        if (requiredIndex < 0) {
-                            try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
-                                long count = countItems(bufferedDecoder);
-                                long newIndex = count + requiredIndex;
-                                return findArrayItem(bufferedDecoder, newIndex, jsonPathExpressions, pathIndex + 1);
-                            }
+                decoder.skipValue();
+                return null;
+            }
+            if (jsonPathExpression instanceof ArrayItemAtExpressionJson arrayItemAtExpression) {
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
+                    int requiredIndex = arrayItemAtExpression.index();
+                    if (requiredIndex < 0) {
+                        try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
+                            long count = countItems(bufferedDecoder);
+                            long newIndex = count + requiredIndex;
+                            return findArrayItem(bufferedDecoder, newIndex, jsonPathExpressions, pathIndex + 1);
                         }
-                        return findArrayItem(decoder, requiredIndex, jsonPathExpressions, pathIndex + 1);
                     }
-                    decoder.skipValue();
-                    return null;
+                    return findArrayItem(decoder, requiredIndex, jsonPathExpressions, pathIndex + 1);
                 }
-                if (jsonPathExpression instanceof ArrayFlattenExpressionJson) {
-                    if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
-                        List<PathResult> array = new ArrayList<>();
-                        LookaheadDecoder arrayDecoder = decoder.decodeArray();
-                        try {
-                            while (arrayDecoder.hasNextArrayValue()) {
-                                boolean isArray = arrayDecoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY;
-                                if (isArray) {
-                                    try (LookaheadDecoder flattenedArray = arrayDecoder.decodeArray()) {
-                                        while (flattenedArray.hasNextArrayValue()) {
-                                            PathResult pathResult = process(flattenedArray, jsonPathExpressions, pathIndex + 1);
-                                            if (pathResult != null) {
-                                                array.add(pathResult);
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    PathResult pathResult = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
-                                    if (pathResult != null) {
-                                        if (pathResult instanceof ArrayPathResult ar) {
-                                            array.addAll(ar.values);
-                                        } else {
+                decoder.skipValue();
+                return null;
+            }
+            if (jsonPathExpression instanceof ArrayFlattenExpressionJson) {
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
+                    List<PathResult> array = new ArrayList<>();
+                    LookaheadDecoder arrayDecoder = decoder.decodeArray();
+                    try {
+                        while (arrayDecoder.hasNextArrayValue()) {
+                            boolean isArray = arrayDecoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY;
+                            if (isArray) {
+                                try (LookaheadDecoder flattenedArray = arrayDecoder.decodeArray()) {
+                                    while (flattenedArray.hasNextArrayValue()) {
+                                        PathResult pathResult = process(flattenedArray, jsonPathExpressions, pathIndex + 1);
+                                        if (pathResult != null) {
                                             array.add(pathResult);
                                         }
                                     }
                                 }
-                            }
-                        } finally {
-                            arrayDecoder.finishStructure(true);
-                        }
-                        return new ArrayPathResult(array);
-                    }
-                    decoder.skipValue();
-                    return null;
-                }
-                if (jsonPathExpression instanceof ArrayWildcardExpressionJson) {
-                    if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
-                        List<PathResult> array = new ArrayList<>();
-                        LookaheadDecoder arrayDecoder = decoder.decodeArray();
-                        try {
-                            while (arrayDecoder.hasNextArrayValue()) {
+                            } else {
                                 PathResult pathResult = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
                                 if (pathResult != null) {
-                                    array.add(pathResult);
+                                    if (pathResult instanceof ArrayPathResult ar) {
+                                        array.addAll(ar.values);
+                                    } else {
+                                        array.add(pathResult);
+                                    }
                                 }
                             }
-                        } finally {
-                            arrayDecoder.finishStructure(true);
                         }
-                        return new ArrayPathResult(array);
+                    } finally {
+                        arrayDecoder.finishStructure(true);
                     }
-                    decoder.skipValue();
-                    return null;
+                    return new ArrayPathResult(array);
                 }
-                if (jsonPathExpression instanceof WildcardJsonPathExpression) {
-                    if (decoder.lookahead() == LookaheadDecoder.TokenType.START_OBJECT) {
-                        List<PathResult> array = new ArrayList<>();
-                        LookaheadDecoder objectDecoder = decoder.decodeObject();
-                        try {
-                            while (objectDecoder.decodeKey() != null) {
-                                PathResult pathResult = process(objectDecoder, jsonPathExpressions, pathIndex + 1);
-                                if (pathResult != null) {
-                                    array.add(pathResult);
-                                }
-                            }
-                        } finally {
-                            objectDecoder.finishStructure(true);
-                        }
-                        return new ArrayPathResult(array);
-                    }
-                    decoder.skipValue();
-                    return null;
-                }
-                if (jsonPathExpression instanceof ArraySliceExpressionJson slice) {
-                    if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
-                        Long from = slice.from();
-                        Long to = slice.to();
-                        if (from != null && from < 0 || to != null && to < 0) {
-                            try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
-                                long count = countItems(bufferedDecoder);
-                                if (from != null && from < 0) {
-                                    from = from + count;
-                                }
-                                if (to != null && to < 0) {
-                                    to = to + count;
-                                }
-                                return sliceArray(
-                                    bufferedDecoder,
-                                    new ArraySliceExpressionJson(from, to, slice.step()),
-                                    jsonPathExpressions,
-                                    pathIndex
-                                );
-                            }
-                        }
-                        return sliceArray(decoder, slice, jsonPathExpressions, pathIndex);
-                    }
-                    decoder.skipValue();
-                    return null;
-                }
-                throw new IllegalArgumentException("Unsupported path expression: " + jsonPathExpression);
+                decoder.skipValue();
+                return null;
             }
+            if (jsonPathExpression instanceof ArrayWildcardExpressionJson) {
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
+                    List<PathResult> array = new ArrayList<>();
+                    LookaheadDecoder arrayDecoder = decoder.decodeArray();
+                    try {
+                        while (arrayDecoder.hasNextArrayValue()) {
+                            PathResult pathResult = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
+                            if (pathResult != null) {
+                                array.add(pathResult);
+                            }
+                        }
+                    } finally {
+                        arrayDecoder.finishStructure(true);
+                    }
+                    return new ArrayPathResult(array);
+                }
+                decoder.skipValue();
+                return null;
+            }
+            if (jsonPathExpression instanceof WildcardJsonPathExpression) {
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_OBJECT) {
+                    List<PathResult> array = new ArrayList<>();
+                    LookaheadDecoder objectDecoder = decoder.decodeObject();
+                    try {
+                        while (objectDecoder.decodeKey() != null) {
+                            PathResult pathResult = process(objectDecoder, jsonPathExpressions, pathIndex + 1);
+                            if (pathResult != null) {
+                                array.add(pathResult);
+                            }
+                        }
+                    } finally {
+                        objectDecoder.finishStructure(true);
+                    }
+                    return new ArrayPathResult(array);
+                }
+                decoder.skipValue();
+                return null;
+            }
+            if (jsonPathExpression instanceof ArraySliceExpressionJson slice) {
+                if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
+                    Long from = slice.from();
+                    Long to = slice.to();
+                    if (from != null && from < 0 || to != null && to < 0) {
+                        try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
+                            long count = countItems(bufferedDecoder);
+                            if (from != null && from < 0) {
+                                from = from + count;
+                            }
+                            if (to != null && to < 0) {
+                                to = to + count;
+                            }
+                            return sliceArray(
+                                bufferedDecoder,
+                                new ArraySliceExpressionJson(from, to, slice.step()),
+                                jsonPathExpressions,
+                                pathIndex
+                            );
+                        }
+                    }
+                    return sliceArray(decoder, slice, jsonPathExpressions, pathIndex);
+                }
+                decoder.skipValue();
+                return null;
+            }
+            throw new IllegalArgumentException("Unsupported path expression: " + jsonPathExpression);
 
-            return new NodePathResult(decoder.decodeNode());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -272,7 +275,6 @@ public class SerdeJmesPathDecoder {
         }
         arrayDecoder.finishStructure(true);
         arrayDecoder.close();
-        buffered.close();
         return count;
     }
 

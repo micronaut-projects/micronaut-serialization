@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LookaheadDecoder;
+import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
 
@@ -33,11 +34,13 @@ final class BufferedObjectLookaheadDecoder extends BufferedObjectDecoder impleme
     public TokenType lookahead() throws IOException {
         if (bufferIterator != null) {
             if (currentEntry != null && currentEntry.getValue() instanceof LookaheadDecoder lookaheadDecoder) {
-                if (lookaheadDecoder instanceof BufferedObjectDecoder) {
+                if (lookaheadDecoder instanceof BufferedObjectDecoder
+                    || lookaheadDecoder instanceof JsonNodeDecoder && ((JsonNodeDecoder) lookaheadDecoder).getNode().isObject()) {
                     return TokenType.START_OBJECT;
                 }
-                if (lookaheadDecoder instanceof BufferedArrayDecoder) {
-                    return TokenType.START_OBJECT;
+                if (lookaheadDecoder instanceof BufferedArrayDecoder
+                    || lookaheadDecoder instanceof JsonNodeDecoder && ((JsonNodeDecoder) lookaheadDecoder).getNode().isArray()) {
+                    return TokenType.START_ARRAY;
                 }
                 return lookaheadDecoder.lookahead();
             }
