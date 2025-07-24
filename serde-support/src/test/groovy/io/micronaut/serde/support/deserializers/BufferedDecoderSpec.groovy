@@ -473,6 +473,60 @@ class BufferedDecoderSpec extends Specification {
             ctx.close()
     }
 
+    def 'reset array decoder'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def outerDecoder = createDecoder(ctx, """
+{
+  "foo": {"bar": ["zero", "one", "two"]}
+}
+""")
+
+            def root = BufferedDecoder.of(outerDecoder)
+
+        when:
+            def nextRoot = root.decodeObjectNonConsuming()
+        then:
+            nextRoot.decodeKey() == "foo"
+        when: "first read"
+            def fooDecoder = nextRoot.decodeObject()
+        then:
+            fooDecoder.decodeKey() == "bar"
+        when:
+            def barDecoder = fooDecoder.decodeArray()
+        then:
+            barDecoder.hasNextArrayValue()
+            barDecoder.skipValue()
+            barDecoder.hasNextArrayValue()
+            barDecoder.skipValue()
+            barDecoder.hasNextArrayValue()
+            barDecoder.skipValue()
+            !barDecoder.hasNextArrayValue()
+            barDecoder.finishStructure()
+            barDecoder.close()
+        and:
+            barDecoder.hasNextArrayValue()
+            barDecoder.skipValue()
+            barDecoder.hasNextArrayValue()
+            barDecoder.skipValue()
+            barDecoder.hasNextArrayValue()
+            barDecoder.skipValue()
+            !barDecoder.hasNextArrayValue()
+            barDecoder.close()
+        and:
+            barDecoder.hasNextArrayValue()
+            barDecoder.decodeString() == "zero"
+            barDecoder.hasNextArrayValue()
+            barDecoder.decodeString() == "one"
+            barDecoder.hasNextArrayValue()
+            barDecoder.decodeString() == "two"
+            !barDecoder.hasNextArrayValue()
+            barDecoder.close()
+
+        cleanup:
+            ctx.close()
+    }
+
     private static void moveToKeyValue(LookaheadDecoder decoder, String match) {
         for (String key = decoder.decodeKey(); key != null; key = decoder.decodeKey()) {
             if (match == key) {

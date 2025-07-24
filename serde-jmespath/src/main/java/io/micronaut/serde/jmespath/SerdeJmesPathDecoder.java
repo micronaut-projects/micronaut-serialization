@@ -271,6 +271,8 @@ public class SerdeJmesPathDecoder {
             count++;
         }
         arrayDecoder.finishStructure(true);
+        arrayDecoder.close();
+        buffered.close();
         return count;
     }
 

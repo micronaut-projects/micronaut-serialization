@@ -167,5 +167,4 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements Bu
         throw new UnsupportedOperationException();
     }
 
-
 }

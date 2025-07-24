@@ -147,7 +147,6 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
 //        }
         lastConsumeLeftElements = consumeLeftElements;
         finished = true;
-        index = -1;
         for (Decoder decoder : nestedDecoders()) {
             if (decoder instanceof AbstractBufferedDecoder bufferedDecoder) {
                 bufferedDecoder.finishStructure(consumeLeftElements);
@@ -178,6 +177,7 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
                 bufferedDecoder.close();
             }
         }
+        reset(consumeValues);
         internalFinishStructure();
     }
 

@@ -83,13 +83,15 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
                 if (consumeValues) {
                     bufferIterator.remove();
                 }
+            } else {
+                bufferIterator = null; // End of buffered entries
             }
-            bufferIterator = null; // End of buffered entries
-        }
-        if (!consumeValues) {
-            buffer.add(delegate.decodeBuffer());
         } else {
-            delegate.skipValue();
+            if (!consumeValues) {
+                buffer.add(delegate.decodeBuffer());
+            } else {
+                delegate.skipValue();
+            }
         }
     }
 

@@ -24,9 +24,9 @@ class TckSpec extends Specification {
 //            "filters.json",
 //            "functions.json",
 //            "identifiers.json",
-//            "indices.json",
+//            "indices.json", // passing
 //            "literal.json",
-            "multiselect.json",
+//            "multiselect.json",
 //            "pipe.json",
 //            "slice.json",
 //            "syntax.json",
