@@ -22,12 +22,19 @@ import java.util.Iterator;
 import java.util.Map;
 
 final class JsonObjectNodeDecoder extends JsonNodeDecoder {
+    private final JsonNode node;
     private final Iterator<Map.Entry<String, JsonNode>> iterator;
     private JsonNode nextValue = null;
 
     JsonObjectNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {
         super(remainingLimits);
+        this.node = node;
         iterator = node.entries().iterator();
+    }
+
+    @Override
+    public JsonNode getNode() {
+        return node;
     }
 
     @Override

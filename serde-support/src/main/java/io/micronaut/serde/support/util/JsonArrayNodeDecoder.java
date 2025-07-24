@@ -22,13 +22,20 @@ import java.util.Iterator;
 
 final class JsonArrayNodeDecoder extends JsonNodeDecoder {
 
+    private final JsonNode node;
     private final Iterator<JsonNode> iterator;
     private JsonNode peeked;
 
     JsonArrayNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {
         super(remainingLimits);
+        this.node = node;
         iterator = node.values().iterator();
         skipValue();
+    }
+
+    @Override
+    public JsonNode getNode() {
+        return node;
     }
 
     @Override

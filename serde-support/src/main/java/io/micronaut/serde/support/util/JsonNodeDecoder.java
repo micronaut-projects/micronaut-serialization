@@ -49,6 +49,11 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
         return new Buffered(node, remainingLimits);
     }
 
+    /**
+     * @return The wrapped node.
+     */
+    public abstract JsonNode getNode();
+
     protected abstract JsonNode peekValue() throws IOException;
 
     @Override
@@ -406,6 +411,11 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
         Buffered(JsonNode node, RemainingLimits remainingLimits) {
             super(remainingLimits);
             this.node = node;
+        }
+
+        @Override
+        public JsonNode getNode() {
+            return node;
         }
 
         @Override

@@ -2,6 +2,7 @@ package io.micronaut.serde.support.deserializers
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.json.JsonMapper
+import io.micronaut.json.tree.JsonArray
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.Decoder
 import io.micronaut.serde.LimitingStream
@@ -334,6 +335,139 @@ class BufferedDecoderSpec extends Specification {
             obj3.finishStructure()
             buffered2.decodeKey() == null
             buffered2.finishStructure()
+
+        cleanup:
+            ctx.close()
+    }
+
+    def 'decode array node'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def outerDecoder = createDecoder(ctx, """{
+      "foo": {
+        "bar": 1,
+        "baz": [
+          2,
+          3,
+          4
+        ]
+      }
+    }""")
+
+            def root = BufferedDecoder.of(outerDecoder)
+
+        when:
+            def nextRoot = root.decodeObjectNonConsuming()
+        then:
+            nextRoot.decodeKey() == "foo"
+        when: "first read"
+            def fooDecoder = nextRoot.decodeObject()
+        then:
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.decodeNode().intValue == 1
+            fooDecoder.finishStructure(true)
+            fooDecoder.close()
+        and: "second read"
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.skipValue()
+            fooDecoder.decodeKey() == "baz"
+        when:
+            def node = fooDecoder.decodeNode()
+        then:
+            node instanceof JsonArray
+            node.size() == 3
+            fooDecoder.finishStructure(true)
+            fooDecoder.close()
+        and: "third read"
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.skipValue()
+            fooDecoder.decodeKey() == "baz"
+        when:
+            def arrayDecoder = fooDecoder.decodeArray()
+        then:
+            arrayDecoder.decodeInt() == 2
+            fooDecoder.finishStructure(true)
+            fooDecoder.close()
+
+//        and: "forth read"
+//            fooDecoder.decodeKey() == "bar"
+//            fooDecoder.skipValue()
+//            fooDecoder.decodeKey() == "baz"
+//        when:
+//            arrayDecoder = fooDecoder.decodeArray()
+//        then:
+//            arrayDecoder.decodeInt() == 2
+//            arrayDecoder.decodeInt() == 3
+//            arrayDecoder.decodeInt() == 4
+//            fooDecoder.close()
+
+
+        cleanup:
+            ctx.close()
+    }
+
+    def 'decode object node'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def outerDecoder = createDecoder(ctx, """{
+      "foo": {
+        "bar": 1,
+        "baz": {
+          "foo": "bar",
+          "abc": 123
+        }
+      }
+    }""")
+
+            def root = BufferedDecoder.of(outerDecoder)
+
+        when:
+            def nextRoot = root.decodeObjectNonConsuming()
+        then:
+            nextRoot.decodeKey() == "foo"
+        when: "first read"
+            def fooDecoder = nextRoot.decodeObject()
+        then:
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.decodeNode().intValue == 1
+            fooDecoder.finishStructure(true)
+            fooDecoder.close()
+        and: "second read"
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.skipValue()
+            fooDecoder.decodeKey() == "baz"
+        when:
+            def node = fooDecoder.decodeNode()
+        then:
+            node instanceof JsonNode
+            node.size() == 2
+            fooDecoder.finishStructure(true)
+            fooDecoder.close()
+        and: "third read"
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.skipValue()
+            fooDecoder.decodeKey() == "baz"
+        when:
+            def objDec = fooDecoder.decodeObject()
+        then:
+            objDec.decodeKey() == "foo"
+            objDec.decodeString() == "bar"
+            fooDecoder.finishStructure(true)
+            fooDecoder.close()
+
+        and: "forth read"
+            fooDecoder.decodeKey() == "bar"
+            fooDecoder.skipValue()
+            fooDecoder.decodeKey() == "baz"
+        when:
+            objDec = fooDecoder.decodeObject()
+        then:
+            objDec.decodeKey() == "foo"
+            objDec.skipValue()
+            objDec.decodeKey() == "abc"
+            objDec.decodeInt() == 123
+            fooDecoder.finishStructure(false)
+            fooDecoder.close()
 
         cleanup:
             ctx.close()

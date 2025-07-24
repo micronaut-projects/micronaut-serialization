@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class SerdeJmesPathDecoder {
 
@@ -45,7 +44,9 @@ public class SerdeJmesPathDecoder {
                     try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
                         for (JsonPath path : paths) {
                             PathResult result = process(bufferedDecoder, path.expressions(), 0);
-                            if (result != null) {
+                            if (result == null) {
+                                selection.add(new NodePathResult(JsonNode.nullNode()));
+                            } else {
                                 selection.add(result);
                             }
                         }
@@ -294,13 +295,13 @@ public class SerdeJmesPathDecoder {
 
         @Override
         public JsonNode asNode() {
-            return JsonNode.createObjectNode(
-                values.entrySet().stream()
-                    .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> e.getValue().asNode()
-                    ))
-            );
+            Map<String, JsonNode> map = CollectionUtils.newLinkedHashMap(values.size());
+            for (Map.Entry<String, PathResult> e : values.entrySet()) {
+                if (map.put(e.getKey(), e.getValue().asNode()) != null) {
+                    throw new IllegalStateException("Duplicate key");
+                }
+            }
+            return JsonNode.createObjectNode(map);
         }
     }
 
