@@ -138,6 +138,10 @@ final class PropertiesBag<T> {
         private Consumer() {
         }
 
+        public boolean contains(String name) {
+            return nameToPosition.get(name, -1) != -1;
+        }
+
         public DeserBean.DerProperty<T, Object> consume(String name) {
             int propertyIndex = nameToPosition.get(name, -1);
             if (propertyIndex == -1 || isConsumed(propertyIndex)) {
