@@ -26,6 +26,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_ABSENT
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_DEFAULT
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS
 
 abstract class JsonIncludeSpec extends JsonCompileSpec {
 
@@ -1305,6 +1306,32 @@ record Test(
         NON_DEFAULT| "java.math.BigInteger"| BigInteger.valueOf(0) | '{"test":0}'
         NON_DEFAULT| "java.lang.Number"    | 0                     | '{"test":0}'
         NON_DEFAULT| "int[]"               | new int[0]            | '{}'
+
+        USE_DEFAULTS| "String"              | "test"           | '{"test":"test"}'
+        USE_DEFAULTS| "String"              | null             | '{}'
+        USE_DEFAULTS| "java.util.List"      | null             | '{}'
+        USE_DEFAULTS| "Boolean"             | false            | '{"test":false}'
+        USE_DEFAULTS| "boolean"             | false            | '{"test":false}'
+        USE_DEFAULTS| "Integer"             | 0                | '{"test":0}'
+        USE_DEFAULTS| "int"                 | 0                | '{"test":0}'
+        USE_DEFAULTS| "Long"                | 0                | '{"test":0}'
+        USE_DEFAULTS| "long"                | 0                | '{"test":0}'
+        USE_DEFAULTS| "Double"              | 0                | '{"test":0.0}'
+        USE_DEFAULTS| "double"              | 0                | '{"test":0.0}'
+        USE_DEFAULTS| "Float"               | 0                | '{"test":0.0}'
+        USE_DEFAULTS| "float"               | 0                | '{"test":0.0}'
+        USE_DEFAULTS| "Byte"                | 0 as byte        | '{"test":0}'
+        USE_DEFAULTS| "byte"                | 0 as byte        | '{"test":0}'
+        USE_DEFAULTS| "Short"               | 0 as short       | '{"test":0}'
+        USE_DEFAULTS| "short"               | 0 as short       | '{"test":0}'
+//        USE_DEFAULTS| "Character"           | 0 as char        | '{"test":"\\u0000"}'
+//        USE_DEFAULTS| "char"                | 0 as char        | '{"test":"\\u0000"}'
+//        USE_DEFAULTS| "java.util.Date"      | new java.util.Date(0) | '{"test":0}'
+//        USE_DEFAULTS| "java.sql.Date"       | new Date(0)           | '{"test":0}'
+//        USE_DEFAULTS| "java.sql.Timestamp"  | new Timestamp(0)      | '{"test":0}'
+        USE_DEFAULTS| "java.math.BigInteger"| BigInteger.valueOf(0) | '{"test":0}'
+        USE_DEFAULTS| "java.lang.Number"    | 0                     | '{"test":0}'
+        USE_DEFAULTS| "int[]"               | new int[0]            | '{}'
 
     }
 
