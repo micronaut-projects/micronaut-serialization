@@ -15,6 +15,7 @@ import java.util.Collection;
 @Internal
 abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implements BufferedDecoder permits BufferedArrayDecoder, BufferedDecoderRoot, BufferedObjectDecoder {
     protected final Decoder delegate;
+    private boolean delegateFinished = false;
     private boolean consumeValues;
 
     protected int index = -1;
@@ -193,7 +194,10 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
     }
 
     protected void internalFinishStructure() throws IOException {
-        delegate.finishStructure(lastConsumeLeftElements);
+        if (!delegateFinished) {
+            delegate.finishStructure(lastConsumeLeftElements);
+            delegateFinished = true;
+        }
     }
 
     protected interface DecoderProvider<R extends Decoder> {
