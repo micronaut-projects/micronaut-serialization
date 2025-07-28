@@ -17,6 +17,283 @@ package io.micronaut.serde.jackson
 
 abstract class JsonExceptionSpec extends JsonCompileSpec {
 
+    void "unknown property - record"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test(String stringA, String stringB) {
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            getPath(e) == """example.Test["unknownProperty"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "stringA": "value", "stringB": "value2", "unknownProperty": "value3" }""",
+                    """{ "unknownProperty": "value3", "stringA": "value", "stringB": "value2" }""",
+            ]
+    }
+
+    void "unknown property - property bean"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Objects;
+
+@Serdeable
+final class Test {
+    private String stringA;
+    private String stringB;
+
+    public String getStringA() {
+        return stringA;
+    }
+
+    public void setStringA(String stringA) {
+        this.stringA = stringA;
+    }
+
+    public String getStringB() {
+        return stringB;
+    }
+
+    public void setStringB(String stringB) {
+        this.stringB = stringB;
+    }
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            getPath(e) == """example.Test["unknownProperty"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "stringA": "value", "stringB": "value2", "unknownProperty": "value3" }""",
+                    """{ "unknownProperty": "value3", "stringA": "value", "stringB": "value2" }""",
+            ]
+    }
+
+    void "unknown property - property bean mixed"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Objects;
+
+@Serdeable
+final class Test {
+    private final String stringA;
+    private String stringB;
+
+    @JsonCreator
+    Test(@JsonProperty("stringA") String stringA) {
+        this.stringA = stringA;
+    }
+
+    public String getStringB() {
+        return stringB;
+    }
+
+    public void setStringB(String stringB) {
+        this.stringB = stringB;
+    }
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            getPath(e) == """example.Test["unknownProperty"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "stringA": "value", "stringB": "value2", "unknownProperty": "value3" }""",
+                    """{ "unknownProperty": "value3", "stringA": "value", "stringB": "value2" }""",
+
+            ]
+    }
+
+    void "duplicate property - record"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Test(String stringA, String stringB) {
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            def path = getPath(e)
+            path == "<unknown>" || path == """example.Test["stringA"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "stringA": "valuea", "stringB": "valueb", "stringA": "valuea" }""",
+                    """{ "stringB": "value", "stringA": "first", "stringA": "second" }""",
+                    """{ "stringA": "valueA", "stringA": "valueA", "stringB": "second" }"""
+            ]
+    }
+
+    void "duplicate property - property bean"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Objects;
+
+@Serdeable
+final class Test {
+    private String stringA;
+    private String stringB;
+
+    public String getStringA() {
+        return stringA;
+    }
+
+    public void setStringA(String stringA) {
+        this.stringA = stringA;
+    }
+
+    public String getStringB() {
+        return stringB;
+    }
+
+    public void setStringB(String stringB) {
+        this.stringB = stringB;
+    }
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            def path = getPath(e)
+            path == "<unknown>" || path == """example.Test["stringA"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "stringA": "valuea", "stringB": "valueb", "stringA": "valuea" }""",
+                    """{ "stringB": "value", "stringA": "first", "stringA": "second" }""",
+                    """{ "stringA": "valueA", "stringA": "valueA", "stringB": "second" }"""
+            ]
+    }
+
+    void "duplicate property - property bean mixed"() {
+        given:
+            def context = buildContext('example.Test', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Objects;
+
+@Serdeable
+final class Test {
+    private final String stringA;
+    private String stringB;
+
+    @JsonCreator
+    Test(@JsonProperty("stringA") String stringA) {
+        this.stringA = stringA;
+    }
+
+    public String getStringB() {
+        return stringB;
+    }
+
+    public void setStringB(String stringB) {
+        this.stringB = stringB;
+    }
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            def path = getPath(e)
+            path == "<unknown>" || path == """example.Test["stringA"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "stringA": "valuea", "stringB": "valueb", "stringA": "valuea" }""",
+                    """{ "stringB": "value", "stringA": "first", "stringA": "second" }""",
+                    """{ "stringA": "valueA", "stringA": "valueA", "stringB": "second" }"""
+            ]
+    }
+
     void "enum"() {
         given:
             def context = buildContext('example.Test', '''
