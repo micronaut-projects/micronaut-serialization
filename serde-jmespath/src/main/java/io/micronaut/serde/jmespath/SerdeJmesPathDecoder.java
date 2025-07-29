@@ -73,8 +73,7 @@ public class SerdeJmesPathDecoder {
                 return process(jsonNodeDecoder, next);
             }
         }
-        JsonNode process = process(decoder, expressions, 0);
-        return process;
+        return process(decoder, expressions, 0);
     }
 
     @Nullable
@@ -98,7 +97,6 @@ public class SerdeJmesPathDecoder {
                         bufferedDecoder.finishStructure(true);
                         bufferedDecoder.close();
                     }
-                    // Prevent ArrayPathResult to be flattened
                     return JsonArray.createArrayNode(selection);
                 }
             }
@@ -167,41 +165,6 @@ public class SerdeJmesPathDecoder {
             decoder.skipValue();
             return null;
         }
-//        if (jsonPathExpression instanceof ArrayFlattenExpressionJson) {
-//            if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
-//                List<JsonNode> array = new ArrayList<>();
-//                LookaheadDecoder arrayDecoder = decoder.decodeArray();
-//                try {
-//                    while (arrayDecoder.hasNextArrayValue()) {
-//                        boolean isArray = arrayDecoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY;
-//                        if (isArray) {
-//                            try (LookaheadDecoder flattenedArray = arrayDecoder.decodeArray()) {
-//                                while (flattenedArray.hasNextArrayValue()) {
-//                                    JsonNode resilt = process(flattenedArray, jsonPathExpressions, pathIndex + 1);
-//                                    if (resilt != null) {
-//                                        array.add(resilt);
-//                                    }
-//                                }
-//                            }
-//                        } else {
-//                            JsonNode node = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
-//                            if (node != null) {
-//                                if (node instanceof ArrayPathResult ar) {
-//                                    array.addAll(ar.values);
-//                                } else {
-//                                    array.add(node);
-//                                }
-//                            }
-//                        }
-//                    }
-//                } finally {
-//                    arrayDecoder.finishStructure(true);
-//                }
-//                return new ArrayPathResult(array);
-//            }
-//            decoder.skipValue();
-//            return null;
-//        }
         if (jsonPathExpression instanceof ArrayWildcardExpressionJson) {
             if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
                 List<JsonNode> array = new ArrayList<>();
@@ -319,45 +282,6 @@ public class SerdeJmesPathDecoder {
         arrayDecoder.finishStructure(true);
         arrayDecoder.close();
         return count;
-    }
-
-    private interface PathResult {
-
-        JsonNode asNode();
-
-    }
-
-    private record ArrayPathResult(List<PathResult> values) implements PathResult {
-
-        @Override
-        public JsonNode asNode() {
-            return JsonNode.createArrayNode(
-                values.stream().map(PathResult::asNode).toList()
-            );
-        }
-    }
-
-    private record ObjectPathResult(
-        LinkedHashMap<String, PathResult> values) implements PathResult {
-
-        @Override
-        public JsonNode asNode() {
-            Map<String, JsonNode> map = CollectionUtils.newLinkedHashMap(values.size());
-            for (Map.Entry<String, PathResult> e : values.entrySet()) {
-                if (map.put(e.getKey(), e.getValue().asNode()) != null) {
-                    throw new IllegalStateException("Duplicate key");
-                }
-            }
-            return JsonNode.createObjectNode(map);
-        }
-    }
-
-    private record NodePathResult(JsonNode node) implements PathResult {
-
-        @Override
-        public JsonNode asNode() {
-            return node;
-        }
     }
 
 }
