@@ -101,6 +101,18 @@ class DecodeSpec extends Specification {
             toJson(node) == "[1,2,3,4,5,6,7,8]"
     }
 
+    def flattenSimple() {
+        when:
+            def decoder = createDecoder("""[[1],2]""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "[]"
+            )
+        then:
+            toJson(node) == "[1,2]"
+    }
+
     def flatten2() {
         when:
             def decoder = createDecoder("""
@@ -189,6 +201,25 @@ class DecodeSpec extends Specification {
             )
         then:
             toJson(node) == """[["one","two"],["three","four"],["five","six"],["seven","eight"],["nine"],["ten"]]"""
+    }
+
+    def flatten4() {
+        when:
+            def decoder = createDecoder("""
+{
+        "string": "string",
+        "hash": {"foo": "bar", "bar": "baz"},
+        "number": 23,
+        "nullvalue": null
+     }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "string[]"
+            )
+        then:
+            toJson(node) == """null"""
     }
 
 }
