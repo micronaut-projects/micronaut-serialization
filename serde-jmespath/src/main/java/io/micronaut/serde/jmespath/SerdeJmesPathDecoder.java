@@ -25,6 +25,7 @@ import io.micronaut.serde.support.util.JsonNodeDecoder;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -205,26 +206,53 @@ public class SerdeJmesPathDecoder {
         }
         if (jsonPathExpression instanceof ArraySliceExpressionJson slice) {
             if (decoder.lookahead() == LookaheadDecoder.TokenType.START_ARRAY) {
-                Long from = slice.from();
-                Long to = slice.to();
-                if (from != null && from < 0 || to != null && to < 0) {
+                long from = slice.from() == null ? 0 : slice.from();
+                long to = slice.to() == null ? Long.MAX_VALUE : slice.to();
+                long step = slice.step() == null ? 1 : slice.step();
+                if (step == 0) {
+                    step = Long.MAX_VALUE;
+                }
+                if ((from < 0 || to < 0) && step > 0) {
                     try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
                         long count = countItems(bufferedDecoder);
-                        if (from != null && from < 0) {
+                        if (from < 0) {
                             from = from + count;
                         }
-                        if (to != null && to < 0) {
+                        if (to < 0) {
                             to = to + count;
                         }
                         return sliceArray(
                             bufferedDecoder,
-                            new ArraySliceExpressionJson(from, to, slice.step()),
+                            from, to, step,
                             jsonPathExpressions,
                             pathIndex
                         );
                     }
                 }
-                return sliceArray(decoder, slice, jsonPathExpressions, pathIndex);
+                if (step < 0) {
+                    try (LookaheadDecoder bufferedDecoder = BufferedDecoder.of(decoder)) {
+                        long count = countItems(bufferedDecoder);
+                        if (slice.from() == null) {
+                            from = count;
+                        } else if (slice.from() < 0) {
+                            from = count + slice.from();
+                        } else {
+                            from = Math.min(count, slice.from());
+                        }
+                        if (slice.to() == null) {
+                            to = -1;
+                        } else if (slice.to() < 0) {
+                            to = Math.max(-1, count + slice.to());
+                        }
+                        return sliceArrayNegativeStep(
+                            bufferedDecoder,
+                            from, to, step, count,
+                            jsonPathExpressions,
+                            pathIndex
+                        );
+                    }
+                }
+                return sliceArray(decoder, from, to, step, jsonPathExpressions, pathIndex);
             }
             decoder.skipValue();
             return null;
@@ -233,23 +261,69 @@ public class SerdeJmesPathDecoder {
     }
 
     private static JsonNode sliceArray(LookaheadDecoder decoder,
-                                       ArraySliceExpressionJson slice,
-                                       List<JsonPathExpression> jsonPathExpressions, int pathIndex) throws IOException {
-        long from = slice.from() == null ? 0 : slice.from();
-        long to = slice.to() == null ? Long.MAX_VALUE : slice.to();
-        long step = slice.step() == null ? 1 : slice.step();
+                                       long from, long to, long step,
+                                       List<JsonPathExpression> jsonPathExpressions,
+                                       int pathIndex) throws IOException {
         List<JsonNode> array = new ArrayList<>();
         LookaheadDecoder arrayDecoder = decoder.decodeArray();
         try {
-            for (long index = from; arrayDecoder.hasNextArrayValue() && to < index; index += step) {
-                JsonNode node = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
-                if (node != null) {
-                    array.add(node);
+            long index = 0;
+            long sliceIndex = from;
+            while (arrayDecoder.hasNextArrayValue()) {
+                if (sliceIndex >= to) {
+                    break;
                 }
+                if (sliceIndex != index) {
+                    arrayDecoder.skipValue();
+                } else {
+                    JsonNode node = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
+                    if (node != null) {
+                        array.add(node);
+                    }
+                    sliceIndex += step;
+                }
+                index++;
             }
         } finally {
             arrayDecoder.finishStructure(true);
         }
+        return JsonArray.createArrayNode(array);
+    }
+
+    private static JsonNode sliceArrayNegativeStep(LookaheadDecoder decoder,
+                                                   long from, long to, long step, long count,
+                                                   List<JsonPathExpression> jsonPathExpressions,
+                                                   int pathIndex) throws IOException {
+        List<JsonNode> array = new ArrayList<>();
+        LookaheadDecoder arrayDecoder = decoder.decodeArray();
+        List<Long> steps = new ArrayList<>();
+        for (long i = from; i > to; i += step) {
+            if (i < count && i >= 0) {
+                steps.add(i);
+            }
+        }
+        Collections.reverse(steps);
+        try {
+            long index = 0;
+            for (Long stepIndex : steps) {
+                while (stepIndex != index) {
+                    if (!arrayDecoder.hasNextArrayValue()) {
+                        Collections.reverse(array);
+                        return JsonArray.createArrayNode(array);
+                    }
+                    arrayDecoder.skipValue();
+                    index++;
+                }
+                JsonNode node = process(arrayDecoder, jsonPathExpressions, pathIndex + 1);
+                if (node != null) {
+                    array.add(node);
+                }
+                index++;
+            }
+        } finally {
+            arrayDecoder.finishStructure(true);
+        }
+        Collections.reverse(array);
         return JsonArray.createArrayNode(array);
     }
 

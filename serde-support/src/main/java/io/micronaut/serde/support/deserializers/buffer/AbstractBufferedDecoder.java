@@ -7,6 +7,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
+import io.micronaut.serde.LookaheadDecoder;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
@@ -15,24 +16,48 @@ import java.util.Collection;
 @Internal
 abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implements BufferedDecoder permits BufferedArrayDecoder, BufferedDecoderRoot, BufferedObjectDecoder {
     protected final Decoder delegate;
-    private boolean delegateFinished = false;
-    private boolean consumeValues;
+    protected boolean delegateFinished = false;
+    protected boolean consumeValues;
 
-    protected int index = -1;
-
-    private boolean lastConsumeLeftElements;
-    private boolean finished = true;
+    protected boolean finished;
 
     AbstractBufferedDecoder(Decoder delegate, boolean consumeValues) {
         this.delegate = delegate;
         this.consumeValues = consumeValues;
     }
 
+    protected final LookaheadDecoder.TokenType lookahead(Decoder decoder) throws IOException {
+        if (decoder instanceof BufferedObjectDecoder bufferedObjectDecoder) {
+            if (bufferedObjectDecoder.isFinished()) {
+                return LookaheadDecoder.TokenType.START_OBJECT;
+            }
+        }
+        if (decoder instanceof BufferedArrayDecoder bufferedObjectDecoder) {
+            if (bufferedObjectDecoder.isFinished()) {
+                return LookaheadDecoder.TokenType.START_ARRAY;
+            }
+        }
+        if (decoder instanceof JsonNodeDecoder jsonNodeDecoder) {
+            JsonNode node = jsonNodeDecoder.getNode();
+            if (node.isArray()) {
+                return LookaheadDecoder.TokenType.START_ARRAY;
+            }
+            if (node.isObject()) {
+                return LookaheadDecoder.TokenType.START_OBJECT;
+            }
+            return jsonNodeDecoder.lookahead();
+        }
+        if (decoder instanceof LookaheadDecoder lookaheadDecoder) {
+            return lookaheadDecoder.lookahead();
+        }
+        throw new IOException("Unsupported LookaheadDecoder: " + decoder.getClass().getName());
+    }
+
     protected abstract <R extends Decoder> R nextDecoder(boolean consumeValues,
                                                          DecoderProvider<R> provider,
                                                          DecoderRemapper<R> remapper) throws IOException;
 
-    protected abstract void skipValue(boolean consumeValues) throws IOException ;
+    protected abstract void skipValue(boolean consumeValues) throws IOException;
 
     protected final Decoder nextDecoder(boolean consumeValues) throws IOException {
         return nextDecoder(consumeValues, delegate::decodeBuffer, decoder -> decoder);
@@ -154,11 +179,6 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
-//        if (!consumeLeftElements && !buffer.isEmpty() && index != buffer.size()) {
-//            throw new IllegalStateException("Not all items consumed");
-//        }
-        lastConsumeLeftElements = consumeLeftElements;
-        finished = true;
         for (Decoder decoder : nestedDecoders()) {
             if (decoder instanceof AbstractBufferedDecoder bufferedDecoder) {
                 bufferedDecoder.finishStructure(consumeLeftElements);
@@ -167,9 +187,6 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
     }
 
     protected void reset(boolean consumeValues) {
-        if (!finished) {
-            throw new IllegalStateException("Previous decoder didn't finish");
-        }
         for (Decoder decoder : nestedDecoders()) {
             if (decoder instanceof AbstractBufferedDecoder bufferedDecoder) {
                 bufferedDecoder.reset(consumeValues);
@@ -189,15 +206,8 @@ abstract sealed class AbstractBufferedDecoder extends DelegatingDecoder implemen
                 bufferedDecoder.close();
             }
         }
+        finishStructure(true);
         reset(consumeValues);
-        internalFinishStructure();
-    }
-
-    protected void internalFinishStructure() throws IOException {
-        if (!delegateFinished) {
-            delegate.finishStructure(lastConsumeLeftElements);
-            delegateFinished = true;
-        }
     }
 
     protected interface DecoderProvider<R extends Decoder> {

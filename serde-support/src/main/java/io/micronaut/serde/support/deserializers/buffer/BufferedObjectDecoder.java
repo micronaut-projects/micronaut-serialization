@@ -29,7 +29,6 @@ import java.util.Map;
 @Internal
 sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements BufferedDecoder permits BufferedObjectLookaheadDecoder {
 
-    private boolean finished;
     private final List<Map.Entry<String, Decoder>> buffer = new ArrayList<>();
     @Nullable
     protected ListIterator<Map.Entry<String, Decoder>> bufferIterator;
@@ -51,15 +50,18 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements Bu
             throw new IllegalStateException("No current key available");
         }
         if (bufferIterator == null) {
-            R decoder = provider.provide();
-            if (consumeValues) {
+            if (!delegateFinished) {
+                R decoder = provider.provide();
+                if (consumeValues) {
+                    currentEntry = null;
+                    return decoder;
+                }
+                Map.Entry<String, Decoder> entry = Map.entry(currentEntry.getKey(), decoder);
+                buffer.add(entry);
                 currentEntry = null;
                 return decoder;
             }
-            Map.Entry<String, Decoder> entry = Map.entry(currentEntry.getKey(), decoder);
-            buffer.add(entry);
-            currentEntry = null;
-            return decoder;
+            throw new IllegalStateException("Decoder has already been finished");
         } else {
             Decoder decoder = currentEntry.getValue();
             R remapedDecoder = remapper.remap(decoder);
@@ -79,10 +81,14 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements Bu
             throw new IllegalStateException("No current key available");
         }
         if (bufferIterator == null) {
-            if (consumeValues) {
-                delegate.skipValue();
+            if (!delegateFinished) {
+                if (consumeValues) {
+                    delegate.skipValue();
+                } else {
+                    buffer.add(Map.entry(currentEntry.getKey(), delegate.decodeBuffer()));
+                }
             } else {
-                buffer.add(Map.entry(currentEntry.getKey(), delegate.decodeBuffer()));
+                throw new IllegalStateException("Decoder has already been finished");
             }
         } else {
             if (consumeValues) {
@@ -125,29 +131,35 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements Bu
                 bufferIterator = null; // End of buffered entries
             }
         }
-        String key = delegate.decodeKey();
-        if (key == null) {
-            finished = true;
-            return null;
+        if (!delegateFinished) {
+            String key = delegate.decodeKey();
+            if (key == null) {
+                return null;
+            }
+            currentEntry = Map.entry(key, delegate);
+            return key;
         }
-        currentEntry = Map.entry(key, delegate);
-        return key;
-    }
-
-
-    public void finishStructure() throws IOException {
-        super.finishStructure();
-        finished = false;
-        currentEntry = null;
-        bufferIterator = buffer.listIterator();
+        return null;
     }
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
         super.finishStructure(consumeLeftElements);
+        if (!delegateFinished) {
+            while (decodeKey() != null) {
+                skipValue(false);
+            }
+            delegate.finishStructure();
+            delegateFinished = true;
+        }
+    }
+
+    @Override
+    protected void reset(boolean consumeValues) {
         finished = false;
         currentEntry = null;
         bufferIterator = buffer.listIterator();
+        super.reset(consumeValues);
     }
 
     @Override
@@ -156,3 +168,4 @@ sealed class BufferedObjectDecoder extends AbstractBufferedDecoder implements Bu
     }
 
 }
+

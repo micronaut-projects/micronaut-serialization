@@ -26,6 +26,9 @@ sealed class BufferedDecoderRoot extends AbstractBufferedDecoder implements Buff
         if (decoder == null) {
             decoder = provider.provide();
         }
+        if (decoder instanceof AbstractBufferedDecoder d) {
+            d.reset(consumeValues);
+        }
         return (R) decoder;
     }
 
@@ -49,8 +52,4 @@ sealed class BufferedDecoderRoot extends AbstractBufferedDecoder implements Buff
         return false;
     }
 
-    @Override
-    protected void internalFinishStructure() {
-        // Don't close the first decoder
-    }
 }

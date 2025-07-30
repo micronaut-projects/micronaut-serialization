@@ -28,10 +28,9 @@ import java.util.ListIterator;
 @Internal
 sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements BufferedDecoder permits BufferedArrayLookaheadDecoder {
 
-    private boolean finished;
     private final List<Decoder> buffer = new ArrayList<>();
     @Nullable
-    private ListIterator<Decoder> bufferIterator;
+    protected ListIterator<Decoder> bufferIterator;
 
     BufferedArrayDecoder(Decoder delegate, boolean consumeValues) {
         super(delegate, consumeValues);
@@ -40,17 +39,6 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
     @Override
     protected Collection<Decoder> nestedDecoders() {
         return buffer;
-    }
-
-    protected Decoder lookupDecoder() {
-        if (bufferIterator != null) {
-            if (bufferIterator.hasNext()) {
-                Decoder next = bufferIterator.next();
-                bufferIterator.previous();
-                return next;
-            }
-        }
-        return delegate;
     }
 
     @Override
@@ -68,11 +56,14 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
             }
             bufferIterator = null; // End of buffered entries
         }
-        R decoder = provider.provide();
-        if (!consumeValues) {
-            buffer.add(decoder);
+        if (!delegateFinished) {
+            R decoder = provider.provide();
+            if (!consumeValues) {
+                buffer.add(decoder);
+            }
+            return decoder;
         }
-        return decoder;
+        throw new IllegalStateException("Decoder has already been finished");
     }
 
     @Override
@@ -86,12 +77,14 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
             } else {
                 bufferIterator = null; // End of buffered entries
             }
-        } else {
+        } else if (!delegateFinished) {
             if (!consumeValues) {
                 buffer.add(delegate.decodeBuffer());
             } else {
                 delegate.skipValue();
             }
+        } else {
+            throw new IllegalStateException("Decoder has already been finished");
         }
     }
 
@@ -107,11 +100,14 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
             }
             bufferIterator = null; // End of buffered entries
         }
-        Decoder decoder = delegate.decodeBuffer();
-        if (!consumeValues) {
-            buffer.add(decoder);
+        if (!delegateFinished) {
+            Decoder decoder = delegate.decodeBuffer();
+            if (!consumeValues) {
+                buffer.add(decoder);
+            }
+            return decoder.decodeNull();
         }
-        return decoder.decodeNull();
+        throw new IllegalStateException("Decoder has already been finished");
     }
 
     @Override
@@ -125,11 +121,23 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
             }
             bufferIterator = null; // End of buffered entries
         }
-        if (!delegate.hasNextArrayValue()) {
-            finished = true;
+        if (delegateFinished || !delegate.hasNextArrayValue()) {
+            delegateFinished = true;
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        if (!delegateFinished) {
+            while (hasNextArrayValue()) {
+                skipValue(false);
+            }
+            delegateFinished = true;
+            delegate.finishStructure();
+        }
     }
 
     @Override
@@ -140,15 +148,7 @@ sealed class BufferedArrayDecoder extends AbstractBufferedDecoder implements Buf
     }
 
     @Override
-    public void finishStructure() throws IOException {
-        super.finishStructure();
-        bufferIterator = buffer.listIterator();
+    public String decodeKey() throws IOException {
+        throw new UnsupportedOperationException();
     }
-
-    @Override
-    public void finishStructure(boolean consumeLeftElements) throws IOException {
-        super.finishStructure(consumeLeftElements);
-        bufferIterator = buffer.listIterator();
-    }
-
 }

@@ -16,22 +16,7 @@ final class BufferedDecoderLookaheadRoot extends BufferedDecoderRoot implements 
 
     @Override
     public TokenType lookahead() throws IOException {
-        if (decoder instanceof BufferedObjectDecoder bufferedObjectDecoder) {
-            if (bufferedObjectDecoder.isFinished()) {
-                return TokenType.START_OBJECT;
-            }
-        }
-        if (decoder instanceof BufferedArrayDecoder bufferedObjectDecoder) {
-            if (bufferedObjectDecoder.isFinished()) {
-                return TokenType.START_ARRAY;
-            }
-        }
-        if (decoder instanceof LookaheadDecoder lookaheadDecoder) {
-            TokenType lookahead = lookaheadDecoder.lookahead();
-            return lookahead;
-        }
-        TokenType lookahead = ((LookaheadDecoder) delegate).lookahead();
-        return lookahead;
+        return lookahead(delegate);
     }
 
     @Override

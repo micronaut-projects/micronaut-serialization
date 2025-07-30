@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LookaheadDecoder;
-import io.micronaut.serde.support.util.JsonNodeDecoder;
 
 import java.io.IOException;
 
@@ -32,44 +31,20 @@ final class BufferedObjectLookaheadDecoder extends BufferedObjectDecoder impleme
 
     @Override
     public TokenType lookahead() throws IOException {
-        if (bufferIterator != null) {
-            if (currentEntry != null && currentEntry.getValue() instanceof LookaheadDecoder lookaheadDecoder) {
-                if (lookaheadDecoder instanceof BufferedObjectDecoder
-                    || lookaheadDecoder instanceof JsonNodeDecoder && ((JsonNodeDecoder) lookaheadDecoder).getNode().isObject()) {
-                    return TokenType.START_OBJECT;
-                }
-                if (lookaheadDecoder instanceof BufferedArrayDecoder
-                    || lookaheadDecoder instanceof JsonNodeDecoder && ((JsonNodeDecoder) lookaheadDecoder).getNode().isArray()) {
-                    return TokenType.START_ARRAY;
-                }
+        if (currentEntry != null) {
+            return lookahead(currentEntry.getValue());
+        }
+        if (bufferIterator != null && bufferIterator.hasNext()) {
+            return TokenType.KEY;
+        }
+        if (!delegateFinished) {
+            if (delegate instanceof LookaheadDecoder lookaheadDecoder) {
                 return lookaheadDecoder.lookahead();
             }
-            if (bufferIterator.hasNext()) {
-                return TokenType.KEY;
-            }
+            throw new IllegalStateException("Unexpected lookahead: " + delegate.getClass().getName());
         }
-        if (delegate instanceof LookaheadDecoder lookaheadDecoder) {
-            return lookaheadDecoder.lookahead();
-        }
-        throw new IOException("Unsupported LookaheadDecoder: " + decodeKey());
+        return TokenType.END_OBJECT;
     }
-
-//    @Override
-//    public TokenType lookahead() throws IOException {
-//        TokenType lookahead = lookaheadDecoder.lookahead();
-////        if (lookahead == TokenType.START_OBJECT || index == -1) {
-////            return TokenType.START_OBJECT;
-////        }
-//
-//        Entry bufferEntry = findBufferEntry();
-//        if (bufferEntry != null) {
-//            if (currentKey == null) {
-//                return TokenType.KEY;
-//            }
-//            return ((LookaheadDecoder) bufferEntry.decoder()).lookahead();
-//        }
-//        return lookahead;
-//    }
 
     @Override
     protected BufferedArrayDecoder createArrayDecoder(Decoder delegate, boolean consumeValues) {

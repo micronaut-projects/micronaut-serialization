@@ -23,15 +23,15 @@ class TckSpec extends Specification {
 //            "escape.json",
 //            "filters.json",
 //            "functions.json",
-            "identifiers.json", // passing
-            "indices.json", // passing
+//            "identifiers.json", // passing
+//            "indices.json", // passing
 //            "literal.json",
-            "multiselect.json",
+//            "multiselect.json", // passing except one test because we wrap array by default
 //            "pipe.json",
-//            "slice.json",
+            "slice.json",
 //            "syntax.json",
-            "unicode.json", // passing
-//            "wildcard.json"
+//            "unicode.json", // passing
+//            "wildcard.json" // passing
     )
 
     def '#tckTest.name, given: #tckTest.givenAsString expression: "#tckTest.expression" result: #tckTest.resultAsString '(TckTest tckTest) {

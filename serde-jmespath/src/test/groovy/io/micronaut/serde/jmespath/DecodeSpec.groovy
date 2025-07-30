@@ -58,7 +58,7 @@ class DecodeSpec extends Specification {
             "foo[0]"  || """{"bar":{"hello":"world"}}"""
             "foo[1]"  || """{"abc":123}"""
             "foo[2]"  || null
-            "foo[-2]" || null
+            "foo[-2]" || """{"bar":{"hello":"world"}}"""
     }
 
     def flatten() {
@@ -220,6 +220,119 @@ class DecodeSpec extends Specification {
             )
         then:
             toJson(node) == """null"""
+    }
+
+    def slice() {
+        when:
+            def decoder = createDecoder("""
+{
+    "foo": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "bar": {
+      "baz": 1
+    }
+  }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "foo[0:10:1]"
+            )
+        then:
+            toJson(node) == """[0,1,2,3,4,5,6,7,8,9]"""
+    }
+
+    def slice2() {
+        when:
+            def decoder = createDecoder("""
+{
+    "foo": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "bar": {
+      "baz": 1
+    }
+  }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "foo[1:9]"
+            )
+        then:
+            toJson(node) == """[1,2,3,4,5,6,7,8]"""
+    }
+
+    def slice3() {
+        when:
+            def decoder = createDecoder("""
+{
+    "foo": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "bar": {
+      "baz": 1
+    }
+  }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "foo[::-1]"
+            )
+        then:
+            toJson(node) == """[9,8,7,6,5,4,3,2,1,0]"""
+    }
+
+    def slice4() {
+        when:
+            def decoder = createDecoder("""
+{
+    "foo": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "bar": {
+      "baz": 1
+    }
+  }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "foo[8:2:-2]"
+            )
+        then:
+            toJson(node) == """[8,6,4]"""
+    }
+
+    def slice5() {
+        when:
+            def decoder = createDecoder("""
+{
+    "foo": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "bar": {
+      "baz": 1
+    }
+  }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "foo[10:-20:-1]"
+            )
+        then:
+            toJson(node) == """[9,8,7,6,5,4,3,2,1,0]"""
+    }
+
+    def slice6() {
+        when:
+            def decoder = createDecoder("""
+{
+    "foo": [{"a": 1}, {"a": 2}, {"a": 3}],
+    "bar": [{"a": {"b": 1}}, {"a": {"b": 2}}, {"a": {"b": 3}}],
+    "baz": 50
+  }
+""")
+
+            def node = SerdeJmesPathDecoder.decode(
+                    decoder,
+                    "bar[::-1].a.b"
+            )
+        then:
+            toJson(node) == """[3,2,1]"""
     }
 
 }

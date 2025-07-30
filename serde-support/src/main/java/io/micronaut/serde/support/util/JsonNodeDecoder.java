@@ -49,6 +49,16 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
         return new Buffered(node, remainingLimits);
     }
 
+    public static JsonNodeDecoder createObjectArrayOrSimple(JsonNode node, LimitingStream.RemainingLimits remainingLimits) {
+        if (node.isObject()) {
+            return new JsonObjectNodeDecoder(node, remainingLimits);
+        }
+        if (node.isArray()) {
+            return new JsonArrayNodeDecoder(node, remainingLimits);
+        }
+        return new Buffered(node, remainingLimits);
+    }
+
     /**
      * @return The wrapped node.
      */
@@ -386,13 +396,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements L
     public Decoder decodeBuffer() throws IOException {
         JsonNode peeked = peekValue();
         skipValue();
-        if (peeked.isObject()) {
-            return new JsonObjectNodeDecoder(peeked, ourLimits());
-        }
-        if (peeked.isArray()) {
-            return new JsonArrayNodeDecoder(peeked, ourLimits());
-        }
-        return new Buffered(peeked, ourLimits());
+        return createObjectArrayOrSimple(peeked, ourLimits());
     }
 
     @Override

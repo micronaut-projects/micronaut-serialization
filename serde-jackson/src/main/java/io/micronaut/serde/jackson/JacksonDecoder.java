@@ -878,7 +878,7 @@ public final class JacksonDecoder extends LimitingStream implements LookaheadDec
     @Override
     public Decoder decodeBuffer() throws IOException {
         JsonNode node = decodeNode();
-        return JsonNodeDecoder.create(node, ourLimits());
+        return JsonNodeDecoder.createObjectArrayOrSimple(node, ourLimits());
     }
 
     @NonNull
