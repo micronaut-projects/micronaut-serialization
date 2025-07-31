@@ -890,7 +890,7 @@ final class DeserBean<T> {
             }
         }
 
-        public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
+        void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
             deserializeAndSetPropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
         }
 
@@ -938,12 +938,24 @@ final class DeserBean<T> {
             }
         }
 
-        private P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
-            P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-            if (value != null || nullable) {
-                return value;
+        P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+            try {
+                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
+                if (value != null || nullable) {
+                    return value;
+                }
+                return provideDefaultConstructorValue(decoderContext);
+            } catch (InvalidFormatException e) {
+                InvalidPropertyFormatException invalidPropertyFormatException = new InvalidPropertyFormatException(e, argument);
+                invalidPropertyFormatException.getPath().addAll(e.getPath());
+                invalidPropertyFormatException.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
+                throw invalidPropertyFormatException;
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
+                throw e;
+            } catch (Exception e) {
+                throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
             }
-            return provideDefaultConstructorValue(decoderContext);
         }
 
         private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {
