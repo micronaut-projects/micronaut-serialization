@@ -84,13 +84,14 @@ public class JsonNodeToStringUtil {
             } else {
                 hasPreviousItem = true;
             }
-            builder.append("\"").append(key).append("\": ");
+            builder.append("\"").append(escape(key)).append("\": ");
         }
 
         @Override
         public void finishStructure() {
             builder.append("}");
         }
+
     }
 
     private static final class SimpleToStringArrayEncoder extends AbstractSimpleToStringEncoder implements Encoder {
@@ -167,7 +168,7 @@ public class JsonNodeToStringUtil {
         @Override
         public void encodeString(String value) {
             beforeEncodeValue();
-            builder.append("\"").append(value).append("\"");
+            builder.append("\"").append(escape(value)).append("\"");
         }
 
         @Override
@@ -234,6 +235,10 @@ public class JsonNodeToStringUtil {
         public void encodeNull() {
             beforeEncodeValue();
             builder.append("null");
+        }
+
+        protected final String escape(String value) {
+            return value.replace("\"", "\\\"");
         }
     }
 

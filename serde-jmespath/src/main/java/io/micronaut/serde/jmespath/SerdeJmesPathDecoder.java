@@ -65,7 +65,8 @@ public class SerdeJmesPathDecoder {
                         }
                     }
                 } else {
-                    flattened.add(result);
+                    return null;
+//                    flattened.add(result);
                 }
                 JsonNodeDecoder jsonNodeDecoder = JsonNodeDecoder.create(
                     JsonNode.createArrayNode(flattened),
