@@ -885,12 +885,8 @@ final class DeserBean<T> {
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
             try {
                 values[index] = deserializeConstructorValue(deserializer, objectDecoder, decoderContext);
-            } catch (InvalidFormatException e) {
-                throw new InvalidPropertyFormatException(e, argument);
-            } catch (SerdeException serdeException) {
-                throw serdeException;
             } catch (Exception e) {
-                throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
+                throw convertException(e, false);
             }
         }
 
@@ -898,7 +894,7 @@ final class DeserBean<T> {
             deserializeAndSetPropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
         }
 
-        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
+        @NextMajorVersion("Receiving a null should not be skipped for a not nullable")
         public void deserializeAndSetPropertyValue(Deserializer<P> deserializer,
                                                    Decoder objectDecoder,
                                                    Deserializer.DecoderContext decoderContext,
@@ -908,30 +904,24 @@ final class DeserBean<T> {
                 if (value != null || nullable) {
                     beanProperty.setUnsafe(beanInstance, value);
                 }
-            } catch (InvalidFormatException e) {
-                InvalidPropertyFormatException invalidPropertyFormatException = new InvalidPropertyFormatException(e, argument);
-                invalidPropertyFormatException.getPath().addAll(e.getPath());
-                throw invalidPropertyFormatException;
-            } catch (SerdeException e) {
-                throw e;
             } catch (Exception e) {
-                throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
+                throw convertException(e, true); // Only convert exceptions from `setUnsafe`
             }
         }
 
+        @NextMajorVersion("Receiving a null should not be skipped for a not nullable")
         public void deserializeAndCallBuilder(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, BeanIntrospection.Builder<B> builder) throws IOException {
             try {
                 P value = deserializeValue(deserializer, objectDecoder, decoderContext);
                 if (value != null || nullable) {
                     builder.with(index, argument, value);
                 }
-            } catch (InvalidFormatException e) {
-                throw new InvalidPropertyFormatException(e, argument);
             } catch (Exception e) {
-                throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
+                throw convertException(e, true); // Only convert exceptions from `with`
             }
         }
 
+        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
         private P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
@@ -943,13 +933,8 @@ final class DeserBean<T> {
                         "] is not present in supplied data");
                 }
                 return provideDefaultValue(decoderContext);
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
-                throw e;
             } catch (Exception e) {
-                SerdeException serdeException = new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
-                serdeException.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
-                throw serdeException;
+                throw convertException(e, false);
             }
         }
 
@@ -971,6 +956,25 @@ final class DeserBean<T> {
                 value = deserializer.getDefaultValue(decoderContext, argument);
             }
             return value;
+        }
+
+        @NonNull
+        private SerdeException convertException(@NonNull Exception e, boolean catchOnlyUnknown) {
+            if (catchOnlyUnknown && e instanceof SerdeException serdeException) {
+                return serdeException;
+            }
+            SerdeException serdeException;
+            if (e instanceof InvalidFormatException invalidFormatException) {
+                InvalidPropertyFormatException invalidPropertyFormatException = new InvalidPropertyFormatException(invalidFormatException, argument);
+                invalidPropertyFormatException.getPath().addAll(invalidFormatException.getPath());
+                serdeException = invalidPropertyFormatException;
+            } else if (e instanceof SerdeException s) {
+                serdeException = s;
+            } else {
+                serdeException = new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
+            }
+            serdeException.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
+            return serdeException;
         }
 
     }

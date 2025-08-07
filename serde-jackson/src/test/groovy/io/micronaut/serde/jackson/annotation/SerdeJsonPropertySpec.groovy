@@ -6,6 +6,220 @@ import spock.lang.PendingFeature
 
 class SerdeJsonPropertySpec extends JsonPropertySpec {
 
+    def "test default null handling - field (Serde doesn't update non-nullable on null)"() {
+        given:
+            def compiled = buildContext('''
+package enumtest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    public Foo data = Foo.BAZ;
+    public String val = "sss";
+}
+
+@Serdeable
+enum Foo {
+  BAR("br"),
+  BAZ("bz");
+
+  private final String value;
+
+  Foo(String value) {
+    this.value = value;
+  }
+}
+''')
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            def bean = jsonMapper.readValue('{"data":null, "val":null}', argument)
+        then:
+            bean.data
+            bean.val
+
+        cleanup:
+            compiled.close()
+    }
+
+    def "test default null handling - property  (Serde doesn't update non-nullable on null)"() {
+        given:
+            def compiled = buildContext('''
+package enumtest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+
+@Serdeable
+class Test {
+    public Foo data = Foo.BAZ;
+    public String val = "sss";
+
+    public Foo getData() {
+        return data;
+    }
+
+    public void setData(Foo data) {
+        this.data = data;
+    }
+
+    public String getVal() {
+        return val;
+    }
+
+    public void setVal(String val) {
+        this.val = val;
+    }
+}
+
+@Serdeable
+enum Foo {
+  BAR("br"),
+  BAZ("bz");
+
+  private final String value;
+
+  Foo(String value) {
+    this.value = value;
+  }
+}
+''')
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            def bean = jsonMapper.readValue('{"data":null, "val":null}', argument)
+        then:
+            bean.data
+            bean.val
+
+        cleanup:
+            compiled.close()
+    }
+
+    def "test default null handling - field"() {
+        given:
+            def compiled = buildContext('''
+package enumtest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    @Nullable
+    public Foo data = Foo.BAZ;
+    @Nullable
+    public String val = "sss";
+}
+
+@Serdeable
+enum Foo {
+  BAR("br"),
+  BAZ("bz");
+
+  private final String value;
+
+  Foo(String value) {
+    this.value = value;
+  }
+}
+''')
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            def bean = jsonMapper.readValue('{"data":null, "val":null}', argument)
+        then:
+            bean.data == null
+            bean.val == null
+
+        cleanup:
+            compiled.close()
+    }
+
+    def "test default null handling - property"() {
+        given:
+            def compiled = buildContext('''
+package enumtest;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Objects;
+
+@Serdeable
+class Test {
+    @Nullable
+    public Foo data = Foo.BAZ;
+    @Nullable
+    public String val = "sss";
+
+    public Foo getData() {
+        return data;
+    }
+
+    public void setData(Foo data) {
+        this.data = data;
+    }
+
+    public String getVal() {
+        return val;
+    }
+
+    public void setVal(String val) {
+        this.val = val;
+    }
+}
+
+@Serdeable
+enum Foo {
+  BAR("br"),
+  BAZ("bz");
+
+  private final String value;
+
+  Foo(String value) {
+    this.value = value;
+  }
+}
+''')
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            def bean = jsonMapper.readValue('{"data":null, "val":null}', argument)
+        then:
+            bean.data == null
+            bean.val == null
+
+        cleanup:
+            compiled.close()
+    }
+
     void "test @JsonProperty.Access.READ_ONLY (get only) - constructor"() {
         // Jackson cannot deserialize READ_ONLY as null
         given:

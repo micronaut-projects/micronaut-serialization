@@ -34,18 +34,21 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean strictNullable;
     private final boolean failOnNullForPrimitives;
     private final boolean subtypesRequireDefaultImpl;
+    private final boolean acceptCaseInsensitiveEnums;
 
     @ConfigurationInject
     DefaultDeserializationConfiguration(@Bindable(defaultValue = StringUtils.TRUE) boolean ignoreUnknown,
                                         @Bindable(defaultValue = "100") int arraySizeThreshold,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean failOnNullForPrimitives,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean subtypesRequireDefaultImpl) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean subtypesRequireDefaultImpl,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean acceptCaseInsensitiveEnums) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
         this.failOnNullForPrimitives = failOnNullForPrimitives;
         this.subtypesRequireDefaultImpl = subtypesRequireDefaultImpl;
+        this.acceptCaseInsensitiveEnums = acceptCaseInsensitiveEnums;
     }
 
     @Override
@@ -71,5 +74,10 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean isSubtypesRequireDefaultImpl() {
         return subtypesRequireDefaultImpl;
+    }
+
+    @Override
+    public boolean acceptCaseInsensitiveEnums() {
+        return acceptCaseInsensitiveEnums;
     }
 }

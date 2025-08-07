@@ -89,7 +89,7 @@ abstract class AbstractJsonCompileSpec extends AbstractTypeElementSpec implement
         return context.classLoader.loadClass(name).newInstance(args)
     }
 
-    Object getEnum(ApplicationContext context, String name) {
+    static Object getEnum(ApplicationContext context, String name) {
         String enumName = name.split('\\.').last()
         String enumClassName = name.substring(0, name.length() - enumName.length() - 1)
         return context.classLoader.loadClass(enumClassName)
