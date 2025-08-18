@@ -883,11 +883,7 @@ final class DeserBean<T> {
         }
 
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
-            try {
-                values[index] = deserializeConstructorValue(deserializer, objectDecoder, decoderContext);
-            } catch (Exception e) {
-                throw convertException(e, false);
-            }
+            values[index] = deserializeConstructorValue(deserializer, objectDecoder, decoderContext);
         }
 
         void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
@@ -922,7 +918,7 @@ final class DeserBean<T> {
         }
 
         @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
-        private P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+        P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
                 if (value != null || nullable) {
@@ -945,17 +941,9 @@ final class DeserBean<T> {
                     return value;
                 }
                 return provideDefaultConstructorValue(decoderContext);
-            } catch (InvalidFormatException e) {
-                InvalidPropertyFormatException invalidPropertyFormatException = new InvalidPropertyFormatException(e, argument);
-                invalidPropertyFormatException.getPath().addAll(e.getPath());
-                invalidPropertyFormatException.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
-                throw invalidPropertyFormatException;
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofProperty(introspection.getBeanType(), argument));
-                throw e;
             } catch (Exception e) {
-                throw new SerdeException("Error decoding property [" + argument + "] of type [" + introspection.getBeanType() + "]: " + e.getMessage(), e);
-            }
+                throw convertException(e, false);
+}
         }
 
         private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {
