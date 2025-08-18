@@ -883,14 +883,10 @@ final class DeserBean<T> {
         }
 
         public void deserializeAndSetConstructorValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, Object[] values) throws IOException {
-            try {
-                values[index] = deserializeConstructorValue(deserializer, objectDecoder, decoderContext);
-            } catch (Exception e) {
-                throw convertException(e, false);
-            }
+            values[index] = deserializeConstructorValue(deserializer, objectDecoder, decoderContext);
         }
 
-        public void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
+        void deserializeAndSetPropertyValue(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, B beanInstance) throws IOException {
             deserializeAndSetPropertyValue(deserializer, objectDecoder, decoderContext, beanInstance);
         }
 
@@ -922,7 +918,7 @@ final class DeserBean<T> {
         }
 
         @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
-        private P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+        P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
                 if (value != null || nullable) {
@@ -938,12 +934,16 @@ final class DeserBean<T> {
             }
         }
 
-        private P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
-            P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-            if (value != null || nullable) {
-                return value;
-            }
-            return provideDefaultConstructorValue(decoderContext);
+        P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
+            try {
+                P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
+                if (value != null || nullable) {
+                    return value;
+                }
+                return provideDefaultConstructorValue(decoderContext);
+            } catch (Exception e) {
+                throw convertException(e, false);
+}
         }
 
         private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {

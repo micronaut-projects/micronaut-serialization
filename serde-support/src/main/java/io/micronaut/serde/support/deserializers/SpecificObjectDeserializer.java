@@ -334,27 +334,6 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         return deserializer;
     }
 
-    private static Object deserializeValue(Deserializer<Object> deserializer,
-                                           DecoderContext decoderContext,
-                                           Decoder objectDecoder,
-                                           DeserBean.DerProperty<Object, Object> derProperty) throws IOException {
-        try {
-            return deserializer.deserializeNullable(
-                objectDecoder,
-                decoderContext,
-                derProperty.argument
-            );
-        } catch (InvalidFormatException e) {
-            throw new InvalidPropertyFormatException(e, derProperty.argument);
-        }
-    }
-
-    private static Object deserializeValue(DecoderContext decoderContext,
-                                           Decoder objectDecoder,
-                                           DeserBean.DerProperty<Object, Object> derProperty) throws IOException {
-        return deserializeValue(derProperty.deserializer, decoderContext, objectDecoder, derProperty);
-    }
-
     /**
      * Deserializes unknown properties into the any values map.
      *
@@ -453,7 +432,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     return true;
                 }
                 if (property.managedRef == null) {
-                    values[property.index] = deserializeValue(decoderContext, decoder, property);
+                    values[property.index] = property.deserializeValue(property.deserializer, decoder, decoderContext);
                 } else {
                     buffered[property.index] = decoder.decodeBuffer();
                 }
@@ -753,7 +732,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 if (property.unresolvedTypeVariableName != null) {
                     deserializer = findTypeVariableDeserializer(decoderContext, objectArgument, property, deserializer);
                 }
-                value = deserializeValue(deserializer, decoderContext, decoder, property);
+                value = property.deserializeConstructorValue(deserializer, decoder, decoderContext);
             }
             if (value == null) {
                 property.setDefaultConstructorValue(decoderContext, values);

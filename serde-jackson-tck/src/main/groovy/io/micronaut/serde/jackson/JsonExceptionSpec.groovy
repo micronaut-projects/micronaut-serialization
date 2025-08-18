@@ -271,6 +271,139 @@ record Test(String stringA, String stringB) {
             ]
     }
 
+    void "unknown property - nested record"() {
+        given:
+            def context = buildContext('example.Outer', '''
+package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Outer(Inner inner) {
+}
+
+@Serdeable
+record Inner(String stringA, String stringB) {
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "inner": { "stringA": "value", "stringB": "value2", "unknownProperty": "value3" } }""",
+                    """{ "inner": { "unknownProperty": "value3", "stringA": "value", "stringB": "value2" } }""",
+            ]
+    }
+
+    void "unknown property - nested bean"() {
+        given:
+            def context = buildContext('example.Outer', '''
+package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Objects;
+
+@Serdeable
+final class Outer {
+    private Inner inner;
+
+    public Inner getInner() {
+        return inner;
+    }
+
+    public void setInner(Inner inner) {
+        this.inner = inner;
+    }
+}
+
+@Serdeable
+record Inner(String stringA, String stringB) {
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "inner": { "stringA": "value", "stringB": "value2", "unknownProperty": "value3" } }""",
+                    """{ "inner": { "unknownProperty": "value3", "stringA": "value", "stringB": "value2" } }""",
+            ]
+    }
+
+    void "unknown property - nested mixed bean"() {
+        given:
+            def context = buildContext('example.Outer', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.core.annotation.Nullable;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Objects;
+
+@Serdeable
+final class Outer {
+    private final String eee;
+    private Inner inner;
+
+    @JsonCreator
+    Outer(@Nullable @JsonProperty("eee") String eee) {
+        this.eee = eee;
+    }
+
+    public Inner getInner() {
+        return inner;
+    }
+
+    public void setInner(Inner inner) {
+        this.inner = inner;
+    }
+}
+
+@Serdeable
+record Inner(String stringA, String stringB) {
+}
+''')
+
+        when:
+            jsonMapper.readValue(json, typeUnderTest)
+
+        then:
+            def e = thrown(Exception)
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
+
+        cleanup:
+            context.close()
+
+        where:
+            json << [
+                    """{ "inner": { "stringA": "value", "stringB": "value2", "unknownProperty": "value3" } }""",
+                    """{ "inner": { "unknownProperty": "value3", "stringA": "value", "stringB": "value2" } }""",
+            ]
+    }
+
     void "unknown property - property bean"() {
         given:
             def context = buildContext('example.Test', '''
