@@ -116,4 +116,12 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
         return jsonMapper.readValue(expected, Map) == jsonMapper.readValue(given, Map)
     }
 
+    static Object getEnum(ApplicationContext context, String name) {
+        String enumName = name.split('\\.').last()
+        String enumClassName = name.substring(0, name.length() - enumName.length() - 1)
+        return context.classLoader.loadClass(enumClassName)
+                .enumConstants
+                .find(c -> c.name() == enumName)
+    }
+
 }
