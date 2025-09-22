@@ -203,7 +203,7 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
                     return internalKeySerializer;
                 }
 
-                private Serializer<? super V> getValueSerializer(EncoderContext context, V v) throws SerdeException {
+                private synchronized Serializer<? super V> getValueSerializer(EncoderContext context, V v) throws SerdeException {
                     if (valueGeneric == null || !valueGeneric.getType().equals(v.getClass())) {
                         valueGeneric = (Argument<V>) Argument.of(v.getClass());
                         internalValSerializer = context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
