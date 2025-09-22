@@ -33,7 +33,7 @@ public class InvalidPropertyFormatException extends InvalidFormatException {
      * @param argument The argument
      */
     public InvalidPropertyFormatException(@NonNull InvalidFormatException cause, @NonNull Argument<?> argument) {
-        super("Cannot deserialize " + argument + " due to: " + cause.getMessage(), cause, cause.getOriginalValue());
+        super("Cannot deserialize value of type `" + argument.getType().getName() + "` due to: " + cause.getMessage(), cause, cause.getOriginalValue());
         this.argument = argument;
     }
 

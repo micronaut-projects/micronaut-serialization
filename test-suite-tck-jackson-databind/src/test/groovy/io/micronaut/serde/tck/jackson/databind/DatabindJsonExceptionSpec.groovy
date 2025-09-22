@@ -19,7 +19,6 @@ class DatabindJsonExceptionSpec extends JsonExceptionSpec {
         super.configureContext(contextBuilder.properties(
                 Map.of(
                         "jackson.deserialization.fail-on-unknown-properties", "true",
-//                        "jackson.deserialization.FAIL_ON_READING_DUP_TREE_KEY", "true",
                         "jackson.parser.STRICT_DUPLICATE_DETECTION", "true"
                 )
         ))
