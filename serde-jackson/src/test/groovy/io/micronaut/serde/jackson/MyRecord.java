@@ -1,6 +1,5 @@
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 

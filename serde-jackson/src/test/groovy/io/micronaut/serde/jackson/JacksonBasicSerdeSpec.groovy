@@ -1,6 +1,5 @@
 package io.micronaut.serde.jackson
 
-import io.micronaut.context.annotation.Property
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
@@ -11,7 +10,6 @@ import jakarta.inject.Inject
 import java.time.Instant
 
 @MicronautTest
-@Property(name = "micronaut.serde.deserialization.ignore-unknown", value = "false")
 class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
 
     @Inject
