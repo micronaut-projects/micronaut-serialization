@@ -37,4 +37,22 @@ class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
         then:
         obj == result
     }
+
+    def "test object with non null map and JsonInclude.ALWAYS"() {
+        when:
+        def obj = new MyBeanWithMap("id1", 1, new MyBeanWithMap.MyNestedBeanWithMap(1L, Map.of("key", "val")))
+        def json = jsonMapper.writeValueAsString(obj)
+        def result = jsonMapper.readValue(json, MyBeanWithMap)
+        then:
+        obj == result
+    }
+
+    def "test object with null map and JsonInclude.ALWAYS"() {
+        when:
+        def obj = new MyBeanWithMap("id2", 2, new MyBeanWithMap.MyNestedBeanWithMap(2L, null))
+        def json = jsonMapper.writeValueAsString(obj)
+        def result = jsonMapper.readValue(json, MyBeanWithMap)
+        then:
+        obj == result
+    }
 }
