@@ -23,4 +23,18 @@ class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
             obj.vals() == []
     }
 
+    def "test nested nullable object with JsonInclude.ALWAYS"() {
+        when:
+        def obj = new MyBeanWithNestedObject("id1", new MyBeanWithNestedObject.MyNestedBean(new MyBeanWithNestedObject.Key("f1", 1), "name"))
+        def json = jsonMapper.writeValueAsString(obj)
+        def result = jsonMapper.readValue(json, MyBeanWithNestedObject)
+        then:
+        obj == result
+        when:
+        obj = new MyBeanWithNestedObject("id2", null)
+        json = jsonMapper.writeValueAsString(obj)
+        result = jsonMapper.readValue(json, MyBeanWithNestedObject)
+        then:
+        obj == result
+    }
 }
