@@ -761,14 +761,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             return true;
         }
 
-        Object[] getValues(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        Object[] getValues(DecoderContext decoderContext) throws IOException {
             if (anyValuesDeserializer != null) {
                 anyValuesDeserializer.bind(values);
             }
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
-                    Object value = unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext);
                     DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
+                    Object value = unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext);
                     if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                         continue;
                     }
@@ -898,12 +898,15 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
             Object instance;
             try {
-                Object[] values = constructorValuesDeserializer.getValues(objectArgument, decoderContext);
+                Object[] values = constructorValuesDeserializer.getValues(decoderContext);
                 if (anyValuesDeserializer != null && anyValuesDeserializer.anySetter.constructorArgument) {
                     anyValuesDeserializer.bind(values);
                 }
                 if (conf.preInstantiateCallback != null) {
                     conf.preInstantiateCallback.preInstantiate(introspection, values);
+                }
+                if (objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
+                    return null;
                 }
                 instance = introspection.instantiate(conf.strictNullable, values);
             } catch (InstantiationException e) {
@@ -916,6 +919,15 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 anyValuesDeserializer.bind(instance);
             }
             return instance;
+        }
+
+        private boolean allNull(Object[] values) {
+            for (Object value : values) {
+                if (value != null) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 
@@ -1308,6 +1320,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         abstract void init(DecoderContext decoderContext) throws SerdeException;
 
+        @Nullable
         abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException;
 
     }

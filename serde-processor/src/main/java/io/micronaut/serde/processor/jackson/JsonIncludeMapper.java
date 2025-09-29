@@ -16,7 +16,6 @@
 package io.micronaut.serde.processor.jackson;
 
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -31,10 +30,12 @@ public class JsonIncludeMapper implements NamedAnnotationMapper {
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.enumValue(SerdeConfig.SerInclude.class).ifPresent(v -> builder.member(SerdeConfig.INCLUDE, v));
-        annotation.enumValue("content", SerdeConfig.SerInclude.class).ifPresent(v -> builder.member(SerdeConfig.INCLUDE_CONTENT, v));
-        return List.of(builder.build());
+        return List.of(
+            AnnotationValue.builder(SerdeConfig.class)
+                .member(SerdeConfig.INCLUDE, annotation.enumValue(SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
+                .member(SerdeConfig.INCLUDE_CONTENT, annotation.enumValue("content", SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
+                .build()
+        );
     }
 
     @Override
