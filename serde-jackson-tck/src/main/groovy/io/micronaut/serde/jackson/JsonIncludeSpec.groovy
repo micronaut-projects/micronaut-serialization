@@ -16,6 +16,9 @@
 package io.micronaut.serde.jackson
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
 import spock.lang.Unroll
 
 import java.sql.Date
@@ -29,6 +32,226 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.USE_DEFAULTS
 
 abstract class JsonIncludeSpec extends JsonCompileSpec {
+
+    def "unwrapped with Json always include"() {
+        given:
+            ApplicationContext context = ApplicationContext.run()
+            jsonMapper = context.getBean(JsonMapper)
+            def bean = new MyBeanWithUnwrappedAlwaysInclude()
+            bean.name = "hello"
+        when:
+            def json = jsonMapper.writeValueAsString(bean)
+        then:
+            json == """{"name":"hello"}"""
+        cleanup:
+            context.close()
+    }
+
+    def "unwrapped with Json always include 2"() {
+        given:
+            ApplicationContext context = ApplicationContext.run()
+            jsonMapper = context.getBean(JsonMapper)
+            def bean = new MyBeanWithUnwrappedAlwaysInclude()
+            bean.name = "hello"
+            bean.inner1 = new MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude()
+        when:
+            def json = jsonMapper.writeValueAsString(bean)
+        then:
+            json == """{"name":"hello","key1":null,"value1":null}"""
+        cleanup:
+            context.close()
+    }
+
+    def "unwrapped with Json always include 3"() {
+        given:
+            ApplicationContext context = ApplicationContext.run()
+            jsonMapper = context.getBean(JsonMapper)
+            def bean = new MyBeanWithUnwrappedAlwaysInclude()
+            bean.name = "hello"
+            bean.inner2 = new MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude()
+        when:
+            def json = jsonMapper.writeValueAsString(bean)
+        then:
+            json == """{"name":"hello"}"""
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonUnwrapped include default"() {
+        given:
+            def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Parent(
+  int age,
+  @JsonUnwrapped
+  Name name) {
+}
+
+@Serdeable
+record Name(
+  String first, String last
+) {}
+""")
+
+        when:
+            def name = newInstance(context, 'unwrapped.Name', "Fred", "Flinstone")
+            def parent = newInstance(context, 'unwrapped.Parent', 10, null)
+
+            def result = writeJson(jsonMapper, parent)
+
+        then:
+            result == '{"age":10}'
+
+        when:
+            def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+            read.age == 10
+            read.name == newInstance(context, 'unwrapped.Name', null, null)
+
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonUnwrapped parent include always"() {
+        given:
+            def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonInclude
+@Serdeable
+record Parent(
+  int age,
+  @JsonUnwrapped
+  Name name) {
+}
+
+@Serdeable
+record Name(
+  String first, String last
+) {}
+""")
+
+        when:
+            def name = newInstance(context, 'unwrapped.Name', "Fred", "Flinstone")
+            def parent = newInstance(context, 'unwrapped.Parent', 10, null)
+
+            def result = writeJson(jsonMapper, parent)
+
+        then:
+            result == '{"age":10}'
+
+        when:
+            def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+            read.age == 10
+            read.name == newInstance(context, 'unwrapped.Name', null, null)
+
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonUnwrapped parent include always unwrapped include always"() {
+        given:
+            def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonInclude
+@Serdeable
+record Parent(
+  int age,
+  @JsonUnwrapped
+  Name name) {
+}
+
+@JsonInclude
+@Serdeable
+record Name(
+  String first, String last
+) {}
+""")
+
+        when:
+            def name = newInstance(context, 'unwrapped.Name', "Fred", "Flinstone")
+            def parent = newInstance(context, 'unwrapped.Parent', 10, null)
+
+            def result = writeJson(jsonMapper, parent)
+
+        then:
+            result == '{"age":10}'
+
+        when:
+            def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+            read.age == 10
+            read.name == newInstance(context, 'unwrapped.Name', null, null)
+
+        cleanup:
+            context.close()
+    }
+
+    void "test @JsonUnwrapped parent include always unwrapped include always 2"() {
+        given:
+            def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@JsonInclude
+@Serdeable
+record Parent(
+  int age,
+  @JsonUnwrapped
+  Name name) {
+}
+
+@JsonInclude
+@Serdeable
+record Name(
+  String first, String last
+) {}
+""")
+
+        when:
+            def name = newInstance(context, 'unwrapped.Name', null, null)
+            def parent = newInstance(context, 'unwrapped.Parent', 10, name)
+
+            def result = writeJson(jsonMapper, parent)
+
+        then:
+            result == '{"age":10,"first":null,"last":null}'
+
+        when:
+            def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+            read.age == 10
+            read.name == newInstance(context, 'unwrapped.Name', null, null)
+
+        cleanup:
+            context.close()
+    }
 
     void "@JsonInclude String"() {
         given:
@@ -1095,7 +1318,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
 
 @com.fasterxml.jackson.annotation.JsonClassDescription
 class Test {
-    @JsonInclude(${include.name()})
+    @JsonInclude(${include == ALWAYS ? "" : include.name()})
     private $type value;
     public void setValue($type value) {
         this.value = value;
@@ -1227,7 +1450,7 @@ import java.util.*;
 
 @Serdeable
 record Test(
-    @JsonInclude(${include.name()})
+    @JsonInclude(${include == ALWAYS ? "" : include.name()})
     $type test
 ) {}
 """)
@@ -1332,7 +1555,6 @@ record Test(
         USE_DEFAULTS| "java.math.BigInteger"| BigInteger.valueOf(0) | '{"test":0}'
         USE_DEFAULTS| "java.lang.Number"    | 0                     | '{"test":0}'
         USE_DEFAULTS| "int[]"               | new int[0]            | '{}'
-
     }
 
     @Unroll
@@ -1346,7 +1568,7 @@ import com.fasterxml.jackson.annotation.*;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.*;
 
 @Serdeable
-@JsonInclude(${include.name()})
+@JsonInclude(${include == ALWAYS ? "" : include.name()})
 record Test(
     $type test
 ) {}
