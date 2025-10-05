@@ -739,4 +739,46 @@ class Sub extends Base {
             json == '{"foo":"bar","subClass":{"string":"a","integer":1}}'
     }
 
+    void 'test @JsonUnwrapped with inner name same as field name'() {
+        given:
+        def ctx = buildContext('example.Entity', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Entity(
+        @JsonUnwrapped CompositeId id,
+        String value) {
+}
+
+@Serdeable
+record CompositeId(
+        String id,
+        Integer version
+) {
+}
+''')
+
+        when:
+        def nestedJsonStr = '{"id":"id-1","version":1,"value":"Some Val"}'
+        def deserNestedEntity = jsonMapper.readValue(nestedJsonStr, Argument.of(ctx.classLoader.loadClass('example.Entity')))
+
+        then:
+        deserNestedEntity
+        deserNestedEntity.id.id == "id-1"
+        deserNestedEntity.id.version == 1
+        deserNestedEntity.value == "Some Val"
+
+        when:
+        def result = jsonMapper.writeValueAsString(deserNestedEntity)
+
+        then:
+        result == nestedJsonStr
+
+        cleanup:
+        ctx.close()
+    }
 }
