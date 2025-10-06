@@ -23,6 +23,64 @@ abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
 
+    def 'test @JsonSubTypes and @JsonTypeName defined'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(A.class),
+    @JsonSubTypes.Type(B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+class Base {
+}
+
+@JsonTypeName
+class A extends Base {
+    public String fieldA;
+}
+@JsonTypeName("b")
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+
+        when:
+            def a = compiled.classLoader.loadClass('example.A').newInstance()
+            a.fieldA = 'foo'
+            def b = compiled.classLoader.loadClass('example.B').newInstance()
+            b.fieldB = 'foo'
+        then:
+            serializeToString(jsonMapper, a) == '{"@type":"A","fieldA":"foo"}'
+            serializeToString(jsonMapper, b) == '{"@type":"b","fieldB":"foo"}'
+
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"A","fieldA":"foo"}').fieldA == 'foo'
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"b","fieldB":"foo"}').fieldB == 'foo'
+        when:
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"B","fieldB":"foo"}').fieldB == 'foo'
+        then:
+            thrown(Throwable)
+        when:
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"example.B","fieldB":"foo"}').fieldB == 'foo'
+        then:
+            thrown(Throwable)
+        when:
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"example.A","fieldB":"foo"}').fieldB == 'foo'
+        then:
+            thrown(Throwable)
+
+        cleanup:
+            compiled.close()
+    }
+
     def 'test JsonTypeInfo with record deduction with some name'() {
         given:
             def compiled = buildContext('example.ReadResourceResult', '''
@@ -109,8 +167,6 @@ record BlobResourceContents( // @formatter:off
         cleanup:
             compiled.close()
     }
-
-
 
     def 'test JsonTypeInfo with record deduction'() {
         given:
@@ -1107,48 +1163,6 @@ class B extends Base {
         cleanup:
             compiled.close()
             Thread.currentThread().setContextClassLoader(cl)
-    }
-
-    def 'test @JsonSubTypes with @JsonTypeName 2'() {
-        given:
-            def compiled = buildContext('example.Base', '''
-package example;
-
-import com.fasterxml.jackson.annotation.*;
-import io.micronaut.core.annotation.Introspected;import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable
-@Introspected(accessKind = Introspected.AccessKind.FIELD)
-@JsonSubTypes({
-    @JsonSubTypes.Type(A.class),
-    @JsonSubTypes.Type(B.class)
-})
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-class Base {
-}
-
-@JsonTypeName
-class A extends Base {
-    public String fieldA;
-}
-@JsonTypeName("b")
-class B extends Base {
-    public String fieldB;
-}
-''', true)
-            def jsonMapper = compiled.getBean(JsonMapper)
-            def baseClass = compiled.classLoader.loadClass('example.Base')
-            def a = compiled.classLoader.loadClass('example.A').newInstance()
-            a.fieldA = 'foo'
-
-        expect:
-            deserializeFromString(jsonMapper, baseClass, '{"A": {"fieldA":"foo"}}').fieldA == 'foo'
-            deserializeFromString(jsonMapper, baseClass, '{"b":{"fieldB":"foo"}}').fieldB == 'foo'
-
-            serializeToString(jsonMapper, a) == '{"A":{"fieldA":"foo"}}'
-
-        cleanup:
-            compiled.close()
     }
 
     def 'test @JsonTypeInfo with include = JsonTypeInfo.As.PROPERTY 2'() {

@@ -29,6 +29,7 @@ import java.util.List;
  * Supports json type name.
  */
 public class JsonTypeNameMapper implements NamedAnnotationMapper {
+
     @Override
     public String getName() {
         return "com.fasterxml.jackson.annotation.JsonTypeName";

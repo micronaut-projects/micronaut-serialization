@@ -57,6 +57,7 @@ import java.text.DecimalFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -624,8 +625,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final SerdeConfig.SerSubtyped.DiscriminatorValueKind discriminatorValueKind =
             getDiscriminatorValueKind(supertype);
         if (discriminatorValueKind == SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION) {
-            subtype.annotate(SerdeConfig.class, builder
-                -> builder.member(SerdeConfig.TYPE_NAME, subtype.getName()));
             return;
         }
 
@@ -641,15 +640,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
         switch (discriminatorValueKind) {
             case NAME -> {
-                subtype.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME)
-                        .ifPresent(allNames::add);
-                for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> parentSubtype :
-                        supertype.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class)) {
-                    String parentSubtypeName = parentSubtype.stringValue().orElse(null);
-                    if (subtype.getName().equals(parentSubtypeName)) {
-                        parentSubtype.stringValue("name")
-                                .ifPresent(allNames::add);
-                        Collections.addAll(allNames, parentSubtype.stringValues("names"));
+                Optional<String> typeNameOptional = subtype.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME);
+                if (typeNameOptional.isPresent()) {
+                    allNames.add(typeNameOptional.get());
+                } else {
+                    for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> parentSubtype : supertype.getDeclaredAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class)) {
+                        Optional<AnnotationClassValue<?>> annotationClassValue = parentSubtype.annotationClassValue(AnnotationMetadata.VALUE_MEMBER);
+                        if (annotationClassValue.isPresent()) {
+                            AnnotationClassValue<?> typeNameVal = annotationClassValue.get();
+                            String typeName = typeNameVal.getName();
+                            if (typeName.equals(subtype.getName())) {
+                                parentSubtype.stringValue("name").ifPresent(allNames::add);
+                                allNames.addAll(Arrays.asList(parentSubtype.stringValues("names")));
+                                break;
+                            }
+                        }
                     }
                 }
                 if (allNames.isEmpty()) {
@@ -657,6 +662,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     allNames.add(subtype.getSimpleName());
                 }
             }
+            case CLASS_NAME -> allNames.add(subtype.getName());
             case CLASS_SIMPLE_NAME -> allNames.add(subtype.getSimpleName());
             case MINIMAL_CLASS -> {
                 String superPackage = supertype.getPackage().getName();
@@ -669,7 +675,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
                 allNames.add(typeName);
             }
-            default -> allNames.add(subtype.getName());
         }
 
         subtype.annotate(SerdeConfig.class, builder -> {
