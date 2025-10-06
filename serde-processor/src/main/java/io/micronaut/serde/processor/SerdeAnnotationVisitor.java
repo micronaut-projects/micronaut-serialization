@@ -602,6 +602,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
+    @SuppressWarnings("MissingSwitchDefault")
     private void visitSubtype(ClassElement supertype, ClassElement subtype, VisitorContext context) {
         if (elementVisitedAsSubtype.contains(subtype.getName())) {
             return;
