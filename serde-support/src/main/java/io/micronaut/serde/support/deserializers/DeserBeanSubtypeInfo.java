@@ -117,22 +117,24 @@ record DeserBeanSubtypeInfo<T>(
                 Argument.of(subBeanType),
                 decoderContext
             );
-
-            String[] types = subtypeInfo.subtypes().get(subBeanType);
-            if (types != null) {
-                for (String type : types) {
-                    subtypes.put(type, deserBean);
-                }
-            }
-
             if (defaultDeserType == null && defaultType != null && defaultType.equals(subBeanType)) {
                 defaultDeserType = deserBean;
             }
+            if (subtypeInfo.deduct()) {
+                subtypes.put(subBeanType.getName(), deserBean);
+            } else {
+                String[] types = subtypeInfo.subtypes().get(subBeanType);
+                if (types != null) {
+                    for (String type : types) {
+                        subtypes.put(type, deserBean);
+                    }
+                }
 
-            subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, deserBean));
-            String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
-            for (String name : names) {
-                subtypes.put(name, deserBean);
+                subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, deserBean));
+                String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
+                for (String name : names) {
+                    subtypes.put(name, deserBean);
+                }
             }
         }
         if (defaultDeserType == null && defaultType != null && !subtypeIntrospections.isEmpty()) {
