@@ -425,6 +425,20 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
+            // Route to unwrapped FIRST only when the key equals the outer unwrapped property's own name,
+            // to resolve collisions like outer field "id" vs inner unwrapped "id"
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer up : unwrappedProperties) {
+                    DeserBean.DerProperty<Object, Object> wrapped = up.wrappedProperty;
+                    String outerName = wrapped.beanProperty != null ? wrapped.beanProperty.getName() : wrapped.argument.getName();
+                    if (outerName != null && outerName.equals(propertyName)) {
+                        if (up.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            // Then try regular properties of the current bean
             final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consume(propertyName);
             if (property != null && property.beanProperty != null) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
@@ -438,6 +452,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 }
                 return true;
             }
+            // Finally, allow unwrapped beans to consume remaining keys (non-conflicting)
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
                     if (unwrappedProperty.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
@@ -551,6 +566,31 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                                  DecoderContext decoderContext,
                                  Argument<? super Object> objectArgument,
                                  Object instance) throws IOException {
+            // Route to unwrapped FIRST only when the key equals the outer unwrapped property's own name
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    DeserBean.DerProperty<Object, Object> wrapped = unwrappedProperty.wrappedProperty;
+                    String outerName = wrapped.beanProperty != null ? wrapped.beanProperty.getName() : wrapped.argument.getName();
+                    if (outerName != null && outerName.equals(propertyName)) {
+                        if (unwrappedProperty.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
+                            if (unwrappedProperty.isAllConsumed()) {
+                                DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
+                                if (wrappedProperty.views == null || decoderContext.hasView(wrappedProperty.views)) {
+                                    propertiesConsumer.consume(wrappedProperty.index);
+                                    wrappedProperty.set(
+                                        decoderContext,
+                                        instance,
+                                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                                    );
+                                    // else skip setting when view doesn't match
+                                }
+                            }
+                            return true;
+                        }
+                    }
+                }
+            }
+            // Then try regular properties of the current bean
             final DeserBean.DerProperty<Object, Object> property = propertiesConsumer.consume(propertyName);
             if (property != null) {
                 if (property.views != null && !decoderContext.hasView(property.views)) {
@@ -576,6 +616,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 }
                 return true;
             }
+            // Finally, allow unwrapped beans to consume remaining keys (non-conflicting)
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer up : unwrappedProperties) {
                     if (up.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
@@ -693,6 +734,18 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
             if (allConsumed) {
                 return false;
+            }
+            // Route to unwrapped FIRST only when the key equals the outer unwrapped property's own name
+            if (unwrappedProperties != null) {
+                for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
+                    DeserBean.DerProperty<Object, Object> wrapped = unwrappedProperty.wrappedProperty;
+                    String outerName = wrapped.beanProperty != null ? wrapped.beanProperty.getName() : wrapped.argument.getName();
+                    if (outerName != null && outerName.equals(propertyName)) {
+                        if (unwrappedProperty.tryConsume(propertyName, decoder, decoderContext, objectArgument)) {
+                            return true;
+                        }
+                    }
+                }
             }
             final DeserBean.DerProperty<Object, Object> property = creatorParameters.consume(propertyName);
             if (property == null) {

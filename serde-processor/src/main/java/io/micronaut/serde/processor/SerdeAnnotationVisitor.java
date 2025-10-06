@@ -334,7 +334,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             final List<String> thatProperties = resolvePropertyNames(context, propertyType, element);
             final List<String> thisProperties = resolvePropertyNames(context, currentClass, null);
+            String currentUnwrappedName = null;
+            if (element instanceof TypedElement te) {
+                currentUnwrappedName = resolvePropertyName(te);
+            }
             for (String thisProperty : thisProperties) {
+                if (currentUnwrappedName != null && thisProperty.equals(currentUnwrappedName)) {
+                    // Allow inner properties to have the same name as the outer unwrapped property's own name
+                    // because the outer property itself is not materialized in JSON when unwrapped.
+                    continue;
+                }
                 for (String thatProperty : thatProperties) {
                     if (thisProperty.equals(thatProperty)) {
                         throw new ProcessingException(element, "Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.");
