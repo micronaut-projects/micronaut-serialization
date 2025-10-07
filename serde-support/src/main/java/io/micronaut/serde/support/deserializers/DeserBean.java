@@ -163,6 +163,7 @@ final class DeserBean<T> {
         this.failOnNullForPrimitives = deserializationConfiguration.isFailOnNullForPrimitives();
 
         final PropertiesBag.Builder<T> creatorPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
+        final PropertiesBag.Builder<T> unwrappedPropertiesBuilder = new PropertiesBag.Builder<>(introspection, constructorArguments.length);
 
         BeanMethod<T, Object> jsonValueMethod = null;
         BeanProperty<T, Object> jsonValueProperty = introspection.getBeanProperties()
@@ -235,11 +236,14 @@ final class DeserBean<T> {
                     creatorUnwrapped = new ArrayList<>();
                 }
                 creatorUnwrapped.add(derProperty);
+                unwrappedPropertiesBuilder.register(propertyName, derProperty, false);
+            } else {
+                creatorPropertiesBuilder.register(propertyName, derProperty, true);
             }
-            creatorPropertiesBuilder.register(propertyName, derProperty, true);
         }
 
         this.creatorParams = creatorPropertiesBuilder.build();
+        final PropertiesBag<T> unwrappedParams = unwrappedPropertiesBuilder.build();
 
         if (hasBuilder) {
             PropertiesBag.Builder<T> readPropertiesBuilder = new PropertiesBag.Builder<>(introspection);
@@ -310,7 +314,7 @@ final class DeserBean<T> {
                     if (propertySubtypeInfo != null && propertySubtypeInfo.discriminatorType() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
                         externalProperties.add(propertySubtypeInfo.discriminatorName());
                     }
-                    if (creatorParams != null && creatorParams.propertyIndexOf(propertyName) != -1) {
+                    if (creatorParams != null && creatorParams.propertyIndexOf(propertyName) != -1 || unwrappedParams != null && unwrappedParams.propertyIndexOf(propertyName) != -1) {
                         continue;
                     }
                     if (isIgnored(beanProperty) || allowPropertyPredicate != null && !allowPropertyPredicate.test(propertyName)) {
