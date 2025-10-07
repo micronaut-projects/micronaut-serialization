@@ -42,7 +42,7 @@ import java.util.List;
  * @since 2.2.7
  */
 @Internal
-public final class DemuxingObjectDecoder extends DelegatingDecoder {
+final class DemuxingObjectDecoder extends DelegatingDecoder {
     private final DemuxerState state;
     private final boolean consumeValues;
     private int nextKeyIndex;
