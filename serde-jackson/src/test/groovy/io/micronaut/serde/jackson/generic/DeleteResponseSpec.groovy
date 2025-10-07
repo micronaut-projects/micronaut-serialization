@@ -22,7 +22,8 @@ class DeleteResponseSpec extends Specification {
         DeleteResponse<V1Namespace> response = objectMapper.readValue(namespaceResponse, Argument.of(DeleteResponse.class, Argument.ofTypeVariable(V1Namespace.class, "T")))
 
         then:
-        response.object() instanceof V1Namespace
+        V1Namespace namespace = response.object() as V1Namespace
+        namespace.apiVersion == "v1"
         response.status() == null
     }
 
@@ -37,8 +38,12 @@ class DeleteResponseSpec extends Specification {
 
         then:
         response.object() == null
-        response.status() instanceof V1Status
-        response.status().reason == "Expired"
+        V1Status status = response.status() as V1Status
+        status.kind == "Status"
+        status.reason == "Expired"
+        status.apiVersion == "v1"
+        status.status == "Failure"
+        status.message == "too old resource version: 1200 (184080)"
     }
 
 }

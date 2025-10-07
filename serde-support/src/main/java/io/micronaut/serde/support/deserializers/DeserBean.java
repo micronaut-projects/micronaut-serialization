@@ -242,7 +242,7 @@ final class DeserBean<T> {
             }
         }
 
-        this.creatorParams = creatorPropertiesBuilder.build();
+        this.creatorParams = creatorUnwrapped == null ? creatorPropertiesBuilder.build() : creatorPropertiesBuilder.buildNotNull();
         final PropertiesBag<T> unwrappedParams = unwrappedPropertiesBuilder.build();
 
         if (hasBuilder) {

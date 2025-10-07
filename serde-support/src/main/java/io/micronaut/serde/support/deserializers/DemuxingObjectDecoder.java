@@ -247,7 +247,7 @@ public final class DemuxingObjectDecoder extends DelegatingDecoder {
         }
     }
 
-    public static final class PrimedDecoder extends DelegatingDecoder {
+    static final class PrimedDecoder extends DelegatingDecoder {
         private final Decoder delegate;
         @Nullable
         private DemuxerState state;
