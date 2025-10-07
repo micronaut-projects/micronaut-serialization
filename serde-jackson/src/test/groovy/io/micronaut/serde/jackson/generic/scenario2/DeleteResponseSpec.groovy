@@ -38,7 +38,7 @@ class DeleteResponseSpec extends Specification {
 
         then:
         response.object() == null
-            V1Status status = response.status() as V1Status
+        V1Status status = response.status() as V1Status
         status.kind == "Status"
         status.reason == "Expired"
         status.apiVersion == "v1"

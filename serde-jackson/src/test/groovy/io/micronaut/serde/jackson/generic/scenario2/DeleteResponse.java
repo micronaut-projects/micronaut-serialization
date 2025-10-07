@@ -6,7 +6,7 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
-    property = "kind")
+    property = "kind", visible = true)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = StatusDeleteResponse.class, name = "Status"),
     @JsonSubTypes.Type(value = NamespaceDeleteResponse.class, name = "Namespace")
