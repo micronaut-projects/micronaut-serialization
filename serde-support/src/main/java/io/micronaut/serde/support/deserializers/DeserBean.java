@@ -542,16 +542,15 @@ final class DeserBean<T> {
 
     private <A> Argument<A> resolveArgument(Argument<A> argument) {
         if (argument instanceof GenericPlaceholder || argument.hasTypeVariables()) {
-            Map<String, Argument<?>> bounds = this.typeArguments;
-            if (!bounds.isEmpty()) {
-                return resolveArgument(argument, bounds);
+            if (!typeArguments.isEmpty()) {
+                return resolveArgument(argument, typeArguments);
             }
         }
         return argument;
     }
 
     @SuppressWarnings("unchecked")
-    static  <A> Argument<A> resolveArgument(Argument<A> argument, Map<String, Argument<?>> bounds) {
+    private <A> Argument<A> resolveArgument(Argument<A> argument, Map<String, Argument<?>> bounds) {
         Argument<?>[] declaredParameters = argument.getTypeParameters();
         if (argument instanceof GenericPlaceholder<A> gp) {
             Argument<?> resolved = bounds.get(gp.getVariableName());
@@ -587,7 +586,7 @@ final class DeserBean<T> {
         return argument;
     }
 
-    private static Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument<?>[] typeParameters) {
+    private Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument<?>[] typeParameters) {
         if (ArrayUtils.isEmpty(typeParameters)) {
             return typeParameters;
         }
