@@ -1,4 +1,4 @@
-package io.micronaut.serde.jackson.generic
+package io.micronaut.serde.jackson.generic.scenario2
 
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.ObjectMapper

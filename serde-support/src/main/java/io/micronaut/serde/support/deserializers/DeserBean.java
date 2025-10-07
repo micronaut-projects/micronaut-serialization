@@ -53,7 +53,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +110,7 @@ final class DeserBean<T> {
     public final boolean hasBuilder;
     public final ConversionService conversionService;
 
-    private final Map<String, Argument<?>> bounds;
+    private final Map<String, Argument<?>> typeArguments;
 
     private volatile boolean initialized;
     private volatile boolean initializing;
@@ -123,15 +122,19 @@ final class DeserBean<T> {
                      BeanIntrospection<T> introspection,
                      Deserializer.DecoderContext decoderContext,
                      DeserBeanRegistry deserBeanRegistry,
+                     @Nullable SerdeArgumentConf serdeArgumentConf) throws SerdeException {
+        this(defaultDeserializationConfiguration, type.getTypeVariables(), introspection, decoderContext, deserBeanRegistry, serdeArgumentConf);
+    }
+
+    public DeserBean(DeserializationConfiguration defaultDeserializationConfiguration,
+                     Map<String, Argument<?>> typeArguments,
+                     BeanIntrospection<T> introspection,
+                     Deserializer.DecoderContext decoderContext,
+                     DeserBeanRegistry deserBeanRegistry,
                      @Nullable SerdeArgumentConf serdeArgumentConf)
         throws SerdeException {
-        // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
 
-        if (type.hasTypeVariables()) {
-            bounds = type.getTypeVariables();
-        } else {
-            bounds = Collections.emptyMap();
-        }
+        this.typeArguments = typeArguments;
 
         PropertyNamingStrategy defaultPropertyNamingStrategy = decoderContext.getSerdeConfiguration().map(SerdeConfiguration::getPropertyNamingStrategy).orElse(null);
         this.conversionService = decoderContext.getConversionService();
@@ -209,9 +212,10 @@ final class DeserBean<T> {
             Argument<Object> constructorWithPropertyArgument = constructorArgument.withAnnotationMetadata(annotationMetadata);
             final boolean isUnwrapped = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class);
             DeserBean<Object> unwrapped = null;
-            if (isUnwrapped) {
+            if (isUnwrapped && !constructorArgument.getType().equals(Object.class)) {
                 unwrapped = deserBeanRegistry.getDeserializableBean(
                     serdeArgumentConf == null ? constructorWithPropertyArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(constructorWithPropertyArgument),
+                    typeArguments,
                     decoderContext
                 );
             }
@@ -340,6 +344,7 @@ final class DeserBean<T> {
                         if (isUnwrapped) {
                             unwrapped = deserBeanRegistry.getDeserializableBean(
                                 serdeArgumentConf == null ? propertyArgument : serdeArgumentConf.extendArgumentWithPrefixSuffix(propertyArgument),
+                                typeArguments,
                                 decoderContext
                             );
                         }
@@ -537,7 +542,7 @@ final class DeserBean<T> {
 
     private <A> Argument<A> resolveArgument(Argument<A> argument) {
         if (argument instanceof GenericPlaceholder || argument.hasTypeVariables()) {
-            Map<String, Argument<?>> bounds = this.bounds;
+            Map<String, Argument<?>> bounds = this.typeArguments;
             if (!bounds.isEmpty()) {
                 return resolveArgument(argument, bounds);
             }
@@ -546,7 +551,7 @@ final class DeserBean<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private <A> Argument<A> resolveArgument(Argument<A> argument, Map<String, Argument<?>> bounds) {
+    static  <A> Argument<A> resolveArgument(Argument<A> argument, Map<String, Argument<?>> bounds) {
         Argument<?>[] declaredParameters = argument.getTypeParameters();
         if (argument instanceof GenericPlaceholder<A> gp) {
             Argument<?> resolved = bounds.get(gp.getVariableName());
@@ -582,7 +587,7 @@ final class DeserBean<T> {
         return argument;
     }
 
-    private Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument<?>[] typeParameters) {
+    private static Argument<?>[] resolveParameters(Map<String, Argument<?>> bounds, Argument<?>[] typeParameters) {
         if (ArrayUtils.isEmpty(typeParameters)) {
             return typeParameters;
         }

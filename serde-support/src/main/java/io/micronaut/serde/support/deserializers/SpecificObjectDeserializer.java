@@ -1104,7 +1104,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
     private static final class SubtypedDeductionBeanDeserializer extends BeanDeserializer {
 
         private final Conf conf;
-        private final Map<String, DeserBean<?>> subtypes;
+        private final Map<String, DeserBeanSubtypeInfo.SubtypeDef<?>> subtypes;
 
         private Map<String, Decoder> buffer;
         private BeanDeserializer beanDeserializer;
@@ -1120,9 +1120,9 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (beanDeserializer != null) {
                 return beanDeserializer.tryConsume(propertyName, decoder, decoderContext, objectArgument);
             }
-            Iterator<Map.Entry<String, DeserBean<?>>> iterator = subtypes.entrySet().iterator();
+            Iterator<Map.Entry<String, DeserBeanSubtypeInfo.SubtypeDef<?>>> iterator = subtypes.entrySet().iterator();
             while (iterator.hasNext()) {
-                DeserBean<?> subtype = iterator.next().getValue();
+                DeserBean<?> subtype = iterator.next().getValue().deserBean();
                 if (subtype.injectProperties != null && subtype.injectProperties.propertyIndexOf(propertyName) != -1) {
                     // Found property
                     continue;
@@ -1135,7 +1135,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 iterator.remove();
             }
             if (subtypes.size() == 1) {
-                DeserBean<?> subtypeDeserBean = subtypes.values().iterator().next();
+                DeserBean<?> subtypeDeserBean = subtypes.values().iterator().next().deserBean();
                 createBeanDeserializerAndConsumeBuffer(decoder, decoderContext, objectArgument, subtypeDeserBean);
                 return beanDeserializer.tryConsume(propertyName, decoder, decoderContext, objectArgument);
             } else {
@@ -1215,9 +1215,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
 
         @Override
         boolean tryConsume(String propertyName, Decoder decoder, DecoderContext decoderContext, Argument<? super Object> objectArgument) throws IOException {
-            DeserBean<?> subDeserBean = subtypeInfo.subtypes().get(propertyName);
-            if (subDeserBean == null && subtypeInfo.defaultType() != null) {
-                subDeserBean = subtypeInfo.defaultType();
+            DeserBeanSubtypeInfo.SubtypeDef<?> subtype = subtypeInfo.subtypes().get(propertyName);
+            DeserBean<?> subDeserBean = null;
+            if (subtype == null) {
+                if (subtypeInfo.defaultType() != null) {
+                    subDeserBean = subtypeInfo.defaultType().deserBean();
+                }
+            } else {
+                subDeserBean = subtype.deserBean();
             }
             if (subDeserBean == null) {
                 subDeserBean = db;

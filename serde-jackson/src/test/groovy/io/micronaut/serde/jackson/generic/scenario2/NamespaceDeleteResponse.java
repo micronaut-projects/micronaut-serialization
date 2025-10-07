@@ -1,4 +1,4 @@
-package io.micronaut.serde.jackson.generic;
+package io.micronaut.serde.jackson.generic.scenario2;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.micronaut.serde.annotation.Serdeable;
