@@ -258,17 +258,22 @@ final class PropertiesBag<T> {
             mutableProperties.add(derProperty);
         }
 
-        @Nullable
-        PropertiesBag<T> build() {
-            if (mutableProperties.isEmpty()) {
-                return null;
-            }
+        @NonNull
+        PropertiesBag<T> buildNotNull() {
             return new PropertiesBag<>(
                 beanIntrospection,
                 originalNameToPropertiesMapping,
                 mutableProperties.toArray(DeserBean.DerProperty[]::new),
                 nameToPropertiesMapping
             );
+        }
+
+        @Nullable
+        PropertiesBag<T> build() {
+            if (mutableProperties.isEmpty()) {
+                return null;
+            }
+            return buildNotNull();
         }
 
     }

@@ -69,7 +69,7 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
 
     @NonNull
     private Deserializer<Object> findDeserializer(Decoder objectDecoder) throws IOException {
-        Map<String, DeserBean<?>> subtypes = new LinkedHashMap<>(deserBean.subtypeInfo.subtypes());
+        Map<String, DeserBeanSubtypeInfo.SubtypeDef<?>> subtypes = new LinkedHashMap<>(deserBean.subtypeInfo.subtypes());
 
         while (true) {
             if (subtypes.size() == 1) {
@@ -82,9 +82,9 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
             if (key == null) {
                 break;
             }
-            Iterator<Map.Entry<String, DeserBean<?>>> iterator = subtypes.entrySet().iterator();
+            Iterator<Map.Entry<String, DeserBeanSubtypeInfo.SubtypeDef<?>>> iterator = subtypes.entrySet().iterator();
             while (iterator.hasNext()) {
-                DeserBean<?> subtype = iterator.next().getValue();
+                DeserBean<?> subtype = iterator.next().getValue().deserBean();
                 if (subtype.injectProperties != null && subtype.injectProperties.propertyIndexOf(key) != -1) {
                     // Found property
                     continue;
