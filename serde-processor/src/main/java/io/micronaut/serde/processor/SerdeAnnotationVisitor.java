@@ -638,13 +638,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             return;
         }
 
-        final SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType =
-            getDiscriminatorType(supertype);
-        if (discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
+        Optional<SerdeConfig.SerSubtyped.DiscriminatorType> optionalDiscriminatorType = getDiscriminatorType(supertype);
+        if (optionalDiscriminatorType.isPresent() && optionalDiscriminatorType.get() == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
             throw new ProcessingException(subtype, "EXTERNAL_PROPERTY can only be used for properties. " +
                 "Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead.");
         }
-        final String typeProperty = resolveTypeProperty(supertype).orElseThrow();
 
         List<String> allNames = new ArrayList<>();
 
@@ -691,11 +689,19 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             builder.member(SerdeConfig.TYPE_NAME, allNames.get(0));
             builder.member(SerdeConfig.TYPE_NAMES, allNames.toArray(new String[0]));
 
-            switch (discriminatorType) {
-                case WRAPPER_OBJECT -> builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
-                case WRAPPER_ARRAY -> builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
-                case PROPERTY -> builder.member(SerdeConfig.TYPE_PROPERTY, typeProperty);
-                case EXISTING_PROPERTY -> builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, discriminatorType);
+            if (optionalDiscriminatorType.isPresent()) {
+                // Discriminator type might be missing if JsonTypeInfo is defined on the argument
+                SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = optionalDiscriminatorType.get();
+                switch (discriminatorType) {
+                    case WRAPPER_OBJECT ->
+                        builder.member(SerdeConfig.WRAPPER_PROPERTY, allNames.get(0));
+                    case WRAPPER_ARRAY ->
+                        builder.member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, allNames.get(0));
+                    case PROPERTY ->
+                        builder.member(SerdeConfig.TYPE_PROPERTY, resolveTypeProperty(supertype).orElseThrow(() -> new ProcessingException(subtype, "Cannot resolve type property for supertype: " + supertype)));
+                    case EXISTING_PROPERTY ->
+                        builder.member(SerdeConfig.TYPE_DISCRIMINATOR_TYPE, discriminatorType);
+                }
             }
 
             if (supertype.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)) {
@@ -1146,11 +1152,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {
+        // Missing type info might be the scenario where the JsonTypeInfo defined on the argument
+        // For that case we assume the name discriminator so the name can be added to the metadata
         return typeInfo.enumValue(
                         SerdeConfig.SerSubtyped.class,
                         SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE,
                         SerdeConfig.SerSubtyped.DiscriminatorValueKind.class)
-                .orElse(SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
+                .orElse(SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME);
     }
 
     private Optional<ClassElement> findTypeInfo(ClassElement element, boolean includeElement) {
@@ -1209,12 +1217,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return Optional.empty();
     }
 
-    private SerdeConfig.SerSubtyped.DiscriminatorType getDiscriminatorType(Element element) {
+    private Optional<SerdeConfig.SerSubtyped.DiscriminatorType> getDiscriminatorType(Element element) {
         return element.enumValue(
                 SerdeConfig.SerSubtyped.class,
                 SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,
                 SerdeConfig.SerSubtyped.DiscriminatorType.class
-            ).orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
+            );
     }
 
     @Override
