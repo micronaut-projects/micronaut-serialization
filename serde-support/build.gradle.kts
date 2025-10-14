@@ -31,5 +31,4 @@ dependencies {
     testImplementation(libs.jetbrains.annotations)
     testImplementation(mnTest.micronaut.test.junit5)
     testImplementation(libs.junit.jupiter.engine)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
