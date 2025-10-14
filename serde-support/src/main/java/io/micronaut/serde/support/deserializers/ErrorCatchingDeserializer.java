@@ -75,11 +75,6 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public boolean allowNull() {
-        return deserializer.allowNull();
-    }
-
-    @Override
     public T getDefaultValue(DecoderContext context, Argument<? super T> type) {
         return deserializer.getDefaultValue(context, type);
     }
