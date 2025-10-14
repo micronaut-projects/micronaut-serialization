@@ -31,6 +31,7 @@ dependencies {
     typeCheckTestImplementation(mnTest.micronaut.test.type.pollution)
     typeCheckTestImplementation(mnTest.bytebuddy)
     typeCheckTestImplementation(mnTest.bytebuddy.agent)
+    typeCheckTestImplementation("org.junit.platform:junit-platform-launcher")
 }
 
 configurations {

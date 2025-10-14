@@ -2,4 +2,6 @@ plugins {
     id("io.micronaut.build.internal.serde-base")
     id("io.micronaut.build.internal.module")
 }
-
+dependencies {
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
