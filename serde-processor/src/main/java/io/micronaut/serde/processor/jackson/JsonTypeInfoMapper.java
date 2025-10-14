@@ -25,7 +25,11 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Mapper for JsonTypeInfo.
@@ -54,40 +58,57 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
             return mapError("You must specify 'use' member when using @JsonTypeInfo");
         }
         List<AnnotationValue<?>> values = new ArrayList<>(2);
+        AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
 
         AnnotationClassValue<?> defaultImpl = annotation.annotationClassValue("defaultImpl").orElse(null);
         if (defaultImpl != null) {
-            values.add(
-                AnnotationValue.builder(DefaultImplementation.class)
+            if (!defaultImpl.getName().equals("com.fasterxml.jackson.annotation.JsonTypeInfo")) {
+                values.add(
+                    AnnotationValue.builder(DefaultImplementation.class)
                         .member(AnnotationMetadata.VALUE_MEMBER, defaultImpl)
                         .build()
-            );
+                );
+            }
+            builder.member(SerdeConfig.SerSubtyped.DEFAULT_IMPL, defaultImpl);
         }
 
-        AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
-        builder.member(
-            SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE,
-            annotation.booleanValue("visible").orElse(false)
-        );
-        String include = annotation.stringValue("include").orElse("PROPERTY");
-        builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
+        if ("DEDUCTION".equals(use)) {
+            builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION);
+            if (annotation.booleanValue("visible").isPresent()) {
+                return mapError("JsonTypeInfo with DEDUCTION strategy doesn't support: 'visible'");
+            }
+            if (annotation.stringValue("property").isPresent()) {
+                return mapError("JsonTypeInfo with DEDUCTION strategy doesn't support: 'property'");
+            }
+            if (annotation.stringValue("include").isPresent()) {
+                return mapError("JsonTypeInfo with DEDUCTION strategy doesn't support: 'include'");
+            }
+            // visible, include and property are not allowed
+        } else {
+            builder.member(
+                SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE,
+                annotation.booleanValue("visible").orElse(false)
+            );
+            String include = annotation.stringValue("include").orElse("PROPERTY");
+            builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE, include);
 
-        Optional<String> propertyValue = annotation.stringValue("property");
-        switch (use) {
-            case "CLASS" -> {
-                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
-                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@class"));
-            }
-            case "NAME" -> {
-                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME);
-                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@type"));
-            }
-            case "MINIMAL_CLASS" -> {
-                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.MINIMAL_CLASS);
-                builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@c"));
-            }
-            default -> {
-                return mapError("Unsupported JsonTypeInfo use: " + use);
+            Optional<String> propertyValue = annotation.stringValue("property");
+            switch (use) {
+                case "CLASS" -> {
+                    builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME);
+                    builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@class"));
+                }
+                case "NAME" -> {
+                    builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.NAME);
+                    builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@type"));
+                }
+                case "MINIMAL_CLASS" -> {
+                    builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_VALUE, SerdeConfig.SerSubtyped.DiscriminatorValueKind.MINIMAL_CLASS);
+                    builder.member(SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP, propertyValue.orElse("@c"));
+                }
+                default -> {
+                    return mapError("Unsupported JsonTypeInfo use: " + use);
+                }
             }
         }
         values.add(builder.build());

@@ -15,9 +15,12 @@
  */
 package io.micronaut.serde.support.serializers;
 
+import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -27,6 +30,7 @@ import java.util.Collection;
  *
  * @author Denis Stepanov
  */
+@Internal
 final class StringIterableSerializer implements Serializer<Iterable<String>> {
 
     static final StringIterableSerializer INSTANCE = new StringIterableSerializer();
@@ -34,12 +38,19 @@ final class StringIterableSerializer implements Serializer<Iterable<String>> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<String>> type, Iterable<String> values) throws IOException {
         final Encoder childEncoder = encoder.encodeArray(type);
+        int index = 0;
         for (String value : values) {
-            if (value == null) {
-                childEncoder.encodeNull();
-                continue;
+            try {
+                if (value == null) {
+                    childEncoder.encodeNull();
+                    continue;
+                }
+                childEncoder.encodeString(value);
+                index++;
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofCollection(values.getClass(), type, index));
+                throw e;
             }
-            childEncoder.encodeString(value);
         }
         childEncoder.finishStructure();
     }

@@ -122,6 +122,15 @@ public final class Serdes {
         consumer.accept(new ZonedDateTimeSerde(serdeConfiguration));
         consumer.accept(new EnumSerde<>(introspections));
         consumer.accept(new InetAddressSerde(serdeConfiguration));
+        SerdeRegistrar<?> jacksonJsonNodeSerde;
+        try {
+            jacksonJsonNodeSerde = new JacksonJsonNodeSerde();
+        } catch (LinkageError ignored) {
+            jacksonJsonNodeSerde = null;
+        }
+        if (jacksonJsonNodeSerde != null) {
+            consumer.accept(jacksonJsonNodeSerde);
+        }
     }
 
 }

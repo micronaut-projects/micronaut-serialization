@@ -19,11 +19,9 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Subtyped external property deserializer.
@@ -34,13 +32,10 @@ import java.util.Map;
 @Internal
 final class SubtypedExternalPropertyObjectDeserializer implements Deserializer<Object> {
 
-    private final DeserializeSubtypeInfo<?> subtypeInfo;
-    private final Map<String, Deserializer<Object>> deserializers;
+    private final DeserializerSubtypeInfo<? super Object> subtypeInfo;
 
-    SubtypedExternalPropertyObjectDeserializer(DeserializeSubtypeInfo<?> subtypeInfo,
-                                               Map<String, Deserializer<Object>> deserializers) {
+    SubtypedExternalPropertyObjectDeserializer(DeserializerSubtypeInfo<? super Object> subtypeInfo) {
         this.subtypeInfo = subtypeInfo;
-        this.deserializers = deserializers;
     }
 
     static PropertyReference<Object, String> createExternalPropertyReference(DecoderContext decoderContext, String discriminator, String value) {
@@ -57,16 +52,10 @@ final class SubtypedExternalPropertyObjectDeserializer implements Deserializer<O
 
     @Override
     public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
-        PropertyReference<Object, String> externalPropertyReference = createExternalPropertyReference(decoderContext, subtypeInfo.info().discriminatorName(), null);
+        PropertyReference<Object, String> externalPropertyReference = createExternalPropertyReference(decoderContext, subtypeInfo.parent().info().discriminatorName(), null);
         PropertyReference<Object, String> ref = decoderContext.resolveReference(externalPropertyReference);
-        String subtypeName = (String) ref.getReference();
-        Deserializer<?> deserializer = deserializers.get(subtypeName);
-        if (deserializer == null && subtypeInfo.defaultDiscriminator() != null) {
-            deserializer = deserializers.get(subtypeInfo.defaultDiscriminator());
-        }
-        if (deserializer == null) {
-            throw new SerdeException("Cannot find subtype deserializer for discriminator: " + subtypeName + "  and argument: [" + type + "]");
-        }
+        String discriminatorValue = (String) ref.getReference();
+        Deserializer<? super Object> deserializer = subtypeInfo.findDeserializer(discriminatorValue);
         return deserializer.deserialize(decoder, decoderContext, type);
     }
 

@@ -68,6 +68,11 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
         this.decoderContext = registry.newDecoderContext(view);
     }
 
+    @Override
+    public SerdeRegistry getSerdeRegistry() {
+        return this.registry;
+    }
+
     protected abstract BsonReader createBsonReader(ByteBuffer byteBuffer);
 
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;

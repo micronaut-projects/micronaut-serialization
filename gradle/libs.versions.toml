@@ -1,30 +1,31 @@
 [versions]
-managed-bson = "5.0.1"
+managed-bson = "4.11.5"
 managed-jakarta-json-api = "2.1.3"
 managed-jakarta-json-bindApi = "3.0.1"
-managed-eclipse-parsson = "1.1.5"
+managed-eclipse-parsson = "1.1.7"
 
-kotlin = "1.9.23"
-ksp = "1.9.23-1.0.20"
-graal-svm = "23.1.2"
-aws-lambda-events = "3.11.4"
-aws-lambda-serialization = "1.1.5"
+kotlin = "1.9.25"
+ksp = "1.9.25-1.0.20"
+graal-svm = "23.1.8"
+aws-lambda-events = "3.16.1"
+aws-lambda-serialization = "1.1.6"
 microstream-storage-restclient = "08.01.02-MS-GA"
-oracle-jdbc-driver = "23.3.0.23.09"
+oracle-jdbc-driver = "23.7.0.25.01"
 jetbrains-annotations = "24.1.0"
 jmh = "1.37"
-groovy = "4.0.18"
+groovy = "4.0.22"
+lombok = "1.18.38"
 
-micronaut = "4.4.0"
-micronaut-platform = "4.3.7"
-micronaut-docs = "2.0.0"
-micronaut-test = "4.2.1"
-micronaut-discovery = "4.2.0"
-micronaut-logging = "1.2.3"
-micronaut-oracle-cloud = "3.7.2"
-micronaut-reactor = "3.3.0"
-micronaut-validation = "4.4.4"
-micronaut-gradle-plugin = "4.3.6"
+micronaut-platform = "4.9.4"
+micronaut = "4.10.4"
+micronaut-docs = "3.0.0"
+micronaut-test = "4.9.0"
+micronaut-discovery = "4.7.1"
+micronaut-logging = "1.7.1"
+micronaut-oracle-cloud = "5.5.0"
+micronaut-reactor = "3.9.0"
+micronaut-validation = "4.11.0"
+micronaut-gradle-plugin = "4.5.4"
 
 [libraries]
 # Micronaut
@@ -46,8 +47,11 @@ oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref =
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 aws-lambda-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-events" }
 aws-lambda-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-serialization" }
-graal-svm = { module = "org.graalvm.nativeimage:svm", version.ref = "graal-svm" }
+graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-platform-engine = { module = "org.junit.platform:junit-platform-suite-engine" }

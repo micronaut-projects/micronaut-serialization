@@ -403,6 +403,28 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     protected abstract Number getBestNumber() throws IOException;
 
     /**
+     * Converts the number, probably retrieved by calling {@link #getBestNumber()}, to a {@link BigDecimal}.
+     *
+     * @param number The number value
+     * @return The number as a big decimal
+     */
+    protected BigDecimal getBigDecimalFromNumber(Number number) {
+        if (number instanceof BigDecimal bigDecimal) {
+            return bigDecimal;
+        }
+        if (number instanceof BigInteger bigInteger) {
+            return new BigDecimal(bigInteger);
+        }
+        if (number instanceof Double aDouble) {
+            return new BigDecimal(aDouble);
+        }
+        if (number instanceof Float aFloat) {
+            return new BigDecimal(aFloat);
+        }
+        return new BigDecimal(number.longValue());
+    }
+
+    /**
      * Decode the current {@link TokenType#NUMBER} value as a numeric {@link JsonNode}. Called for no other token type.
      * Default implementation tries to construct a node from {@link #getBestNumber()}.
      * @return The number value
@@ -424,7 +446,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             return JsonNode.createNumberNode((BigDecimal) number);
         } else {
             // fallback, unknown number type
-            return JsonNode.createNumberNode(getBigDecimal());
+            return JsonNode.createNumberNode(getBigDecimalFromNumber(number));
         }
     }
 

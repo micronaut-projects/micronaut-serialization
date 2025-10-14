@@ -19,6 +19,7 @@ dependencies {
     runtimeOnly(mnLogging.logback.classic)
 
     testImplementation(mnTest.micronaut.test.junit5)
+    testImplementation(libs.junit.platform.launcher)
 }
 
 kotlin {

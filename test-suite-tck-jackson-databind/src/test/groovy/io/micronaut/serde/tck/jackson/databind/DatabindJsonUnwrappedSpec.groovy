@@ -9,50 +9,6 @@ class DatabindJsonUnwrappedSpec extends JsonUnwrappedSpec {
      // This cases are not supported by Jackson
 
     @PendingFeature
-    void "test @JsonUnwrapped records"() {
-        given:
-        def context = buildContext("""
-package unwrapped;
-
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable
-record Parent(
-  int age,
-  @JsonUnwrapped
-  Name name) {
-}
-
-@Serdeable
-record Name(
-  String first, String last
-) {}
-""")
-
-        when:
-        def name = newInstance(context, 'unwrapped.Name', "Fred", "Flinstone")
-        def parent = newInstance(context, 'unwrapped.Parent', 10, name)
-
-        def result = writeJson(jsonMapper, parent)
-
-        then:
-        result == '{"age":10,"first":"Fred","last":"Flinstone"}'
-
-        when:
-        def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
-
-        then:
-        read.age == 10
-        read.name.first == 'Fred'
-        read.name.last == "Flinstone"
-
-        cleanup:
-        context.close()
-    }
-
-    @PendingFeature
     void "test @JsonUnwrapped - parent constructor args"() {
         given:
         def context = buildContext("""

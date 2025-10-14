@@ -1,8 +1,66 @@
+/*
+ * Copyright 2017-2024 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
 
 class JsonUnwrappedSpec extends JsonCompileSpec {
+
+    void "test @JsonUnwrapped records"() {
+        given:
+            def context = buildContext("""
+package unwrapped;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+record Parent(
+  int age,
+  @JsonUnwrapped
+  Name name) {
+}
+
+@Serdeable
+record Name(
+  String first, String last
+) {}
+""")
+
+        when:
+            def name = newInstance(context, 'unwrapped.Name', "Fred", "Flinstone")
+            def parent = newInstance(context, 'unwrapped.Parent', 10, name)
+
+            def result = writeJson(jsonMapper, parent)
+
+        then:
+            result == '{"age":10,"first":"Fred","last":"Flinstone"}'
+
+        when:
+            def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Parent')))
+
+        then:
+            read.age == 10
+            read.name.first == 'Fred'
+            read.name.last == "Flinstone"
+
+        cleanup:
+            context.close()
+    }
 
     void "unwrapped"() {
         given:
@@ -955,6 +1013,58 @@ class SubClass extends SuperClass {
 
         cleanup:
         context.close()
+    }
+
+    void "test @JsonUnwrapped - with Builder"() {
+        given:
+        def ctx = buildContext("""
+package unwrapped.test;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.jackson.builder.introspected.Address;
+
+@Serdeable
+class TestNestedEntity {
+
+    private String value;
+
+    @JsonUnwrapped(prefix = "addr_")
+    private Address address;
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+}
+
+""")
+
+        when:
+        def nestedJsonStr = '{"value":"test1","addr_street":"Blvd 11","addr_city":"NY"}'
+        def deserNestedEntity = jsonMapper.readValue(nestedJsonStr, Argument.of(ctx.classLoader.loadClass('unwrapped.test.TestNestedEntity')))
+
+        then:
+        deserNestedEntity
+        deserNestedEntity.value == "test1"
+        deserNestedEntity.address.city == "NY"
+        deserNestedEntity.address.street == "Blvd 11"
+
+        cleanup:
+        ctx.close()
     }
 
 }

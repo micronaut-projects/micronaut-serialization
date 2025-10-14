@@ -35,6 +35,7 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
+import io.micronaut.serde.support.util.JsonViewUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.json.Json;
@@ -74,6 +75,11 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
+    public SerdeRegistry getSerdeRegistry() {
+        return this.registry;
+    }
+
+    @Override
     public ObjectMapper cloneWithConfiguration(@Nullable SerdeConfiguration configuration, @Nullable SerializationConfiguration serializationConfiguration, @Nullable DeserializationConfiguration deserializationConfiguration) {
         return new JsonStreamMapper(registry.cloneWithConfiguration(configuration, serializationConfiguration, deserializationConfiguration), configuration == null ? serdeConfiguration : configuration, view);
     }
@@ -85,7 +91,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     @Override
     public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
-        Deserializer.DecoderContext context = registry.newDecoderContext(view);
+        Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
                 JsonNodeDecoder.create(tree, limits()),
@@ -110,7 +116,7 @@ public class JsonStreamMapper implements ObjectMapper {
 
     private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
         Decoder decoder = new JsonParserDecoder(parser, limits());
-        Deserializer.DecoderContext context = registry.newDecoderContext(view);
+        Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
                 decoder,
@@ -185,7 +191,7 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
-        Serializer.EncoderContext context = registry.newEncoderContext(view);
+        Serializer.EncoderContext context = registry.newEncoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Serializer<Object> serializer = context.findSerializer(type).createSpecific(context, type);
         serializer.serialize(
                 encoder,

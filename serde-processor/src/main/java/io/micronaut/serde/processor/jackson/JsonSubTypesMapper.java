@@ -44,11 +44,11 @@ public class JsonSubTypesMapper implements NamedAnnotationMapper {
                 AnnotationValueBuilder<SerdeConfig.SerSubtyped.SerSubtype> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.SerSubtype.class)
                         .member(AnnotationMetadata.VALUE_MEMBER, acv);
                 String[] names = annotationValue.stringValues("names");
-                String v = annotationValue.stringValue("name").orElse(null);
-                if (v != null) {
-                    names = ArrayUtils.concat(names, v);
+                String name = annotationValue.stringValue("name").orElse(null);
+                if (ArrayUtils.isEmpty(names) && name != null) {
+                    names = new String[]{name};
                 }
-                if (ArrayUtils.isNotEmpty(names)) {
+                if (names.length > 0) {
                     builder.member("names", names);
                 }
                 subtypes.add(builder.build());

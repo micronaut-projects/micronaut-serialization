@@ -17,6 +17,7 @@ package io.micronaut.serde
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.data.Users1
 import io.micronaut.serde.data.Users2
@@ -29,6 +30,46 @@ import java.nio.charset.StandardCharsets
 abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec, TestPropertyProvider {
 
     abstract JsonMapper getJsonMapper()
+
+    def "missing list"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArray))
+        then:
+            obj
+            obj.vals == null
+    }
+
+    def "missing list - constructor"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArrayConstructor))
+        then:
+            obj
+            obj.vals == null
+    }
+
+    def "missing list - record"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArrayRecord))
+        then:
+            obj
+            obj.vals() == null
+    }
+
+    def "missing list - required"() {
+        given:
+            def json = """{}"""
+        when:
+            def obj = jsonMapper.readValue(jsonAsBytes(json), Argument.of(ObjectWithArrayRequired))
+        then:
+            def e = thrown(Exception)
+            e.message.contains("Required constructor parameter [List<SomeObject E> vals] at index [0] is not present or is null in the supplied data") || e.message.contains("Missing required creator property 'vals'")
+    }
 
     void "test write simple"() {
         when:
@@ -221,6 +262,27 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
             result.bigInteger == BigInteger.valueOf(123456789)
     }
 
+    def "validate json node"() {
+        when:
+            def result = serializeDeserializeAs(
+                JsonNode.createObjectNode(["v": jsonNode]), Argument.of(JsonNode.class)).get("v")
+        then:
+            // note that the type of the result may differ from the original as json
+            // doesn't keep this information
+            result.value == jsonNode.value || result.value.toString() == jsonNode.value.toString()
+        where:
+            jsonNode << [
+                JsonNode.createBooleanNode(true),
+                JsonNode.createNumberNode(123),
+                JsonNode.createNumberNode(234L),
+                JsonNode.createNumberNode(11.22f),
+                JsonNode.createNumberNode(123.234D),
+                JsonNode.createNumberNode(BigInteger.valueOf(123456789)),
+                JsonNode.createNumberNode(BigDecimal.valueOf(12345.12345)),
+                JsonNode.createStringNode("Hello"),
+            ]
+    }
+
     def "should skip unknown values"() {
         when:
             def all = jsonMapper.readValue(jsonAsBytes("""{"unknown":"ABC"}"""), Argument.of(AllTypesBean))
@@ -309,8 +371,12 @@ abstract class AbstractBasicSerdeSpec extends Specification implements JsonSpec,
     }
 
     def <T> T serializeDeserialize(T obj) {
+        return serializeDeserializeAs(obj, Argument.of(obj.getClass()))
+    }
+
+    def <T> T serializeDeserializeAs(T obj, Argument type) {
         def output = jsonMapper.writeValueAsBytes(obj)
-        return jsonMapper.readValue(output, Argument.of(obj.getClass())) as T
+        return jsonMapper.readValue(output, type) as T
     }
 
     byte[] jsonAsBytes(String json) {

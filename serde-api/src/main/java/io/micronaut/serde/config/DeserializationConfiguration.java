@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.config;
 
+import io.micronaut.core.annotation.NextMajorVersion;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 
@@ -43,4 +44,35 @@ public interface DeserializationConfiguration {
      */
     @Bindable(defaultValue = StringUtils.FALSE)
     boolean isStrictNullable();
+
+    /**
+     * Whether a null field or a missing value for a primitive should fail the deserialization. Defaults to {@code false}
+     * @return True if a null field or a missing value for a primitive should fail the deserialization
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean isFailOnNullForPrimitives() {
+        return false;
+    }
+
+    /**
+     * Whether the supertype is used by default when no supertype is resolved.
+     * @return True to avoid the supertype and use `defaultImpl` property
+     */
+    @NextMajorVersion("Inline to true to have the behaviour the same as for Jackson")
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean isSubtypesRequireDefaultImpl() {
+        return false;
+    }
+
+    /**
+     * Determines whether to accept case-insensitive enumeration values during deserialization.
+     * By default, case-insensitive enums are not accepted.
+     *
+     * @return {@code true} if case-insensitive enumeration values are accepted; {@code false} otherwise
+     * @since 2.15.2
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean acceptCaseInsensitiveEnums() {
+        return false;
+    }
 }

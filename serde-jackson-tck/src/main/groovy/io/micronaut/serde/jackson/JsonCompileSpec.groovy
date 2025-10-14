@@ -1,3 +1,18 @@
+/*
+ * Copyright 2017-2024 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.jackson
 
 import io.micronaut.annotation.processing.JavaAnnotationMetadataBuilder
@@ -23,8 +38,12 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
     }
 
     ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties) {
+        return buildContext(className, source, properties, [:])
+    }
+
+    ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties, Map contextProperty) {
         ApplicationContext context =
-                buildContext(className, source, true)
+                buildContext(className, source, true, contextProperty)
 
         jsonMapper = context.getBean(JsonMapper)
 
@@ -57,12 +76,16 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
         return context
     }
 
-    @Override
-    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
-        def context = super.buildContext(className, cls, true)
+    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans, Map contextProperty) {
+        def context = super.buildContext(className, cls, true, contextProperty)
         Thread.currentThread().setContextClassLoader(context.classLoader)
         jsonMapper = context.getBean(JsonMapper)
         return context
+    }
+
+    @Override
+    ApplicationContext buildContext(String className, @Language("java") String cls, boolean includeAllBeans) {
+        return buildContext(className, cls, includeAllBeans, [:])
     }
 
     @Override
@@ -91,6 +114,14 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
 
     static boolean validateJsonWithoutOrder(JsonMapper jsonMapper, String expected, String given) {
         return jsonMapper.readValue(expected, Map) == jsonMapper.readValue(given, Map)
+    }
+
+    static Object getEnum(ApplicationContext context, String name) {
+        String enumName = name.split('\\.').last()
+        String enumClassName = name.substring(0, name.length() - enumName.length() - 1)
+        return context.classLoader.loadClass(enumClassName)
+                .enumConstants
+                .find(c -> c.name() == enumName)
     }
 
 }

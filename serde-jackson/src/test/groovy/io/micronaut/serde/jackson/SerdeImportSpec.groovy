@@ -10,6 +10,71 @@ import spock.lang.Issue
 
 class SerdeImportSpec extends JsonCompileSpec {
 
+    void "test interface mixin @JsonProperty"() {
+        def context = buildContext('mixintest.TestImport','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(
+    value = io.micronaut.serde.jackson.ITest.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+
+
+abstract class TestMixin  {
+
+    @JsonProperty("foobar")
+    abstract double get95thPercentile();
+
+}
+
+''')
+        def bean = new ITestImpl()
+        bean.code = 123.456
+
+        expect:
+            jsonMapper.writeValueAsString(bean) == '{"foobar":123.456}'
+
+        cleanup:
+            context.close()
+    }
+
+    void "test abstract mixin @JsonProperty"() {
+        def context = buildContext('mixintest.TestImport','''
+package mixintest;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.annotation.Serdeable;
+
+@SerdeImport(
+    value = io.micronaut.serde.jackson.ATest.class,
+    mixin = TestMixin.class
+)
+class TestImport {}
+
+abstract class TestMixin  {
+
+    @JsonProperty("foobar")
+    abstract double get95thPercentile();
+
+}
+
+''')
+        def bean = new ATestImpl()
+        bean.code = 123.456
+
+        expect:
+            jsonMapper.writeValueAsString(bean) == '{"foobar":123.456}'
+
+        cleanup:
+            context.close()
+    }
+
     void "test external mixin and external class"() {
         given:
         def context = buildContext('''
@@ -676,6 +741,7 @@ package custom;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.context.annotation.Bean;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.annotation.Serdeable;
@@ -697,7 +763,7 @@ record CustomValue(
     }
 }
 
-@Singleton
+@Bean(typed = CustomSerde.class)
 class CustomSerde implements Deserializer<Integer> {
     @Override
     public Integer getDefaultValue(DecoderContext ignoredContext, Argument<? super Integer> ignoredType) {
@@ -723,6 +789,160 @@ class CustomSerde implements Deserializer<Integer> {
             jsonMapper.readValue('{"value":1}', typeUnderTest).value() == 1
             jsonMapper.readValue('{"value":null}', typeUnderTest).value() == -1
             jsonMapper.readValue('{}', typeUnderTest).value() == -2
+
+        cleanup:
+            context.close()
+    }
+    void "test custom deserializer 2"() {
+
+        given:
+            def context = buildContext('custom.CustomValue','''
+package custom;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.context.annotation.Bean;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+record CustomValue(
+        @Serdeable.Deserializable(using = CustomSerde.class)
+        @NonNull
+        Integer value
+) {
+    @JsonCreator
+    public CustomValue {
+    }
+}
+
+@Bean(typed = CustomSerde.class)
+class CustomSerde implements Deserializer<Integer> {
+    @Override
+    public Integer getDefaultValue(DecoderContext ignoredContext, Argument<? super Integer> ignoredType) {
+        return -2;
+    }
+
+    @Override
+    public Integer deserialize(Decoder decoder, DecoderContext context, Argument<? super Integer> type) throws IOException {
+        return decoder.decodeInt();
+    }
+
+    @Override
+    public Integer deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Integer> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return -1;
+        }
+        return decoder.decodeInt();
+    }
+}
+''')
+
+        expect:
+            jsonMapper.readValue('{"value":1}', typeUnderTest).value() == 1
+            jsonMapper.readValue('{"value":null}', typeUnderTest).value() == -1
+            jsonMapper.readValue('{}', typeUnderTest).value() == -2
+
+        cleanup:
+            context.close()
+    }
+
+    void "test custom serializer"() {
+        given:
+            def context = buildContext('custom.CustomValue','''
+package custom;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.context.annotation.Bean;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.Decoder;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+record CustomValue(
+        @Serdeable.Serializable(using = CustomSerde.class)
+        @JsonProperty("value")
+        @NonNull
+        Integer value
+) {
+    @JsonCreator
+    public CustomValue {
+    }
+}
+
+@Bean(typed = CustomSerde.class)
+class CustomSerde implements Serializer<Integer> {
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Integer> type, Integer value) throws IOException {
+        encoder.encodeInt(123);
+    }
+}
+''')
+
+        expect:
+            jsonMapper.writeValueAsString(typeUnderTest.type.newInstance(1)) == """{"value":123}"""
+            jsonMapper.writeValueAsString(typeUnderTest.type.newInstance(2)) == """{"value":123}"""
+            jsonMapper.writeValueAsString(typeUnderTest.type.newInstance(3)) == """{"value":123}"""
+
+        cleanup:
+            context.close()
+    }
+
+    void "test custom serializer 2"() {
+        given:
+            def context = buildContext('custom.CustomValue','''
+package custom;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.context.annotation.Bean;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeImport;
+import io.micronaut.serde.Decoder;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+record CustomValue(
+        @Serdeable.Serializable(using = CustomSerde.class)
+        @NonNull
+        Integer value
+) {
+    @JsonCreator
+    public CustomValue {
+    }
+}
+
+@Bean(typed = CustomSerde.class)
+class CustomSerde implements Serializer<Integer> {
+    @Override
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Integer> type, Integer value) throws IOException {
+        encoder.encodeInt(123);
+    }
+}
+''')
+
+        expect:
+            jsonMapper.writeValueAsString(typeUnderTest.type.newInstance(1)) == """{"value":123}"""
+            jsonMapper.writeValueAsString(typeUnderTest.type.newInstance(2)) == """{"value":123}"""
+            jsonMapper.writeValueAsString(typeUnderTest.type.newInstance(3)) == """{"value":123}"""
 
         cleanup:
             context.close()

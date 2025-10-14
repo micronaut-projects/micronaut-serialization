@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
@@ -43,12 +42,12 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        try {
-            if (value == null) {
-                encoder.encodeNull();
-            } else {
-                Encoder childEncoder = encoder.encodeObject(type);
-                for (SerBean.SerProperty<T, Object> property : writeProperties) {
+        if (value == null) {
+            encoder.encodeNull();
+        } else {
+            Encoder childEncoder = encoder.encodeObject(type);
+            for (SerBean.SerProperty<T, Object> property : writeProperties) {
+                try {
                     childEncoder.encodeKey(property.name);
                     Object v = property.get(value);
                     if (v == null) {
@@ -56,13 +55,12 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
                     } else {
                         property.serializer.serialize(childEncoder, context, property.argument, v);
                     }
+                } catch (SerdeException e) {
+                    e.getPath().add(property.getReferencePath());
+                    throw e;
                 }
-                childEncoder.finishStructure();
             }
-        } catch (StackOverflowError e) {
-            throw new SerdeException("Infinite recursion serializing type: " + type.getType().getSimpleName() + " at path " + encoder.currentPath(), e);
-        } catch (IntrospectionException e) {
-            throw new SerdeException("Error serializing value at path: " + encoder.currentPath() + ". No serializer found for " + "type: " + type, e);
+            childEncoder.finishStructure();
         }
     }
 

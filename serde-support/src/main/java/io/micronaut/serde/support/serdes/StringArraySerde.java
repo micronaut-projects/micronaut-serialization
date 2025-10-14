@@ -36,7 +36,11 @@ final class StringArraySerde implements SerdeRegistrar<String[]> {
         throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
         for (String string : strings) {
-            arrayEncoder.encodeString(string);
+            if (string == null) {
+                arrayEncoder.encodeNull();
+            } else {
+                arrayEncoder.encodeString(string);
+            }
         }
         arrayEncoder.finishStructure();
     }

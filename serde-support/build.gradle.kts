@@ -15,6 +15,8 @@ dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
     compileOnly(mn.micronaut.management)
+    compileOnly(libs.jetbrains.annotations)
+    compileOnly(mn.jackson.databind)
 
     api(projects.micronautSerdeApi)
 
@@ -27,4 +29,6 @@ dependencies {
     testImplementation(mn.micronaut.management)
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(libs.jetbrains.annotations)
+    testImplementation(mnTest.micronaut.test.junit5)
+    testImplementation(libs.junit.jupiter.engine)
 }

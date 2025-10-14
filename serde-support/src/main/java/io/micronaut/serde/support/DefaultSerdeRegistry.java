@@ -32,6 +32,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinition;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
+import io.micronaut.inject.qualifiers.MatchArgumentQualifier;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
@@ -49,7 +50,6 @@ import io.micronaut.serde.support.serdes.ObjectArraySerde;
 import io.micronaut.serde.support.serdes.Serdes;
 import io.micronaut.serde.support.serializers.CoreSerializers;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
-import io.micronaut.serde.support.util.MatchArgumentQualifier;
 import io.micronaut.serde.support.util.TypeKey;
 import jakarta.inject.Singleton;
 
@@ -72,7 +72,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
     private final List<BeanDefinition<Serde>> internalSerdes = new ArrayList<>(100);
 
-    private final Map<TypeKey, Serializer<?>> serializerMap = new ConcurrentHashMap<>(50);
+    // if there is a single Serde that is part of the serializerMap *and* deserializerMap, this can
+    // lead to interface type check thrashing. For that reason, we wrap the serializer side with
+    // a wrapper object.
+    private final Map<TypeKey, SerializerWrapper> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
 
     private final BeanContext beanContext;
@@ -190,10 +193,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     private void registerBuiltInSerdes() {
         Serdes.register(serdeConfiguration, introspections, serdeRegistrar -> {
-            for (Argument<?> type : serdeRegistrar.getTypes()) {
-                deserializers.add(new InternalSerdeBeanDefinition<>(type, Deserializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
-                serializers.add(new InternalSerdeBeanDefinition<>(type, Serializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
-                internalSerdes.add(new InternalSerdeBeanDefinition<>(type, Serde.class, serdeRegistrar, serdeRegistrar.getOrder()));
+            try {
+                for (Argument<?> type : serdeRegistrar.getTypes()) {
+                    deserializers.add(new InternalSerdeBeanDefinition<>(type, Deserializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                    serializers.add(new InternalSerdeBeanDefinition<>(type, Serializer.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                    internalSerdes.add(new InternalSerdeBeanDefinition<>(type, Serde.class, serdeRegistrar, serdeRegistrar.getOrder()));
+                }
+            } catch (NoClassDefFoundError ignore) {
+                // Might be a missing sql module
             }
         });
         CoreCollectionsDeserializers.register(conversionService, deserializerRegistrar -> {
@@ -247,7 +254,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return (Deserializer<? extends T>) objectArraySerde;
         }
 
-        Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.ofSuperVariable(Deserializer.class, type)
+        Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
             .filter(Deserializer.class, deserializers);
         Deserializer<?> deser = null;
         if (beanDefinitions.size() == 1) {
@@ -283,9 +290,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
-        final Serializer<?> serializer = serializerMap.get(key);
-        if (serializer != null) {
-            return (Serializer<? super T>) serializer;
+        SerializerWrapper wrapper = serializerMap.get(key);
+        if (wrapper != null) {
+            return (Serializer<? super T>) wrapper.serializer;
         }
         if (type.getType().equals(Object.class)) {
             return objectSerializer;
@@ -294,7 +301,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return (Serializer<? super T>) objectArraySerde;
         }
 
-        Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.ofExtendsVariable(Serializer.class, type)
+        Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
             .filter(Serializer.class, serializers);
         Serializer<?> ser = null;
         if (beanDefinitions.size() == 1) {
@@ -304,14 +311,14 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             ser = getBean(definition);
         }
         if (ser != null) {
-            serializerMap.put(key, ser);
+            serializerMap.put(key, new SerializerWrapper(ser));
             return (Serializer<? super T>) ser;
         }
         if (key.getType().isArray()) {
-            serializerMap.put(key, objectArraySerde);
+            serializerMap.put(key, new SerializerWrapper(objectArraySerde));
             return (Serializer<? super T>) objectArraySerde;
         }
-        serializerMap.put(key, objectSerializer);
+        serializerMap.put(key, new SerializerWrapper(objectSerializer));
         return objectSerializer;
     }
 
@@ -370,13 +377,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public Serializer.EncoderContext newEncoderContext(Class<?> view) {
-        if (view != null) {
+        if (view != null && view != Object.class) {
             return new DefaultEncoderContext(this) {
                 @Override
                 public boolean hasView(Class<?>... views) {
-                    if (view == Object.class) {
-                        return true;
-                    }
                     for (Class<?> candidate : views) {
                         if (candidate.isAssignableFrom(view)) {
                             return true;
@@ -391,13 +395,10 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     @Override
     public Deserializer.DecoderContext newDecoderContext(Class<?> view) {
-        if (view != null) {
+        if (view != null && view != Object.class) {
             return new DefaultDecoderContext(this) {
                 @Override
                 public boolean hasView(Class<?>... views) {
-                    if (view == Object.class) {
-                        return true;
-                    }
                     for (Class<?> candidate : views) {
                         if (candidate.isAssignableFrom(view)) {
                             return true;
@@ -496,4 +497,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
 
     }
 
+    // Prevent type check thrashing
+    private record SerializerWrapper(Serializer<?> serializer) {
+    }
 }

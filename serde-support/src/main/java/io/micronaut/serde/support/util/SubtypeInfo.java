@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.CLASS_NAME;
+import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.DiscriminatorValueKind.DEDUCTION;
 
 /**
  * The subtype info.
@@ -38,6 +39,7 @@ import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.Discr
  * @param discriminatorName    The discriminator name
  * @param defaultImpl          The default impl
  * @param discriminatorVisible The discriminator visible
+ * @param deduct               The deduct subtype
  * @author Denis Stepanov
  */
 @Internal
@@ -50,7 +52,8 @@ public record SubtypeInfo(
     String discriminatorName,
     @Nullable
     Class<?> defaultImpl,
-    boolean discriminatorVisible
+    boolean discriminatorVisible,
+    boolean deduct
 ) {
 
     public static SubtypeInfo createForProperty(AnnotationMetadata annotationMetadata) {
@@ -62,16 +65,16 @@ public record SubtypeInfo(
     }
 
     private static SubtypeInfo create(AnnotationMetadata annotationMetadata, boolean isClassDefinition) {
-
-        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
-            return null;
-        }
-
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = annotationMetadata.enumValue(
+        Optional<SerdeConfig.SerSubtyped.DiscriminatorType> optionalDiscriminatorType = annotationMetadata.enumValue(
             SerdeConfig.SerSubtyped.class,
             SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,
             SerdeConfig.SerSubtyped.DiscriminatorType.class
-        ).orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
+        );
+        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class) && optionalDiscriminatorType.isEmpty()) {
+            return null;
+        }
+
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = optionalDiscriminatorType.orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
         if (isClassDefinition && discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
             discriminatorType = SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY;
         }
@@ -85,7 +88,8 @@ public record SubtypeInfo(
             SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP
         ).orElse(discriminatorValue == CLASS_NAME ? "@class" : "@type");
         List<AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype>> subtypesAnn = annotationMetadata.getAnnotationValuesByType(SerdeConfig.SerSubtyped.SerSubtype.class);
-        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class).orElse(null);
+        Class<?> defaultType = annotationMetadata.classValue(DefaultImplementation.class)
+            .orElseGet(() -> annotationMetadata.classValue(SerdeConfig.SerSubtyped.DEFAULT_IMPL).orElse(null));
         Map<Class<?>, String[]> subtypes = CollectionUtils.newHashMap(subtypesAnn.size());
         for (AnnotationValue<SerdeConfig.SerSubtyped.SerSubtype> subtype : subtypesAnn) {
             Optional<Class<?>> type = subtype.classValue();
@@ -103,7 +107,8 @@ public record SubtypeInfo(
             discriminatorType,
             discriminatorName,
             defaultType,
-            annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false)
+            annotationMetadata.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_VISIBLE).orElse(false),
+            discriminatorValue == DEDUCTION
         );
     }
 

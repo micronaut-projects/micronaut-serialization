@@ -40,7 +40,7 @@ final class ArrayDequeDeserializer<E> extends CollectionDeserializer<E, ArrayDeq
     @Override
     public ArrayDeque<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayDeque<E>> type) throws IOException {
         ArrayDeque<E> collection = new ArrayDeque<>();
-        doDeserialize(decoder, context, collection);
+        doDeserialize(decoder, context, collection, type);
         return collection;
     }
 

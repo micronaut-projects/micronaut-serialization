@@ -135,6 +135,7 @@ public final class CoreCollectionsDeserializers {
 
         });
         consumer.accept(new EnumSetDeserializer<>());
+        consumer.accept(new EnumMapDeserializer<>());
         consumer.accept(new ConvertibleValuesDeserializer(conversionService));
     }
 

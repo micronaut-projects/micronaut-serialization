@@ -4,5 +4,7 @@ The first step however is configure the necessary annotation processor dependenc
 
 dependency:micronaut-serde-processor[groupId="io.micronaut.serde",scope="annotationProcessor"]
 
+NOTE: For Kotlin, add the `micronaut-serde-processor` dependency in https://docs.micronaut.io/4.4.3/guide/#kaptOrKsp[kapt or ksp scope], and for Groovy add `micronaut-serde-processor` in compileOnly scope.
+
 You should then choose a combination of Annotation-based programming model and runtime implementation that you desire.
 

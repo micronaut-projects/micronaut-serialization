@@ -1,10 +1,51 @@
+/*
+ * Copyright 2017-2024 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.jackson
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
+import io.micronaut.serde.jackson.tst.AfterCareStatsEntry
+import io.micronaut.serde.jackson.tst.ClassificationAndStats
+import io.micronaut.serde.jackson.tst.ClassificationVars
+import io.micronaut.serde.jackson.tst.MainAggregationVm
 
 abstract class JsonIgnoreSpec extends JsonCompileSpec {
 
     abstract protected String unknownPropertyMessage(String propertyName, String className)
+
+    def 'JsonIgnore and enum as map keys'() {
+        given:
+            def ctx = ApplicationContext.run()
+            def jsonMapper = ctx.getBean(JsonMapper)
+            def obj = new MainAggregationVm(
+                    List.of(
+                            new ClassificationAndStats(
+                                    new ClassificationVars("01"),
+                                    new AfterCareStatsEntry()
+                            )
+                    )
+            )
+            def json = '{"afterCare":[{"klassifisering":{"regionKode":"01"},"stats":{"SomeField1":0,"SomeField2":0}}]}'
+        expect:
+            serializeToString(jsonMapper, obj) == json
+
+        cleanup:
+            ctx.close()
+    }
 
      void 'JsonIgnoreType'() {
         given:
@@ -194,6 +235,77 @@ class Test {
 
         then:"the property is ignored for the purposes of deserialization"
         value.ignored == false
+
+        cleanup:
+        context.close()
+    }
+
+    void "test @JsonIgnoreProperties on collections"() {
+        given:
+        def context = buildContext('test.Parent', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.Map;
+import java.util.List;
+
+@Serdeable
+class Parent {
+    @JsonIgnoreProperties("ignored")
+    private Map<String, Test> map;
+    @JsonIgnoreProperties("ignored")
+    private List<Test> list;
+    public Map<String, Test> getMap() {
+        return map;
+    }
+    public void setMap(Map<String, Test> map) {
+        this.map = map;
+    }
+    public List<Test> getList() {
+        return list;
+    }
+    public void setList(List<Test> list) {
+        this.list = list;
+    }
+}
+
+@Serdeable
+class Test {
+    private String value;
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+""")
+        def testInstance = newInstance(context, 'test.Test', [value: 'test', ignored:true])
+        def parent = newInstance(context, 'test.Parent', [map:[foo:testInstance], list:[testInstance]])
+
+
+        when:
+        def result = writeJson(jsonMapper, parent)
+
+        then:
+        result == '{"map":{"foo":{"value":"test"}},"list":[{"value":"test"}]}'
+
+        when:"deserialization happens"
+        def value = jsonMapper.readValue('{"map":{"foo":{"value":"test", "ignored":true}},"list":[{"value":"test", "ignored":true}]}',  parent.getClass())
+
+        then:"the property is ignored for the purposes of deserialization"
+        value.map.foo.ignored == false
+        value.list[0].ignored == false
 
         cleanup:
         context.close()

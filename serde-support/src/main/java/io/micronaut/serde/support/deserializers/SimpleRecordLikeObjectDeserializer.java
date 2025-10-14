@@ -25,6 +25,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 
@@ -60,9 +61,11 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
         final PropertiesBag<Object>.Consumer creatorParameters = constructorParameters.newConsumer();
         final Object[] params = new Object[valuesSize];
         boolean allConsumed = valuesSize == 0;
+        boolean finished = false;
         while (!allConsumed) {
             final String propertyName = objectDecoder.decodeKey();
             if (propertyName == null) {
+                finished = true;
                 break;
             }
             final DeserBean.DerProperty<Object, Object> derProperty = creatorParameters.consume(propertyName);
@@ -72,12 +75,18 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
             } else if (ignoreUnknown) {
                 objectDecoder.skipValue();
             } else {
-                throw new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
+                throw unexpectedProperty(beanType, creatorParameters, propertyName);
             }
         }
         if (!allConsumed) {
             for (DeserBean.DerProperty<Object, Object> sp : creatorParameters.getNotConsumed()) {
                 sp.setDefaultConstructorValue(decoderContext, params);
+            }
+        }
+        if (!finished && !ignoreUnknown) {
+            final String propertyName = objectDecoder.decodeKey();
+            if (propertyName != null) {
+                throw unexpectedProperty(beanType, creatorParameters, propertyName);
             }
         }
 
@@ -96,6 +105,25 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
         return obj;
     }
 
+    private SerdeException unexpectedProperty(Argument<? super Object> beanType, PropertiesBag<Object>.Consumer creatorParameters, String propertyName) {
+        if (creatorParameters.contains(propertyName)) {
+            return duplicateProperty(beanType, propertyName);
+        }
+        return unknownProperty(beanType, propertyName);
+    }
+
+    private static SerdeException unknownProperty(Argument<? super Object> beanType, String propertyName) {
+        SerdeException serdeException = new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
+        return serdeException;
+    }
+
+    private static SerdeException duplicateProperty(Argument<? super Object> beanType, String propertyName) {
+        SerdeException serdeException = new SerdeException("Duplicate property [" + propertyName + "] encountered during deserialization of type: " + beanType);
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
+        return serdeException;
+    }
+
     @Override
     public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
         if (decoder.decodeNull()) {
@@ -106,7 +134,7 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
 
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object value)
         throws IOException {
-        throw new SerdeException("Unsupported deserialize into for [" + beanType + "]");
+        throw new SerdeException("Unsupported deserialize into immutable [" + beanType + "]");
     }
 
 }

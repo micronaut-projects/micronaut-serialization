@@ -280,6 +280,14 @@ public final class BsonReaderDecoder extends AbstractDecoderPerStructureStreamDe
     }
 
     @Override
+    protected BigDecimal getBigDecimalFromNumber(Number number) {
+        if (number instanceof Decimal128 decimal128) {
+            return decimal128.bigDecimalValue();
+        }
+        return super.getBigDecimalFromNumber(number);
+    }
+
+    @Override
     public byte @NonNull [] decodeBinary() throws IOException {
         if (currentBsonType == BsonType.BINARY) {
             return decodeCustom(parser -> ((BsonReaderDecoder) parser).bsonReader.readBinaryData().getData());

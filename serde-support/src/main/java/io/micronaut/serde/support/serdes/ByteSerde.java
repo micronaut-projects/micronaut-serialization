@@ -48,6 +48,11 @@ final class ByteSerde implements SerdeRegistrar<Byte>, NumberSerde<Byte> {
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Byte value) {
+        return value.equals((byte) 0);
+    }
+
+    @Override
     public Argument<Byte> getType() {
         return Argument.of(Byte.class);
     }

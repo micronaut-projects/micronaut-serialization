@@ -84,34 +84,28 @@ public interface PropertyNamingStrategy {
      */
     static Optional<PropertyNamingStrategy> forName(String namingStrategy) {
         if (StringUtils.isNotEmpty(namingStrategy)) {
-            switch (namingStrategy) {
-                case "KEBAB_CASE":
-                case "io.micronaut.serde.config.naming.KebabCaseStrategy":
-                    return Optional.of(KEBAB_CASE);
-                case "IDENTITY":
-                case "io.micronaut.serde.config.naming.IdentityStrategy":
-                    return Optional.of(IDENTITY);
-                case "LOWER_CASE":
-                case "io.micronaut.serde.config.naming.LowerCaseStrategy":
-                    return Optional.of(LOWER_CASE);
-                case "LOWER_DOT_CASE":
-                case "io.micronaut.serde.config.naming.LowerDotCaseStrategy":
-                    return Optional.of(LOWER_DOT_CASE);
-                case "SNAKE_CASE":
-                case "io.micronaut.serde.config.naming.SnakeCaseStrategy":
-                    return Optional.of(SNAKE_CASE);
-                case "UPPER_CAMEL_CASE":
-                case "io.micronaut.serde.config.naming.UpperCamelCaseStrategy":
-                    return Optional.of(UPPER_CAMEL_CASE);
-                case "LOWER_CAMEL_CASE":
-                case "io.micronaut.serde.config.naming.LowerCamelCaseStrategy":
-                    return Optional.of(LOWER_CAMEL_CASE);
-                case "UPPER_CAMEL_CASE_WITH_SPACES":
-                case "io.micronaut.serde.config.naming.UpperCamelCaseStrategyWithSpaces":
-                    return Optional.of(UPPER_CAMEL_CASE_WITH_SPACES);
-                default:
-                    return Optional.empty();
-            }
+            return switch (namingStrategy) {
+                case "KEBAB_CASE", "io.micronaut.serde.config.naming.KebabCaseStrategy" ->
+                    Optional.of(KEBAB_CASE);
+                case "IDENTITY", "io.micronaut.serde.config.naming.IdentityStrategy" ->
+                    Optional.of(IDENTITY);
+                case "LOWER_CASE", "io.micronaut.serde.config.naming.LowerCaseStrategy" ->
+                    Optional.of(LOWER_CASE);
+                case "LOWER_DOT_CASE", "io.micronaut.serde.config.naming.LowerDotCaseStrategy" ->
+                    Optional.of(LOWER_DOT_CASE);
+                case "SNAKE_CASE", "io.micronaut.serde.config.naming.SnakeCaseStrategy" ->
+                    Optional.of(SNAKE_CASE);
+                case "UPPER_CAMEL_CASE",
+                     "io.micronaut.serde.config.naming.UpperCamelCaseStrategy" ->
+                    Optional.of(UPPER_CAMEL_CASE);
+                case "LOWER_CAMEL_CASE",
+                     "io.micronaut.serde.config.naming.LowerCamelCaseStrategy" ->
+                    Optional.of(LOWER_CAMEL_CASE);
+                case "UPPER_CAMEL_CASE_WITH_SPACES",
+                     "io.micronaut.serde.config.naming.UpperCamelCaseStrategyWithSpaces" ->
+                    Optional.of(UPPER_CAMEL_CASE_WITH_SPACES);
+                default -> Optional.empty();
+            };
         }
         return Optional.empty();
     }

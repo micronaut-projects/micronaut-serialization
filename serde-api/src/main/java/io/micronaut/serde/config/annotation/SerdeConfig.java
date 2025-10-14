@@ -93,6 +93,11 @@ public @interface SerdeConfig {
     String INCLUDE = "include";
 
     /**
+     * Include content strategy.
+     */
+    String INCLUDE_CONTENT = "includeContent";
+
+    /**
      * Property filter name.
      */
     String FILTER = "filter";
@@ -319,6 +324,11 @@ public @interface SerdeConfig {
         SerSubtype[] value() default {};
 
         /**
+         * Is default implementation.
+         */
+        String DEFAULT_IMPL = "defaultImpl";
+
+        /**
          * Is discriminator visible.
          */
         String DISCRIMINATOR_VISIBLE = "discriminatorVisible";
@@ -349,7 +359,7 @@ public @interface SerdeConfig {
          * The discriminator value kind.
          */
         enum DiscriminatorValueKind {
-            CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS
+            CLASS_NAME, CLASS_SIMPLE_NAME, NAME, MINIMAL_CLASS, DEDUCTION
         }
 
         /**
@@ -401,6 +411,20 @@ public @interface SerdeConfig {
          * or what is considered empty, are not to be included.
          */
         NON_EMPTY,
+
+        /**
+         * Value that indicates that properties are included unless their value is the default value
+         * of the property type as defined by its Java implementation.
+         * All values considered "empty" (as per NON_EMPTY) are also excluded.
+         */
+        NON_DEFAULT,
+
+        /**
+         * Pseudo-value used to indicate that the higher-level defaults make sense, to avoid overriding inclusion value.
+         * For example, if returned for a property, this would use defaults for the class that contains property,
+         * if any defined; and if none is defined for that, then global serialization inclusion details.
+         */
+        USE_DEFAULTS,
 
         /**
          * Ignore the property.

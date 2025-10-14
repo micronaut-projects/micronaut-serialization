@@ -1,5 +1,19 @@
+/*
+ * Copyright 2017-2024 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.jackson
-
 
 import io.micronaut.serde.jackson.jsonvalue.JdkVersion
 
@@ -31,9 +45,9 @@ class Foo {
 @Serdeable
 enum MyEnum {
 
-    VALUE1("value1"),
-    VALUE2("value2"),
-    VALUE3("value3");
+    VALUE1("value_1"),
+    VALUE2("value_2"),
+    VALUE3("value_3");
 
     private final String value;
 
@@ -52,16 +66,21 @@ enum MyEnum {
         when:
             String json = jsonMapper.writeValueAsString(testBean)
         then:
-            '{"myEnum":"value2"}' == json
+            '{"myEnum":"value_2"}' == json
 
         when:
             def foo = jsonMapper.readValue(json, testBean.class)
 
         then:
             foo.myEnum == enumValue2
+
+        when:
+            jsonMapper.readValue('{"myEnum":"invalid"}', testBean.class)
+        then:
+            thrown IOException
     }
 
-    void "@JsonValue on field"() throws IOException {
+    void "enum @JsonValue on field"() throws IOException {
         given:
             def context = buildContext('''
 package example;
@@ -82,9 +101,9 @@ class Foo {
 }
 @Serdeable
 enum MyEnum {
-    VALUE1("value1"),
-    VALUE2("value2"),
-    VALUE3("value3");
+    VALUE1("value_1"),
+    VALUE2("value_2"),
+    VALUE3("value_3");
     @JsonValue
     private final String value;
     MyEnum(String value) {
@@ -100,13 +119,18 @@ enum MyEnum {
         when:
             String json = jsonMapper.writeValueAsString(testBean)
         then:
-            '{"myEnum":"value2"}' == json
+            '{"myEnum":"value_2"}' == json
 
         when:
             def foo = jsonMapper.readValue(json, testBean.class)
 
         then:
             foo.myEnum == enumValue2
+
+        when:
+            jsonMapper.readValue('{"myEnum":"invalid"}', testBean.class)
+        then:
+            thrown IOException
     }
 
     void "@JsonValue on constructor"() throws IOException {
@@ -476,4 +500,63 @@ class Test {
         cleanup:
         context.close()
     }
+
+    void "JsonProperty on enum"() {
+        given:
+        def context = buildContext('''
+package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Serdeable
+class Foo {
+    private final MyEnum myEnum;
+
+    @JsonCreator
+    Foo(@JsonProperty("myEnum") MyEnum myEnum) {
+        this.myEnum = myEnum;
+    }
+
+    public MyEnum getMyEnum() {
+        return myEnum;
+    }
+}
+
+@Serdeable
+enum MyEnum {
+
+    @JsonProperty("v1")
+    VALUE1("value1"),
+    @JsonProperty("v2")
+    VALUE2("value2"),
+    @JsonProperty("v3")
+    VALUE3("value3");
+
+    private final String value;
+
+    MyEnum(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+}''')
+        def enumValue2 = context.classLoader.loadClass('example.MyEnum').VALUE2
+        def testBean = newInstance(context, 'example.Foo', enumValue2)
+        when:
+        String json = jsonMapper.writeValueAsString(testBean)
+        then:
+        '{"myEnum":"v2"}' == json
+
+        when:
+        def foo = jsonMapper.readValue(json, testBean.class)
+
+        then:
+        foo.myEnum == enumValue2
+    }
+
 }

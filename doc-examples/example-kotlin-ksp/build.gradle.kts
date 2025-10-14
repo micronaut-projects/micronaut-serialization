@@ -19,7 +19,10 @@ dependencies {
 
     runtimeOnly(mnLogging.logback.classic)
 
+    testImplementation(projects.micronautSerdeSupport)
     testImplementation(mnTest.micronaut.test.junit5)
+    testImplementation(mnTest.junit.jupiter.params)
+    testImplementation(libs.junit.platform.launcher)
 }
 
 java {

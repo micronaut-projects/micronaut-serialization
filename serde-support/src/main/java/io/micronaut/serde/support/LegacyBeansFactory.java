@@ -25,11 +25,14 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ArgumentInjectionPoint;
 import io.micronaut.inject.InjectionPoint;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback;
 import io.micronaut.serde.support.serdes.InetAddressSerde;
@@ -65,6 +68,32 @@ final class LegacyBeansFactory {
             }
             DefaultSerdeRegistry defaultSerdeRegistry = serdeRegistry.get();
             return (S) defaultSerdeRegistry.findInternalSerde(typeParameter);
+        }
+        return null;
+    }
+
+    @Any
+    @Prototype
+    @BootstrapContextCompatible
+    <S extends Deserializer<T>, T> S provideDeserializer(InjectionPoint<Deserializer<T>> injectionPoint,
+                                                         BeanProvider<DefaultSerdeRegistry> serdeRegistry) throws SerdeException {
+        if (injectionPoint instanceof ArgumentInjectionPoint<?, ?> argumentInjectionPoint) {
+            Argument typeParameter = argumentInjectionPoint.getArgument().getTypeParameters()[0];
+            DefaultSerdeRegistry defaultSerdeRegistry = serdeRegistry.get();
+            return (S) defaultSerdeRegistry.findDeserializer(typeParameter);
+        }
+        return null;
+    }
+
+    @Any
+    @Prototype
+    @BootstrapContextCompatible
+    <S extends Serializer<T>, T> S provideSerializer(InjectionPoint<Serializer<T>> injectionPoint,
+                                                     BeanProvider<DefaultSerdeRegistry> serdeRegistry) throws SerdeException {
+        if (injectionPoint instanceof ArgumentInjectionPoint<?, ?> argumentInjectionPoint) {
+            Argument typeParameter = argumentInjectionPoint.getArgument().getTypeParameters()[0];
+            DefaultSerdeRegistry defaultSerdeRegistry = serdeRegistry.get();
+            return (S) defaultSerdeRegistry.findSerializer(typeParameter);
         }
         return null;
     }

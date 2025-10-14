@@ -49,6 +49,11 @@ final class FloatSerde implements SerdeRegistrar<Float>, NumberSerde<Float> {
     }
 
     @Override
+    public boolean isDefault(EncoderContext context, Float value) {
+        return value.equals(0F);
+    }
+
+    @Override
     public Argument<Float> getType() {
         return Argument.of(Float.class);
     }

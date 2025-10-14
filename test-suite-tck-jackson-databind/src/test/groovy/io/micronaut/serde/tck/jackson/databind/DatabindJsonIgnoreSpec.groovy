@@ -18,7 +18,6 @@ class DatabindJsonIgnoreSpec extends JsonIgnoreSpec {
         return """Unrecognized field "$propertyName" (class $className), not marked as ignorable"""
     }
 
-    @PendingFeature(reason = "Jackson doesn't support ignored record values")
     void "json ignore on a record parameter"() {
         given:
             def context = buildContext('example.Test', '''

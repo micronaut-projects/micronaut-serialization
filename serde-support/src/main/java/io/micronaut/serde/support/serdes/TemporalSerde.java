@@ -43,7 +43,7 @@ public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T> {
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null) {
-            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query());
+            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query(), this);
         }
         return this;
 
@@ -55,7 +55,7 @@ public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T> {
         final String pattern = annotationMetadata
                 .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         if (pattern != null) {
-            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query());
+            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query(), this);
         }
         return this;
     }

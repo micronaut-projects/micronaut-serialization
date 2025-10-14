@@ -2,7 +2,7 @@ package io.micronaut.serde.util
 
 import io.micronaut.context.BeanContext
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.support.util.MatchArgumentQualifier
+import io.micronaut.inject.qualifiers.MatchArgumentQualifier
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -16,9 +16,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize specific argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(List, [Argument.STRING] as Argument[])] as Argument[])
+            def ge = Argument.of(List, [Argument.STRING] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 1
@@ -27,9 +28,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize object argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(List, [Argument.OBJECT_ARGUMENT] as Argument[])] as Argument[])
+            def ge = Argument.of(List, [Argument.OBJECT_ARGUMENT] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 2
@@ -38,9 +40,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize non-specific argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(List, [Argument.of(Boolean)] as Argument[])] as Argument[])
+            def ge = Argument.of(List, [Argument.of(Boolean)] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 2
@@ -49,9 +52,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize Number argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(List, [Argument.of(Number)] as Argument[])] as Argument[])
+            def ge = Argument.of(List, [Argument.of(Number)] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 1
@@ -60,9 +64,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize Long argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(List, [Argument.of(Long)] as Argument[])] as Argument[])
+            def ge = Argument.of(List, [Argument.of(Long)] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 1
@@ -71,9 +76,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize Double argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(List, [Argument.of(Double)] as Argument[])] as Argument[])
+            def ge = Argument.of(List, [Argument.of(Double)] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 1
@@ -82,9 +88,10 @@ class MatchArgumentSpec extends Specification {
 
     void "test match serialize ArrayList Long argument"() {
         given:
-            def argument = Argument.of(MySerializer, [Argument.of(ArrayList, [Argument.of(Long)] as Argument[])] as Argument[])
+            def ge = Argument.of(ArrayList, [Argument.of(Long)] as Argument[])
+            def argument = Argument.of(MySerializer, [ge] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofArgument(argument))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.contravariant(MySerializer, ge))
 
         then:
             beanDefinitions.size() == 1
@@ -94,7 +101,7 @@ class MatchArgumentSpec extends Specification {
     void "test match serialize Collection String argument"() {
         when:
             def beanDefinitions = context.getBeanDefinitions(MySerializer,
-                    MatchArgumentQualifier.ofExtendsVariable(MySerializer, Argument.of(Collection, [Argument.of(String)] as Argument[]))
+                    MatchArgumentQualifier.contravariant(MySerializer, Argument.of(Collection, [Argument.of(String)] as Argument[]))
             )
 
         then:
@@ -107,7 +114,7 @@ class MatchArgumentSpec extends Specification {
         given:
             def argument = Argument.of(MyDeserializer, [item] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofSuperVariable(MyDeserializer, item))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.covariant(MyDeserializer, item))
 
         then:
             beanDefinitions.size() == 1
@@ -119,7 +126,7 @@ class MatchArgumentSpec extends Specification {
         given:
             def argument = Argument.of(MyDeserializer, [item] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofSuperVariable(MyDeserializer, item))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.covariant(MyDeserializer, item))
 
         then:
             beanDefinitions.size() == 1
@@ -131,7 +138,7 @@ class MatchArgumentSpec extends Specification {
         given:
             def argument = Argument.of(MyDeserializer, [item] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofSuperVariable(MyDeserializer, item))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.covariant(MyDeserializer, item))
 
         then:
             beanDefinitions.size() == 1
@@ -143,7 +150,7 @@ class MatchArgumentSpec extends Specification {
         given:
             def argument = Argument.of(MyDeserializer, [item] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofSuperVariable(MyDeserializer, item))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.covariant(MyDeserializer, item))
 
         then:
             beanDefinitions.size() == 1
@@ -155,7 +162,7 @@ class MatchArgumentSpec extends Specification {
         given:
             def argument = Argument.of(MyDeserializer, [item] as Argument[])
         when:
-            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.ofSuperVariable(MyDeserializer, item))
+            def beanDefinitions = context.getBeanDefinitions(argument, MatchArgumentQualifier.covariant(MyDeserializer, item))
 
         then:
             beanDefinitions.size() == 1

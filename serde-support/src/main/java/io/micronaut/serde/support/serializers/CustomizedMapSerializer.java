@@ -16,18 +16,13 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.convert.exceptions.ConversionErrorException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
-import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
-import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -43,100 +38,23 @@ final class CustomizedMapSerializer<K, V> implements CustomizableSerializer<Map<
     @Override
     public ObjectSerializer<Map<K, V>> createSpecific(EncoderContext context, Argument<? extends Map<K, V>> type) throws SerdeException {
         final Argument<?>[] generics = type.getTypeParameters();
-        final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length != 2;
+        final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length == 2;
         if (hasGenerics) {
-            final Argument<V> valueGeneric = (Argument<V>) generics[1];
-            final Serializer<V> valSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
-            return new ObjectSerializer<>() {
-
-                @Override
-                public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    final Encoder objectEncoder = encoder.encodeObject(type);
-                    serializeInto(objectEncoder, context, type, value);
-                    objectEncoder.finishStructure();
-                }
-
-                @Override
-                public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    for (K k : value.keySet()) {
-                        encodeMapKey(context, encoder, k);
-                        final V v = value.get(k);
-                        if (v == null) {
-                            encoder.encodeNull();
-                        } else {
-                            valSerializer.serialize(
-                                encoder,
-                                context,
-                                valueGeneric, v
-                            );
-                        }
-                    }
-                }
-
-                @Override
-                public boolean isEmpty(EncoderContext context, Map<K, V> value) {
-                    return CollectionUtils.isEmpty(value);
-                }
-            };
-        } else {
-            return new ObjectSerializer<>() {
-
-                @Override
-                public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    // slow path, lookup each value serializer
-                    final Encoder childEncoder = encoder.encodeObject(type);
-                    serializeInto(childEncoder, context, type, value);
-                    childEncoder.finishStructure();
-                }
-
-                @Override
-                public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-                    for (Map.Entry<K, V> entry : value.entrySet()) {
-                        encodeMapKey(context, encoder, entry.getKey());
-                        final V v = entry.getValue();
-                        if (v == null) {
-                            encoder.encodeNull();
-                        } else {
-                            @SuppressWarnings("unchecked") final Argument<V> valueGeneric = (Argument<V>) Argument.of(v.getClass());
-                            final Serializer<? super V> valSerializer = context.findSerializer(valueGeneric)
-                                .createSpecific(context, valueGeneric);
-                            valSerializer.serialize(
-                                encoder,
-                                context,
-                                valueGeneric, v
-                            );
-                        }
-                    }
-                }
-
-                @Override
-                public boolean isEmpty(EncoderContext context, Map<K, V> value) {
-                    return CollectionUtils.isEmpty(value);
-                }
-            };
-        }
-    }
-
-    private void encodeMapKey(EncoderContext context, Encoder childEncoder, K k) throws IOException {
-        // relies on the key type implementing toString() correctly
-        // perhaps we should supply conversion service
-        if (k instanceof CharSequence) {
-            childEncoder.encodeKey(k.toString());
-        } else {
-            try {
-                final String result = context.getConversionService().convertRequired(
-                        k,
-                        Argument.STRING
-                );
-                childEncoder.encodeKey(result != null ? result : k.toString());
-            } catch (ConversionErrorException e) {
-                throw new SerdeException("Error converting Map key [" + k + "] to String: " + e.getMessage(), e);
+            Argument<?> keyArgument = generics[0];
+            if (keyArgument.getType() == String.class) {
+                return new StringKeyMapSerializer<>((Argument) type, context);
+            }
+            if (CharSequence.class.isAssignableFrom(keyArgument.getType())) {
+                return new CharSequenceKeyMapSerializer<>((Argument) type, context);
             }
         }
+        return new RuntimeMapSerializer<>(type, context);
+
     }
 
     @Override
     public Argument<Map<K, V>> getType() {
         return (Argument) Argument.mapOf(Argument.ofTypeVariable(Object.class, "K"), Argument.ofTypeVariable(Object.class, "V"));
     }
+
 }

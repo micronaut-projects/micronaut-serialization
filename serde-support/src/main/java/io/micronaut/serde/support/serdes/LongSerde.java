@@ -62,4 +62,9 @@ final class LongSerde implements SerdeRegistrar<Long>, NumberSerde<Long> {
     public Long getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Long> type) {
         return type.isPrimitive() ? 0L : null;
     }
+
+    @Override
+    public boolean isDefault(EncoderContext context, Long value) {
+        return value.equals(0L);
+    }
 }
