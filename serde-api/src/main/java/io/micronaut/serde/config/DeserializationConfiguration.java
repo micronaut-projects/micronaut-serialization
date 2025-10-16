@@ -63,4 +63,16 @@ public interface DeserializationConfiguration {
     default boolean isSubtypesRequireDefaultImpl() {
         return false;
     }
+
+    /**
+     * Determines whether to accept case-insensitive enumeration values during deserialization.
+     * By default, case-insensitive enums are not accepted.
+     *
+     * @return {@code true} if case-insensitive enumeration values are accepted; {@code false} otherwise
+     * @since 2.15.2
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean acceptCaseInsensitiveEnums() {
+        return false;
+    }
 }

@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.jackson.generic;
+package io.micronaut.serde.jackson.generic.scenario3;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type", defaultImpl = WatchEventSuccess.class, visible = true)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = WatchEventError.class, name = "ERROR")
+})
 @Serdeable
 @Introspected
-public record WatchEventSuccess<T>(
-    String type,
-    T object
-) implements WatchEvent<T> {
-    @Override
-    public V1Status status() {
-        return null;
-    }
+public sealed interface WatchEvent<T> permits WatchEventError, WatchEventSuccess {
+
+    String type();
+
+    T object();
+
+    V1Status status();
 }

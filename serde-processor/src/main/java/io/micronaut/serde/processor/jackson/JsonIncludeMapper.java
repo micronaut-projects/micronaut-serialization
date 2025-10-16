@@ -31,10 +31,10 @@ public class JsonIncludeMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         return List.of(
-                AnnotationValue.builder(SerdeConfig.class)
-                        .member(SerdeConfig.INCLUDE, annotation.enumValue(SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
-                        .member(SerdeConfig.INCLUDE_CONTENT, annotation.enumValue("content", SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
-                        .build()
+            AnnotationValue.builder(SerdeConfig.class)
+                .member(SerdeConfig.INCLUDE, annotation.enumValue(SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
+                .member(SerdeConfig.INCLUDE_CONTENT, annotation.enumValue("content", SerdeConfig.SerInclude.class).orElse(SerdeConfig.SerInclude.ALWAYS))
+                .build()
         );
     }
 

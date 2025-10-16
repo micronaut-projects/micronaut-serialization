@@ -26,6 +26,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
 
@@ -84,18 +85,19 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
             throws IOException {
         Decoder objectDecoder = decoder.decodeObject(beanType);
         boolean completed = false;
+        PropertiesBag<Object>.Consumer propertiesConsumer = null;
 
         if (properties != null) {
-            PropertiesBag<Object>.Consumer propertiesConsumer = properties.newConsumer();
+            propertiesConsumer = properties.newConsumer();
 
             boolean allConsumed = false;
             while (!allConsumed) {
-                final String prop = objectDecoder.decodeKey();
-                if (prop == null) {
+                final String propertyName = objectDecoder.decodeKey();
+                if (propertyName == null) {
                     completed = true;
                     break;
                 }
-                final DeserBean.DerProperty<Object, Object> consumedProperty = propertiesConsumer.consume(prop);
+                final DeserBean.DerProperty<Object, Object> consumedProperty = propertiesConsumer.consume(propertyName);
                 if (consumedProperty != null) {
                     consumedProperty.deserializeAndSetPropertyValue(objectDecoder, decoderContext, beanInstance);
                     allConsumed = propertiesConsumer.isAllConsumed();
@@ -103,7 +105,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
                 } else if (ignoreUnknown) {
                     objectDecoder.skipValue();
                 } else {
-                    throw unknownProperty(beanType, prop);
+                    throw unexpectedProperty(beanType, propertiesConsumer, propertyName);
                 }
             }
 
@@ -119,15 +121,30 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
         } else if (ignoreUnknown) {
             objectDecoder.finishStructure(true);
         } else {
-            String unknownProp = objectDecoder.decodeKey();
-            if (unknownProp != null) {
-                throw unknownProperty(beanType, unknownProp);
+            String propertyName = objectDecoder.decodeKey();
+            if (propertyName != null) {
+                throw unexpectedProperty(beanType, propertiesConsumer, propertyName);
             }
             objectDecoder.finishStructure();
         }
     }
 
-    private SerdeException unknownProperty(Argument<? super Object> beanType, String prop) {
-        return new SerdeException("Unknown property [" + prop + "] encountered during deserialization of type: " + beanType);
+    private SerdeException unexpectedProperty(Argument<? super Object> beanType, PropertiesBag<Object>.Consumer propertiesConsumer, String propertyName) {
+        if (propertiesConsumer != null && propertiesConsumer.contains(propertyName)) {
+            return duplicateProperty(beanType, propertyName);
+        }
+        return unknownProperty(beanType, propertyName);
+    }
+
+    private static SerdeException unknownProperty(Argument<? super Object> beanType, String propertyName) {
+        SerdeException serdeException = new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
+        return serdeException;
+    }
+
+    private static SerdeException duplicateProperty(Argument<? super Object> beanType, String propertyName) {
+        SerdeException serdeException = new SerdeException("Duplicate property [" + propertyName + "] encountered during deserialization of type: " + beanType);
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
+        return serdeException;
     }
 }

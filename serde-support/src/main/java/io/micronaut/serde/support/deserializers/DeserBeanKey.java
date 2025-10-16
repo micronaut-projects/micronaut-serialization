@@ -23,6 +23,7 @@ import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -34,13 +35,20 @@ final class DeserBeanKey {
     private final DeserializationConfiguration deserializationConfiguration;
     private final Argument<?> type;
     @Nullable
+    private final Map<String, Argument<?>> typeArguments;
+    @Nullable
     private final SerdeArgumentConf serdeArgumentConf;
     private final int hashCode;
 
-    public DeserBeanKey(SerdeConfiguration serdeConfiguration, DeserializationConfiguration deserializationConfiguration, @NonNull Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
+    public DeserBeanKey(SerdeConfiguration serdeConfiguration,
+                        DeserializationConfiguration deserializationConfiguration,
+                        @NonNull Argument<?> type,
+                        @Nullable Map<String, Argument<?>> typeArguments,
+                        @Nullable SerdeArgumentConf serdeArgumentConf) {
         this.serdeConfiguration = serdeConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
         this.type = type;
+        this.typeArguments = typeArguments;
         this.serdeArgumentConf = serdeArgumentConf;
         this.hashCode = type.typeHashCode();
     }
@@ -54,7 +62,7 @@ final class DeserBeanKey {
             return false;
         }
         DeserBeanKey that = (DeserBeanKey) o;
-        return type.equalsType(that.type) && Objects.equals(serdeArgumentConf, that.serdeArgumentConf) && deserializationConfiguration == that.deserializationConfiguration && serdeConfiguration == that.serdeConfiguration;
+        return type.equalsType(that.type) && Objects.equals(typeArguments, that.typeArguments) && Objects.equals(serdeArgumentConf, that.serdeArgumentConf) && deserializationConfiguration == that.deserializationConfiguration && serdeConfiguration == that.serdeConfiguration;
     }
 
     @Override

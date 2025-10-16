@@ -15,13 +15,160 @@
  */
 package io.micronaut.serde.jackson
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
 
 abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
     protected abstract boolean jacksonCustomOrder()
+
+    def 'test @JsonSubTypes and @JsonTypeName defined'() {
+        given:
+            def compiled = buildContext('example.Base', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.core.annotation.Introspected;import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+@JsonSubTypes({
+    @JsonSubTypes.Type(A.class),
+    @JsonSubTypes.Type(B.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+class Base {
+}
+
+@JsonTypeName
+class A extends Base {
+    public String fieldA;
+}
+@JsonTypeName("b")
+class B extends Base {
+    public String fieldB;
+}
+''', true)
+            def jsonMapper = compiled.getBean(JsonMapper)
+            def baseClass = compiled.classLoader.loadClass('example.Base')
+
+        when:
+            def a = compiled.classLoader.loadClass('example.A').newInstance()
+            a.fieldA = 'foo'
+            def b = compiled.classLoader.loadClass('example.B').newInstance()
+            b.fieldB = 'foo'
+        then:
+            serializeToString(jsonMapper, a) == '{"@type":"A","fieldA":"foo"}'
+            serializeToString(jsonMapper, b) == '{"@type":"b","fieldB":"foo"}'
+
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"A","fieldA":"foo"}').fieldA == 'foo'
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"b","fieldB":"foo"}').fieldB == 'foo'
+        when:
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"B","fieldB":"foo"}').fieldB == 'foo'
+        then:
+            thrown(Throwable)
+        when:
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"example.B","fieldB":"foo"}').fieldB == 'foo'
+        then:
+            thrown(Throwable)
+        when:
+            deserializeFromString(jsonMapper, baseClass, '{"@type":"example.A","fieldB":"foo"}').fieldB == 'foo'
+        then:
+            thrown(Throwable)
+
+        cleanup:
+            compiled.close()
+    }
+
+    def 'test JsonTypeInfo with record deduction with some name'() {
+        given:
+            def compiled = buildContext('example.ReadResourceResult', '''
+package example;
+
+
+import java.util.List;
+import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
+@JsonIgnoreProperties(ignoreUnknown = true)
+record ReadResourceResult(
+        @JsonProperty("contents") List<ResourceContents> contents,
+        @JsonProperty("_meta") Map<String, Object> meta) {
+
+    public ReadResourceResult(List<ResourceContents> contents) {
+        this(contents, null);
+    }
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
+@JsonSubTypes({@JsonSubTypes.Type(value = TextResourceContents.class, name = "text"),
+        @JsonSubTypes.Type(value = BlobResourceContents.class, name = "blob")})
+sealed interface ResourceContents permits TextResourceContents, BlobResourceContents {
+
+    String uri();
+
+    String mimeType();
+
+}
+
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
+@JsonIgnoreProperties(ignoreUnknown = true)
+record TextResourceContents( // @formatter:off
+        @JsonProperty("uri") String uri,
+        @JsonProperty("mimeType") String mimeType,
+        @JsonProperty("text") String text,
+        @JsonProperty("_meta") Map<String, Object> meta) implements ResourceContents { // @formatter:on
+
+    public TextResourceContents(String uri, String mimeType, String text) {
+        this(uri, mimeType, text, null);
+    }
+}
+
+@JsonInclude(JsonInclude.Include.NON_ABSENT)
+@JsonIgnoreProperties(ignoreUnknown = true)
+record BlobResourceContents( // @formatter:off
+        @JsonProperty("uri") String uri,
+        @JsonProperty("mimeType") String mimeType,
+        @JsonProperty("blob") String blob,
+        @JsonProperty("_meta") Map<String, Object> meta) implements ResourceContents { // @formatter:on
+
+    public BlobResourceContents(String uri, String mimeType, String blob) {
+        this(uri, mimeType, blob, null);
+    }
+}
+
+
+''', true)
+            def baseClass = compiled.classLoader.loadClass('example.ReadResourceResult')
+
+            String json = """
+            {
+              "contents": [
+                {
+                  "uri": "guidemetadata://micronaut-oauth2-auth0",
+                  "mimeType": "application/json",
+                  "text": "{\\"title\\":\\"Secure a Micronaut application with Auth0\\",\\"intro\\":\\"Learn how to create a Micronaut application and secure it with an Authorization Server provided by Auth0.\\",\\"authors\\":[\\"Sergio del Amo\\"],\\"tags\\":[\\"security-jwt\\",\\"security\\",\\"authorization-code\\",\\"auth0\\",\\"graalvm\\",\\"thymeleaf\\",\\"oauth2\\",\\"oidc\\",\\"security-oauth2\\",\\"yaml\\"],\\"category\\":\\"Authorization Code\\",\\"publicationDate\\":\\"2021-09-03\\",\\"slug\\":\\"micronaut-oauth2-auth0\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0.html\\",\\"options\\":[{\\"buildTool\\":\\"GRADLE\\",\\"language\\":\\"JAVA\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0-gradle-java.html\\"},{\\"buildTool\\":\\"GRADLE\\",\\"language\\":\\"GROOVY\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0-gradle-groovy.html\\"},{\\"buildTool\\":\\"GRADLE\\",\\"language\\":\\"KOTLIN\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0-gradle-kotlin.html\\"},{\\"buildTool\\":\\"MAVEN\\",\\"language\\":\\"JAVA\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0-maven-java.html\\"},{\\"buildTool\\":\\"MAVEN\\",\\"language\\":\\"GROOVY\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0-maven-groovy.html\\"},{\\"buildTool\\":\\"MAVEN\\",\\"language\\":\\"KOTLIN\\",\\"url\\":\\"https://guides.micronaut.io/latest/micronaut-oauth2-auth0-maven-kotlin.html\\"}]}"
+                }
+              ]
+            }"""
+
+        expect:
+
+            def bean = jsonMapper.readValue(json, baseClass)
+            bean.contents.size() == 1
+            bean.contents[0].class.name == "example.TextResourceContents"
+
+        cleanup:
+            compiled.close()
+    }
 
     def 'test JsonTypeInfo with record deduction'() {
         given:
@@ -274,7 +421,6 @@ class Sub extends Base {
     }
 }
 """)
-        when:
             def base = newInstance(context, 'test.Sub', "a", 1)
             if (includeType == "EXISTING_PROPERTY") {
                 base.type = "sub-class"
@@ -283,7 +429,11 @@ class Sub extends Base {
             wrapper.foo = "bar"
             wrapper.base = base
 
+        when:
             def result = writeJson(jsonMapper, wrapper)
+        then:
+            jsonEquals(result, json)
+        when:
             def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
 
         then:
@@ -297,6 +447,125 @@ class Sub extends Base {
 
         where:
             includeType << ["WRAPPER_OBJECT", "WRAPPER_ARRAY", "PROPERTY", "EXISTING_PROPERTY", "EXTERNAL_PROPERTY"]
+            json << [
+                    """{"foo":"bar","base":{"sub-class":{"string":"a","integer":1}}}""",
+                    """{"foo":"bar","base":["sub-class",{"string":"a","integer":1}]}""",
+                    """{"foo":"bar","base":{"type":"sub-class","string":"a","integer":1}}""",
+                    """{"foo":"bar","base":{"string":"a","type":"sub-class","integer":1}}""",
+                    """{"foo":"bar","type":"sub-class","base":{"string":"a","integer":1}}"""
+            ]
+    }
+
+    @Unroll
+    void 'test property field definition of @JsonTypeInfo(include = JsonTypeInfo.As.#includeType) separate sub types'(String includeType, String json) {
+        given:
+            def context = buildContext('test.Base', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Wrapper {
+  public String foo;
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.$includeType, property = "type")
+  public Base base;
+}
+
+@JsonSubTypes(
+    @JsonSubTypes.Type(value = Sub.class, name = "sub-class")
+)
+@Serdeable
+class Base {
+    private String type;
+    private String string;
+
+    public Base(String string) {
+        this.string = string;
+    }
+
+    public String getString() {
+        return string;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+@Serdeable
+class Sub extends Base {
+    private Integer integer;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public Sub(@com.fasterxml.jackson.annotation.JsonProperty("string")
+               String string,
+               @com.fasterxml.jackson.annotation.JsonProperty("integer")
+               Integer integer) {
+        super(string);
+        this.integer = integer;
+    }
+
+    public Integer getInteger() {
+        return integer;
+    }
+}
+""")
+            def base = newInstance(context, 'test.Sub', "a", 1)
+            if (includeType == "EXISTING_PROPERTY") {
+                base.type = "sub-class"
+            }
+            def wrapper = newInstance(context, 'test.Wrapper')
+            wrapper.foo = "bar"
+            wrapper.base = base
+
+        when:
+            def result = writeJson(jsonMapper, wrapper)
+        then:
+            jsonEquals(result, json)
+        when:
+            def bean = jsonMapper.readValue(result, argumentOf(context, "test.Wrapper"))
+
+        then:
+            bean.foo == 'bar'
+            bean.base.getClass().name == 'test.Sub'
+            bean.base.string == 'a'
+            bean.base.integer == 1
+
+        cleanup:
+            context.close()
+
+        where:
+            includeType << [
+                    "WRAPPER_OBJECT",
+                    "WRAPPER_ARRAY",
+                    "PROPERTY",
+                    "EXISTING_PROPERTY",
+                    "EXTERNAL_PROPERTY"
+            ]
+            json << [
+                    """{"foo":"bar","base":{"sub-class":{"string":"a","integer":1}}}""",
+                    """{"foo":"bar","base":["sub-class",{"string":"a","integer":1}]}""",
+                    """{"foo":"bar","base":{"type":"sub-class","string":"a","integer":1}}""",
+                    """{"foo":"bar","base":{"string":"a","type":"sub-class","integer":1}}""",
+                    """{"foo":"bar","type":"sub-class","base":{"string":"a","integer":1}}"""
+            ]
+    }
+
+    private static boolean jsonEquals(@Language("json") String provided, @Language("json") String expected) {
+        ObjectMapper mapper = new ObjectMapper()
+        def providedTree = mapper.readTree(provided)
+        def expectedTree = mapper.readTree(expected)
+        assert providedTree == expectedTree
+        true
     }
 
     @Unroll
@@ -1018,48 +1287,6 @@ class B extends Base {
         cleanup:
             compiled.close()
             Thread.currentThread().setContextClassLoader(cl)
-    }
-
-    def 'test @JsonSubTypes with @JsonTypeName 2'() {
-        given:
-            def compiled = buildContext('example.Base', '''
-package example;
-
-import com.fasterxml.jackson.annotation.*;
-import io.micronaut.core.annotation.Introspected;import io.micronaut.serde.annotation.Serdeable;
-
-@Serdeable
-@Introspected(accessKind = Introspected.AccessKind.FIELD)
-@JsonSubTypes({
-    @JsonSubTypes.Type(A.class),
-    @JsonSubTypes.Type(B.class)
-})
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-class Base {
-}
-
-@JsonTypeName
-class A extends Base {
-    public String fieldA;
-}
-@JsonTypeName("b")
-class B extends Base {
-    public String fieldB;
-}
-''', true)
-            def jsonMapper = compiled.getBean(JsonMapper)
-            def baseClass = compiled.classLoader.loadClass('example.Base')
-            def a = compiled.classLoader.loadClass('example.A').newInstance()
-            a.fieldA = 'foo'
-
-        expect:
-            deserializeFromString(jsonMapper, baseClass, '{"A": {"fieldA":"foo"}}').fieldA == 'foo'
-            deserializeFromString(jsonMapper, baseClass, '{"b":{"fieldB":"foo"}}').fieldB == 'foo'
-
-            serializeToString(jsonMapper, a) == '{"A":{"fieldA":"foo"}}'
-
-        cleanup:
-            compiled.close()
     }
 
     def 'test @JsonTypeInfo with include = JsonTypeInfo.As.PROPERTY 2'() {

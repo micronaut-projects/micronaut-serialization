@@ -420,6 +420,13 @@ public @interface SerdeConfig {
         NON_DEFAULT,
 
         /**
+         * Pseudo-value used to indicate that the higher-level defaults make sense, to avoid overriding inclusion value.
+         * For example, if returned for a property, this would use defaults for the class that contains property,
+         * if any defined; and if none is defined for that, then global serialization inclusion details.
+         */
+        USE_DEFAULTS,
+
+        /**
          * Ignore the property.
          */
         NEVER

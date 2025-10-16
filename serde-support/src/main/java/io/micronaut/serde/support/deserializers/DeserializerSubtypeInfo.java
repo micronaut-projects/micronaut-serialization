@@ -21,25 +21,19 @@ import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
-import java.util.Map;
-
 /**
  * The resolved deserializer subtype info.
  *
- * @param parent      The parent
- * @param subtypes    The subtypes
- * @param defaultType The default type
  * @param <T>         The bean type
  * @author Denis Stepanov
  */
 @Internal
-record DeserializerSubtypeInfo<T>(
-    DeserBeanSubtypeInfo<T> parent,
-    @NonNull
-    Map<String, Deserializer<T>> subtypes,
-    @Nullable
-    Deserializer<T> defaultType
-) {
+interface DeserializerSubtypeInfo<T> {
+
+    /**
+     * @return The parent
+     */
+    DeserBeanSubtypeInfo<T> parent();
 
     /**
      * Find the {@link Deserializer} for discriminator of not provided one.
@@ -48,17 +42,6 @@ record DeserializerSubtypeInfo<T>(
      * @return The {@link Deserializer}
      */
     @NonNull
-    Deserializer<T> findDeserializer(@Nullable String discriminatorValue) throws SerdeException {
-        Deserializer<T> deserializer;
-        if (discriminatorValue == null) {
-            deserializer = defaultType;
-        } else {
-            deserializer = subtypes.getOrDefault(discriminatorValue, defaultType);
-        }
-        if (deserializer == null) {
-            throw parent.unknownSuperTypeException();
-        }
-        return deserializer;
-    }
+    Deserializer<T> findDeserializer(@Nullable String discriminatorValue) throws SerdeException;
 
 }

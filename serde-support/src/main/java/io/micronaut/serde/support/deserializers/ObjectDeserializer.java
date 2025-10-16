@@ -31,6 +31,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
+import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableDeserializer;
 
 import java.util.Map;
@@ -87,46 +88,99 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             // fallback to dynamic resolution
             return (Decoder decoder, DecoderContext ignore1, Argument<? super Object> ignore2) -> decoder.decodeArbitrary();
         }
-        DeserBean<? super Object> deserBean = getDeserializableBean(type, context);
-
         DeserializationConfiguration deserializationConfiguration = context.getDeserializationConfiguration().orElse(this.deserializationConfiguration);
-
+        DeserBean<? super Object> deserBean = getDeserializableBean(type, null, context);
         if (deserBean.subtypeInfo != null) {
-            DeserBeanSubtypeInfo<Object> subtypeInfo = deserBean.subtypeInfo;
-            SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypeInfo.info().discriminatorType();
-            Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
-            boolean disallowUnwrap = discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT;
-            Deserializer<Object> defaultDeserializer = null;
-            for (Map.Entry<String, DeserBean<?>> e : subtypeInfo.subtypes().entrySet()) {
-                DeserBean<Object> subtypeDeserBean = (DeserBean<Object>) e.getValue();
-                Deserializer<Object> subtypeDeserializer = findDeserializer(deserializationConfiguration, subtypeDeserBean, disallowUnwrap);
-                subtypeDeserializers.put(
-                    e.getKey(),
-                    subtypeDeserializer
-                );
-                if (defaultDeserializer == null && subtypeInfo.defaultType() == subtypeDeserBean) {
-                    defaultDeserializer = subtypeDeserializer;
+            return createSubtypeDeserializer(context, deserializationConfiguration, deserBean, type);
+        }
+        return findDeserializer(deserializationConfiguration, deserBean, false);
+    }
+
+    private Deserializer<Object> createSubtypeDeserializer(DecoderContext context,
+                                                           DeserializationConfiguration deserializationConfiguration,
+                                                           DeserBean<? super Object> deserBean,
+                                                           Argument<? super Object> type) {
+        DeserBeanSubtypeInfo<Object> subtypeInfo = deserBean.subtypeInfo;
+        SubtypeInfo info = subtypeInfo.info();
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = info.discriminatorType();
+        Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
+        boolean disallowUnwrap = discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT;
+        DeserializerSubtypeInfo<Object> deserializerSubtypeInfo;
+        Deserializer<Object> defaultDeserializer = null;
+        boolean hasUnresolved = false;
+        for (Map.Entry<String, DeserBeanSubtypeInfo.SubtypeDef<Object>> e : subtypeInfo.subtypes().entrySet()) {
+            DeserBeanSubtypeInfo.SubtypeDef<Object> subtypeDef =  e.getValue();
+            DeserBean<?> subtypeDeserBean = subtypeDef.deserBean();
+            if (subtypeDeserBean == null) {
+                hasUnresolved = true;
+                continue;
+            }
+            Deserializer<Object> subtypeDeserializer = findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) subtypeDeserBean, disallowUnwrap);
+            subtypeDeserializers.put(
+                e.getKey(),
+                subtypeDeserializer
+            );
+            if (defaultDeserializer == null && subtypeInfo.defaultType() == subtypeDef) {
+                defaultDeserializer = subtypeDeserializer;
+            }
+        }
+        if (defaultDeserializer == null && subtypeInfo.defaultType() != null) {
+            DeserBean<?> defaultDeserBean = subtypeInfo.defaultType().deserBean();
+            if (defaultDeserBean != null) {
+                defaultDeserializer = findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) defaultDeserBean, disallowUnwrap);
+            }
+        }
+        ResolvedDeserializerSubtypeInfo<Object> resolved = new ResolvedDeserializerSubtypeInfo<>(subtypeInfo, subtypeDeserializers, defaultDeserializer);
+        if (!hasUnresolved) {
+            deserializerSubtypeInfo = resolved;
+        } else {
+            Deserializer<Object> finalDefaultDeserializer = defaultDeserializer;
+            deserializerSubtypeInfo = new DeserializerSubtypeInfo<>() {
+                @Override
+                public DeserBeanSubtypeInfo<Object> parent() {
+                    return subtypeInfo;
                 }
-            }
-            if (defaultDeserializer == null && subtypeInfo.defaultType() != null) {
-                defaultDeserializer = findDeserializer(deserializationConfiguration, (DeserBean<Object>) subtypeInfo.defaultType(), disallowUnwrap);
-            }
-            DeserializerSubtypeInfo<Object> deserializerSubtypeInfo = new DeserializerSubtypeInfo<>(
-                subtypeInfo, subtypeDeserializers, defaultDeserializer);
-            if (deserializerSubtypeInfo.parent().info().deduct()) {
-                return new SubtypedDeductionDeserializer(
-                    deserBean,
-                    deserializerSubtypeInfo.subtypes());
-            }
-            return switch (subtypeInfo.info().discriminatorType()) {
-                case WRAPPER_OBJECT -> new WrappedObjectSubtypedDeserializer(deserializerSubtypeInfo, deserBean.ignoreUnknown);
-                case WRAPPER_ARRAY -> new WrappedArraySubtypedDeserializer(deserializerSubtypeInfo, deserBean.ignoreUnknown);
-                case PROPERTY, EXISTING_PROPERTY -> new SubtypedPropertyObjectDeserializer(deserializerSubtypeInfo);
-                case EXTERNAL_PROPERTY -> new SubtypedExternalPropertyObjectDeserializer(deserializerSubtypeInfo);
+
+                @Override
+                public Deserializer<Object> findDeserializer(String discriminatorValue) throws SerdeException {
+                    Deserializer<Object> deserializer = subtypeDeserializers.get(discriminatorValue);
+                    if (deserializer != null) {
+                        return deserializer;
+                    }
+                    DeserBeanSubtypeInfo.SubtypeDef<Object> subtype = subtypeInfo.subtypes().get(discriminatorValue);
+                    Argument<?> argument;
+                    if (subtype != null) {
+                        argument = subtype.type();
+                    } else {
+                        if (finalDefaultDeserializer != null) {
+                            return finalDefaultDeserializer;
+                        }
+                        DeserBeanSubtypeInfo.SubtypeDef<Object> defaultType = subtypeInfo.defaultType();
+                        if (defaultType == null) {
+                            throw subtypeInfo.unknownSuperTypeException();
+                        }
+                        argument = defaultType.type();
+                    }
+                    DeserBean<?> subtypeDeserBean = getDeserializableBean(argument, type.getTypeVariables(), context);
+                    return ObjectDeserializer.this.findDeserializer(deserializationConfiguration, (DeserBean<Object>) subtypeDeserBean, disallowUnwrap);
+                }
             };
         }
-
-        return findDeserializer(deserializationConfiguration, deserBean, false);
+        if (info.deduct()) {
+            return new SubtypedDeductionDeserializer(
+                deserBean,
+                subtypeDeserializers);
+        }
+        return switch (info.discriminatorType()) {
+            case WRAPPER_OBJECT ->
+                new WrappedObjectSubtypedDeserializer(deserializerSubtypeInfo, deserBean.ignoreUnknown);
+            case WRAPPER_ARRAY ->
+                new WrappedArraySubtypedDeserializer(deserializerSubtypeInfo, deserBean.ignoreUnknown);
+            case PROPERTY, EXISTING_PROPERTY ->
+                new SubtypedPropertyObjectDeserializer(deserializerSubtypeInfo);
+            case EXTERNAL_PROPERTY ->
+                new SubtypedExternalPropertyObjectDeserializer(deserializerSubtypeInfo);
+        };
     }
 
     private Deserializer<Object> findDeserializer(DeserializationConfiguration deserializationConfiguration, DeserBean<? super Object> deserBean, boolean disallowUnwrap) {
@@ -156,28 +210,32 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     }
 
     @Override
-    public <T> DeserBean<T> getDeserializableBean(Argument<T> type, DecoderContext decoderContext) throws SerdeException {
+    public <T> DeserBean<T> getDeserializableBean(Argument<T> type, @Nullable Map<String, Argument<?>> typeArguments, DecoderContext decoderContext) throws SerdeException {
         SerdeArgumentConf serdeArgumentConf = type.getAnnotationMetadata().isEmpty() ?
             null : new SerdeArgumentConf(type.getAnnotationMetadata());
         DeserBeanKey key = new DeserBeanKey(
             decoderContext.getSerdeConfiguration().orElse(serdeConfiguration),
             decoderContext.getDeserializationConfiguration().orElse(deserializationConfiguration),
             type,
+            typeArguments,
             serdeArgumentConf
         );
         // Use suppliers to prevent recursive update because the lambda can call the same method again
-        Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, serdeArgumentConf, decoderContext)));
+        Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, typeArguments, serdeArgumentConf, decoderContext)));
         DeserBean<?> deserBean = deserBeanSupplier.get();
         deserBean.initialize(lock, decoderContext);
         return (DeserBean<T>) deserBean;
     }
 
     private <T> DeserBean<T> createDeserBean(Argument<T> type,
+                                             @Nullable
+                                             Map<String, Argument<?>> typeArguments,
                                              @Nullable SerdeArgumentConf serdeArgumentConf,
                                              DecoderContext decoderContext) {
         try {
             final BeanIntrospection<T> deserializableIntrospection = introspections.getDeserializableIntrospection(type);
-            return new DeserBean<>(deserializationConfiguration, type, deserializableIntrospection, decoderContext, this, serdeArgumentConf);
+            Map<String, Argument<?>> ta = typeArguments == null || typeArguments.isEmpty() ? type.getTypeVariables() : typeArguments;
+            return new DeserBean<>(deserializationConfiguration, ta, deserializableIntrospection, decoderContext, this, serdeArgumentConf);
         } catch (SerdeException e) {
             throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
         }
