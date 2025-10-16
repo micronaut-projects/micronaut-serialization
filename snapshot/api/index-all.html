@@ -119,6 +119,10 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decoder function for a single value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#acceptCaseInsensitiveEnums()" class="member-name-link">acceptCaseInsensitiveEnums()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether to accept case-insensitive enumeration values during deserialization.</div>
+</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#address" class="member-name-link">address</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users2.User.html#address" class="member-name-link">address</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users2.User.html" title="class in io.micronaut.serde.data">Users2.User</a></dt>
@@ -2108,7 +2112,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/util/CustomizableDeserializer.html#getDefaultValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">getDefaultValue(Deserializer.DecoderContext, Argument&lt;? super T&gt;)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html#getDeserializableBean(io.micronaut.core.type.Argument,io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">getDeserializableBean(Argument&lt;T&gt;, Deserializer.DecoderContext)</a> - Method in class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a></dt>
+<dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html#getDeserializableBean(io.micronaut.core.type.Argument,java.util.Map,io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">getDeserializableBean(Argument&lt;T&gt;, Map&lt;String, Argument&lt;?&gt;&gt;, Deserializer.DecoderContext)</a> - Method in class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SerdeIntrospections.html#getDeserializableIntrospection(io.micronaut.core.type.Argument)" class="member-name-link">getDeserializableIntrospection(Argument&lt;T&gt;)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/SerdeIntrospections.html" title="interface in io.micronaut.serde">SerdeIntrospections</a></dt>
 <dd>
@@ -2175,11 +2179,27 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#getInclusion()" class="member-name-link">getInclusion()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#getInner1()" class="member-name-link">getInner1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#getInner1()" class="member-name-link">getInner1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#getInner2()" class="member-name-link">getInner2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#getInner2()" class="member-name-link">getInner2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#getInteger()" class="member-name-link">getInteger()</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
 <dd>
 <div class="block">Decode the current <a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a long value.</div>
 </dd>
 <dt><a href="io/micronaut/serde/reference/PropertyReference.html#getIntrospection()" class="member-name-link">getIntrospection()</a> - Method in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#getKey1()" class="member-name-link">getKey1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#getKey1()" class="member-name-link">getKey1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#getKey2()" class="member-name-link">getKey2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#getKey2()" class="member-name-link">getKey2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#getLocale()" class="member-name-link">getLocale()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -2204,6 +2224,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/jackson/builder/TestBuildMe2.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.jackson.builder.<a href="io/micronaut/serde/jackson/builder/TestBuildMe2.html" title="class in io.micronaut.serde.jackson.builder">TestBuildMe2</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/maps/CustomKey.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.jackson.maps.<a href="io/micronaut/serde/jackson/maps/CustomKey.html" title="class in io.micronaut.serde.jackson.maps">CustomKey</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/bson/BsonCreatorTransformer.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.bson.<a href="io/micronaut/serde/processor/bson/BsonCreatorTransformer.html" title="class in io.micronaut.serde.processor.bson">BsonCreatorTransformer</a></dt>
 <dd>&nbsp;</dd>
@@ -2495,6 +2519,14 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#getVal()" class="member-name-link">getVal()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#getValue1()" class="member-name-link">getValue1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#getValue1()" class="member-name-link">getValue1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#getValue2()" class="member-name-link">getValue2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#getValue2()" class="member-name-link">getValue2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html#getVisitorKind()" class="member-name-link">getVisitorKind()</a> - Method in class io.micronaut.serde.processor.<a href="io/micronaut/serde/processor/SerdeAnnotationVisitor.html" title="class in io.micronaut.serde.processor">SerdeAnnotationVisitor</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#getWriteFeatures()" class="member-name-link">getWriteFeatures()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
@@ -2674,6 +2706,14 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/tck/tests/InetAddressTest.html" class="type-name-link" title="class in io.micronaut.serde.tck.tests">InetAddressTest</a> - Class in <a href="io/micronaut/serde/tck/tests/package-summary.html">io.micronaut.serde.tck.tests</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/tck/tests/InetAddressTest.html#%3Cinit%3E()" class="member-name-link">InetAddressTest()</a> - Constructor for class io.micronaut.serde.tck.tests.<a href="io/micronaut/serde/tck/tests/InetAddressTest.html" title="class in io.micronaut.serde.tck.tests">InetAddressTest</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#%3Cinit%3E()" class="member-name-link">InnerAlwaysInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#%3Cinit%3E()" class="member-name-link">InnerAlwaysInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#%3Cinit%3E()" class="member-name-link">InnerDefaultInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#%3Cinit%3E()" class="member-name-link">InnerDefaultInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/InstantSerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">InstantSerde</a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
 <dd>
@@ -3416,6 +3456,22 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Apply a mixin type.</div>
 </dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" class="type-name-link" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#%3Cinit%3E()" class="member-name-link">MyBeanConstructorWithUnwrappedAlwaysInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" class="type-name-link" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" class="type-name-link" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" class="type-name-link" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#%3Cinit%3E()" class="member-name-link">MyBeanWithUnwrappedAlwaysInclude()</a> - Constructor for class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" class="type-name-link" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" class="type-name-link" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a> - Class in <a href="io/micronaut/serde/jackson/package-summary.html">io.micronaut.serde.jackson</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <h2 class="title" id="I:N">N</h2>
 <dl class="index">
@@ -4277,7 +4333,27 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#setGeneratorFeatures(java.util.Map)" class="member-name-link">setGeneratorFeatures(Map&lt;JsonGenerator.Feature, Boolean&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#setInner1(io.micronaut.serde.jackson.MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude)" class="member-name-link">setInner1(MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#setInner1(io.micronaut.serde.jackson.MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude)" class="member-name-link">setInner1(MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#setInner2(io.micronaut.serde.jackson.MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude)" class="member-name-link">setInner2(MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#setInner2(io.micronaut.serde.jackson.MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude)" class="member-name-link">setInner2(MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#setKey1(java.lang.String)" class="member-name-link">setKey1(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#setKey1(java.lang.String)" class="member-name-link">setKey1(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#setKey2(java.lang.String)" class="member-name-link">setKey2(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#setKey2(java.lang.String)" class="member-name-link">setKey2(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/BeanWithExtraMethod.html#setName(java.lang.String)" class="member-name-link">setName(String)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/BeanWithExtraMethod.html" title="class in io.micronaut.serde">BeanWithExtraMethod</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html#setName(java.lang.String)" class="member-name-link">setName(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html#setName(java.lang.String)" class="member-name-link">setName(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Simple.html#setName(java.lang.String)" class="member-name-link">setName(String)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/Simple.html" title="class in io.micronaut.serde">Simple</a></dt>
 <dd>&nbsp;</dd>
@@ -4322,6 +4398,14 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#setStreamFeatures(java.util.Map)" class="member-name-link">setStreamFeatures(Map&lt;StreamWriteFeature, Boolean&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#setVal(java.lang.String)" class="member-name-link">setVal(String)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#setValue1(java.lang.String)" class="member-name-link">setValue1(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#setValue1(java.lang.String)" class="member-name-link">setValue1(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#setValue2(java.lang.String)" class="member-name-link">setValue2(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#setValue2(java.lang.String)" class="member-name-link">setValue2(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#setWriteFeatures(java.util.Map)" class="member-name-link">setWriteFeatures(Map&lt;JsonWriteFeature, Boolean&gt;)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -4708,6 +4792,10 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#URL_SERDE" class="member-name-link">URL_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html#USE_DEFAULTS" class="member-name-link">USE_DEFAULTS</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></dt>
+<dd>
+<div class="block">Pseudo-value used to indicate that the higher-level defaults make sense, to avoid overriding inclusion value.</div>
+</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#%3Cinit%3E()" class="member-name-link">User()</a> - Constructor for class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users2.User.html#%3Cinit%3E()" class="member-name-link">User()</a> - Constructor for class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users2.User.html" title="class in io.micronaut.serde.data">Users2.User</a></dt>
