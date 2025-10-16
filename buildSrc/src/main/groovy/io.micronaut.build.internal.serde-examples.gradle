@@ -6,3 +6,8 @@ plugins {
 micronaut {
     version libs.versions.micronaut.platform.get()
 }
+
+dependencies {
+    // Gradle 9 requires explicitly adding the JUnit Platform Launcher on the test runtime classpath
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
