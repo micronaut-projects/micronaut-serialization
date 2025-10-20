@@ -1,3 +1,6 @@
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+
 plugins {
     id("io.micronaut.build.internal.serde-module")
 }
@@ -34,4 +37,12 @@ dependencies {
     testImplementation(projects.micronautSerdeJacksonTck)
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.micronaut.http.server.netty)
+}
+
+val toolchainService = extensions.getByType<JavaToolchainService>()
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    // Run test JVM with Java 21 to avoid Kotlin compiler crash on Java 25 (IllegalArgumentException: 25)
+    javaLauncher.set(toolchainService.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
 }

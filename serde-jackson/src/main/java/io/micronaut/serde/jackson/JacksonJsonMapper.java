@@ -413,7 +413,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         }
     }
 
-    private class ObjectCodecImpl extends ObjectCodec {
+    private final class ObjectCodecImpl extends ObjectCodec {
         @Override
         public Version version() {
             return Version.unknownVersion();
