@@ -30,5 +30,5 @@ dependencies {
     testImplementation(mn.micronaut.jackson.databind)
     testImplementation(libs.jetbrains.annotations)
     testImplementation(mnTest.micronaut.test.junit5)
-    testImplementation(libs.junit.jupiter.engine)
+    testImplementation(mnTest.junit.jupiter.engine)
 }

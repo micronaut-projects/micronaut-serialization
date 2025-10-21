@@ -39,7 +39,7 @@ dependencies {
     testImplementation(mnReactor.micronaut.reactor)
 
     testRuntimeOnly(mn.snakeyaml)
-    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(mnTest.junit.jupiter.engine)
 }
 
 tasks {
