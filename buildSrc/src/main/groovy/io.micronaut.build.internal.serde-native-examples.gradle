@@ -1,9 +1,12 @@
 plugins {
     id("io.micronaut.build.internal.serde-base")
-    id("io.micronaut.build.internal.serde-tests")
     id("io.micronaut.application")
 }
 
 micronaut {
     version libs.versions.micronaut.platform.get()
+}
+
+dependencies {
+    testRuntimeOnly(libs.junit.platform.launcher)
 }

@@ -1,11 +1,4 @@
 plugins {
     id("io.micronaut.build.internal.serde-base")
     id("io.micronaut.build.internal.common")
-    id "java-library"
-}
-repositories {
-    mavenCentral()
-}
-dependencies {
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
