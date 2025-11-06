@@ -4,6 +4,56 @@ import io.micronaut.serde.jackson.JsonSubtypesSpec
 
 class SerdeJsonSubtypesSpec extends JsonSubtypesSpec {
 
+  void 'test nested subtypes deserialization'() {
+      given:
+      def compiled = buildContext('example.Wrapper', '''
+package example;
+
+import com.fasterxml.jackson.annotation.*;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.annotation.Nullable;
+
+@Serdeable
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = ChildA.class, name = "subtype-a"),
+    @JsonSubTypes.Type(value = ChildB.class, name = "subtype-b")
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "subtype")
+sealed interface Parent permits ChildA, ChildB {
+}
+
+@Serdeable
+record Wrapper(
+    @Nullable Parent inner
+) {
+}
+
+@Serdeable
+final class ChildA implements Parent {
+    private String propA;
+    public ChildA(String propA) { this.propA = propA; }
+    public String getPropA() { return propA; }
+}
+
+@Serdeable
+final class ChildB implements Parent {
+    public ChildB() {}
+}
+''', true)
+      def wrapper = compiled.classLoader.loadClass('example.Wrapper')
+      def cl = Thread.currentThread().getContextClassLoader()
+      Thread.currentThread().setContextClassLoader(compiled.classLoader)
+
+      expect:
+      deserializeFromString(jsonMapper, wrapper, '{"inner":{"subtype":"subtype-a", "propA": "a"}}').inner.class.simpleName == 'ChildA'
+      deserializeFromString(jsonMapper, wrapper, '{"inner":{"subtype":"subtype-a"}}').inner.class.simpleName == 'ChildA'
+      deserializeFromString(jsonMapper, wrapper, '{"inner":{"subtype":"subtype-b"}}').inner.class.simpleName == 'ChildB'
+
+      cleanup:
+      Thread.currentThread().setContextClassLoader(cl)
+      compiled.close()
+  }
+
   void 'test @JsonIgnoreProperties unknown property handling on subtypes'() {
         given: // TODO: disable global ignore unknown
         def compiled = buildContext('example.Base', '''

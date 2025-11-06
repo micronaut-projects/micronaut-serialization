@@ -116,13 +116,13 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 handleUnexpectedProperty(objectDecoder, propertyName, deserBean);
             }
             if (beanDeserializer.isAllConsumed()) {
-                instance = beanDeserializer.provideInstance(type, decoderContext);
+                instance = beanDeserializer.provideInstance(type, decoderContext, false);
                 break;
             }
         }
 
         if (instance == null) {
-            instance = beanDeserializer.provideInstance(type, decoderContext);
+            instance = beanDeserializer.provideInstance(type, decoderContext, false);
         }
         if (deserBean.ignoreUnknown) {
             objectDecoder.finishStructure(true);
@@ -200,13 +200,13 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     handleUnexpectedProperty(objectDecoder, propertyName, deserBean);
                 }
                 if (beanDeserializer.isAllConsumed()) {
-                    instance = beanDeserializer.provideInstance(type, decoderContext);
+                    instance = beanDeserializer.provideInstance(type, decoderContext, false);
                     break;
                 }
             }
 
             if (instance == null) {
-                instance = beanDeserializer.provideInstance(type, decoderContext);
+                instance = beanDeserializer.provideInstance(type, decoderContext, false);
             }
             if (deserBean.ignoreUnknown) {
                 rootObjectDecoder.finishStructure(true);
@@ -490,7 +490,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
                     );
                 }
             }
@@ -588,7 +588,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                             wrappedProperty.set(
                                 decoderContext,
                                 instance,
-                                up.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                                up.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
                             );
                         }
                         return true;
@@ -611,7 +611,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                     wrappedProperty.set(
                         decoderContext,
                         instance,
-                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext)
+                        unwrappedProperty.beanDeserializer.provideInstance(objectArgument, decoderContext, true)
                     );
                 }
             }
@@ -768,7 +768,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
             if (unwrappedProperties != null) {
                 for (UnwrappedPropertyDeserializer unwrappedProperty : unwrappedProperties) {
                     DeserBean.DerProperty<Object, Object> wrappedProperty = unwrappedProperty.wrappedProperty;
-                    Object value = unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext);
+                    Object value = unwrappedProperty.beanDeserializer.provideInstance(wrappedProperty.argument, decoderContext, true);
                     if (wrappedProperty.views != null && !decoderContext.hasView(wrappedProperty.views)) {
                         continue;
                     }
@@ -895,7 +895,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) throws IOException {
             Object instance;
             try {
                 Object[] values = constructorValuesDeserializer.getValues(decoderContext);
@@ -905,7 +905,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 if (conf.preInstantiateCallback != null) {
                     conf.preInstantiateCallback.preInstantiate(introspection, values);
                 }
-                if (objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
+                if (isWrapped && objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
                     return null;
                 }
                 instance = introspection.instantiate(conf.strictNullable, values);
@@ -993,7 +993,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) throws IOException {
             if (propertiesConsumer != null) {
                 propertiesConsumer.finalizeProperties(decoderContext, objectArgument, instance);
             }
@@ -1088,11 +1088,11 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) throws IOException {
             if (beanDeserializer == null) {
                 return null;
             }
-            return beanDeserializer.provideInstance(objectArgument, decoderContext);
+            return beanDeserializer.provideInstance(objectArgument, decoderContext, isWrapped);
         }
     }
 
@@ -1181,14 +1181,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) throws IOException {
             if (beanDeserializer == null) {
                 if (buffer != null) {
                     throw new SerdeException("Cannot deduct the subtype for bean " + objectArgument.getType().getName());
                 }
                 return null;
             }
-            return beanDeserializer.provideInstance(objectArgument, decoderContext);
+            return beanDeserializer.provideInstance(objectArgument, decoderContext, false);
         }
     }
 
@@ -1246,7 +1246,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) {
             return instance;
         }
     }
@@ -1297,7 +1297,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         }
 
         @Override
-        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException {
+        public Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) throws IOException {
             try {
                 return builder.build();
             } catch (InstantiationException e) {
@@ -1326,7 +1326,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         abstract void init(DecoderContext decoderContext) throws SerdeException;
 
         @Nullable
-        abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext) throws IOException;
+        abstract Object provideInstance(Argument<? super Object> objectArgument, DecoderContext decoderContext, boolean isWrapped) throws IOException;
 
     }
 
