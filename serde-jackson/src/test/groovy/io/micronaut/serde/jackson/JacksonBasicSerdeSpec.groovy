@@ -35,9 +35,8 @@ class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
         obj = new MyBeanWithNestedObject("id2", null)
         json = jsonMapper.writeValueAsString(obj)
         result = jsonMapper.readValue(json, MyBeanWithNestedObject)
-        then: "The result is different, as always has added the type"
-        def expected = new MyBeanWithNestedObject("id2", new MyBeanWithNestedObject.MyNestedBean(null, null))
-        expected == result
+        then:
+        obj == result
         json == """{"id":"id2"}"""
     }
 
