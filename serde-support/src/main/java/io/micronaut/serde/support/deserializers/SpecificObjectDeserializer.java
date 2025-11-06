@@ -905,9 +905,6 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 if (conf.preInstantiateCallback != null) {
                     conf.preInstantiateCallback.preInstantiate(introspection, values);
                 }
-                if (objectArgument.isNullable() && allNull(values) && propertiesConsumer == null && anyValuesDeserializer == null) {
-                    return null;
-                }
                 instance = introspection.instantiate(conf.strictNullable, values);
             } catch (InstantiationException e) {
                 throw new SerdeException(PREFIX_UNABLE_TO_DESERIALIZE_TYPE + introspection.getBeanType() + "]: " + e.getMessage(), e);
@@ -919,15 +916,6 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 anyValuesDeserializer.bind(instance);
             }
             return instance;
-        }
-
-        private boolean allNull(Object[] values) {
-            for (Object value : values) {
-                if (value != null) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 
