@@ -45,4 +45,8 @@ public class ComputeInstanceDetails extends InstanceConfigurationInstanceDetails
         this.launchDetails = launchDetails;
     }
 
+    public List<String> getLaunchDetails() {
+        return launchDetails;
+    }
+
 }

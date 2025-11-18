@@ -66,6 +66,10 @@ class BuilderSpec extends Specification {
 
         then:
         value.instanceDetails != null
+        value.instanceDetails instanceof ComputeInstanceOptions
+        !((ComputeInstanceOptions) (value.instanceDetails)).options.isEmpty()
+        ComputeInstanceDetails details =  ((ComputeInstanceOptions) (value.instanceDetails)).options.get(0)
+        details.getLaunchDetails().get(0) == "test"
     }
 
     void "test deserialize builder on supertype"() {
