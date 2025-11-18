@@ -113,6 +113,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 public DeserBeanSubtypeInfo<Object> parent() {
                     return subtypeInfo;
                 }
+
                 @Override
                 public Deserializer<Object> findDeserializer(@Nullable String discriminatorValue) {
                     return self;
