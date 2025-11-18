@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import io.micronaut.core.annotation.Introspected;
 
 @JsonDeserialize(
     builder = InstanceConfiguration.Builder.class
@@ -40,8 +39,7 @@ public class InstanceConfiguration {
         }
 
         public InstanceConfiguration build() {
-            InstanceConfiguration model = new InstanceConfiguration(this.instanceDetails);
-            return model;
+            return new InstanceConfiguration(this.instanceDetails);
         }
     }
 }

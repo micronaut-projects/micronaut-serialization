@@ -21,8 +21,7 @@ package io.micronaut.serde.jackson.builder;
             }
 
             public ComputeInstanceOptions build() {
-                ComputeInstanceOptions model = new ComputeInstanceOptions(this.options);
-                return model;
+                return new ComputeInstanceOptions(this.options);
             }
         }
 
@@ -33,7 +32,6 @@ package io.micronaut.serde.jackson.builder;
     @com.fasterxml.jackson.annotation.JsonProperty("options")
     private final java.util.List<ComputeInstanceDetails> options;
 
-    @Deprecated
     public ComputeInstanceOptions(java.util.List<ComputeInstanceDetails> options) {
         this.options = options;
     }
