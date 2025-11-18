@@ -57,7 +57,7 @@ class BuilderSpec extends Specification {
         value.bar == 'buzz'
     }
 
-    void "test deserialize builder on subtype with two Types inside JsonSubTypes same value different names"() {
+    void "test oci sdk InstanceConfiguration"() {
         given:
         def json = '{"instanceDetails":{"instanceType":"instance_options","options":[{"instanceType":"compute","launchDetails":["test"]}]}}';
 
