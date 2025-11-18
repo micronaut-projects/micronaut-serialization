@@ -103,6 +103,23 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
         DeserBeanSubtypeInfo<Object> subtypeInfo = deserBean.subtypeInfo;
         SubtypeInfo info = subtypeInfo.info();
         SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = info.discriminatorType();
+        // If the bean declares @JsonTypeInfo but has no registered subtypes, build a trivial subtype resolver
+        // that accepts the discriminator when present and otherwise defaults to this bean's deserializer.
+        // This supports concrete leaf classes (e.g. OCI leaf types) that carry @JsonTypeInfo on the class.
+        if (subtypeInfo.subtypes().isEmpty()) {
+            final Deserializer<Object> self = findDeserializer(deserializationConfiguration, deserBean, false);
+            DeserializerSubtypeInfo<Object> di = new DeserializerSubtypeInfo<>() {
+                @Override
+                public DeserBeanSubtypeInfo<Object> parent() {
+                    return subtypeInfo;
+                }
+                @Override
+                public Deserializer<Object> findDeserializer(@Nullable String discriminatorValue) {
+                    return self;
+                }
+            };
+            return new SubtypedPropertyObjectDeserializer(di);
+        }
         Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
         boolean disallowUnwrap = discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.WRAPPER_OBJECT;
         DeserializerSubtypeInfo<Object> deserializerSubtypeInfo;
@@ -129,6 +146,10 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
             if (defaultDeserBean != null) {
                 defaultDeserializer = findDeserializer(deserializationConfiguration, (DeserBean<? super Object>) defaultDeserBean, disallowUnwrap);
             }
+        }
+        // If we still don't have a default deserializer, fall back to the lazy path
+        if (defaultDeserializer == null) {
+            hasUnresolved = true;
         }
         ResolvedDeserializerSubtypeInfo<Object> resolved = new ResolvedDeserializerSubtypeInfo<>(subtypeInfo, subtypeDeserializers, defaultDeserializer);
         if (!hasUnresolved) {
