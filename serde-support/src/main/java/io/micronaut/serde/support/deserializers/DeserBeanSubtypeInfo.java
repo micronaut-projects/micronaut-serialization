@@ -104,11 +104,8 @@ record DeserBeanSubtypeInfo<T>(
             defaultType = introspection.getBeanType();
         }
         SubtypeDef<T> defaultDeserType = null;
-        if (defaultType != null) {
-            if ("com.fasterxml.jackson.annotation.JsonTypeInfo".equals(introspection.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DEFAULT_IMPL).orElse(null))) {
-                defaultType = null;
-            }
-        }
+        // Keep computed defaultType. Do not nullify it based on the annotation's sentinel default value,
+        // otherwise absence of an explicit defaultImpl would incorrectly disable defaulting to the super type.
         if (introspection.getBeanType().equals(defaultType)) {
             defaultDeserType = new SubtypeDef<>(superTypeDeserBean, introspection.asArgument());
         }

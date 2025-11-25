@@ -57,6 +57,21 @@ class BuilderSpec extends Specification {
         value.bar == 'buzz'
     }
 
+    void "test oci sdk InstanceConfiguration"() {
+        given:
+        def json = '{"instanceDetails":{"instanceType":"instance_options","options":[{"instanceType":"compute","launchDetails":["test"]}]}}';
+
+        when:
+        def value = objectMapper.readValue(json, InstanceConfiguration)
+
+        then:
+        value.instanceDetails != null
+        value.instanceDetails instanceof ComputeInstanceOptions
+        !((ComputeInstanceOptions) (value.instanceDetails)).options.isEmpty()
+        ComputeInstanceDetails details =  ((ComputeInstanceOptions) (value.instanceDetails)).options.get(0)
+        details.getLaunchDetails().get(0) == "test"
+    }
+
     void "test deserialize builder on supertype"() {
         given:
         def json = '{"foo":"fizz"}'

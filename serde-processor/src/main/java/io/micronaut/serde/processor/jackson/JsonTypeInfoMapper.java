@@ -61,14 +61,12 @@ public class JsonTypeInfoMapper extends ValidatingAnnotationMapper {
         AnnotationValueBuilder<SerdeConfig.SerSubtyped> builder = AnnotationValue.builder(SerdeConfig.SerSubtyped.class);
 
         AnnotationClassValue<?> defaultImpl = annotation.annotationClassValue("defaultImpl").orElse(null);
-        if (defaultImpl != null) {
-            if (!defaultImpl.getName().equals("com.fasterxml.jackson.annotation.JsonTypeInfo")) {
-                values.add(
-                    AnnotationValue.builder(DefaultImplementation.class)
-                        .member(AnnotationMetadata.VALUE_MEMBER, defaultImpl)
-                        .build()
-                );
-            }
+        if (defaultImpl != null && !defaultImpl.getName().equals("com.fasterxml.jackson.annotation.JsonTypeInfo")) {
+            values.add(
+                AnnotationValue.builder(DefaultImplementation.class)
+                    .member(AnnotationMetadata.VALUE_MEMBER, defaultImpl)
+                    .build()
+            );
             builder.member(SerdeConfig.SerSubtyped.DEFAULT_IMPL, defaultImpl);
         }
 
