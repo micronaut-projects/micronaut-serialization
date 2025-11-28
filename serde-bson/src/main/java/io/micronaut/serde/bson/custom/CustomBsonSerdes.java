@@ -17,7 +17,7 @@ package io.micronaut.serde.bson.custom;
 
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.core.annotation.Order;
 import jakarta.inject.Singleton;
 import org.bson.BsonBinary;

@@ -16,7 +16,7 @@
 package io.micronaut.serde.config.naming;
 
 import io.micronaut.core.annotation.AnnotatedElement;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.util.StringUtils;
 

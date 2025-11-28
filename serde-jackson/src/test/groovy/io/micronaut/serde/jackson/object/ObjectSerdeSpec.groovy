@@ -735,7 +735,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
@@ -762,7 +762,7 @@ class Test {
         def context = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
@@ -811,7 +811,7 @@ class Test {
         def context = buildContext('example.Test', '''
 package example;
 
-import io.micronaut.core.annotation.Introspected;import io.micronaut.core.annotation.Nullable;
+import io.micronaut.core.annotation.Introspected;import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 @io.micronaut.serde.annotation.Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)

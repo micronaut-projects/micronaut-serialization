@@ -1,7 +1,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Creator;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.types.ObjectId;
 

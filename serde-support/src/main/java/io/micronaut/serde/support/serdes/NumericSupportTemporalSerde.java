@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
 

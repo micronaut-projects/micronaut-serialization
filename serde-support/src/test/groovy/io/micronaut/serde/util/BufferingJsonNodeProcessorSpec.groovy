@@ -3,7 +3,7 @@ package io.micronaut.serde.util
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.core.JsonParser
-import io.micronaut.core.annotation.NonNull
+import org.jspecify.annotations.NonNull
 import io.micronaut.jackson.core.tree.JsonNodeTreeCodec
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor

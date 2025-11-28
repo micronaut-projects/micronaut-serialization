@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde;
 
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;

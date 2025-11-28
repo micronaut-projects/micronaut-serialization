@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde.config;
 
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;

@@ -227,7 +227,7 @@ class Test {
 package example;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 @io.micronaut.serde.annotation.Serdeable
@@ -263,7 +263,7 @@ class Test {
 package example;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 @io.micronaut.serde.annotation.Serdeable
@@ -288,7 +288,7 @@ class Test {
 package example;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 import io.micronaut.serde.annotation.Serdeable;
 
@@ -324,7 +324,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @io.micronaut.serde.annotation.Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
@@ -808,7 +808,7 @@ package test;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Serdeable
 class Test {

@@ -1,7 +1,7 @@
 package example.openapi.test.model
 
 import com.fasterxml.jackson.annotation.*
-import io.micronaut.core.annotation.Nullable
+import org.jspecify.annotations.Nullable
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.annotation.Generated
 import java.util.*

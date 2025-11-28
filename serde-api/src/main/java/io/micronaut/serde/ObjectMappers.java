@@ -21,7 +21,7 @@ import io.micronaut.context.DefaultApplicationContext;
 import io.micronaut.context.env.DefaultEnvironment;
 import io.micronaut.context.env.Environment;
 import io.micronaut.context.env.PropertySource;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.BeanDefinitionReference;

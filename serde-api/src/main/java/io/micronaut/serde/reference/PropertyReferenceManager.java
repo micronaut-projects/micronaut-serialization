@@ -16,7 +16,7 @@
 package io.micronaut.serde.reference;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 
 /**
  * interface for managing property references.

@@ -16,7 +16,7 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.context.annotation.Secondary;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;

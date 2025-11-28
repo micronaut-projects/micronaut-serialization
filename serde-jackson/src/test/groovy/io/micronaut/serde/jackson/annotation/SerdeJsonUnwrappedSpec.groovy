@@ -112,7 +112,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.micronaut.serde.annotation.Serdeable;
 import java.sql.Timestamp;
 import java.util.Date;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 
 @Serdeable
 class NestedEntity {
@@ -313,7 +313,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.micronaut.serde.annotation.Serdeable;
 import java.sql.Timestamp;
 import java.util.Date;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 
 @Serdeable
 class NestedEntity {

@@ -73,7 +73,7 @@ class SerdeJsonSubtypesKotlinSpec extends AbstractKotlinCompilerSpec {
 package test
 
 import com.fasterxml.jackson.annotation.*
-import io.micronaut.core.annotation.Nullable
+import org.jspecify.annotations.Nullable
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.validation.constraints.*
 import java.math.BigDecimal

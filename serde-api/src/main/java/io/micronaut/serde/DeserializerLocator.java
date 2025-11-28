@@ -17,7 +17,7 @@ package io.micronaut.serde;
 
 import java.util.Collection;
 
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;

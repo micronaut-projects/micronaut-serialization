@@ -17,7 +17,7 @@ package io.micronaut.serde.reference;
 
 import java.util.ArrayDeque;
 
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Abstract implementation of {@link io.micronaut.serde.reference.PropertyReferenceManager}.

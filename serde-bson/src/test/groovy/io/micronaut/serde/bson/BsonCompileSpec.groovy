@@ -2,7 +2,7 @@ package io.micronaut.serde.bson
 
 import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
 import io.micronaut.context.ApplicationContext
-import io.micronaut.core.annotation.NonNull
+import org.jspecify.annotations.NonNull
 import io.micronaut.core.beans.BeanIntrospection
 import io.micronaut.core.beans.exceptions.IntrospectionException
 import io.micronaut.core.naming.NameUtils

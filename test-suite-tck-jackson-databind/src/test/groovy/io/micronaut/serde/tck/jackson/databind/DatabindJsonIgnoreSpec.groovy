@@ -25,7 +25,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -53,7 +53,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

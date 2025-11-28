@@ -193,7 +193,7 @@ class Item {
 package jsonviews;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.jackson.Views;
 

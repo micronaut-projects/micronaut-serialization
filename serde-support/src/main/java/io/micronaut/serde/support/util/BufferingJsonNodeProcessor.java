@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 
 import io.micronaut.core.annotation.Experimental;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.json.tree.JsonNode;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;

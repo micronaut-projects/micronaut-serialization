@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde;
 
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.math.BigDecimal;

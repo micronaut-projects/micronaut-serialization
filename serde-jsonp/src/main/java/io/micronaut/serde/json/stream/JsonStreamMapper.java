@@ -16,8 +16,8 @@
 package io.micronaut.serde.json.stream;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.json.JsonStreamConfig;
