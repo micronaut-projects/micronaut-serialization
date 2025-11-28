@@ -4,8 +4,6 @@ managed-jakarta-json-api = "2.1.3"
 managed-jakarta-json-bindApi = "3.0.1"
 managed-eclipse-parsson = "1.1.7"
 
-kotlin = "1.9.25"
-ksp = "1.9.25-1.0.20"
 graal-svm = "23.1.8"
 aws-lambda-events = "3.16.1"
 aws-lambda-serialization = "1.1.6"
@@ -61,8 +59,4 @@ jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess"
 oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
 
 #PLUGINS
-
 gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }
-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlin-gradle-allopen = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
-kotlin-gradle-ksp = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
