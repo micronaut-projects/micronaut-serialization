@@ -14,7 +14,6 @@ jmh = "1.37"
 lombok = "1.18.38"
 
 micronaut-platform = "4.10.2"
-micronaut-test = "4.10.2"
 micronaut = "5.0.0-M1"
 micronaut-discovery = "4.7.1"
 micronaut-logging = "1.7.1"
@@ -27,7 +26,6 @@ micronaut-gradle-plugin = "4.6.1"
 # Micronaut
 micronaut-core = { module = "io.micronaut:micronaut-core-bom", version.ref = "micronaut" }
 micronaut-platform = { module = "io.micronaut.platform:micronaut-platform", version.ref = "micronaut-platform"}
-micronaut-test = { module = "io.micronaut.test:micronaut-test-bom", version.ref = "micronaut-test" }
 micronaut-logging = { module = "io.micronaut.logging:micronaut-logging-bom", version.ref = "micronaut-logging" }
 micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecloud-bom', version.ref = 'micronaut-oracle-cloud' }
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
