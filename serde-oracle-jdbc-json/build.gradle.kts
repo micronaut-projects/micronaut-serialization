@@ -35,7 +35,7 @@ dependencies {
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mnReactor.micronaut.reactor)
 
-    testRuntimeOnly(libs.junit.jupiter.engine)
+    testRuntimeOnly(mnTest.junit.jupiter.engine)
 }
 
 tasks {

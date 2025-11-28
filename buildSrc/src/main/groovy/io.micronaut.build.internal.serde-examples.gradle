@@ -6,3 +6,7 @@ plugins {
 micronaut {
     version libs.versions.micronaut.platform.get()
 }
+
+dependencies {
+    testRuntimeOnly(libs.junit.platform.launcher)
+}

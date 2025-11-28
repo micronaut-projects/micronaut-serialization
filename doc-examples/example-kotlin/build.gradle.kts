@@ -1,8 +1,6 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    id("org.jetbrains.kotlin.kapt")
-    id("org.jetbrains.kotlin.plugin.allopen")
     id("io.micronaut.build.internal.serde-examples")
+    id("io.micronaut.build.internal.kotlin-kapt")
 }
 
 micronaut {
@@ -20,10 +18,4 @@ dependencies {
 
     testImplementation(mnTest.micronaut.test.junit5)
     testImplementation(libs.junit.platform.launcher)
-}
-
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
 }

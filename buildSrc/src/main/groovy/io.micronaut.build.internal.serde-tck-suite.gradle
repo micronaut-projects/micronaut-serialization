@@ -8,7 +8,7 @@ dependencies {
     testImplementation(projects.micronautSerdeTckTests)
     testImplementation(platform(mnTest.micronaut.test.bom))
     testImplementation(libs.junit.platform.engine)
-    testImplementation(libs.junit.jupiter.engine)
+    testImplementation(mnTest.junit.jupiter.engine)
     testRuntimeOnly(mnLogging.logback.classic)
 }
 

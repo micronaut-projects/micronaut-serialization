@@ -1,9 +1,7 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    id("org.jetbrains.kotlin.jvm")
     id("com.google.devtools.ksp")
     id("io.micronaut.build.internal.serde-examples")
+    id("io.micronaut.build.internal.kotlin-kapt")
 }
 
 micronaut {
@@ -23,13 +21,4 @@ dependencies {
     testImplementation(mnTest.micronaut.test.junit5)
     testImplementation(mnTest.junit.jupiter.params)
     testImplementation(libs.junit.platform.launcher)
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
 }
