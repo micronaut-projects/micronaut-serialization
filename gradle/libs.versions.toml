@@ -15,8 +15,7 @@ jetbrains-annotations = "24.1.0"
 jmh = "1.37"
 groovy = "4.0.22"
 lombok = "1.18.38"
-junit-bom = "5.9.0"
-junit-platform = "1.9.3"
+managed-junit = "6.0.0"
 spock = "2.3-groovy-4.0"
 
 micronaut-platform = "4.10.2"
@@ -54,11 +53,10 @@ graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" 
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-platform" }
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-platform" }
-junit-platform-engine = { module = "org.junit.platform:junit-platform-engine", version.ref = "junit-platform" }
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "managed-junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "managed-junit" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "managed-junit" }
+junit-platform-engine = { module = "org.junit.platform:junit-platform-engine", version.ref = "managed-junit" }
 
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
