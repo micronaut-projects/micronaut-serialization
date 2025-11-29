@@ -15,14 +15,15 @@
  */
 package io.micronaut.serde.config;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Configuration for serialization.
  */
+@NullMarked
 public interface SerializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".serialization";
 
@@ -30,7 +31,6 @@ public interface SerializationConfiguration {
      * @return The default inclusion to use. Defaults to {@link SerdeConfig.SerInclude#NON_EMPTY}.
      */
     @Bindable(defaultValue = "NON_EMPTY")
-    @NonNull
     SerdeConfig.SerInclude getInclusion();
 
     /**

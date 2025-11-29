@@ -16,7 +16,7 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Indexed;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
  * @author Andriy Dmytruk
  */
 @Indexed(PropertyFilter.class)
+@NullMarked
 public interface PropertyFilter {
 
     /**
@@ -39,5 +40,5 @@ public interface PropertyFilter {
      *
      * @return whether the property should be included in serialization
      */
-    boolean shouldInclude(@NonNull Serializer.EncoderContext encoderContext, @NonNull Serializer<Object> propertySerializer, @NonNull Object bean, @NonNull String propertyName, @Nullable Object propertyValue);
+    boolean shouldInclude(Serializer.EncoderContext encoderContext, Serializer<Object> propertySerializer, Object bean, String propertyName, @Nullable Object propertyValue);
 }

@@ -16,15 +16,10 @@
 package io.micronaut.serde;
 
 import io.micronaut.context.ApplicationContext;
-import io.micronaut.context.ApplicationContextConfiguration;
-import io.micronaut.context.DefaultApplicationContext;
-import io.micronaut.context.env.DefaultEnvironment;
-import io.micronaut.context.env.Environment;
+import io.micronaut.context.ApplicationContextBuilder;
 import io.micronaut.context.env.PropertySource;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
-import io.micronaut.inject.BeanDefinitionReference;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
 import org.reactivestreams.Processor;
@@ -32,11 +27,8 @@ import org.reactivestreams.Processor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 /**
@@ -50,6 +42,10 @@ final class ObjectMappers {
     private static volatile ApplicationContext beanContext;
     private static final Object MAPPER_LOCK = new Object();
     private static final Object CONTEXT_LOCK = new Object();
+    private static final Set<String> DEFAULT_INCLUDE_PACKAGES = Set.of("io.micronaut.serde",
+        "io.micronaut.aop",
+        "io.micronaut.runtime.context.env"
+    );
 
     private ObjectMappers() {
     }
@@ -80,7 +76,7 @@ final class ObjectMappers {
             synchronized (CONTEXT_LOCK) {
                 context = beanContext;
                 if (context == null) {
-                    context = new ObjectMapperContext(null).start();
+                    context = createSerdeBeanContext(Map.of(), DEFAULT_INCLUDE_PACKAGES).start();
                     beanContext = context;
                 }
             }
@@ -90,14 +86,7 @@ final class ObjectMappers {
 
     @SuppressWarnings("java:S2095")
     static ObjectMapper.CloseableObjectMapper create(Map<String, Object> configuration, String... packageNames) {
-        ObjectMapperContext context = new ObjectMapperContext(configuration) {
-            @Override
-            protected Set<String> getIncludedPackages() {
-                Set<String> includedPackages = super.getIncludedPackages();
-                includedPackages.addAll(CollectionUtils.setOf(packageNames));
-                return includedPackages;
-            }
-        };
+        ApplicationContext context = createSerdeBeanContext(configuration, CollectionUtils.concat(DEFAULT_INCLUDE_PACKAGES, Set.of(packageNames)));
         context.start();
         ObjectMapper objectMapper = context.getBean(ObjectMapper.class);
         return new ObjectMapper.CloseableObjectMapper() {
@@ -170,56 +159,20 @@ final class ObjectMappers {
 
     }
 
-    private static class ObjectMapperContext extends DefaultApplicationContext {
-        private final Map<String, Object> config;
-
-        private ObjectMapperContext(@Nullable Map<String, Object> config) {
-            this.config = config;
+    private static ApplicationContext createSerdeBeanContext(Map<String, Object> config, Set<String> includedPackages) {
+        ApplicationContextBuilder applicationContextBuilder = ApplicationContext.builder()
+            .beansPredicate(qualifiedBeanType -> includedPackages.stream().anyMatch(qualifiedBeanType.getBeanType().getName()::startsWith))
+            .eventsEnabled(false)
+            .eagerBeansEnabled(false)
+            .deducePackage(false)
+            .bootstrapEnvironment(false)
+            .deduceCloudEnvironment(false)
+            .enableDefaultPropertySources(false);
+        if (!config.isEmpty()) {
+            applicationContextBuilder.propertySources(PropertySource.of("config", config, PropertySource.PropertyConvention.JAVA_PROPERTIES, PropertySource.Origin.of("config")));
         }
-
-        /**
-         * @return The included packages.
-         */
-        protected Set<String> getIncludedPackages() {
-            return CollectionUtils.setOf(
-                "io.micronaut.serde",
-                "io.micronaut.aop",
-                "io.micronaut.runtime.context.env"
-            );
-        }
-
-        @Override
-        protected List<BeanDefinitionReference> resolveBeanDefinitionReferences() {
-            return super.resolveBeanDefinitionReferences()
-                .stream()
-                .filter(ref ->
-                    getIncludedPackages().stream().anyMatch(n -> ref.getBeanDefinitionName().startsWith(n))
-                )
-                .toList();
-        }
-
-        @Override
-        @SuppressWarnings("java:S1874")
-        public Future<Void> publishEventAsync(Object event) {
-            return CompletableFuture.completedFuture(null);
-        }
-
-        @Override
-        public void publishEvent(Object event) {
-            // no-op
-        }
-
-        @Override
-        protected Environment createEnvironment(ApplicationContextConfiguration configuration) {
-            return new DefaultEnvironment((ApplicationContextConfiguration) getContextConfiguration()) {
-                @Override
-                protected void readPropertySources(String name) {
-                    // no-op
-                    if (config != null) {
-                        processPropertySource(PropertySource.of(config), PropertySource.PropertyConvention.JAVA_PROPERTIES);
-                    }
-                }
-            };
-        }
+        return applicationContextBuilder
+            .propertySources()
+            .build();
     }
 }
