@@ -1,6 +1,5 @@
 plugins {
     id("io.micronaut.build.internal.serde-module")
-    id("io.micronaut.build.internal.kotlin-ksp")
 }
 
 dependencies {
