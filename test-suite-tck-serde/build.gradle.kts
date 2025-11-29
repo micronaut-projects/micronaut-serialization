@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     implementation(projects.micronautSerdeJackson)
+    testImplementation(mnTest.junit.platform.suite)
 }

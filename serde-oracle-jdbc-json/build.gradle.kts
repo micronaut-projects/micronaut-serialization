@@ -34,7 +34,7 @@ dependencies {
     testImplementation(mn.micronaut.http.client)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mnReactor.micronaut.reactor)
-
+    testImplementation(mnTest.junit.platform.launcher)
     testRuntimeOnly(mnTest.junit.jupiter.engine)
 }
 

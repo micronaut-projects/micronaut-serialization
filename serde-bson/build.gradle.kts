@@ -25,6 +25,7 @@ dependencies {
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.jackson.annotations)
+    testImplementation(mnTest.junit.platform.engine)
 }
 
 tasks {

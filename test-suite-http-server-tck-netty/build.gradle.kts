@@ -19,6 +19,7 @@ dependencies {
     testImplementation(libs.junit.platform.engine)
     testImplementation(mnTest.junit.jupiter.engine)
     testImplementation(mnValidation.micronaut.validation)
+    testImplementation(mnTest.junit.platform.suite)
 }
 
 tasks.withType<Test> {
