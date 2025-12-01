@@ -157,8 +157,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         };
     }
 
-    @NonNull
-    private LimitingStream.RemainingLimits limits() {
+    private LimitingStream.@NonNull RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 

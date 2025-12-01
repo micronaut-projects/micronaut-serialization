@@ -46,8 +46,7 @@ import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.Discr
 public record SubtypeInfo(
     @NonNull
     Map<Class<?>, String[]> subtypes,
-    @NonNull
-    SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
+    SerdeConfig.SerSubtyped.@NonNull DiscriminatorType discriminatorType,
     @NonNull
     String discriminatorName,
     @Nullable

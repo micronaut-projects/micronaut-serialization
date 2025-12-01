@@ -29,6 +29,6 @@ interface DeserBeanRegistry {
     @NonNull
     <T> DeserBean<T> getDeserializableBean(@NonNull Argument<T> type,
                                            @Nullable Map<String, Argument<?>> typeArguments,
-                                           @NonNull Deserializer.DecoderContext decoderContext) throws SerdeException;
+                                           Deserializer.@NonNull DecoderContext decoderContext) throws SerdeException;
 
 }

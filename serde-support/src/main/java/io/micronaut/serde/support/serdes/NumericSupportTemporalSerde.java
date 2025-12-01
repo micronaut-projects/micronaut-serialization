@@ -42,7 +42,7 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
     NumericSupportTemporalSerde(
         @NonNull SerdeConfiguration configuration,
         @NonNull DateTimeFormatter defaultStringFormatter,
-        @NonNull SerdeConfiguration.NumericTimeUnit legacyUnit
+        SerdeConfiguration.@NonNull NumericTimeUnit legacyUnit
     ) {
         super(configuration, defaultStringFormatter);
         writeShape = configuration.getTimeWriteShape();

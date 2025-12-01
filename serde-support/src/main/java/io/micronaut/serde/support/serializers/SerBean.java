@@ -627,8 +627,7 @@ final class SerBean<T> {
         public final boolean serializableInto;
         // Null when not initialized SerBean
         public Serializer<P> serializer;
-        @Nullable
-        public io.micronaut.serde.ObjectSerializer<P> objectSerializer;
+        public io.micronaut.serde.@Nullable ObjectSerializer<P> objectSerializer;
         public AnnotationMetadata annotationMetadata;
         // CHECKSTYLE:ON
 

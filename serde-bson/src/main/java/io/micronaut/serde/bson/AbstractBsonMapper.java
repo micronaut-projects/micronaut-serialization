@@ -77,8 +77,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;
 
-    @NonNull
-    private LimitingStream.RemainingLimits limits() {
+    private LimitingStream.@NonNull RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 

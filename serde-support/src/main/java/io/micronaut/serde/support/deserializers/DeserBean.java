@@ -882,7 +882,7 @@ final class DeserBean<T> {
             return provideDefaultValue(decoderContext, mustSetFieldForConstructor);
         }
 
-        public void set(@NonNull Deserializer.DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
+        public void set(Deserializer.@NonNull DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
             if (value == null) {
                 setDefaultPropertyValue(decoderContext, obj);
             } else {
