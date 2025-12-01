@@ -7,6 +7,8 @@ import io.micronaut.serde.ObjectWithArrayRecordNotNull
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 
+import java.time.Instant
+
 @MicronautTest
 class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
 
@@ -75,5 +77,14 @@ class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
         then:
         obj == result
         json == """{"fooBar":"id2","abcXyz":2,"nested":{"id":2}}"""
+    }
+
+    def "record with multiple constructors"() {
+        when:
+        def myRecord = new MyRecord("value", 10, Date.from(Instant.now().minusSeconds(60)))
+        def str = jsonMapper.writeValueAsString(myRecord)
+        def result = jsonMapper.readValue(str, MyRecord)
+        then:
+        myRecord == result
     }
 }
