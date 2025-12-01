@@ -15,10 +15,10 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
@@ -104,7 +104,7 @@ final class JacksonJsonNodeSerde implements SerdeRegistrar<JsonNode> {
             case BOOLEAN -> encoder.encodeBoolean(node.booleanValue());
             case NULL -> encoder.encodeNull();
             case NUMBER -> JsonNodeSerde.encodeNumber(encoder, node.numberValue());
-            case STRING -> encoder.encodeString(node.textValue());
+            case STRING -> encoder.encodeString(node.asString());
             case BINARY -> encoder.encodeBinary(node.binaryValue());
             case ARRAY -> {
                 try (Encoder array = encoder.encodeArray(JSON_NODE_ARGUMENT)) {
@@ -115,7 +115,7 @@ final class JacksonJsonNodeSerde implements SerdeRegistrar<JsonNode> {
             }
             case OBJECT -> {
                 try (Encoder obj = encoder.encodeObject(JSON_NODE_ARGUMENT)) {
-                    for (String k : (Iterable<String>) node::fieldNames) {
+                    for (String k : node.propertyNames()) {
                         obj.encodeKey(k);
                         serialize(encoder, context, type, node.get(k));
                     }

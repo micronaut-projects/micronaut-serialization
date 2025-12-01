@@ -16,7 +16,7 @@
 package io.micronaut.serde.jackson.builder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder = TestBuildName.Builder.class)
 public class TestBuildName {
