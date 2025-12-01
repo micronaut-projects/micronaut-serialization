@@ -15,11 +15,7 @@
  */
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
@@ -28,6 +24,10 @@ import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -83,9 +83,9 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     @Override
     public IOException createDeserializationException(String message, Object invalidValue) {
         if (invalidValue != null) {
-            return new InvalidFormatException(message + " \n at " + parser.getCurrentLocation(), null, invalidValue);
+            return new InvalidFormatException(message + " \n at " + parser.currentLocation(), null, invalidValue);
         } else {
-            return new SerdeException(message + " \n at " + parser.getCurrentLocation());
+            return new SerdeException(message + " \n at " + parser.currentLocation());
         }
     }
 
@@ -141,7 +141,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             }
             return fieldName;
         } else {
-            String fieldName = parser.nextFieldName();
+            String fieldName = parser.nextName();
             if (fieldName == null) {
                 peekedToken = parser.currentToken();
             }
@@ -207,7 +207,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         JsonToken t;
         if (peekedToken == null) {
             // fast path: avoid nextToken
-            String value = parser.nextTextValue();
+            String value = parser.nextStringValue();
             if (value != null) {
                 return value;
             }
@@ -230,7 +230,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
                 }
                 throw unexpectedToken(JsonToken.VALUE_STRING, t);
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_STRING, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_STRING, t);
             default -> {
                 return parser.getValueAsString();
             }
@@ -291,7 +291,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_TRUE, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_TRUE, t);
             default -> {
                 return parser.getValueAsBoolean();
             }
@@ -332,7 +332,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getByteValue();
             }
@@ -373,7 +373,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getShortValue();
             }
@@ -418,7 +418,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 String text = parser.getText();
                 if (text.length() == 0) {
@@ -486,7 +486,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getValueAsInt();
             }
@@ -556,7 +556,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getValueAsLong();
             }
@@ -607,7 +607,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             default -> {
                 return parser.getFloatValue();
             }
@@ -667,7 +667,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             default -> {
                 return parser.getValueAsDouble();
             }
@@ -717,7 +717,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_INT, t);
             default -> {
                 return parser.getBigIntegerValue();
             }
@@ -767,7 +767,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
             case VALUE_NULL -> {
                 return null;
             }
-            case START_OBJECT, END_OBJECT, END_ARRAY, FIELD_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
+            case START_OBJECT, END_OBJECT, END_ARRAY, PROPERTY_NAME -> throw unexpectedToken(JsonToken.VALUE_NUMBER_FLOAT, t);
             default -> {
                 return parser.getDecimalValue();
             }

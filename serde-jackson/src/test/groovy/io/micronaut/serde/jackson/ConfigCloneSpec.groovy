@@ -1,6 +1,5 @@
 package io.micronaut.serde.jackson
 
-import com.fasterxml.jackson.core.JsonParser
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.ConfigurationProperties
@@ -13,6 +12,7 @@ import io.micronaut.serde.config.SerializationConfiguration
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.exceptions.SerdeException
 import spock.lang.Specification
+import tools.jackson.core.JsonParser
 
 class ConfigCloneSpec extends Specification {
     def 'clone'() {
