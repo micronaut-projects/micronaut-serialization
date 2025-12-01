@@ -65,16 +65,16 @@ public record SubtypeInfo(
     }
 
     private static SubtypeInfo create(AnnotationMetadata annotationMetadata, boolean isClassDefinition) {
-
-        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class)) {
-            return null;
-        }
-
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = annotationMetadata.enumValue(
+        Optional<SerdeConfig.SerSubtyped.DiscriminatorType> optionalDiscriminatorType = annotationMetadata.enumValue(
             SerdeConfig.SerSubtyped.class,
             SerdeConfig.SerSubtyped.DISCRIMINATOR_TYPE,
             SerdeConfig.SerSubtyped.DiscriminatorType.class
-        ).orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
+        );
+        if (!annotationMetadata.hasAnnotation(SerdeConfig.SerSubtyped.class) && optionalDiscriminatorType.isEmpty()) {
+            return null;
+        }
+
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = optionalDiscriminatorType.orElse(SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY);
         if (isClassDefinition && discriminatorType == SerdeConfig.SerSubtyped.DiscriminatorType.EXTERNAL_PROPERTY) {
             discriminatorType = SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY;
         }

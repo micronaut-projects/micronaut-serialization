@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.beans.BeanProperty;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Deserializer;
@@ -34,21 +35,21 @@ import java.util.Map;
 /**
  * The subtype info.
  *
- * @param beanType    The beanType
- * @param subtypes    The subtypes
- * @param info        The subtype info
- * @param defaultType The default type
- * @param <T>         The bean type
+ * @param beanType            The beanType
+ * @param subtypes            The subtypes
+ * @param info                The subtype info
+ * @param defaultType         The default type
+ * @param <T>                 The bean type
  * @author Denis Stepanov
  */
 @Internal
 record DeserBeanSubtypeInfo<T>(
     Class<T> beanType,
     @NonNull
-    Map<String, DeserBean<? extends T>> subtypes,
+    Map<String, SubtypeDef<T>> subtypes,
     SubtypeInfo info,
     @Nullable
-    DeserBean<? extends T> defaultType
+    SubtypeDef<T> defaultType
 ) {
 
     /**
@@ -59,16 +60,16 @@ record DeserBeanSubtypeInfo<T>(
      */
     @NonNull
     DeserBean<? extends T> findDeserBean(@Nullable String discriminatorValue) throws SerdeException {
-        DeserBean<? extends T> deserBean;
+        SubtypeDef<T> subtypeDef;
         if (discriminatorValue == null) {
-            deserBean = defaultType;
+            subtypeDef = defaultType;
         } else {
-            deserBean = subtypes.getOrDefault(discriminatorValue, defaultType);
+            subtypeDef = subtypes.getOrDefault(discriminatorValue, defaultType);
         }
-        if (deserBean == null) {
+        if (subtypeDef == null) {
             throw unknownSuperTypeException();
         }
-        return deserBean;
+        return subtypeDef.deserBean;
     }
 
     /**
@@ -95,51 +96,71 @@ record DeserBeanSubtypeInfo<T>(
         final Class<T> superType = introspection.getBeanType();
         final Collection<BeanIntrospection<? extends T>> subtypeIntrospections =
             decoderContext.getDeserializableSubtypes(superType);
-        Map<String, DeserBean<? extends T>> subtypes = CollectionUtils.newHashMap(subtypeIntrospections.size());
+        Map<String, SubtypeDef<T>> subtypes = CollectionUtils.newHashMap(subtypeIntrospections.size());
         Class<? extends T> defaultType = introspection.classValue(DefaultImplementation.class)
             .orElseGet(() -> introspection.classValue(SerdeConfig.SerSubtyped.DEFAULT_IMPL).orElse(null));
         if (defaultType == null && !deserializationConfiguration.isSubtypesRequireDefaultImpl()) {
             // Jackson always requires to use `defaultImpl` but our initial implementation always takes the supertype
             defaultType = introspection.getBeanType();
         }
-        DeserBean<? extends T> defaultDeserType = null;
+        SubtypeDef<T> defaultDeserType = null;
         if (defaultType != null) {
             if ("com.fasterxml.jackson.annotation.JsonTypeInfo".equals(introspection.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DEFAULT_IMPL).orElse(null))) {
                 defaultType = null;
             }
         }
         if (introspection.getBeanType().equals(defaultType)) {
-            defaultDeserType = superTypeDeserBean;
+            defaultDeserType = new SubtypeDef<>(superTypeDeserBean, introspection.asArgument());
         }
         for (BeanIntrospection<? extends T> subtypeIntrospection : subtypeIntrospections) {
             Class<? extends T> subBeanType = subtypeIntrospection.getBeanType();
-            final DeserBean<? extends T> deserBean = deserBeanRegistry.getDeserializableBean(
-                Argument.of(subBeanType),
-                decoderContext
-            );
-
-            String[] types = subtypeInfo.subtypes().get(subBeanType);
-            if (types != null) {
-                for (String type : types) {
-                    subtypes.put(type, deserBean);
-                }
+            Argument<? extends T> argument = subtypeIntrospection.asArgument();
+            boolean hasNotResolvedGenerics = false;
+            for (BeanProperty<? extends T, Object> beanProperty : subtypeIntrospection.getBeanProperties()) {
+                Argument<Object> argument1 = beanProperty.asArgument();
+                hasNotResolvedGenerics |= argument1.isTypeVariable();
             }
 
+            SubtypeDef<T> subtypeDef;
+            if (hasNotResolvedGenerics) {
+                subtypeDef = new SubtypeDef<>(null, argument);
+            } else {
+                final DeserBean<? extends T> deserBean = deserBeanRegistry.getDeserializableBean(
+                    argument,
+                    null,
+                    decoderContext
+                );
+                subtypeDef = new SubtypeDef<>(deserBean, argument);
+            }
             if (defaultDeserType == null && defaultType != null && defaultType.equals(subBeanType)) {
-                defaultDeserType = deserBean;
+                defaultDeserType = subtypeDef;
             }
+            if (subtypeInfo.deduct()) {
+                subtypes.put(subBeanType.getName(), subtypeDef);
+            } else {
+                String[] types = subtypeInfo.subtypes().get(subBeanType);
+                if (types != null) {
+                    for (String type : types) {
+                        subtypes.put(type, subtypeDef);
+                    }
+                }
 
-            subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, deserBean));
-            String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
-            for (String name : names) {
-                subtypes.put(name, deserBean);
+                subtypeIntrospection.stringValue(SerdeConfig.class, SerdeConfig.TYPE_NAME).ifPresent(name -> subtypes.put(name, subtypeDef));
+                String[] names = subtypeIntrospection.stringValues(SerdeConfig.class, SerdeConfig.TYPE_NAMES);
+                for (String name : names) {
+                    subtypes.put(name, subtypeDef);
+                }
             }
         }
         if (defaultDeserType == null && defaultType != null && !subtypeIntrospections.isEmpty()) {
             if (defaultType == introspection.getBeanType()) {
-                defaultDeserType = superTypeDeserBean;
+                defaultDeserType = new SubtypeDef<>(superTypeDeserBean, introspection.asArgument());
             } else {
-                defaultDeserType = deserBeanRegistry.getDeserializableBean(Argument.of(defaultType), decoderContext);
+                Argument<? extends T> argument = Argument.of(defaultType);
+                defaultDeserType = new SubtypeDef<>(
+                    deserBeanRegistry.getDeserializableBean(argument, null, decoderContext),
+                    argument
+                );
             }
         }
         return new DeserBeanSubtypeInfo<>(
@@ -148,6 +169,9 @@ record DeserBeanSubtypeInfo<T>(
             subtypeInfo,
             defaultDeserType
         );
+    }
+
+    record SubtypeDef<K>(@Nullable DeserBean<? extends K> deserBean, Argument<? extends K> type) {
     }
 
 }

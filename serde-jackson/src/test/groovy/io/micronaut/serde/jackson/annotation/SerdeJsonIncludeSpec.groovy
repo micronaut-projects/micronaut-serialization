@@ -1,6 +1,5 @@
 package io.micronaut.serde.jackson.annotation
 
-
 import io.micronaut.serde.jackson.JsonIncludeSpec
 import spock.lang.PendingFeature
 import spock.lang.Unroll

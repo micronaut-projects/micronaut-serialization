@@ -21,6 +21,8 @@ import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerializationConfiguration;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
@@ -84,8 +86,12 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                         continue;
                     }
                 } else {
-                    boolean skipped = switch (property.include) {
-                        case ALWAYS -> false;
+                    SerdeConfig.SerInclude include = property.include;
+                    if (include == SerdeConfig.SerInclude.USE_DEFAULTS) {
+                        include = context.getSerializationConfiguration().map(SerializationConfiguration::getInclusion).orElse(SerdeConfig.SerInclude.ALWAYS);
+                    }
+                    boolean skipped = switch (include) {
+                        case ALWAYS, USE_DEFAULTS -> false;
                         case NON_NULL -> propertyValue == null;
                         case NON_ABSENT -> serializer.isAbsent(context, propertyValue);
                         case NON_DEFAULT -> serializer.isEmpty(context, propertyValue) || propertyValue != null && serializer.isDefault(context, propertyValue);
@@ -116,7 +122,9 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                 try {
                     if (property.serializableInto) {
                         if (property.objectSerializer != null) {
-                            property.objectSerializer.serializeInto(encoder, context, property.argument, propertyValue);
+                            if (propertyValue != null) {
+                                property.objectSerializer.serializeInto(encoder, context, property.argument, propertyValue);
+                            }
                         } else {
                             throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
                         }
