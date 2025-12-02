@@ -49,7 +49,7 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
             AnnotationValueBuilder<Introspected.IntrospectionBuilder> builderDef = AnnotationValue.builder(Introspected.IntrospectionBuilder.class);
             builderDef.member("builderClass", builderClass);
             visitorContext.getClassElement(builderClass.getName()).ifPresent(t -> {
-                AnnotationValue<Annotation> jsonPojoAnn = t.getAnnotation("com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder");
+                AnnotationValue<Annotation> jsonPojoAnn = t.getAnnotation("tools.jackson.databind.annotation.JsonPOJOBuilder");
                 if (jsonPojoAnn != null) {
                     jsonPojoAnn.stringValue("buildMethodName").ifPresent(n -> builderDef.member("creatorMethod", n));
                     jsonPojoAnn.stringValue("withPrefix").ifPresent(n ->
@@ -74,6 +74,6 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
 
     @Override
     public String getName() {
-        return "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
+        return "tools.jackson.databind.annotation.JsonDeserialize";
     }
 }

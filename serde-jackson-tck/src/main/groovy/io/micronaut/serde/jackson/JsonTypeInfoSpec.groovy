@@ -15,11 +15,11 @@
  */
 package io.micronaut.serde.jackson
 
-import tools.jackson.databind.ObjectMapper
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
 
 abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
@@ -1665,7 +1665,7 @@ sealed interface RecordCommandBrokenToo {
 package defaultimpl;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;

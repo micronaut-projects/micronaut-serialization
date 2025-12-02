@@ -21,8 +21,6 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Introspected;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.convert.ConversionService;
@@ -51,6 +49,8 @@ import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.text.DecimalFormat;
@@ -97,7 +97,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "io.micronaut.serde.annotation.*",
                 "org.bson.codecs.pojo.annotations.*",
                 "io.micronaut.serde.config.annotation.*",
-                "com.fasterxml.jackson.databind.annotation.*"
+                "tools.jackson.databind.annotation.*"
         );
     }
 
@@ -857,7 +857,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         } else {
             visitClassInternal(type, context, true);
         }
-        AnnotationValue<Annotation> jsonPojoAnn = type.getAnnotation("com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder");
+        AnnotationValue<Annotation> jsonPojoAnn = type.getAnnotation("tools.jackson.databind.annotation.JsonPOJOBuilder");
         if (jsonPojoAnn != null) {
             String buildMethod = jsonPojoAnn.stringValue("buildMethodName").orElse("build");
             type.getEnclosedElement(ElementQuery.ALL_METHODS.named(n -> n.equals(buildMethod)))
@@ -1233,9 +1233,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private boolean isJsonAnnotated(ClassElement element) {
         return Stream.of(
                         "com.fasterxml.jackson.annotation.JsonClassDescription",
-                        "com.fasterxml.jackson.databind.annotation.JsonNaming",
-                        "com.fasterxml.jackson.databind.annotation.JsonSerialize",
-                        "com.fasterxml.jackson.databind.annotation.JsonDeserialize",
+                        "tools.jackson.databind.annotation.JsonNaming",
+                        "tools.jackson.databind.annotation.JsonSerialize",
+                        "tools.jackson.databind.annotation.JsonDeserialize",
                         "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",

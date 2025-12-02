@@ -813,7 +813,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Set;
 import java.util.LinkedHashSet;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
