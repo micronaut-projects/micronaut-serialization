@@ -15,7 +15,7 @@ class SerdeNullableFailOnMissingTest {
     fun testDefaultValue(objectMapper: JsonMapper) {
         val result = objectMapper.writeValueAsString(NullDto())
         val bean = objectMapper.readValue(result, NullDto::class.java)
-        Assertions.assertEquals(null, bean.longField)
+        Assertions.assertEquals(null, bean!!.longField)
     }
 
     @Test
@@ -44,7 +44,7 @@ class SerdeNullableFailOnMissingTest {
     @Test
     fun testNullPropertyValue(objectMapper: JsonMapper) {
         val bean = objectMapper.readValue("{}", NullPropertyDto::class.java)
-        Assertions.assertEquals(null, bean.longField)
+        Assertions.assertEquals(null, bean!!.longField)
     }
 
 }
