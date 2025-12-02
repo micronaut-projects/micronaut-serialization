@@ -3,7 +3,7 @@ package example.openapi.test.model
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
-import org.jspecify.annotations.Nullable
+import io.micronaut.core.annotation.Nullable
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.annotation.Generated
 
