@@ -9,7 +9,7 @@ import org.reactivestreams.Processor
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import spock.lang.Specification
-import tools.jackson.core.JsonParseException
+import tools.jackson.core.JacksonException
 import tools.jackson.core.JsonParser
 import tools.jackson.core.json.JsonFactory
 
@@ -28,7 +28,7 @@ class BufferingJsonNodeProcessorSpec extends Specification {
             parser.nextToken()
             parser.skipChildren()
             return parser.nextToken() == null
-        } catch (JsonParseException ignored) {
+        } catch (JacksonException ignored) {
             return false
         }
     }
