@@ -2,7 +2,7 @@ package io.micronaut.serde.jackson.builder;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonSubTypes({
     @JsonSubTypes.Type(value = TestBuildSubtype2.class, name = "sub")
