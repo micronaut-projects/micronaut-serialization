@@ -402,7 +402,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         return val;
     }
 
-    private class WriteContextImpl extends ObjectWriteContext.Base {
+    private final class WriteContextImpl extends ObjectWriteContext.Base {
         final int formatWriteFeatures = collectFeatures(JsonWriteFeature.collectDefaults(), jacksonConfiguration.getJsonWriteFeatures());
         final int streamWriteFeatures = collectFeatures(StreamWriteFeature.collectDefaults(), jacksonConfiguration.getStreamWriteFeatures());
 
@@ -431,7 +431,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         }
     }
 
-    private class ReadContextImpl extends ObjectReadContext.Base {
+    private final class ReadContextImpl extends ObjectReadContext.Base {
         final int formatReadFeatures = collectFeatures(JsonReadFeature.collectDefaults(), jacksonConfiguration.getJsonReadFeatures());
         final int streamReadFeatures = collectFeatures(StreamReadFeature.collectDefaults(), jacksonConfiguration.getStreamReadFeatures());
 
