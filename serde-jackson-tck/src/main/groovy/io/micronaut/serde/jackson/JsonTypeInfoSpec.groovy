@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde.jackson
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import tools.jackson.databind.ObjectMapper
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import org.intellij.lang.annotations.Language
