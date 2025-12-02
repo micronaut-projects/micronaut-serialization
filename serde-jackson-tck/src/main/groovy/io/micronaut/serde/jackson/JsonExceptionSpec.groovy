@@ -258,7 +258,7 @@ record Test(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Test["unknownProperty"]"""
 
         cleanup:
@@ -292,7 +292,7 @@ record Inner(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
 
         cleanup:
@@ -337,7 +337,7 @@ record Inner(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
 
         cleanup:
@@ -391,7 +391,7 @@ record Inner(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
 
         cleanup:
@@ -443,7 +443,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Test["unknownProperty"]"""
 
         cleanup:
@@ -494,7 +494,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Test["unknownProperty"]"""
 
         cleanup:

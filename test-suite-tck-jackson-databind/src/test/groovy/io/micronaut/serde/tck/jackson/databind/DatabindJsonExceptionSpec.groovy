@@ -1,14 +1,15 @@
 package io.micronaut.serde.tck.jackson.databind
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import io.micronaut.context.ApplicationContextBuilder
+import io.micronaut.serde.exceptions.InvalidFormatException
 import io.micronaut.serde.jackson.JsonExceptionSpec
+import tools.jackson.databind.DatabindException
 
 class DatabindJsonExceptionSpec extends JsonExceptionSpec {
 
     @Override
     String getPath(Exception e) {
-        if (e instanceof JsonMappingException) {
+        if (e instanceof DatabindException) {
             return e.pathReference
         }
         return "<unknown>"
