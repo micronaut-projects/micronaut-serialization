@@ -1,7 +1,7 @@
 plugins {
     id("com.google.devtools.ksp")
     id("io.micronaut.build.internal.serde-examples")
-    id("io.micronaut.build.internal.kotlin-kapt")
+    id("io.micronaut.build.internal.kotlin-ksp")
 }
 
 micronaut {
