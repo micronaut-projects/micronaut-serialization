@@ -961,10 +961,26 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
-            writeJson(jsonMapper, emptyList) == '{"always":[],"nonNull":[],"nonAbsent":[]}'
-            writeJson(jsonMapper, nullList) == '{"always":null}'
+        when:
+        String json = writeJson(jsonMapper, setList)
+        String expected = '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyList)
+        expected = '{"always":[],"nonNull":[],"nonAbsent":[]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullList)
+        expected = '{"always":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude on list with content type"() {
@@ -1023,12 +1039,40 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == setListValue
-            writeJson(jsonMapper, emptyStringList) == emptyStringListValue
-            writeJson(jsonMapper, nullsList) == nullsListValue
-            writeJson(jsonMapper, emptyList) == emptyListValue
-            writeJson(jsonMapper, nullList) == nullListValue
+        when:
+        String json = writeJson(jsonMapper, setList)
+        String expected = setListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyStringList)
+        expected = emptyStringListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullsList)
+        expected = nullsListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyList)
+        expected = emptyListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullList)
+        expected = nullListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -1124,12 +1168,40 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == setListValue
-            writeJson(jsonMapper, emptyStringList) == emptyStringListValue
-            writeJson(jsonMapper, nullsList) == nullsListValue
-            writeJson(jsonMapper, emptyList) == emptyListValue
-            writeJson(jsonMapper, nullList) == nullListValue
+        when:
+        String json = writeJson(jsonMapper, setList)
+        String expected = setListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyStringList)
+        expected = emptyStringListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullsList)
+        expected = nullsListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyList)
+        expected = emptyListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullList)
+        expected = nullListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
