@@ -9,6 +9,11 @@ class SerdeJsonIgnoreSpec extends JsonIgnoreSpec {
         return "Unknown property [$propertyName] encountered during deserialization of type: ${NameUtils.getSimpleName(className)}"
     }
 
+    @Override
+    protected String unknownFieldMessage(String propertyName, String className) {
+        return "Unknown field [$propertyName] encountered during deserialization of type: ${NameUtils.getSimpleName(className)}"
+    }
+
     void "json ignore on a constructor parameter"() {
         given:
             def context = buildContext('example.Test', '''

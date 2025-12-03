@@ -28,6 +28,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 abstract class JsonIgnoreSpec extends JsonCompileSpec {
 
     abstract protected String unknownPropertyMessage(String propertyName, String className)
+    abstract protected String unknownFieldMessage(String propertyName, String className)
 
     def 'JsonIgnore and enum as map keys'() {
         given:
@@ -391,7 +392,9 @@ class Test {
 
         then:
         def e = thrown(Exception)
-        e.message.contains unknownPropertyMessage("unknown", "test.Test")
+        e.message.contains(unknownPropertyMessage("unknown", "test.Test")) ||
+                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
+
 
         cleanup:
         context.close()
@@ -714,7 +717,8 @@ record DeserializableRecord(String value) {
 
         then:
         def e = thrown(Exception)
-        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
+        e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord")) ||
+                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
 
         cleanup:
             context.close()
@@ -745,7 +749,8 @@ record DeserializableRecord(String value) {
 
         then:
         def e = thrown(Exception)
-        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
+        e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord")) ||
+                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
 
         cleanup:
             context.close()
@@ -817,7 +822,8 @@ class DeserializableRecord {
 
         then:
         def e = thrown(Exception)
-        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
+        e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord")) ||
+                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
 
         cleanup:
             context.close()
@@ -858,7 +864,8 @@ class DeserializableRecord {
 
         then:
         def e = thrown(Exception)
-        e.message.contains unknownPropertyMessage("unknown", "test.DeserializableRecord")
+        e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord"))  ||
+                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
 
         cleanup:
             context.close()
