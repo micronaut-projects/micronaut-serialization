@@ -527,7 +527,7 @@ record Test(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]") || e.message.contains("Duplicate Object property \"stringA\"")
             def path = getPath(e)
             path == "<unknown>" || path == """example.Test["stringA"]"""
 
@@ -581,7 +581,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]") || e.message.contains("Duplicate Object property \"stringA\"")
             def path = getPath(e)
             path == "<unknown>" || path == """example.Test["stringA"]"""
 
@@ -634,7 +634,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]") || e.message.contains("Duplicate Object property \"stringA\"")
             def path = getPath(e)
             path == "<unknown>" || path == """example.Test["stringA"]"""
 
