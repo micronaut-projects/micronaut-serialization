@@ -22,6 +22,8 @@ import io.micronaut.serde.jackson.tst.AfterCareStatsEntry
 import io.micronaut.serde.jackson.tst.ClassificationAndStats
 import io.micronaut.serde.jackson.tst.ClassificationVars
 import io.micronaut.serde.jackson.tst.MainAggregationVm
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 
 abstract class JsonIgnoreSpec extends JsonCompileSpec {
 
@@ -298,7 +300,7 @@ class Test {
         def result = writeJson(jsonMapper, parent)
 
         then:
-        result == '{"map":{"foo":{"value":"test"}},"list":[{"value":"test"}]}'
+        JSONAssert.assertEquals(result, '{"map":{"foo":{"value":"test"}},"list":[{"value":"test"}]}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:"deserialization happens"
         def value = jsonMapper.readValue('{"map":{"foo":{"value":"test", "ignored":true}},"list":[{"value":"test", "ignored":true}]}',  parent.getClass())

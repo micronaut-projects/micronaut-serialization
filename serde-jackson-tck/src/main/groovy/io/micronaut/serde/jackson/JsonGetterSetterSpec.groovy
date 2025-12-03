@@ -278,7 +278,7 @@ class Test {
         def result = writeJson(jsonMapper, bean)
 
         then:
-        result == '{"name":"Fred","age":30,"wgt":75,"foo":"bar"}'
+        JSONAssert.assertEquals(result, '{"name":"Fred","age":30,"wgt":75,"foo":"bar"}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         bean = jsonMapper.readValue(result, argumentOf(context, 'jsongetter.Test'))

@@ -17,6 +17,8 @@ package io.micronaut.serde.jackson
 
 import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.core.type.Argument
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import spock.lang.Ignore
 
 abstract class JsonIgnoreAllowSpec extends JsonCompileSpec {
@@ -457,7 +459,7 @@ class Test {
             def json = writeJson(jsonMapper, o)
 
         then:
-            json == '{"test":{"value":"test1"},"test2":{"value":"test2","ignored2":true}}'
+            JSONAssert.assertEquals(json, '{"test":{"value":"test1"},"test2":{"value":"test2","ignored2":true}}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def bean = jsonMapper.readValue(json, context.classLoader.loadClass("test.Other"))
@@ -1009,7 +1011,7 @@ class C {
             String json = jsonMapper.writeValueAsString(a)
 
         then: // Jackson annotation is not inherited, only the one ignore is applied
-            json == '{"f1":"f1","f2":"f2","a1":"a1","a2":"a2","p1":"p1"}'
+        JSONAssert.assertEquals(json, '{"f1":"f1","f2":"f2","a1":"a1","a2":"a2","p1":"p1"}', JSONCompareMode.NON_EXTENSIBLE)
 
         cleanup:
             context.close()
@@ -1779,7 +1781,7 @@ class C {
             String json = jsonMapper.writeValueAsString(root)
 
         then:
-            json == '{"a":{"f1":"f1","f2":"f2","a2":"a2"}}'
+            JSONAssert.assertEquals(json, '{"a":{"f1":"f1","f2":"f2","a2":"a2"}}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def bean = jsonMapper.readValue('{"a":{"f1":"f1","f2":"f2","a2":"a2","a1":"a1","p1":"p1","p2":"p2"}}', root.class)
