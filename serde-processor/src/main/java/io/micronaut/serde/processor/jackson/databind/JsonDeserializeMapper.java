@@ -76,4 +76,11 @@ public class JsonDeserializeMapper extends ValidatingAnnotationMapper {
     public String getName() {
         return "tools.jackson.databind.annotation.JsonDeserialize";
     }
+
+    public static final class Jackson2 extends JsonDeserializeMapper {
+        @Override
+        public String getName() {
+            return "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
+        }
+    }
 }

@@ -1232,10 +1232,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private boolean isJsonAnnotated(ClassElement element) {
         return Stream.of(
-                        "com.fasterxml.jackson.annotation.JsonClassDescription",
+                        // jackson 3
                         "tools.jackson.databind.annotation.JsonNaming",
                         "tools.jackson.databind.annotation.JsonSerialize",
                         "tools.jackson.databind.annotation.JsonDeserialize",
+                        // jackson 2
+                        "com.fasterxml.jackson.databind.annotation.JsonNaming",
+                        "com.fasterxml.jackson.databind.annotation.JsonSerialize",
+                        "com.fasterxml.jackson.databind.annotation.JsonDeserialize",
+                        // jackson 2 and 3
+                        "com.fasterxml.jackson.annotation.JsonClassDescription",
                         "com.fasterxml.jackson.annotation.JsonTypeInfo",
                         "com.fasterxml.jackson.annotation.JsonRootName",
                         "com.fasterxml.jackson.annotation.JsonTypeName",

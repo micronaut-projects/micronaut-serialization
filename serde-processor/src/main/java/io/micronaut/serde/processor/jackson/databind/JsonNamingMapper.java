@@ -90,4 +90,11 @@ public class JsonNamingMapper implements NamedAnnotationMapper {
                         .build()
         );
     }
+
+    public static final class Jackson2 extends JsonNamingMapper {
+        @Override
+        public String getName() {
+            return "com.fasterxml.jackson.databind.annotation.JsonNaming";
+        }
+    }
 }
