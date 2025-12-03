@@ -14,6 +14,6 @@ class DatabindJsonIgnoreAllowSpec extends JsonIgnoreAllowSpec {
 
     @Override
     protected String unknownPropertyMessage(String propertyName, String className) {
-        return """Unrecognized field "$propertyName" (class $className), not marked as ignorable"""
+        return """Unrecognized property "$propertyName" (class $className), not marked as ignorable"""
     }
 }
