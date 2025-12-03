@@ -9,7 +9,7 @@ class DatabindJsonIgnoreSpec extends JsonIgnoreSpec {
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
-                Map.of("jackson.deserialization.failOnUnknownProperties", "true")
+                Map.of("jackson.deserialization-features.fail-on-unknown-properties", "true")
         ))
     }
 
