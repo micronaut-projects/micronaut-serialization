@@ -729,7 +729,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}', typeUnderTest)
 
         then:
             bean
@@ -789,7 +789,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}', typeUnderTest)
 
         then:
             bean
@@ -882,7 +882,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->java.util.ArrayList[0]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}', typeUnderTest)
 
         then:
             bean
@@ -942,7 +942,7 @@ class Test2 {
             path == """example.Test["foo"]->java.lang.Object[][0]->example.Test2["bar"]""" || path == """example.Test["foo"]->example.Test2[][0]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}', typeUnderTest)
 
         then:
             bean
@@ -1002,7 +1002,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->java.util.LinkedHashMap["xxx"]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": {"xxx": {"bar": 123}}}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": {"xxx": {"bar": 123}}}', typeUnderTest)
 
         then:
             bean
