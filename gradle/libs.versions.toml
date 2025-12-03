@@ -21,6 +21,7 @@ micronaut-oracle-cloud = "5.5.2"
 micronaut-reactor = "3.9.1"
 micronaut-validation = "4.12.0"
 micronaut-gradle-plugin = "4.6.1"
+jsonassert = "1.5.3"
 
 [libraries]
 # Micronaut
@@ -54,6 +55,7 @@ jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 
 oci-aidocument = { module = "com.oracle.oci.sdk:oci-java-sdk-aidocument" }
+jsonassert = { module = 'org.skyscreamer:jsonassert', version.ref = 'jsonassert'}
 
 #PLUGINS
 gradle-micronaut = { module = "io.micronaut.gradle:micronaut-gradle-plugin", version.ref = "micronaut-gradle-plugin" }
