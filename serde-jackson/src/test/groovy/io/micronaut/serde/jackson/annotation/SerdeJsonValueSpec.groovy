@@ -1,10 +1,16 @@
 package io.micronaut.serde.jackson.annotation
 
-
+import io.micronaut.serde.exceptions.InvalidFormatException
+import io.micronaut.serde.exceptions.InvalidPropertyFormatException
 import io.micronaut.serde.jackson.JsonValueSpec
 import spock.lang.PendingFeature
 
 class SerdeJsonValueSpec extends JsonValueSpec {
+
+    @Override
+    protected Class<InvalidFormatException> getFormatExceptionClass() {
+        return InvalidFormatException
+    }
 
     @PendingFeature(reason = "Align with Databind behaviour of @JsonInclude(JsonInclude.Include.NON_ABSENT)")
     void "test json value on toString() - NON_ABSENT"() {
