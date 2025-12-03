@@ -15,7 +15,8 @@
  */
 package io.micronaut.serde.jackson
 
-
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import spock.lang.Issue
 
 abstract class JsonSubtypesSpec extends JsonCompileSpec {
@@ -398,9 +399,9 @@ class B extends Sub {
         def b = newInstance(context, "test.B", "b", 3)
 
         then:
-        jsonMapper.writeValueAsString(sub) == '{"type":"sub-class","string":"a","integer":1}'
-        jsonMapper.writeValueAsString(a) == '{"type":"sub-class-a","string":"hello","integer":2}'
-        jsonMapper.writeValueAsString(b) == '{"type":"sub-class-b","string":"b","integer":3}'
+        JSONAssert.assertEquals(jsonMapper.writeValueAsString(sub), '{"type":"sub-class","string":"a","integer":1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(jsonMapper.writeValueAsString(a), '{"type":"sub-class-a","string":"hello","integer":2}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(jsonMapper.writeValueAsString(b), '{"type":"sub-class-b","string":"b","integer":3}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     // TODO: move

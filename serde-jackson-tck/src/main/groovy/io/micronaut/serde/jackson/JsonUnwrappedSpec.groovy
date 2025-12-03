@@ -16,6 +16,8 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.core.type.Argument
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 
 class JsonUnwrappedSpec extends JsonCompileSpec {
 
@@ -747,7 +749,7 @@ class InnerFooId {
         def result = writeJson(jsonMapper, foo)
 
         then:
-        result == '{"hk_theInt_out":10,"hk_foo_theLong_in_out":200,"hk_foo_theString_in_out":"MyString","value":"TheValue"}'
+        JSONAssert.assertEquals(result, '{"hk_theInt_out":10,"hk_foo_theLong_in_out":200,"hk_foo_theString_in_out":"MyString","value":"TheValue"}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def read = jsonMapper.readValue(result, Argument.of(context.classLoader.loadClass('unwrapped.Foo')))
