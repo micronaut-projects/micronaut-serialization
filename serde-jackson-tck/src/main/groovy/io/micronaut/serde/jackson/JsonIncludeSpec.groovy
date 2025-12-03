@@ -1225,12 +1225,40 @@ class Test {
             nullArray.nonAbsent = null
             nullArray.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, fullArray) == fullArrayValue
-            writeJson(jsonMapper, emptyStringArray) == emptyStringArrayValue
-            writeJson(jsonMapper, nullsArray) == nullsArrayValue
-            writeJson(jsonMapper, emptyArray) == emptyArrayValue
-            writeJson(jsonMapper, nullArray) == nullArrayValue
+        when:
+        String json = writeJson(jsonMapper, fullArray)
+        String expected = fullArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyStringArray)
+        expected = emptyStringArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullsArray)
+        expected = nullsArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyArray)
+        expected = emptyArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullArray)
+        expected = nullArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
