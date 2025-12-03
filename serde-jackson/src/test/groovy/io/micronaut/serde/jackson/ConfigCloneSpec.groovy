@@ -13,6 +13,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.exceptions.SerdeException
 import spock.lang.Specification
 import tools.jackson.core.JsonParser
+import tools.jackson.core.json.JsonReadFeature
 
 class ConfigCloneSpec extends Specification {
     def 'clone'() {
@@ -52,7 +53,7 @@ class ConfigCloneSpec extends Specification {
         given:
             def ctx = ApplicationContext.run()
             def newConf = new SerdeJacksonConfiguration()
-            newConf.setParserFeatures(Map.of(JsonParser.Feature.ALLOW_COMMENTS, true))
+            newConf.setJsonReadFeatures(Map.of(JsonReadFeature.ALLOW_JAVA_COMMENTS, true))
             def original = ctx.getBean(JacksonObjectMapper)
 
         when:
