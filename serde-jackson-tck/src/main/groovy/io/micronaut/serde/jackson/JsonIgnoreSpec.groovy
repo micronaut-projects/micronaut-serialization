@@ -718,7 +718,7 @@ record DeserializableRecord(String value) {
         then:
         def e = thrown(Exception)
         e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord")) ||
-                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
+                e.message.contains(unknownFieldMessage("unknown", "test.DeserializableRecord"))
 
         cleanup:
             context.close()
@@ -750,7 +750,7 @@ record DeserializableRecord(String value) {
         then:
         def e = thrown(Exception)
         e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord")) ||
-                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
+                e.message.contains(unknownFieldMessage("unknown", "test.DeserializableRecord"))
 
         cleanup:
             context.close()
@@ -823,7 +823,7 @@ class DeserializableRecord {
         then:
         def e = thrown(Exception)
         e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord")) ||
-                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
+                e.message.contains(unknownFieldMessage("unknown", "test.DeserializableRecord"))
 
         cleanup:
             context.close()
@@ -865,7 +865,7 @@ class DeserializableRecord {
         then:
         def e = thrown(Exception)
         e.message.contains(unknownPropertyMessage("unknown", "test.DeserializableRecord"))  ||
-                e.message.contains(unknownFieldMessage("unknown", "test.Test"))
+                e.message.contains(unknownFieldMessage("unknown", "test.DeserializableRecord"))
 
         cleanup:
             context.close()
