@@ -8,9 +8,7 @@ import io.micronaut.core.reflect.ReflectionUtils
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import org.intellij.lang.annotations.Language
-import spock.lang.Ignore
 
-@Ignore("fails in MN5")
 class SerdeJsonSubtypesKotlinSpec extends AbstractKotlinCompilerSpec {
 
     Object beanUnderTest
