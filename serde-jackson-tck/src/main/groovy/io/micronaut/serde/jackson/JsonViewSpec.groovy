@@ -124,14 +124,10 @@ class Nested {
 
         expect:
         serializeToString(jsonMapper, outer) ==  '{"a":"a","b":"b"}'
-        /* TODO Fails with MN5
         // abuse Runnable as the view class
         serializeToString(jsonMapper, outer, Runnable) == '{"a":"a","b":"b"}'
-        */
         jsonMapper.readValue('{"a":"a","b":"b"}', typeUnderTest).nested?.b == 'b'
-        /* TODO Fails with MN5
         deserializeFromString(jsonMapper, ctx.classLoader.loadClass("example.Outer"), '{"a":"a","b":"b"}', Runnable).nested.b == 'b'
-         */
     }
 
     void 'test JsonView with simple properties'() {
@@ -178,15 +174,12 @@ class Item {
         defaultResult == '{"id":10,"itemName":"Apple","ownerName":"Fred"}'
         internalResult == '{"id":10,"itemName":"Apple","ownerName":"Fred"}'
 
-        /* TODO Fails with MN5
-        when:
         def read = publicMapper.readValue(internalResult, argumentOf(context, 'jsonviews.Item'))
 
         then:
         read.id
         read.itemName
         read.ownerName == null
-        */
 
         cleanup:
         context.close()
@@ -233,16 +226,13 @@ record Item(
         defaultResult == '{"id":10,"itemName":"Apple","ownerName":"Fred"}'
         internalResult == '{"id":10,"itemName":"Apple","ownerName":"Fred"}'
 
-        /* TODO Fails with MN5
         when:
-        Argument arg = argumentOf(context, 'jsonviews.Item')
-        def read = publicMapper.readValue(internalResult, arg)
+        def read = publicMapper.readValue(internalResult, argumentOf(context, 'jsonviews.Item'))
 
         then:
         read.id
         read.itemName
         read.ownerName == null
-        */
 
         cleanup:
         context.close()
