@@ -19,7 +19,7 @@ class BookTest {
         val book = objectMapper.readValue(result, Book::class.java)
         Assertions.assertNotNull(book)
         assertEquals(
-            "The Stand", book.title
+            "The Stand", book!!.title
         )
         assertEquals(50, book.quantity)
     }
@@ -49,7 +49,7 @@ class BookTest {
     @Test
     @Throws(IOException::class)
     fun testMapOfBooks(objectMapper: ObjectMapper) {
-        val result: String? = objectMapper.writeValueAsString(
+        val result: String = objectMapper.writeValueAsString(
             Map.of<String?, Book?>(
                 "myBook", Book("The Stand", 50),
                 "hisBook", Book("Godfather", 10),

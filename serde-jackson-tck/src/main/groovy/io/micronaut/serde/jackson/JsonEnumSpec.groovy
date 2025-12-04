@@ -138,7 +138,7 @@ package enumtest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.List;
 import java.util.Arrays;
@@ -204,7 +204,7 @@ package enumtest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.List;
 import java.util.Arrays;
@@ -255,7 +255,7 @@ package enumtest;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @Serdeable
 enum EnumWithDefaultValue {

@@ -135,7 +135,7 @@ class Test {
 }
 """, [:], [
                     "micronaut.serde.serialization.sort-properties-alphabetically": true,
-                    "jackson.mapper.sort-properties-alphabetically"               : true
+                    "jackson.mapper-features.sort-properties-alphabetically"               : true
             ]
             )
         expect:
@@ -217,7 +217,7 @@ class Test {
 }
 """, [:], [
                     "micronaut.serde.serialization.sort-properties-alphabetically": true,
-                    "jackson.mapper.sort-properties-alphabetically"               : true
+                    "jackson.mapper-features.sort-properties-alphabetically": true
             ]
             )
         expect:

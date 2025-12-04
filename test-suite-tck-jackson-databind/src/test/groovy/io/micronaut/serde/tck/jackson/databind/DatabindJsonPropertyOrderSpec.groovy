@@ -1,6 +1,8 @@
 package io.micronaut.serde.tck.jackson.databind
 
 import io.micronaut.serde.jackson.JsonPropertyOrderSpec
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import spock.lang.PendingFeature
 import spock.lang.Unroll
 
@@ -84,7 +86,7 @@ class SuperTest {
             def t = context.classLoader.loadClass('jsonorder.Test')
             beanUnderTest = t.newInstance(4, 5)
         then:
-            writeJson(jsonMapper, beanUnderTest) == '{"x":3,"y":2,"z":4,"c":3,"b":2,"a":1,"d":5}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"x":3,"y":2,"z":4,"c":3,"b":2,"a":1,"d":5}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test basic order with a constructor 1"() {
@@ -135,7 +137,7 @@ class Test {
             def t = context.classLoader.loadClass('jsonorder.Test')
             beanUnderTest = t.newInstance(4)
         then:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"b":2,"a":1,"d":4}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"b":2,"a":1,"d":4}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test basic order with a constructor 2"() {
@@ -186,7 +188,7 @@ class Test {
             def t = context.classLoader.loadClass('jsonorder.Test')
             beanUnderTest = t.newInstance(4)
         then:
-            writeJson(jsonMapper, beanUnderTest) == '{"d":4,"c":3,"b":2,"a":1}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"d":4,"c":3,"b":2,"a":1}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test basic order with a constructor 2x"() {
@@ -237,7 +239,7 @@ class Test {
             def t = context.classLoader.loadClass('jsonorder.Test')
             beanUnderTest = t.newInstance(4)
         then:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"b":2,"a":1,"d":4}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"b":2,"a":1,"d":4}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test order is default"() {
@@ -273,7 +275,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"b":2,"a":1}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"b":2,"a":1}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test renamed property on type where order default"() {
@@ -311,7 +313,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"a":1,"d":2}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"a":1,"d":2}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test renamed property to existing one on type where order is default"() {
@@ -350,7 +352,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"d":2,"b":1}'
+            JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"d":2,"b":1}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test renamed getter property to existing one on type where order is default"() {
@@ -391,7 +393,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"d":2,"b":1}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"d":2,"b":1}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test renamed getter property to existing one on type where order is default X"() {
@@ -431,7 +433,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"a":1,"d":2}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"a":1,"d":2}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test renamed JsonGetter property to existing one on type where order is default"() {
@@ -473,7 +475,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) == '{"c":3,"d":2,"b":1}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest), '{"c":3,"d":2,"b":1}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "test property order with renamed JsonGetter property order"() {
@@ -514,7 +516,7 @@ class Test {
 }
 """, [:])
         expect:
-            writeJson(jsonMapper, beanUnderTest) ==  '{"c":3,"a":1,"d":2}'
+        JSONAssert.assertEquals(writeJson(jsonMapper, beanUnderTest),  '{"c":3,"a":1,"d":2}', JSONCompareMode.NON_EXTENSIBLE)
 
     }
 

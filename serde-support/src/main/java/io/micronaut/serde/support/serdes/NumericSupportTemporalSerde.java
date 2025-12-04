@@ -15,7 +15,7 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
 
@@ -42,7 +42,7 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
     NumericSupportTemporalSerde(
         @NonNull SerdeConfiguration configuration,
         @NonNull DateTimeFormatter defaultStringFormatter,
-        @NonNull SerdeConfiguration.NumericTimeUnit legacyUnit
+        SerdeConfiguration.@NonNull NumericTimeUnit legacyUnit
     ) {
         super(configuration, defaultStringFormatter);
         writeShape = configuration.getTimeWriteShape();

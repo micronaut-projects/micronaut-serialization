@@ -15,11 +15,13 @@
  */
 package io.micronaut.serde.jackson
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import org.intellij.lang.annotations.Language
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import spock.lang.Unroll
+import tools.jackson.databind.ObjectMapper
 
 abstract class JsonTypeInfoSpec extends JsonCompileSpec {
 
@@ -1362,7 +1364,7 @@ class B extends Base {
         a.type = "xyz"
 
         then:
-        serializeToString(jsonMapper, a) == '{"type":"xyz","fieldA":"foo"}'
+        JSONAssert.assertEquals(serializeToString(jsonMapper, a), '{"type":"xyz","fieldA":"foo"}', JSONCompareMode.NON_EXTENSIBLE)
         deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').fieldA == 'foo'
         deserializeFromString(jsonMapper, baseClass, '{"type":"b","fieldB":"foo"}').fieldB == 'foo'
         deserializeFromString(jsonMapper, baseClass, '{"type":"c","fieldB":"foo"}').fieldB == 'foo'
@@ -1405,7 +1407,7 @@ class B extends Base {
         a.type = "xyz"
 
         then:
-        serializeToString(jsonMapper, a) == '{"type":"xyz","fieldA":"foo"}'
+        JSONAssert.assertEquals(serializeToString(jsonMapper, a), '{"type":"xyz","fieldA":"foo"}', JSONCompareMode.NON_EXTENSIBLE)
         deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').fieldA == 'foo'
         deserializeFromString(jsonMapper, baseClass, '{"type":"a","fieldA":"foo"}').type == 'a'
         deserializeFromString(jsonMapper, baseClass, '{"type":"b","fieldB":"foo"}').fieldB == 'foo'
@@ -1665,7 +1667,7 @@ sealed interface RecordCommandBrokenToo {
 package defaultimpl;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
@@ -1703,7 +1705,7 @@ class Dog implements Animal {
         def dogJson = writeJson(jsonMapper, dog)
 
         then:
-        dogJson == '{"name":"Fred","barkVolume":1.1}'
+        JSONAssert.assertEquals(dogJson, '{"name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:"No discriminator is used the default impl is chosen"
         def dogClass = dog.getClass()
@@ -1777,8 +1779,8 @@ class Cat implements Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:"No discriminator is used the default impl is chosen"
         def dogClass = dog.getClass()
@@ -1858,8 +1860,8 @@ class Cat implements Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'defaultimpl.Animal'))
@@ -1935,8 +1937,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         jsonMapper.readValue('{"name":"Fred","barkVolume":1.1}', argumentOf(context, 'defaultimpl.Animal'))
@@ -2012,8 +2014,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         jsonMapper.readValue('{}', argumentOf(context, 'defaultimpl.Animal'))
@@ -2097,8 +2099,8 @@ class Cat implements Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"@c":".Dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"@c":".Cat","name":"Joe","lives":9,"likesCream":true}'
+        JSONAssert.assertEquals(dogJson, '{"@c":".Dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"@c":".Cat","name":"Joe","lives":9,"likesCream":true}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def dogBean = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Animal'))
@@ -2186,8 +2188,8 @@ class Cat implements Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def dogClass = dog.getClass()
@@ -2261,8 +2263,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def dogClass = dog.getClass()
@@ -2336,8 +2338,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"dog":{"name":"Fred","barkVolume":1.1}}'
-        catJson == '{"cat":{"name":"Joe","likesCream":true,"lives":9}}'
+        JSONAssert.assertEquals(dogJson, '{"dog":{"name":"Fred","barkVolume":1.1}}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"cat":{"name":"Joe","likesCream":true,"lives":9}}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def dogClass = dog.getClass()
@@ -2438,8 +2440,8 @@ class Cat extends Animal {
         def catJson = writeJson(jsonMapper, cat)
 
         then:
-        dogJson == '{"@class":"subtypes.Dog","name":"Fred","barkVolume":1.1}'
-        catJson == '{"@class":"subtypes.Cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"@class":"subtypes.Dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"@class":"subtypes.Cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def dogClass = dog.getClass()
@@ -2691,7 +2693,7 @@ record TypeA (String a, InterfaceB b) { }
         def json = writeJson(jsonMapper, l)
 
         then:
-        json == """[{"a":"a","b":{"typeB":{"b":"x"}}},{"a":"b","b":{"typeB":{"b":"x"}}}]"""
+        JSONAssert.assertEquals(json, """[{"a":"a","b":{"typeB":{"b":"x"}}},{"a":"b","b":{"typeB":{"b":"x"}}}]""", JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         def list = jsonMapper.readValue(json, Argument.listOf(argumentOf(context, 'subtypes.TypeA')))
@@ -2808,8 +2810,8 @@ class Cat implements Animal {
             def catJson = writeJson(jsonMapper, cat)
 
         then:
-            dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-            catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+        JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+        JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def dog2 = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Dog'))
@@ -2903,8 +2905,8 @@ class Cat implements Animal {
             def catJson = writeJson(jsonMapper, cat)
 
         then:
-            dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-            catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+            JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+            JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def dog2 = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Dog'))
@@ -3009,8 +3011,8 @@ class Cat extends Animal {
             def catJson = writeJson(jsonMapper, cat)
 
         then:
-            dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-            catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+            JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+            JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def dog2 = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Dog'))
@@ -3126,8 +3128,8 @@ class Cat extends Animal {
             def catJson = writeJson(jsonMapper, cat)
 
         then:
-            dogJson == '{"type":"dog","name":"Fred","barkVolume":1.1}'
-            catJson == '{"type":"cat","name":"Joe","likesCream":true,"lives":9}'
+            JSONAssert.assertEquals(dogJson, '{"type":"dog","name":"Fred","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+            JSONAssert.assertEquals(catJson, '{"type":"cat","name":"Joe","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def dog2 = jsonMapper.readValue(dogJson, argumentOf(context, 'test.Dog'))
@@ -3218,8 +3220,8 @@ class Cat implements Animal {
             def catJson = writeJson(jsonMapper, cat)
 
         then:
-            dogJson == '{"type":"dog","barkVolume":1.1}'
-            catJson == '{"type":"cat","likesCream":true,"lives":9}'
+            JSONAssert.assertEquals(dogJson, '{"type":"dog","barkVolume":1.1}', JSONCompareMode.NON_EXTENSIBLE)
+            JSONAssert.assertEquals(catJson, '{"type":"cat","likesCream":true,"lives":9}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def dogClass = dog.getClass()
@@ -3370,7 +3372,7 @@ class BookInfo {
             def json = writeJson(jsonMapper, testModel)
 
         then:
-            json == '{"type":"BASIC","author":"Michael Ende","name":"The Neverending Story"}'
+            JSONAssert.assertEquals(json, '{"type":"BASIC","author":"Michael Ende","name":"The Neverending Story"}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             def bean = jsonMapper.readValue(json, context.classLoader.loadClass('test.BookInfo'))

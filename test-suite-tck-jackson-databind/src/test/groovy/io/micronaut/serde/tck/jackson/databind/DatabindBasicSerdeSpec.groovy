@@ -8,7 +8,9 @@ import io.micronaut.serde.AbstractBasicSerdeSpec
 
 class DatabindBasicSerdeSpec extends AbstractBasicSerdeSpec {
 
-    ApplicationContext context = ApplicationContext.run()
+    ApplicationContext context = ApplicationContext.run([
+            'jackson.deserialization-features.fail-on-null-for-primitives': 'false'
+    ])
 
     @Memoized
     @Override

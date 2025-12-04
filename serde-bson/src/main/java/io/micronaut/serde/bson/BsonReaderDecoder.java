@@ -16,7 +16,7 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;

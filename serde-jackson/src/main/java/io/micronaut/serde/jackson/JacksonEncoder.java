@@ -15,15 +15,15 @@
  */
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonStreamContext;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.TokenStreamContext;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -126,14 +126,14 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
 
     @Override
     public String currentPath() {
-        final JsonStreamContext outputContext = generator.getOutputContext();
+        final TokenStreamContext outputContext = generator.streamWriteContext();
         return outputContext.pathAsPointer().toString();
     }
 
     @Override
     public final void encodeKey(@NonNull String key) throws IOException {
         Objects.requireNonNull(key, "key");
-        generator.writeFieldName(key);
+        generator.writeName(key);
     }
 
     @Override

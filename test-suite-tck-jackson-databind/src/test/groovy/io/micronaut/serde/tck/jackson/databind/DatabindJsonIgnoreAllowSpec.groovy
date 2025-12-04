@@ -8,12 +8,12 @@ class DatabindJsonIgnoreAllowSpec extends JsonIgnoreAllowSpec {
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
-                Map.of("jackson.deserialization.failOnUnknownProperties", "true")
+                Map.of("jackson.deserialization-features.fail-on-unknown-properties", "true")
         ))
     }
 
     @Override
     protected String unknownPropertyMessage(String propertyName, String className) {
-        return """Unrecognized field "$propertyName" (class $className), not marked as ignorable"""
+        return """Unrecognized property "$propertyName" (class $className), not marked as ignorable"""
     }
 }

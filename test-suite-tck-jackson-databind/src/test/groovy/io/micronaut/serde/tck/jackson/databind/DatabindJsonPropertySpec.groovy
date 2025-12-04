@@ -9,7 +9,10 @@ class DatabindJsonPropertySpec extends JsonPropertySpec {
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
-                Map.of("jackson.deserialization.failOnUnknownProperties", "true")
+                Map.of(
+                        "jackson.deserialization-features.fail-on-null-for-primitives", "false",
+                        "jackson.deserialization-features.fail-on-unknown-properties", "true",
+                )
         ))
     }
 

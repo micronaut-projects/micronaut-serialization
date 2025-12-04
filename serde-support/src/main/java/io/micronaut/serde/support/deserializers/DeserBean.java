@@ -20,8 +20,8 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NextMajorVersion;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
@@ -882,7 +882,7 @@ final class DeserBean<T> {
             return provideDefaultValue(decoderContext, mustSetFieldForConstructor);
         }
 
-        public void set(@NonNull Deserializer.DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
+        public void set(Deserializer.@NonNull DecoderContext decoderContext, @NonNull B obj, @Nullable P value) throws SerdeException {
             if (value == null) {
                 setDefaultPropertyValue(decoderContext, obj);
             } else {

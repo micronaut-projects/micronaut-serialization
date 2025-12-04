@@ -2,8 +2,14 @@ package io.micronaut.serde.tck.jackson.databind
 
 
 import io.micronaut.serde.jackson.JsonValueSpec
+import tools.jackson.databind.exc.InvalidFormatException
 
 class DatabindJsonValueSpec extends JsonValueSpec {
+
+    @Override
+    protected Class<InvalidFormatException> getFormatExceptionClass() {
+        return InvalidFormatException
+    }
 
     void "test json value on toString() - NON_ABSENT"() {
         given:

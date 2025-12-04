@@ -14,7 +14,7 @@ dependencies {
     api(mnTest.micronaut.test.spock)
     api(libs.jetbrains.annotations)
     api(mn.jackson.annotations)
-
+    api(libs.jsonassert)
     compileOnly(mn.micronaut.inject.groovy)
     compileOnly(mn.jackson.databind)
 }

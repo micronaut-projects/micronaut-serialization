@@ -16,8 +16,8 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -77,8 +77,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;
 
-    @NonNull
-    private LimitingStream.RemainingLimits limits() {
+    private LimitingStream.@NonNull RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 

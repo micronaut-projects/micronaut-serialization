@@ -10,8 +10,8 @@ class DatabindJsonRootNameSpec extends JsonRootNameSpec {
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
                 Map.of(
-                        "jackson.serialization.wrapRootValue", "true",
-                        "jackson.deserialization.unwrapRootValue", "true"
+                        "jackson.serialization-features.wrap-root-value", "true",
+                        "jackson.deserialization-features.unwrap-root-value", "true"
                 )
         ))
     }

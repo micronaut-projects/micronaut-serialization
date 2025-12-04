@@ -1,17 +1,17 @@
 package io.micronaut.serde.util
 
-import com.fasterxml.jackson.core.JsonFactory
-import com.fasterxml.jackson.core.JsonParseException
-import com.fasterxml.jackson.core.JsonParser
-import io.micronaut.core.annotation.NonNull
 import io.micronaut.jackson.core.tree.JsonNodeTreeCodec
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.support.util.BufferingJsonNodeProcessor
 import org.intellij.lang.annotations.Language
+import org.jspecify.annotations.NonNull
 import org.reactivestreams.Processor
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import spock.lang.Specification
+import tools.jackson.core.JacksonException
+import tools.jackson.core.JsonParser
+import tools.jackson.core.json.JsonFactory
 
 import java.nio.charset.StandardCharsets
 import java.util.function.Consumer
@@ -28,7 +28,7 @@ class BufferingJsonNodeProcessorSpec extends Specification {
             parser.nextToken()
             parser.skipChildren()
             return parser.nextToken() == null
-        } catch (JsonParseException ignored) {
+        } catch (JacksonException ignored) {
             return false
         }
     }

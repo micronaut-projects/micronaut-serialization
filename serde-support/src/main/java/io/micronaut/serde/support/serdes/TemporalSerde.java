@@ -16,7 +16,7 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serde;

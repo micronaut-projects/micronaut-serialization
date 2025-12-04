@@ -15,28 +15,9 @@
  */
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.core.StreamWriteFeature;
-import com.fasterxml.jackson.core.TSFBuilder;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
-import com.fasterxml.jackson.core.type.ResolvedType;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.core.util.ByteArrayBuilder;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.io.buffer.ByteBuffer;
 import io.micronaut.core.type.Argument;
 import io.micronaut.jackson.core.parser.JacksonCoreParserFactory;
@@ -61,13 +42,31 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonViewUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.ObjectWriteContext;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.exc.StreamWriteException;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.json.JsonFactoryBuilder;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.core.util.ByteArrayBuilder;
+import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.util.JacksonFeature;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -86,7 +85,6 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     private final SerdeJacksonConfiguration jacksonConfiguration;
     private final JsonNodeTreeCodec treeCodec;
     private final Class<?> view;
-    private final ObjectCodecImpl objectCodecImpl = new ObjectCodecImpl();
     private final Serializer.EncoderContext encoderContext;
     private final Deserializer.DecoderContext decoderContext;
     private final JsonFactory jsonFactory;
@@ -185,37 +183,20 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     }
 
     private static JsonFactory buildJsonFactory(SerdeJacksonConfiguration jacksonConfiguration) {
-        TSFBuilder<?, ?> builder = JsonFactory.builder();
-        for (Map.Entry<JsonFactory.Feature, Boolean> e : jacksonConfiguration.getFactoryFeatures().entrySet()) {
+        JsonFactoryBuilder builder = JsonFactory.builder();
+        for (Map.Entry<JsonFactory.Feature, Boolean> e : jacksonConfiguration.getJsonFactoryFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }
-        for (Map.Entry<JsonReadFeature, Boolean> e : jacksonConfiguration.getReadFeatures().entrySet()) {
+        for (Map.Entry<JsonReadFeature, Boolean> e : jacksonConfiguration.getJsonReadFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }
-        for (Map.Entry<JsonWriteFeature, Boolean> e : jacksonConfiguration.getWriteFeatures().entrySet()) {
+        for (Map.Entry<JsonWriteFeature, Boolean> e : jacksonConfiguration.getJsonWriteFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }
-        for (Map.Entry<StreamWriteFeature, Boolean> e : jacksonConfiguration.getStreamFeatures().entrySet()) {
+        for (Map.Entry<StreamWriteFeature, Boolean> e : jacksonConfiguration.getStreamWriteFeatures().entrySet()) {
             builder = builder.configure(e.getKey(), e.getValue());
         }
         return builder.build();
-    }
-
-    private void configureGenerator(JsonGenerator generator) {
-        generator.setCodec(objectCodecImpl);
-        for (Map.Entry<JsonGenerator.Feature, Boolean> e : jacksonConfiguration.getGeneratorFeatures().entrySet()) {
-            generator.configure(e.getKey(), e.getValue());
-        }
-        if (jacksonConfiguration.isPrettyPrint()) {
-            generator.setPrettyPrinter(new DefaultPrettyPrinter());
-        }
-    }
-
-    private void configureParser(JsonParser parser) {
-        parser.setCodec(objectCodecImpl);
-        for (Map.Entry<JsonParser.Feature, Boolean> e : jacksonConfiguration.getParserFeatures().entrySet()) {
-            parser.configure(e.getKey(), e.getValue());
-        }
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -229,8 +210,6 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     }
 
     private <T> void writeValue(JsonGenerator gen, T value, Argument<T> argument) throws IOException {
-        configureGenerator(gen);
-
         Serializer<? super T> serializer;
         Serializer.EncoderContext encoderContext = this.encoderContext;
         if (argument.equalsType(specificType)) {
@@ -256,7 +235,6 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> T readValue0(JsonParser parser, Argument<?> type) throws IOException {
-        configureParser(parser);
         Deserializer deserializer;
         Deserializer.DecoderContext decoderContext = this.decoderContext;
         if (type.equalsType(specificType)) {
@@ -278,7 +256,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public <T> T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
-        return readValue(treeCodec.treeAsTokens(tree), type);
+        return readValue(treeCodec.treeAsTokens(tree, new ReadContextImpl()), type);
     }
 
     @Override
@@ -297,18 +275,18 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
-        try (JsonParser parser = jsonFactory.createParser(inputStream)) {
+        try (JsonParser parser = jsonFactory.createParser(new ReadContextImpl(), inputStream)) {
             return readValue(parser, type);
-        } catch (JsonParseException pe) {
+        } catch (StreamReadException pe) {
             throw new JsonSyntaxException(pe);
         }
     }
 
     @Override
-    public <T> T readValue(@NonNull byte[] byteArray, @NonNull Argument<T> type) throws IOException {
-        try (JsonParser parser = jsonFactory.createParser(byteArray)) {
+    public <T> T readValue(byte @NonNull [] byteArray, @NonNull Argument<T> type) throws IOException {
+        try (JsonParser parser = jsonFactory.createParser(new ReadContextImpl(), byteArray)) {
             return readValue(parser, type);
-        } catch (JsonParseException pe) {
+        } catch (StreamReadException pe) {
             throw new JsonSyntaxException(pe);
         }
     }
@@ -317,21 +295,21 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     public <T> T readValue(@NonNull ByteBuffer<?> byteBuffer, @NonNull Argument<T> type) throws IOException {
         try (JsonParser parser = JacksonCoreParserFactory.createJsonParser(jsonFactory, byteBuffer)) {
             return readValue(parser, type);
-        } catch (JsonParseException pe) {
+        } catch (StreamReadException pe) {
             throw new JsonSyntaxException(pe);
         }
     }
 
     @Override
     public void writeValue(@NonNull OutputStream outputStream, @Nullable Object object) throws IOException {
-        try (JsonGenerator generator = jsonFactory.createGenerator(outputStream)) {
+        try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), outputStream)) {
             writeValue0(generator, object);
         }
     }
 
     @Override
     public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
-        try (JsonGenerator generator = jsonFactory.createGenerator(outputStream)) {
+        try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), outputStream)) {
             writeValue(generator, object, type);
         }
     }
@@ -339,7 +317,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         ByteArrayBuilder bb = new ByteArrayBuilder(jsonFactory._getBufferRecycler());
-        try (JsonGenerator generator = jsonFactory.createGenerator(bb)) {
+        try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), bb)) {
             writeValue0(generator, object);
         }
         byte[] bytes = bb.toByteArray();
@@ -350,7 +328,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
         ByteArrayBuilder bb = new ByteArrayBuilder(jsonFactory._getBufferRecycler());
-        try (JsonGenerator generator = jsonFactory.createGenerator(bb)) {
+        try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), bb)) {
             writeValue(generator, object, type);
         }
         byte[] bytes = bb.toByteArray();
@@ -393,8 +371,7 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
             }
             if (deserializer instanceof UpdatingDeserializer) {
 
-                try (JsonParser parser = treeCodec.treeAsTokens(tree)) {
-                    configureParser(parser);
+                try (JsonParser parser = treeCodec.treeAsTokens(tree, new ReadContextImpl())) {
                     if (!parser.hasCurrentToken()) {
                         parser.nextToken();
                     }
@@ -413,75 +390,59 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
         }
     }
 
-    private class ObjectCodecImpl extends ObjectCodec {
+    private static int collectFeatures(int defaults, Map<? extends JacksonFeature, Boolean> config) {
+        int val = defaults;
+        for (Map.Entry<? extends JacksonFeature, Boolean> e : config.entrySet()) {
+            if (e.getValue()) {
+                val |= e.getKey().getMask();
+            } else {
+                val &= ~e.getKey().getMask();
+            }
+        }
+        return val;
+    }
+
+    private final class WriteContextImpl extends ObjectWriteContext.Base {
+        final int formatWriteFeatures = collectFeatures(JsonWriteFeature.collectDefaults(), jacksonConfiguration.getJsonWriteFeatures());
+        final int streamWriteFeatures = collectFeatures(StreamWriteFeature.collectDefaults(), jacksonConfiguration.getStreamWriteFeatures());
+
         @Override
-        public Version version() {
-            return Version.unknownVersion();
+        public PrettyPrinter getPrettyPrinter() {
+            return jacksonConfiguration.isPrettyPrint() ? new DefaultPrettyPrinter() : null;
         }
 
         @Override
-        public <T> T readValue(JsonParser p, Class<T> valueType) throws IOException {
-            return readValue0(p, Argument.of(valueType));
+        public void writeValue(JsonGenerator g, Object value) {
+            try {
+                writeValue0(g, value);
+            } catch (IOException e) {
+                throw new StreamWriteException(g, e);
+            }
         }
 
         @Override
-        public <T> T readValue(JsonParser p, TypeReference<T> valueTypeRef) throws IOException {
-            return readValue0(p, Argument.of(valueTypeRef.getType()));
+        public int getFormatWriteFeatures(int defaults) {
+            return formatWriteFeatures;
         }
 
         @Override
-        public <T> T readValue(JsonParser p, ResolvedType valueType) throws IOException {
-            throw new UnsupportedOperationException();
+        public int getStreamWriteFeatures(int defaults) {
+            return streamWriteFeatures;
+        }
+    }
+
+    private final class ReadContextImpl extends ObjectReadContext.Base {
+        final int formatReadFeatures = collectFeatures(JsonReadFeature.collectDefaults(), jacksonConfiguration.getJsonReadFeatures());
+        final int streamReadFeatures = collectFeatures(StreamReadFeature.collectDefaults(), jacksonConfiguration.getStreamReadFeatures());
+
+        @Override
+        public int getFormatReadFeatures(int defaults) {
+            return formatReadFeatures;
         }
 
         @Override
-        public <T> Iterator<T> readValues(JsonParser p, Class<T> valueType) throws IOException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <T> Iterator<T> readValues(JsonParser p, TypeReference<T> valueTypeRef) throws IOException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <T> Iterator<T> readValues(JsonParser p, ResolvedType valueType) throws IOException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void writeValue(JsonGenerator gen, Object value) throws IOException {
-            writeValue0(gen, value);
-        }
-
-        @Override
-        public <T extends TreeNode> T readTree(JsonParser p) throws IOException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void writeTree(JsonGenerator gen, TreeNode tree) throws IOException {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public TreeNode createObjectNode() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public TreeNode createArrayNode() {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public JsonParser treeAsTokens(TreeNode n) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <T> T treeToValue(TreeNode n, Class<T> valueType) throws JsonProcessingException {
-            throw new UnsupportedOperationException();
+        public int getStreamReadFeatures(int defaults) {
+            return streamReadFeatures;
         }
     }
 }

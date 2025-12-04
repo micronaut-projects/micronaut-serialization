@@ -10,7 +10,7 @@ class DefaultsTest {
     @Test
     fun test(objectMapper: ObjectMapper) {
         val result = objectMapper.readValue("""{"required": "some value"}""", Params::class.java)
-        Assertions.assertEquals("some value", result.required)
+        Assertions.assertEquals("some value", result!!.required)
         Assertions.assertEquals("default", result.stringDefault)
         Assertions.assertEquals(true, result.boolDefault)
         Assertions.assertEquals(5, result.longDefault)

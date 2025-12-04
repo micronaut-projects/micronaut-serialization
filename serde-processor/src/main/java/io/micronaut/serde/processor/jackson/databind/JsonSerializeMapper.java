@@ -52,6 +52,13 @@ public class JsonSerializeMapper extends ValidatingAnnotationMapper {
 
     @Override
     public String getName() {
-        return "com.fasterxml.jackson.databind.annotation.JsonSerialize";
+        return "tools.jackson.databind.annotation.JsonSerialize";
+    }
+
+    public static final class Jackson2 extends JsonSerializeMapper {
+        @Override
+        public String getName() {
+            return "com.fasterxml.jackson.databind.annotation.JsonSerialize";
+        }
     }
 }

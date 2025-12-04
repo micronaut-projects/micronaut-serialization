@@ -23,20 +23,8 @@ dependencies {
     implementation(projects.micronautSerdeSupport)
     implementation(mn.micronaut.jackson.databind)
 
-
     jmh(libs.jmh.core)
     runtimeOnly(mnLogging.logback.classic)
-
-    typeCheckTestImplementation(mnTest.junit.jupiter.engine)
-    typeCheckTestImplementation(mnTest.micronaut.test.type.pollution)
-    typeCheckTestImplementation(mnTest.bytebuddy)
-    typeCheckTestImplementation(mnTest.bytebuddy.agent)
-    typeCheckTestImplementation("org.junit.platform:junit-platform-launcher")
-}
-
-configurations {
-    typeCheckTestImplementation.extendsFrom(jmhImplementation, implementation)
-    typeCheckTestRuntimeOnly.extendsFrom(jmhRuntimeOnly, runtimeOnly)
 }
 
 jmh {
@@ -46,18 +34,6 @@ jmh {
     warmupIterations = 0
     duplicateClassesStrategy = DuplicatesStrategy.EXCLUDE
 }
-
-tasks.register('typeCheckTest', Test) {
-    description = "Runs type check tests."
-    group = "verification"
-
-    testClassesDirs = sourceSets.typeCheckTest.output.classesDirs
-    classpath = sourceSets.typeCheckTest.runtimeClasspath
-
-    useJUnitPlatform()
-}
-
-check.dependsOn typeCheckTest
 
 shadowJar {
     mergeServiceFiles()

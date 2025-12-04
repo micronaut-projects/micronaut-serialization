@@ -17,7 +17,7 @@ package io.micronaut.serde.jackson.serdeimport;
 
 import com.amazonaws.services.lambda.runtime.serialization.util.SerializeUtil;
 import io.micronaut.context.annotation.Requires;
-import io.micronaut.core.annotation.NonNull;
+import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;

@@ -32,8 +32,19 @@ import java.io.IOException;
  */
 @Internal
 class ErrorCatchingDeserializer<T> implements Deserializer<T> {
+    private static final Class<?> JACKSON_EXCEPTION_CLASS;
 
     private final Deserializer<T> deserializer;
+
+    static {
+        Class<?> jacksonExceptionClass;
+        try {
+            jacksonExceptionClass = Class.forName("tools.jackson.core.JacksonException");
+        } catch (ClassNotFoundException e) {
+            jacksonExceptionClass = null;
+        }
+        JACKSON_EXCEPTION_CLASS = jacksonExceptionClass;
+    }
 
     ErrorCatchingDeserializer(Deserializer<T> deserializer) {
         this.deserializer = deserializer;
@@ -55,6 +66,9 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
+            if (JACKSON_EXCEPTION_CLASS != null && JACKSON_EXCEPTION_CLASS.isInstance(e)) {
+                throw e;
+            }
             throw new SerdeException("Error deserializing type: " + type, e);
         }
     }
@@ -70,6 +84,9 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
         } catch (IOException e) {
             throw e;
         } catch (Exception e) {
+            if (JACKSON_EXCEPTION_CLASS != null && JACKSON_EXCEPTION_CLASS.isInstance(e)) {
+                throw e;
+            }
             throw new SerdeException("Error deserializing type: " + type, e);
         }
     }

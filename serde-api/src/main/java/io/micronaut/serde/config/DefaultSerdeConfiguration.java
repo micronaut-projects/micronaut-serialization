@@ -19,7 +19,7 @@ import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Property;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;

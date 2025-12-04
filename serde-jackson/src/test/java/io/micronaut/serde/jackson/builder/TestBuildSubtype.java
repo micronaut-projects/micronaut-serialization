@@ -1,6 +1,6 @@
 package io.micronaut.serde.jackson.builder;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize(builder = TestBuildSubtype.Builder.class)
 public class TestBuildSubtype extends TestBuildSupertype {

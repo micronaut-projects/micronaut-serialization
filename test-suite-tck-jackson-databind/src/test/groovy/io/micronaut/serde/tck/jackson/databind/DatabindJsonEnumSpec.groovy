@@ -10,7 +10,7 @@ class DatabindJsonEnumSpec extends JsonEnumSpec {
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
                 Map.of(
-                        "jackson.mapper.accept-case-insensitive-enums", "true"
+                        "jackson.mapper-features.accept-case-insensitive-enums", "true"
                 )
         ))
     }

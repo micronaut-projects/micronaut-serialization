@@ -258,7 +258,7 @@ record Test(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Test["unknownProperty"]"""
 
         cleanup:
@@ -292,7 +292,7 @@ record Inner(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
 
         cleanup:
@@ -337,7 +337,7 @@ record Inner(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
 
         cleanup:
@@ -357,7 +357,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.Objects;
@@ -391,7 +391,7 @@ record Inner(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Outer["inner"]->example.Inner["unknownProperty"]"""
 
         cleanup:
@@ -443,7 +443,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Test["unknownProperty"]"""
 
         cleanup:
@@ -494,7 +494,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
+            e.message.contains("""Unrecognized field "unknownProperty" """) || e.message.contains("""Unrecognized property "unknownProperty" """) || e.message.contains("Unknown property [unknownProperty]")
             getPath(e) == """example.Test["unknownProperty"]"""
 
         cleanup:
@@ -527,7 +527,7 @@ record Test(String stringA, String stringB) {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]") || e.message.contains("Duplicate Object property \"stringA\"")
             def path = getPath(e)
             path == "<unknown>" || path == """example.Test["stringA"]"""
 
@@ -581,7 +581,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]") || e.message.contains("Duplicate Object property \"stringA\"")
             def path = getPath(e)
             path == "<unknown>" || path == """example.Test["stringA"]"""
 
@@ -634,7 +634,7 @@ final class Test {
 
         then:
             def e = thrown(Exception)
-            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]")
+            e.message.contains("""Duplicate field 'stringA'""") || e.message.contains("Duplicate property [stringA]") || e.message.contains("Duplicate Object property \"stringA\"")
             def path = getPath(e)
             path == "<unknown>" || path == """example.Test["stringA"]"""
 
@@ -729,7 +729,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}', typeUnderTest)
 
         then:
             bean
@@ -789,7 +789,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": {"bar": 123}}', typeUnderTest)
 
         then:
             bean
@@ -813,7 +813,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 import java.util.Set;
 import java.util.LinkedHashSet;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 @Serdeable
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
@@ -882,7 +882,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->java.util.ArrayList[0]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}', typeUnderTest)
 
         then:
             bean
@@ -942,7 +942,7 @@ class Test2 {
             path == """example.Test["foo"]->java.lang.Object[][0]->example.Test2["bar"]""" || path == """example.Test["foo"]->example.Test2[][0]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": [{"bar": 123}]}', typeUnderTest)
 
         then:
             bean
@@ -1002,7 +1002,7 @@ class Test2 {
             getPath(e) == """example.Test["foo"]->java.util.LinkedHashMap["xxx"]->example.Test2["bar"]"""
 
         when:
-            def bean = jsonMapper.readValue('{"foo": {"xxx": {"bar": 123}}}}', typeUnderTest)
+            def bean = jsonMapper.readValue('{"foo": {"xxx": {"bar": 123}}}', typeUnderTest)
 
         then:
             bean

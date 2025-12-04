@@ -15,7 +15,7 @@ class LocationTest {
         )
         val location = objectMapper.readValue(result, Location::class.java)
         Assertions.assertNotNull(location)
-        Assertions.assertEquals(1, location.features.size)
+        Assertions.assertEquals(1, location!!.features.size)
         val name: String = location.features.keys.first().name()
         Assertions.assertEquals("Tree", name)
     }

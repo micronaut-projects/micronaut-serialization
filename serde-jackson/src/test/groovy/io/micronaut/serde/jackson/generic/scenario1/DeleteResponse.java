@@ -2,7 +2,7 @@ package io.micronaut.serde.jackson.generic.scenario1;
 
 import com.amazonaws.lambda.thirdparty.com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,

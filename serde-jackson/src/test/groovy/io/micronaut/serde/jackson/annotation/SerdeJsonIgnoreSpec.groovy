@@ -9,6 +9,11 @@ class SerdeJsonIgnoreSpec extends JsonIgnoreSpec {
         return "Unknown property [$propertyName] encountered during deserialization of type: ${NameUtils.getSimpleName(className)}"
     }
 
+    @Override
+    protected String unknownFieldMessage(String propertyName, String className) {
+        return "Unknown field [$propertyName] encountered during deserialization of type: ${NameUtils.getSimpleName(className)}"
+    }
+
     void "json ignore on a constructor parameter"() {
         given:
             def context = buildContext('example.Test', '''
@@ -16,7 +21,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -61,7 +66,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

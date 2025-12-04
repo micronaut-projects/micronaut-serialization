@@ -15,8 +15,8 @@
  */
 package io.micronaut.serde;
 
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.convert.ConversionServiceProvider;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -55,12 +55,12 @@ public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, N
      * @param view The view
      * @return The encoder context
      */
-    @NonNull Serializer.EncoderContext newEncoderContext(@Nullable Class<?> view);
+    Serializer.@NonNull  EncoderContext newEncoderContext(@Nullable Class<?> view);
 
     /**
      * Creates a new decoder context.
      * @param view The view
      * @return The decoder context
      */
-    @NonNull Deserializer.DecoderContext newDecoderContext(@Nullable Class<?> view);
+    Deserializer.@NonNull DecoderContext newDecoderContext(@Nullable Class<?> view);
 }

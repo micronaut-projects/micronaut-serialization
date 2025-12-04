@@ -9,12 +9,17 @@ class DatabindJsonIgnoreSpec extends JsonIgnoreSpec {
     @Override
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
-                Map.of("jackson.deserialization.failOnUnknownProperties", "true")
+                Map.of("jackson.deserialization-features.fail-on-unknown-properties", "true")
         ))
     }
 
     @Override
     protected String unknownPropertyMessage(String propertyName, String className) {
+        return """Unrecognized property "$propertyName" (class $className), not marked as ignorable"""
+    }
+
+    @Override
+    protected String unknownFieldMessage(String propertyName, String className) {
         return """Unrecognized field "$propertyName" (class $className), not marked as ignorable"""
     }
 
@@ -25,7 +30,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -53,7 +58,7 @@ package example;
 
 import com.fasterxml.jackson.annotation.*;
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

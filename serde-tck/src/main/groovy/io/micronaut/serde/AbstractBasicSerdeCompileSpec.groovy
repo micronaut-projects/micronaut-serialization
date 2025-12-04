@@ -170,7 +170,7 @@ import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
 class Test {
-    @io.micronaut.core.annotation.Nullable
+    @org.jspecify.annotations.Nullable
     private $type value;
     public void setValue($type value) {
         this.value = value;

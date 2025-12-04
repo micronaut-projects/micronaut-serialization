@@ -19,6 +19,8 @@ import io.micronaut.serde.jackson.jsonvalue.JdkVersion
 
 abstract class JsonValueSpec extends JsonCompileSpec {
 
+    protected abstract <T extends Throwable> Class<T> getFormatExceptionClass()
+
     void "enum @JsonValue property"() throws IOException {
         given:
             def context = buildContext('''
@@ -77,7 +79,7 @@ enum MyEnum {
         when:
             jsonMapper.readValue('{"myEnum":"invalid"}', testBean.class)
         then:
-            thrown IOException
+            thrown(getFormatExceptionClass())
     }
 
     void "enum @JsonValue on field"() throws IOException {
@@ -130,7 +132,7 @@ enum MyEnum {
         when:
             jsonMapper.readValue('{"myEnum":"invalid"}', testBean.class)
         then:
-            thrown IOException
+            thrown(getFormatExceptionClass())
     }
 
     void "@JsonValue on constructor"() throws IOException {
@@ -331,7 +333,7 @@ package itfeimpl;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.annotation.Serdeable;
 

@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import spock.lang.Unroll
 
 import java.sql.Date
@@ -57,7 +59,8 @@ abstract class JsonIncludeSpec extends JsonCompileSpec {
         when:
             def json = jsonMapper.writeValueAsString(bean)
         then:
-            json == """{"name":"hello","key1":null,"value1":null}"""
+            JSONAssert.assertEquals(json, """{"name":"hello","key1":null,"value1":null}""", JSONCompareMode.NON_EXTENSIBLE)
+
         cleanup:
             context.close()
     }
@@ -294,10 +297,24 @@ class Test {
             nullString.nonAbsentString = null
             nullString.nonEmptyString = null
 
-        expect:
-            writeJson(jsonMapper, presentString) == '{"alwaysString":"a","nonNullString":"a","nonAbsentString":"a","nonEmptyString":"a"}'
-            writeJson(jsonMapper, emptyString) == '{"alwaysString":"","nonNullString":"","nonAbsentString":""}'
-            writeJson(jsonMapper, nullString) == '{"alwaysString":null}'
+        when:
+        String json = writeJson(jsonMapper, presentString)
+        String expected = '{"alwaysString":"a","nonNullString":"a","nonAbsentString":"a","nonEmptyString":"a"}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyString)
+        expected = '{"alwaysString":"","nonNullString":"","nonAbsentString":""}'
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullString)
+        expected ='{"alwaysString":null}'
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude Integer"() {
@@ -340,10 +357,26 @@ class Test {
             nullInteger.nonAbsentInteger = null
             nullInteger.nonEmptyInteger = null
 
-        expect:
-            writeJson(jsonMapper, presentInteger) == '{"alwaysInteger":1,"nonNullInteger":1,"nonAbsentInteger":1,"nonEmptyInteger":1}'
-            writeJson(jsonMapper, zeroInteger) == '{"alwaysInteger":0,"nonNullInteger":0,"nonAbsentInteger":0,"nonEmptyInteger":0}'
-            writeJson(jsonMapper, nullInteger) == '{"alwaysInteger":null}'
+        when:
+        String json = writeJson(jsonMapper, presentInteger)
+        String expected = '{"alwaysInteger":1,"nonNullInteger":1,"nonAbsentInteger":1,"nonEmptyInteger":1}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, zeroInteger)
+        expected = '{"alwaysInteger":0,"nonNullInteger":0,"nonAbsentInteger":0,"nonEmptyInteger":0}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullInteger)
+        expected = '{"alwaysInteger":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude Boolean"() {
@@ -386,10 +419,26 @@ class Test {
             nullBoolean.nonAbsentBoolean = null
             nullBoolean.nonEmptyBoolean = null
 
-        expect:
-            writeJson(jsonMapper, trueBoolean) == '{"alwaysBoolean":true,"nonNullBoolean":true,"nonAbsentBoolean":true,"nonEmptyBoolean":true}'
-            writeJson(jsonMapper, falseBoolean) == '{"alwaysBoolean":false,"nonNullBoolean":false,"nonAbsentBoolean":false,"nonEmptyBoolean":false}'
-            writeJson(jsonMapper, nullBoolean) == '{"alwaysBoolean":null}'
+        when:
+        String json = writeJson(jsonMapper, trueBoolean)
+        String expected = '{"alwaysBoolean":true,"nonNullBoolean":true,"nonAbsentBoolean":true,"nonEmptyBoolean":true}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, falseBoolean)
+        expected = '{"alwaysBoolean":false,"nonNullBoolean":false,"nonAbsentBoolean":false,"nonEmptyBoolean":false}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullBoolean)
+        expected = '{"alwaysBoolean":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude on map"() {
@@ -434,10 +483,26 @@ class Test {
             nullMap.nonAbsent = null
             nullMap.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setMap) == '{"always":{"foo":"bar"},"nonNull":{"foo":"bar"},"nonAbsent":{"foo":"bar"},"nonEmpty":{"foo":"bar"}}'
-            writeJson(jsonMapper, emptyMap) == '{"always":{},"nonNull":{},"nonAbsent":{}}'
-            writeJson(jsonMapper, nullMap) == '{"always":null}'
+        when:
+        String json = writeJson(jsonMapper, setMap)
+        String expected = '{"always":{"foo":"bar"},"nonNull":{"foo":"bar"},"nonAbsent":{"foo":"bar"},"nonEmpty":{"foo":"bar"}}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyMap)
+        expected = '{"always":{},"nonNull":{},"nonAbsent":{}}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullMap)
+        expected = '{"always":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude class with map"() {
@@ -551,10 +616,26 @@ class Test {
             map3.nonAbsent = nullValueMap
             map3.nonEmpty = nullValueMap
 
-        expect:
-            writeJson(jsonMapper, map1) == map1Value
-            writeJson(jsonMapper, map2) == map2Value
-            writeJson(jsonMapper, map3) == map3Value
+        when:
+        String json = writeJson(jsonMapper, map1)
+        String expected = map1Value
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, map2)
+        expected = map2Value
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, map3)
+        expected = map3Value
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -631,10 +712,26 @@ class Test {
             map3.nonAbsent = nullValueMap
             map3.nonEmpty = nullValueMap
 
-        expect:
-            writeJson(jsonMapper, map1) == map1Value
-            writeJson(jsonMapper, map2) == map2Value
-            writeJson(jsonMapper, map3) == map3Value
+        when:
+        String json = writeJson(jsonMapper, map1)
+        String expected = map1Value
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, map2)
+        expected = map2Value
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, map3)
+        expected = map3Value
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -712,11 +809,33 @@ class Test {
             nullOptional.nonAbsent = null
             nullOptional.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setOptional) == setOptionalValue
-            writeJson(jsonMapper, setEmptyStringOptional) == setEmptyStringOptionalValue
-            writeJson(jsonMapper, emptyOptional) == emptyOptionalValue
-            writeJson(jsonMapper, nullOptional) == nullOptionalValue
+        when:
+        String json = writeJson(jsonMapper, setOptional)
+        String expected = setOptionalValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, setEmptyStringOptional)
+        expected = setEmptyStringOptionalValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyOptional)
+        expected = emptyOptionalValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullOptional)
+        expected = nullOptionalValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -793,10 +912,26 @@ class Test {
             nullOptional.nonAbsent = null
             nullOptional.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setOptional) == '{"always":"foobar","nonNull":"foobar","nonAbsent":"foobar","nonEmpty":"foobar"}'
-            writeJson(jsonMapper, emptyOptional) == '{"always":null,"nonNull":null}'
-            writeJson(jsonMapper, nullOptional) == '{"always":null}'
+        when:
+        String json = writeJson(jsonMapper, setOptional)
+        String expected = '{"always":"foobar","nonNull":"foobar","nonAbsent":"foobar","nonEmpty":"foobar"}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyOptional)
+        expected = '{"always":null,"nonNull":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullOptional)
+        expected = '{"always":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude on optional list"() {
@@ -847,11 +982,33 @@ class Test {
             nullOptional.nonAbsent = null
             nullOptional.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setOptional) == '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
-            writeJson(jsonMapper, emptyOptional) == '{"always":null,"nonNull":null}'
-            writeJson(jsonMapper, nullOptional) == '{"always":null}'
-            writeJson(jsonMapper, emptyListOptional) == '{"always":[],"nonNull":[],"nonAbsent":[],"nonEmpty":[]}'
+        when:
+        String json = writeJson(jsonMapper, setOptional)
+        String expected = '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyOptional)
+        expected = '{"always":null,"nonNull":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullOptional)
+        expected = '{"always":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyListOptional)
+        expected = '{"always":[],"nonNull":[],"nonAbsent":[],"nonEmpty":[]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude on list"() {
@@ -896,10 +1053,26 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
-            writeJson(jsonMapper, emptyList) == '{"always":[],"nonNull":[],"nonAbsent":[]}'
-            writeJson(jsonMapper, nullList) == '{"always":null}'
+        when:
+        String json = writeJson(jsonMapper, setList)
+        String expected = '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyList)
+        expected = '{"always":[],"nonNull":[],"nonAbsent":[]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullList)
+        expected = '{"always":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
     }
 
     void "@JsonInclude on list with content type"() {
@@ -958,12 +1131,40 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == setListValue
-            writeJson(jsonMapper, emptyStringList) == emptyStringListValue
-            writeJson(jsonMapper, nullsList) == nullsListValue
-            writeJson(jsonMapper, emptyList) == emptyListValue
-            writeJson(jsonMapper, nullList) == nullListValue
+        when:
+        String json = writeJson(jsonMapper, setList)
+        String expected = setListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyStringList)
+        expected = emptyStringListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullsList)
+        expected = nullsListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyList)
+        expected = emptyListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullList)
+        expected = nullListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -1059,12 +1260,40 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == setListValue
-            writeJson(jsonMapper, emptyStringList) == emptyStringListValue
-            writeJson(jsonMapper, nullsList) == nullsListValue
-            writeJson(jsonMapper, emptyList) == emptyListValue
-            writeJson(jsonMapper, nullList) == nullListValue
+        when:
+        String json = writeJson(jsonMapper, setList)
+        String expected = setListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyStringList)
+        expected = emptyStringListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullsList)
+        expected = nullsListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyList)
+        expected = emptyListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullList)
+        expected = nullListValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -1160,12 +1389,40 @@ class Test {
             nullArray.nonAbsent = null
             nullArray.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, fullArray) == fullArrayValue
-            writeJson(jsonMapper, emptyStringArray) == emptyStringArrayValue
-            writeJson(jsonMapper, nullsArray) == nullsArrayValue
-            writeJson(jsonMapper, emptyArray) == emptyArrayValue
-            writeJson(jsonMapper, nullArray) == nullArrayValue
+        when:
+        String json = writeJson(jsonMapper, fullArray)
+        String expected = fullArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyStringArray)
+        expected = emptyStringArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullsArray)
+        expected = nullsArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, emptyArray)
+        expected = emptyArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when:
+        json = writeJson(jsonMapper, nullArray)
+        expected = nullArrayValue
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
 
         where:
             contentType << [
@@ -1248,10 +1505,26 @@ class Test {
             nullList.nonAbsent = null
             nullList.nonEmpty = null
 
-        expect:
-            writeJson(jsonMapper, setList) == '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
-            writeJson(jsonMapper, emptyList) == '{"always":[],"nonNull":[],"nonAbsent":[]}'
-            writeJson(jsonMapper, nullList) == '{"always":null}'
+        when: 'setList'
+        String json = writeJson(jsonMapper, setList)
+        String expected = '{"always":["foo","bar"],"nonNull":["foo","bar"],"nonAbsent":["foo","bar"],"nonEmpty":["foo","bar"]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when: 'Empty List'
+        json = writeJson(jsonMapper, emptyList)
+        expected = '{"always":[],"nonNull":[],"nonAbsent":[]}'
+
+        then:
+        JSONAssert.assertEquals(json, expected, JSONCompareMode.NON_EXTENSIBLE)
+
+        when: 'null List'
+        json = writeJson(jsonMapper, nullList)
+        expected = '{"always":null}'
+
+        then:
+        JSONAssert.assertEquals(json, expected,'{"always":null}', JSONCompareMode.NON_EXTENSIBLE)
     }
 
     @Unroll

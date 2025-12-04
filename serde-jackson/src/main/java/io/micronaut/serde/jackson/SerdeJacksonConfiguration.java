@@ -15,16 +15,15 @@
  */
 package io.micronaut.serde.jackson;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.StreamWriteFeature;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.json.JsonWriteFeature;
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.config.SerdeConfiguration;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.core.StreamWriteFeature;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.json.JsonWriteFeature;
 
 import java.util.Collections;
 import java.util.Map;
@@ -42,60 +41,52 @@ public final class SerdeJacksonConfiguration {
 
     static final String PREFIX = SerdeConfiguration.PREFIX + ".jackson";
 
-    private Map<JsonReadFeature, Boolean> readFeatures = Collections.emptyMap();
-    private Map<JsonWriteFeature, Boolean> writeFeatures = Collections.emptyMap();
-    private Map<JsonFactory.Feature, Boolean> factoryFeatures = Collections.emptyMap();
-    private Map<StreamWriteFeature, Boolean> streamFeatures = Collections.emptyMap();
-    private Map<JsonParser.Feature, Boolean> parserFeatures = Collections.emptyMap();
-    private Map<JsonGenerator.Feature, Boolean> generatorFeatures = Collections.emptyMap();
+    // TODO: document breaking changes
+    private Map<JsonReadFeature, Boolean> jsonReadFeatures = Collections.emptyMap();
+    private Map<JsonWriteFeature, Boolean> jsonWriteFeatures = Collections.emptyMap();
+    private Map<JsonFactory.Feature, Boolean> jsonFactoryFeatures = Collections.emptyMap();
+    private Map<StreamReadFeature, Boolean> streamReadFeatures = Collections.emptyMap();
+    private Map<StreamWriteFeature, Boolean> streamWriteFeatures = Collections.emptyMap();
     private boolean prettyPrint;
 
-    public Map<JsonReadFeature, Boolean> getReadFeatures() {
-        return readFeatures;
+    public Map<JsonReadFeature, Boolean> getJsonReadFeatures() {
+        return jsonReadFeatures;
     }
 
-    public void setReadFeatures(Map<JsonReadFeature, Boolean> readFeatures) {
-        this.readFeatures = readFeatures;
+    public void setJsonReadFeatures(Map<JsonReadFeature, Boolean> jsonReadFeatures) {
+        this.jsonReadFeatures = jsonReadFeatures;
     }
 
-    public Map<JsonWriteFeature, Boolean> getWriteFeatures() {
-        return writeFeatures;
+    public Map<JsonWriteFeature, Boolean> getJsonWriteFeatures() {
+        return jsonWriteFeatures;
     }
 
-    public void setWriteFeatures(Map<JsonWriteFeature, Boolean> writeFeatures) {
-        this.writeFeatures = writeFeatures;
+    public void setJsonWriteFeatures(Map<JsonWriteFeature, Boolean> jsonWriteFeatures) {
+        this.jsonWriteFeatures = jsonWriteFeatures;
     }
 
-    public Map<JsonFactory.Feature, Boolean> getFactoryFeatures() {
-        return factoryFeatures;
+    public Map<JsonFactory.Feature, Boolean> getJsonFactoryFeatures() {
+        return jsonFactoryFeatures;
     }
 
-    public void setFactoryFeatures(Map<JsonFactory.Feature, Boolean> factoryFeatures) {
-        this.factoryFeatures = factoryFeatures;
+    public void setJsonFactoryFeatures(Map<JsonFactory.Feature, Boolean> jsonFactoryFeatures) {
+        this.jsonFactoryFeatures = jsonFactoryFeatures;
     }
 
-    public Map<StreamWriteFeature, Boolean> getStreamFeatures() {
-        return streamFeatures;
+    public Map<StreamWriteFeature, Boolean> getStreamWriteFeatures() {
+        return streamWriteFeatures;
     }
 
-    public void setStreamFeatures(Map<StreamWriteFeature, Boolean> streamFeatures) {
-        this.streamFeatures = streamFeatures;
+    public void setStreamWriteFeatures(Map<StreamWriteFeature, Boolean> streamWriteFeatures) {
+        this.streamWriteFeatures = streamWriteFeatures;
     }
 
-    public Map<JsonParser.Feature, Boolean> getParserFeatures() {
-        return parserFeatures;
+    public Map<StreamReadFeature, Boolean> getStreamReadFeatures() {
+        return streamReadFeatures;
     }
 
-    public void setParserFeatures(Map<JsonParser.Feature, Boolean> parserFeatures) {
-        this.parserFeatures = parserFeatures;
-    }
-
-    public Map<JsonGenerator.Feature, Boolean> getGeneratorFeatures() {
-        return generatorFeatures;
-    }
-
-    public void setGeneratorFeatures(Map<JsonGenerator.Feature, Boolean> generatorFeatures) {
-        this.generatorFeatures = generatorFeatures;
+    public void setStreamReadFeatures(Map<StreamReadFeature, Boolean> streamReadFeatures) {
+        this.streamReadFeatures = streamReadFeatures;
     }
 
     public boolean isPrettyPrint() {

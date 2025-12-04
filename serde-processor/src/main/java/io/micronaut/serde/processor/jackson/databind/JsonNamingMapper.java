@@ -22,7 +22,13 @@ import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import io.micronaut.serde.config.naming.*;
+import io.micronaut.serde.config.naming.IdentityStrategy;
+import io.micronaut.serde.config.naming.KebabCaseStrategy;
+import io.micronaut.serde.config.naming.LowerCaseStrategy;
+import io.micronaut.serde.config.naming.LowerDotCaseStrategy;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
@@ -34,7 +40,7 @@ import java.util.List;
 public class JsonNamingMapper implements NamedAnnotationMapper {
     @Override
     public String getName() {
-        return "com.fasterxml.jackson.databind.annotation.JsonNaming";
+        return "tools.jackson.databind.annotation.JsonNaming";
     }
 
     @Override
@@ -83,5 +89,12 @@ public class JsonNamingMapper implements NamedAnnotationMapper {
                         .member(SerdeConfig.NAMING, new AnnotationClassValue<>(strategy))
                         .build()
         );
+    }
+
+    public static final class Jackson2 extends JsonNamingMapper {
+        @Override
+        public String getName() {
+            return "com.fasterxml.jackson.databind.annotation.JsonNaming";
+        }
     }
 }

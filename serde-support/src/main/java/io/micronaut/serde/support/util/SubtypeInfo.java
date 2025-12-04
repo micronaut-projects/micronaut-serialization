@@ -19,8 +19,8 @@ import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
@@ -46,8 +46,7 @@ import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.Discr
 public record SubtypeInfo(
     @NonNull
     Map<Class<?>, String[]> subtypes,
-    @NonNull
-    SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
+    SerdeConfig.SerSubtyped.@NonNull DiscriminatorType discriminatorType,
     @NonNull
     String discriminatorName,
     @Nullable

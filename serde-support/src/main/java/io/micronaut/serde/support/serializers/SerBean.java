@@ -19,8 +19,8 @@ import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NonNull;
-import io.micronaut.core.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
@@ -627,8 +627,7 @@ final class SerBean<T> {
         public final boolean serializableInto;
         // Null when not initialized SerBean
         public Serializer<P> serializer;
-        @Nullable
-        public io.micronaut.serde.ObjectSerializer<P> objectSerializer;
+        public io.micronaut.serde.@Nullable ObjectSerializer<P> objectSerializer;
         public AnnotationMetadata annotationMetadata;
         // CHECKSTYLE:ON
 

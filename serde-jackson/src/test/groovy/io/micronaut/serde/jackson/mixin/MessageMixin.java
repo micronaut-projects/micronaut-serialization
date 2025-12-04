@@ -1,6 +1,6 @@
 package io.micronaut.serde.jackson.mixin;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable(validate = false)

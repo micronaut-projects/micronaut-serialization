@@ -14,7 +14,7 @@ class PointTest {
         )
         val point = objectMapper.readValue(result, Point::class.java)
         Assertions.assertNotNull(point)
-        val coords = point.coords()
+        val coords = point!!.coords()
         Assertions.assertEquals(50, coords[0])
         Assertions.assertEquals(100, coords[1])
     }

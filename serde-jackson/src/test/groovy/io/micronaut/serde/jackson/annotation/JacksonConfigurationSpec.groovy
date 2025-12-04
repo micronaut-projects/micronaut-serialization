@@ -32,23 +32,7 @@ class JacksonConfigurationSpec extends JsonCompileSpec {
     void "test write features"() {
         given:
         def context = ApplicationContext.run([
-                "micronaut.serde.jackson.write-features.QUOTE_FIELD_NAMES" : "false"
-        ])
-
-        when:
-        def result = context.getBean(JsonMapper).writeValueAsString(new MyUser(firstName: "Joe", lastName: "Doe", age: 33))
-
-        then:
-        result == '{firstName:"Joe",lastName:"Doe",age:33}'
-
-        cleanup:
-        context.close()
-    }
-
-    void "test generator features"() {
-        given:
-        def context = ApplicationContext.run([
-                "micronaut.serde.jackson.generator-features.QUOTE_FIELD_NAMES" : "false"
+                "micronaut.serde.jackson.json-write-features.QUOTE_PROPERTY_NAMES" : "false"
         ])
 
         when:
@@ -64,25 +48,7 @@ class JacksonConfigurationSpec extends JsonCompileSpec {
     void "test read features"() {
         given:
         def context = ApplicationContext.run([
-                "micronaut.serde.jackson.read-features.ALLOW_UNQUOTED_FIELD_NAMES" : "true"
-        ])
-
-        when:
-        def result = context.getBean(JsonMapper).readValue('{firstName:"Joe",lastName:"Doe",age:33}', MyUser)
-
-        then:
-        result.firstName == "Joe"
-        result.lastName == "Doe"
-        result.age == 33
-
-        cleanup:
-        context.close()
-    }
-
-    void "test parser features"() {
-        given:
-        def context = ApplicationContext.run([
-                "micronaut.serde.jackson.parser-features.ALLOW_UNQUOTED_FIELD_NAMES" : "true"
+                "micronaut.serde.jackson.json-read-features.ALLOW_UNQUOTED_PROPERTY_NAMES" : "true"
         ])
 
         when:

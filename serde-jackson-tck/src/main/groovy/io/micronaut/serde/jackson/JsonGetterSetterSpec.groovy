@@ -15,6 +15,9 @@
  */
 package io.micronaut.serde.jackson
 
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
+
 abstract class JsonGetterSetterSpec extends JsonCompileSpec {
 
     void "test json any getter / setter - records"() {
@@ -46,7 +49,7 @@ record Test(
             def result = writeJson(jsonMapper, bean)
 
         then:
-            result == '{"name":"Fred","foo":"bar","age":10}'
+        JSONAssert.assertEquals(result, '{"name":"Fred","foo":"bar","age":10}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
             bean = jsonMapper.readValue(result, argument)
@@ -184,7 +187,7 @@ class Test {
         def result = writeJson(jsonMapper, bean)
 
         then:
-        result == '{"name":"Fred","age":30,"wgt":75,"foo":"bar"}'
+        JSONAssert.assertEquals(result, '{"name":"Fred","age":30,"wgt":75,"foo":"bar"}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         bean = jsonMapper.readValue(result, argumentOf(context, 'jsongetter.Test'))
@@ -202,7 +205,7 @@ class Test {
         result = writeJson(jsonMapper, bean)
 
         then:
-        result == '{"name":"Fred","age":45,"wgt":100}'
+        JSONAssert.assertEquals(result, '{"name":"Fred","age":45,"wgt":100}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         bean = jsonMapper.readValue(result, argumentOf(context, 'jsongetter.Test'))
@@ -275,7 +278,7 @@ class Test {
         def result = writeJson(jsonMapper, bean)
 
         then:
-        result == '{"name":"Fred","age":30,"wgt":75,"foo":"bar"}'
+        JSONAssert.assertEquals(result, '{"name":"Fred","age":30,"wgt":75,"foo":"bar"}', JSONCompareMode.NON_EXTENSIBLE)
 
         when:
         bean = jsonMapper.readValue(result, argumentOf(context, 'jsongetter.Test'))

@@ -15,8 +15,8 @@
  */
 package io.micronaut.serde.jackson
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
 import spock.lang.Unroll
+import tools.jackson.databind.PropertyNamingStrategies
 
 abstract class JsonNamingSpec extends JsonCompileSpec {
 
@@ -28,7 +28,7 @@ package test;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import tools.jackson.databind.annotation.JsonNaming;
 
 @JsonNaming(${strategy.class.canonicalName}.class)
 class Test {

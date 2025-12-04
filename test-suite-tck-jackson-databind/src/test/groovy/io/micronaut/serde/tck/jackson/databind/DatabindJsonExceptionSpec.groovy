@@ -1,14 +1,14 @@
 package io.micronaut.serde.tck.jackson.databind
 
-import com.fasterxml.jackson.databind.JsonMappingException
 import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.serde.jackson.JsonExceptionSpec
+import tools.jackson.databind.DatabindException
 
 class DatabindJsonExceptionSpec extends JsonExceptionSpec {
 
     @Override
     String getPath(Exception e) {
-        if (e instanceof JsonMappingException) {
+        if (e instanceof DatabindException) {
             return e.pathReference
         }
         return "<unknown>"
@@ -18,8 +18,8 @@ class DatabindJsonExceptionSpec extends JsonExceptionSpec {
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
                 Map.of(
-                        "jackson.deserialization.fail-on-unknown-properties", "true",
-                        "jackson.parser.STRICT_DUPLICATE_DETECTION", "true"
+                        "jackson.deserialization-features.fail-on-unknown-properties", "true",
+                        "jackson.stream-read-features.strict-duplicate-detection", "true"
                 )
         ))
     }
