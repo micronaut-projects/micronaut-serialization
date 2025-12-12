@@ -73,7 +73,6 @@ class SerdeJsonSubtypesKotlinSpec extends AbstractKotlinCompilerSpec {
 package test
 
 import com.fasterxml.jackson.annotation.*
-import org.jspecify.annotations.Nullable
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.validation.constraints.*
 import java.math.BigDecimal
@@ -96,12 +95,10 @@ import java.util.Objects
 )
 open class Animal(
 
-    @field:Nullable
     @field:JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
     @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     open var propertyClass: String? = null,
 
-    @field:Nullable
     @field:JsonProperty(JSON_PROPERTY_COLOR)
     @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     open var color: ColorEnum? = null,
@@ -140,27 +137,22 @@ open class Animal(
 )
 class Bird(
 
-    @field:Nullable
     @field:JsonProperty(JSON_PROPERTY_NUM_WINGS)
     @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     var numWings: Int? = null,
 
-    @field:Nullable
     @field:JsonProperty(JSON_PROPERTY_BEAK_LENGTH)
     @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     var beakLength: BigDecimal? = null,
 
-    @field:Nullable
     @field:JsonProperty(JSON_PROPERTY_FEATHER_DESCRIPTION)
     @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     var featherDescription: String? = null,
 
-    @Nullable
     @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     propertyClass: String? = null,
 
-    @Nullable
     @JsonProperty(JSON_PROPERTY_COLOR)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     color: ColorEnum? = null,
@@ -209,12 +201,10 @@ class Mammal(
     @field:JsonProperty(JSON_PROPERTY_DESCRIPTION)
     var description: String,
 
-    @Nullable
     @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     propertyClass: String? = null,
 
-    @Nullable
     @JsonProperty(JSON_PROPERTY_COLOR)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     color: ColorEnum? = null,
@@ -262,17 +252,14 @@ class Reptile(
     @field:JsonProperty(JSON_PROPERTY_FANGS)
     var fangs: Boolean,
 
-    @field:Nullable
     @field:JsonProperty(JSON_PROPERTY_FANG_DESCRIPTION)
     @field:JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     var fangDescription: String? = null,
 
-    @Nullable
     @JsonProperty(JSON_PROPERTY_PROPERTY_CLASS)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     propertyClass: String? = null,
 
-    @Nullable
     @JsonProperty(JSON_PROPERTY_COLOR)
     @JsonInclude(JsonInclude.Include.USE_DEFAULTS)
     color: ColorEnum? = null,
