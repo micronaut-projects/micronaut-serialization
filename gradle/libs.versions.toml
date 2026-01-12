@@ -13,7 +13,7 @@ jetbrains-annotations = "24.1.0"
 jmh = "1.37"
 lombok = "1.18.42"
 
-micronaut-platform = "4.10.6"
+micronaut-platform = "4.10.7"
 micronaut = "5.0.0-M7"
 micronaut-discovery = "4.7.1"
 micronaut-logging = "1.7.1"
