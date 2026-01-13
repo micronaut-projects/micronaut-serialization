@@ -162,6 +162,7 @@ final class ObjectMappers {
     private static ApplicationContext createSerdeBeanContext(Map<String, Object> config, Set<String> includedPackages) {
         ApplicationContextBuilder applicationContextBuilder = ApplicationContext.builder()
             .beansPredicate(qualifiedBeanType -> includedPackages.stream().anyMatch(qualifiedBeanType.getBeanType().getName()::startsWith))
+            .beanConfigurationsPredicate(beanConfiguration -> includedPackages.stream().anyMatch(beanConfiguration.getPackage().getName()::startsWith))
             .eventsEnabled(false)
             .eagerBeansEnabled(false)
             .deducePackage(false)
