@@ -16,45 +16,50 @@
 package io.micronaut.serde.jackson
 
 import io.micronaut.context.ApplicationContext
-import io.micronaut.core.type.Argument
-import io.micronaut.json.JsonMapper
-import io.micronaut.serde.jackson.optionalwrap.MyThing
 
 /**
  * Tests serialization and deserialization of beans with Optional getters
  * but plain String setters.
  */
-abstract class OptionalGetterSpec extends JsonCompileSpec {
+abstract class JsonOptionalGetterSpec extends JsonCompileSpec {
 
     void "test serialize and deserialize MyThing with Optional getter"() {
         given:
-        ApplicationContext context = ApplicationContext.run()
-        jsonMapper = context.getBean(JsonMapper)
-        def myThing = new MyThing()
+        ApplicationContext context = buildContext('example.MyThing', '''
+package example;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.Optional;
+
+/**
+ * Test class for Optional getter wrapping a String property.
+ * This tests the scenario where a getter returns Optional&lt;String&gt; but the
+ * setter accepts a plain String.
+ */
+@Serdeable
+public class MyThing {
+
+    private String value;
+
+    public Optional<String> getValue() {
+        return Optional.ofNullable(value);
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+''')
+        def myThing = typeUnderTest.type.newInstance()
         myThing.setValue("someValue")
 
         when:
         String json = jsonMapper.writeValueAsString(myThing)
-        MyThing other = jsonMapper.readValue(json, MyThing)
+        def other = jsonMapper.readValue(json, typeUnderTest)
 
         then:
         other.getValue().orElse(null) == "someValue"
-
-        cleanup:
-        context.close()
-    }
-
-    void "test deserialize MyThing from JSON"() {
-        given:
-        ApplicationContext context = ApplicationContext.run()
-        jsonMapper = context.getBean(JsonMapper)
-        String json = '{"value":"myOtherValue"}'
-
-        when:
-        MyThing other = jsonMapper.readValue(json, MyThing)
-
-        then:
-        other.getValue().orElse(null) == "myOtherValue"
 
         cleanup:
         context.close()
