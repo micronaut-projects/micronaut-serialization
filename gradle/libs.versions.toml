@@ -20,7 +20,7 @@ micronaut-logging = "1.7.1"
 micronaut-oracle-cloud = "5.6.1"
 micronaut-reactor = "3.9.1"
 micronaut-validation = "4.12.0"
-micronaut-gradle-plugin = "4.6.1"
+micronaut-gradle-plugin = "4.6.2"
 jsonassert = "1.5.3"
 
 [libraries]
