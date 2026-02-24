@@ -31,6 +31,7 @@ include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
 include("doc-examples:example-kotlin-ksp")
+include("doc-examples:example-standalone-java-jackson")
 
 include("benchmarks")
 
