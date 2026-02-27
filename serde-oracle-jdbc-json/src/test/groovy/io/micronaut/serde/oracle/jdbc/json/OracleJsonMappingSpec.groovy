@@ -54,8 +54,8 @@ class OracleJsonMappingSpec extends Specification {
 
     def "validate mapping with extra properties"() {
         given:
-        def expectedJson = """{"name":"Toronto Riverdale","numBooks":10,"isInPark":true,"dateOpened":"2000-01-01T00:00:00"}"""
-        def library = new Library("Toronto Riverdale", 10, [ "isInPark": true, "dateOpened": LocalDate.of(2000, 1, 1) ])
+        def expectedJson = """{"name":"Toronto Riverdale","numBooks":10,"isInPark":true,"dateOpened":"2000-01-01T00:00:00","raw":"010203"}"""
+        def library = new Library("Toronto Riverdale", 10, [ "isInPark": true, "dateOpened": LocalDate.of(2000, 1, 1), "raw": new byte[]{1, 2, 3} ])
 
         expect:
         asBsonJsonString(library) == expectedJson
@@ -63,7 +63,9 @@ class OracleJsonMappingSpec extends Specification {
         def decoded = encodeAsBinaryDecodeAsObject(library)
         decoded.name() == library.name()
         decoded.extra().isInPark == library.extra().isInPark
-        decoded.extra().dateOpened == "2000-01-01T00:00:00" // The type has changed, as this arbitrary type is not supported
+        // The types have changed, as arbitrary type is not supported
+        decoded.extra().dateOpened == "2000-01-01T00:00:00"
+        decoded.extra().raw == "010203"
     }
 
     String asBsonJsonString(Object bean) {
