@@ -191,7 +191,7 @@ public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream impleme
      * @param localDateTime the local date time
      */
     public void encodeLocalDateTime(LocalDateTime localDateTime) {
-        jsonGenerator.write(localDateTime.toString());
+        jsonGenerator.write(localDateTime);
         postEncodeValue();
     }
 
@@ -201,7 +201,7 @@ public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream impleme
      * @param offsetDateTime the offset date time
      */
     public void encodeOffsetDateTime(OffsetDateTime offsetDateTime) {
-        jsonGenerator.write(offsetDateTime.toString());
+        jsonGenerator.write(offsetDateTime);
         postEncodeValue();
     }
 }

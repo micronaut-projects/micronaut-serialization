@@ -3,6 +3,7 @@ package io.micronaut.serde.oracle.jdbc.json
 
 import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.bson.Address
+import io.micronaut.serde.bson.Library
 import io.micronaut.serde.bson.Person
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
@@ -10,6 +11,7 @@ import oracle.sql.json.OracleJsonObject
 import spock.lang.Specification
 
 import java.nio.charset.StandardCharsets
+import java.time.LocalDate
 
 @MicronautTest
 class OracleJsonMappingSpec extends Specification {
@@ -50,6 +52,20 @@ class OracleJsonMappingSpec extends Specification {
             }.call()
     }
 
+    def "validate mapping with extra properties"() {
+        given:
+        def expectedJson = """{"name":"Toronto Riverdale","numBooks":10,"isInPark":true,"dateOpened":"2000-01-01T00:00:00"}"""
+        def library = new Library("Toronto Riverdale", 10, [ "isInPark": true, "dateOpened": LocalDate.of(2000, 1, 1) ])
+
+        expect:
+        asBsonJsonString(library) == expectedJson
+        encodeAsBinaryDecodeJson(library) == expectedJson
+        def decoded = encodeAsBinaryDecodeAsObject(library)
+        decoded.name() == library.name()
+        decoded.extra().isInPark == library.extra().isInPark
+        decoded.extra().dateOpened == "2000-01-01T00:00:00" // The type has changed, as this arbitrary type is not supported
+    }
+
     String asBsonJsonString(Object bean) {
         def bytes = jsonMapper.writeValueAsBytes(bean)
         return new String(bytes, StandardCharsets.UTF_8)
@@ -61,7 +77,7 @@ class OracleJsonMappingSpec extends Specification {
         return new String(jsonMapper.writeValueAsBytes(object), StandardCharsets.UTF_8)
     }
 
-    Object encodeAsBinaryDecodeAsObject(Object bean) {
+    <T> T encodeAsBinaryDecodeAsObject(T bean) {
         def bytes = osonMapper.writeValueAsBytes(bean)
         return osonMapper.readValue(bytes, bean.getClass())
     }
