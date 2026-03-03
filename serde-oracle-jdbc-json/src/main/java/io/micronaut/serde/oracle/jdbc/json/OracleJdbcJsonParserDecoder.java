@@ -92,7 +92,8 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     @Override
     protected String coerceScalarToString(TokenType currentToken) {
         return switch (currentEvent) {
-            case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS, VALUE_INTERVALYM ->
+            case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS, VALUE_INTERVALYM,
+                 VALUE_DATE, VALUE_TIMESTAMP, VALUE_TIMESTAMPTZ ->
                 // only allowed for string, number
                 // additionally for processing string values from VALUE_INTERVALDS, VALUE_INTERVALYM
                 // in combination with custom de/serializers configured for Oracle Json parsing

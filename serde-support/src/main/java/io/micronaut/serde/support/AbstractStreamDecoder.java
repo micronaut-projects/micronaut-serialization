@@ -901,7 +901,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                         ListBuilder list = new ListBuilder(this, elementDecoder.decodeArray0(currentToken));
                         put(key, list.items);
                         return list;
-                    case STRING:
+                    case STRING, OTHER:
+                        // Decode other as string
                         put(key, elementDecoder.decodeString());
                         return this;
                     case NUMBER:
