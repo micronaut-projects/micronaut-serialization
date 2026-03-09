@@ -1,0 +1,79 @@
+package io.micronaut.serde.xml
+
+import io.micronaut.annotation.processing.test.AbstractTypeElementSpec
+import io.micronaut.context.ApplicationContext
+import io.micronaut.core.beans.BeanIntrospection
+import io.micronaut.core.beans.exceptions.IntrospectionException
+import io.micronaut.core.naming.NameUtils
+import io.micronaut.core.type.Argument
+import io.micronaut.inject.qualifiers.Qualifiers
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.SerdeIntrospections
+import org.intellij.lang.annotations.Language
+import org.jspecify.annotations.NonNull
+
+class XmlCompileSpec extends AbstractTypeElementSpec implements XmlSpec {
+
+    XmlObjectMapper xmlMapper
+    Object beanUnderTest
+    Argument<?> typeUnderTest
+
+    ApplicationContext buildContext(String className, @Language("java") String source, Map<String, Object> properties) {
+        ApplicationContext context = buildContext(className, source, true)
+
+        setupSerdeRegistry(context)
+        xmlMapper = context.getBean(ObjectMapper, Qualifiers.byName("xml"))
+
+        def t = context.classLoader.loadClass(className)
+        typeUnderTest = Argument.of(t)
+        beanUnderTest = t.newInstance(properties)
+        return context
+    }
+
+    Object newInstance(ApplicationContext context, String name, Map args) {
+        return context.classLoader.loadClass(name).newInstance(args)
+    }
+
+    Object newInstance(ApplicationContext context, String name, Object[] args) {
+        return context.classLoader.loadClass(name).newInstance(args)
+    }
+
+    @Override
+    ApplicationContext buildContext(String className, @Language("java") String source) {
+        ApplicationContext context = buildContext("test.Source" + System.currentTimeMillis(), source, true)
+
+        setupSerdeRegistry(context)
+        // Get the specific XML Mapper
+        xmlMapper = context.getBean(ObjectMapper, Qualifiers.byName("xml"))
+
+        def t = context.classLoader.loadClass(className)
+        typeUnderTest = Argument.of(t)
+        return context
+    }
+
+    protected void setupSerdeRegistry(ApplicationContext context) {
+        def classLoader = context.classLoader
+        context.registerSingleton(SerdeIntrospections, new SerdeIntrospections() {
+
+            @Override
+            def <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type) {
+                try {
+                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
+                            .newInstance() as BeanIntrospection<T>
+                } catch (ClassNotFoundException e) {
+                    throw new IntrospectionException("No introspection")
+                }
+            }
+
+            @Override
+            def <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type) {
+                try {
+                    return classLoader.loadClass(NameUtils.getPackageName(type.type.name) + ".\$" + type.type.simpleName + '$Introspection')
+                            .newInstance() as BeanIntrospection<T>
+                } catch (ClassNotFoundException e) {
+                    throw new IntrospectionException("No introspection for type $type")
+                }
+            }
+        })
+    }
+}

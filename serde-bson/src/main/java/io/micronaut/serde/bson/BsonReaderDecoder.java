@@ -30,6 +30,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;

@@ -59,7 +59,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected TokenType currentToken() {
+    protected tools.jackson.core.@Nullable JsonToken currentToken() {
         return switch (currentEvent) {
             case START_ARRAY -> TokenType.START_ARRAY;
             case START_OBJECT -> TokenType.START_OBJECT;

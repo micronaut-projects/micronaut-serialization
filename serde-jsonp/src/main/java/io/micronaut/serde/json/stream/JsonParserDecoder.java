@@ -20,6 +20,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import jakarta.json.JsonNumber;
 import jakarta.json.stream.JsonParser;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -50,7 +51,7 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected TokenType currentToken() {
+    protected tools.jackson.core.@Nullable JsonToken currentToken() {
         return switch (currentEvent) {
             case START_ARRAY -> TokenType.START_ARRAY;
             case START_OBJECT -> TokenType.START_OBJECT;
