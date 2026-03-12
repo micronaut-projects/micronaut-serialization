@@ -168,17 +168,18 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     }
 
     private Deserializer<Object> findDeserializer(DeserializationConfiguration deserializationConfiguration, DeserBean<? super Object> deserBean, boolean disallowUnwrap) {
+        boolean strictNullable = deserializationConfiguration.isStrictNullable();
         Deserializer<Object> deserializer;
         if (deserBean.simpleBean) {
-            deserializer = new SimpleObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
+            deserializer = new SimpleObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         } else if (deserBean.recordLikeBean) {
-            deserializer = new SimpleRecordLikeObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
+            deserializer = new SimpleRecordLikeObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         } else if (deserBean.delegating) {
-            deserializer = new DelegatingObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
+            deserializer = new DelegatingObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         } else if (deserBean.isJsonValueProperty) {
             deserializer = new JsonValueDeserializer(deserBean);
         } else {
-            deserializer = new SpecificObjectDeserializer(deserializationConfiguration.isStrictNullable(), deserBean, preInstantiateCallback);
+            deserializer = new SpecificObjectDeserializer(strictNullable, deserBean, preInstantiateCallback);
         }
         if (!disallowUnwrap && deserBean.wrapperProperty != null) {
             deserializer = new WrappedObjectDeserializer(

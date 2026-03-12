@@ -20,6 +20,7 @@ import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.inject.annotation.TypedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.SerdeBackendMode;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import java.util.List;
 
@@ -41,6 +42,10 @@ public final class SerdeableMapper
         annotation.annotationClassValue("naming").ifPresent(naming ->
             builder
                 .member(SerdeConfig.NAMING, naming)
+        );
+        annotation.enumValue("backend", SerdeBackendMode.class).ifPresent(backend ->
+            builder
+                .member(SerdeConfig.BACKEND, backend)
         );
 
         AnnotationValue<SerdeConfig> result = builder.build();

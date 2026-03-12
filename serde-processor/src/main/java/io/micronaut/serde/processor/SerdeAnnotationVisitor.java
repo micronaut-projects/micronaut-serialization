@@ -49,6 +49,9 @@ import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeAnalyzer;
+import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -60,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -87,6 +91,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private final Set<MethodElement> readMethods = new HashSet<>(20);
     private final Set<MethodElement> writeMethods = new HashSet<>(20);
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
+    private final SimpleSerdeShapeAnalyzer sourceGenShapeAnalyzer = new SimpleSerdeShapeAnalyzer();
     private SerdeConfig.SerCreatorMode creatorMode = SerdeConfig.SerCreatorMode.PROPERTIES;
 
     @Override
@@ -787,6 +792,29 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "Inheritance cannot be combined with DELEGATING creation");
             }
         }
+
+        applySourceGenDecision(element);
+    }
+
+    private void applySourceGenDecision(ClassElement element) {
+        SimpleSerdeShapeDecision decision = sourceGenShapeAnalyzer.analyze(element);
+        element.annotate(SerdeConfig.class, builder -> {
+            builder.member(SerdeConfig.SOURCEGEN_SHAPE, decision.shapeKind().name());
+            builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE, decision.serializerEligible());
+            builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE, decision.deserializerEligible());
+            builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS, reasonNames(decision.serializerFallbackReasons()));
+            builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS, reasonNames(decision.deserializerFallbackReasons()));
+            if (decision.serializerEligible()) {
+                builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_CLASS, SerdeSourceGenClassNaming.generatedSerializerClassName(element));
+            }
+            if (decision.deserializerEligible()) {
+                builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS, SerdeSourceGenClassNaming.generatedDeserializerClassName(element));
+            }
+        });
+    }
+
+    private String[] reasonNames(EnumSet<SimpleSerdeShapeDecision.FallbackReason> reasons) {
+        return reasons.stream().map(Enum::name).toArray(String[]::new);
     }
 
     private void visitProperties(ClassElement classElement, VisitorContext context) {

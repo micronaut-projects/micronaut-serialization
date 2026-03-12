@@ -50,6 +50,7 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final String propertyNamingStrategyName;
     private final PropertyNamingStrategy propertyNamingStrategy;
     private final boolean jsonViewEnabled;
+    private final SerdeBackendMode backendMode;
 
     @ConfigurationInject
     DefaultSerdeConfiguration(Optional<String> dateFormat,
@@ -60,10 +61,11 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
                               Optional<TimeZone> timeZone,
                               @Bindable(defaultValue = "io.micronaut") List<String> includedIntrospectionPackages,
                               @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth,
-                              @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric,
-                              @Nullable String propertyNamingStrategy,
-                              @Bindable(defaultValue = "false") boolean jsonViewEnabled,
-                              @Property(name = "jackson.json-view.enabled", defaultValue = "false") boolean jacksonJsonViewEnabled) {
+                               @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric,
+                               @Nullable String propertyNamingStrategy,
+                               @Bindable(defaultValue = "false") boolean jsonViewEnabled,
+                               @Bindable(defaultValue = "AUTO") SerdeBackendMode backendMode,
+                               @Property(name = "jackson.json-view.enabled", defaultValue = "false") boolean jacksonJsonViewEnabled) {
         this.dateFormat = dateFormat;
         this.timeWriteShape = timeWriteShape;
         this.numericTimeUnit = numericTimeUnit;
@@ -76,6 +78,7 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
         this.propertyNamingStrategyName = propertyNamingStrategy;
         this.propertyNamingStrategy = PropertyNamingStrategy.forName(propertyNamingStrategy).orElse(null);
         this.jsonViewEnabled = jsonViewEnabled || jacksonJsonViewEnabled;
+        this.backendMode = backendMode;
     }
 
     @Override
@@ -136,5 +139,10 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     @Override
     public boolean isJsonViewEnabled() {
         return jsonViewEnabled;
+    }
+
+    @Override
+    public SerdeBackendMode getBackendMode() {
+        return backendMode;
     }
 }

@@ -18,6 +18,7 @@ package io.micronaut.serde.annotation;
 import io.micronaut.core.annotation.Introspected;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeBackendMode;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.IdentityStrategy;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
@@ -55,6 +56,11 @@ public @interface Serdeable {
     Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
 
     /**
+     * @return The backend mode to use for both serialization and deserialization.
+     */
+    SerdeBackendMode backend() default SerdeBackendMode.AUTO;
+
+    /**
      * Annotation used to indicate a type is serializable.
      */
     @Introspected
@@ -81,6 +87,11 @@ public @interface Serdeable {
          * @return Naming strategy to use.
          */
         Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
+
+        /**
+         * @return The backend mode to use for serialization.
+         */
+        SerdeBackendMode backend() default SerdeBackendMode.AUTO;
     }
 
     /**
@@ -110,5 +121,10 @@ public @interface Serdeable {
          * @return Naming strategy to use.
          */
         Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
+
+        /**
+         * @return The backend mode to use for deserialization.
+         */
+        SerdeBackendMode backend() default SerdeBackendMode.AUTO;
     }
 }

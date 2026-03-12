@@ -14,4 +14,9 @@ class SerdeConfigurationSpec extends Specification {
         expect:
         !serdeConfiguration.isInetAddressAsNumeric()
     }
+
+    void "micronaut.serde.backend-mode defaults to AUTO"() {
+        expect:
+        serdeConfiguration.backendMode == SerdeBackendMode.AUTO
+    }
 }
