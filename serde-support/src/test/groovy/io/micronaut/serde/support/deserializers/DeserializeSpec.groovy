@@ -65,6 +65,6 @@ class DeserializeSpec extends Specification {
     }
 
     private static boolean isLegacyOrGenerated(Deserializer deserializer, Class legacyType) {
-        deserializer.class.name.contains('.$Serde') || legacyType.isInstance(deserializer)
+        deserializer.class.name.contains('.$Serde') || deserializer.class.name.contains('.Serde') || legacyType.isInstance(deserializer)
     }
 }

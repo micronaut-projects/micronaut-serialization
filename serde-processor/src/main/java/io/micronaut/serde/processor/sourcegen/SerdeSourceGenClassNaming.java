@@ -19,7 +19,7 @@ import io.micronaut.inject.ast.ClassElement;
 
 public final class SerdeSourceGenClassNaming {
 
-    private static final String PREFIX = "$Serde";
+    private static final String PREFIX = "Serde";
     private static final String SERIALIZER_SUFFIX = "Serializer";
     private static final String DESERIALIZER_SUFFIX = "Deserializer";
 
