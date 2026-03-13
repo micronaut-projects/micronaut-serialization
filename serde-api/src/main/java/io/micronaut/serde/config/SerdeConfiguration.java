@@ -137,15 +137,6 @@ public interface SerdeConfiguration {
     }
 
     /**
-     * The backend mode used by default for serialization and deserialization.
-     *
-     * @return The backend mode
-     * @since 2.16
-     */
-    @Bindable(defaultValue = "AUTO")
-    SerdeBackendMode getBackendMode();
-
-    /**
      * Shape to use for time serialization.
      *
      * @since 2.0.0

@@ -1,614 +1,526 @@
-# SourceGen Fast-Path Serde for Simple Shapes
+# SourceGen Build-Time-Only Routing + JMH Validation
 
 ## TL;DR
-
-> **Quick Summary**: Add compile-time generated `Serializer`/`Deserializer` implementations (Micronaut SourceGen) for records, default-constructor beans, and enums, with deterministic fallback to existing introspection runtime paths for complex features.
->
+> **Summary**: Re-scope SourceGen work to build-time decisioning only: remove runtime backend-mode configurability and replace registry routing with minimal metadata-driven dispatch.
 > **Deliverables**:
-> - New backend selection controls in annotations + global config rollback switch
-> - Processor-time eligibility analysis + generated serde classes for simple shapes
-> - Runtime selection gate (generated vs introspection) with strict fallback behavior
-> - TDD coverage for selection, fallback, and compatibility
-> - Documentation updates in `src/main/docs/guide`
->
-> **Estimated Effort**: Large
-> **Parallel Execution**: YES – 7 waves
-> **Critical Path**: Task 1 → Task 2 → Task 4 → Task 5/6/7 → Task 8 → Task 9 → Task 11
-
----
+> - Remove backend-mode API/config/runtime resolver surfaces
+> - Simplify `DefaultSerdeRegistry` to metadata-only generated-vs-introspection selection
+> - Preserve serializer/deserializer behavior parity via processor-time eligibility metadata
+> - Add JMH benchmarks + runbook to measure throughput/latency impact
+> **Effort**: Medium
+> **Parallel**: YES - 4 waves
+> **Critical Path**: Task 1 → Task 3 → Task 5 → Task 7
 
 ## Context
-
 ### Original Request
-Implement SourceGen-backed serializer/deserializer generation for simple/well-known shapes (record, default-constructor bean, enum), while preserving current introspection-backed runtime behavior for complex Jackson scenarios. Add backward-compat controls (annotation members + rollback) and document feature.
+- Reduce `DefaultSerdeRegistry` changes and keep this as a build-time optimization.
+- Remove runtime backend selection configuration.
+- Remove `shouldBypassGeneratedSerializer`-style runtime heuristics.
+- Keep runtime dispatch minimal using build-time metadata.
+- Update this plan to include JMH benchmarks for value/throughput validation.
 
 ### Interview Summary
-**Key Decisions**:
-- Default behavior for eligible simple types: **AUTO**.
-- Compatibility toggle must exist on all three annotations:
-  - `@Serdeable`
-  - `@Serdeable.Serializable`
-  - `@Serdeable.Deserializable`
-- Add **global config rollback switch** in addition to annotation members.
-- Test strategy: **TDD**.
+- Decided: **remove API + runtime backend config** (not keep/deprecate).
+- Decided: **add benchmarks + runbook** (no CI performance threshold gate).
+- Default applied: if metadata declares generated serde but generated class cannot be loaded, fail fast with `SerdeException` (no silent fallback).
+- Desired runtime routing model:
+  - if build-time metadata marks generated serializer/deserializer available, use generated class
+  - else fallback to introspection path
 
-**Research Findings**:
-- Current processing entrypoint: `serde-processor/.../SerdeAnnotationVisitor.java`.
-- Runtime registry dispatch/fallback: `serde-support/.../DefaultSerdeRegistry.java` + `ObjectSerializer`/`ObjectDeserializer`.
-- Existing simple/runtime split already exists in `SerBean` and `DeserBean` (`simpleBean`, `recordLikeBean`).
-- Existing test already asserts deserializer path choices:
-  - `serde-support/src/test/groovy/io/micronaut/serde/support/deserializers/DeserializeSpec.groovy`.
-- SourceGen pattern validated from official docs + visitors (`SourceGenerators.findByLanguage(...); sourceGenerator.write(...)`).
-
-### Metis Review (Addressed)
-**Gaps raised and resolved in this plan**:
-- Explicit backend precedence matrix (annotation vs global) ✅
-- Conservative eligibility matrix + hard fallback matrix ✅
-- Selection assertions in tests (not only JSON equality) ✅
-- Scope lock to phase-1 simple shapes only ✅
-- Split-direction behavior (serializer-only/deserializer-only eligibility) ✅
-
----
+### Metis Review (gaps addressed)
+- Incorporated guardrails for scope control (no replacement runtime backend switch).
+- Added explicit removal-validation checks (grep-based acceptance criteria).
+- Added missing negative-path test: generated class metadata present but class load failure behavior.
+- Added benchmark execution evidence requirements under existing `benchmarks` module conventions.
 
 ## Work Objectives
-
 ### Core Objective
-Introduce a safe, backward-compatible generated-serde fast path for clearly eligible simple shapes, with zero behavior regressions for existing complex annotation cases.
+Make generated/introspection routing build-time-driven and deterministic while minimizing runtime policy logic and preserving test-suite behavior.
 
-### Concrete Deliverables
-- Annotation/config API for backend selection and rollback
-- Processor eligibility analyzer and SourceGen output for:
-  - record
-  - default-constructor bean
-  - enum
-- Runtime gate selecting generated or introspection backend deterministically
-- Comprehensive TDD suite for routing/fallback/toggles
-- Docs in `src/main/docs/guide`
+### Deliverables
+- Backend-mode surface removal:
+  - `serde-api` backend enum + config binding + annotation members + metadata keys
+  - runtime resolver class and usages
+- Runtime dispatch simplification in `DefaultSerdeRegistry` using only SourceGen metadata keys.
+- Updated routing/regression tests aligned to new model.
+- New JMH benchmark coverage and execution runbook.
 
-### Definition of Done
-- [ ] All targeted tests pass with generated mode enabled and rollback mode forced.
-- [ ] `./gradlew check jacocoReport --no-daemon --continue` passes.
-- [ ] Existing Jackson complex annotation specs continue passing unchanged.
-- [ ] Docs updated with behavior, limits, and rollback guidance.
+### Definition of Done (verifiable)
+- [ ] `./gradlew test` passes.
+- [ ] `./gradlew :benchmarks:jmh` passes.
+- [ ] `grep -R "micronaut\.serde\.backend-mode" -n .` returns no matches in active code/tests/docs.
+- [ ] `grep -R "SerdeBackendModeResolver\|SerdeBackendMode" -n serde-api serde-support serde-jackson serde-processor` returns no active backend-mode runtime/config references.
+- [ ] `DefaultSerdeRegistry` no longer contains `shouldBypassGeneratedSerializer` / `shouldBypassGeneratedDeserializer`.
 
 ### Must Have
-- Deterministic fallback to introspection for ineligible/complex types.
-- Clear precedence and override semantics.
-- No human/manual verification required for acceptance.
+- Build-time metadata (`SOURCEGEN_*`) is single routing authority.
+- Runtime selection logic remains simple and local to registry dispatch.
+- JMH benchmarks measure both throughput and latency-oriented modes for representative serde fixtures.
 
-### Must NOT Have (Guardrails)
-- No phase-1 support expansion beyond requested shapes.
-- No behavior changes for complex annotation semantics.
-- No silent runtime hard-failure in AUTO mode when generated implementation is unavailable.
+### Must NOT Have
+- No new runtime backend toggle replacing removed backend mode.
+- No reintroduction of deep per-property runtime heuristics in registry.
+- No CI performance threshold gate in this PR.
 
----
+## Verification Strategy
+> ZERO HUMAN INTERVENTION — all verification is agent-executed.
 
-## Verification Strategy (MANDATORY)
-
-> **UNIVERSAL RULE: ZERO HUMAN INTERVENTION**
-
-All tasks are verified via Gradle/test/tool execution only.
-
-### Test Decision
-- **Infrastructure exists**: YES
-- **Automated tests**: TDD
-- **Framework**: Gradle + Spock/TCK test suites
-
-### TDD Pattern (applies per implementation task)
-1. **RED**: Add/adjust spec asserting new behavior (selection/fallback/toggle) and confirm failure.
-2. **GREEN**: Implement minimal code to satisfy spec.
-3. **REFACTOR**: Clean up while keeping tests green.
-
-### Agent-Executed QA Scenarios (global)
-
-Scenario: Generated path selected for eligible record
-  Tool: Bash (Gradle test)
-  Preconditions: Task 5 implemented, tests added
-  Steps:
-    1. Run: `./gradlew :serde-support:test --tests '*DeserializeSpec*'`
-    2. Run: `./gradlew :serde-jackson:test --tests '*Json*Record*'`
-    3. Assert: selection test confirms generated deserializer/serializer class is used
-  Expected Result: Eligible record path uses generated backend
-  Failure Indicators: Test asserts fallback class or throws missing generated class
-  Evidence: `.sisyphus/evidence/task-global-generated-record.txt`
-
-Scenario: Fallback path selected for complex annotations
-  Tool: Bash (Gradle test)
-  Preconditions: Task 8 implemented
-  Steps:
-    1. Run: `./gradlew :serde-jackson-tck:test --tests '*JsonUnwrappedSpec*'`
-    2. Run: `./gradlew :serde-jackson-tck:test --tests '*JsonSubtypesSpec*'`
-    3. Assert: tests pass with routing assertions indicating introspection backend
-  Expected Result: Complex cases route to legacy introspection path
-  Failure Indicators: Generated backend selected for excluded feature
-  Evidence: `.sisyphus/evidence/task-global-fallback-complex.txt`
-
----
+- Test decision: **tests-after** on each task + full-suite verification at end.
+- QA policy: every task includes happy + failure/edge scenarios.
+- Evidence path: `.sisyphus/evidence/task-{N}-{slug}.txt`
 
 ## Execution Strategy
-
 ### Parallel Execution Waves
+Wave 1: API/config/runtime-surface removal foundation
+- Task 1, Task 2
 
-Wave 1 (Start Immediately):
-├── Task 1: Backend mode API + config surface
+Wave 2: Runtime dispatch simplification
+- Task 3, Task 4
 
-Wave 2 (After Wave 1):
-├── Task 2: Annotation mapper propagation
-└── Task 3: SourceGen processor wiring
+Wave 3: Regression tests + behavior hardening
+- Task 5, Task 6
 
-Wave 3 (After Wave 2):
-└── Task 4: Eligibility analyzer + fallback reason model
-
-Wave 4 (After Wave 3):
-├── Task 5: Record generation
-├── Task 6: Default-ctor bean generation
-└── Task 7: Enum generation
-
-Wave 5 (After Wave 4):
-└── Task 8: Runtime selection gate + precedence rules
-
-Wave 6 (After Wave 5):
-├── Task 9: TDD coverage for routing/toggles/fallback
-└── Task 10: Documentation updates
-
-Wave 7 (After Wave 6):
-└── Task 11: Full verification + regression sweep
-
-Critical Path: 1 → 2 → 4 → 5/6/7 → 8 → 9 → 11
+Wave 4: Benchmarks + final verification
+- Task 7, Task 8, Task 9
 
 ### Dependency Matrix
-
-| Task | Depends On | Blocks | Can Parallelize With |
-|------|------------|--------|----------------------|
-| 1 | None | 2,3,8 | None |
-| 2 | 1 | 4,8 | 3 |
-| 3 | 1 | 4 | 2 |
-| 4 | 2,3 | 5,6,7 | None |
-| 5 | 4 | 8,9 | 6,7 |
-| 6 | 4 | 8,9 | 5,7 |
-| 7 | 4 | 8,9 | 5,6 |
-| 8 | 1,2,5,6,7 | 9,10,11 | None |
-| 9 | 8 | 11 | 10 |
-| 10 | 8 | 11 | 9 |
-| 11 | 9,10 | None | None |
+- Task 1 blocks Task 2/3/5
+- Task 2 blocks Task 3
+- Task 3 blocks Task 4/5
+- Task 4 blocks Task 9
+- Task 5 blocks Task 6/9
+- Task 6 blocks Task 9
+- Task 7 blocks Task 8/9
+- Task 8 blocks Task 9
 
 ### Agent Dispatch Summary
-
-| Wave | Tasks | Recommended Agents |
-|------|-------|--------------------|
-| 1 | 1 | `task(category="unspecified-high", load_skills=["git-master"], run_in_background=false)` |
-| 2 | 2,3 | Parallel after Wave 1 |
-| 3 | 4 | Single focused backend task |
-| 4 | 5,6,7 | Parallel generation tasks |
-| 5 | 8 | Single integration/selection task |
-| 6 | 9,10 | Parallel tests/docs |
-| 7 | 11 | Final verification task |
-
----
+- Wave 1: unspecified-high (API + metadata surface)
+- Wave 2: deep (registry simplification correctness)
+- Wave 3: unspecified-high (test parity/regression)
+- Wave 4: unspecified-high + quick (bench + runbook + verification)
 
 ## TODOs
 
-- [x] 1. Add backend mode controls in annotation/config API
+- [ ] 1. Remove backend-mode API and configuration surfaces
 
   **What to do**:
-  - Add backend mode member to:
-    - `serde-api/src/main/java/io/micronaut/serde/annotation/Serdeable.java`
-    - nested `Serializable` and `Deserializable` annotations.
-  - Proposed member name: `backend`.
-  - Proposed enum values: `AUTO`, `INTROSPECTION`, `GENERATED`.
-  - Add metadata constants in `SerdeConfig` for backend mode.
-  - Add global config property in `SerdeConfiguration` + `DefaultSerdeConfiguration`:
-    - `micronaut.serde.backend-mode` (same enum values).
-  - Define precedence contract in code/docs comments.
+  - Remove backend enum/type/config APIs and annotation members added for runtime backend routing:
+    - `serde-api/src/main/java/io/micronaut/serde/config/SerdeBackendMode.java`
+    - `serde-api/src/main/java/io/micronaut/serde/config/SerdeConfiguration.java` (`getBackendMode`)
+    - `serde-api/src/main/java/io/micronaut/serde/config/DefaultSerdeConfiguration.java` backend-mode binding
+    - `serde-api/src/main/java/io/micronaut/serde/annotation/Serdeable.java` backend members
+  - Remove backend metadata constants from:
+    - `serde-api/src/main/java/io/micronaut/serde/config/annotation/SerdeConfig.java` (`BACKEND`, `SERIALIZE_BACKEND`, `DESERIALIZE_BACKEND`)
 
   **Must NOT do**:
-  - Do not remove/rename existing members (`using`, `as`, `validate`, `naming`).
+  - Must not remove `SOURCEGEN_*` metadata keys.
 
   **Recommended Agent Profile**:
-  - **Category**: `unspecified-high` (public API + compatibility semantics)
-  - **Skills**: `git-master`
-  - **Skills Evaluated but Omitted**: `frontend-ui-ux` (no UI overlap)
+  - Category: `unspecified-high` — Reason: public API surface changes across modules
+  - Skills: `[]`
+  - Omitted: `[frontend-ui-ux]` — not applicable
 
-  **Parallelization**: NO (Sequential)
+  **Parallelization**: Can Parallel: NO | Wave 1 | Blocks: 2,3,5 | Blocked By: none
 
   **References**:
-  - `serde-api/src/main/java/io/micronaut/serde/annotation/Serdeable.java` — current annotation members and nested type layout.
-  - `serde-api/src/main/java/io/micronaut/serde/config/annotation/SerdeConfig.java` — metadata key conventions.
-  - `serde-api/src/main/java/io/micronaut/serde/config/SerdeConfiguration.java` — global config prefix and style.
-  - `serde-api/src/main/java/io/micronaut/serde/config/DefaultSerdeConfiguration.java` — configuration binding pattern.
+  - `serde-api/src/main/java/io/micronaut/serde/config/SerdeConfiguration.java:145`
+  - `serde-api/src/main/java/io/micronaut/serde/config/annotation/SerdeConfig.java:210-220`
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/annotation/SerdeBackendModeSpec.groovy`
 
-  **Acceptance Criteria (TDD)**:
-  - [ ] RED: Add annotation metadata test asserting new members are readable.
-  - [ ] GREEN: Members compile and metadata constants resolve.
-  - [ ] REFACTOR: API javadocs explain precedence and rollback semantics.
+  **Acceptance Criteria**:
+  - [ ] Backend-mode symbols are removed from `serde-api` compile surface.
+  - [ ] `:micronaut-serde-api:test` passes after test updates.
 
-  **Agent-Executed QA Scenarios**:
-  - Scenario: API compile integrity
-    - Tool: Bash
-    - Steps: `./gradlew :serde-api:compileJava :serde-api:test`
-    - Expected Result: Compilation + tests pass
-    - Evidence: `.sisyphus/evidence/task-1-api-compile.txt`
-  - Scenario: Negative precedence fixture (conflicting local/global settings)
-    - Tool: Bash
-    - Steps: run dedicated config precedence spec
-    - Expected Result: deterministic precedence assertion passes
-    - Evidence: `.sisyphus/evidence/task-1-precedence.txt`
+  **QA Scenarios**:
+  ```
+  Scenario: API removal happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-api:compileJava :micronaut-serde-api:test
+    Expected: Build successful; no backend-mode compile references remain
+    Evidence: .sisyphus/evidence/task-1-api-removal.txt
 
-  **Commit**: YES (group with Task 2)
+  Scenario: Edge check for stale backend config key
+    Tool: Bash
+    Steps: grep -R "micronaut\.serde\.backend-mode" -n serde-api serde-jackson serde-support serde-processor
+    Expected: No matches
+    Evidence: .sisyphus/evidence/task-1-no-backend-property.txt
+  ```
 
-- [x] 2. Propagate backend mode through annotation mappers
+  **Commit**: YES | Message: `refactor(serde-api): remove runtime backend mode surface` | Files: serde-api/*, impacted tests
+
+- [ ] 2. Remove backend mapping from processor mappers
 
   **What to do**:
-  - Update:
+  - Remove backend mapping logic from:
     - `serde-processor/.../serde/SerdeableMapper.java`
     - `serde-processor/.../serde/SerializableMapper.java`
     - `serde-processor/.../serde/DeserializableMapper.java`
-  - Map new annotation member(s) into `SerdeConfig` metadata.
+  - Keep all non-backend mapping behavior unchanged.
 
   **Must NOT do**:
-  - Do not regress existing mapping for `using/as/validate/naming`.
+  - Must not alter mapping for `using`, `as`, `validate`, `naming`.
+
+  **Recommended Agent Profile**:
+  - Category: `quick` — Reason: targeted mapper key removal
+  - Skills: `[]`
+  - Omitted: `[git-master]` — not required for implementation
+
+  **Parallelization**: Can Parallel: YES | Wave 1 | Blocks: 3 | Blocked By: 1
 
   **References**:
-  - mapper files above
-  - `SerdeConfig` metadata constants
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/serde/SerdeableMapper.java:47-48`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/serde/SerializableMapper.java:54-55`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/serde/DeserializableMapper.java:54-55`
 
   **Acceptance Criteria**:
-  - [ ] RED: compile-test expects backend mode metadata present.
-  - [ ] GREEN: mapper tests pass and old mapper behavior remains intact.
-  - [ ] `./gradlew :serde-processor:test` → PASS.
+  - [ ] Processor compiles and existing non-backend mapper behavior remains.
 
   **QA Scenarios**:
-  - Scenario: Mapper metadata emission
-    - Tool: Bash
-    - Steps: run processor tests targeting mapper specs
-    - Expected Result: backend mode metadata present in generated annotation metadata
-    - Evidence: `.sisyphus/evidence/task-2-mapper.txt`
-  - Scenario: Negative legacy annotation usage
-    - Tool: Bash
-    - Steps: run existing specs that use `using/as`
-    - Expected Result: unchanged behavior
-    - Evidence: `.sisyphus/evidence/task-2-legacy.txt`
+  ```
+  Scenario: Processor mapping happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-processor:compileJava :micronaut-serde-processor:test
+    Expected: Build successful; mapper tests pass
+    Evidence: .sisyphus/evidence/task-2-processor-mappers.txt
 
-  **Commit**: YES (group with Task 1)
+  Scenario: Edge check for stale backend metadata constants in mappers
+    Tool: Bash
+    Steps: grep -R "SERIALIZE_BACKEND\|DESERIALIZE_BACKEND\|SerdeBackendMode" -n serde-processor/src/main/java
+    Expected: No active mapper references
+    Evidence: .sisyphus/evidence/task-2-no-backend-mapper.txt
+  ```
 
-- [x] 3. Wire SourceGen into serde-processor
+  **Commit**: YES | Message: `refactor(serde-processor): drop backend mode mapping` | Files: serde-processor mapper files
+
+- [ ] 3. Simplify `DefaultSerdeRegistry` to metadata-only routing
 
   **What to do**:
-  - Add SourceGen dependencies to version catalog and `serde-processor/build.gradle.kts`.
-  - Add new TypeElementVisitor class for generation orchestration.
-  - Register visitor in:
-    - `serde-processor/src/main/resources/META-INF/services/io.micronaut.inject.visitor.TypeElementVisitor`.
+  - Remove backend-mode resolver usage and branching from:
+    - `findSerializer(...)`
+    - `findDeserializer(...)`
+  - Remove `shouldBypassGeneratedSerializer` / `shouldBypassGeneratedDeserializer` and related helper paths.
+  - Route generated selection via build-time metadata from introspection (`SOURCEGEN_*_ELIGIBLE` + class keys) and existing generated loader.
 
   **Must NOT do**:
-  - No non-processor modules should gain `micronaut-core-processor` style deps.
+  - Must not reintroduce new runtime backend policy switches.
+
+  **Recommended Agent Profile**:
+  - Category: `deep` — Reason: central runtime routing correctness
+  - Skills: `[]`
+  - Omitted: `[frontend-ui-ux]` — not relevant
+
+  **Parallelization**: Can Parallel: NO | Wave 2 | Blocks: 4,5 | Blocked By: 1,2
 
   **References**:
-  - `serde-processor/build.gradle.kts`
-  - `gradle/libs.versions.toml`
-  - SourceGen examples:
-    - `https://micronaut-projects.github.io/micronaut-sourcegen/latest/guide/`
-    - `BuilderAnnotationVisitor` / `DelegateAnnotationVisitor` in micronaut-sourcegen repo.
+  - `serde-support/src/main/java/io/micronaut/serde/support/DefaultSerdeRegistry.java:257-365`
+  - `serde-support/src/main/java/io/micronaut/serde/support/runtime/GeneratedSerdeRuntimeLoader.java:36-58`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/SerdeAnnotationVisitor.java:799-813`
 
   **Acceptance Criteria**:
-  - [ ] RED: processor compile fails without SourceGen symbols (pre-change baseline)
-  - [ ] GREEN: `./gradlew :serde-processor:compileJava` passes with new visitor
-  - [ ] Service registration file includes new visitor.
+  - [ ] Runtime registry contains no `SerdeBackendMode` branching.
+  - [ ] No `shouldBypassGenerated*` methods remain.
 
   **QA Scenarios**:
-  - Scenario: Processor wiring
-    - Tool: Bash
-    - Steps: `./gradlew :serde-processor:compileJava`
-    - Expected Result: new visitor discovered without service-loader errors
-    - Evidence: `.sisyphus/evidence/task-3-wiring.txt`
-  - Scenario: Negative missing-language generator guard
-    - Tool: Bash
-    - Steps: run unit test mocking unsupported language
-    - Expected Result: visitor no-ops safely
-    - Evidence: `.sisyphus/evidence/task-3-language-guard.txt`
+  ```
+  Scenario: Metadata-only dispatch happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRoutingSpec'
+    Expected: Routing assertions pass using SOURCEGEN metadata
+    Evidence: .sisyphus/evidence/task-3-routing.txt
 
-  **Commit**: YES
+  Scenario: Edge check stale bypass heuristics
+    Tool: Bash
+    Steps: grep -n "shouldBypassGeneratedSerializer\|shouldBypassGeneratedDeserializer\|SerdeBackendModeResolver" serde-support/src/main/java/io/micronaut/serde/support/DefaultSerdeRegistry.java
+    Expected: No matches
+    Evidence: .sisyphus/evidence/task-3-no-bypass.txt
+  ```
 
-- [x] 4. Implement eligibility analyzer + fallback reason model
+  **Commit**: YES | Message: `refactor(serde-support): use build-time sourcegen routing only` | Files: DefaultSerdeRegistry + runtime loader call sites
+
+- [ ] 4. Remove runtime backend resolver class and dead references
 
   **What to do**:
-  - Add eligibility classifier for phase-1 shapes.
-  - Add explicit exclusion matrix for complex features:
-    - `SerUnwrapped`, `SerAnyGetter`, `SerAnySetter`, creator complexity, `SerSubtyped`.
-  - Add directional capability (serialize, deserialize, both) and reason codes.
+  - Remove `serde-support/.../runtime/SerdeBackendModeResolver.java`.
+  - Remove dead imports/fields/constructor init and dependent tests.
 
   **Must NOT do**:
-  - No best-effort generation for uncertain/ambiguous cases.
+  - Must not remove `GeneratedSerdeRuntimeLoader` unless fully unused by Task 3 implementation.
+
+  **Recommended Agent Profile**:
+  - Category: `quick` — Reason: dead-code cleanup
+  - Skills: `[]`
+  - Omitted: `[deep]` — logic already handled in Task 3
+
+  **Parallelization**: Can Parallel: YES | Wave 2 | Blocks: 9 | Blocked By: 3
 
   **References**:
-  - `SerdeAnnotationVisitor` (validation + feature checks)
-  - `JsonUnwrappedMapper`, `JsonAnyGetterMapper`, `JsonAnySetterMapper`, `JsonCreatorMapper`, `JsonSubTypesMapper`, `JsonTypeInfoMapper`.
-  - `SerBean.isSimpleBean` and `DeserBean.isSimpleBean/isRecordLikeBean` for parity baseline.
+  - `serde-support/src/main/java/io/micronaut/serde/support/runtime/SerdeBackendModeResolver.java`
+  - `serde-support/src/main/java/io/micronaut/serde/support/DefaultSerdeRegistry.java:99,124`
 
   **Acceptance Criteria**:
-  - [ ] RED: tests asserting excluded patterns still require fallback.
-  - [ ] GREEN: eligibility tests pass for record/default-ctor bean/enum positive fixtures.
-  - [ ] Reason codes emitted and asserted in tests.
+  - [ ] Resolver class removed and no compile references remain.
 
   **QA Scenarios**:
-  - Scenario: Eligible shape matrix test
-    - Tool: Bash
-    - Steps: run dedicated processor eligibility spec
-    - Expected Result: eligible fixtures marked generated
-    - Evidence: `.sisyphus/evidence/task-4-eligibility.txt`
-  - Scenario: Negative complex feature matrix
-    - Tool: Bash
-    - Steps: run fixture specs with unwrapped/any/subtype/creator complexities
-    - Expected Result: all marked fallback with expected reason code
-    - Evidence: `.sisyphus/evidence/task-4-fallback-matrix.txt`
+  ```
+  Scenario: Dead-code cleanup happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-support:compileJava
+    Expected: Compile success
+    Evidence: .sisyphus/evidence/task-4-runtime-cleanup.txt
 
-  **Commit**: YES
+  Scenario: Stale reference check
+    Tool: Bash
+    Steps: grep -R "SerdeBackendModeResolver" -n serde-support/src/main/java
+    Expected: No matches
+    Evidence: .sisyphus/evidence/task-4-no-resolver-refs.txt
+  ```
 
-- [ ] 5. Generate serializer/deserializer for records
+  **Commit**: YES | Message: `refactor(serde-support): remove backend mode resolver runtime path` | Files: serde-support runtime package
+
+- [ ] 5. Rework backend-mode tests to metadata-only contract tests
 
   **What to do**:
-  - Generate direct serializer using record component accessors.
-  - Generate direct deserializer buffering component values then calling canonical constructor.
+  - Remove or rewrite tests tied to runtime backend config:
+    - `SerdeBackendModeSpec`
+    - `SerdeRuntimeSelectionSpec` backend override cases
+    - `SerdeBackendModeConfigurationSpec`
+  - Add tests asserting:
+    - generated selected when `SOURCEGEN_*_ELIGIBLE=true` and class present
+    - fallback when `SOURCEGEN_*_ELIGIBLE=false`
+    - serializer/deserializer directional independence from separate eligibility flags.
 
   **Must NOT do**:
-  - Do not support record edge features excluded by matrix in phase 1.
+  - Must not weaken assertions to JSON-only; keep class-path routing assertions.
+
+  **Recommended Agent Profile**:
+  - Category: `unspecified-high` — Reason: contract-level test redesign
+  - Skills: `[]`
+  - Omitted: `[playwright]` — non-UI
+
+  **Parallelization**: Can Parallel: NO | Wave 3 | Blocks: 6,9 | Blocked By: 1,3
 
   **References**:
-  - `Deserializer.java`, `Serializer.java` API contracts
-  - `SimpleRecordLikeObjectDeserializer` behavior baseline
-  - SourceGen `ClassDef`/`MethodDef` generation pattern
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/annotation/SerdeRuntimeSelectionSpec.groovy`
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/annotation/SerdeBackendModeSpec.groovy`
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/annotation/SerdeSourceGenRoutingSpec.groovy`
 
   **Acceptance Criteria**:
-  - [ ] RED: record selection test expects generated backend.
-  - [ ] GREEN: round-trip tests pass for record fixtures.
-  - [ ] Negative fixture with excluded annotation falls back.
+  - [ ] No runtime backend-mode override assertions remain.
+  - [ ] Metadata-only routing tests pass.
+  - [ ] Missing generated class path has explicit test expecting deterministic `SerdeException`.
 
   **QA Scenarios**:
-  - Scenario: Record happy path
-    - Tool: Bash
-    - Steps: run record-focused compile/runtime specs
-    - Expected Result: generated backend selected + payload parity
-    - Evidence: `.sisyphus/evidence/task-5-record-happy.txt`
-  - Scenario: Record negative (excluded annotation)
-    - Tool: Bash
-    - Steps: run record fixture with `JsonUnwrapped`/creator complexity
-    - Expected Result: fallback backend selected
-    - Evidence: `.sisyphus/evidence/task-5-record-negative.txt`
+  ```
+  Scenario: Routing contract happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRoutingSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeRuntimeSelectionSpec'
+    Expected: Tests pass with metadata-only assertions
+    Evidence: .sisyphus/evidence/task-5-routing-tests.txt
 
-  **Commit**: YES (group with 6/7 possible)
+  Scenario: Edge check for stale backend-mode test usage
+    Tool: Bash
+    Steps: grep -R "micronaut\.serde\.backend-mode\|SerdeBackendMode" -n serde-jackson/src/test serde-api/src/test
+    Expected: No backend-mode runtime test references
+    Evidence: .sisyphus/evidence/task-5-no-backend-tests.txt
 
-- [ ] 6. Generate serializer/deserializer for default-constructor beans
+  Scenario: Missing generated class failure behavior
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests '*RuntimeSelection*missing*generated*class*'
+    Expected: Test passes asserting deterministic SerdeException (fail-fast)
+    Evidence: .sisyphus/evidence/task-5-missing-generated-class.txt
+  ```
+
+  **Commit**: YES | Message: `test(serde): align routing specs to build-time metadata model` | Files: serde-jackson/src/test, serde-api/src/test
+
+- [ ] 6. Regression parity sweep for previously sensitive specs
 
   **What to do**:
-  - Serializer: direct getter access.
-  - Deserializer: instantiate default ctor, then setter/property assignment.
+  - Run and fix regressions in sensitive suites affected by routing simplification:
+    - `GlobalPropertyStrategySpec`
+    - `SerdeImportSpec`
+    - `SerdeJsonUnwrappedSpec`
+    - `SerdeJsonPropertyOrderSpec`
+    - `SerdeJsonIgnoreSpec`
+    - BSON parity specs if impacted
 
   **Must NOT do**:
-  - No support for mixed constructor+setter complex cases in phase 1.
+  - Must not patch tests to hide behavior regressions.
+
+  **Recommended Agent Profile**:
+  - Category: `deep` — Reason: parity and routing correctness across features
+  - Skills: `[]`
+  - Omitted: `[artistry]` — conventional debugging path
+
+  **Parallelization**: Can Parallel: YES | Wave 3 | Blocks: 9 | Blocked By: 5
 
   **References**:
-  - `SimpleObjectDeserializer`, `SpecificObjectDeserializer` distinction
-  - `DeserializeSpec` baseline assertions
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/GlobalPropertyStrategySpec.groovy`
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/SerdeImportSpec.groovy`
+  - `serde-bson/src/test/groovy/io/micronaut/serde/bson/BsonSpec.groovy`
 
   **Acceptance Criteria**:
-  - [ ] RED: bean fixture expects generated backend for simple case.
-  - [ ] GREEN: round-trip parity tests pass.
-  - [ ] Complex mixed fixture remains fallback.
+  - [ ] Targeted parity suites pass.
 
   **QA Scenarios**:
-  - Scenario: Bean happy path
-    - Tool: Bash
-    - Steps: run simple setter-bean spec
-    - Expected Result: generated selected and values match
-    - Evidence: `.sisyphus/evidence/task-6-bean-happy.txt`
-  - Scenario: Bean negative mixed ctor+setter
-    - Tool: Bash
-    - Steps: run `MyMixSetterConstructorPropertiesBean`-style fixture
-    - Expected Result: fallback to specific/introspection path
-    - Evidence: `.sisyphus/evidence/task-6-bean-negative.txt`
+  ```
+  Scenario: Regression happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.GlobalPropertyStrategySpec' --tests 'io.micronaut.serde.jackson.SerdeImportSpec'
+    Expected: All tests pass
+    Evidence: .sisyphus/evidence/task-6-jackson-parity.txt
 
-  **Commit**: YES
+  Scenario: BSON edge path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-bson:test --tests 'io.micronaut.serde.bson.BsonSpec'
+    Expected: All tests pass
+    Evidence: .sisyphus/evidence/task-6-bson-parity.txt
+  ```
 
-- [ ] 7. Generate serializer/deserializer for enums
+  **Commit**: YES | Message: `fix(serde): restore parity after metadata-only routing simplification` | Files: runtime/processor as needed + tests
+
+- [ ] 7. Add JMH benchmark coverage for SourceGen vs introspection
 
   **What to do**:
-  - Generate direct name/property-based enum serde for simple eligible enum cases.
-  - Fallback to current `EnumSerde` path when excluded by matrix (`JsonValue`, creator complexity, etc.).
+  - Add benchmark(s) under `benchmarks/src/jmh/java/io/micronaut/serde/` to compare generated vs introspection routing on representative fixtures.
+  - Include both:
+    - throughput mode workload
+    - average-time mode workload
+  - Reuse fixture/style patterns from existing benchmarks (`@State`, `@Param`, `Blackhole`, setup/teardown lifecycle).
 
   **Must NOT do**:
-  - No expansion to all advanced enum customization in phase 1.
+  - Must not add CI pass/fail threshold logic.
+
+  **Recommended Agent Profile**:
+  - Category: `unspecified-high` — Reason: benchmark correctness + reproducibility
+  - Skills: `[]`
+  - Omitted: `[deep]` — not required if fixture scope is constrained
+
+  **Parallelization**: Can Parallel: YES | Wave 4 | Blocks: 8,9 | Blocked By: 6
 
   **References**:
-  - `serde-support/.../serdes/EnumSerde.java`
-  - existing enum tests (`SerdeJsonEnumSpec`, `JsonEnumSpec`)
+  - `benchmarks/build.gradle:30-36`
+  - `benchmarks/src/jmh/java/io/micronaut/serde/JacksonBenchmark.java`
+  - `benchmarks/src/jmh/java/io/micronaut/serde/ComboBenchmark.java`
 
   **Acceptance Criteria**:
-  - [ ] RED: enum simple fixture expects generated backend.
-  - [ ] GREEN: serialization/deserialization parity with existing behavior.
-  - [ ] Excluded enum features fallback correctly.
+  - [ ] New benchmark class compiles and runs via `:benchmarks:jmh`.
+  - [ ] Output includes generated vs introspection comparison dimensions.
 
   **QA Scenarios**:
-  - Scenario: Enum happy path
-    - Tool: Bash
-    - Steps: run enum spec subset
-    - Expected Result: generated selected + case behavior preserved
-    - Evidence: `.sisyphus/evidence/task-7-enum-happy.txt`
-  - Scenario: Enum negative custom creator/value
-    - Tool: Bash
-    - Steps: run fixtures with enum creator/value annotation
-    - Expected Result: fallback path
-    - Evidence: `.sisyphus/evidence/task-7-enum-negative.txt`
+  ```
+  Scenario: Benchmark execution happy path
+    Tool: Bash
+    Steps: ./gradlew :benchmarks:jmh
+    Expected: JMH task successful with benchmark results generated
+    Evidence: .sisyphus/evidence/task-7-jmh-run.txt
 
-  **Commit**: YES
+  Scenario: Edge check dead-code safety
+    Tool: Bash
+    Steps: grep -R "Blackhole\|@Benchmark" -n benchmarks/src/jmh/java/io/micronaut/serde
+    Expected: New benchmark uses JMH consumption/benchmark annotations
+    Evidence: .sisyphus/evidence/task-7-jmh-structure.txt
+  ```
 
-- [ ] 8. Add runtime selection gate + precedence rules
+  **Commit**: YES | Message: `perf(benchmarks): add sourcegen vs introspection jmh benchmarks` | Files: benchmarks/src/jmh/java/*, optional benchmark config
+
+- [ ] 8. Add benchmark runbook and evidence capture instructions
 
   **What to do**:
-  - Integrate generated-vs-introspection selection in registry/object path.
-  - Respect precedence:
-    1) per-direction annotation member
-    2) `@Serdeable` member
-    3) global config
-    4) default AUTO
-  - Support directional selection independently for serializer/deserializer.
-  - AUTO behavior: use generated if eligible + available; else fallback.
+  - Add concise benchmark runbook (where to run, command, interpretation fields, reproducibility knobs).
+  - Include guidance for warmup/measurement/fork settings and output artifact location.
 
   **Must NOT do**:
-  - No ambiguity in selection when both backends exist.
+  - Must not enforce performance pass/fail threshold in CI.
+
+  **Recommended Agent Profile**:
+  - Category: `writing` — Reason: technical runbook quality
+  - Skills: `[]`
+  - Omitted: `[oracle]` — already consulted
+
+  **Parallelization**: Can Parallel: YES | Wave 4 | Blocks: 9 | Blocked By: 7
 
   **References**:
-  - `DefaultSerdeRegistry.findSerializer/findDeserializer`
-  - `ObjectSerializer.createSpecificInternal`
-  - `ObjectDeserializer.createSpecific` / `findDeserializer`
+  - `benchmarks/build.gradle`
+  - JMH official guidance (State/Warmup/Measurement/Fork/Blackhole)
 
   **Acceptance Criteria**:
-  - [ ] RED: precedence tests fail before implementation.
-  - [ ] GREEN: precedence + directional split tests pass.
-  - [ ] Global rollback switch forces old behavior.
+  - [ ] Runbook includes exact command(s), output location, and metric interpretation guidance.
 
   **QA Scenarios**:
-  - Scenario: Global rollback
-    - Tool: Bash
-    - Steps: run tests with config forcing introspection mode
-    - Expected Result: generated never selected
-    - Evidence: `.sisyphus/evidence/task-8-global-rollback.txt`
-  - Scenario: Directional override
-    - Tool: Bash
-    - Steps: run fixture with serialization generated, deserialization introspection
-    - Expected Result: split behavior matches declared precedence
-    - Evidence: `.sisyphus/evidence/task-8-directional.txt`
+  ```
+  Scenario: Runbook happy path
+    Tool: Bash
+    Steps: ./gradlew :benchmarks:jmh
+    Expected: Command in runbook executes successfully as documented
+    Evidence: .sisyphus/evidence/task-8-runbook-validation.txt
 
-  **Commit**: YES
+  Scenario: Edge check missing instructions
+    Tool: Bash
+    Steps: grep -R "benchmarks:jmh\|warmup\|measurement\|fork" -n .
+    Expected: Runbook contains all required knobs and command
+    Evidence: .sisyphus/evidence/task-8-runbook-content.txt
+  ```
 
-- [ ] 9. Add/extend TDD coverage for selection + fallback + compatibility
+  **Commit**: YES | Message: `docs(benchmarks): add jmh runbook for sourcegen routing validation` | Files: benchmark docs/runbook paths
+
+- [ ] 9. Final full verification
 
   **What to do**:
-  - Add tests proving backend selection explicitly.
-  - Extend existing specs/TCK fixtures for:
-    - simple record/bean/enum generation
-    - fallback for unwrapped/any/subtypes/creator complexity
-    - toggle precedence and global rollback.
+  - Execute complete test suite and benchmark task.
+  - Verify removal checks and no stale backend mode references.
 
   **Must NOT do**:
-  - No tests that only check JSON equality while ignoring backend routing.
+  - Must not skip failing tests or narrow suite scope.
+
+  **Recommended Agent Profile**:
+  - Category: `unspecified-high` — Reason: final quality gate
+  - Skills: `[]`
+  - Omitted: `[quick]` — full-suite scope
+
+  **Parallelization**: Can Parallel: NO | Wave 4 | Blocks: none | Blocked By: 4,6,8
 
   **References**:
-  - `serde-support/src/test/.../DeserializeSpec.groovy`
-  - `serde-jackson-tck/src/main/groovy/io/micronaut/serde/jackson/*`
-  - `test-suite-tck-jackson-databind/src/test/groovy/...`
+  - `./gradlew test`
+  - `./gradlew :benchmarks:jmh`
 
   **Acceptance Criteria**:
-  - [ ] New tests fail first (RED), then pass after implementation.
-  - [ ] Targeted module tests pass:
-    - `:serde-support:test`
-    - `:serde-jackson:test`
-    - `:serde-jackson-tck:test`
+  - [ ] Full suite green.
+  - [ ] Benchmark task green.
+  - [ ] Grep removal checks green.
 
   **QA Scenarios**:
-  - Scenario: Backend selection assertions
-    - Tool: Bash
-    - Steps: execute targeted specs with backend class assertions
-    - Expected Result: selection assertions pass
-    - Evidence: `.sisyphus/evidence/task-9-selection.txt`
-  - Scenario: Regression negative matrix
-    - Tool: Bash
-    - Steps: execute excluded-feature suites
-    - Expected Result: no behavior regressions
-    - Evidence: `.sisyphus/evidence/task-9-regression.txt`
+  ```
+  Scenario: Full verification happy path
+    Tool: Bash
+    Steps: ./gradlew test && ./gradlew :benchmarks:jmh
+    Expected: Both commands succeed
+    Evidence: .sisyphus/evidence/task-9-full-verification.txt
 
-  **Commit**: YES
+  Scenario: Edge check stale backend references
+    Tool: Bash
+    Steps: grep -R "SerdeBackendMode\|micronaut\.serde\.backend-mode\|SerdeBackendModeResolver" -n serde-api serde-support serde-jackson serde-processor
+    Expected: No matches
+    Evidence: .sisyphus/evidence/task-9-no-backend-remnants.txt
+  ```
 
-- [ ] 10. Document feature and rollback controls
+  **Commit**: NO | Message: `n/a` | Files: verification only
 
-  **What to do**:
-  - Add guide section for generated simple-shape backend.
-  - Update TOC and cross-links from quick start / custom serdes sections.
-  - Document:
-    - eligibility matrix
-    - fallback matrix
-    - annotation members and precedence
-    - global rollback property
-    - known exclusions for phase 1.
-
-  **Must NOT do**:
-  - No vague claims like “works for all Jackson features”.
-
-  **References**:
-  - `src/main/docs/guide/toc.yml`
-  - `src/main/docs/guide/quickStart.adoc`
-  - `src/main/docs/guide/serdes.adoc`
-  - `src/main/docs/guide/jacksonAnnotations.adoc`
-
-  **Acceptance Criteria**:
-  - [ ] New doc section linked in TOC.
-  - [ ] Property names and precedence described with concrete examples.
-  - [ ] Build docs/check task passes.
-
-  **QA Scenarios**:
-  - Scenario: Docs build integrity
-    - Tool: Bash
-    - Steps: `./gradlew docs`
-    - Expected Result: no broken links/includes
-    - Evidence: `.sisyphus/evidence/task-10-docs.txt`
-  - Scenario: Negative doc assertion
-    - Tool: Bash
-    - Steps: grep for old-only behavior statement without generated-mode mention
-    - Expected Result: updated docs reflect new default AUTO mode
-    - Evidence: `.sisyphus/evidence/task-10-content.txt`
-
-  **Commit**: YES
-
-- [ ] 11. Final verification and release-readiness sweep
-
-  **What to do**:
-  - Run full impacted test/build matrix.
-  - Confirm rollback mode and AUTO mode both green.
-  - Confirm no checkstyle/format regressions.
-
-  **Acceptance Criteria**:
-  - [ ] `./gradlew :serde-api:test :serde-processor:test :serde-support:test :serde-jackson:test :serde-jackson-tck:test`
-  - [ ] `./gradlew check jacocoReport --no-daemon --continue`
-  - [ ] No failing selection/fallback specs in either mode
-
-  **QA Scenarios**:
-  - Scenario: AUTO mode full run
-    - Tool: Bash
-    - Steps: run full matrix with default settings
-    - Expected Result: all pass
-    - Evidence: `.sisyphus/evidence/task-11-auto.txt`
-  - Scenario: Rollback mode full run
-    - Tool: Bash
-    - Steps: run targeted selection suites with global rollback property forced
-    - Expected Result: all pass and generated path disabled
-    - Evidence: `.sisyphus/evidence/task-11-rollback.txt`
-
-  **Commit**: NO (verification-only)
-
----
+## Final Verification Wave (4 parallel agents, ALL must APPROVE)
+- [ ] F1. Plan Compliance Audit — oracle
+- [ ] F2. Code Quality Review — unspecified-high
+- [ ] F3. Real Manual QA — unspecified-high (+ playwright if UI)
+- [ ] F4. Scope Fidelity Check — deep
 
 ## Commit Strategy
-
-| After Task | Message | Files | Verification |
-|------------|---------|-------|--------------|
-| 1-2 | `feat(serde-api): add backend mode controls and mapper metadata` | serde-api + processor mapper files | `:serde-api:test :serde-processor:test` |
-| 3-4 | `feat(serde-processor): wire sourcegen and add simple-shape eligibility analyzer` | processor build + visitor + analyzer | `:serde-processor:test` |
-| 5-7 | `feat(serde-processor): generate serde implementations for records beans and enums` | processor generation sources | targeted generation tests |
-| 8 | `feat(serde-support): add deterministic generated-vs-introspection selection gate` | serde-support runtime selection files | `:serde-support:test` |
-| 9 | `test(serde): add routing fallback and toggle precedence coverage` | support/jackson/tck tests | module tests |
-| 10 | `docs(guide): document sourcegen simple-shape backend and rollback controls` | src/main/docs/guide/* | docs check/build |
-
----
+- C1: Remove backend-mode API/config/mapper metadata
+- C2: Simplify registry to metadata-only routing + remove resolver
+- C3: Update routing/parity tests to new contract
+- C4: Add JMH benchmarks + runbook
+- C5: Verification-only (no commit)
 
 ## Success Criteria
-
-### Verification Commands
-```bash
-./gradlew :serde-api:test :serde-processor:test :serde-support:test :serde-jackson:test :serde-jackson-tck:test
-./gradlew check jacocoReport --no-daemon --continue
-```
-
-### Final Checklist
-- [ ] All Must Have requirements satisfied
-- [ ] All Must NOT Have guardrails preserved
-- [ ] AUTO mode and rollback mode validated
-- [ ] Fallback matrix cases proven via tests
-- [ ] Docs updated and linked in guide TOC
+- Runtime backend configurability removed from API/config/runtime paths.
+- Routing logic in `DefaultSerdeRegistry` uses build-time sourcegen metadata only.
+- `./gradlew test` passes.
+- `./gradlew :benchmarks:jmh` passes.
+- Benchmark runbook exists and is executable without human guesswork.

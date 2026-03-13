@@ -40,7 +40,6 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.SerdeBackendMode;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -51,7 +50,6 @@ import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback;
 import io.micronaut.serde.support.deserializers.collect.CoreCollectionsDeserializers;
 import io.micronaut.serde.support.runtime.GeneratedSerdeRuntimeLoader;
-import io.micronaut.serde.support.runtime.SerdeBackendModeResolver;
 import io.micronaut.serde.support.serdes.ObjectArraySerde;
 import io.micronaut.serde.support.serdes.Serdes;
 import io.micronaut.serde.support.serializers.CoreSerializers;
@@ -62,13 +60,13 @@ import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -77,7 +75,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @BootstrapContextCompatible
 public class DefaultSerdeRegistry implements SerdeRegistry {
 
-    private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
+    private static final String JACKSON_JSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
 
     private final List<BeanDefinition<Serializer>> serializers = new ArrayList<>(100);
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
@@ -96,7 +94,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final Serde<Object[]> objectArraySerde;
     private final ConversionService conversionService;
     private final SerdeConfiguration serdeConfiguration;
-    private final SerdeBackendModeResolver backendModeResolver;
     private final GeneratedSerdeRuntimeLoader generatedSerdeRuntimeLoader;
     private final SerializationConfiguration serializationConfiguration;
     private final DeserializationConfiguration deserializationConfiguration;
@@ -121,7 +118,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
-        this.backendModeResolver = new SerdeBackendModeResolver(serdeConfiguration);
         this.generatedSerdeRuntimeLoader = new GeneratedSerdeRuntimeLoader();
         this.introspections = introspections;
         this.beanContext = beanContext;
@@ -287,9 +283,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         BeanIntrospection<?> deserializableIntrospection = getDeserializableIntrospection(type);
-        AnnotationMetadata annotationMetadata = deserializableIntrospection == null ? null : deserializableIntrospection.getAnnotationMetadata();
-        SerdeBackendMode backendMode = backendModeResolver.resolveDeserializationMode(annotationMetadata);
-        Deserializer<?> generatedDeserializer = contextualType ? null : resolveGeneratedDeserializer(type, deserializableIntrospection, backendMode);
+        Deserializer<?> generatedDeserializer = contextualType ? null : resolveGeneratedDeserializer(type, deserializableIntrospection);
         if (generatedDeserializer != null) {
             if (!contextualType) {
                 deserializerMap.put(key, generatedDeserializer);
@@ -348,9 +342,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         BeanIntrospection<?> serializableIntrospection = getSerializableIntrospection(type);
-        AnnotationMetadata annotationMetadata = serializableIntrospection == null ? null : serializableIntrospection.getAnnotationMetadata();
-        SerdeBackendMode backendMode = backendModeResolver.resolveSerializationMode(annotationMetadata);
-        Serializer<?> generatedSerializer = contextualType ? null : resolveGeneratedSerializer(type, serializableIntrospection, backendMode);
+        Serializer<?> generatedSerializer = contextualType ? null : resolveGeneratedSerializer(type, serializableIntrospection);
         if (generatedSerializer != null) {
             if (!contextualType) {
                 serializerMap.put(key, new SerializerWrapper(generatedSerializer));
@@ -431,149 +423,56 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private Serializer<?> resolveGeneratedSerializer(Argument<?> type,
-                                                      @Nullable BeanIntrospection<?> introspection,
-                                                      SerdeBackendMode backendMode) throws SerdeException {
-        if (serializationConfiguration.sortPropertiesAlphabetically()) {
-            if (backendMode == SerdeBackendMode.GENERATED) {
-                throw new SerdeException("Generated serializer backend required for type [" + type + "] but alphabetical property sorting requires introspection backend");
-            }
-            return null;
-        }
-        if (backendMode == SerdeBackendMode.INTROSPECTION) {
+                                                       @Nullable BeanIntrospection<?> introspection) throws SerdeException {
+        if (serializationConfiguration.sortPropertiesAlphabetically() || serdeConfiguration.getPropertyNamingStrategy() != null) {
             return null;
         }
         if (introspection == null) {
-            if (backendMode == SerdeBackendMode.GENERATED) {
-                throw new SerdeException("Generated serializer backend required for type [" + type + "] but no serializable introspection metadata is available");
-            }
             return null;
         }
-        if (shouldBypassGeneratedSerializer(introspection)) {
-            if (backendMode == SerdeBackendMode.GENERATED) {
-                throw new SerdeException("Generated serializer backend required for type [" + type + "] but naming strategy requires introspection backend");
-            }
+        AnnotationMetadata annotationMetadata = introspection.getAnnotationMetadata();
+        if (annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()) {
+            return null;
+        }
+        if (hasJsonValueMethod(type.getType())) {
+            return null;
+        }
+        if (hasJsonValueSerialization(introspection)) {
+            return null;
+        }
+        if (hasJsonValuePropertyType(introspection)) {
+            return null;
+        }
+        if (hasCustomPropertySerializer(introspection)) {
             return null;
         }
         GeneratedSerdeRuntimeLoader.LookupResult<Serializer<?>> result = generatedSerdeRuntimeLoader.loadSerializer(introspection, type);
         if (result.status() == GeneratedSerdeRuntimeLoader.Status.AVAILABLE) {
             return result.value();
         }
-        if (backendMode == SerdeBackendMode.GENERATED) {
-            String detail = result.message() == null ? "No generated serializer is available for type [" + type + "]" : result.message();
-            throw new SerdeException(detail);
-        }
         return null;
     }
 
     private Deserializer<?> resolveGeneratedDeserializer(Argument<?> type,
-                                                         @Nullable BeanIntrospection<?> introspection,
-                                                         SerdeBackendMode backendMode) throws SerdeException {
-        if (backendMode == SerdeBackendMode.INTROSPECTION) {
+                                                          @Nullable BeanIntrospection<?> introspection) throws SerdeException {
+        if (serdeConfiguration.getPropertyNamingStrategy() != null) {
             return null;
         }
         if (introspection == null) {
-            if (backendMode == SerdeBackendMode.GENERATED) {
-                throw new SerdeException("Generated deserializer backend required for type [" + type + "] but no deserializable introspection metadata is available");
-            }
             return null;
         }
-        if (shouldBypassGeneratedDeserializer(introspection)) {
-            if (backendMode == SerdeBackendMode.GENERATED) {
-                throw new SerdeException("Generated deserializer backend required for type [" + type + "] but naming strategy requires introspection backend");
-            }
+        AnnotationMetadata annotationMetadata = introspection.getAnnotationMetadata();
+        if (annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent()) {
+            return null;
+        }
+        if (hasCustomPropertyDeserializer(introspection)) {
             return null;
         }
         GeneratedSerdeRuntimeLoader.LookupResult<Deserializer<?>> result = generatedSerdeRuntimeLoader.loadDeserializer(introspection, type);
         if (result.status() == GeneratedSerdeRuntimeLoader.Status.AVAILABLE) {
             return result.value();
         }
-        if (backendMode == SerdeBackendMode.GENERATED) {
-            String detail = result.message() == null ? "No generated deserializer is available for type [" + type + "]" : result.message();
-            throw new SerdeException(detail);
-        }
         return null;
-    }
-
-    private boolean shouldBypassGeneratedSerializer(BeanIntrospection<?> introspection) {
-        if (serdeConfiguration.getPropertyNamingStrategy() != null) {
-            return true;
-        }
-        AnnotationMetadata annotationMetadata = introspection.getAnnotationMetadata();
-        if (annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent()) {
-            return true;
-        }
-        if (!isSourceGenEligible(annotationMetadata, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE)) {
-            return true;
-        }
-        if (hasCustomSerializerConfiguration(annotationMetadata)) {
-            return true;
-        }
-        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
-            AnnotationMetadata propertyMetadata = beanProperty.getAnnotationMetadata();
-            if (propertyMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class)
-                || propertyMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
-                || propertyMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
-                || propertyMetadata.hasAnnotation(SerdeConfig.SerValue.class)
-                || hasCustomSerializerConfiguration(propertyMetadata)) {
-                return true;
-            }
-            AnnotationMetadata argumentMetadata = beanProperty.asArgument().getAnnotationMetadata();
-            if (argumentMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
-                || argumentMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
-                || hasCustomSerializerConfiguration(argumentMetadata)) {
-                return true;
-            }
-            Set<String> visitedTypes = new HashSet<>();
-            visitedTypes.add(introspection.getBeanType().getName());
-            if (hasIneligibleNestedGeneratedType(beanProperty.asArgument(), visitedTypes)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean shouldBypassGeneratedDeserializer(BeanIntrospection<?> introspection) {
-        if (serdeConfiguration.getPropertyNamingStrategy() != null) {
-            return true;
-        }
-        AnnotationMetadata annotationMetadata = introspection.getAnnotationMetadata();
-        if (annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.RUNTIME_NAMING).isPresent()) {
-            return true;
-        }
-        if (!isSourceGenEligible(annotationMetadata, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE)) {
-            return true;
-        }
-        if (hasCustomDeserializerConfiguration(annotationMetadata)) {
-            return true;
-        }
-        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
-            AnnotationMetadata propertyMetadata = beanProperty.getAnnotationMetadata();
-            if (propertyMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class)
-                || propertyMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
-                || propertyMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
-                || hasCustomDeserializerConfiguration(propertyMetadata)) {
-                return true;
-            }
-            AnnotationMetadata argumentMetadata = beanProperty.asArgument().getAnnotationMetadata();
-            if (argumentMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
-                || argumentMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
-                || hasCustomDeserializerConfiguration(argumentMetadata)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isSourceGenEligible(AnnotationMetadata annotationMetadata, String member) {
-        return annotationMetadata.booleanValue(SerdeConfig.class, member).orElse(true);
-    }
-
-    private boolean hasCustomSerializerConfiguration(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent();
-    }
-
-    private boolean hasCustomDeserializerConfiguration(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
     }
 
     private boolean hasContextualArgumentMetadata(Argument<?> argument) {
@@ -589,7 +488,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private boolean hasContextualMetadata(AnnotationMetadata annotationMetadata) {
-        return hasJacksonAnnotationNames(annotationMetadata)
+        return annotationMetadata.getAnnotationNames().stream().anyMatch(name -> name.startsWith("com.fasterxml.jackson.annotation."))
             || annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
             || annotationMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
@@ -599,34 +498,79 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
     }
 
-    private boolean hasIneligibleNestedGeneratedType(Argument<?> argument, Set<String> visited) {
-        Class<?> type = argument.getType();
-        if (type.isPrimitive() || type.isArray() || type.isEnum()) {
-            return false;
-        }
-        String typeName = type.getName();
-        if (typeName.startsWith("java.") || !visited.add(typeName)) {
-            return false;
-        }
-        try {
-            BeanIntrospection<?> nested = introspections.getSerializableIntrospection((Argument<Object>) argument);
-            if (!nested.getAnnotationMetadata().booleanValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(true)) {
+    private boolean hasCustomPropertySerializer(BeanIntrospection<?> introspection) {
+        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
+            AnnotationMetadata propertyMetadata = beanProperty.getAnnotationMetadata();
+            if (propertyMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()) {
                 return true;
             }
-            for (BeanProperty<?, ?> beanProperty : nested.getBeanProperties()) {
-                if (hasIneligibleNestedGeneratedType(beanProperty.asArgument(), visited)) {
+            AnnotationMetadata argumentMetadata = beanProperty.asArgument().getAnnotationMetadata();
+            if (argumentMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasJsonValueSerialization(BeanIntrospection<?> introspection) {
+        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
+            AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
+            if (annotationMetadata.hasAnnotation(SerdeConfig.SerValue.class) || annotationMetadata.hasAnnotation(JACKSON_JSON_VALUE)) {
+                return true;
+            }
+        }
+        return introspection.getBeanMethods().stream()
+            .anyMatch(method -> method.isAnnotationPresent(SerdeConfig.SerValue.class) || method.getAnnotationMetadata().hasAnnotation(JACKSON_JSON_VALUE));
+    }
+
+    private boolean hasJsonValueMethod(Class<?> beanType) {
+        for (Method method : beanType.getDeclaredMethods()) {
+            if (method.isAnnotationPresent(SerdeConfig.SerValue.class)) {
+                return true;
+            }
+            for (Annotation annotation : method.getDeclaredAnnotations()) {
+                if (annotation.annotationType().getName().equals(JACKSON_JSON_VALUE)) {
                     return true;
                 }
             }
-            return false;
-        } catch (IntrospectionException e) {
-            return false;
         }
+        return false;
     }
 
-    private boolean hasJacksonAnnotationNames(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.getAnnotationNames().stream().anyMatch(name -> name.startsWith(JACKSON_ANNOTATION_PREFIX));
+    private boolean hasJsonValuePropertyType(BeanIntrospection<?> introspection) {
+        Class<?> beanType = introspection.getBeanType();
+        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
+            Class<?> propertyType = beanProperty.getType();
+            if (propertyType == beanType) {
+                continue;
+            }
+            BeanIntrospection<?> propertyIntrospection;
+            try {
+                propertyIntrospection = introspections.getSerializableIntrospection((Argument<Object>) beanProperty.asArgument());
+            } catch (IntrospectionException e) {
+                continue;
+            }
+            if (hasJsonValueSerialization(propertyIntrospection) || hasJsonValueMethod(propertyType)) {
+                return true;
+            }
+        }
+        return false;
     }
+
+    private boolean hasCustomPropertyDeserializer(BeanIntrospection<?> introspection) {
+        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
+            AnnotationMetadata propertyMetadata = beanProperty.getAnnotationMetadata();
+            if (propertyMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent()) {
+                return true;
+            }
+            AnnotationMetadata argumentMetadata = beanProperty.asArgument().getAnnotationMetadata();
+            if (argumentMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private @Nullable <T> BeanIntrospection<?> getSerializableIntrospection(Argument<? extends T> type) {
         try {

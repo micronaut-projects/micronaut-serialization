@@ -21,6 +21,7 @@ import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.ElementQuery;
 import io.micronaut.inject.ast.MethodElement;
+import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
@@ -283,6 +284,13 @@ public final class SimpleSerdeShapeAnalyzer {
             }
             if (property.getWriteMethod().map(this::hasUnsupportedSerdeConfig).orElse(false)) {
                 return true;
+            }
+        }
+        if (element.isRecord() && element.getPrimaryConstructor().isPresent()) {
+            for (ParameterElement parameter : element.getPrimaryConstructor().get().getParameters()) {
+                if (hasUnsupportedSerdeConfig(parameter)) {
+                    return true;
+                }
             }
         }
         if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().annotated(this::hasUnsupportedSerdeConfigMetadata)).isEmpty()) {

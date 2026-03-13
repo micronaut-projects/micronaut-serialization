@@ -8,5 +8,6 @@
     "ses_31dd7b02affehm3F0xCjh61mW5"
   ],
   "plan_name": "sourcegen-simple-shape-serde",
-  "agent": "atlas"
+  "agent": "atlas",
+  "worktree_path": "/Users/graemerocher/dev/micronaut/serialization"
 }

@@ -204,21 +204,6 @@ public @interface SerdeConfig {
      */
     String RUNTIME_NAMING = "runtimeNaming";
 
-    /**
-     * Serde backend mode for both serialization and deserialization.
-     */
-    String BACKEND = "backend";
-
-    /**
-     * Serde backend mode for serialization.
-     */
-    String SERIALIZE_BACKEND = "serializeBackend";
-
-    /**
-     * Serde backend mode for deserialization.
-     */
-    String DESERIALIZE_BACKEND = "deserializeBackend";
-
     String SOURCEGEN_SHAPE = "sourcegenShape";
 
     String SOURCEGEN_SERIALIZER_ELIGIBLE = "sourcegenSerializerEligible";
