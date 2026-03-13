@@ -37,21 +37,7 @@ import java.util.List;
 
 public final class EnumSerializerSourceGen {
 
-    private static final Method FIND_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Serializer.EncoderContext.class, "findSerializer", Argument.class);
-    private static final Method CREATE_SPECIFIC_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
-        Serializer.class,
-        "createSpecific",
-        Serializer.EncoderContext.class,
-        Argument.class
-    );
-    private static final Method SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
-        Serializer.class,
-        "serialize",
-        Encoder.class,
-        Serializer.EncoderContext.class,
-        Argument.class,
-        Object.class
-    );
+    private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
     private static final Method ENUM_NAME_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "name");
 
@@ -61,9 +47,20 @@ public final class EnumSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(TypeDef.parameterized(Serializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))
+            .addMethod(generateCreateSpecificMethod(enumTypeDef))
             .addMethod(generateSerializeMethod(enumTypeDef, enumSerdeShape))
             .addMethod(generateSerializeIntoMethod(enumTypeDef, enumSerdeShape))
             .build();
+    }
+
+    private MethodDef generateCreateSpecificMethod(TypeDef enumTypeDef) {
+        return MethodDef.builder("createSpecific")
+            .addModifiers(Modifier.PUBLIC)
+            .overrides()
+            .returns(TypeDef.parameterized(Serializer.class, enumTypeDef))
+            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(enumTypeDef)))
+            .build((aThis, methodParameters) -> aThis.returning());
     }
 
     private MethodDef generateSerializeMethod(TypeDef enumTypeDef, EnumSerdeShape enumSerdeShape) {
@@ -105,16 +102,7 @@ public final class EnumSerializerSourceGen {
                                                    VariableDef.MethodParameter context,
                                                    VariableDef.MethodParameter value,
                                                    EnumSerdeShape enumSerdeShape) {
-        ExpressionDef stringArgument = EnumSerdeSourceGenUtils.stringArgumentExpression();
         List<StatementDef> statements = new ArrayList<>();
-
-        StatementDef.DefineAndAssign serializerLookupDef = context.invoke(FIND_SERIALIZER_METHOD, stringArgument)
-            .newLocal("stringSerializerLookup");
-        StatementDef.DefineAndAssign serializerDef = serializerLookupDef.variable().invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, stringArgument)
-            .newLocal("stringSerializer");
-        statements.add(serializerLookupDef);
-        statements.add(serializerDef);
-        VariableDef serializerVariable = serializerDef.variable();
 
         StatementDef.DefineAndAssign enumNameDef = value.invoke(ENUM_NAME_METHOD).newLocal("enumName");
         statements.add(enumNameDef);
@@ -133,13 +121,7 @@ public final class EnumSerializerSourceGen {
             }
         }
 
-        statements.add(serializerVariable.invoke(
-            SERIALIZE_METHOD,
-            encoder,
-            context,
-            stringArgument,
-            serializedValueVariable.cast(TypeDef.OBJECT)
-        ));
+        statements.add(encoder.invoke(ENCODE_STRING_METHOD, serializedValueVariable));
         return statements;
     }
 }
