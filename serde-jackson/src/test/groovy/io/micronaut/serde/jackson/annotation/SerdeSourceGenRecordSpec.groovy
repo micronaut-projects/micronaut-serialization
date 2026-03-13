@@ -82,4 +82,98 @@ public record TestRecord(String value, int count) {}
         cleanup:
         context.close()
     }
+
+    void 'test record generated deserializer shape plus createSpecific parity for duplicate unknown and null defaults'() {
+        given:
+        def context = buildContext('test.ParityRecord', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+public record ParityRecord(String value, int count) {}
+''')
+        Class<?> recordType = context.classLoader.loadClass('test.ParityRecord')
+        def introspections = context.getBean(SerdeIntrospections)
+        def metadata = introspections.getSerializableIntrospection(Argument.of(recordType)).annotationMetadata
+        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
+        def registry = jsonMapper.serdeRegistry
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
+        def type = Argument.of(recordType)
+        Deserializer defaultDeserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+        Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
+
+        expect:
+        deserializerClass.declaredFields*.name.any { it.startsWith('KEY_') }
+        deserializerClass.declaredFields*.name.any { it.startsWith('ARGUMENT_') }
+        !deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
+        specificDeserializer.class == deserializerClass
+
+        when:
+        def fromDefaultMissing = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello"}')
+        def fromSpecificMissing = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello"}')
+
+        then:
+        fromDefaultMissing.value() == 'hello'
+        fromSpecificMissing.value() == 'hello'
+        fromDefaultMissing.count() == 0
+        fromSpecificMissing.count() == 0
+
+        when:
+        def duplicateDefaultFailure = captureFailure {
+            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        }
+        def duplicateSpecificFailure = captureFailure {
+            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        }
+
+        then:
+        duplicateDefaultFailure != null
+        duplicateSpecificFailure != null
+        duplicateDefaultFailure.message?.contains('value')
+        duplicateSpecificFailure.message?.contains('value')
+
+        when:
+        def unknownDefaultFailure = captureFailure {
+            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","count":1,"extra":2}')
+        }
+        def unknownSpecificFailure = captureFailure {
+            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","count":1,"extra":2}')
+        }
+
+        then:
+        (unknownDefaultFailure == null) == (unknownSpecificFailure == null)
+        if (unknownDefaultFailure != null) {
+            assert unknownDefaultFailure.message?.contains('extra')
+            assert unknownSpecificFailure.message?.contains('extra')
+        }
+
+        cleanup:
+        context.close()
+    }
+
+    private static Object deserializeValue(Deserializer deserializer,
+                                           Deserializer.DecoderContext decoderContext,
+                                           Argument type,
+                                           String json) {
+        def jsonFactory = new JsonFactory()
+        def result
+        jsonFactory.createParser(json).withCloseable { parser ->
+            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
+            result = deserializer.deserialize(decoder, decoderContext, type)
+        }
+        result
+    }
+
+    private static Exception captureFailure(Closure<?> action) {
+        try {
+            action.call()
+            return null
+        } catch (Exception e) {
+            return e
+        }
+    }
 }

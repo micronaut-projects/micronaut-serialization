@@ -1,0 +1,18 @@
+Task 15 - Full extension verification
+
+Commands:
+1) ./gradlew test
+2) ./gradlew :micronaut-benchmarks:jmh
+
+Results:
+- Full test suite: BUILD SUCCESSFUL.
+- Benchmark module JMH: BUILD SUCCESSFUL.
+- JMH results persisted at:
+  benchmarks/build/results/jmh/results.txt
+
+Notes:
+- Initial combined run encountered a transient failure in :test-suite-http-server-tck-netty:test.
+- Suite rerun succeeded (`:test-suite-http-server-tck-netty:test` and subsequent `./gradlew test` both green).
+
+Conclusion:
+Extension verification gates are green after deserializer optimization extension.

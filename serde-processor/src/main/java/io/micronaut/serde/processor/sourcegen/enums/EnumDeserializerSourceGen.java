@@ -20,10 +20,12 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
+import io.micronaut.sourcegen.model.FieldDef;
 import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
@@ -36,6 +38,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class EnumDeserializerSourceGen {
+
+    private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
+    private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
+    private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
+    private static final String STRING_DESERIALIZER_FIELD = "STRING_DESERIALIZER";
 
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -55,16 +62,68 @@ public final class EnumDeserializerSourceGen {
 
     public ClassDef generate(ClassElement element, EnumSerdeShape enumSerdeShape) {
         TypeDef enumTypeDef = TypeDef.of(element);
+        ClassTypeDef deserializerClassTypeDef = ClassTypeDef.of(SerdeSourceGenClassNaming.generatedDeserializerClassName(element));
         return ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, enumTypeDef))
-            .addMethod(generateDeserializeMethod(element, enumTypeDef, enumSerdeShape))
+            .addField(FieldDef.builder(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer(EnumSerdeSourceGenUtils.stringArgumentExpression())
+                .build())
+            .addField(FieldDef.builder(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .build())
+            .addMethod(generateNoArgsConstructor())
+            .addMethod(generateSpecializedConstructor())
+            .addMethod(generateCreateSpecificMethod(enumTypeDef, deserializerClassTypeDef))
+            .addMethod(generateDeserializeMethod(element, enumTypeDef, enumSerdeShape, deserializerClassTypeDef))
             .build();
+    }
+
+    private MethodDef generateNoArgsConstructor() {
+        return MethodDef.constructor()
+            .addModifiers(Modifier.PUBLIC)
+            .build((aThis, methodParameters) ->
+                aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
+                    .put(ExpressionDef.nullValue().cast(DESERIALIZER_TYPE))
+            );
+    }
+
+    private MethodDef generateSpecializedConstructor() {
+        return MethodDef.constructor()
+            .addModifiers(Modifier.PRIVATE)
+            .addParameter("stringDeserializer", DESERIALIZER_TYPE)
+            .build((aThis, methodParameters) ->
+                aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE).put(methodParameters.get(0))
+            );
+    }
+
+    private MethodDef generateCreateSpecificMethod(TypeDef enumTypeDef,
+                                                   ClassTypeDef deserializerClassTypeDef) {
+        return MethodDef.builder("createSpecific")
+            .addModifiers(Modifier.PUBLIC)
+            .overrides()
+            .returns(TypeDef.parameterized(Deserializer.class, enumTypeDef))
+            .addParameter("context", TypeDef.of(Deserializer.DecoderContext.class))
+            .addParameter("type", TypeDef.of(Argument.class))
+            .addThrows(TypeDef.of(SerdeException.class))
+            .build((aThis, methodParameters) -> {
+                VariableDef.MethodParameter context = methodParameters.get(0);
+                ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
+                StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
+                    .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
+                    .newLocal("stringDeserializer");
+                return StatementDef.multi(
+                    deserializerDef,
+                    deserializerClassTypeDef.instantiate(List.of(DESERIALIZER_TYPE), List.of(deserializerDef.variable())).returning()
+                );
+            });
     }
 
     private MethodDef generateDeserializeMethod(ClassElement element,
                                                 TypeDef enumTypeDef,
-                                                EnumSerdeShape enumSerdeShape) {
+                                                EnumSerdeShape enumSerdeShape,
+                                                ClassTypeDef deserializerClassTypeDef) {
         return MethodDef.builder("deserialize")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
@@ -77,15 +136,16 @@ public final class EnumDeserializerSourceGen {
                 VariableDef.MethodParameter decoder = methodParameters.get(0);
                 VariableDef.MethodParameter context = methodParameters.get(1);
 
-                ExpressionDef stringArgument = EnumSerdeSourceGenUtils.stringArgumentExpression();
+                ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
                 List<StatementDef> statements = new ArrayList<>();
 
-                StatementDef.DefineAndAssign deserializerLookupDef = context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
-                    .newLocal("stringDeserializerLookup");
-                StatementDef.DefineAndAssign deserializerDef = deserializerLookupDef.variable().invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
+                StatementDef.DefineAndAssign deserializerDef = aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
                     .newLocal("stringDeserializer");
-                statements.add(deserializerLookupDef);
+                StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
+                    deserializerDef.variable().assign(context.invoke(FIND_DESERIALIZER_METHOD, stringArgument).invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument))
+                );
                 statements.add(deserializerDef);
+                statements.add(initializeDeserializerStatement);
                 VariableDef deserializerVariable = deserializerDef.variable();
 
                 StatementDef.DefineAndAssign decodedValueDef = deserializerVariable.invoke(

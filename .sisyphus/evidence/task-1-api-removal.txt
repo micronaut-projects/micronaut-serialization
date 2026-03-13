@@ -1,0 +1,9 @@
+Task 1 evidence: API removal validation
+
+Command:
+./gradlew :micronaut-serde-api:compileJava :micronaut-serde-api:test --rerun-tasks
+
+Result:
+- BUILD SUCCESSFUL (confirmed from tool output file)
+- `:micronaut-serde-api:test` executed selected tests successfully
+- No backend-mode API/config symbols found in current source tree during direct searches.

@@ -1,0 +1,8 @@
+Task 12 evidence: Enum deserializer optimization happy path
+
+Command:
+./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenEnumSpec'
+
+Result:
+- BUILD SUCCESSFUL
+- `SerdeSourceGenEnumSpec` executed and passed (`test enum sourcegen serializer and deserializer are concrete and functional`).

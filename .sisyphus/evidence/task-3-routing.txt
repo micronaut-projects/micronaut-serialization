@@ -1,0 +1,8 @@
+Task 3 evidence: metadata-only routing behavior
+
+Command:
+./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRoutingSpec' --rerun-tasks
+
+Result:
+- BUILD SUCCESSFUL
+- SerdeSourceGenRoutingSpec executed and passed.

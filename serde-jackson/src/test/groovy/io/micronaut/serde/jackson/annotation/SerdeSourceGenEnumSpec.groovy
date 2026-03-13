@@ -85,4 +85,60 @@ public enum TestEnum {
         cleanup:
         context.close()
     }
+
+    void 'test enum generated deserializer shape and createSpecific parity'() {
+        given:
+        def context = buildContext('test.ParityEnum', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+public enum ParityEnum {
+    A,
+    B
+}
+''')
+        Class<?> enumType = context.classLoader.loadClass('test.ParityEnum')
+        def introspections = context.getBean(SerdeIntrospections)
+        def metadata = introspections.getSerializableIntrospection(Argument.of(enumType)).annotationMetadata
+        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
+        def registry = jsonMapper.serdeRegistry
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
+        def type = Argument.of(enumType)
+        Deserializer defaultDeserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+        Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
+
+        expect:
+        deserializerClass.declaredFields*.name.contains('ARGUMENT_STRING')
+        deserializerClass.declaredFields*.name.contains('STRING_DESERIALIZER')
+        specificDeserializer.class == deserializerClass
+
+        when:
+        def fromDefault = deserializeEnum(defaultDeserializer, decoderContext, type, '"B"')
+        def fromSpecific = deserializeEnum(specificDeserializer, decoderContext, type, '"B"')
+
+        then:
+        fromDefault == fromSpecific
+        fromDefault.toString() == 'B'
+
+        cleanup:
+        context.close()
+    }
+
+    private static Object deserializeEnum(Deserializer deserializer,
+                                          Deserializer.DecoderContext decoderContext,
+                                          Argument type,
+                                          String json) {
+        def jsonFactory = new JsonFactory()
+        def result
+        jsonFactory.createParser(json).withCloseable { parser ->
+            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
+            result = deserializer.deserialize(decoder, decoderContext, type)
+        }
+        result
+    }
 }

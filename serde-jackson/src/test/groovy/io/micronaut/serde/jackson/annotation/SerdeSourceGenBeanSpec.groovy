@@ -107,4 +107,117 @@ public class TestBean {
         cleanup:
         context.close()
     }
+
+    void 'test bean generated deserializer shape plus createSpecific parity for duplicate unknown and null defaults'() {
+        given:
+        def context = buildContext('test.ParityBean', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+public class ParityBean {
+    private String value;
+    private int count;
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+}
+''')
+        Class<?> beanType = context.classLoader.loadClass('test.ParityBean')
+        def introspections = context.getBean(SerdeIntrospections)
+        def metadata = introspections.getSerializableIntrospection(Argument.of(beanType)).annotationMetadata
+        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
+        def registry = jsonMapper.serdeRegistry
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
+        def type = Argument.of(beanType)
+        Deserializer defaultDeserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+        Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
+
+        expect:
+        deserializerClass.declaredFields*.name.any { it.startsWith('KEY_') }
+        deserializerClass.declaredFields*.name.any { it.startsWith('ARGUMENT_') }
+        !deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
+        specificDeserializer.class == deserializerClass
+
+        when:
+        def fromDefaultNull = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":null}')
+        def fromSpecificNull = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":null}')
+
+        then:
+        beanType.getMethod('getValue').invoke(fromDefaultNull) == 'hello'
+        beanType.getMethod('getValue').invoke(fromSpecificNull) == 'hello'
+        beanType.getMethod('getCount').invoke(fromDefaultNull) == 0
+        beanType.getMethod('getCount').invoke(fromSpecificNull) == 0
+
+        when:
+        def duplicateDefaultFailure = captureFailure {
+            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        }
+        def duplicateSpecificFailure = captureFailure {
+            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        }
+
+        then:
+        duplicateDefaultFailure != null
+        duplicateSpecificFailure != null
+        duplicateDefaultFailure.message?.contains('value')
+        duplicateSpecificFailure.message?.contains('value')
+
+        when:
+        def unknownDefaultFailure = captureFailure {
+            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","count":1,"extra":2}')
+        }
+        def unknownSpecificFailure = captureFailure {
+            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","count":1,"extra":2}')
+        }
+
+        then:
+        (unknownDefaultFailure == null) == (unknownSpecificFailure == null)
+        if (unknownDefaultFailure != null) {
+            assert unknownDefaultFailure.message?.contains('extra')
+            assert unknownSpecificFailure.message?.contains('extra')
+        }
+
+        cleanup:
+        context.close()
+    }
+
+    private static Object deserializeValue(Deserializer deserializer,
+                                           Deserializer.DecoderContext decoderContext,
+                                           Argument type,
+                                           String json) {
+        def jsonFactory = new JsonFactory()
+        def result
+        jsonFactory.createParser(json).withCloseable { parser ->
+            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
+            result = deserializer.deserialize(decoder, decoderContext, type)
+        }
+        result
+    }
+
+    private static Exception captureFailure(Closure<?> action) {
+        try {
+            action.call()
+            return null
+        } catch (Exception e) {
+            return e
+        }
+    }
 }

@@ -1,0 +1,15 @@
+Task 13 - Semantic lock verification
+
+Command:
+./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenBeanSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRecordSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenEnumSpec' && ./gradlew :micronaut-serde-support:test --tests 'io.micronaut.serde.support.deserializers.DeserializeSpec'
+
+Result:
+- BUILD SUCCESSFUL for both invocations.
+- Sourcegen semantic lock specs passed:
+  - SerdeSourceGenBeanSpec (2 tests)
+  - SerdeSourceGenRecordSpec (2 tests)
+  - SerdeSourceGenEnumSpec (2 tests)
+- DeserializeSpec target suite passed.
+
+Conclusion:
+Specialized createSpecific path and default-constructor lazy fallback path are parity-locked by tests, with unknown/duplicate/null/default behavior assertions in bean/record/enum sourcegen specs.

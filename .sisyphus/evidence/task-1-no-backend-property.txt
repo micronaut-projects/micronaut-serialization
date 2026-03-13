@@ -1,0 +1,9 @@
+Task 1 evidence: stale backend property key check
+
+Searches:
+- pattern: `micronaut\.serde\.backend-mode`
+- pattern: `SerdeBackendModeResolver|SerdeBackendMode`
+- scope: repository-wide
+
+Result:
+- No matches found.

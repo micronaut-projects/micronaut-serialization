@@ -1,0 +1,16 @@
+Task 14 - Null/default/property-path parity verification
+
+Commands:
+1) ./gradlew :micronaut-serde-support:test --tests 'io.micronaut.serde.support.deserializers.DeserializeSpec'
+2) ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenBeanSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRecordSpec'
+
+Results:
+- DeserializeSpec passed (2 tests, BUILD SUCCESSFUL).
+- SourceGen bean/record specs passed with parity assertions for:
+  - duplicate property behavior
+  - unknown property parity
+  - primitive null/default behavior
+  - createSpecific vs default-constructor path parity
+
+Conclusion:
+Guarded scalar fast path preserves null/default semantics and property-path wrapped error behavior in existing parity suites.

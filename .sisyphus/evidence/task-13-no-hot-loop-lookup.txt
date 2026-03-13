@@ -1,0 +1,11 @@
+Task 13 - Hot-loop lookup anti-pattern check
+
+Command:
+grep -R "component\w+\s*=\s*\(.*context\.findDeserializer\(.*\)\.createSpecific\(.*\)\.deserializeNullable" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
+
+Result:
+- No matches found in generated sources.
+
+Conclusion:
+Generated deserializer sources do not contain unconditional per-component lookup+createSpecific+deserializeNullable chains in assignment expressions.
+Remaining findDeserializer(...).createSpecific(...) occurrences are limited to createSpecific prewiring and null-guarded lazy fallback paths.
