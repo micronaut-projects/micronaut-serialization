@@ -561,4 +561,36 @@ enum MyEnum {
         foo.myEnum == enumValue2
     }
 
+    void "@JsonValue on record constructor parameter"() {
+        given:
+        def context = buildContext('example.Name', '''
+package example;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Introspected
+@Serdeable
+public record Name(@JsonValue String value) {}
+''')
+        def testBean = newInstance(context, 'example.Name', 'John')
+
+        when:
+        def json = writeJson(jsonMapper, testBean)
+
+        then:
+        json == '"John"'
+
+        when:
+        def deserialized = jsonMapper.readValue('"John"', context.classLoader.loadClass('example.Name'))
+
+        then:
+        deserialized.value() == 'John'
+
+        cleanup:
+        context.close()
+    }
+
 }

@@ -248,7 +248,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
         } else if (methodMetadata.hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
             if (jsonValueField != null) {
-                throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
+                // For records, @JsonValue on a constructor parameter propagates to both the backing field
+                // and the accessor method (which has the same name as the field). Skip the error in that case.
+                if (!currentClass.isRecord() || !element.getName().equals(jsonValueField.getName())) {
+                    throw new ProcessingException(element, "A JsonValue field is already defined: " + jsonValueField);
+                }
             } else if (jsonValueMethod != null) {
                 throw new ProcessingException(element, "A JsonValue method is already defined: " + jsonValueMethod);
             } else {
