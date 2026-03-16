@@ -46,6 +46,9 @@ import java.util.Map;
 import java.util.Set;
 import jakarta.inject.Singleton;
 
+/**
+ * Generates optimized source deserializers for bean types.
+ */
 public final class BeanDeserializerSourceGen {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);

@@ -1164,7 +1164,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void resetForNewClass(ClassElement element) {
         this.currentClass = element;
-        // TODO: Investigate why the `AliasFor` doesn't work here
+        // NOTE: `AliasFor` does not apply here; read directly from both annotations.
         this.failOnError = element.booleanValue(SerdeConfig.class, SerdeConfig.VALIDATE)
             .or(() -> element.booleanValue(Serdeable.class, SerdeConfig.VALIDATE))
             .orElse(true);

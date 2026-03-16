@@ -31,6 +31,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Analyzes candidate types and decides source-generation eligibility and fallback reasons.
+ */
 public final class SimpleSerdeShapeAnalyzer {
     private static final String JACKSON_JSON_INCLUDE = "com.fasterxml.jackson.annotation.JsonInclude";
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";

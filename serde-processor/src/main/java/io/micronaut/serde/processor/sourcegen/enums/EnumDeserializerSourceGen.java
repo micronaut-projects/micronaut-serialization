@@ -40,6 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.inject.Singleton;
 
+/**
+ * Generates source deserializers for enum types.
+ */
 public final class EnumDeserializerSourceGen {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);

@@ -17,10 +17,22 @@ package io.micronaut.serde.processor.sourcegen.enums;
 
 import java.util.List;
 
+/**
+ * Shape model for enum-based source generation.
+ *
+ * @param constants Enum constants participating in generated mapping.
+ * @param hasPropertyOverrides Whether any constant has an overridden serialized name.
+ */
 public record EnumSerdeShape(
     List<EnumConstant> constants,
     boolean hasPropertyOverrides
 ) {
+    /**
+     * Enum constant metadata used by source generation.
+     *
+     * @param name Enum constant name.
+     * @param serializedValue Serialized value used for the constant.
+     */
     public record EnumConstant(
         String name,
         String serializedValue

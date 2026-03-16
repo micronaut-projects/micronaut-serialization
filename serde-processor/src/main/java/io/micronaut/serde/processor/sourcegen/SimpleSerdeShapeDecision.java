@@ -17,6 +17,15 @@ package io.micronaut.serde.processor.sourcegen;
 
 import java.util.EnumSet;
 
+/**
+ * Source-generation eligibility outcome for a candidate type.
+ *
+ * @param shapeKind The detected candidate shape kind.
+ * @param serializerEligible Whether serializer source generation is supported for the type.
+ * @param deserializerEligible Whether deserializer source generation is supported for the type.
+ * @param serializerFallbackReasons Reasons serializer generation falls back to introspection.
+ * @param deserializerFallbackReasons Reasons deserializer generation falls back to introspection.
+ */
 public record SimpleSerdeShapeDecision(
     ShapeKind shapeKind,
     boolean serializerEligible,
@@ -24,6 +33,9 @@ public record SimpleSerdeShapeDecision(
     EnumSet<FallbackReason> serializerFallbackReasons,
     EnumSet<FallbackReason> deserializerFallbackReasons
 ) {
+    /**
+     * Supported simple shapes for source-generated serdes.
+     */
     public enum ShapeKind {
         RECORD,
         DEFAULT_CONSTRUCTOR_BEAN,
@@ -31,6 +43,9 @@ public record SimpleSerdeShapeDecision(
         UNSUPPORTED
     }
 
+    /**
+     * Reasons a type falls back to introspection-backed serde handling.
+     */
     public enum FallbackReason {
         UNWRAPPED,
         ANY_GETTER,

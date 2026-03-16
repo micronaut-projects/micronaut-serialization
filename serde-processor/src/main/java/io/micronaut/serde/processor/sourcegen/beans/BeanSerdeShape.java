@@ -20,10 +20,26 @@ import io.micronaut.inject.ast.MethodElement;
 
 import java.util.List;
 
+/**
+ * Shape model for bean-based source generation.
+ *
+ * @param defaultConstructor The selected default constructor.
+ * @param properties Bean properties included in generated serialization.
+ */
 public record BeanSerdeShape(
     MethodElement defaultConstructor,
     List<BeanProperty> properties
 ) {
+    /**
+     * Bean property metadata used by source generation.
+     *
+     * @param name Property name.
+     * @param serializationType Property type used for serialization.
+     * @param deserializationType Property type used for deserialization.
+     * @param nullable Whether the property is nullable.
+     * @param readMethod Bean getter method.
+     * @param writeMethod Bean setter method.
+     */
     public record BeanProperty(
         String name,
         ClassElement serializationType,

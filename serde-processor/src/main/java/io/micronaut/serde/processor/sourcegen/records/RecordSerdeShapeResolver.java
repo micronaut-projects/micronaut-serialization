@@ -27,6 +27,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Resolves record shapes eligible for source-generated serdes.
+ */
 public final class RecordSerdeShapeResolver {
 
     public Optional<RecordSerdeShape> resolve(ClassElement element) {

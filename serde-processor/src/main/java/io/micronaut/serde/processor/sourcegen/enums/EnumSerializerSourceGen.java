@@ -38,6 +38,9 @@ import java.util.ArrayList;
 import java.util.List;
 import jakarta.inject.Singleton;
 
+/**
+ * Generates source serializers for enum types.
+ */
 public final class EnumSerializerSourceGen {
 
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);

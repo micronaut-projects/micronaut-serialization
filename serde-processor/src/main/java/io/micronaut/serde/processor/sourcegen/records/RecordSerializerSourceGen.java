@@ -44,6 +44,9 @@ import java.util.List;
 import java.util.Map;
 import jakarta.inject.Singleton;
 
+/**
+ * Generates optimized source serializers for records.
+ */
 public final class RecordSerializerSourceGen {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);

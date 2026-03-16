@@ -44,6 +44,9 @@ import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
 import jakarta.inject.Singleton;
 
+/**
+ * Entry-point visitor that emits simple-shape generated serializers and deserializers.
+ */
 public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable, Object> {
 
     private final SimpleSerdeShapeAnalyzer analyzer = new SimpleSerdeShapeAnalyzer();

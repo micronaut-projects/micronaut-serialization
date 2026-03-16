@@ -17,6 +17,9 @@ package io.micronaut.serde.processor.sourcegen;
 
 import io.micronaut.inject.ast.ClassElement;
 
+/**
+ * Centralized naming rules for generated serializer and deserializer classes.
+ */
 public final class SerdeSourceGenClassNaming {
 
     private static final String PREFIX = "Serde";

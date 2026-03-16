@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Resolves bean shapes eligible for source-generated serdes.
+ */
 public final class BeanSerdeShapeResolver {
 
     public Optional<BeanSerdeShape> resolve(ClassElement element) {

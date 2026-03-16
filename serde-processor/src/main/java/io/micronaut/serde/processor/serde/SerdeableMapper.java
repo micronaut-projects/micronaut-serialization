@@ -23,6 +23,9 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import java.util.List;
 
+/**
+ * Maps {@link Serdeable} members to {@link SerdeConfig} metadata.
+ */
 public final class SerdeableMapper
     implements TypedAnnotationMapper<Serdeable> {
     @Override

@@ -55,6 +55,9 @@ public class JsonSerializeMapper extends ValidatingAnnotationMapper {
         return "tools.jackson.databind.annotation.JsonSerialize";
     }
 
+    /**
+     * Mapper variant for Jackson 2 package names.
+     */
     public static final class Jackson2 extends JsonSerializeMapper {
         @Override
         public String getName() {

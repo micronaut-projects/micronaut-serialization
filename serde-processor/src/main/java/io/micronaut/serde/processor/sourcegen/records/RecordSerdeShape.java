@@ -21,10 +21,23 @@ import io.micronaut.inject.ast.PropertyElement;
 
 import java.util.List;
 
+/**
+ * Shape model for record-based source generation.
+ *
+ * @param canonicalConstructor The canonical constructor used for instantiation.
+ * @param components The ordered record components.
+ */
 public record RecordSerdeShape(
     MethodElement canonicalConstructor,
     List<RecordComponent> components
 ) {
+    /**
+     * Record component metadata used by source generation.
+     *
+     * @param name The component name.
+     * @param type The component type.
+     * @param propertyElement The associated bean property element.
+     */
     public record RecordComponent(
         String name,
         ClassElement type,

@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Resolves enum shapes eligible for source-generated serdes.
+ */
 public final class EnumSerdeShapeResolver {
 
     public Optional<EnumSerdeShape> resolve(ClassElement element) {
