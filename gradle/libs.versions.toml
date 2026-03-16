@@ -4,7 +4,7 @@ managed-jakarta-json-api = "2.1.3"
 managed-jakarta-json-bindApi = "3.0.1"
 managed-eclipse-parsson = "1.1.7"
 
-graal-svm = "23.1.10"
+graal-svm = "25.0.2"
 aws-lambda-events = "3.16.1"
 aws-lambda-serialization = "1.2.0"
 microstream-storage-restclient = "08.01.02-MS-GA"
@@ -26,7 +26,6 @@ jsonassert = "1.5.3"
 # Micronaut
 micronaut-core = { module = "io.micronaut:micronaut-core-bom", version.ref = "micronaut" }
 micronaut-platform = { module = "io.micronaut.platform:micronaut-platform", version.ref = "micronaut-platform"}
-micronaut-logging = { module = "io.micronaut.logging:micronaut-logging-bom", version.ref = "micronaut-logging" }
 micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecloud-bom', version.ref = 'micronaut-oracle-cloud' }
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation-bom", version.ref = "micronaut-validation" }
