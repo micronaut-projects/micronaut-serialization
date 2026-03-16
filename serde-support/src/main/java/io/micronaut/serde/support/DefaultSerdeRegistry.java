@@ -26,8 +26,6 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
-import io.micronaut.core.beans.BeanProperty;
-import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.order.OrderUtil;
 import io.micronaut.core.type.Argument;
@@ -43,7 +41,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
@@ -56,18 +53,13 @@ import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import jakarta.inject.Singleton;
 
-import javax.annotation.processing.Generated;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -75,8 +67,6 @@ import java.lang.reflect.Modifier;
 @Singleton
 @BootstrapContextCompatible
 public class DefaultSerdeRegistry implements SerdeRegistry {
-
-    private static final String JACKSON_JSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
 
     private final List<BeanDefinition<Serializer>> serializers = new ArrayList<>(100);
     private final List<BeanDefinition<Deserializer>> deserializers = new ArrayList<>(100);
@@ -87,8 +77,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     // a wrapper object.
     private final Map<TypeKey, SerializerWrapper> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
-    private final Map<String, BeanDefinition<Serializer>> serializerBeansByName = new ConcurrentHashMap<>(200);
-    private final Map<String, BeanDefinition<Deserializer>> deserializerBeansByName = new ConcurrentHashMap<>(200);
 
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
@@ -148,15 +136,12 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (serializer.getDeclaringType().orElse(null) == LegacyBeansFactory.class) {
                 continue;
             }
-            if (isSourceGenSerdeBean(serializer)) {
-                serializerBeansByName.put(serializer.getBeanType().getName(), serializer);
-            }
             final List<Argument<?>> typeArguments = serializer.getTypeArguments(Serializer.class);
             if (CollectionUtils.isEmpty(typeArguments)) {
                 throw new ConfigurationException("Serializer without generic types defined: " + serializer.getBeanType());
             }
             final Argument<?> argument = typeArguments.iterator().next();
-            if (!argument.equalsType(Argument.OBJECT_ARGUMENT) && !isSourceGenSerdeBean(serializer)) {
+            if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
                 serializers.add(serializer);
             }
         }
@@ -164,29 +149,15 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (deserializer.getDeclaringType().orElse(null) == LegacyBeansFactory.class) {
                 continue;
             }
-            if (isSourceGenSerdeBean(deserializer)) {
-                deserializerBeansByName.put(deserializer.getBeanType().getName(), deserializer);
-            }
             final List<Argument<?>> typeArguments = deserializer.getTypeArguments(Deserializer.class);
             if (CollectionUtils.isEmpty(typeArguments)) {
                 throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
             }
             final Argument<?> argument = typeArguments.iterator().next();
-            if (!argument.equalsType(Argument.OBJECT_ARGUMENT) && !isSourceGenSerdeBean(deserializer)) {
+            if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
                 deserializers.add(deserializer);
             }
         }
-    }
-
-    private boolean isSourceGenSerdeBean(BeanDefinition<?> beanDefinition) {
-        boolean generatedAnnotationMatch = beanDefinition.stringValue(Generated.class)
-            .map("Micronaut"::equals)
-            .orElse(false);
-        if (generatedAnnotationMatch) {
-            return true;
-        }
-        String simpleName = beanDefinition.getBeanType().getSimpleName();
-        return simpleName.startsWith("Serde") && (simpleName.endsWith("Serializer") || simpleName.endsWith("Deserializer"));
     }
 
     @Override
@@ -272,12 +243,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
-        final boolean contextualType = hasContextualArgumentMetadata(type);
-        if (!contextualType) {
-            final Deserializer<?> deserializer = deserializerMap.get(key);
-            if (deserializer != null) {
-                return (Deserializer<? extends T>) deserializer;
-            }
+        final Deserializer<?> deserializer = deserializerMap.get(key);
+        if (deserializer != null) {
+            return (Deserializer<? extends T>) deserializer;
         }
         if (type.getType().equals(Object.class)) {
             return (Deserializer<? extends T>) objectDeserializer;
@@ -286,32 +254,23 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return (Deserializer<? extends T>) objectArraySerde;
         }
 
-        Deserializer<?> deser = resolveBeanDeserializer(type, matchDeserializerCandidates(type, deserializers));
+        Collection<BeanDefinition<Deserializer>> beanDefinitions = MatchArgumentQualifier.covariant(Deserializer.class, type)
+            .filter(Deserializer.class, deserializers);
+        Deserializer<?> deser = null;
+        if (beanDefinitions.size() == 1) {
+            deser = getBean(beanDefinitions.iterator().next());
+        } else if (!beanDefinitions.isEmpty()) {
+            deser = getBean(lastChanceResolveDeserializer(type, beanDefinitions));
+        }
         if (deser != null) {
-            if (!contextualType) {
-                deserializerMap.put(key, deser);
-            }
+            deserializerMap.put(key, deser);
             return (Deserializer<? extends T>) deser;
         }
         if (key.getType().isArray()) {
-            if (!contextualType) {
-                deserializerMap.put(key, objectArraySerde);
-            }
+            deserializerMap.put(key, objectArraySerde);
             return (Deserializer<? extends T>) objectArraySerde;
         }
-
-        BeanIntrospection<?> deserializableIntrospection = getDeserializableIntrospection(type);
-        Deserializer<?> generatedDeserializer = contextualType ? null : resolveGeneratedDeserializer(type, deserializableIntrospection);
-        if (generatedDeserializer != null) {
-            if (!contextualType) {
-                deserializerMap.put(key, generatedDeserializer);
-            }
-            return (Deserializer<? extends T>) generatedDeserializer;
-        }
-
-        if (!contextualType) {
-            deserializerMap.put(key, objectDeserializer);
-        }
+        deserializerMap.put(key, objectDeserializer);
         return (Deserializer<? extends T>) objectDeserializer;
     }
 
@@ -331,12 +290,9 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     public <T> Serializer<? super T> findSerializer(Argument<? extends T> type) throws SerdeException {
         Objects.requireNonNull(type, "Type cannot be null");
         final TypeKey key = new TypeKey(type);
-        final boolean contextualType = hasContextualArgumentMetadata(type);
-        if (!contextualType) {
-            SerializerWrapper wrapper = serializerMap.get(key);
-            if (wrapper != null) {
-                return (Serializer<? super T>) wrapper.serializer;
-            }
+        SerializerWrapper wrapper = serializerMap.get(key);
+        if (wrapper != null) {
+            return (Serializer<? super T>) wrapper.serializer;
         }
         if (type.getType().equals(Object.class)) {
             return objectSerializer;
@@ -345,292 +301,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return (Serializer<? super T>) objectArraySerde;
         }
 
-        Serializer<?> ser = resolveBeanSerializer(type, matchSerializerCandidates(type, serializers));
+        Collection<BeanDefinition<Serializer>> beanDefinitions = MatchArgumentQualifier.contravariant(Serializer.class, type)
+            .filter(Serializer.class, serializers);
+        Serializer<?> ser = null;
+        if (beanDefinitions.size() == 1) {
+            ser = getBean(beanDefinitions.iterator().next());
+        } else if (!beanDefinitions.isEmpty()) {
+            BeanDefinition<Serializer> definition = lastChanceResolveSerializer(type, beanDefinitions);
+            ser = getBean(definition);
+        }
         if (ser != null) {
-            if (!contextualType) {
-                serializerMap.put(key, new SerializerWrapper(ser));
-            }
+            serializerMap.put(key, new SerializerWrapper(ser));
             return (Serializer<? super T>) ser;
         }
         if (key.getType().isArray()) {
-            if (!contextualType) {
-                serializerMap.put(key, new SerializerWrapper(objectArraySerde));
-            }
+            serializerMap.put(key, new SerializerWrapper(objectArraySerde));
             return (Serializer<? super T>) objectArraySerde;
         }
-
-        BeanIntrospection<?> serializableIntrospection = getSerializableIntrospection(type);
-        Serializer<?> generatedSerializer = contextualType ? null : resolveGeneratedSerializer(type, serializableIntrospection);
-        if (generatedSerializer != null) {
-            if (!contextualType) {
-                serializerMap.put(key, new SerializerWrapper(generatedSerializer));
-            }
-            return (Serializer<? super T>) generatedSerializer;
-        }
-
-        if (!contextualType) {
-            serializerMap.put(key, new SerializerWrapper(objectSerializer));
-        }
+        serializerMap.put(key, new SerializerWrapper(objectSerializer));
         return objectSerializer;
-    }
-
-    private <T> Collection<BeanDefinition<Deserializer>> matchDeserializerCandidates(Argument<?> type,
-                                                                                     Collection<BeanDefinition<Deserializer>> pool) {
-        if (pool == null || pool.isEmpty()) {
-            return List.of();
-        }
-        Collection<BeanDefinition<Deserializer>> filtered = filterLegacyBeansFactoryCandidates(pool);
-        if (filtered.isEmpty()) {
-            return List.of();
-        }
-        return deduplicateBeanDefinitions(MatchArgumentQualifier.covariant(Deserializer.class, type).filter(Deserializer.class, filtered));
-    }
-
-    private <T> Deserializer<?> resolveBeanDeserializer(Argument<? extends T> type,
-                                                       Collection<BeanDefinition<Deserializer>> candidates) throws SerdeException {
-        if (CollectionUtils.isEmpty(candidates)) {
-            return null;
-        }
-        if (candidates.size() == 1) {
-            return getBean(candidates.iterator().next());
-        }
-        return getBean(lastChanceResolveDeserializer(type, candidates));
-    }
-
-    private <T> Collection<BeanDefinition<Serializer>> matchSerializerCandidates(Argument<?> type,
-                                                                                 Collection<BeanDefinition<Serializer>> pool) {
-        if (pool == null || pool.isEmpty()) {
-            return List.of();
-        }
-        Collection<BeanDefinition<Serializer>> filtered = filterLegacyBeansFactoryCandidates(pool);
-        if (filtered.isEmpty()) {
-            return List.of();
-        }
-        return deduplicateBeanDefinitions(MatchArgumentQualifier.contravariant(Serializer.class, type).filter(Serializer.class, filtered));
-    }
-
-    private <T> Collection<BeanDefinition<T>> filterLegacyBeansFactoryCandidates(Collection<BeanDefinition<T>> candidates) {
-        if (candidates == null || candidates.isEmpty()) {
-            return List.of();
-        }
-        return candidates.stream()
-            .filter(candidate -> candidate.getDeclaringType().orElse(null) != LegacyBeansFactory.class)
-            .toList();
-    }
-
-    private <T> Collection<BeanDefinition<T>> deduplicateBeanDefinitions(Collection<BeanDefinition<T>> candidates) {
-        if (candidates == null || candidates.isEmpty()) {
-            return List.of();
-        }
-        Map<Class<?>, BeanDefinition<T>> unique = new LinkedHashMap<>();
-        for (BeanDefinition<T> candidate : candidates) {
-            unique.putIfAbsent(candidate.getBeanType(), candidate);
-        }
-        return List.copyOf(unique.values());
-    }
-
-    private <T> Serializer<?> resolveBeanSerializer(Argument<? extends T> type,
-                                                   Collection<BeanDefinition<Serializer>> candidates) throws SerdeException {
-        if (CollectionUtils.isEmpty(candidates)) {
-            return null;
-        }
-        if (candidates.size() == 1) {
-            return getBean(candidates.iterator().next());
-        }
-        return getBean(lastChanceResolveSerializer(type, candidates));
-    }
-
-    private Serializer<?> resolveGeneratedSerializer(Argument<?> type,
-                                                        @Nullable BeanIntrospection<?> introspection) throws SerdeException {
-        if (serializationConfiguration.sortPropertiesAlphabetically() || serdeConfiguration.getPropertyNamingStrategy() != null) {
-            return null;
-        }
-        if (introspection == null) {
-            return null;
-        }
-        AnnotationMetadata annotationMetadata = introspection.getAnnotationMetadata();
-        if (annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()) {
-            return null;
-        }
-        if (hasJsonValueMethod(type.getType())) {
-            return null;
-        }
-        if (hasJsonValueSerialization(introspection)) {
-            return null;
-        }
-        if (hasJsonValuePropertyType(introspection)) {
-            return null;
-        }
-        if (hasCustomPropertySerializer(introspection)) {
-            return null;
-        }
-        if (!annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)) {
-            return null;
-        }
-        String className = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null);
-        if (className == null || className.isBlank()) {
-            throw new SerdeException("Missing generated serializer class metadata for type [" + type + "]");
-        }
-        if (beanContext == null) {
-            return null;
-        }
-        BeanDefinition<Serializer> beanDefinition = serializerBeansByName.get(className);
-        if (beanDefinition == null) {
-            return null;
-        }
-        if (Modifier.isAbstract(beanDefinition.getBeanType().getModifiers())) {
-            return null;
-        }
-        Serializer<?> serializer = resolveBeanSerializer(type, matchSerializerCandidates(type, List.of(beanDefinition)));
-        return serializer;
-    }
-
-    private Deserializer<?> resolveGeneratedDeserializer(Argument<?> type,
-                                                           @Nullable BeanIntrospection<?> introspection) throws SerdeException {
-        if (serdeConfiguration.getPropertyNamingStrategy() != null) {
-            return null;
-        }
-        if (introspection == null) {
-            return null;
-        }
-        AnnotationMetadata annotationMetadata = introspection.getAnnotationMetadata();
-        if (annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent()) {
-            return null;
-        }
-        if (hasCustomPropertyDeserializer(introspection)) {
-            return null;
-        }
-        if (!annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)) {
-            return null;
-        }
-        String className = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null);
-        if (className == null || className.isBlank()) {
-            throw new SerdeException("Missing generated deserializer class metadata for type [" + type + "]");
-        }
-        if (beanContext == null) {
-            return null;
-        }
-        BeanDefinition<Deserializer> beanDefinition = deserializerBeansByName.get(className);
-        if (beanDefinition == null) {
-            return null;
-        }
-        if (Modifier.isAbstract(beanDefinition.getBeanType().getModifiers())) {
-            return null;
-        }
-        Deserializer<?> deserializer = resolveBeanDeserializer(type, matchDeserializerCandidates(type, List.of(beanDefinition)));
-        return deserializer;
-    }
-
-    private boolean hasContextualArgumentMetadata(Argument<?> argument) {
-        if (hasContextualMetadata(argument.getAnnotationMetadata())) {
-            return true;
-        }
-        for (Argument<?> typeParameter : argument.getTypeParameters()) {
-            if (hasContextualArgumentMetadata(typeParameter)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasContextualMetadata(AnnotationMetadata annotationMetadata) {
-        return annotationMetadata.getAnnotationNames().stream().anyMatch(name -> name.startsWith("com.fasterxml.jackson.annotation."))
-            || annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class)
-            || annotationMetadata.hasAnnotation(SerdeConfig.SerIgnored.class)
-            || annotationMetadata.hasAnnotation(SerdeConfig.SerIncluded.class)
-            || annotationMetadata.hasAnnotation(SerdeConfig.SerValue.class)
-            || annotationMetadata.hasAnnotation(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-            || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()
-            || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
-    }
-
-    private boolean hasCustomPropertySerializer(BeanIntrospection<?> introspection) {
-        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
-            AnnotationMetadata propertyMetadata = beanProperty.getAnnotationMetadata();
-            if (propertyMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()) {
-                return true;
-            }
-            AnnotationMetadata argumentMetadata = beanProperty.asArgument().getAnnotationMetadata();
-            if (argumentMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasJsonValueSerialization(BeanIntrospection<?> introspection) {
-        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
-            AnnotationMetadata annotationMetadata = beanProperty.getAnnotationMetadata();
-            if (annotationMetadata.hasAnnotation(SerdeConfig.SerValue.class) || annotationMetadata.hasAnnotation(JACKSON_JSON_VALUE)) {
-                return true;
-            }
-        }
-        return introspection.getBeanMethods().stream()
-            .anyMatch(method -> method.isAnnotationPresent(SerdeConfig.SerValue.class) || method.getAnnotationMetadata().hasAnnotation(JACKSON_JSON_VALUE));
-    }
-
-    private boolean hasJsonValueMethod(Class<?> beanType) {
-        for (Method method : beanType.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(SerdeConfig.SerValue.class)) {
-                return true;
-            }
-            for (Annotation annotation : method.getDeclaredAnnotations()) {
-                if (annotation.annotationType().getName().equals(JACKSON_JSON_VALUE)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean hasJsonValuePropertyType(BeanIntrospection<?> introspection) {
-        Class<?> beanType = introspection.getBeanType();
-        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
-            Class<?> propertyType = beanProperty.getType();
-            if (propertyType == beanType) {
-                continue;
-            }
-            BeanIntrospection<?> propertyIntrospection;
-            try {
-                propertyIntrospection = introspections.getSerializableIntrospection((Argument<Object>) beanProperty.asArgument());
-            } catch (IntrospectionException e) {
-                continue;
-            }
-            if (hasJsonValueSerialization(propertyIntrospection) || hasJsonValueMethod(propertyType)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasCustomPropertyDeserializer(BeanIntrospection<?> introspection) {
-        for (BeanProperty<?, ?> beanProperty : introspection.getBeanProperties()) {
-            AnnotationMetadata propertyMetadata = beanProperty.getAnnotationMetadata();
-            if (propertyMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent()) {
-                return true;
-            }
-            AnnotationMetadata argumentMetadata = beanProperty.asArgument().getAnnotationMetadata();
-            if (argumentMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private @Nullable <T> BeanIntrospection<?> getSerializableIntrospection(Argument<? extends T> type) {
-        try {
-            return introspections.getSerializableIntrospection((Argument<T>) type);
-        } catch (IntrospectionException e) {
-            return null;
-        }
-    }
-
-    private @Nullable <T> BeanIntrospection<?> getDeserializableIntrospection(Argument<? extends T> type) {
-        try {
-            return introspections.getDeserializableIntrospection((Argument<T>) type);
-        } catch (IntrospectionException e) {
-            return null;
-        }
     }
 
     @NonNull

@@ -22,6 +22,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -64,7 +65,19 @@ public final class EnumDeserializerSourceGen {
         Deserializer.DecoderContext.class,
         Argument.class
     );
-    private static final Method ENUM_VALUE_OF_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "valueOf", Class.class, String.class);
+    private static final Method ENUM_VALUE_OF_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeErrorHandler.class,
+        "enumValueOf",
+        Class.class,
+        String.class,
+        Deserializer.DecoderContext.class
+    );
+    private static final Method UNKNOWN_ENUM_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeErrorHandler.class,
+        "unknownEnumValue",
+        Argument.class,
+        String.class
+    );
 
     public ClassDef generate(ClassElement element, EnumSerdeShape enumSerdeShape) {
         TypeDef enumTypeDef = TypeDef.of(element);
@@ -180,14 +193,25 @@ public final class EnumDeserializerSourceGen {
                     }
                 }
 
-                statements.add(ClassTypeDef.of(Enum.class)
+                StatementDef deserializeStatement = ClassTypeDef.of(GeneratedSerdeErrorHandler.class)
                     .invokeStatic(
                         ENUM_VALUE_OF_METHOD,
                         ExpressionDef.constant(TypeDef.erasure(element)),
-                        enumNameVariable
+                        enumNameVariable,
+                        context
                     )
                     .cast(enumTypeDef)
-                    .returning());
+                    .returning();
+                statements.add(StatementDef.doTry(deserializeStatement)
+                    .doCatch(ClassTypeDef.of(IllegalArgumentException.class), exceptionVariable ->
+                        ClassTypeDef.of(GeneratedSerdeErrorHandler.class)
+                            .invokeStatic(
+                                UNKNOWN_ENUM_VALUE_METHOD,
+                                methodParameters.get(2),
+                                decodedValueDef.variable()
+                            )
+                            .doThrow()
+                    ));
                 return StatementDef.multi(statements);
             });
     }

@@ -42,7 +42,6 @@ import io.micronaut.sourcegen.model.TypeDef;
 
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
-import jakarta.inject.Singleton;
 import java.util.Set;
 
 /**
@@ -73,6 +72,11 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
         if (sourceGenerator == null || element.isPrimitive() || element.isArray() || element.isPrivate()) {
+            return;
+        }
+        if (!element.hasDeclaredAnnotation(Serdeable.class)
+            && !element.hasDeclaredAnnotation(Serdeable.Serializable.class)
+            && !element.hasDeclaredAnnotation(Serdeable.Deserializable.class)) {
             return;
         }
         SimpleSerdeShapeDecision decision = analyzer.analyze(element);
@@ -108,7 +112,6 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         }
         write(context, element, ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .addAnnotation(Singleton.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())
@@ -140,7 +143,6 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
         }
         write(context, element, ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .addAnnotation(Singleton.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
                 .build())

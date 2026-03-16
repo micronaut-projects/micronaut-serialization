@@ -24,6 +24,8 @@ import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.config.DeserializationConfiguration;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 @Internal
 public final class GeneratedSerdeErrorHandler {
@@ -41,6 +43,47 @@ public final class GeneratedSerdeErrorHandler {
         SerdeException serdeException = new SerdeException("Duplicate property [" + propertyName + "] encountered during deserialization of type: " + beanType);
         serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
         return serdeException;
+    }
+
+    public static SerdeException unknownEnumValue(Argument<?> enumType, String value) {
+        Object[] constants = enumType.getType().getEnumConstants();
+        String acceptedValues = constants == null ? "[]" : java.util.Arrays.toString(constants);
+        return new SerdeException("Cannot deserialize value of type `" + enumType.getType().getName() + "` due to: Expected one of " + acceptedValues + " but was '" + value + "'");
+    }
+
+    public static String enumSerializedName(Enum<?> enumValue) {
+        try {
+            var field = enumValue.getDeclaringClass().getField(enumValue.name());
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                String annotationName = annotation.annotationType().getName();
+                if (annotationName.equals("com.fasterxml.jackson.annotation.JsonProperty") || annotationName.equals("tools.jackson.annotation.JsonProperty")) {
+                    Method valueMethod = annotation.annotationType().getMethod("value");
+                    Object configured = valueMethod.invoke(annotation);
+                    if (configured instanceof String configuredValue && !configuredValue.isBlank()) {
+                        return configuredValue;
+                    }
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        return enumValue.name();
+    }
+
+    public static Enum<?> enumValueOf(Class<?> enumType, String serializedValue, Deserializer.DecoderContext context) {
+        boolean caseInsensitive = context.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::acceptCaseInsensitiveEnums)
+            .orElse(false);
+        Object[] constants = enumType.getEnumConstants();
+        if (constants != null) {
+            for (Object constant : constants) {
+                Enum<?> enumConstant = (Enum<?>) constant;
+                String candidate = enumSerializedName(enumConstant);
+                if (candidate.equals(serializedValue) || (caseInsensitive && candidate.equalsIgnoreCase(serializedValue))) {
+                    return enumConstant;
+                }
+            }
+        }
+        return Enum.valueOf((Class) enumType, serializedValue);
     }
 
     public static void handleUnknownProperty(Decoder decoder,

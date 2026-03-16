@@ -51,7 +51,10 @@ public final class EnumSerdeShapeResolver {
                 continue;
             }
             String name = field.getName();
-            String serializedValue = field.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(name);
+            String serializedValue = field.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                .or(() -> field.stringValue("com.fasterxml.jackson.annotation.JsonProperty"))
+                .or(() -> field.stringValue("tools.jackson.annotation.JsonProperty"))
+                .orElse(name);
             constants.add(new EnumSerdeShape.EnumConstant(name, serializedValue));
             if (!serializedValue.equals(name)) {
                 hasOverrides = true;
