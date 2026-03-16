@@ -43,11 +43,12 @@ import io.micronaut.sourcegen.model.TypeDef;
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
 import jakarta.inject.Singleton;
+import java.util.Set;
 
 /**
  * Entry-point visitor that emits simple-shape generated serializers and deserializers.
  */
-public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable, Object> {
+public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, Object> {
 
     private final SimpleSerdeShapeAnalyzer analyzer = new SimpleSerdeShapeAnalyzer();
     private SourceGenerator sourceGenerator;
@@ -56,13 +57,22 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable
     private final EnumSerdeShapeResolver enumSerdeShapeResolver = new EnumSerdeShapeResolver();
 
     @Override
+    public Set<String> getSupportedAnnotationNames() {
+        return Set.of(
+            Serdeable.class.getName(),
+            Serdeable.Serializable.class.getName(),
+            Serdeable.Deserializable.class.getName()
+        );
+    }
+
+    @Override
     public void start(VisitorContext visitorContext) {
         sourceGenerator = SourceGenerators.findByLanguage(visitorContext.getLanguage()).orElse(null);
     }
 
     @Override
     public void visitClass(ClassElement element, VisitorContext context) {
-        if (sourceGenerator == null || element.isPrimitive() || element.isArray()) {
+        if (sourceGenerator == null || element.isPrimitive() || element.isArray() || element.isPrivate()) {
             return;
         }
         SimpleSerdeShapeDecision decision = analyzer.analyze(element);
@@ -151,5 +161,10 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable
     @Override
     public int getOrder() {
         return IntrospectedTypeElementVisitor.POSITION + 200;
+    }
+
+    @Override
+    public VisitorKind getVisitorKind() {
+        return VisitorKind.ISOLATING;
     }
 }
