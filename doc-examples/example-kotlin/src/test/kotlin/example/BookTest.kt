@@ -36,8 +36,7 @@ class BookTest {
             )
         )
 
-        val books: MutableList<Book> =
-            objectMapper.readValue(result, Argument.listOf(Book::class.java))
+        val books = objectMapper.readValue(result, Argument.listOf(Book::class.java))!!
         assertEquals(3, books.size)
         val firstBook = books[0]
         assertEquals(
@@ -60,7 +59,7 @@ class BookTest {
         val books = objectMapper.readValue(
             result,
             Argument.mapOf(String::class.java, Book::class.java)
-        )
+        )!!
         assertEquals(3, books.size)
         val herBook: Book = books["herBook"]!!
         assertEquals("VALIS", herBook.title)
