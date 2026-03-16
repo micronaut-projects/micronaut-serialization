@@ -54,7 +54,7 @@ public final class GeneratedSerdeErrorHandler {
         return new SerdeException("Cannot deserialize value of type `" + enumType.getType().getName() + "` due to: Expected one of " + acceptedValues + " but was '" + value + "'");
     }
 
-    public static String enumSerializedName(Enum<?> enumValue) {
+    public static <E extends Enum<E>> String enumSerializedName(E enumValue) {
         try {
             var field = enumValue.getDeclaringClass().getField(enumValue.name());
             for (Annotation annotation : field.getDeclaredAnnotations()) {

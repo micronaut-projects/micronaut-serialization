@@ -49,7 +49,9 @@ import jakarta.inject.Singleton;
  */
 public final class RecordSerializerSourceGen {
     private static final String CONTEXT_PARAMETER = "context";
+    private static final String VALUE_PARAMETER = "value";
     private static final String VALUE_LOCAL_PREFIX = "value";
+    private static final String GENERATED_VALUE_MEMBER = "value";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
@@ -131,7 +133,7 @@ public final class RecordSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Singleton.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
-                .addMember("value", "Micronaut")
+                .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, recordTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, recordTypeDef))
@@ -225,7 +227,7 @@ public final class RecordSerializerSourceGen {
             .addParameter("encoder", TypeDef.of(Encoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
-            .addParameter("value", recordTypeDef)
+            .addParameter(VALUE_PARAMETER, recordTypeDef)
             .addThrows(TypeDef.of(IOException.class))
             .build((aThis, methodParameters) -> {
                 VariableDef.MethodParameter encoder = methodParameters.get(0);
@@ -258,7 +260,7 @@ public final class RecordSerializerSourceGen {
             .addParameter("encoder", TypeDef.of(Encoder.class))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
-            .addParameter("value", recordTypeDef)
+            .addParameter(VALUE_PARAMETER, recordTypeDef)
             .addThrows(TypeDef.of(IOException.class))
             .build((aThis, methodParameters) -> StatementDef.multi(
                 serializeIntoStatements(aThis, serializerClassTypeDef, methodParameters.get(0), methodParameters.get(1), methodParameters.get(2), methodParameters.get(3), recordSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames)

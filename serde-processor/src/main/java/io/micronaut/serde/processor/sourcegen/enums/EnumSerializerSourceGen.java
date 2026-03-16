@@ -46,6 +46,7 @@ import jakarta.inject.Singleton;
 public final class EnumSerializerSourceGen {
     private static final String CONTEXT_PARAMETER = "context";
     private static final String VALUE_PARAMETER = "value";
+    private static final String GENERATED_VALUE_MEMBER = "value";
 
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
@@ -57,7 +58,7 @@ public final class EnumSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Singleton.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
-                .addMember("value", "Micronaut")
+                .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))

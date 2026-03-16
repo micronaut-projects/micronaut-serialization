@@ -54,6 +54,8 @@ public final class RecordDeserializerSourceGen {
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
+    private static final String CONTEXT_PARAMETER = "context";
+    private static final String GENERATED_VALUE_MEMBER = "value";
 
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -145,7 +147,7 @@ public final class RecordDeserializerSourceGen {
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addAnnotation(Singleton.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
-                .addMember("value", "Micronaut")
+                .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, recordTypeDef))
             .addFields(fields)
@@ -195,7 +197,7 @@ public final class RecordDeserializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .returns(TypeDef.parameterized(Deserializer.class, recordTypeDef))
-            .addParameter("context", TypeDef.of(Deserializer.DecoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addThrows(TypeDef.of(SerdeException.class))
             .build((aThis, methodParameters) -> {
@@ -236,7 +238,7 @@ public final class RecordDeserializerSourceGen {
             .overrides()
             .returns(recordTypeDef)
             .addParameter("decoder", TypeDef.of(Decoder.class))
-            .addParameter("context", TypeDef.of(Deserializer.DecoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addThrows(TypeDef.of(IOException.class))
             .build((aThis, methodParameters) -> {

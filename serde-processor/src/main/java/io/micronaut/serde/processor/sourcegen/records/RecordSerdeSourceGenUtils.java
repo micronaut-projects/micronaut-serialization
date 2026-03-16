@@ -140,14 +140,14 @@ final class RecordSerdeSourceGenUtils {
             return TypeDef.erasure(classElement);
         }
         return switch (classElement.getName()) {
-            case "boolean" -> TypeDef.of(Boolean.class);
+            case BOOLEAN_TYPE -> TypeDef.of(Boolean.class);
             case "byte" -> TypeDef.of(Byte.class);
-            case "short" -> TypeDef.of(Short.class);
+            case SHORT_TYPE -> TypeDef.of(Short.class);
             case "char" -> TypeDef.of(Character.class);
             case "int" -> TypeDef.of(Integer.class);
             case "long" -> TypeDef.of(Long.class);
-            case "float" -> TypeDef.of(Float.class);
-            case "double" -> TypeDef.of(Double.class);
+            case FLOAT_TYPE -> TypeDef.of(Float.class);
+            case DOUBLE_TYPE -> TypeDef.of(Double.class);
             default -> TypeDef.erasure(classElement);
         };
     }
@@ -167,14 +167,14 @@ final class RecordSerdeSourceGenUtils {
     private static ClassElement normalizeArgumentType(ClassElement classElement) {
         if (classElement.isPrimitive() && !classElement.isArray()) {
             return switch (classElement.getName()) {
-                case "boolean" -> ClassElement.of(Boolean.class);
+                case BOOLEAN_TYPE -> ClassElement.of(Boolean.class);
                 case "byte" -> ClassElement.of(Byte.class);
-                case "short" -> ClassElement.of(Short.class);
+                case SHORT_TYPE -> ClassElement.of(Short.class);
                 case "char" -> ClassElement.of(Character.class);
                 case "int" -> ClassElement.of(Integer.class);
                 case "long" -> ClassElement.of(Long.class);
-                case "float" -> ClassElement.of(Float.class);
-                case "double" -> ClassElement.of(Double.class);
+                case FLOAT_TYPE -> ClassElement.of(Float.class);
+                case DOUBLE_TYPE -> ClassElement.of(Double.class);
                 default -> classElement;
             };
         }
