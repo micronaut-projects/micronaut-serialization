@@ -34,16 +34,21 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 
 final class BeanSerdeSourceGenUtils {
+    private static final String EMPTY_METHOD = "empty";
+    private static final String BOOLEAN_TYPE = "boolean";
+    private static final String FLOAT_TYPE = "float";
+    private static final String DOUBLE_TYPE = "double";
+    private static final String SHORT_TYPE = "short";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.support.util.SerdeArgumentConstants");
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
-    private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, "empty");
-    private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, "empty");
-    private static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, "empty");
-    private static final Method OPTIONAL_LONG_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalLong.class, "empty");
+    private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, EMPTY_METHOD);
+    private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, EMPTY_METHOD);
+    private static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, EMPTY_METHOD);
+    private static final Method OPTIONAL_LONG_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalLong.class, EMPTY_METHOD);
 
     private BeanSerdeSourceGenUtils() {
     }
@@ -107,12 +112,12 @@ final class BeanSerdeSourceGenUtils {
             return ExpressionDef.nullValue().cast(TypeDef.erasure(classElement));
         }
         return switch (classElement.getName()) {
-            case "boolean" -> ExpressionDef.falseValue();
+            case BOOLEAN_TYPE -> ExpressionDef.falseValue();
             case "long" -> ExpressionDef.constant(0L);
-            case "float" -> ExpressionDef.constant(0f);
-            case "double" -> ExpressionDef.constant(0d);
+            case FLOAT_TYPE -> ExpressionDef.constant(0f);
+            case DOUBLE_TYPE -> ExpressionDef.constant(0d);
             case "char" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
-            case "byte", "short", "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
+            case "byte", SHORT_TYPE, "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
             default -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
         };
     }

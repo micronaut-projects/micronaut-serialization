@@ -50,6 +50,7 @@ public final class EnumDeserializerSourceGen {
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
     private static final String STRING_DESERIALIZER_FIELD = "STRING_DESERIALIZER";
+    private static final String STRING_DESERIALIZER_LOCAL = "stringDeserializer";
 
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -115,7 +116,7 @@ public final class EnumDeserializerSourceGen {
     private MethodDef generateSpecializedConstructor() {
         return MethodDef.constructor()
             .addModifiers(Modifier.PRIVATE)
-            .addParameter("stringDeserializer", DESERIALIZER_TYPE)
+            .addParameter(STRING_DESERIALIZER_LOCAL, DESERIALIZER_TYPE)
             .build((aThis, methodParameters) ->
                 aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE).put(methodParameters.get(0))
             );
@@ -135,7 +136,7 @@ public final class EnumDeserializerSourceGen {
                 ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
                 StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
                     .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
-                    .newLocal("stringDeserializer");
+                    .newLocal(STRING_DESERIALIZER_LOCAL);
                 return StatementDef.multi(
                     deserializerDef,
                     deserializerClassTypeDef.instantiate(List.of(DESERIALIZER_TYPE), List.of(deserializerDef.variable())).returning()
@@ -163,7 +164,7 @@ public final class EnumDeserializerSourceGen {
                 List<StatementDef> statements = new ArrayList<>();
 
                 StatementDef.DefineAndAssign deserializerDef = aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
-                    .newLocal("stringDeserializer");
+                    .newLocal(STRING_DESERIALIZER_LOCAL);
                 StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
                     deserializerDef.variable().assign(context.invoke(FIND_DESERIALIZER_METHOD, stringArgument).invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument))
                 );

@@ -47,6 +47,7 @@ public final class SimpleSerdeShapeAnalyzer {
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
     private static final String BSON_REPRESENTATION = "org.bson.codecs.pojo.annotations.BsonRepresentation";
 
+    @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
         EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
         EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
@@ -87,13 +88,12 @@ public final class SimpleSerdeShapeAnalyzer {
             serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
             deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
         }
-        if (element.hasAnnotation(SerdeConfig.SerIncluded.class)
+        if (!hasJsonInclude(element)
+            && (element.hasAnnotation(SerdeConfig.SerIncluded.class)
             || hasAnnotation(element, SerdeConfig.SerIncluded.class)
-            || element.hasDeclaredAnnotation(SerdeConfig.SerIncluded.class)) {
-            if (!hasJsonInclude(element)) {
-                serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-                deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            }
+            || element.hasDeclaredAnnotation(SerdeConfig.SerIncluded.class))) {
+            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
         }
         if (hasPropertyOrderConfig(element)) {
             serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
@@ -383,8 +383,9 @@ public final class SimpleSerdeShapeAnalyzer {
                 return true;
             }
         }
-        if (element.isRecord() && element.getPrimaryConstructor().isPresent()) {
-            for (ParameterElement parameter : element.getPrimaryConstructor().get().getParameters()) {
+        var primaryConstructor = element.getPrimaryConstructor();
+        if (element.isRecord() && primaryConstructor.isPresent()) {
+            for (ParameterElement parameter : primaryConstructor.orElseThrow().getParameters()) {
                 if (hasUnsupportedSerdeConfig(parameter)) {
                     return true;
                 }
@@ -499,6 +500,7 @@ public final class SimpleSerdeShapeAnalyzer {
         return false;
     }
 
+    @SuppressWarnings("java:S3776")
     private boolean hasPotentialGlobalOrderingConflict(ClassElement element) {
         List<? extends Element> fields = element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared());
         if (fields.size() >= 3) {

@@ -44,6 +44,8 @@ import jakarta.inject.Singleton;
  * Generates source serializers for enum types.
  */
 public final class EnumSerializerSourceGen {
+    private static final String CONTEXT_PARAMETER = "context";
+    private static final String VALUE_PARAMETER = "value";
 
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
@@ -70,7 +72,7 @@ public final class EnumSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .returns(TypeDef.parameterized(Serializer.class, enumTypeDef))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(enumTypeDef)))
             .build((aThis, methodParameters) -> aThis.returning());
     }
@@ -80,18 +82,17 @@ public final class EnumSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .addParameter("encoder", TypeDef.of(Encoder.class))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
-            .addParameter("value", enumTypeDef)
+            .addParameter(VALUE_PARAMETER, enumTypeDef)
             .addThrows(TypeDef.of(IOException.class))
             .build((aThis, methodParameters) -> {
                 VariableDef.MethodParameter encoder = methodParameters.get(0);
-                VariableDef.MethodParameter context = methodParameters.get(1);
                 VariableDef.MethodParameter value = methodParameters.get(3);
 
                 return value.isNull().ifTrue(
                     encoder.invoke(ENCODE_NULL_METHOD),
-                    StatementDef.multi(serializeStatements(encoder, context, value, enumSerdeShape))
+                    StatementDef.multi(serializeStatements(encoder, value, enumSerdeShape))
                 );
             });
     }
@@ -101,17 +102,16 @@ public final class EnumSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .addParameter("encoder", TypeDef.of(Encoder.class))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
-            .addParameter("value", enumTypeDef)
+            .addParameter(VALUE_PARAMETER, enumTypeDef)
             .addThrows(TypeDef.of(IOException.class))
             .build((aThis, methodParameters) -> StatementDef.multi(
-                serializeStatements(methodParameters.get(0), methodParameters.get(1), methodParameters.get(3), enumSerdeShape)
+                serializeStatements(methodParameters.get(0), methodParameters.get(3), enumSerdeShape)
             ));
     }
 
     private List<StatementDef> serializeStatements(VariableDef encoder,
-                                                   VariableDef.MethodParameter context,
                                                    VariableDef.MethodParameter value,
                                                    EnumSerdeShape enumSerdeShape) {
         List<StatementDef> statements = new ArrayList<>();

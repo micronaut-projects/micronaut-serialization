@@ -48,6 +48,8 @@ import jakarta.inject.Singleton;
  * Generates optimized source serializers for bean types.
  */
 public final class BeanSerializerSourceGen {
+    private static final String CONTEXT_PARAMETER = "context";
+    private static final String VALUE_LOCAL_PREFIX = "value";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
@@ -182,7 +184,7 @@ public final class BeanSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .returns(TypeDef.parameterized(Serializer.class, beanTypeDef))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(beanTypeDef)))
             .addThrows(TypeDef.of(SerdeException.class))
             .build((aThis, methodParameters) -> {
@@ -221,7 +223,7 @@ public final class BeanSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .addParameter("encoder", TypeDef.of(Encoder.class))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter("value", beanTypeDef)
             .addThrows(TypeDef.of(IOException.class))
@@ -254,7 +256,7 @@ public final class BeanSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .addParameter("encoder", TypeDef.of(Encoder.class))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter("value", beanTypeDef)
             .addThrows(TypeDef.of(IOException.class))
@@ -263,6 +265,7 @@ public final class BeanSerializerSourceGen {
             ));
     }
 
+    @SuppressWarnings("java:S107")
     private List<StatementDef> serializeIntoStatements(VariableDef.This aThis,
                                                        ClassTypeDef serializerClassTypeDef,
                                                        VariableDef encoder,
@@ -282,6 +285,7 @@ public final class BeanSerializerSourceGen {
         return statements;
     }
 
+    @SuppressWarnings("java:S107")
     private StatementDef serializeProperty(VariableDef.This aThis,
                                            ClassTypeDef serializerClassTypeDef,
                                            VariableDef objectEncoder,
@@ -300,7 +304,7 @@ public final class BeanSerializerSourceGen {
             if (property.serializationType().isPrimitive() && !property.serializationType().isArray()) {
                 scalarStatement = objectEncoder.invoke(scalarMethod, propertyValue);
             } else {
-                StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName("value", property.name(), index));
+                StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
                 scalarStatement = StatementDef.multi(
                     propertyValueDef,
                     propertyValueDef.variable().isNull().ifTrue(
@@ -333,7 +337,7 @@ public final class BeanSerializerSourceGen {
         if (property.serializationType().isPrimitive() && !property.serializationType().isArray()) {
             return wrapWithPropertyPath(serializeStatement, type, property.name(), argumentExpression);
         }
-        StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName("value", property.name(), index));
+        StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
         return wrapWithPropertyPath(StatementDef.multi(
             propertyValueDef,
             propertyValueDef.variable().isNull().ifTrue(

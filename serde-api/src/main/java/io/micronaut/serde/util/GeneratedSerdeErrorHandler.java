@@ -27,6 +27,9 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+/**
+ * Shared error and enum helper methods used by generated serdes.
+ */
 @Internal
 public final class GeneratedSerdeErrorHandler {
 
@@ -65,25 +68,27 @@ public final class GeneratedSerdeErrorHandler {
                 }
             }
         } catch (Exception ignore) {
+            return enumValue.name();
         }
         return enumValue.name();
     }
 
-    public static Enum<?> enumValueOf(Class<?> enumType, String serializedValue, Deserializer.DecoderContext context) {
+    @SuppressWarnings("unchecked")
+    public static <E extends Enum<E>> E enumValueOf(Class<E> enumType, String serializedValue, Deserializer.DecoderContext context) {
         boolean caseInsensitive = context.getDeserializationConfiguration()
             .map(DeserializationConfiguration::acceptCaseInsensitiveEnums)
             .orElse(false);
         Object[] constants = enumType.getEnumConstants();
         if (constants != null) {
             for (Object constant : constants) {
-                Enum<?> enumConstant = (Enum<?>) constant;
+                E enumConstant = (E) constant;
                 String candidate = enumSerializedName(enumConstant);
                 if (candidate.equals(serializedValue) || (caseInsensitive && candidate.equalsIgnoreCase(serializedValue))) {
                     return enumConstant;
                 }
             }
         }
-        return Enum.valueOf((Class) enumType, serializedValue);
+        return Enum.valueOf(enumType, serializedValue);
     }
 
     public static void handleUnknownProperty(Decoder decoder,

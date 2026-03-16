@@ -21,6 +21,9 @@ import io.micronaut.core.type.Argument;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Reusable {@link Argument} constants for generated and runtime serde code.
+ */
 @Internal
 public final class SerdeArgumentConstants {
 

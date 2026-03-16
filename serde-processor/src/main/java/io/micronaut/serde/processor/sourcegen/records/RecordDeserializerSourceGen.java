@@ -315,6 +315,7 @@ public final class RecordDeserializerSourceGen {
             });
     }
 
+    @SuppressWarnings("java:S107")
     private StatementDef deserializeComponent(VariableDef.This aThis,
                                               ClassTypeDef deserializerClassTypeDef,
                                               VariableDef objectDecoder,

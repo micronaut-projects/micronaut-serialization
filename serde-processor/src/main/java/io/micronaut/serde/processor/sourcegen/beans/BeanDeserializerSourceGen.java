@@ -54,6 +54,7 @@ public final class BeanDeserializerSourceGen {
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
+    private static final String VALUE_LOCAL_PREFIX = "value";
 
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
@@ -83,12 +84,6 @@ public final class BeanDeserializerSourceGen {
     private static final Method DECODE_BIG_INTEGER_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigIntegerNullable");
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
-    private static final Method UNKNOWN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeErrorHandler.class,
-        "unknownProperty",
-        String.class,
-        Argument.class
-    );
     private static final Method DUPLICATE_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeErrorHandler.class,
         "duplicateProperty",
@@ -100,14 +95,6 @@ public final class BeanDeserializerSourceGen {
         "handleUnknownProperty",
         Decoder.class,
         Deserializer.DecoderContext.class,
-        String.class,
-        Argument.class
-    );
-    private static final Method WITH_PROPERTY_PATH_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeErrorHandler.class,
-        "withPropertyPath",
-        SerdeException.class,
-        Argument.class,
         String.class,
         Argument.class
     );
@@ -337,6 +324,7 @@ public final class BeanDeserializerSourceGen {
             });
     }
 
+    @SuppressWarnings("java:S107")
     private StatementDef deserializeAndAssignProperty(VariableDef.This aThis,
                                                       ClassTypeDef deserializerClassTypeDef,
                                                       VariableDef objectDecoder,
@@ -356,7 +344,7 @@ public final class BeanDeserializerSourceGen {
         if (scalarDecodeMethod != null) {
             deserializedValueDef = objectDecoder.invoke(scalarDecodeMethod)
                 .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                .newLocal(BeanSerdeSourceGenUtils.localName("value", property.name(), index));
+                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
             deserializeAndAssign = deserializedValueDef;
         } else {
             String deserializerFieldName = deserializerFieldNames.get(property.name());
@@ -371,7 +359,7 @@ public final class BeanDeserializerSourceGen {
                 objectDecoder,
                 context,
                 argumentExpression
-            ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName("value", property.name(), index));
+            ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
             deserializeAndAssign = StatementDef.multi(
                 deserializerDef,
                 initializeDeserializerStatement,

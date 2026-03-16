@@ -44,10 +44,11 @@ public final class EnumSerdeShapeResolver {
         List<EnumSerdeShape.EnumConstant> constants = new ArrayList<>();
         boolean hasOverrides = false;
         for (FieldElement field : element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyDeclared())) {
-            if (!field.isStatic() || !field.isFinal()) {
-                continue;
-            }
-            if (field.getName().startsWith("$") || field.getType().isPrimitive() || field.getType().isArray()) {
+            if (!field.isStatic()
+                || !field.isFinal()
+                || field.getName().startsWith("$")
+                || field.getType().isPrimitive()
+                || field.getType().isArray()) {
                 continue;
             }
             String name = field.getName();

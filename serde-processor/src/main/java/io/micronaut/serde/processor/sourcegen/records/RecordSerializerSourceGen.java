@@ -48,6 +48,8 @@ import jakarta.inject.Singleton;
  * Generates optimized source serializers for records.
  */
 public final class RecordSerializerSourceGen {
+    private static final String CONTEXT_PARAMETER = "context";
+    private static final String VALUE_LOCAL_PREFIX = "value";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
@@ -182,7 +184,7 @@ public final class RecordSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .returns(TypeDef.parameterized(Serializer.class, recordTypeDef))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(recordTypeDef)))
             .addThrows(TypeDef.of(SerdeException.class))
             .build((aThis, methodParameters) -> {
@@ -221,7 +223,7 @@ public final class RecordSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .addParameter("encoder", TypeDef.of(Encoder.class))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter("value", recordTypeDef)
             .addThrows(TypeDef.of(IOException.class))
@@ -254,7 +256,7 @@ public final class RecordSerializerSourceGen {
             .addModifiers(Modifier.PUBLIC)
             .overrides()
             .addParameter("encoder", TypeDef.of(Encoder.class))
-            .addParameter("context", TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter("value", recordTypeDef)
             .addThrows(TypeDef.of(IOException.class))
@@ -263,6 +265,7 @@ public final class RecordSerializerSourceGen {
             ));
     }
 
+    @SuppressWarnings("java:S107")
     private List<StatementDef> serializeIntoStatements(VariableDef.This aThis,
                                                        ClassTypeDef serializerClassTypeDef,
                                                        VariableDef encoder,
@@ -282,6 +285,7 @@ public final class RecordSerializerSourceGen {
         return statements;
     }
 
+    @SuppressWarnings("java:S107")
     private StatementDef serializeComponent(VariableDef.This aThis,
                                             ClassTypeDef serializerClassTypeDef,
                                             VariableDef objectEncoder,
@@ -300,7 +304,7 @@ public final class RecordSerializerSourceGen {
             if (component.type().isPrimitive() && !component.type().isArray()) {
                 scalarStatement = objectEncoder.invoke(scalarMethod, componentValue);
             } else {
-                StatementDef.DefineAndAssign componentValueDef = componentValue.newLocal(RecordSerdeSourceGenUtils.localName("value", component.name(), index));
+                StatementDef.DefineAndAssign componentValueDef = componentValue.newLocal(RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, component.name(), index));
                 scalarStatement = StatementDef.multi(
                     componentValueDef,
                     componentValueDef.variable().isNull().ifTrue(
@@ -333,7 +337,7 @@ public final class RecordSerializerSourceGen {
         if (component.type().isPrimitive() && !component.type().isArray()) {
             return wrapWithPropertyPath(serializeStatement, type, component.name(), argumentExpression);
         }
-        StatementDef.DefineAndAssign componentValueDef = componentValue.newLocal(RecordSerdeSourceGenUtils.localName("value", component.name(), index));
+        StatementDef.DefineAndAssign componentValueDef = componentValue.newLocal(RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, component.name(), index));
         return wrapWithPropertyPath(StatementDef.multi(
             componentValueDef,
             componentValueDef.variable().isNull().ifTrue(
