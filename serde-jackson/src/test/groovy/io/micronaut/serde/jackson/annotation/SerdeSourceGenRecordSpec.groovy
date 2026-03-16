@@ -8,12 +8,14 @@ import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeIntrospections
 import io.micronaut.serde.Serializer
 import io.micronaut.serde.config.annotation.SerdeConfig
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JacksonDecoder
 import io.micronaut.serde.jackson.JacksonEncoder
 import io.micronaut.serde.jackson.JsonCompileSpec
 import tools.jackson.core.json.JsonFactory
 
 import java.lang.reflect.Modifier
+import jakarta.inject.Singleton
 
 class SerdeSourceGenRecordSpec extends JsonCompileSpec {
 
@@ -51,6 +53,8 @@ public record TestRecord(String value, int count) {}
         then:
         !Modifier.isAbstract(serializerClass.modifiers)
         !Modifier.isAbstract(deserializerClass.modifiers)
+        serializerClass.getAnnotation(Singleton) != null
+        deserializerClass.getAnnotation(Singleton) != null
 
         when:
         Serializer serializer = (Serializer) serializerClass.getDeclaredConstructor().newInstance()
@@ -83,7 +87,7 @@ public record TestRecord(String value, int count) {}
         context.close()
     }
 
-    void 'test record generated deserializer shape plus createSpecific parity for duplicate unknown and null defaults'() {
+    void 'test record generated deserializer shape plus createSpecific parity for duplicate unknown null defaults and property path failures'() {
         given:
         def context = buildContext('test.ParityRecord', '''
 package test;
@@ -93,7 +97,7 @@ import io.micronaut.core.annotation.Introspected;
 
 @Serdeable
 @Introspected
-public record ParityRecord(String value, int count) {}
+public record ParityRecord(String value, int count, java.util.List<String> tags) {}
 ''')
         Class<?> recordType = context.classLoader.loadClass('test.ParityRecord')
         def introspections = context.getBean(SerdeIntrospections)
@@ -109,18 +113,20 @@ public record ParityRecord(String value, int count) {}
         expect:
         deserializerClass.declaredFields*.name.any { it.startsWith('KEY_') }
         deserializerClass.declaredFields*.name.any { it.startsWith('ARGUMENT_') }
-        !deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
+        deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
         specificDeserializer.class == deserializerClass
 
         when:
-        def fromDefaultMissing = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello"}')
-        def fromSpecificMissing = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello"}')
+        def fromDefaultMissing = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","tags":["a","b"]}')
+        def fromSpecificMissing = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","tags":["a","b"]}')
 
         then:
         fromDefaultMissing.value() == 'hello'
         fromSpecificMissing.value() == 'hello'
         fromDefaultMissing.count() == 0
         fromSpecificMissing.count() == 0
+        fromDefaultMissing.tags().toString() == '[a, b]'
+        fromSpecificMissing.tags().toString() == '[a, b]'
 
         when:
         def duplicateDefaultFailure = captureFailure {
@@ -150,6 +156,22 @@ public record ParityRecord(String value, int count) {}
             assert unknownDefaultFailure.message?.contains('extra')
             assert unknownSpecificFailure.message?.contains('extra')
         }
+
+        when:
+        def scalarPathDefaultFailure = captureFailure {
+            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":"oops","tags":["x"]}')
+        }
+        def scalarPathSpecificFailure = captureFailure {
+            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":"oops","tags":["x"]}')
+        }
+
+        then:
+        scalarPathDefaultFailure != null
+        scalarPathSpecificFailure != null
+        scalarPathDefaultFailure instanceof SerdeException
+        scalarPathSpecificFailure instanceof SerdeException
+        ((SerdeException) scalarPathDefaultFailure).pathAsString?.contains('count')
+        ((SerdeException) scalarPathSpecificFailure).pathAsString?.contains('count')
 
         cleanup:
         context.close()

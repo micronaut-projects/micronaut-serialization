@@ -12,4 +12,5 @@ Result:
 - DeserializeSpec target suite passed.
 
 Conclusion:
-Specialized createSpecific path and default-constructor lazy fallback path are parity-locked by tests, with unknown/duplicate/null/default behavior assertions in bean/record/enum sourcegen specs.
+Specialized createSpecific path and default-constructor lazy fallback path are parity-locked by tests, with unknown/duplicate/null/default/property-path behavior assertions in bean/record/enum sourcegen specs.
+Shape assertions validate KEY_/ARGUMENT_ constants and DESERIALIZER_* cached-field presence for non-scalar bean/record fixtures, plus ARGUMENT_STRING/STRING_DESERIALIZER for enum fixtures.

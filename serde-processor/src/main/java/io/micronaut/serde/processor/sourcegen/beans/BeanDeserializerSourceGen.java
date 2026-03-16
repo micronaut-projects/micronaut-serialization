@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
+import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
@@ -33,6 +34,7 @@ import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
 
 import javax.lang.model.element.Modifier;
+import javax.annotation.processing.Generated;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import jakarta.inject.Singleton;
 
 public final class BeanDeserializerSourceGen {
 
@@ -151,6 +154,10 @@ public final class BeanDeserializerSourceGen {
 
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+            .addAnnotation(Singleton.class)
+            .addAnnotation(AnnotationDef.builder(Generated.class)
+                .addMember("value", "Micronaut")
+                .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, beanTypeDef))
             .addFields(fields)
             .addMethod(generateNoArgsConstructor(deserializerFieldNames))

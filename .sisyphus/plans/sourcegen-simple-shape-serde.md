@@ -1,16 +1,19 @@
-# SourceGen Build-Time-Only Routing + JMH Validation + Deserializer Parity Extension
+# SourceGen Build-Time-Only Routing + JMH Validation + Deserializer Parity Extension + Annotation/Argument Follow-ups
 
 ## TL;DR
-> **Summary**: Re-scope SourceGen work to build-time decisioning only, then extend with deserializer SourceGen parity optimizations (constants + createSpecific specialization + cached child deserializers) to mirror serializer build-time optimizations.
+> **Summary**: Re-scope SourceGen work to build-time decisioning only, extend with deserializer parity optimizations, then close follow-up gaps by annotating generated serde classes (`@Singleton`, `@Generated("Micronaut")`), migrating generated-serde runtime resolution to DI-only (no reflection), and pooling reusable `Argument` constants.
 > **Deliverables**:
 > - Remove backend-mode API/config/runtime resolver surfaces
 > - Simplify `DefaultSerdeRegistry` to metadata-only generated-vs-introspection selection
 > - Preserve serializer/deserializer behavior parity via processor-time eligibility metadata
 > - Add JMH benchmarks + runbook to measure throughput/latency impact
 > - Optimize generated deserializers (bean/record/enum) with constants + `createSpecific` caching parity
-> **Effort**: Large
-> **Parallel**: YES - 6 waves
-> **Critical Path**: Task 1 → Task 3 → Task 5 → Task 7 → Task 10 → Task 11 → Task 15
+> - Add generated-class annotation compliance + DI-only runtime resolution verification
+> - Remove reflective generated-serde runtime loader path from registry flow
+> - Add memory-aware `Argument` constant reuse (core constants + serde-support shared constants)
+> **Effort**: XL
+> **Parallel**: YES - 8 waves
+> **Critical Path**: Task 1 → Task 3 → Task 5 → Task 7 → Task 10 → Task 11 → Task 15 → Task 16 → Task 18 → Task 19
 
 ## Context
 ### Original Request
@@ -20,23 +23,31 @@
 - Keep runtime dispatch minimal using build-time metadata.
 - Update this plan to include JMH benchmarks for value/throughput validation.
 - Add deserializer build-time optimizations equivalent to serializer commits `6340a498ff1f02b07a59d88173ab0ff37ef111bf` and `88b8676d5160a41c036ecb1337175526e219a701`, including Argument/name constants and `createSpecific` child-deserializer caching.
+- Follow-up: generated serializer/deserializer classes must be annotated with `jakarta.inject.Singleton` for runtime bean visibility.
+- Follow-up: generated serializer/deserializer classes must be annotated with `javax.annotation.processing.Generated("Micronaut")`.
+- Follow-up: generated `ARGUMENT_*` constants must reuse core `Argument` constants where possible; introduce reusable wrapper/`BigInteger` constants in `serde-support` for missing common constants.
 
 ### Interview Summary
 - Decided: **remove API + runtime backend config** (not keep/deprecate).
 - Decided: **add benchmarks + runbook** (no CI performance threshold gate).
-- Default applied: if metadata declares generated serde but generated class cannot be loaded, fail fast with `SerdeException` (no silent fallback).
+- Default applied: if metadata declares generated serde but matching DI bean cannot be resolved, fail fast with `SerdeException` (no silent fallback).
 - Desired runtime routing model:
-  - if build-time metadata marks generated serializer/deserializer available, use generated class
+  - if build-time metadata marks generated serializer/deserializer available, resolve generated serde via DI bean lookup
   - else fallback to introspection path
 - New scope decision: mirror serializer optimization architecture for generated deserializers via static constants + specialized constructors + `createSpecific` prewiring + lazy fallback when default-constructed.
 - Default applied: include guarded scalar decode/default optimization as a later-wave task only after parity + semantic-lock tests.
+- Default applied: interpret duplicated deserializer path mention in follow-up request as applying to both serializer + deserializer generated classes.
+- Decided: remove reflective generated-serde loading and rely purely on dependency injection bean resolution.
 
 ### Metis Review (gaps addressed)
 - Incorporated guardrails for scope control (no replacement runtime backend switch).
 - Added explicit removal-validation checks (grep-based acceptance criteria).
-- Added missing negative-path test: generated class metadata present but class load failure behavior.
+- Added missing negative-path test: generated metadata present but DI-resolvable generated bean missing behavior.
 - Added benchmark execution evidence requirements under existing `benchmarks` module conventions.
 - Added deserializer parity guardrails: no static caching of context-sensitive child deserializers, preserve property-path wrapping + unknown/duplicate/default/null semantics, and verify both specialized and default-constructor execution paths.
+- Added follow-up guardrails from Metis/Oracle:
+  - DI-only generated-serde lookup must preserve deterministic precedence rules and fail predictably on ambiguity,
+  - `Argument` pooling applies only to trivial no-metadata/no-generic arguments; all other shapes must fall back to existing construction path.
 
 ## Work Objectives
 ### Core Objective
@@ -51,24 +62,31 @@ Make generated/introspection routing build-time-driven and deterministic while m
 - New JMH benchmark coverage and execution runbook.
 - Deserializer SourceGen parity optimizations in bean/record/enum generators (constants + `createSpecific` specialization + cached child deserializers with lazy fallback).
 - Deserializer-focused regression/shape tests proving semantic equivalence and optimization activation.
+- Generated serde class annotation compliance (`@Singleton` + `@Generated("Micronaut")`) with DI-only runtime resolution verification.
+- Shared `Argument` constants strategy that reuses core constants and `serde-support` wrapper/`BigInteger` constants to reduce generated constant churn.
 
 ### Definition of Done (verifiable)
 - [x] `./gradlew test` passes.
-- [x] `./gradlew :benchmarks:jmh` passes.
+- [x] `./gradlew :micronaut-benchmarks:jmh` passes.
 - [x] `grep -R "micronaut\.serde\.backend-mode" -n .` returns no matches in active code/tests/docs.
 - [x] `grep -R "SerdeBackendModeResolver\|SerdeBackendMode" -n serde-api serde-support serde-jackson serde-processor` returns no active backend-mode runtime/config references.
 - [x] `DefaultSerdeRegistry` no longer contains `shouldBypassGeneratedSerializer` / `shouldBypassGeneratedDeserializer`.
 - [ ] Generated bean/record/enum deserializers use static Argument/name constants and no per-field/component repeated lookup chain in hot loops.
 - [ ] Deserializer semantic-lock tests pass for unknown/duplicate/null/default/property-path behavior in both specialized and default-constructor paths.
+- [ ] Generated serializer/deserializer classes include `@jakarta.inject.Singleton` and `@javax.annotation.processing.Generated("Micronaut")` in generated source output.
+- [ ] `DefaultSerdeRegistry` resolves generated serializers/deserializers via BeanContext/bean definitions only (no reflective generated-serde loading path).
+- [ ] Generated simple-shape `Argument` constants reuse core/shared constants for simple types while preserving fallback construction for generic/metadata-bearing arguments.
 
 ### Must Have
 - Build-time metadata (`SOURCEGEN_*`) is single routing authority.
 - Runtime selection logic remains simple and local to registry dispatch.
+- Generated serde acquisition is DI-only and uses existing bean candidate selection/disambiguation rules.
 - JMH benchmarks measure both throughput and latency-oriented modes for representative serde fixtures.
 
 ### Must NOT Have
 - No new runtime backend toggle replacing removed backend mode.
 - No reintroduction of deep per-property runtime heuristics in registry.
+- No reflective classloading/newInstance path for generated serializer/deserializer resolution.
 - No CI performance threshold gate in this PR.
 
 ## Verification Strategy
@@ -98,6 +116,12 @@ Wave 5: Deserializer SourceGen parity optimization
 Wave 6: Deserializer extension verification
 - Task 14, Task 15
 
+Wave 7: Generated-class annotation + argument-constant pooling follow-ups
+- Task 16, Task 18
+
+Wave 8: DI-only generated-serde migration + follow-up verification closure
+- Task 17, Task 19
+
 ### Dependency Matrix
 - Task 1 blocks Task 2/3/5
 - Task 2 blocks Task 3
@@ -113,6 +137,10 @@ Wave 6: Deserializer extension verification
 - Task 12 blocks Task 14
 - Task 13 blocks Task 14/15
 - Task 14 blocks Task 15
+- Task 15 blocks Task 16/18
+- Task 16 blocks Task 17/19
+- Task 18 blocks Task 19
+- Task 17 blocks Task 19
 
 ### Agent Dispatch Summary
 - Wave 1: unspecified-high (API + metadata surface)
@@ -121,6 +149,8 @@ Wave 6: Deserializer extension verification
 - Wave 4: unspecified-high + quick (bench + runbook + verification)
 - Wave 5: deep + unspecified-high (deserializer generator optimization + semantic locks)
 - Wave 6: unspecified-high (extension verification gate)
+- Wave 7: deep + unspecified-high (annotation injection + argument pooling)
+- Wave 8: deep + unspecified-high (DI-only migration + follow-up verification)
 
 ## TODOs
 
@@ -426,14 +456,14 @@ Wave 6: Deserializer extension verification
   - `benchmarks/src/jmh/java/io/micronaut/serde/ComboBenchmark.java`
 
   **Acceptance Criteria**:
-  - [x] New benchmark class compiles and runs via `:benchmarks:jmh`.
+  - [x] New benchmark class compiles and runs via `:micronaut-benchmarks:jmh`.
   - [x] Output includes generated vs introspection comparison dimensions.
 
   **QA Scenarios**:
   ```
   Scenario: Benchmark execution happy path
     Tool: Bash
-    Steps: ./gradlew :benchmarks:jmh
+    Steps: ./gradlew :micronaut-benchmarks:jmh
     Expected: JMH task successful with benchmark results generated
     Evidence: .sisyphus/evidence/task-7-jmh-run.txt
 
@@ -473,13 +503,13 @@ Wave 6: Deserializer extension verification
   ```
   Scenario: Runbook happy path
     Tool: Bash
-    Steps: ./gradlew :benchmarks:jmh
+    Steps: ./gradlew :micronaut-benchmarks:jmh
     Expected: Command in runbook executes successfully as documented
     Evidence: .sisyphus/evidence/task-8-runbook-validation.txt
 
   Scenario: Edge check missing instructions
     Tool: Bash
-    Steps: grep -R "benchmarks:jmh\|warmup\|measurement\|fork" -n .
+    Steps: grep -R "micronaut-benchmarks:jmh\|warmup\|measurement\|fork" -n .
     Expected: Runbook contains all required knobs and command
     Evidence: .sisyphus/evidence/task-8-runbook-content.txt
   ```
@@ -504,7 +534,7 @@ Wave 6: Deserializer extension verification
 
   **References**:
   - `./gradlew test`
-  - `./gradlew :benchmarks:jmh`
+  - `./gradlew :micronaut-benchmarks:jmh`
 
   **Acceptance Criteria**:
   - [x] Full suite green.
@@ -515,7 +545,7 @@ Wave 6: Deserializer extension verification
   ```
   Scenario: Full verification happy path
     Tool: Bash
-    Steps: ./gradlew test && ./gradlew :benchmarks:jmh
+    Steps: ./gradlew test && ./gradlew :micronaut-benchmarks:jmh
     Expected: Both commands succeed
     Evidence: .sisyphus/evidence/task-9-full-verification.txt
 
@@ -716,8 +746,8 @@ Wave 6: Deserializer extension verification
 
   Scenario: Edge check stale lookup anti-pattern in generated output
     Tool: Bash
-    Steps: grep -R "component\\w+\\s*=\\s*\\(.*context\\.findDeserializer\\(.*\\)\\.createSpecific\\(.*\\)\\.deserializeNullable" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
-    Expected: No unconditional hot-loop lookup+deserialize chain matches for generated sourcegen deserializers under test fixtures
+    Steps: grep -R -E "(value|component)[A-Za-z0-9_]*\\s*=\\s*.*findDeserializer\\([^)]*\\)\\.createSpecific\\([^)]*\\)\\.deserializeNullable\\([^)]*\\)" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
+    Expected: No unconditional hot-loop assignment chain matches for generated sourcegen deserializers under test fixtures
     Evidence: .sisyphus/evidence/task-13-no-hot-loop-lookup.txt
   ```
 
@@ -786,7 +816,7 @@ Wave 6: Deserializer extension verification
 
   **References**:
   - `./gradlew test`
-  - `./gradlew :benchmarks:jmh`
+  - `./gradlew :micronaut-benchmarks:jmh`
 
   **Acceptance Criteria**:
   - [x] Full suite green after deserializer optimization extension.
@@ -803,9 +833,227 @@ Wave 6: Deserializer extension verification
 
   Scenario: Edge check anti-pattern remnants
     Tool: Bash
-    Steps: grep -R "component\\w+\\s*=\\s*\\(.*context\\.findDeserializer\\(.*\\)\\.createSpecific\\(.*\\)\\.deserializeNullable" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
-    Expected: No unconditional per-field/per-component lookup+deserialize anti-pattern remnants for generated sourcegen deserializers
+    Steps: grep -R -E "(value|component)[A-Za-z0-9_]*\\s*=\\s*.*findDeserializer\\([^)]*\\)\\.createSpecific\\([^)]*\\)\\.deserializeNullable\\([^)]*\\)" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
+    Expected: No unconditional per-field/per-component lookup+deserialize assignment-chain anti-pattern remnants for generated sourcegen deserializers
     Evidence: .sisyphus/evidence/task-15-no-hot-loop-remnants.txt
+  ```
+
+  **Commit**: NO | Message: `n/a` | Files: verification only
+
+- [ ] 16. Add required generated-class annotations for sourcegen serializers/deserializers
+
+  **What to do**:
+  - Update sourcegen class construction so generated serializer/deserializer classes are annotated with:
+    - `@jakarta.inject.Singleton`
+    - `@javax.annotation.processing.Generated("Micronaut")`
+  - Apply to generated classes emitted for:
+    - bean serializer/deserializer
+    - record serializer/deserializer
+    - enum serializer/deserializer
+    - fallback generated serializer/deserializer class defs emitted in `SerdeSourceGenVisitor`
+  - Ensure generated class naming/metadata contract remains stable so Task 17 can map metadata class names to DI bean definitions without heuristic scanning.
+
+  **Must NOT do**:
+  - Must not change generated class names or package placement.
+  - Must not alter serializer/deserializer generic signatures used by BeanContext candidate matching.
+
+  **Recommended Agent Profile**:
+  - Category: `deep` — Reason: cross-generator annotation injection with DI-discovery correctness guardrails
+  - Skills: `[]`
+  - Omitted: `[quick]` — multi-generator + compatibility surface
+
+  **Parallelization**: Can Parallel: YES | Wave 7 | Blocks: 17,19 | Blocked By: 15
+
+  **References**:
+  - `serde-api/src/main/java/io/micronaut/serde/Serializer.java`
+  - `serde-api/src/main/java/io/micronaut/serde/Deserializer.java`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/SerdeSourceGenVisitor.java:93-124`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/beans/BeanSerializerSourceGen.java`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/beans/BeanDeserializerSourceGen.java`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/records/RecordSerializerSourceGen.java`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/records/RecordDeserializerSourceGen.java`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/enums/EnumSerializerSourceGen.java`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/enums/EnumDeserializerSourceGen.java`
+
+  **Acceptance Criteria**:
+  - [ ] Generated serializer/deserializer classes include `@Singleton` in emitted source.
+  - [ ] Generated serializer/deserializer classes include `@Generated("Micronaut")` in emitted source.
+  - [ ] Existing sourcegen compile/test suites remain green after annotation injection.
+
+  **QA Scenarios**:
+  ```
+  Scenario: Annotation injection happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenBeanSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRecordSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenEnumSpec'
+    Expected: Sourcegen suites pass with annotation-injected generated classes
+    Evidence: .sisyphus/evidence/task-16-generated-annotations-tests.txt
+
+  Scenario: Edge check generated source annotation presence
+    Tool: Bash
+    Steps: grep -R "@Singleton\|@Generated(\"Micronaut\")" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
+    Expected: Both annotations present on generated serializer/deserializer classes under fixtures
+    Evidence: .sisyphus/evidence/task-16-generated-annotations-grep.txt
+  ```
+
+  **Commit**: YES | Message: `feat(sourcegen): annotate generated serdes with singleton and generated markers` | Files: serde-processor sourcegen builders + sourcegen tests
+
+- [ ] 17. Migrate generated-serde runtime resolution to DI-only bean lookup
+
+  **What to do**:
+  - Remove reflective generated-serde loading from runtime flow:
+    - remove `GeneratedSerdeRuntimeLoader` integration from `DefaultSerdeRegistry` generated resolution paths,
+    - remove loader class/usages once no callsites remain.
+  - Implement DI-only generated serde acquisition in `DefaultSerdeRegistry` using existing BeanContext candidate structures and selection logic:
+    - when `SOURCEGEN_*_ELIGIBLE=true`, read generated class name from introspection metadata and resolve matching serializer/deserializer bean definition by bean type name (not classloading by name),
+    - keep generated-serde resolution as a dedicated path separate from generic serializer/deserializer candidate pools,
+    - preserve existing generated-path gating checks (naming strategy, sort alphabetically, custom property serde, `@JsonValue`, contextual checks) before generated bean resolution,
+    - preserve deterministic precedence and ambiguity handling for non-generated beans via existing `match*Candidates` + `lastChanceResolve` semantics,
+    - if metadata marks generated eligible but matching generated bean is unavailable, fail fast with deterministic `SerdeException` including type and generated class name.
+  - Add/extend routing tests for generated/custom/built-in coexistence to prove no ambiguity regressions, stable precedence, and unchanged gate behavior.
+
+  **Must NOT do**:
+  - Must not introduce fallback reflective `Class.forName`/constructor-instantiation path.
+  - Must not bypass or duplicate existing `match*Candidates` + `lastChanceResolve` behavior with ad-hoc ordering logic.
+  - Must not silently fall back to introspection when metadata says generated eligible but no generated bean is resolvable.
+  - Must not alter unrelated reflection usage outside generated-serde runtime path (e.g., error-wrapping reflection in other classes).
+  - Must not change `ServiceLoader`/processor discovery behavior unrelated to runtime generated-serde resolution.
+
+  **Recommended Agent Profile**:
+  - Category: `deep` — Reason: registry architecture migration with correctness-sensitive precedence rules
+  - Skills: `[]`
+  - Omitted: `[quick]` — scope includes runtime migration + regression locking
+
+  **Parallelization**: Can Parallel: NO | Wave 8 | Blocks: 19 | Blocked By: 16
+
+  **References**:
+  - `serde-support/src/main/java/io/micronaut/serde/support/DefaultSerdeRegistry.java:142-172,371-423,592-628`
+  - `serde-api/src/main/java/io/micronaut/serde/config/annotation/SerdeConfig.java` (SOURCEGEN metadata keys)
+  - `serde-support/src/test/groovy/io/micronaut/serde/util/MatchArgumentSpec.groovy`
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/annotation/SerdeRuntimeSelectionSpec.groovy`
+  - `serde-jackson/src/test/groovy/io/micronaut/serde/jackson/annotation/SerdeSourceGenRoutingSpec.groovy`
+  - `serde-support/src/test/groovy/io/micronaut/serde/support/deserializers/DeserializeSpec.groovy`
+
+  **Acceptance Criteria**:
+  - [ ] `DefaultSerdeRegistry` uses DI bean resolution only for generated serializer/deserializer acquisition; no reflective loader callsites remain.
+  - [ ] Runtime selection tests prove generated serdes activate for eligible types and introspection fallback still works when eligibility is false.
+  - [ ] Ambiguity/precedence tests remain deterministic for generated vs custom/built-in serdes (primary/secondary/order behavior unchanged).
+  - [ ] Metadata-eligible but missing generated-bean scenario throws deterministic `SerdeException`.
+  - [ ] Existing generated-path gate conditions (naming strategy/alphabetical sort/custom property serde/json-value/contextual restrictions) still route away from generated path exactly as before.
+
+  **QA Scenarios**:
+  ```
+  Scenario: DI-only runtime migration happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeRuntimeSelectionSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRoutingSpec' && ./gradlew :micronaut-serde-support:test --tests 'io.micronaut.serde.support.deserializers.DeserializeSpec'
+    Expected: Routing and runtime selection suites pass with DI-only generated-serde resolution
+    Evidence: .sisyphus/evidence/task-17-di-runtime-selection.txt
+
+  Scenario: Edge check reflective loader removal
+    Tool: Bash
+    Steps: grep -R "GeneratedSerdeRuntimeLoader\|ClassUtils\.forName\|getDeclaredConstructor\(\)\.newInstance\(\)" -n serde-support/src/main/java
+    Expected: No reflective generated-serde loading path remains in serde-support runtime registry flow
+    Evidence: .sisyphus/evidence/task-17-no-reflective-loader.txt
+
+  Scenario: Edge check precedence/ambiguity and gate behavior
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests '*GeneratedSerdePrecedenceSpec*' --tests '*GeneratedSerdeAmbiguitySpec*' --tests '*SourceGenRoutingSpec*gating*' --tests '*RuntimeSelection*missing*generated*bean*'
+    Expected: Deterministic precedence and ambiguity outcomes; gate checks unchanged; missing generated bean fails with deterministic SerdeException
+    Evidence: .sisyphus/evidence/task-17-precedence-ambiguity-gates.txt
+  ```
+
+  **Commit**: YES | Message: `refactor(serde-support): migrate generated serde resolution to DI-only bean lookup` | Files: DefaultSerdeRegistry/runtime loader removals + routing tests
+
+- [ ] 18. Reuse core/shared `Argument` constants for simple generated argument fields
+
+  **What to do**:
+  - Update sourcegen argument-expression logic to reuse existing core constants when safe:
+    - `Argument.STRING`, `Argument.BOOLEAN`, `Argument.BYTE`, `Argument.SHORT`, `Argument.CHAR`, `Argument.INT`, `Argument.LONG`, `Argument.FLOAT`, `Argument.DOUBLE`, `Argument.OBJECT_ARGUMENT`.
+  - Add new shared constants holder in serde-support for missing common wrapper/simple constants:
+    - `serde-support/src/main/java/io/micronaut/serde/support/util/SerdeArgumentConstants.java`
+    - include `Boolean`, `Byte`, `Short`, `Character`, `Integer`, `Long`, `Float`, `Double`, `BigInteger` (and `BigDecimal` if emitted as simple scalar argument constants).
+  - Use shared constants only for trivial no-type-parameter/no-metadata argument cases in generated source paths.
+  - Preserve existing fallback to `Argument.of(...)` / `Argument.of(..., Argument[])` for generic, wildcard, type-variable, metadata-bearing cases.
+
+  **Must NOT do**:
+  - Must not pool arguments that carry type parameters or annotation metadata.
+  - Must not modify property-path error argument semantics for complex/generic fields.
+
+  **Recommended Agent Profile**:
+  - Category: `deep` — Reason: shared constant strategy with strict semantic boundaries
+  - Skills: `[]`
+  - Omitted: `[quick]` — cross-module helper + generator semantics
+
+  **Parallelization**: Can Parallel: YES | Wave 7 | Blocks: 19 | Blocked By: 15
+
+  **References**:
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/beans/BeanSerdeSourceGenUtils.java:48-65,100-139`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/records/RecordSerdeSourceGenUtils.java:48-65,134-173`
+  - `serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/enums/EnumSerdeSourceGenUtils.java`
+  - `serde-support/src/main/java/io/micronaut/serde/support/util/SerdeArgumentConf.java`
+  - `serde-support/src/main/java/io/micronaut/serde/support/util/JsonNodeDecoder.java:81-241`
+
+  **Acceptance Criteria**:
+  - [ ] Generated simple scalar argument constants no longer emit `Argument.of(java.lang.String.class)` / wrapper `Argument.of(...)` where reusable constants exist.
+  - [ ] Wrapper/`BigInteger` shared constants class exists in serde-support and is used by generated code for targeted simple cases.
+  - [ ] Generic/metadata-bearing generated arguments still use fallback construction path.
+
+  **QA Scenarios**:
+  ```
+  Scenario: Constant reuse happy path
+    Tool: Bash
+    Steps: ./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenBeanSpec' --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRecordSpec' && ./gradlew :micronaut-serde-support:test --tests 'io.micronaut.serde.support.deserializers.DeserializeSpec'
+    Expected: Suites pass with constant pooling active
+    Evidence: .sisyphus/evidence/task-18-argument-constants-tests.txt
+
+  Scenario: Edge check stale trivial Argument.of emissions
+    Tool: Bash
+    Steps: grep -R -E "Argument\.of\(java\.lang\.(Boolean|Byte|Short|Character|Integer|Long|Float|Double|String)\.class\)" -n serde-jackson/build/generated/sources serde-support/build/generated/sources
+    Expected: No matches for trivial pooled types in generated source fixtures
+    Evidence: .sisyphus/evidence/task-18-no-trivial-argument-of.txt
+  ```
+
+  **Commit**: YES | Message: `perf(sourcegen): pool simple argument constants for generated serdes` | Files: sourcegen utils + new serde-support constants class + related tests
+
+- [ ] 19. Final follow-up verification (annotations + argument pooling)
+
+  **What to do**:
+  - Re-run full test + benchmark gates after tasks 16-18.
+  - Re-run grep validations for annotation presence and argument constant reuse.
+  - Verify no runtime-regression drift in sourcegen routing/selection suites and no reflective generated-serde loader remnants.
+
+  **Must NOT do**:
+  - Must not skip full-suite gate or narrow verification to unit-only scope.
+
+  **Recommended Agent Profile**:
+  - Category: `unspecified-high` — Reason: final cross-module follow-up gate
+  - Skills: `[]`
+  - Omitted: `[quick]` — broad verification scope
+
+  **Parallelization**: Can Parallel: NO | Wave 8 | Blocks: none | Blocked By: 16,17,18
+
+  **References**:
+  - `./gradlew test`
+  - `./gradlew :micronaut-benchmarks:jmh`
+
+  **Acceptance Criteria**:
+  - [ ] Full suite remains green after follow-up changes.
+  - [ ] Benchmark task remains green after follow-up changes.
+  - [ ] Generated source checks confirm annotation presence and trivial Argument pooling targets.
+  - [ ] Reflective generated-serde loading symbols are absent from active serde-support runtime code.
+
+  **QA Scenarios**:
+  ```
+  Scenario: Full follow-up verification happy path
+    Tool: Bash
+    Steps: ./gradlew test && ./gradlew :micronaut-benchmarks:jmh
+    Expected: Both commands succeed
+    Evidence: .sisyphus/evidence/task-19-full-followup-verification.txt
+
+  Scenario: Edge check annotation and argument reuse remnants
+    Tool: Bash
+    Steps: grep -R "@Singleton\|@Generated(\"Micronaut\")" -n serde-jackson/build/generated/sources serde-support/build/generated/sources && grep -R -E "Argument\.of\(java\.lang\.(Boolean|Byte|Short|Character|Integer|Long|Float|Double|String)\.class\)" -n serde-jackson/build/generated/sources serde-support/build/generated/sources && grep -R "GeneratedSerdeRuntimeLoader\|ClassUtils\.forName\|getDeclaredConstructor\(\)\.newInstance\(\)" -n serde-support/src/main/java
+    Expected: Annotation markers present, no trivial pooled-type Argument.of remnants, and no reflective loader symbols
+    Evidence: .sisyphus/evidence/task-19-annotation-argument-grep.txt
   ```
 
   **Commit**: NO | Message: `n/a` | Files: verification only
@@ -825,12 +1073,17 @@ Wave 6: Deserializer extension verification
 - C6: Optimize bean/record/enum generated deserializers with constants + createSpecific caching
 - C7: Add deserializer semantic-lock/shape tests + scalar decode fast-path guardrails
 - C8: Extension verification-only (no commit)
+- C9: Add generated-serde class annotations + tests-first DI-only runtime migration (routing/precedence/missing-bean), then remove reflective loader path
+- C10: Add argument-constant pooling + follow-up verification-only gate (including reflective-loader absence checks)
 
 ## Success Criteria
 - Runtime backend configurability removed from API/config/runtime paths.
 - Routing logic in `DefaultSerdeRegistry` uses build-time sourcegen metadata only.
 - `./gradlew test` passes.
-- `./gradlew :benchmarks:jmh` passes.
+- `./gradlew :micronaut-benchmarks:jmh` passes.
 - Benchmark runbook exists and is executable without human guesswork.
 - Generated deserializers (bean/record/enum) mirror serializer optimization architecture for constants + `createSpecific` specialization + child-deserializer caching.
 - Deserializer behavior remains semantically identical (unknown/duplicate/null/default/property-path) in both specialized and default-constructor execution paths.
+- Generated serializer/deserializer classes include `@jakarta.inject.Singleton` and `@javax.annotation.processing.Generated("Micronaut")` in emitted source.
+- Generated serializer/deserializer runtime resolution is DI-only (no reflective generated-serde loader path in `serde-support`).
+- Generated simple-shape argument constants reuse core/shared constants where safe, with fallback construction preserved for generic/metadata-bearing arguments.

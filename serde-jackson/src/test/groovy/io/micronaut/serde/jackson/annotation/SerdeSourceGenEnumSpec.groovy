@@ -14,6 +14,7 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 import tools.jackson.core.json.JsonFactory
 
 import java.lang.reflect.Modifier
+import jakarta.inject.Singleton
 
 class SerdeSourceGenEnumSpec extends JsonCompileSpec {
 
@@ -54,6 +55,8 @@ public enum TestEnum {
         then:
         !Modifier.isAbstract(serializerClass.modifiers)
         !Modifier.isAbstract(deserializerClass.modifiers)
+        serializerClass.getAnnotation(Singleton) != null
+        deserializerClass.getAnnotation(Singleton) != null
 
         when:
         Serializer serializer = (Serializer) serializerClass.getDeclaredConstructor().newInstance()

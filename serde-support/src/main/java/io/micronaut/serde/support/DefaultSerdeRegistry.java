@@ -49,7 +49,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.deserializers.ObjectDeserializer;
 import io.micronaut.serde.support.deserializers.SerdeDeserializationPreInstantiateCallback;
 import io.micronaut.serde.support.deserializers.collect.CoreCollectionsDeserializers;
-import io.micronaut.serde.support.runtime.GeneratedSerdeRuntimeLoader;
 import io.micronaut.serde.support.serdes.ObjectArraySerde;
 import io.micronaut.serde.support.serdes.Serdes;
 import io.micronaut.serde.support.serializers.CoreSerializers;
@@ -57,6 +56,7 @@ import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import jakarta.inject.Singleton;
 
+import javax.annotation.processing.Generated;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -67,6 +67,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  * Default implementation of the {@link io.micronaut.serde.SerdeRegistry} interface.
@@ -86,6 +87,8 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     // a wrapper object.
     private final Map<TypeKey, SerializerWrapper> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
+    private final Map<String, BeanDefinition<Serializer>> serializerBeansByName = new ConcurrentHashMap<>(200);
+    private final Map<String, BeanDefinition<Deserializer>> deserializerBeansByName = new ConcurrentHashMap<>(200);
 
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
@@ -94,7 +97,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final Serde<Object[]> objectArraySerde;
     private final ConversionService conversionService;
     private final SerdeConfiguration serdeConfiguration;
-    private final GeneratedSerdeRuntimeLoader generatedSerdeRuntimeLoader;
     private final SerializationConfiguration serializationConfiguration;
     private final DeserializationConfiguration deserializationConfiguration;
 
@@ -118,7 +120,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.deserializationConfiguration = deserializationConfiguration;
-        this.generatedSerdeRuntimeLoader = new GeneratedSerdeRuntimeLoader();
         this.introspections = introspections;
         this.beanContext = beanContext;
         this.conversionService = conversionService;
@@ -147,12 +148,15 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (serializer.getDeclaringType().orElse(null) == LegacyBeansFactory.class) {
                 continue;
             }
+            if (isSourceGenSerdeBean(serializer)) {
+                serializerBeansByName.put(serializer.getBeanType().getName(), serializer);
+            }
             final List<Argument<?>> typeArguments = serializer.getTypeArguments(Serializer.class);
             if (CollectionUtils.isEmpty(typeArguments)) {
                 throw new ConfigurationException("Serializer without generic types defined: " + serializer.getBeanType());
             }
             final Argument<?> argument = typeArguments.iterator().next();
-            if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
+            if (!argument.equalsType(Argument.OBJECT_ARGUMENT) && !isSourceGenSerdeBean(serializer)) {
                 serializers.add(serializer);
             }
         }
@@ -160,15 +164,29 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             if (deserializer.getDeclaringType().orElse(null) == LegacyBeansFactory.class) {
                 continue;
             }
+            if (isSourceGenSerdeBean(deserializer)) {
+                deserializerBeansByName.put(deserializer.getBeanType().getName(), deserializer);
+            }
             final List<Argument<?>> typeArguments = deserializer.getTypeArguments(Deserializer.class);
             if (CollectionUtils.isEmpty(typeArguments)) {
                 throw new ConfigurationException("Deserializer without generic types defined: " + deserializer.getBeanType());
             }
             final Argument<?> argument = typeArguments.iterator().next();
-            if (!argument.equalsType(Argument.OBJECT_ARGUMENT)) {
+            if (!argument.equalsType(Argument.OBJECT_ARGUMENT) && !isSourceGenSerdeBean(deserializer)) {
                 deserializers.add(deserializer);
             }
         }
+    }
+
+    private boolean isSourceGenSerdeBean(BeanDefinition<?> beanDefinition) {
+        boolean generatedAnnotationMatch = beanDefinition.stringValue(Generated.class)
+            .map("Micronaut"::equals)
+            .orElse(false);
+        if (generatedAnnotationMatch) {
+            return true;
+        }
+        String simpleName = beanDefinition.getBeanType().getSimpleName();
+        return simpleName.startsWith("Serde") && (simpleName.endsWith("Serializer") || simpleName.endsWith("Deserializer"));
     }
 
     @Override
@@ -423,7 +441,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     private Serializer<?> resolveGeneratedSerializer(Argument<?> type,
-                                                       @Nullable BeanIntrospection<?> introspection) throws SerdeException {
+                                                        @Nullable BeanIntrospection<?> introspection) throws SerdeException {
         if (serializationConfiguration.sortPropertiesAlphabetically() || serdeConfiguration.getPropertyNamingStrategy() != null) {
             return null;
         }
@@ -446,15 +464,29 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (hasCustomPropertySerializer(introspection)) {
             return null;
         }
-        GeneratedSerdeRuntimeLoader.LookupResult<Serializer<?>> result = generatedSerdeRuntimeLoader.loadSerializer(introspection, type);
-        if (result.status() == GeneratedSerdeRuntimeLoader.Status.AVAILABLE) {
-            return result.value();
+        if (!annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)) {
+            return null;
         }
-        return null;
+        String className = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null);
+        if (className == null || className.isBlank()) {
+            throw new SerdeException("Missing generated serializer class metadata for type [" + type + "]");
+        }
+        if (beanContext == null) {
+            return null;
+        }
+        BeanDefinition<Serializer> beanDefinition = serializerBeansByName.get(className);
+        if (beanDefinition == null) {
+            return null;
+        }
+        if (Modifier.isAbstract(beanDefinition.getBeanType().getModifiers())) {
+            return null;
+        }
+        Serializer<?> serializer = resolveBeanSerializer(type, matchSerializerCandidates(type, List.of(beanDefinition)));
+        return serializer;
     }
 
     private Deserializer<?> resolveGeneratedDeserializer(Argument<?> type,
-                                                          @Nullable BeanIntrospection<?> introspection) throws SerdeException {
+                                                           @Nullable BeanIntrospection<?> introspection) throws SerdeException {
         if (serdeConfiguration.getPropertyNamingStrategy() != null) {
             return null;
         }
@@ -468,11 +500,25 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (hasCustomPropertyDeserializer(introspection)) {
             return null;
         }
-        GeneratedSerdeRuntimeLoader.LookupResult<Deserializer<?>> result = generatedSerdeRuntimeLoader.loadDeserializer(introspection, type);
-        if (result.status() == GeneratedSerdeRuntimeLoader.Status.AVAILABLE) {
-            return result.value();
+        if (!annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)) {
+            return null;
         }
-        return null;
+        String className = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null);
+        if (className == null || className.isBlank()) {
+            throw new SerdeException("Missing generated deserializer class metadata for type [" + type + "]");
+        }
+        if (beanContext == null) {
+            return null;
+        }
+        BeanDefinition<Deserializer> beanDefinition = deserializerBeansByName.get(className);
+        if (beanDefinition == null) {
+            return null;
+        }
+        if (Modifier.isAbstract(beanDefinition.getBeanType().getModifiers())) {
+            return null;
+        }
+        Deserializer<?> deserializer = resolveBeanDeserializer(type, matchDeserializerCandidates(type, List.of(beanDefinition)));
+        return deserializer;
     }
 
     private boolean hasContextualArgumentMetadata(Argument<?> argument) {
@@ -570,7 +616,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
         return false;
     }
-
 
     private @Nullable <T> BeanIntrospection<?> getSerializableIntrospection(Argument<? extends T> type) {
         try {

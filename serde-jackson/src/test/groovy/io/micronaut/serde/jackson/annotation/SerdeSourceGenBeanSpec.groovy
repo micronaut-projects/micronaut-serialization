@@ -8,12 +8,14 @@ import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeIntrospections
 import io.micronaut.serde.Serializer
 import io.micronaut.serde.config.annotation.SerdeConfig
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JacksonDecoder
 import io.micronaut.serde.jackson.JacksonEncoder
 import io.micronaut.serde.jackson.JsonCompileSpec
 import tools.jackson.core.json.JsonFactory
 
 import java.lang.reflect.Modifier
+import jakarta.inject.Singleton
 
 class SerdeSourceGenBeanSpec extends JsonCompileSpec {
 
@@ -73,6 +75,8 @@ public class TestBean {
         then:
         !Modifier.isAbstract(serializerClass.modifiers)
         !Modifier.isAbstract(deserializerClass.modifiers)
+        serializerClass.getAnnotation(Singleton) != null
+        deserializerClass.getAnnotation(Singleton) != null
 
         when:
         Serializer serializer = (Serializer) serializerClass.getDeclaredConstructor().newInstance()
@@ -108,7 +112,7 @@ public class TestBean {
         context.close()
     }
 
-    void 'test bean generated deserializer shape plus createSpecific parity for duplicate unknown and null defaults'() {
+    void 'test bean generated deserializer shape plus createSpecific parity for duplicate unknown null defaults and property path failures'() {
         given:
         def context = buildContext('test.ParityBean', '''
 package test;
@@ -121,6 +125,7 @@ import io.micronaut.core.annotation.Introspected;
 public class ParityBean {
     private String value;
     private int count;
+    private java.util.List<String> tags;
 
     public String getValue() {
         return value;
@@ -136,6 +141,14 @@ public class ParityBean {
 
     public void setCount(int count) {
         this.count = count;
+    }
+
+    public java.util.List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(java.util.List<String> tags) {
+        this.tags = tags;
     }
 }
 ''')
@@ -153,18 +166,20 @@ public class ParityBean {
         expect:
         deserializerClass.declaredFields*.name.any { it.startsWith('KEY_') }
         deserializerClass.declaredFields*.name.any { it.startsWith('ARGUMENT_') }
-        !deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
+        deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
         specificDeserializer.class == deserializerClass
 
         when:
-        def fromDefaultNull = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":null}')
-        def fromSpecificNull = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":null}')
+        def fromDefaultNull = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":null,"tags":["a","b"]}')
+        def fromSpecificNull = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":null,"tags":["a","b"]}')
 
         then:
         beanType.getMethod('getValue').invoke(fromDefaultNull) == 'hello'
         beanType.getMethod('getValue').invoke(fromSpecificNull) == 'hello'
         beanType.getMethod('getCount').invoke(fromDefaultNull) == 0
         beanType.getMethod('getCount').invoke(fromSpecificNull) == 0
+        beanType.getMethod('getTags').invoke(fromDefaultNull).toString() == '[a, b]'
+        beanType.getMethod('getTags').invoke(fromSpecificNull).toString() == '[a, b]'
 
         when:
         def duplicateDefaultFailure = captureFailure {
@@ -194,6 +209,22 @@ public class ParityBean {
             assert unknownDefaultFailure.message?.contains('extra')
             assert unknownSpecificFailure.message?.contains('extra')
         }
+
+        when:
+        def scalarPathDefaultFailure = captureFailure {
+            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":"oops","tags":["x"]}')
+        }
+        def scalarPathSpecificFailure = captureFailure {
+            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":"oops","tags":["x"]}')
+        }
+
+        then:
+        scalarPathDefaultFailure != null
+        scalarPathSpecificFailure != null
+        scalarPathDefaultFailure instanceof SerdeException
+        scalarPathSpecificFailure instanceof SerdeException
+        ((SerdeException) scalarPathDefaultFailure).pathAsString?.contains('count')
+        ((SerdeException) scalarPathSpecificFailure).pathAsString?.contains('count')
 
         cleanup:
         context.close()

@@ -37,6 +37,8 @@ public record AutoShape(String name, int count) {}
         then:
         generatedSerializerClass != null
         generatedDeserializerClass != null
+        context.findBean(context.classLoader.loadClass(generatedSerializerClass)).present
+        context.findBean(context.classLoader.loadClass(generatedDeserializerClass)).present
         runtimeSerializer.class.name == generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
         json == '{"name":"auto","count":7}'
@@ -106,6 +108,7 @@ public class AnyGetterShape {
         metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
         generatedSerializerClass == null
         generatedDeserializerClass != null
+        context.findBean(context.classLoader.loadClass(generatedDeserializerClass)).present
         runtimeSerializer.class.name.startsWith('io.micronaut.serde.support.')
         runtimeDeserializer.class.name == generatedDeserializerClass
         json == '{"name":"fallback","extra":3}'

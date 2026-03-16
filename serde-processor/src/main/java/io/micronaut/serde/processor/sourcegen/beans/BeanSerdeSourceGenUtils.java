@@ -35,12 +35,15 @@ import java.util.OptionalLong;
 
 final class BeanSerdeSourceGenUtils {
 
-    static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
-    static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
-    static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, "empty");
-    static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, "empty");
-    static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, "empty");
-    static final Method OPTIONAL_LONG_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalLong.class, "empty");
+    private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
+    private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.support.util.SerdeArgumentConstants");
+
+    private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
+    private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
+    private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, "empty");
+    private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, "empty");
+    private static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, "empty");
+    private static final Method OPTIONAL_LONG_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalLong.class, "empty");
 
     private BeanSerdeSourceGenUtils() {
     }
@@ -60,8 +63,33 @@ final class BeanSerdeSourceGenUtils {
                     typeArgumentArray
                 );
         }
+        ExpressionDef constantArgumentExpression = simpleArgumentConstantExpression(argumentType);
+        if (constantArgumentExpression != null) {
+            return constantArgumentExpression;
+        }
         return ClassTypeDef.of(Argument.class)
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
+    }
+
+    private static ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
+        if (argumentType.isArray()) {
+            return null;
+        }
+        return switch (argumentType.getName()) {
+            case "java.lang.String" -> ClassTypeDef.of(Argument.class).getStaticField("STRING", ARGUMENT_TYPE);
+            case "java.lang.Boolean" -> ClassTypeDef.of(Argument.class).getStaticField("BOOLEAN", ARGUMENT_TYPE);
+            case "java.lang.Byte" -> ClassTypeDef.of(Argument.class).getStaticField("BYTE", ARGUMENT_TYPE);
+            case "java.lang.Short" -> ClassTypeDef.of(Argument.class).getStaticField("SHORT", ARGUMENT_TYPE);
+            case "java.lang.Character" -> ClassTypeDef.of(Argument.class).getStaticField("CHAR", ARGUMENT_TYPE);
+            case "java.lang.Integer" -> ClassTypeDef.of(Argument.class).getStaticField("INT", ARGUMENT_TYPE);
+            case "java.lang.Long" -> ClassTypeDef.of(Argument.class).getStaticField("LONG", ARGUMENT_TYPE);
+            case "java.lang.Float" -> ClassTypeDef.of(Argument.class).getStaticField("FLOAT", ARGUMENT_TYPE);
+            case "java.lang.Double" -> ClassTypeDef.of(Argument.class).getStaticField("DOUBLE", ARGUMENT_TYPE);
+            case "java.lang.Object" -> ClassTypeDef.of(Argument.class).getStaticField("OBJECT_ARGUMENT", ARGUMENT_TYPE);
+            case "java.math.BigInteger" -> SERDE_ARGUMENT_CONSTANTS.getStaticField("BIG_INTEGER", ARGUMENT_TYPE);
+            case "java.math.BigDecimal" -> SERDE_ARGUMENT_CONSTANTS.getStaticField("BIG_DECIMAL", ARGUMENT_TYPE);
+            default -> null;
+        };
     }
 
     static ExpressionDef optionalDefaultValueExpression(ClassElement classElement) {

@@ -36,10 +36,13 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.sourcegen.generator.SourceGenerator;
 import io.micronaut.sourcegen.generator.SourceGenerators;
+import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.TypeDef;
 
+import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
+import jakarta.inject.Singleton;
 
 public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable, Object> {
 
@@ -92,6 +95,10 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable
         }
         write(context, element, ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addAnnotation(Singleton.class)
+            .addAnnotation(AnnotationDef.builder(Generated.class)
+                .addMember("value", "Micronaut")
+                .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, TypeDef.of(element)))
             .build());
     }
@@ -120,6 +127,10 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Serdeable
         }
         write(context, element, ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addAnnotation(Singleton.class)
+            .addAnnotation(AnnotationDef.builder(Generated.class)
+                .addMember("value", "Micronaut")
+                .build())
             .addSuperinterface(TypeDef.parameterized(Deserializer.class, TypeDef.of(element)))
             .build());
     }

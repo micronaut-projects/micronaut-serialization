@@ -10,6 +10,7 @@ Results:
   - duplicate property behavior
   - unknown property parity
   - primitive null/default behavior
+  - scalar decode failure parity with SerdeException property-path assertions (`pathAsString` contains `count`)
   - createSpecific vs default-constructor path parity
 
 Conclusion:

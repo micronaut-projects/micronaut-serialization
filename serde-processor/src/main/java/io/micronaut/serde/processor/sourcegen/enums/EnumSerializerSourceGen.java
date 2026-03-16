@@ -22,6 +22,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.MethodDef;
@@ -30,10 +31,12 @@ import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
 
 import javax.lang.model.element.Modifier;
+import javax.annotation.processing.Generated;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.inject.Singleton;
 
 public final class EnumSerializerSourceGen {
 
@@ -45,6 +48,10 @@ public final class EnumSerializerSourceGen {
         TypeDef enumTypeDef = TypeDef.of(element);
         return ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+            .addAnnotation(Singleton.class)
+            .addAnnotation(AnnotationDef.builder(Generated.class)
+                .addMember("value", "Micronaut")
+                .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))

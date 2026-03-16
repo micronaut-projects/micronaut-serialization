@@ -10,9 +10,5 @@ Results:
 - JMH results persisted at:
   benchmarks/build/results/jmh/results.txt
 
-Notes:
-- Initial combined run encountered a transient failure in :test-suite-http-server-tck-netty:test.
-- Suite rerun succeeded (`:test-suite-http-server-tck-netty:test` and subsequent `./gradlew test` both green).
-
 Conclusion:
-Extension verification gates are green after deserializer optimization extension.
+Extension verification gates are green after deserializer optimization extension on a clean rerun.

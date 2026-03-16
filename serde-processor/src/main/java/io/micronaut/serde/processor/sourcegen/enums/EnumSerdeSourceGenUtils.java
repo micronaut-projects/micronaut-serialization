@@ -15,23 +15,19 @@
  */
 package io.micronaut.serde.processor.sourcegen.enums;
 
-import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.TypeDef;
 
-import java.lang.reflect.Method;
-
 final class EnumSerdeSourceGenUtils {
 
-    static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
+    private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
 
     private EnumSerdeSourceGenUtils() {
     }
 
     static ExpressionDef stringArgumentExpression() {
-        return ClassTypeDef.of(Argument.class)
-            .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.of(String.class)));
+        return ClassTypeDef.of(Argument.class).getStaticField("STRING", ARGUMENT_TYPE);
     }
 }
