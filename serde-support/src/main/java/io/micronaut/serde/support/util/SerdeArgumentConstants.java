@@ -27,15 +27,45 @@ import java.math.BigInteger;
 @Internal
 public final class SerdeArgumentConstants {
 
+    /**
+     * {@link Argument} constant for {@link Boolean} values.
+     */
     public static final Argument<Boolean> BOOLEAN = Argument.of(Boolean.class);
+    /**
+     * {@link Argument} constant for {@link Byte} values.
+     */
     public static final Argument<Byte> BYTE = Argument.of(Byte.class);
+    /**
+     * {@link Argument} constant for {@link Short} values.
+     */
     public static final Argument<Short> SHORT = Argument.of(Short.class);
+    /**
+     * {@link Argument} constant for {@link Character} values.
+     */
     public static final Argument<Character> CHARACTER = Argument.of(Character.class);
+    /**
+     * {@link Argument} constant for {@link Integer} values.
+     */
     public static final Argument<Integer> INTEGER = Argument.of(Integer.class);
+    /**
+     * {@link Argument} constant for {@link Long} values.
+     */
     public static final Argument<Long> LONG = Argument.of(Long.class);
+    /**
+     * {@link Argument} constant for {@link Float} values.
+     */
     public static final Argument<Float> FLOAT = Argument.of(Float.class);
+    /**
+     * {@link Argument} constant for {@link Double} values.
+     */
     public static final Argument<Double> DOUBLE = Argument.of(Double.class);
+    /**
+     * {@link Argument} constant for {@link BigInteger} values.
+     */
     public static final Argument<BigInteger> BIG_INTEGER = Argument.of(BigInteger.class);
+    /**
+     * {@link Argument} constant for {@link BigDecimal} values.
+     */
     public static final Argument<BigDecimal> BIG_DECIMAL = Argument.of(BigDecimal.class);
 
     private SerdeArgumentConstants() {

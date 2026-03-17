@@ -22,10 +22,8 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
-import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
-import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
@@ -50,7 +48,7 @@ public final class EnumSerializerSourceGen {
 
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
-    private static final Method ENUM_SERIALIZED_NAME_METHOD = ReflectionUtils.getRequiredMethod(GeneratedSerdeErrorHandler.class, "enumSerializedName", Enum.class);
+    private static final Method ENUM_NAME_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "name");
 
     public ClassDef generate(ClassElement element, EnumSerdeShape enumSerdeShape) {
         TypeDef enumTypeDef = TypeDef.of(element);
@@ -117,8 +115,7 @@ public final class EnumSerializerSourceGen {
                                                    EnumSerdeShape enumSerdeShape) {
         List<StatementDef> statements = new ArrayList<>();
 
-        StatementDef.DefineAndAssign enumNameDef = ClassTypeDef.of(GeneratedSerdeErrorHandler.class)
-            .invokeStatic(ENUM_SERIALIZED_NAME_METHOD, value)
+        StatementDef.DefineAndAssign enumNameDef = value.invoke(ENUM_NAME_METHOD)
             .newLocal("enumName");
         statements.add(enumNameDef);
         VariableDef serializedValueVariable = enumNameDef.variable();

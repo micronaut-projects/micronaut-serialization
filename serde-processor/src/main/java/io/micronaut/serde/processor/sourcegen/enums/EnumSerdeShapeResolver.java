@@ -18,7 +18,8 @@ package io.micronaut.serde.processor.sourcegen.enums;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.ElementQuery;
-import io.micronaut.inject.ast.FieldElement;
+import io.micronaut.inject.ast.EnumElement;
+import io.micronaut.inject.ast.EnumConstantElement;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.util.ArrayList;
@@ -41,27 +42,18 @@ public final class EnumSerdeShapeResolver {
             return Optional.empty();
         }
 
-        List<EnumSerdeShape.EnumConstant> constants = new ArrayList<>();
-        boolean hasOverrides = false;
-        for (FieldElement field : element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyDeclared())) {
-            if (!field.isStatic()
-                || !field.isFinal()
-                || field.getName().startsWith("$")
-                || field.getType().isPrimitive()
-                || field.getType().isArray()) {
-                continue;
-            }
-            String name = field.getName();
-            String serializedValue = field.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
-                .or(() -> field.stringValue("com.fasterxml.jackson.annotation.JsonProperty"))
-                .or(() -> field.stringValue("tools.jackson.annotation.JsonProperty"))
+        List<EnumSerdeShape.EnumConstant> overrides = new ArrayList<>();
+        for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
+            String name = enumConstant.getName();
+            String serializedValue = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
+                .or(() -> enumConstant.stringValue("com.fasterxml.jackson.annotation.JsonProperty", "value"))
+                .or(() -> enumConstant.stringValue("tools.jackson.annotation.JsonProperty", "value"))
                 .orElse(name);
-            constants.add(new EnumSerdeShape.EnumConstant(name, serializedValue));
             if (!serializedValue.equals(name)) {
-                hasOverrides = true;
+                overrides.add(new EnumSerdeShape.EnumConstant(name, serializedValue));
             }
         }
-        return Optional.of(new EnumSerdeShape(List.copyOf(constants), hasOverrides));
+        return Optional.of(new EnumSerdeShape(List.copyOf(overrides), !overrides.isEmpty()));
     }
 
     private boolean hasCustomEnumValue(ClassElement element) {
