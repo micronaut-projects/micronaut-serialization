@@ -8,7 +8,7 @@ dependencies {
     compileOnly(projects.micronautSerdeProcessor)
     compileOnly("com.fasterxml.jackson.core:jackson-databind")
     annotationProcessor(projects.micronautSerdeProcessor)
-    annotationProcessor(libs.micronaut.inject)
+    annotationProcessor(mn.micronaut.inject.java)
 
     testImplementation(libs.junit.platform.engine)
     testImplementation(libs.junit.jupiter.engine)
