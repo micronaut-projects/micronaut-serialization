@@ -1,8 +1,0 @@
-Task 10 evidence: Non-specialized fallback path remains correct
-
-Command:
-./gradlew :micronaut-serde-support:test --tests 'io.micronaut.serde.support.deserializers.DeserializeSpec'
-
-Result:
-- BUILD SUCCESSFUL
-- `DeserializeSpec` tests passed (`deserialize`, `test types`), validating default-constructor/non-specialized decoder flows remain correct.

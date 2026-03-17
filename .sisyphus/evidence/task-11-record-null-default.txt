@@ -1,8 +1,0 @@
-Task 11 evidence: Record null/default guard behavior
-
-Command:
-./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeJsonIgnoreSpec'
-
-Result:
-- BUILD SUCCESSFUL
-- 23 tests executed, all passed, including record `ignoreUnknown` and record parameter scenarios.

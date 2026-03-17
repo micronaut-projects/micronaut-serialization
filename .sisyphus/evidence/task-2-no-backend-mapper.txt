@@ -1,8 +1,0 @@
-Task 2 evidence: stale backend mapper symbol scan
-
-Search:
-- pattern: `SERIALIZE_BACKEND|DESERIALIZE_BACKEND|SerdeBackendMode`
-- scope: `serde-processor/src/main/java`
-
-Result:
-- No matches found.

@@ -1,8 +1,0 @@
-Task 2 evidence: processor mapper backend mapping removal
-
-Command:
-./gradlew :micronaut-serde-processor:compileJava :micronaut-serde-processor:test --rerun-tasks
-
-Result:
-- BUILD SUCCESSFUL
-- `:micronaut-serde-processor:test` is NO-SOURCE on this module and compile succeeded.

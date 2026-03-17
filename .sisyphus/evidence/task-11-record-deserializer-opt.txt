@@ -1,8 +1,0 @@
-Task 11 evidence: Record deserializer optimization happy path
-
-Command:
-./gradlew :micronaut-serde-processor:compileJava :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenRecordSpec'
-
-Result:
-- BUILD SUCCESSFUL
-- `SerdeSourceGenRecordSpec` executed and passed (`test record sourcegen serializer and deserializer are concrete and functional`).

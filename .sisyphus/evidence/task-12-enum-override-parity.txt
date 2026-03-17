@@ -1,8 +1,0 @@
-Task 12 evidence: Enum override mapping parity
-
-Command:
-./gradlew :micronaut-serde-jackson:test --tests 'io.micronaut.serde.jackson.annotation.SerdeSourceGenEnumSpec' --rerun-tasks
-
-Result:
-- BUILD SUCCESSFUL
-- Enum sourcegen spec re-ran cleanly; override mapping behavior remained stable.
