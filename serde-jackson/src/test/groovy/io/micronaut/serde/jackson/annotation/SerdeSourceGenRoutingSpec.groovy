@@ -182,8 +182,6 @@ class JsonIncludeBean {
             'test.AnyGetterBean',
             false,
             true,
-            ['ANY_GETTER'] as Set,
-            [] as Set,
             ['CustomizedObjectSerializer'],
             []
         )
@@ -192,8 +190,6 @@ class JsonIncludeBean {
             'test.AnySetterBean',
             true,
             false,
-            [] as Set,
-            ['ANY_SETTER'] as Set,
             [],
             ['SpecificObjectDeserializer']
         )
@@ -202,8 +198,6 @@ class JsonIncludeBean {
             'test.UnwrappedBean',
             false,
             false,
-            ['UNWRAPPED'] as Set,
-            ['UNWRAPPED'] as Set,
             [],
             ['SpecificObjectDeserializer'],
             false,
@@ -214,8 +208,6 @@ class JsonIncludeBean {
             'test.SubtypedBean',
             false,
             false,
-            ['SUBTYPED'] as Set,
-            ['SUBTYPED'] as Set,
             ['RuntimeTypeSerializer'],
             ['SubtypedPropertyObjectDeserializer']
         )
@@ -224,8 +216,6 @@ class JsonIncludeBean {
             'test.DelegatingCreatorRecord',
             false,
             false,
-            ['COMPLEX_CREATOR'] as Set,
-            ['COMPLEX_CREATOR'] as Set,
             ['CustomizedObjectSerializer'],
             ['DelegatingObjectDeserializer']
         )
@@ -234,8 +224,6 @@ class JsonIncludeBean {
             'test.JsonValueEnum',
             false,
             false,
-            ['COMPLEX_ENUM'] as Set,
-            ['COMPLEX_ENUM'] as Set,
             [],
             ['EnumValueDeserializer']
         )
@@ -244,8 +232,6 @@ class JsonIncludeBean {
             'test.JsonIncludeBean',
             false,
             false,
-            ['INCLUDE'] as Set,
-            ['INCLUDE'] as Set,
             [],
             []
         )
@@ -258,8 +244,6 @@ class JsonIncludeBean {
                                String className,
                                boolean serializerEligible,
                                boolean deserializerEligible,
-                               Set<String> serializerReasons,
-                               Set<String> deserializerReasons,
                                List<String> fallbackSerializerMarkers,
                                List<String> fallbackDeserializerMarkers,
                                boolean assertSerializerSpecificClass = true,
@@ -274,12 +258,8 @@ class JsonIncludeBean {
 
         assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
         assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-        assert serializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS).toSet() == serializerReasons
-        assert serializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS).toSet() == deserializerReasons
         assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
         assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-        assert deserializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS).toSet() == serializerReasons
-        assert deserializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS).toSet() == deserializerReasons
 
         def serdeRegistry = jsonMapper.serdeRegistry
         def resolvedSerializer = serdeRegistry.findSerializer(type)

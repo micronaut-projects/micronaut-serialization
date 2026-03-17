@@ -45,9 +45,9 @@ enum TestEnum {
 ''')
 
         expect:
-        assertEligibility(context, 'test.TestRecord', 'RECORD', true, true, [] as Set, [] as Set)
-        assertEligibility(context, 'test.TestBean', 'DEFAULT_CONSTRUCTOR_BEAN', true, true, [] as Set, [] as Set)
-        assertEligibility(context, 'test.TestEnum', 'ENUM', true, true, [] as Set, [] as Set)
+        assertEligibility(context, 'test.TestRecord', 'RECORD', true, true)
+        assertEligibility(context, 'test.TestBean', 'DEFAULT_CONSTRUCTOR_BEAN', true, true)
+        assertEligibility(context, 'test.TestEnum', 'ENUM', true, true)
 
         cleanup:
         context.close()
@@ -116,8 +116,8 @@ class AnySetterBean {
 ''')
 
         expect:
-        assertEligibility(context, 'test.AnyGetterBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, true, ['ANY_GETTER'] as Set, [] as Set)
-        assertEligibility(context, 'test.AnySetterBean', 'DEFAULT_CONSTRUCTOR_BEAN', true, false, [] as Set, ['ANY_SETTER'] as Set)
+        assertEligibility(context, 'test.AnyGetterBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, true)
+        assertEligibility(context, 'test.AnySetterBean', 'DEFAULT_CONSTRUCTOR_BEAN', true, false)
 
         cleanup:
         context.close()
@@ -204,9 +204,9 @@ record DelegatingCreatorRecord(String value) {
 ''')
 
         expect:
-        assertEligibility(context, 'test.UnwrappedBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false, ['UNWRAPPED'] as Set, ['UNWRAPPED'] as Set)
-        assertEligibility(context, 'test.SubtypedBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false, ['SUBTYPED'] as Set, ['SUBTYPED'] as Set)
-        assertEligibility(context, 'test.DelegatingCreatorRecord', 'RECORD', false, false, ['COMPLEX_CREATOR'] as Set, ['COMPLEX_CREATOR'] as Set)
+        assertEligibility(context, 'test.UnwrappedBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.SubtypedBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.DelegatingCreatorRecord', 'RECORD', false, false)
 
         cleanup:
         context.close()
@@ -235,7 +235,7 @@ enum JsonValueEnum {
 ''')
 
         expect:
-        assertEligibility(context, 'test.JsonValueEnum', 'ENUM', false, false, ['COMPLEX_ENUM'] as Set, ['COMPLEX_ENUM'] as Set)
+        assertEligibility(context, 'test.JsonValueEnum', 'ENUM', false, false)
 
         cleanup:
         context.close()
@@ -290,8 +290,8 @@ class JsonIncludePropertyBean {
 ''')
 
         expect:
-        assertEligibility(context, 'test.JsonIncludeTypeBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false, ['INCLUDE'] as Set, ['INCLUDE'] as Set)
-        assertEligibility(context, 'test.JsonIncludePropertyBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false, ['INCLUDE'] as Set, ['INCLUDE'] as Set)
+        assertEligibility(context, 'test.JsonIncludeTypeBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.JsonIncludePropertyBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
 
         cleanup:
         context.close()
@@ -301,9 +301,7 @@ class JsonIncludePropertyBean {
                                    String className,
                                    String shape,
                                    boolean serializerEligible,
-                                   boolean deserializerEligible,
-                                   Set<String> serializerReasons,
-                                   Set<String> deserializerReasons) {
+                                   boolean deserializerEligible) {
         Class<?> beanType = context.classLoader.loadClass(className)
         def serdeIntrospections = context.getBean(SerdeIntrospections)
         def serializableMetadata = serdeIntrospections
@@ -316,13 +314,9 @@ class JsonIncludePropertyBean {
         assert serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SHAPE).orElse(null) == shape
         assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
         assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-        assert serializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS).toSet() == serializerReasons
-        assert serializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS).toSet() == deserializerReasons
         assert deserializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SHAPE).orElse(null) == shape
         assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
         assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-        assert deserializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS).toSet() == serializerReasons
-        assert deserializableMetadata.stringValues(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS).toSet() == deserializerReasons
 
         if (serializerEligible) {
             String serializerClassName = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)

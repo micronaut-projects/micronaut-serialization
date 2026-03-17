@@ -51,136 +51,186 @@ public final class SimpleSerdeShapeAnalyzer {
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
         EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
         EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
+        SimpleSerdeShapeDecision.ShapeKind shapeKind = resolveShapeKind(element);
 
-        if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.SUBTYPED);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.SUBTYPED);
+        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
+            failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasSubtypedPropertyTypes(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.SUBTYPED);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.SUBTYPED);
+
+        if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SUBTYPED)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasAnnotation(element, SerdeConfig.SerUnwrapped.class)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNWRAPPED);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNWRAPPED);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasSubtypedPropertyTypes(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SUBTYPED)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasAnnotation(element, SerdeConfig.SerAnyGetter.class)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.ANY_GETTER);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasAnnotation(element, SerdeConfig.SerUnwrapped.class)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNWRAPPED)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasAnnotation(element, SerdeConfig.SerAnySetter.class)) {
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.ANY_SETTER);
+        if (serializerReasons.isEmpty() && hasAnnotation(element, SerdeConfig.SerAnyGetter.class)) {
+            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.ANY_GETTER);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
-        if (hasJsonInclude(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.INCLUDE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.INCLUDE);
+        if (deserializerReasons.isEmpty() && hasAnnotation(element, SerdeConfig.SerAnySetter.class)) {
+            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.ANY_SETTER);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
-        if (hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata())) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasJsonInclude(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.INCLUDE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (element.hasAnnotation(SerdeConfig.SerIgnored.class)
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasUnsupportedSerdeConfigMetadata(element.getAnnotationMetadata())
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && (element.hasAnnotation(SerdeConfig.SerIgnored.class)
             || hasAnnotation(element, SerdeConfig.SerIgnored.class)
-            || element.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            || element.hasDeclaredAnnotation(SerdeConfig.SerIgnored.class))
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasPropertyNamedIgnored(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasPropertyNamedIgnored(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!hasJsonInclude(element)
             && (element.hasAnnotation(SerdeConfig.SerIncluded.class)
             || hasAnnotation(element, SerdeConfig.SerIncluded.class)
-            || element.hasDeclaredAnnotation(SerdeConfig.SerIncluded.class))) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            || element.hasDeclaredAnnotation(SerdeConfig.SerIncluded.class))
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasPropertyOrderConfig(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasPropertyOrderConfig(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty() && hasPotentialGlobalOrderingConflict(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+            && hasPotentialGlobalOrderingConflict(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (!element.isEnum() && hasAnnotation(element, SerdeConfig.SerValue.class)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!element.isEnum()
+            && !isBothFailed(serializerReasons, deserializerReasons)
+            && hasAnnotation(element, SerdeConfig.SerValue.class)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (!element.isEnum() && (hasAnnotation(element, JACKSON_JSON_VALUE) || hasAnnotation(element, JACKSON2_JSON_VALUE))) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!element.isEnum()
+            && !isBothFailed(serializerReasons, deserializerReasons)
+            && (hasAnnotation(element, JACKSON_JSON_VALUE) || hasAnnotation(element, JACKSON2_JSON_VALUE))
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (!element.isEnum() && hasJsonValueInPropertyTypes(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!element.isEnum()
+            && !isBothFailed(serializerReasons, deserializerReasons)
+            && hasJsonValueInPropertyTypes(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasCustomSerdeClassOverride(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasCustomSerdeClassOverride(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasCustomNaming(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasCustomNaming(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty() && hasPotentialGlobalNamingConflict(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+            && hasPotentialGlobalNamingConflict(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (hasSerializeAsOverride(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (serializerReasons.isEmpty() && hasSerializeAsOverride(element)) {
+            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
-        if (hasDeserializeAsOverride(element)) {
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (deserializerReasons.isEmpty() && hasDeserializeAsOverride(element)) {
+            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
-        if (hasPropertyLevelSerializableOverride(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (serializerReasons.isEmpty() && hasPropertyLevelSerializableOverride(element)) {
+            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
-        if (hasPropertyLevelDeserializableOverride(element)) {
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+        if (deserializerReasons.isEmpty() && hasPropertyLevelDeserializableOverride(element)) {
+            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
+            if (isBothFailed(serializerReasons, deserializerReasons)) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
         SerdeConfig.SerCreatorMode creatorMode = element.getPrimaryConstructor()
             .flatMap(c -> c.enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class))
             .orElse(SerdeConfig.SerCreatorMode.PROPERTIES);
-        if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.COMPLEX_CREATOR);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.COMPLEX_CREATOR);
+        if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_CREATOR)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasDirectIterableProperties(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasCustomPropertyNames(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasUnsupportedPropertySerdeConfig(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasAnnotation(element, BSON_REPRESENTATION)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
+            && !isBothFailed(serializerReasons, deserializerReasons)
+            && hasComplexEnumCustomization(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
+            && !isBothFailed(serializerReasons, deserializerReasons)
+            && hasEnumPropertyOverrides(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+            && hasUnsupportedJacksonAnnotation(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
         }
 
-        SimpleSerdeShapeDecision.ShapeKind shapeKind = resolveShapeKind(element);
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-        }
-        if (shapeKind != SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED && hasDirectIterableProperties(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-        }
-        if (shapeKind != SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED && hasCustomPropertyNames(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-        }
-        if (shapeKind != SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED && hasUnsupportedPropertySerdeConfig(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-        }
-        if (shapeKind != SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED && hasAnnotation(element, BSON_REPRESENTATION)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-        }
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM && hasComplexEnumCustomization(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM);
-        }
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM && hasEnumPropertyOverrides(element)) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM);
-        }
-        if (hasUnsupportedJacksonAnnotation(element) && serializerReasons.isEmpty() && deserializerReasons.isEmpty()) {
-            serializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-            deserializerReasons.add(SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
-        }
+        return decision(shapeKind, serializerReasons, deserializerReasons);
+    }
 
+    private SimpleSerdeShapeDecision decision(SimpleSerdeShapeDecision.ShapeKind shapeKind,
+                                              EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
+                                              EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons) {
         return new SimpleSerdeShapeDecision(
             shapeKind,
             serializerReasons.isEmpty(),
@@ -188,6 +238,33 @@ public final class SimpleSerdeShapeAnalyzer {
             serializerReasons,
             deserializerReasons
         );
+    }
+
+    private boolean isBothFailed(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
+                                 EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons) {
+        return !serializerReasons.isEmpty() && !deserializerReasons.isEmpty();
+    }
+
+    private boolean failBoth(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
+                             EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons,
+                             SimpleSerdeShapeDecision.FallbackReason reason) {
+        failSerializer(serializerReasons, reason);
+        failDeserializer(deserializerReasons, reason);
+        return isBothFailed(serializerReasons, deserializerReasons);
+    }
+
+    private void failSerializer(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
+                                SimpleSerdeShapeDecision.FallbackReason reason) {
+        if (serializerReasons.isEmpty()) {
+            serializerReasons.add(reason);
+        }
+    }
+
+    private void failDeserializer(EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons,
+                                  SimpleSerdeShapeDecision.FallbackReason reason) {
+        if (deserializerReasons.isEmpty()) {
+            deserializerReasons.add(reason);
+        }
     }
 
     private boolean hasAnnotation(ClassElement element, Class<? extends Annotation> annotation) {

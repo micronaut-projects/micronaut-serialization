@@ -63,7 +63,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -802,8 +801,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             builder.member(SerdeConfig.SOURCEGEN_SHAPE, decision.shapeKind().name());
             builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE, decision.serializerEligible());
             builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE, decision.deserializerEligible());
-            builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS, reasonNames(decision.serializerFallbackReasons()));
-            builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS, reasonNames(decision.deserializerFallbackReasons()));
             if (decision.serializerEligible()) {
                 builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_CLASS, SerdeSourceGenClassNaming.generatedSerializerClassName(element));
             }
@@ -811,10 +808,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS, SerdeSourceGenClassNaming.generatedDeserializerClassName(element));
             }
         });
-    }
-
-    private String[] reasonNames(EnumSet<SimpleSerdeShapeDecision.FallbackReason> reasons) {
-        return reasons.stream().map(Enum::name).toArray(String[]::new);
     }
 
     private void visitProperties(ClassElement classElement, VisitorContext context) {
