@@ -287,65 +287,17 @@ public final class RecordDeserializerSourceGen {
                 StatementDef.DefineAndAssign keyDef = objectDecoder.invoke(DECODE_KEY_METHOD).newLocal("key");
                 statements.add(keyDef);
                 VariableDef keyVariable = keyDef.variable();
-
-                StatementDef unknownPropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                    .invokeStatic(HANDLE_UNKNOWN_PROPERTY_METHOD, objectDecoder, context, keyVariable, type);
-                StatementDef switchStatement;
-                if (components.size() > 3) {
-                    Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
-                    for (int i = 0; i < components.size(); i++) {
-                        RecordSerdeShape.RecordComponent component = components.get(i);
-                        ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
-                        StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                            .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
-                            .doThrow();
-                        VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
-                        switchCases.put(ExpressionDef.constant(component.name()),
-                            new ExpressionDef.SwitchYieldCase(
-                                TypeDef.Primitive.BOOLEAN,
-                                StatementDef.multi(
-                                    seenPropertyVariable.ifTrue(
-                                        duplicatePropertyStatement,
-                                        StatementDef.multi(
-                                            seenPropertyVariable.assign(ExpressionDef.trueValue()),
-                                            componentDeserializers.get(i)
-                                        )
-                                    ),
-                                    ExpressionDef.trueValue().returning()
-                                )
-                            )
-                        );
-                    }
-                    ExpressionDef defaultSwitchCase = new ExpressionDef.SwitchYieldCase(
-                        TypeDef.Primitive.BOOLEAN,
-                        StatementDef.multi(
-                            unknownPropertyStatement,
-                            ExpressionDef.trueValue().returning()
-                        )
-                    );
-                    switchStatement = keyVariable.asExpressionSwitch(TypeDef.Primitive.BOOLEAN, switchCases, defaultSwitchCase)
-                        .newLocal("switchResult");
-                } else {
-                    switchStatement = unknownPropertyStatement;
-                    for (int i = components.size() - 1; i >= 0; i--) {
-                        RecordSerdeShape.RecordComponent component = components.get(i);
-                        ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
-                        StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                            .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
-                            .doThrow();
-                        VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
-                        switchStatement = keyVariable.equalsStructurally(componentNameExpression).ifTrue(
-                            seenPropertyVariable.ifTrue(
-                                duplicatePropertyStatement,
-                                StatementDef.multi(
-                                    seenPropertyVariable.assign(ExpressionDef.trueValue()),
-                                    componentDeserializers.get(i)
-                                )
-                            ),
-                            switchStatement
-                        );
-                    }
-                }
+                StatementDef switchStatement = buildComponentDispatchStatement(
+                    deserializerClassTypeDef,
+                    objectDecoder,
+                    context,
+                    type,
+                    keyVariable,
+                    components,
+                    keyFieldNames,
+                    seenPropertyVariables,
+                    componentDeserializers
+                );
                 if (components.isEmpty()) {
                     statements.add(keyVariable.isNonNull().whileLoop(switchStatement));
                 } else {
@@ -360,6 +312,85 @@ public final class RecordDeserializerSourceGen {
                 statements.add(ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning());
                 return StatementDef.multi(statements);
             });
+    }
+
+    private StatementDef buildComponentDispatchStatement(ClassTypeDef deserializerClassTypeDef,
+                                                         VariableDef objectDecoder,
+                                                         VariableDef.MethodParameter context,
+                                                         VariableDef.MethodParameter type,
+                                                         VariableDef keyVariable,
+                                                         List<RecordSerdeShape.RecordComponent> components,
+                                                         Map<String, String> keyFieldNames,
+                                                         List<VariableDef.Local> seenPropertyVariables,
+                                                         List<StatementDef> componentDeserializers) {
+        StatementDef unknownPropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+            .invokeStatic(HANDLE_UNKNOWN_PROPERTY_METHOD, objectDecoder, context, keyVariable, type);
+        if (components.size() > 3) {
+            return keyVariable.asExpressionSwitch(
+                TypeDef.Primitive.BOOLEAN,
+                buildSwitchCases(deserializerClassTypeDef, components, keyFieldNames, seenPropertyVariables, componentDeserializers, type),
+                new ExpressionDef.SwitchYieldCase(
+                    TypeDef.Primitive.BOOLEAN,
+                    StatementDef.multi(
+                        unknownPropertyStatement,
+                        ExpressionDef.trueValue().returning()
+                    )
+                )
+            ).newLocal("switchResult");
+        }
+        StatementDef switchStatement = unknownPropertyStatement;
+        for (int i = components.size() - 1; i >= 0; i--) {
+            RecordSerdeShape.RecordComponent component = components.get(i);
+            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
+            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
+                .doThrow();
+            VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
+            switchStatement = keyVariable.equalsStructurally(componentNameExpression).ifTrue(
+                seenPropertyVariable.ifTrue(
+                    duplicatePropertyStatement,
+                    StatementDef.multi(
+                        seenPropertyVariable.assign(ExpressionDef.trueValue()),
+                        componentDeserializers.get(i)
+                    )
+                ),
+                switchStatement
+            );
+        }
+        return switchStatement;
+    }
+
+    private Map<ExpressionDef.Constant, ExpressionDef> buildSwitchCases(ClassTypeDef deserializerClassTypeDef,
+                                                                        List<RecordSerdeShape.RecordComponent> components,
+                                                                        Map<String, String> keyFieldNames,
+                                                                        List<VariableDef.Local> seenPropertyVariables,
+                                                                        List<StatementDef> componentDeserializers,
+                                                                        VariableDef.MethodParameter type) {
+        Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
+        for (int i = 0; i < components.size(); i++) {
+            RecordSerdeShape.RecordComponent component = components.get(i);
+            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
+            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
+                .doThrow();
+            VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
+            switchCases.put(ExpressionDef.constant(component.name()),
+                new ExpressionDef.SwitchYieldCase(
+                    TypeDef.Primitive.BOOLEAN,
+                    StatementDef.multi(
+                        seenPropertyVariable.ifTrue(
+                            duplicatePropertyStatement,
+                            StatementDef.multi(
+                                seenPropertyVariable.assign(ExpressionDef.trueValue()),
+                                componentDeserializers.get(i)
+                            )
+                        ),
+                        ExpressionDef.trueValue().returning()
+                    )
+                )
+            );
+        }
+        return switchCases;
     }
 
     @SuppressWarnings("java:S107")
