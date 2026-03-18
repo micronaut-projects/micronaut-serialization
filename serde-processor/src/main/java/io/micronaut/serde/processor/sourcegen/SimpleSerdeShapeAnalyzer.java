@@ -255,16 +255,12 @@ public final class SimpleSerdeShapeAnalyzer {
 
     private void failSerializer(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
                                 SimpleSerdeShapeDecision.FallbackReason reason) {
-        if (serializerReasons.isEmpty()) {
-            serializerReasons.add(reason);
-        }
+        serializerReasons.add(reason);
     }
 
     private void failDeserializer(EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons,
                                   SimpleSerdeShapeDecision.FallbackReason reason) {
-        if (deserializerReasons.isEmpty()) {
-            deserializerReasons.add(reason);
-        }
+        deserializerReasons.add(reason);
     }
 
     private boolean hasAnnotation(ClassElement element, Class<? extends Annotation> annotation) {

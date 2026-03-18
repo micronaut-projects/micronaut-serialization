@@ -254,7 +254,7 @@ class JsonIncludeBean {
         def serializableMetadata = introspections.getSerializableIntrospection(type).annotationMetadata
         def deserializableMetadata = introspections.getDeserializableIntrospection(type).annotationMetadata
         String generatedSerializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        String generatedDeserializerClass = deserializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
 
         assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
         assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
