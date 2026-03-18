@@ -228,6 +228,108 @@ public class ParityBean {
         context.close()
     }
 
+    @SuppressWarnings('JsonDuplicatePropertyKeys')
+    void 'test bean generated deserializer dispatch paths for small and large property sets'() {
+        given:
+        def context = buildContext('test.SmallDispatchBean', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+
+@Serdeable
+@Introspected
+class SmallDispatchBean {
+    private String a;
+    private int b;
+    private boolean c;
+
+    public String getA() { return a; }
+    public void setA(String a) { this.a = a; }
+    public int getB() { return b; }
+    public void setB(int b) { this.b = b; }
+    public boolean isC() { return c; }
+    public void setC(boolean c) { this.c = c; }
+}
+
+@Serdeable
+@Introspected
+class LargeDispatchBean {
+    private String a;
+    private int b;
+    private boolean c;
+    private long d;
+    private double e;
+
+    public String getA() { return a; }
+    public void setA(String a) { this.a = a; }
+    public int getB() { return b; }
+    public void setB(int b) { this.b = b; }
+    public boolean isC() { return c; }
+    public void setC(boolean c) { this.c = c; }
+    public long getD() { return d; }
+    public void setD(long d) { this.d = d; }
+    public double getE() { return e; }
+    public void setE(double e) { this.e = e; }
+}
+''')
+        def registry = jsonMapper.serdeRegistry
+        def decoderContext = registry.newDecoderContext(Object)
+
+        Class<?> smallType = context.classLoader.loadClass('test.SmallDispatchBean')
+        Class<?> largeType = context.classLoader.loadClass('test.LargeDispatchBean')
+        Argument smallArgument = Argument.of(smallType)
+        Argument largeArgument = Argument.of(largeType)
+
+        def smallDeserializer = buildDeserializer(context, smallType)
+        def largeDeserializer = buildDeserializer(context, largeType)
+
+        when:
+        def small = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","b":7,"c":true}')
+        def large = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5}')
+
+        then:
+        invokeDeclared(small, 'getA') == 'x'
+        invokeDeclared(small, 'getB') == 7
+        invokeDeclared(small, 'isC')
+        invokeDeclared(large, 'getA') == 'x'
+        invokeDeclared(large, 'getB') == 7
+        invokeDeclared(large, 'isC')
+        invokeDeclared(large, 'getD') == 9L
+        invokeDeclared(large, 'getE') == 3.5d
+
+        when:
+        def smallDuplicate = captureFailure {
+            deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
+        }
+        def largeDuplicate = captureFailure {
+            deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
+        }
+
+        then:
+        smallDuplicate instanceof SerdeException
+        largeDuplicate instanceof SerdeException
+        smallDuplicate.message?.contains('a')
+        largeDuplicate.message?.contains('e')
+
+        cleanup:
+        context.close()
+    }
+
+    private Object buildDeserializer(def context, Class<?> beanType) {
+        def introspections = context.getBean(SerdeIntrospections)
+        def metadata = introspections.getSerializableIntrospection(Argument.of(beanType)).annotationMetadata
+        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
+        (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+    }
+
+    private static Object invokeDeclared(Object target, String methodName) {
+        def method = target.getClass().getDeclaredMethod(methodName)
+        method.setAccessible(true)
+        method.invoke(target)
+    }
+
     private static Object deserializeValue(Deserializer deserializer,
                                            Deserializer.DecoderContext decoderContext,
                                            Argument type,

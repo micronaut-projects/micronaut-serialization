@@ -23,7 +23,7 @@ import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
-import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
+import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ClassDef;
@@ -88,7 +88,7 @@ public final class BeanSerializerSourceGen {
     private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "finishStructure");
     private static final Method WITH_PROPERTY_PATH_THROWABLE_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeErrorHandler.class,
+        GeneratedSerdeExceptionUtil.class,
         "withPropertyPath",
         Throwable.class,
         Argument.class,
@@ -386,7 +386,7 @@ public final class BeanSerializerSourceGen {
                                               ExpressionDef argumentExpression) {
         return StatementDef.doTry(statement)
             .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
-                ClassTypeDef.of(GeneratedSerdeErrorHandler.class)
+                ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                     .invokeStatic(
                         WITH_PROPERTY_PATH_THROWABLE_METHOD,
                         exceptionVariable,

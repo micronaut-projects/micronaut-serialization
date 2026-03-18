@@ -22,7 +22,8 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
-import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
+import io.micronaut.serde.util.GeneratedSerdeEnumUtil;
+import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -69,14 +70,14 @@ public final class EnumDeserializerSourceGen {
         Argument.class
     );
     private static final Method ENUM_VALUE_OF_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeErrorHandler.class,
+        GeneratedSerdeEnumUtil.class,
         "enumValueOf",
         Class.class,
         String.class,
         Deserializer.DecoderContext.class
     );
     private static final Method UNKNOWN_ENUM_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeErrorHandler.class,
+        GeneratedSerdeExceptionUtil.class,
         "unknownEnumValue",
         Argument.class,
         String.class
@@ -196,7 +197,7 @@ public final class EnumDeserializerSourceGen {
                     }
                 }
 
-                StatementDef deserializeStatement = ClassTypeDef.of(GeneratedSerdeErrorHandler.class)
+                StatementDef deserializeStatement = ClassTypeDef.of(GeneratedSerdeEnumUtil.class)
                     .invokeStatic(
                         ENUM_VALUE_OF_METHOD,
                         ExpressionDef.constant(TypeDef.erasure(element)),
@@ -207,7 +208,7 @@ public final class EnumDeserializerSourceGen {
                     .returning();
                 statements.add(StatementDef.doTry(deserializeStatement)
                     .doCatch(ClassTypeDef.of(IllegalArgumentException.class), exceptionVariable ->
-                        ClassTypeDef.of(GeneratedSerdeErrorHandler.class)
+                        ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                             .invokeStatic(
                                 UNKNOWN_ENUM_VALUE_METHOD,
                                 methodParameters.get(2),
