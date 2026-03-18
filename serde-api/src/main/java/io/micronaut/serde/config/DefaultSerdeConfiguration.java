@@ -59,11 +59,11 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
                               Optional<Locale> locale,
                               Optional<TimeZone> timeZone,
                               @Bindable(defaultValue = "io.micronaut") List<String> includedIntrospectionPackages,
-                                @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth,
-                                @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric,
-                                @Nullable String propertyNamingStrategy,
-                                @Bindable(defaultValue = "false") boolean jsonViewEnabled,
-                                @Property(name = "jackson.json-view.enabled", defaultValue = "false") boolean jacksonJsonViewEnabled) {
+                              @Bindable(defaultValue = LimitingStream.DEFAULT_MAXIMUM_DEPTH + "") int maximumNestingDepth,
+                              @Bindable(defaultValue = DEFAULT_INET_ADDRESS_AS_NUMERIC + "") boolean inetAddressAsNumeric,
+                              @Nullable String propertyNamingStrategy,
+                              @Bindable(defaultValue = "false") boolean jsonViewEnabled,
+                              @Property(name = "jackson.json-view.enabled", defaultValue = "false") boolean jacksonJsonViewEnabled) {
         this.dateFormat = dateFormat;
         this.timeWriteShape = timeWriteShape;
         this.numericTimeUnit = numericTimeUnit;
