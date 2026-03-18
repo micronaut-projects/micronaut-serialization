@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
+import io.micronaut.serde.util.GeneratedSerdePropertyTracker;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -39,11 +40,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import jakarta.inject.Singleton;
 
 /**
@@ -108,7 +107,12 @@ public final class BeanDeserializerSourceGen {
         String.class,
         Argument.class
     );
-    private static final Method SET_ADD_METHOD = ReflectionUtils.getRequiredMethod(Set.class, "add", Object.class);
+    private static final Method MARK_SEEN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdePropertyTracker.class,
+        "markSeenProperty",
+        boolean[].class,
+        int.class
+    );
 
     public ClassDef generate(ClassElement element, BeanSerdeShape beanSerdeShape) {
         TypeDef beanTypeDef = TypeDef.of(element);
@@ -256,11 +260,13 @@ public final class BeanDeserializerSourceGen {
                 statements.add(beanDef);
                 VariableDef beanVariable = beanDef.variable();
 
-                StatementDef.DefineAndAssign seenPropertiesDef = ClassTypeDef.of(HashSet.class).instantiate().newLocal("seenProperties");
+                List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
+
+                StatementDef.DefineAndAssign seenPropertiesDef = TypeDef.array(TypeDef.Primitive.BOOLEAN)
+                    .instantiate(properties.size())
+                    .newLocal("seenProperties");
                 statements.add(seenPropertiesDef);
                 VariableDef seenProperties = seenPropertiesDef.variable();
-
-                List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
                 int index = 0;
                 for (BeanSerdeShape.BeanProperty property : properties) {
                     if (!property.deserializationType().isOptional()) {
@@ -302,7 +308,8 @@ public final class BeanDeserializerSourceGen {
                         .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
                         .doThrow();
                     switchStatement = keyVariable.equalsStructurally(propertyNameExpression).ifTrue(
-                        seenProperties.invoke(SET_ADD_METHOD, propertyNameExpression).ifTrue(
+                        ClassTypeDef.of(GeneratedSerdePropertyTracker.class)
+                            .invokeStatic(MARK_SEEN_PROPERTY_METHOD, seenProperties, ExpressionDef.constant(i)).ifTrue(
                             propertyDeserializers.get(i),
                             duplicatePropertyStatement
                         ),

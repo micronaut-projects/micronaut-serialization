@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeErrorHandler;
+import io.micronaut.serde.util.GeneratedSerdePropertyTracker;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -39,11 +40,9 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import jakarta.inject.Singleton;
 
 /**
@@ -107,7 +106,12 @@ public final class RecordDeserializerSourceGen {
         String.class,
         Argument.class
     );
-    private static final Method SET_ADD_METHOD = ReflectionUtils.getRequiredMethod(Set.class, "add", Object.class);
+    private static final Method MARK_SEEN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdePropertyTracker.class,
+        "markSeenProperty",
+        boolean[].class,
+        int.class
+    );
 
     public ClassDef generate(ClassElement element, RecordSerdeShape recordSerdeShape) {
         TypeDef recordTypeDef = TypeDef.of(element);
@@ -250,12 +254,15 @@ public final class RecordDeserializerSourceGen {
                 StatementDef.DefineAndAssign objectDecoderDef = decoder.invoke(DECODE_OBJECT_METHOD, type).newLocal("objectDecoder");
                 statements.add(objectDecoderDef);
                 VariableDef objectDecoder = objectDecoderDef.variable();
-                StatementDef.DefineAndAssign seenPropertiesDef = ClassTypeDef.of(HashSet.class).instantiate().newLocal("seenProperties");
+
+                List<RecordSerdeShape.RecordComponent> components = recordSerdeShape.components();
+                StatementDef.DefineAndAssign seenPropertiesDef = TypeDef.array(TypeDef.Primitive.BOOLEAN)
+                    .instantiate(components.size())
+                    .newLocal("seenProperties");
                 statements.add(seenPropertiesDef);
                 VariableDef seenProperties = seenPropertiesDef.variable();
 
                 List<ExpressionDef> constructorValues = new ArrayList<>(recordSerdeShape.components().size());
-                List<RecordSerdeShape.RecordComponent> components = recordSerdeShape.components();
                 List<StatementDef> componentDeserializers = new ArrayList<>(components.size());
                 int index = 0;
                 for (RecordSerdeShape.RecordComponent component : components) {
@@ -294,7 +301,8 @@ public final class RecordDeserializerSourceGen {
                         .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
                         .doThrow();
                     switchStatement = keyVariable.equalsStructurally(componentNameExpression).ifTrue(
-                        seenProperties.invoke(SET_ADD_METHOD, componentNameExpression).ifTrue(
+                        ClassTypeDef.of(GeneratedSerdePropertyTracker.class)
+                            .invokeStatic(MARK_SEEN_PROPERTY_METHOD, seenProperties, ExpressionDef.constant(i)).ifTrue(
                             componentDeserializers.get(i),
                             duplicatePropertyStatement
                         ),
