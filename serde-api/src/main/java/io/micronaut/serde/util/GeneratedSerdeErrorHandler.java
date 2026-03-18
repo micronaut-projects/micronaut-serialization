@@ -16,6 +16,7 @@
 package io.micronaut.serde.util;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.annotation.UsedByGeneratedCode;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.EnumBeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
@@ -38,6 +39,7 @@ import java.util.concurrent.ConcurrentMap;
  * Shared error and enum helper methods used by generated serdes.
  */
 @Internal
+@UsedByGeneratedCode
 public final class GeneratedSerdeErrorHandler {
 
     private static final ConcurrentMap<Class<?>, EnumLookup<?>> ENUM_LOOKUPS = new ConcurrentHashMap<>();
