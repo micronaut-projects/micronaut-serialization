@@ -6,6 +6,9 @@ dependencies {
     compileOnly(mn.micronaut.core.processor)
 
     implementation(projects.micronautSerdeApi)
+    implementation(libs.micronaut.sourcegen.model)
+    implementation(libs.micronaut.sourcegen.generator)
+    implementation(libs.micronaut.sourcegen.generator.java)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
 
