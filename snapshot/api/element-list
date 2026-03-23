@@ -26,6 +26,10 @@ io.micronaut.serde.processor.jackson
 io.micronaut.serde.processor.jackson.databind
 io.micronaut.serde.processor.jsonb
 io.micronaut.serde.processor.serde
+io.micronaut.serde.processor.sourcegen
+io.micronaut.serde.processor.sourcegen.beans
+io.micronaut.serde.processor.sourcegen.enums
+io.micronaut.serde.processor.sourcegen.records
 io.micronaut.serde.reference
 io.micronaut.serde.support
 io.micronaut.serde.support.bind

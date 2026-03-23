@@ -90,6 +90,13 @@ loadScripts(document, 'script');</script>
 <li><a href="#ALIASES" tabindex="0">ALIASES</a></li>
 <li><a href="#NAMING" tabindex="0">NAMING</a></li>
 <li><a href="#RUNTIME_NAMING" tabindex="0">RUNTIME_NAMING</a></li>
+<li><a href="#SOURCEGEN_SHAPE" tabindex="0">SOURCEGEN_SHAPE</a></li>
+<li><a href="#SOURCEGEN_SERIALIZER_ELIGIBLE" tabindex="0">SOURCEGEN_SERIALIZER_ELIGIBLE</a></li>
+<li><a href="#SOURCEGEN_DESERIALIZER_ELIGIBLE" tabindex="0">SOURCEGEN_DESERIALIZER_ELIGIBLE</a></li>
+<li><a href="#SOURCEGEN_SERIALIZER_FALLBACK_REASONS" tabindex="0">SOURCEGEN_SERIALIZER_FALLBACK_REASONS</a></li>
+<li><a href="#SOURCEGEN_DESERIALIZER_FALLBACK_REASONS" tabindex="0">SOURCEGEN_DESERIALIZER_FALLBACK_REASONS</a></li>
+<li><a href="#SOURCEGEN_SERIALIZER_CLASS" tabindex="0">SOURCEGEN_SERIALIZER_CLASS</a></li>
+<li><a href="#SOURCEGEN_DESERIALIZER_CLASS" tabindex="0">SOURCEGEN_DESERIALIZER_CLASS</a></li>
 </ol>
 </li>
 </ol>
@@ -318,58 +325,79 @@ API for JSON like JSON-B or Jackson annotations should be used.</p></div>
 <div class="block">Custom serializer class.</div>
 </div>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#TIMEZONE" class="member-name-link">TIMEZONE</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-second even-row-color"><code><a href="#SOURCEGEN_DESERIALIZER_CLASS" class="member-name-link">SOURCEGEN_DESERIALIZER_CLASS</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SOURCEGEN_DESERIALIZER_ELIGIBLE" class="member-name-link">SOURCEGEN_DESERIALIZER_ELIGIBLE</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#SOURCEGEN_DESERIALIZER_FALLBACK_REASONS" class="member-name-link">SOURCEGEN_DESERIALIZER_FALLBACK_REASONS</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SOURCEGEN_SERIALIZER_CLASS" class="member-name-link">SOURCEGEN_SERIALIZER_CLASS</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#SOURCEGEN_SERIALIZER_ELIGIBLE" class="member-name-link">SOURCEGEN_SERIALIZER_ELIGIBLE</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SOURCEGEN_SERIALIZER_FALLBACK_REASONS" class="member-name-link">SOURCEGEN_SERIALIZER_FALLBACK_REASONS</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#SOURCEGEN_SHAPE" class="member-name-link">SOURCEGEN_SHAPE</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#TIMEZONE" class="member-name-link">TIMEZONE</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">A time zone to use.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#TYPE_DISCRIMINATOR_TYPE" class="member-name-link">TYPE_DISCRIMINATOR_TYPE</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#TYPE_DISCRIMINATOR_TYPE" class="member-name-link">TYPE_DISCRIMINATOR_TYPE</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The type discriminator type.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#TYPE_NAME" class="member-name-link">TYPE_NAME</a></code></div>
-<div class="col-last even-row-color">
-<div class="block">A type name mapping.</div>
-</div>
 <div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER" class="member-name-link">TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#TYPE_NAME" class="member-name-link">TYPE_NAME</a></code></div>
 <div class="col-last odd-row-color">
 <div class="block">A type name mapping.</div>
 </div>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#TYPE_NAMES" class="member-name-link">TYPE_NAMES</a></code></div>
+<div class="col-second even-row-color"><code><a href="#TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER" class="member-name-link">TYPE_NAME_CLASS_SIMPLE_NAME_PLACEHOLDER</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">A type name mapping.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#TYPE_NAMES" class="member-name-link">TYPE_NAMES</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">A type name mapping used for subtype binding with multiple names.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#TYPE_PROPERTY" class="member-name-link">TYPE_PROPERTY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#TYPE_PROPERTY" class="member-name-link">TYPE_PROPERTY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The type property used for subtype binding.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#TYPE_PROPERTY_VISIBLE" class="member-name-link">TYPE_PROPERTY_VISIBLE</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#TYPE_PROPERTY_VISIBLE" class="member-name-link">TYPE_PROPERTY_VISIBLE</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">If the type property should be visible.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#VALIDATE" class="member-name-link">VALIDATE</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#VALIDATE" class="member-name-link">VALIDATE</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Whether to validate at compilation time the config.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#VIEWS" class="member-name-link">VIEWS</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#VIEWS" class="member-name-link">VIEWS</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The views an element is part of.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#WRAPPER_PROPERTY" class="member-name-link">WRAPPER_PROPERTY</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#WRAPPER_PROPERTY" class="member-name-link">WRAPPER_PROPERTY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">A property that should be used to wrap this value when serializing.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#WRITE_ONLY" class="member-name-link">WRITE_ONLY</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#WRITE_ONLY" class="member-name-link">WRITE_ONLY</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Is this property to be used only for writing.</div>
 </div>
 </div>
@@ -941,6 +969,118 @@ All the names would be mapped to the class during deserialization.</div>
 <dd>
 <ul class="tag-list">
 <li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.RUNTIME_NAMING">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_SHAPE">
+<h3>SOURCEGEN_SHAPE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_SHAPE</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SHAPE">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_SERIALIZER_ELIGIBLE">
+<h3>SOURCEGEN_SERIALIZER_ELIGIBLE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_SERIALIZER_ELIGIBLE</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_DESERIALIZER_ELIGIBLE">
+<h3>SOURCEGEN_DESERIALIZER_ELIGIBLE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_DESERIALIZER_ELIGIBLE</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_SERIALIZER_FALLBACK_REASONS">
+<h3>SOURCEGEN_SERIALIZER_FALLBACK_REASONS</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_SERIALIZER_FALLBACK_REASONS</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_DESERIALIZER_FALLBACK_REASONS">
+<h3>SOURCEGEN_DESERIALIZER_FALLBACK_REASONS</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_DESERIALIZER_FALLBACK_REASONS</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_SERIALIZER_CLASS">
+<h3>SOURCEGEN_SERIALIZER_CLASS</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_SERIALIZER_CLASS</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_SERIALIZER_CLASS">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="SOURCEGEN_DESERIALIZER_CLASS">
+<h3>SOURCEGEN_DESERIALIZER_CLASS</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SOURCEGEN_DESERIALIZER_CLASS</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS">Constant Field Values</a></li>
 </ul>
 </dd>
 </dl>
