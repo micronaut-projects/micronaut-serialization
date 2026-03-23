@@ -81,6 +81,7 @@ public @interface Serdeable {
          * @return Naming strategy to use.
          */
         Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
+
     }
 
     /**
@@ -110,5 +111,6 @@ public @interface Serdeable {
          * @return Naming strategy to use.
          */
         Class<? extends PropertyNamingStrategy> naming() default IdentityStrategy.class;
+
     }
 }

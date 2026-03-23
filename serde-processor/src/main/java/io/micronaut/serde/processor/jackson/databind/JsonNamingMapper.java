@@ -91,6 +91,9 @@ public class JsonNamingMapper implements NamedAnnotationMapper {
         );
     }
 
+    /**
+     * Mapper variant for Jackson 2 package names.
+     */
     public static final class Jackson2 extends JsonNamingMapper {
         @Override
         public String getName() {

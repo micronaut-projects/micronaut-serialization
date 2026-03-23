@@ -33,6 +33,7 @@ import java.util.TimeZone;
 public interface SerdeConfiguration {
 
     String PREFIX = "micronaut.serde";
+    boolean DEFAULT_INET_ADDRESS_AS_NUMERIC = false;
 
     /**
      * The date format to use when serializing and deserializing dates.
@@ -40,8 +41,6 @@ public interface SerdeConfiguration {
      * @return the date format to use
      */
     Optional<String> getDateFormat();
-
-    boolean DEFAULT_INET_ADDRESS_AS_NUMERIC = false;
 
     /**
      *

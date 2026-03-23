@@ -137,4 +137,5 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     public boolean isJsonViewEnabled() {
         return jsonViewEnabled;
     }
+
 }

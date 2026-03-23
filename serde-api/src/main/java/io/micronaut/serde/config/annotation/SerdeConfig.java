@@ -204,6 +204,20 @@ public @interface SerdeConfig {
      */
     String RUNTIME_NAMING = "runtimeNaming";
 
+    String SOURCEGEN_SHAPE = "sourcegenShape";
+
+    String SOURCEGEN_SERIALIZER_ELIGIBLE = "sourcegenSerializerEligible";
+
+    String SOURCEGEN_DESERIALIZER_ELIGIBLE = "sourcegenDeserializerEligible";
+
+    String SOURCEGEN_SERIALIZER_FALLBACK_REASONS = "sourcegenSerializerFallbackReasons";
+
+    String SOURCEGEN_DESERIALIZER_FALLBACK_REASONS = "sourcegenDeserializerFallbackReasons";
+
+    String SOURCEGEN_SERIALIZER_CLASS = "sourcegenSerializerClass";
+
+    String SOURCEGEN_DESERIALIZER_CLASS = "sourcegenDeserializerClass";
+
     /**
      * Internal metadata type for wrapped settings.
      */

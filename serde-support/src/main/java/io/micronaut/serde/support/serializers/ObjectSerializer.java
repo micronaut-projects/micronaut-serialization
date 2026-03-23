@@ -108,7 +108,8 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
         } else {
             serializer = new CustomizedObjectSerializer<>(serBean);
         }
-        if (serBean.subtyped) {
+        boolean subtyped = serBean.subtyped;
+        if (subtyped) {
             serializer = new RuntimeTypeSerializer(encoderContext, serializer, type);
         } else {
             if (serBean.wrapperProperty != null) {

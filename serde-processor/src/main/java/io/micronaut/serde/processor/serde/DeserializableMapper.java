@@ -23,6 +23,9 @@ import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import java.util.List;
 
+/**
+ * Maps {@link Serdeable.Deserializable} members to {@link SerdeConfig} metadata.
+ */
 public final class DeserializableMapper
     implements TypedAnnotationMapper<Serdeable.Deserializable> {
     @Override
@@ -49,7 +52,6 @@ public final class DeserializableMapper
             builder
                 .member(SerdeConfig.NAMING, naming)
         );
-
         return List.of(builder.build());
     }
 }
