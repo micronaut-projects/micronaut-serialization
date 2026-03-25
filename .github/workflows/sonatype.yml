@@ -73,7 +73,7 @@ jobs:
         id: sonatypescan
         run: |
           ./gradlew ossIndexAudit --no-parallel --info
-                
+
       - name: "❓ Optional cleanup step"
         run: |
           [ -f ./cleanup.sh ] && ./cleanup.sh || [ ! -f ./cleanup.sh ]

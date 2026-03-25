@@ -1,6 +1,7 @@
 package io.micronaut.serde.tck.jackson.databind
 
 import io.micronaut.context.ApplicationContextBuilder
+import io.micronaut.core.util.StringUtils
 import io.micronaut.serde.jackson.JsonPropertySpec
 import spock.lang.PendingFeature
 
@@ -11,7 +12,7 @@ class DatabindJsonPropertySpec extends JsonPropertySpec {
         super.configureContext(contextBuilder.properties(
                 Map.of(
                         "jackson.deserialization-features.fail-on-null-for-primitives", "false",
-                        "jackson.deserialization-features.fail-on-unknown-properties", "true",
+                        "jackson.deserialization-features.fail-on-unknown-properties", StringUtils.FALSE,
                 )
         ))
     }

@@ -4,7 +4,6 @@ managed-jakarta-json-api = "2.1.3"
 managed-jakarta-json-bindApi = "3.0.1"
 managed-eclipse-parsson = "1.1.7"
 
-graal-svm = "23.1.10"
 aws-lambda-events = "3.16.1"
 aws-lambda-serialization = "1.2.0"
 microstream-storage-restclient = "08.01.02-MS-GA"
@@ -14,12 +13,11 @@ jmh = "1.37"
 lombok = "1.18.42"
 
 micronaut-platform = "4.10.9"
-micronaut = "5.0.0-M9"
-micronaut-discovery = "4.7.2"
-micronaut-logging = "1.7.3"
-micronaut-oracle-cloud = "5.6.2"
-micronaut-reactor = "3.9.1"
-micronaut-validation = "4.12.0"
+micronaut = "5.0.0-M17"
+micronaut-discovery = "5.0.0-M1"
+micronaut-oracle-cloud = "6.0.0-M1"
+micronaut-reactor = "4.0.0-M1"
+micronaut-validation = "5.0.0-M1"
 micronaut-gradle-plugin = "4.6.2"
 micronaut-sourcegen = "2.0.0-M2"
 jsonassert = "1.5.3"
@@ -28,7 +26,6 @@ jsonassert = "1.5.3"
 # Micronaut
 micronaut-core = { module = "io.micronaut:micronaut-core-bom", version.ref = "micronaut" }
 micronaut-platform = { module = "io.micronaut.platform:micronaut-platform", version.ref = "micronaut-platform"}
-micronaut-logging = { module = "io.micronaut.logging:micronaut-logging-bom", version.ref = "micronaut-logging" }
 micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecloud-bom', version.ref = 'micronaut-oracle-cloud' }
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation-bom", version.ref = "micronaut-validation" }
@@ -46,7 +43,6 @@ oracle-jdbc-driver = { module = "com.oracle.database.jdbc:ojdbc8", version.ref =
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 aws-lambda-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws-lambda-events" }
 aws-lambda-serialization = { module = "com.amazonaws:aws-lambda-java-serialization", version.ref = "aws-lambda-serialization" }
-graal-svm = { module = "org.graalvm.sdk:nativeimage", version.ref = "graal-svm" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 microstream-storage-restclient = { module = "one.microstream:microstream-storage-restclient", version.ref = "microstream-storage-restclient" }
