@@ -20,6 +20,7 @@ micronaut-oracle-cloud = "6.0.0-M1"
 micronaut-reactor = "4.0.0-M1"
 micronaut-validation = "5.0.0-M1"
 micronaut-gradle-plugin = "4.6.2"
+micronaut-sourcegen = "2.0.0-M2"
 jsonassert = "1.5.3"
 
 [libraries]
@@ -30,6 +31,9 @@ micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecl
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation-bom", version.ref = "micronaut-validation" }
 micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
+micronaut-sourcegen-generator-java = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator-java", version.ref = "micronaut-sourcegen" }
+micronaut-sourcegen-generator = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator", version.ref = "micronaut-sourcegen" }
+micronaut-sourcegen-model = { module = "io.micronaut.sourcegen:micronaut-sourcegen-model", version.ref = "micronaut-sourcegen" }
 
 managed-bson = { module = "org.mongodb:bson", version.ref = "managed-bson" }
 managed-eclipse-parsson = { module = "org.eclipse.parsson:parsson", version.ref = "managed-eclipse-parsson" }
