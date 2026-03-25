@@ -10,7 +10,7 @@ microstream-storage-restclient = "08.01.02-MS-GA"
 oracle-jdbc-driver = "23.26.1.0.0"
 jetbrains-annotations = "24.1.0"
 jmh = "1.37"
-lombok = "1.18.42"
+lombok = "1.18.44"
 
 micronaut-platform = "4.10.10"
 micronaut = "5.0.0-M17"
