@@ -11,7 +11,7 @@ dependencies {
     annotationProcessor(mn.micronaut.inject.java)
     annotationProcessor(projects.micronautSerdeProcessor)
 
-    compileOnly(libs.graal.svm)
+    compileOnly(mn.graalvm.nativeimage)
     compileOnly(mn.micronaut.jackson.databind)
 
     api(libs.managed.jakarta.json.api)
