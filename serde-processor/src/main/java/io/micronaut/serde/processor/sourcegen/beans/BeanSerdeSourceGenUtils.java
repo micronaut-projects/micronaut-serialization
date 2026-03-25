@@ -41,7 +41,7 @@ final class BeanSerdeSourceGenUtils {
     private static final String SHORT_TYPE = "short";
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
-    private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.support.util.SerdeArgumentConstants");
+    private static final ClassTypeDef SERDE_ARGUMENT_CONSTANTS = ClassTypeDef.of("io.micronaut.serde.util.SerdeArgumentConstants");
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);

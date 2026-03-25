@@ -42,6 +42,7 @@ import io.micronaut.sourcegen.model.TypeDef;
 
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -54,6 +55,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     private final RecordSerdeShapeResolver recordSerdeShapeResolver = new RecordSerdeShapeResolver();
     private final BeanSerdeShapeResolver beanSerdeShapeResolver = new BeanSerdeShapeResolver();
     private final EnumSerdeShapeResolver enumSerdeShapeResolver = new EnumSerdeShapeResolver();
+    private final Set<String> writtenGeneratedClassNames = new HashSet<>(32);
 
     @Override
     public Set<String> getSupportedAnnotationNames() {
@@ -89,28 +91,29 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     }
 
     private void generateSerializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
+        String generatedSerializerClassName = SerdeSourceGenClassNaming.generatedSerializerClassName(element);
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
-                write(context, element, new RecordSerializerSourceGen().generate(element, recordSerdeShape));
+                write(context, element, generatedSerializerClassName, new RecordSerializerSourceGen().generate(element, recordSerdeShape));
                 return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
-                write(context, element, new BeanSerializerSourceGen().generate(element, beanSerdeShape));
+                write(context, element, generatedSerializerClassName, new BeanSerializerSourceGen().generate(element, beanSerdeShape));
                 return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
             EnumSerdeShape enumSerdeShape = enumSerdeShapeResolver.resolve(element).orElse(null);
             if (enumSerdeShape != null) {
-                write(context, element, new EnumSerializerSourceGen().generate(element, enumSerdeShape));
+                write(context, element, generatedSerializerClassName, new EnumSerializerSourceGen().generate(element, enumSerdeShape));
                 return;
             }
         }
-        write(context, element, ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
+        write(context, element, generatedSerializerClassName, ClassDef.builder(generatedSerializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
@@ -120,28 +123,29 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     }
 
     private void generateDeserializerClass(ClassElement element, SimpleSerdeShapeDecision decision, VisitorContext context) {
+        String generatedDeserializerClassName = SerdeSourceGenClassNaming.generatedDeserializerClassName(element);
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.RECORD) {
             RecordSerdeShape recordSerdeShape = recordSerdeShapeResolver.resolve(element).orElse(null);
             if (recordSerdeShape != null) {
-                write(context, element, new RecordDeserializerSourceGen().generate(element, recordSerdeShape));
+                write(context, element, generatedDeserializerClassName, new RecordDeserializerSourceGen().generate(element, recordSerdeShape));
                 return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.DEFAULT_CONSTRUCTOR_BEAN) {
             BeanSerdeShape beanSerdeShape = beanSerdeShapeResolver.resolve(element).orElse(null);
             if (beanSerdeShape != null) {
-                write(context, element, new BeanDeserializerSourceGen().generate(element, beanSerdeShape));
+                write(context, element, generatedDeserializerClassName, new BeanDeserializerSourceGen().generate(element, beanSerdeShape));
                 return;
             }
         }
         if (decision.shapeKind() == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
             EnumSerdeShape enumSerdeShape = enumSerdeShapeResolver.resolve(element).orElse(null);
             if (enumSerdeShape != null) {
-                write(context, element, new EnumDeserializerSourceGen().generate(element, enumSerdeShape));
+                write(context, element, generatedDeserializerClassName, new EnumDeserializerSourceGen().generate(element, enumSerdeShape));
                 return;
             }
         }
-        write(context, element, ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
+        write(context, element, generatedDeserializerClassName, ClassDef.builder(generatedDeserializerClassName)
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember("value", "Micronaut")
@@ -150,9 +154,13 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             .build());
     }
 
-    private void write(VisitorContext context, ClassElement element, ClassDef classDef) {
+    private void write(VisitorContext context, ClassElement element, String generatedClassName, ClassDef classDef) {
+        if (writtenGeneratedClassNames.contains(generatedClassName)) {
+            return;
+        }
         try {
             sourceGenerator.write(classDef, context, element);
+            writtenGeneratedClassNames.add(generatedClassName);
         } catch (Exception e) {
             SourceGenerators.handleFatalException(element, Serdeable.class, e, runtimeException -> {
                 throw runtimeException;

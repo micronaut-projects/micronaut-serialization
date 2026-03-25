@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde.support.util;
+package io.micronaut.serde.util;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
