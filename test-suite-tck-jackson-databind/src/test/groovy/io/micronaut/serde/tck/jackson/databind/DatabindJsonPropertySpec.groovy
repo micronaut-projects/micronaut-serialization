@@ -2,6 +2,7 @@ package io.micronaut.serde.tck.jackson.databind
 
 import io.micronaut.context.ApplicationContextBuilder
 import io.micronaut.serde.jackson.JsonPropertySpec
+import tools.jackson.databind.exc.UnrecognizedPropertyException
 import spock.lang.PendingFeature
 
 class DatabindJsonPropertySpec extends JsonPropertySpec {
@@ -56,11 +57,11 @@ class Test {
             result == '{"value":"test","ignored":"xyz"}'
 
         when:
-            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+            jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
 
         then:
-            bean.value == 'test'
-            bean.ignored == null
+            def e = thrown(UnrecognizedPropertyException)
+            e.propertyName == 'ignored'
 
         cleanup:
             context.close()
@@ -92,11 +93,11 @@ record Test(
             result == '{"value":"test","ignored":"xyz"}'
 
         when:
-            bean = jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
+            jsonMapper.readValue('{"value":"test","ignored":"xyz"}', argumentOf(context, 'test.Test'))
 
         then:
-            bean.value == 'test'
-            bean.ignored == null
+            def e = thrown(UnrecognizedPropertyException)
+            e.propertyName == 'ignored'
 
         cleanup:
             context.close()
