@@ -130,6 +130,39 @@ public enum ParityEnum {
         context.close()
     }
 
+    void 'test repeated serde import does not duplicate enum sourcegen files'() {
+        given:
+        def context = buildContext('test.ImportHolder', '''
+package test;
+
+import io.micronaut.serde.annotation.SerdeImport;
+
+@SerdeImport(value = ImportHolder.McpSchema.Role.class)
+@SerdeImport(value = ImportHolder.McpSchema.Role.class)
+public class ImportHolder {
+    public static final class McpSchema {
+        public enum Role {
+            USER,
+            ASSISTANT
+        }
+    }
+}
+''')
+        Class<?> enumType = context.classLoader.loadClass('test.ImportHolder$McpSchema$Role')
+
+        when:
+        def value = Enum.valueOf((Class<Enum>) enumType, 'ASSISTANT')
+        String json = jsonMapper.writeValueAsString(value)
+        def deserialized = jsonMapper.readValue(json, Argument.of(enumType))
+
+        then:
+        json == '"ASSISTANT"'
+        deserialized == value
+
+        cleanup:
+        context.close()
+    }
+
     private static Object deserializeEnum(Deserializer deserializer,
                                           Deserializer.DecoderContext decoderContext,
                                           Argument type,
