@@ -169,6 +169,10 @@ final class ObjectMappers {
             .bootstrapEnvironment(false)
             .deduceCloudEnvironment(false)
             .enableDefaultPropertySources(false);
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader != null) {
+            applicationContextBuilder.classLoader(contextClassLoader);
+        }
         if (!config.isEmpty()) {
             applicationContextBuilder.propertySources(PropertySource.of("config", config, PropertySource.PropertyConvention.JAVA_PROPERTIES, PropertySource.Origin.of("config")));
         }
