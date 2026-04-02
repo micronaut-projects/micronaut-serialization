@@ -33,6 +33,7 @@ import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import javax.annotation.processing.Generated;
@@ -55,6 +56,7 @@ public final class BeanSerializerSourceGen {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef SERIALIZER_TYPE = TypeDef.of(Serializer.class);
+    private static final TypeDef NULLABLE_SERIALIZER_TYPE = SERIALIZER_TYPE.annotated(AnnotationDef.builder(Nullable.class).build());
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
 
     private static final Method SERIALIZE_METHOD = ReflectionUtils.getRequiredMethod(
@@ -124,6 +126,7 @@ public final class BeanSerializerSourceGen {
                 serializerFieldNames.put(property.name(), serializerFieldName);
                 fields.add(FieldDef.builder(serializerFieldName, SERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                    .addAnnotation(Nullable.class)
                     .build());
             }
             index++;
@@ -318,8 +321,10 @@ public final class BeanSerializerSourceGen {
             return wrapWithPropertyPath(scalarStatement, type, property.name(), argumentExpression);
         }
         String serializerFieldName = serializerFieldNames.get(property.name());
-        StatementDef.DefineAndAssign serializerDef = aThis.field(serializerFieldName, SERIALIZER_TYPE)
-            .newLocal(BeanSerdeSourceGenUtils.localName("serializer", property.name(), index));
+        StatementDef.DefineAndAssign serializerDef = new StatementDef.DefineAndAssign(
+            new VariableDef.Local(BeanSerdeSourceGenUtils.localName("serializer", property.name(), index), NULLABLE_SERIALIZER_TYPE),
+            aThis.field(serializerFieldName, SERIALIZER_TYPE)
+        );
         StatementDef initializeSerializerStatement = serializerDef.variable().isNull().ifTrue(
             serializerDef.variable().assign(context.invoke(FIND_SERIALIZER_METHOD, argumentExpression).invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression))
         );
