@@ -32,6 +32,7 @@ import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import javax.annotation.processing.Generated;
@@ -51,6 +52,7 @@ public final class BeanDeserializerSourceGen {
 
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
+    private static final TypeDef NULLABLE_DESERIALIZER_TYPE = DESERIALIZER_TYPE.annotated(AnnotationDef.builder(Nullable.class).build());
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
     private static final String CONTEXT_PARAMETER = "context";
     private static final String VALUE_LOCAL_PREFIX = "value";
@@ -136,6 +138,7 @@ public final class BeanDeserializerSourceGen {
                 deserializerFieldNames.put(property.name(), deserializerFieldName);
                 fields.add(FieldDef.builder(deserializerFieldName, DESERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                    .addAnnotation(Nullable.class)
                     .build());
             }
             index++;
@@ -424,8 +427,10 @@ public final class BeanDeserializerSourceGen {
             deserializeAndAssign = deserializedValueDef;
         } else {
             String deserializerFieldName = deserializerFieldNames.get(property.name());
-            StatementDef.DefineAndAssign deserializerDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE)
-                .newLocal(BeanSerdeSourceGenUtils.localName("deserializer", property.name(), index));
+            StatementDef.DefineAndAssign deserializerDef = new StatementDef.DefineAndAssign(
+                new VariableDef.Local(BeanSerdeSourceGenUtils.localName("deserializer", property.name(), index), NULLABLE_DESERIALIZER_TYPE),
+                aThis.field(deserializerFieldName, DESERIALIZER_TYPE)
+            );
             StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
                 deserializerDef.variable().assign(context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression).invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression))
             );
