@@ -16,4 +16,6 @@ dependencies {
 
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mnTest.micronaut.test.spock)
+    testImplementation(mn.jackson.dataformat.xml)
+    testImplementation(mn.micronaut.sourcegen.annotations)
 }
