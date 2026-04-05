@@ -235,6 +235,69 @@ record LargeDispatchRecord(String a, int b, boolean c, long d, double e) {}
         context.close()
     }
 
+
+    void 'test record sourcegen handles nested geometry lists requiring lazy serializer and deserializer fields'() {
+        given:
+        def context = buildContext('test.MultiPoint', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+import java.util.List;
+
+@Serdeable
+@Introspected
+public record MultiPoint(List<Point> points) {
+    @Serdeable
+    @Introspected
+    public record Point(double x, double y) {}
+}
+''')
+        Class<?> multiPointType = context.classLoader.loadClass('test.MultiPoint')
+        Class<?> pointType = context.classLoader.loadClass('test.MultiPoint$Point')
+        def introspections = context.getBean(SerdeIntrospections)
+        def metadata = introspections.getSerializableIntrospection(Argument.of(multiPointType)).annotationMetadata
+        String serializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
+        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        Class<?> serializerClass = context.classLoader.loadClass(serializerClassName)
+        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
+        Serializer serializer = (Serializer) serializerClass.getDeclaredConstructor().newInstance()
+        Deserializer deserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+        def registry = jsonMapper.serdeRegistry
+        Serializer.EncoderContext encoderContext = registry.newEncoderContext(Object)
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
+        def type = Argument.of(multiPointType)
+        def pointA = pointType.getDeclaredConstructor(double, double).newInstance(1d, 2d)
+        def pointB = pointType.getDeclaredConstructor(double, double).newInstance(3d, 4d)
+        def multiPoint = multiPointType.getDeclaredConstructor(List).newInstance([pointA, pointB])
+        def jsonFactory = new JsonFactory()
+        def output = new ByteArrayOutputStream()
+
+        expect:
+        serializerClass.declaredFields*.name.any { it.startsWith('SERIALIZER_') }
+        deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
+
+        when:
+        jsonFactory.createGenerator(output).withCloseable { generator ->
+            Encoder encoder = JacksonEncoder.create(generator)
+            serializer.serialize(encoder, encoderContext, type, multiPoint)
+        }
+        String json = output.toString('UTF-8')
+
+        def roundTrip
+        jsonFactory.createParser(json).withCloseable { parser ->
+            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
+            roundTrip = deserializer.deserialize(decoder, decoderContext, type)
+        }
+
+        then:
+        json == '{"points":[{"x":1.0,"y":2.0},{"x":3.0,"y":4.0}]}'
+        invokeDeclared(roundTrip, 'points').toString() == '[Point[x=1.0, y=2.0], Point[x=3.0, y=4.0]]'
+
+        cleanup:
+        context.close()
+    }
+
     private Object buildDeserializer(def context, Class<?> recordType) {
         def introspections = context.getBean(SerdeIntrospections)
         def metadata = introspections.getSerializableIntrospection(Argument.of(recordType)).annotationMetadata
