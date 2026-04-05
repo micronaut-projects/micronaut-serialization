@@ -35,4 +35,5 @@ dependencies {
     testImplementation(projects.micronautSerdeJacksonTck)
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.micronaut.http.server.netty)
+    testImplementation(mn.jackson.dataformat.xml)
 }
