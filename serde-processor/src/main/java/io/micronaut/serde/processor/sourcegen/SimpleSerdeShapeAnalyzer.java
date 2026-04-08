@@ -46,6 +46,7 @@ public final class SimpleSerdeShapeAnalyzer {
     private static final String SERDEABLE_DESERIALIZABLE = Serdeable.Deserializable.class.getName();
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
     private static final String BSON_REPRESENTATION = "org.bson.codecs.pojo.annotations.BsonRepresentation";
+    private static final String JACKSON_DATAFORMAT = "tools.jackson.dataformat.";
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
@@ -335,7 +336,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasJacksonAnnotationNames(Set<String> annotationNames) {
-        return annotationNames.stream().anyMatch(name -> name.startsWith(JACKSON_ANNOTATION_PREFIX));
+        return annotationNames.stream().anyMatch(name -> name.startsWith(JACKSON_ANNOTATION_PREFIX) || name.startsWith(JACKSON_DATAFORMAT));
     }
 
     private boolean hasJacksonAnnotationInTypeHierarchy(ClassElement classElement, Set<String> visited) {
