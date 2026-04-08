@@ -297,6 +297,82 @@ class JsonIncludePropertyBean {
         context.close()
     }
 
+    void 'test jackson dataformat xml annotations fall back from sourcegen'(){
+        given:
+        def context = buildContext('test.XmlWrapperBean', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlText;
+import java.util.List;
+
+@Serdeable
+class XmlWrapperBean {
+    @JacksonXmlElementWrapper(localName = "items")
+    private List<String> items;
+
+    public XmlWrapperBean() {}
+
+    public List<String> getItems() { return items; }
+
+    public void setItems(List<String> items) { this.items = items; }
+}
+
+@Serdeable
+class XmlPropertyBean {
+    @JacksonXmlProperty(localName = "username", isAttribute = true)
+    private String name;
+
+    public XmlPropertyBean() {}
+
+    public String getName() { return name; }
+
+    public void setName(String name) { this.name = name; }
+}
+
+@Serdeable
+@JacksonXmlRootElement(localName = "product", namespace = "http://example.com/products")
+class XmlRootBean {
+    private String title;
+
+    public XmlRootBean() {}
+
+    public String getTitle() { return title; }
+
+    public void setTitle(String title) { this.title = title; }
+}
+
+@Serdeable
+class XmlTextBean {
+    @JacksonXmlText
+    private String content;
+    private String label;
+
+    public XmlTextBean() {}
+
+    public String getContent() { return content; }
+
+    public void setContent(String content) { this.content = content; }
+
+    public String getLabel() { return label; }
+
+    public void setLabel(String label) { this.label = label; }
+}
+''')
+
+        expect:
+        assertEligibility(context, 'test.XmlWrapperBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.XmlPropertyBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.XmlRootBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.XmlTextBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     private void assertEligibility(def context,
                                    String className,
                                    String shape,
