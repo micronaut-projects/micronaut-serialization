@@ -339,4 +339,70 @@ final class ContextualValueDeserializer implements Deserializer<ContextualValue>
         where:
             scopeAnnotation << ['Prototype', 'Singleton']
     }
+
+    // Test for https://github.com/micronaut-projects/micronaut-serialization/issues/1187
+    void 'test json serialize a custom container'() {
+        given:
+            def context = buildContext('test.SomeModel', """
+package test;
+
+import java.io.IOException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.util.List;
+import java.util.stream.Collectors;
+
+record Something(String s) {}
+
+@Serdeable
+record SomeModel(List<Something> specificList, List<String> genericList) {}
+
+@Singleton
+class ListSomethingDeserializer implements Deserializer<List<Something>> {
+    @Override
+    public @Nullable List<Something> deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super List<Something>> type) throws IOException {
+        var stringValue = decoder.decodeString();
+        return java.util.Arrays.stream(stringValue.split("\\\\|"))
+            .map(Something::new)
+            .toList();
+    }
+}
+
+@Singleton
+class ListSomethingSerializer implements Serializer<List<Something>> {
+    @Override
+    public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends List<Something>> type, @NonNull List<Something> value) throws IOException {
+        encoder.encodeString(value.stream().map(Something::s).collect(Collectors.joining("|")));
+    }
+}
+""")
+
+        when:
+            def json = '{"specificList":"a|b|c","genericList":["a","b","c"]}'
+            def SomeModel = context.getClassLoader().loadClass("test.SomeModel")
+            def result = jsonMapper.readValue(json, SomeModel)
+        then:
+            result != null
+
+        when:
+            def serialized = writeJson(jsonMapper, result)
+        then:
+            serialized == json
+
+        when:
+            // Serialize a plain List<String> - must NOT use ListSomethingSerializer
+            def strings = jsonMapper.writeValueAsString(List.of("a", "b", "c"))
+        then:
+            strings == '["a","b","c"]'
+
+        cleanup:
+            context.close()
+    }
 }
