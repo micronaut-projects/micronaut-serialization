@@ -365,7 +365,49 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         Argument<?> type,
         Collection<BeanDefinition<Serializer>> candidates) throws SerdeException {
 
+        // When multiple serializers match, prefer the one whose type argument most closely matches.
+        // If the type has no type parameters (raw collection), prefer candidates with type-variable
+        // type arguments (more generic) over candidates with concrete type arguments.
+        // This prevents a user-defined Serializer<List<Foo>> from being used for raw/unparameterized
+        // collection types like the result of List.of(...).
+        // See https://github.com/micronaut-projects/micronaut-serialization/issues/1187
+        if (type.getTypeParameters().length == 0) {
+            List<BeanDefinition<Serializer>> genericCandidates = candidates.stream()
+                .filter(candidate -> {
+                    List<Argument<?>> typeArgs = candidate.getTypeArguments(Serializer.class);
+                    if (typeArgs.isEmpty()) {
+                        return false;
+                    }
+                    Argument<?> candidateArg = typeArgs.get(0);
+                    // A candidate is "generic" if its type argument has no concrete type parameters
+                    // (i.e. all type parameters are type variables or the candidate has no type params)
+                    return hasOnlyTypeVariableParameters(candidateArg);
+                })
+                .toList();
+            if (!genericCandidates.isEmpty() && genericCandidates.size() < candidates.size()) {
+                candidates = genericCandidates;
+            }
+        }
+
         return lastChanceResolve(type, candidates, "serializers");
+    }
+
+    /**
+     * Returns true if the given argument has only type-variable parameters (no concrete types in its type parameters).
+     * This is used to detect "generic" serializers like {@code Serializer<List<E>>} vs specific ones like
+     * {@code Serializer<List<String>>}.
+     */
+    private static boolean hasOnlyTypeVariableParameters(Argument<?> argument) {
+        Argument<?>[] typeParameters = argument.getTypeParameters();
+        if (typeParameters.length == 0) {
+            return true;
+        }
+        for (Argument<?> typeParameter : typeParameters) {
+            if (!typeParameter.isTypeVariable()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private BeanDefinition<Deserializer> lastChanceResolveDeserializer(
