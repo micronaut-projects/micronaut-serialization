@@ -98,6 +98,9 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     @Override
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         String text = decoder.decodeString();
+        if (text.isEmpty() && type.isNullable()) {
+            return null;
+        }
         try {
             return stringFormatter.parse(text, query());
         } catch (DateTimeException e) {
