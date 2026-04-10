@@ -13,6 +13,7 @@ dependencies {
 
     implementation(projects.micronautSerdeJackson)
     implementation(mn.micronaut.http.client)
+    implementation("io.micronaut.data:micronaut-data-model")
     implementation(libs.oci.aidocument)
 
     runtimeOnly(mnLogging.logback.classic)

@@ -17,6 +17,7 @@ package io.micronaut.serde.support;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.DefaultImplementation;
+import io.micronaut.context.BeanDefinitionRegistry;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationMetadataProvider;
 import io.micronaut.core.annotation.AnnotationValue;
@@ -56,15 +57,19 @@ import java.util.stream.Collectors;
 public class DefaultSerdeIntrospections implements SerdeIntrospections {
 
     private final Set<String> serdePackages;
+    private final BeanDefinitionRegistry beanDefinitionRegistry;
 
     @Inject
-    public DefaultSerdeIntrospections(SerdeConfiguration configuration) {
+    public DefaultSerdeIntrospections(SerdeConfiguration configuration,
+                                      BeanDefinitionRegistry beanDefinitionRegistry) {
         final List<String> introspectionPackages = configuration.getIncludedIntrospectionPackages();
         this.serdePackages = new HashSet<>(introspectionPackages);
+        this.beanDefinitionRegistry = beanDefinitionRegistry;
     }
 
     public DefaultSerdeIntrospections() {
         this.serdePackages = Collections.singleton("io.micronaut");
+        this.beanDefinitionRegistry = null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -104,6 +109,9 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
                     result = (BeanIntrospection<T>) OrderUtil.sort(candidates.stream()).findFirst().orElse(null);
                 }
             }
+        }
+        if (result == null && introspection.isPresent() && isImportedForSerialization(type)) {
+            result = introspection.get();
         }
         if (result != null) {
             return resolveIntrospectionForSerialization(type, result);
@@ -168,7 +176,7 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
      * @param <T> The generic type
      */
     protected @NonNull <T> BeanIntrospection<T> resolveIntrospectionForDeserialization(@NonNull Argument<T> type, @NonNull BeanIntrospection<T> introspection) {
-        if (isEnabledForDeserialization(introspection, type)) {
+        if (isEnabledForDeserialization(introspection, type) || isImportedForDeserialization(type)) {
             final AnnotationMetadata declaredMetadata = introspection.getDeclaredMetadata();
             final AnnotationValue<SerdeConfig> serdeConfig = declaredMetadata.getDeclaredAnnotation(SerdeConfig.class);
             Class<?> deserializeType = resolveDeserAsType(
@@ -239,6 +247,25 @@ public class DefaultSerdeIntrospections implements SerdeIntrospections {
     private <T extends Annotation> boolean isMixinEnabledForSerialization(List<AnnotationValue<T>> mixinsValues,
                                                                           Argument<?> type) {
         return isEnabledForMixin(mixinsValues, type, "serializable");
+    }
+
+    private boolean isImportedForDeserialization(Argument<?> type) {
+        return isImported(type, "deserializable");
+    }
+
+    private boolean isImportedForSerialization(Argument<?> type) {
+        return isImported(type, "serializable");
+    }
+
+    private boolean isImported(Argument<?> type, String member) {
+        if (beanDefinitionRegistry == null) {
+            return false;
+        }
+        return beanDefinitionRegistry.getBeanDefinitionReferences().stream().anyMatch(reference -> {
+            AnnotationMetadata annotationMetadata = reference.getAnnotationMetadata();
+            return annotationMetadata.hasAnnotation(SerdeImport.class) &&
+                isEnabledForMixin(annotationMetadata.getAnnotationValuesByType(SerdeImport.class), type, member);
+        });
     }
 
     private <T extends Annotation> Boolean isEnabledForMixin(List<AnnotationValue<T>> mixinsValues,
