@@ -101,7 +101,8 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                 }
                 return new EnumPropertyDeserializer<>(
                     cache,
-                    acceptCaseInsensitive
+                    acceptCaseInsensitive,
+                    type.isNullable()
                 );
             }
             return createEnumCreatorDeserializer(context, deserializableIntrospection);
@@ -119,7 +120,8 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
         }
         return new EnumPropertyDeserializer<>(
             cache,
-            acceptCaseInsensitive
+            acceptCaseInsensitive,
+            type.isNullable()
         );
     }
 
@@ -262,6 +264,9 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
         if (!allowNull && v == null) {
             return null;
         }
+        if (v instanceof String s && s.isEmpty() && allowNull) {
+            return null;
+        }
         return transform(v);
     }
 }
@@ -316,6 +321,9 @@ final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> 
         if (!allowNull && v == null) {
             return null;
         }
+        if (v instanceof String s && s.isEmpty() && type.isNullable() && !cache.containsKey("")) {
+            return null;
+        }
         return transform(decoder, v);
     }
 }
@@ -338,16 +346,24 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<
 
     private final Map<String, E> cache;
     private final boolean acceptCaseInsensitive;
+    private final boolean nullable;
 
-    EnumPropertyDeserializer(Map<String, E> cache, boolean acceptCaseInsensitive) {
+    EnumPropertyDeserializer(Map<String, E> cache, boolean acceptCaseInsensitive, boolean nullable) {
         this.cache = cache;
         this.acceptCaseInsensitive = acceptCaseInsensitive;
+        this.nullable = nullable;
     }
 
     @Override
     public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
         String value = decoder.decodeString();
         E result = cache.get(value);
+        if (result != null) {
+            return result;
+        }
+        if (value.isEmpty() && nullable) {
+            return null;
+        }
         if (result != null) {
             return result;
         }
