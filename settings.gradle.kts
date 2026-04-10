@@ -36,6 +36,8 @@ include("test-suite-xml-jackson-databind")
 include("test-suite-jaxb-tck-stax")
 include("test-suite-jaxb-tck-impl")
 include("serde-jackson-cbor")
+include("serde-yaml")
+
 include("doc-examples:example-bson-java")
 include("doc-examples:example-jackson-cbor-java")
 include("doc-examples:example-groovy")
@@ -66,3 +68,5 @@ configure<io.micronaut.build.MicronautBuildSettingsExtension> {
     importMicronautCatalog("micronaut-oracle-cloud")
     importMicronautCatalog("micronaut-validation")
 }
+
+include("serde-yaml")
