@@ -70,7 +70,6 @@ public class YamlDecoder extends AbstractStreamDecoder {
     @Override
     protected void nextToken() throws IOException {
         if (!events.hasNext()) {
-            finishStructure();
             this.currrentEvent = null;
         }
         if (inDocument) {
@@ -90,7 +89,8 @@ public class YamlDecoder extends AbstractStreamDecoder {
                 mappingContextStack.push(new CollectionContext(true));
             }
             if (eventId == Event.ID.StreamEnd || eventId == Event.ID.DocumentEnd) {
-                finishStructure();
+                inDocument = false;
+                 finishStructure();
             }
             if (eventId == Event.ID.Scalar) {
                 assert !mappingContextStack.isEmpty() : "Mapping context can't be empty while decoding a scalar.";
@@ -189,6 +189,11 @@ public class YamlDecoder extends AbstractStreamDecoder {
         } else {
             return TokenType.STRING;
         }
+    }
+    @Override
+    public void finishStructure(boolean consumeLeftElements) throws IOException {
+        super.finishStructure(consumeLeftElements);
+        nextToken();
     }
 
     static final class CollectionContext {
