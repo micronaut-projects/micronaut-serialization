@@ -37,6 +37,7 @@ import io.micronaut.serde.processor.sourcegen.records.RecordSerdeShapeResolver;
 import io.micronaut.serde.processor.sourcegen.records.RecordSerializerSourceGen;
 import io.micronaut.sourcegen.generator.SourceGenerator;
 import io.micronaut.sourcegen.generator.SourceGenerators;
+import io.micronaut.sourcegen.generator.visitors.BuilderAnnotationVisitor;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.TypeDef;
