@@ -264,6 +264,9 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
         if (!allowNull && v == null) {
             return null;
         }
+        if (v instanceof String s && s.isEmpty() && allowNull) {
+            return null;
+        }
         return transform(v);
     }
 }
@@ -315,10 +318,10 @@ final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> 
     @Override
     public E deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
         Object v = valueDeserializer.deserializeNullable(decoder, context, valueType);
-        if (v instanceof String s && s.isEmpty() && type.isNullable()) {
+        if (!allowNull && v == null) {
             return null;
         }
-        if (!allowNull && v == null) {
+        if (v instanceof String s && s.isEmpty() && type.isNullable() && !cache.containsKey("")) {
             return null;
         }
         return transform(decoder, v);
@@ -354,10 +357,13 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<
     @Override
     public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
         String value = decoder.decodeString();
+        E result = cache.get(value);
+        if (result != null) {
+            return result;
+        }
         if (value.isEmpty() && nullable) {
             return null;
         }
-        E result = cache.get(value);
         if (result != null) {
             return result;
         }
