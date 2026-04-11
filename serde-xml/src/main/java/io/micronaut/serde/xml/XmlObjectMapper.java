@@ -42,10 +42,7 @@ import tools.jackson.dataformat.xml.ser.ToXmlGenerator;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.stream.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -94,20 +91,24 @@ public final class XmlObjectMapper implements ObjectMapper {
 
     @Override
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
+        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
+            type);
+
+        XMLStreamReader xmlReader = null;
+        try {
+            xmlReader = xmlInputFactory.createXMLStreamReader(inputStream);
+            XmlReader decoder = new XmlReader(limits(), xmlReader);
+            deserializer.deserialize(decoder, decoderContext, type);
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
         return readValue(toByteArray(inputStream), type);
     }
 
     @Override
     public <T> T readValue(byte @NonNull [] byteArray, @NonNull Argument<T> type) throws IOException {
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
-        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
-            type);
-        try (FromXmlParser parser = createParser(byteArray)) {
-            if (parser.currentToken() == null) {
-                parser.nextToken();
-            }
-            return deserializer.deserialize(new XmlReaderDecoder(parser, limits()), decoderContext, type);
-        }
+        return readValue(new ByteArrayInputStream(byteArray), type);
     }
 
     @Override
@@ -192,6 +193,14 @@ public final class XmlObjectMapper implements ObjectMapper {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, type, object);
         return output.toByteArray();
+    }
+
+    @Override
+    public @NonNull String writeValueAsString(@Nullable Object object) throws IOException {
+        System.out.println("writeValueAsString: " + object.toString());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        writeValue(output, object);
+        return new String(output.toByteArray(), StandardCharsets.UTF_8);
     }
 
     @Override

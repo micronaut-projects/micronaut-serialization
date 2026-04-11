@@ -53,16 +53,12 @@ public class XmlGenerator implements Encoder {
             return new XmlGenerator(xmlWriter, rootMapper) ; // []
         }
         try {
-            System.out.println("wziz : " + name + "\t" + propertyStack.toString());
             if (rootMapper) {
-                System.out.println("wiziz");
                 rootMapper = false;
                 return this;
             }
 
             if (propertyStack.peekLast() != null){ // High probably is key  [O, K]
-                System.out.println("=++++++++++=++++++++++=++++++++++=++++++++++");
-                //assert !(propertyStack.getLast() instanceof KeyFrame kf) : "New Object " + name + "\t ";
                 //propertyStack.addLast(new ObjectFrame(name));   // << [ObjectFrame(name)]
                 xmlWriter.writeStartElement(name);
                 Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>();
@@ -70,10 +66,8 @@ public class XmlGenerator implements Encoder {
                 return new XmlGenerator(xmlWriter, innerPropertyStack);
             }
 
-            System.out.println("property stack before" +  propertyStack.toString());
             propertyStack.addLast(new ObjectFrame(name));   // << [ObjectFrame(name)]
             xmlWriter.writeStartElement(name);  // <CustomBean>
-            System.out.println("property stack after" +  propertyStack.toString());
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -123,7 +117,6 @@ public class XmlGenerator implements Encoder {
             if (rootMapper) {
                 propertyStack.addLast(new ObjectFrame(key));  // @JsonRoot("dsq") [ObjectFrame("dsq")]
                 xmlWriter.writeStartElement(key);
-                System.out.println("0st = : " + propertyStack.peekFirst().getClass().getName());
                 return;
             }
 
@@ -131,7 +124,6 @@ public class XmlGenerator implements Encoder {
             if (!propertyStack.isEmpty() && propertyStack.getLast() instanceof KeyFrame of && !of.consumed) {                                                      // don't do writeEnd-element because it's already made for endArray in finish-structure
                 of.setConsumed(true);    // //  [ObjectFrame(name), KeyFrame2(name, true)]
                 xmlWriter.writeEndElement(); // <CustomBean><A1>a1</A1> ===> <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1>
-                System.out.println("rmove last :" +  propertyStack);
 
                 propertyStack.removeLast(); // [ObjectFrame(name)]
             }
@@ -140,7 +132,6 @@ public class XmlGenerator implements Encoder {
 
             propertyStack.addLast(new KeyFrame(key, false));  // [ObjectFrame(name), KeyFrame3(name, false)]
             xmlWriter.writeStartElement(key); // new property coming from the loop    ====<CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3
-            System.out.println("1st = : " + propertyStack.peekFirst().getClass().getName());
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -162,10 +153,6 @@ public class XmlGenerator implements Encoder {
                 }
                 default -> throw new IllegalStateException("Unexpected value in writeScalar(): " + lastProperty + "\t " + lastProperty.getClass().getName());
             }
-
-
-
-
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
@@ -228,6 +215,11 @@ public class XmlGenerator implements Encoder {
 
     @Override
     public void encodeNull() throws IOException {
+        try {
+            xmlWriter.writeEndElement();
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
 
     }
 

@@ -1,14 +1,13 @@
-package io.micronaut.serde.xml.annotation;
+package io.micronaut.serde.xml.tck;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-//@JsonRootName("dsqd")
+//@JsonRootName(value = "dsqdaed")
 public class SimpleBean {
 
-    int age;
     String name;
+    int age;
 
     public SimpleBean() {
     }
