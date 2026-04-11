@@ -40,3 +40,4 @@ io.micronaut.serde.processor.jackson.JsonPropertyMapper
 io.micronaut.serde.processor.serde.DeserializableMapper
 io.micronaut.serde.processor.serde.SerializableMapper
 io.micronaut.serde.processor.serde.SerdeableMapper
+io.micronaut.serde.processor.xml.JacksonXmlElementWrapperMapper
