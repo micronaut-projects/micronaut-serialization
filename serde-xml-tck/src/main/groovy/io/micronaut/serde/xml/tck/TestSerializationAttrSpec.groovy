@@ -1,0 +1,125 @@
+package io.micronaut.serde.xml.tck
+
+import com.fasterxml.jackson.annotation.*
+import io.micronaut.json.JsonMapper
+import spock.lang.Specification
+import io.micronaut.serde.annotation.Serdeable;
+
+abstract class TestSerializationAttrSpec extends Specification{
+
+    abstract JsonMapper getXmlMapper();
+
+    def "NsAttrBean - attribute with namespace"() {
+        given:
+        def bean = new NsAttrBean()
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<NsAttrBean><other>3</other></NsAttrBean>'
+        // or use contains() if exact output varies:
+        // xml.contains('attr="3"') && xml.contains('xmlns:ns0="http://foo"')
+    }
+
+    def "Issue19Bean - mixed attributes, namespace and root name"() {
+        given:
+        def bean = new Issue19Bean()
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == "<test><id>abc</id></test>"
+    }
+
+    def "Jurisdiction - multiple attributes with order"() {
+        given:
+        def bean = new Jurisdiction()
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<Jurisdiction><value>13</value><name>Foo</name></Jurisdiction>'
+    }
+
+    def "DynaBean - @JsonAnyGetter as elements"() {
+        given:
+        def bean = new DynaBean([foo: "bar", baz: "qux"])
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == "<dynaBean><baz>qux</baz><foo>bar</foo></dynaBean>"
+    }
+
+    // ==================== Test Beans ====================
+
+    @Serdeable
+    static class NsAttrBean {
+        @JsonProperty("other")
+        //@JacksonXmlProperty(namespace = "http://foo", isAttribute = true)
+        public String attr = "3"
+
+        String getAttr() {
+            return attr
+        }
+    }
+
+    @Serdeable
+    @JsonRootName(value = "test")
+    static class Issue19Bean {
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+        public boolean booleanA = true
+
+        @JsonProperty
+        //@JacksonXmlProperty(isAttribute = true, namespace = "http://my.ns")
+        public String id = "abc"
+
+        boolean getBooleanA() {
+            return booleanA
+        }
+
+        String getId() {
+            return id
+        }
+    }
+
+    @Serdeable
+    @JsonPropertyOrder(["value", "name"])
+    static class Jurisdiction {
+        //@JacksonXmlProperty(isAttribute = true)
+        protected String name = "Foo"
+
+        //@JacksonXmlProperty(isAttribute = true)
+        protected int value = 13
+
+        String getName() {
+            return name
+        }
+
+        int getValue() {
+            return value
+        }
+    }
+
+    @Serdeable
+    @JsonRootName(value = "dynaBean")
+    static class DynaBean {
+        private final Map<String, String> properties = new TreeMap<>()
+
+        DynaBean(Map<String, String> values) {
+            properties.putAll(values)
+        }
+
+        @JsonAnyGetter
+        //@JacksonXmlProperty(isAttribute = false)
+        Map<String, String> getProperties() {
+            properties
+        }
+
+    }
+
+}

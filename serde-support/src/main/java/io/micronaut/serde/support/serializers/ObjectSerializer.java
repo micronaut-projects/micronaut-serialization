@@ -156,6 +156,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
 
     private <T> SerBean<T> getSerializableBean(Argument<T> type,
                                                EncoderContext context) throws SerdeException {
+        System.out.println("serializer: ++++>" );
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
         SerializationConfiguration resolvedSerializationConfiguration = context.getSerializationConfiguration().orElse(serializationConfiguration);
         SerdeArgumentConf serdeArgumentConf = annotationMetadata.isEmpty() ? null : new SerdeArgumentConf(annotationMetadata);

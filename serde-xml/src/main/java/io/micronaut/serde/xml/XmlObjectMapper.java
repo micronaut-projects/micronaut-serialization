@@ -197,7 +197,6 @@ public final class XmlObjectMapper implements ObjectMapper {
 
     @Override
     public @NonNull String writeValueAsString(@Nullable Object object) throws IOException {
-        System.out.println("writeValueAsString: " + object.toString());
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, object);
         return new String(output.toByteArray(), StandardCharsets.UTF_8);

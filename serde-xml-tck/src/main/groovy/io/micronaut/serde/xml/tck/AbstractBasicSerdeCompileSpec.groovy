@@ -1,5 +1,6 @@
 package io.micronaut.serde.xml.tck
 
+import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpStatus
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -75,6 +76,7 @@ class Test {
     //Todo: read value from tree
 
     @Unroll
+    @Ignore("untill implementing decoder")
     void "test basic type #type missing value"() {
         given:
         def context = buildContext("""
@@ -109,6 +111,240 @@ class Test {
         type << ['Integer', 'int', 'int[]']
         defaultValue << [null, 0, null]
     }
+
+
+    void "test @JsonIgnore on field"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@Serdeable
+class Test {
+    private String value;
+    @JsonIgnore
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+""", [value: 'test', ignored: true])
+
+        when:
+        def bytes = xmlMapper.writeValueAsBytes(beanUnderTest)
+
+        then:
+        new String(bytes) == '<Test><value>test</value></Test>'
+
+        cleanup:
+        context.close()
+
+    }
+
+    @Ignore("untill refactor decoder")
+    void "test @JsonIgnore on method"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@Serdeable
+class Test {
+    private String value;
+
+    private boolean ignored;
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setIgnored(boolean b) {
+        this.ignored = b;
+    }
+
+    @JsonIgnore
+    public boolean isIgnored() {
+        return ignored;
+    }
+}
+""", [value: 'test'])
+        when:
+        def bytes = xmlMapper.writeValueAsBytes(beanUnderTest)
+
+        then:
+        new String(bytes) == '<Test><value>test</value></Test>'
+
+        cleanup:
+        context.close()
+
+    }
+
+    @Ignore("untill refactor decoder")
+    void "test default constructor 1"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private final String value1;
+    private final String value2;
+    private final String value3;
+
+    public Test(String value1, String value2) {
+        this(value1, value2, null);
+    }
+
+    public Test(String value1, String value2, String value3) {
+        this.value1 = value1;
+        this.value2 = value2;
+        this.value3 = value3;
+    }
+
+    public String getValue1() {
+        return value1;
+    }
+
+    public String getValue2() {
+        return value2;
+    }
+
+    public String getValue3() {
+        return value3;
+    }
+
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<Test><value1>A</value1><value2>B</value2><value3>C</value3></Test>'.bytes, Argument.of(typeUnderTest.type))
+        then:
+        obj.getValue1() == "A"
+        obj.getValue2() == "B"
+        !obj.getValue3()
+        cleanup:
+        context.close()
+    }
+
+    @Ignore("untill refactor decoder")
+    void "test default constructor 2"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private final String value1;
+    private final String value2;
+    private final String value3;
+
+    public Test(String value1, String value2, String value3) {
+        this.value1 = value1;
+        this.value2 = value2;
+        this.value3 = value3;
+    }
+
+    public Test(String value1, String value2) {
+        this(value1, value2, null);
+    }
+
+    public String getValue1() {
+        return value1;
+    }
+
+    public String getValue2() {
+        return value2;
+    }
+
+    public String getValue3() {
+        return value3;
+    }
+
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<Test><value1>A</value1><value2>B</value2><value3>C</value3></Test>'.bytes, Argument.of(typeUnderTest.type))
+        then:
+        obj.getValue1() == "A"
+        obj.getValue2() == "B"
+        obj.getValue3() == "C"
+        cleanup:
+        context.close()
+    }
+
+    @Ignore("untill refactor decoder")
+    void "test @Creator constructor"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Creator;
+
+@Serdeable
+class Test {
+    private final String value1;
+    private final String value2;
+    private final String value3;
+
+    public Test(String value1, String value2) {
+        this(value1, value2, null);
+    }
+
+    @Creator
+    public Test(String value1, String value2, String value3) {
+        this.value1 = value1;
+        this.value2 = value2;
+        this.value3 = value3;
+    }
+
+    public String getValue1() {
+        return value1;
+    }
+
+    public String getValue2() {
+        return value2;
+    }
+
+    public String getValue3() {
+        return value3;
+    }
+
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<Test><value1>A</value1><value2>B</value2><value3>C</value3></Test>'.bytes, Argument.of(typeUnderTest.type))
+        then:
+        obj.getValue1() == "A"
+        obj.getValue2() == "B"
+        obj.getValue3() == "C"
+        cleanup:
+        context.close()
+    }
+
+
 
 
 

@@ -1,10 +1,12 @@
 package io.micronaut.serde.xml;
 
+import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.type.DefaultArgument;
 import io.micronaut.serde.Encoder;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.naming.spi.ObjectFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
@@ -13,7 +15,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Objects;
+import java.util.Optional;
 
 public class XmlGenerator implements Encoder {
 
@@ -37,10 +39,26 @@ public class XmlGenerator implements Encoder {
 
     @Override
     public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
-        var lastProperty = propertyStack.getLast().getKey();
-        var name = type.getName();
-        propertyStack.addLast(new ArrayFrame(lastProperty)); // [O(key), K2(nameKey_1, false), A(nameKey_1), ]
-        return this;
+        // [O(),K ]
+        if (!propertyStack.isEmpty()) {
+            var lastProperty = propertyStack.getLast().getKey();
+            var name = type.getName();
+            //wrapping
+            propertyStack.addLast(new ArrayFrame(lastProperty)); // [O(key), K2(nameKey_1, false), A(nameKey_1), ]
+            return this;
+        } else  {
+            // IterableValueSerializer
+            String collectionName = NameUtils.camelCase(type.getName(), false);
+            ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item");
+            propertyStack.addLast(arrayFrame);  // [A(name), ..., ]
+            try {
+                // <ArrayList>  ... </ArrayList>
+                xmlWriter.writeStartElement(collectionName);
+            } catch (XMLStreamException e) {
+                throw new RuntimeException(e);
+            }
+            return this;
+        }
     }
 
     @Override
@@ -96,6 +114,10 @@ public class XmlGenerator implements Encoder {
                     propertyStack.clear();
                 }
                 case ArrayFrame of -> {
+
+                    if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame af) { // [A(ArrayList)]
+                        xmlWriter.writeEndElement();
+                    }
                     propertyStack.removeLast();  // // [o, k(name2, false), A(name2)]
                     //xmlWriter.writeEndElement();  // [o, k(name2, false)]
                 } case null -> {
@@ -139,14 +161,22 @@ public class XmlGenerator implements Encoder {
     }
 
     private void writeScalar(String data) {
-        try {
-            var lastProperty = propertyStack.getLast();  // // [ObjectFrame(name), K2(name2, false), A(name2)]
+        try { //
+            var lastProperty = propertyStack.getLast();  // // [ObjectFrame(name), K2(name2, false), A(name2)] || [A(ArrayList)]
             switch (lastProperty) {
                 case KeyFrame kf -> {
                     xmlWriter.writeCharacters(data);    //. <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3
                 }
-                case ArrayFrame of -> {
-                    xmlWriter.writeStartElement(of.getKey());
+                case ArrayFrame af -> {
+                    String itemName= null;
+                    String iterableKey = af.getIterableKey();
+                    Optional<String> maybeIterableKey = Optional.ofNullable(iterableKey).filter(s -> !s.isEmpty());
+                    if (maybeIterableKey.isPresent()) {
+                        itemName = maybeIterableKey.get();
+                    } else {
+                        itemName = af.getKey();
+                    }
+                    xmlWriter.writeStartElement(itemName);
                     xmlWriter.writeCharacters(data);
                     xmlWriter.writeEndElement();
                     // ====<CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1>
@@ -223,7 +253,7 @@ public class XmlGenerator implements Encoder {
 
     }
 
-    static class ContextProperties {
+    abstract static class ContextProperties {
         private String key;
 
 
@@ -286,8 +316,18 @@ public class XmlGenerator implements Encoder {
 
     private static class ArrayFrame extends ContextProperties{
 
+        @Nullable
+        String IterableKey;
+
+
         public ArrayFrame(String key) {
             super(key);
+            this.IterableKey = null;
+        }
+
+        public ArrayFrame(String key, @Nullable String iterableKey) {
+            super(key);
+            IterableKey = iterableKey;
         }
 
         @Override
@@ -295,6 +335,14 @@ public class XmlGenerator implements Encoder {
             return "ArrayFrame{" +
                 "key='" + getKey() + '\'' +
                 '}';
+        }
+
+        public @Nullable String getIterableKey() {
+            return IterableKey;
+        }
+
+        public void setIterableKey(@Nullable String iterableKey) {
+            IterableKey = iterableKey;
         }
     }
 }

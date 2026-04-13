@@ -36,13 +36,7 @@ public class testSimpleBean {
 
         System.out.println(new String(out.toByteArray()));
 
-
         assert 1==1;
-
-
-
-
-
 
     }
 
