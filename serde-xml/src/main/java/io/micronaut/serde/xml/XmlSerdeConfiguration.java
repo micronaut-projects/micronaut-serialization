@@ -19,17 +19,23 @@ import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Configuration Properties for XML serialization/deserialization.
  *
  * @author Mousrij Hamza
  */
-@ConfigurationProperties("mirconaut.serde.xml")
+@ConfigurationProperties("micronaut.serde.xml")
 @Internal
 public final class XmlSerdeConfiguration {
 
     @Nullable
     private String defaultRootName;
+
+    private Map<String, Boolean> xmlReadFeatures = Collections.emptyMap();
+    private Map<String, Boolean> xmlWriteFeatures = Collections.emptyMap();
 
     @Nullable
     public String getDefaultRootName() {
@@ -38,6 +44,22 @@ public final class XmlSerdeConfiguration {
 
     public void setDefaultRootName(String defaultRootName) {
         this.defaultRootName = defaultRootName;
+    }
+
+    public Map<String, Boolean> getXmlReadFeatures() {
+        return xmlReadFeatures;
+    }
+
+    public void setXmlReadFeatures(Map<String, Boolean> xmlReadFeatures) {
+        this.xmlReadFeatures = xmlReadFeatures;
+    }
+
+    public Map<String, Boolean> getXmlWriteFeatures() {
+        return xmlWriteFeatures;
+    }
+
+    public void setXmlWriteFeatures(Map<String, Boolean> xmlWriteFeatures) {
+        this.xmlWriteFeatures = xmlWriteFeatures;
     }
 
 }

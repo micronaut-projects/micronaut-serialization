@@ -38,9 +38,6 @@ import jakarta.inject.Singleton;
 import tools.jackson.dataformat.xml.XmlFactory;
 import tools.jackson.dataformat.xml.deser.FromXmlParser;
 import tools.jackson.dataformat.xml.ser.ToXmlGenerator;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
 import javax.xml.stream.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -65,15 +62,12 @@ public final class XmlObjectMapper implements ObjectMapper {
     private final SerdeConfiguration serdeConfiguration;
     @Nullable
     private final String defaultRootName;
+    @NonNull
+    private final XMLInputFactory xmlInputFactory;
+    @NonNull
+    private final XMLOutputFactory xmlOutputFactory;
     @Nullable
     private final XmlSerdeConfiguration xmlConfiguration;
-
-    @NonNull
-    XMLOutputFactory xmlOutputFactory;
-    @NonNull
-    XMLInputFactory xmlInputFactory;
-
-
 
     public XmlObjectMapper(SerdeRegistry registry,
                            SerdeIntrospections introspections,
@@ -161,15 +155,7 @@ public final class XmlObjectMapper implements ObjectMapper {
 
     @Override
     public <T> void writeValue(@NonNull OutputStream outputStream, @NonNull Argument<T> type, @Nullable T object)
-        throws IOException{
-//        if (object == null) {
-//            try (ToXmlGenerator generator = createGenerator(outputStream)) {
-//                generator.writeNull();
-//                generator.flush();
-//            }
-//            return;
-//        }
-        // handling null object
+        throws IOException {
         XMLStreamWriter xmlWriter = null;
         try {
             xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);

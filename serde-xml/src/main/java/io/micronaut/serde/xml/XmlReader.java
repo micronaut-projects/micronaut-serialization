@@ -1,13 +1,25 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.xml;
 
-import io.micronaut.serde.Decoder;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-
-import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -18,6 +30,9 @@ import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+/**
+ *
+ */
 public class XmlReader extends AbstractDecoderPerStructureStreamDecoder {
 
     XMLEvent event;
@@ -27,9 +42,7 @@ public class XmlReader extends AbstractDecoderPerStructureStreamDecoder {
 
     private final Deque<KeysFrame> keysContext = new ArrayDeque<>();
 
-
     // every Start Element is considered as Key ~ StartElement
-
     private XmlReader(@NonNull AbstractDecoderPerStructureStreamDecoder parent, @NonNull RemainingLimits remainingLimits) {
         super(parent, remainingLimits);
     }
@@ -55,12 +68,9 @@ public class XmlReader extends AbstractDecoderPerStructureStreamDecoder {
         super.backFromChild(child);
     }
 
-
-
     @Override
     protected AbstractStreamDecoder decodeObject0(TokenType currentToken) throws IOException {
         // change token to startObject
-        System.out.println("xml reade is created");
         return super.decodeObject0(currentToken);
     }
 
@@ -70,7 +80,6 @@ public class XmlReader extends AbstractDecoderPerStructureStreamDecoder {
 
         return super.decodeArray0(currentToken);
     }
-
 
     @Override
     protected TokenType currentToken() {
@@ -82,9 +91,9 @@ public class XmlReader extends AbstractDecoderPerStructureStreamDecoder {
         }
         return null;
     }
+
     @Override
     protected void nextToken() throws IOException {
-
         //we only care about Key tags, skip root tag
         try {
 
@@ -184,13 +193,13 @@ public class XmlReader extends AbstractDecoderPerStructureStreamDecoder {
 
     }
 
-    static class ObjectFrame extends Context{
+    static class ObjectFrame extends Context {
 
     }
-    static class ArrayFrame extends Context{
+    static class ArrayFrame extends Context {
 
     }
-    static class KeysFrame extends Context{
+    static class KeysFrame extends Context {
 
     }
 

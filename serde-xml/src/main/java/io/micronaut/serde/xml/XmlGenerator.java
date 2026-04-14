@@ -1,8 +1,22 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package io.micronaut.serde.xml;
 
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.type.DefaultArgument;
 import io.micronaut.serde.Encoder;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -17,15 +31,20 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
 
+/**
+ *
+ */
 public class XmlGenerator implements Encoder {
 
     private final XMLStreamWriter xmlWriter;
     private final Deque<ContextProperties> propertyStack = new ArrayDeque<>();
     private Boolean rootMapper;
+
     public XmlGenerator(XMLStreamWriter xmlWriter) {
         this.xmlWriter = xmlWriter;
         this.rootMapper = false;
     }
+
     private XmlGenerator(XMLStreamWriter xmlWriter, Boolean rootMapper) {
         this.xmlWriter = xmlWriter;
         this.rootMapper = rootMapper;
@@ -76,7 +95,7 @@ public class XmlGenerator implements Encoder {
                 return this;
             }
 
-            if (propertyStack.peekLast() != null){ // High probably is key  [O, K]
+            if (propertyStack.peekLast() != null) { // High probably is key  [O, K]
                 //propertyStack.addLast(new ObjectFrame(name));   // << [ObjectFrame(name)]
                 xmlWriter.writeStartElement(name);
                 Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>();
@@ -92,7 +111,6 @@ public class XmlGenerator implements Encoder {
         }
         return this;
     }
-
 
     @Override
     public void finishStructure() throws IOException {
@@ -168,7 +186,7 @@ public class XmlGenerator implements Encoder {
                     xmlWriter.writeCharacters(data);    //. <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3
                 }
                 case ArrayFrame af -> {
-                    String itemName= null;
+                    String itemName = null;
                     String iterableKey = af.getIterableKey();
                     Optional<String> maybeIterableKey = Optional.ofNullable(iterableKey).filter(s -> !s.isEmpty());
                     if (maybeIterableKey.isPresent()) {
@@ -256,11 +274,9 @@ public class XmlGenerator implements Encoder {
     abstract static class ContextProperties {
         private String key;
 
-
         public ContextProperties(String key) {
             this.key = key;
         }
-
 
         public String getKey() {
             return key;
@@ -293,7 +309,9 @@ public class XmlGenerator implements Encoder {
 
     private static class KeyFrame extends ContextProperties {
         boolean consumed;
+
         public KeyFrame(String key,  Boolean consumed) {
+
             super(key);
             this.consumed = consumed;
         }
@@ -314,11 +332,10 @@ public class XmlGenerator implements Encoder {
         }
     }
 
-    private static class ArrayFrame extends ContextProperties{
+    private static class ArrayFrame extends ContextProperties {
 
         @Nullable
         String IterableKey;
-
 
         public ArrayFrame(String key) {
             super(key);

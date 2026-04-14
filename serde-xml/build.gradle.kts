@@ -38,3 +38,9 @@ tasks {
         useJUnitPlatform()
     }
 }
+
+micronautBuild {
+    binaryCompatibility {
+        enabledAfter("5.0.0")
+    }
+}
