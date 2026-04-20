@@ -173,7 +173,6 @@ public final class XmlGenerator implements Encoder {
             }
 
             propertyStack.addLast(new KeyFrame(key, false));  // [ObjectFrame(name), KeyFrame2(name, false)]
-            System.out.println("encode key ===>" +  propertyStack.toString());
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -378,10 +377,26 @@ public final class XmlGenerator implements Encoder {
         }
     }
 
-    /*
+    /**
     * Get writer for custom SerDes
     * */
     public XMLStreamWriter getXmlWriter() {
         return xmlWriter;
+    }
+
+    /**
+     * Write an XML attribute for the current pending property key.
+     */
+     public void writeAttributeForCurrentKey(String value) throws IOException {
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (!(lastProperty instanceof KeyFrame keyFrame)) {
+            throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
+        }
+        try {
+            xmlWriter.writeAttribute(keyFrame.getKey(), value);  // [O, K1(name, false)]
+            keyFrame.setConsumed(true);
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
     }
 }

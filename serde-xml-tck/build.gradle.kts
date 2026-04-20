@@ -17,6 +17,10 @@ dependencies {
     implementation(projects.micronautSerdeProcessor)
     implementation(mn.micronaut.inject.java.test)
     implementation(mnTest.micronaut.test.spock)
+    implementation(mn.jackson.dataformat.xml) {
+        exclude(group = "com.fasterxml.woodstox", module = "woodstox-core")
+        exclude(group = "org.codehaus.woodstox", module = "stax2-api")
+    }
 }
 
 tasks.named("spotlessGroovyCheck").configure {

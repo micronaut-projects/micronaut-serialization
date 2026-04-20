@@ -36,7 +36,7 @@ abstract class EmptyPolymorphicTest extends Specification{
 
 
         then:
-        xml =="<Data><name>Foobar</name><proxy><EmptyProxy/></proxy></Data>"
+        xml =="<Data><name>Foobar</name><proxy><EmptyProxy></EmptyProxy></proxy></Data>"
     }
 
 

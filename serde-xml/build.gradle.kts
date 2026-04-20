@@ -16,7 +16,10 @@ dependencies {
 
     implementation(projects.micronautSerdeSupport)
 
-    implementation(mn.jackson.dataformat.xml)
+    implementation(mn.jackson.dataformat.xml) {
+        exclude(group = "com.fasterxml.woodstox", module = "woodstox-core")
+        exclude(group = "org.codehaus.woodstox", module = "stax2-api")
+    }
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
