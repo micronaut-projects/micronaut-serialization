@@ -74,6 +74,33 @@ abstract class TestSerializationAttrSpec extends Specification{
                 "</Root>"
     }
 
+    def "CollectionWrapper329 - wrapped collection uses custom item name"() {
+        given:
+        Collection<String> collection = new ArrayList<>()
+        collection.add("a")
+        collection.add("b")
+        def bean = new CollectionWrapper329()
+        bean.setData(collection)
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == "<CollectionWrapper329><elements><elements>a</elements><elements>b</elements></elements></CollectionWrapper329>"
+    }
+
+    def "StreamWrapper329 - wrapped disabled"() {
+        given:
+        def bean = new ListWrapper329()
+        bean.setData(List.of("a", "b"))
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == "<ListWrapper329><elements>a</elements><elements>b</elements></ListWrapper329>"
+    }
+
     // ==================== Test Beans ====================
 
     @Serdeable
@@ -140,5 +167,35 @@ abstract class TestSerializationAttrSpec extends Specification{
         }
 
     }
+
+    @Serdeable
+    static class ListWrapper329 {
+        private List<String> data
+
+        @JacksonXmlElementWrapper(localName = "elements", useWrapping = false)
+        List<String> getData() {
+            return data
+        }
+
+        void setData(List<String> data) {
+            this.data = data
+        }
+    }
+
+    @Serdeable
+    static class CollectionWrapper329 {
+        private Collection<String> data
+
+        @JacksonXmlElementWrapper(localName = "elements")
+        Collection<String> getData() {
+            return data
+        }
+
+        void setData(Collection<String> data) {
+            this.data = data
+        }
+    }
+
+
 
 }

@@ -275,6 +275,46 @@ public final class XmlGenerator implements Encoder {
 
     }
 
+    /**
+     * Gets the XML stream writer for custom SerDes.
+     *
+     * @return The XML stream writer.
+     */
+    public XMLStreamWriter getXmlWriter() {
+        return xmlWriter;
+    }
+
+    /**
+     * Write an XML attribute for the current pending property key.
+     * @param value
+     */
+     public void writeAttributeForCurrentKey(String value) throws IOException {
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (!(lastProperty instanceof KeyFrame keyFrame)) {
+            throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
+        }
+        try {
+            xmlWriter.writeAttribute(keyFrame.getKey(), value);  // [O, K1(name, false)]
+            keyFrame.setConsumed(true);
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Writes an XML start element for the XmlWrapper custom serializer.
+     */
+    public void wrapElement() {
+         // must be [O, K(name, false)]
+        ContextProperties lastKey = propertyStack.peekLast();
+        try {
+            xmlWriter.writeStartElement(lastKey.getKey());
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
+        // closing the tag is the custom wrapper serializer responsibility
+    }
+
     abstract static class ContextProperties {
         private String key;
 
@@ -324,7 +364,7 @@ public final class XmlGenerator implements Encoder {
     private static class KeyFrame extends ContextProperties {
         boolean consumed;
 
-        public KeyFrame(String key,  Boolean consumed) {
+        public KeyFrame(String key, Boolean consumed) {
 
             super(key);
             this.consumed = consumed;
@@ -374,29 +414,6 @@ public final class XmlGenerator implements Encoder {
 
         public void setIterableKey(@Nullable String iterableKey) {
             IterableKey = iterableKey;
-        }
-    }
-
-    /**
-    * Get writer for custom SerDes
-    * */
-    public XMLStreamWriter getXmlWriter() {
-        return xmlWriter;
-    }
-
-    /**
-     * Write an XML attribute for the current pending property key.
-     */
-     public void writeAttributeForCurrentKey(String value) throws IOException {
-        ContextProperties lastProperty = propertyStack.peekLast();
-        if (!(lastProperty instanceof KeyFrame keyFrame)) {
-            throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
-        }
-        try {
-            xmlWriter.writeAttribute(keyFrame.getKey(), value);  // [O, K1(name, false)]
-            keyFrame.setConsumed(true);
-        } catch (XMLStreamException e) {
-            throw new IOException(e);
         }
     }
 }

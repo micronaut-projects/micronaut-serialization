@@ -16,6 +16,7 @@
 package io.micronaut.serde.processor.xml;
 
 import io.micronaut.core.annotation.AnnotationValue;
+import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -29,6 +30,8 @@ import java.util.List;
  */
 public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
 
+    static final String XML_WRAPPER_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlWrapperSerde";
+
     @Override
     public @NonNull String getName() {
         return "tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper";
@@ -36,12 +39,22 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
 
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
-        System.out.println("JacksonXmlElementWrapperMapper.map");
-        final List<AnnotationValue<?>> MAPPED = Collections.singletonList(
-            AnnotationValue.builder(SerdeConfig.class)
-                .member(SerdeConfig.ARRAY_WRAPPER_PROPERTY, annotation.stringValue("localName").orElse(""))
-                //.member(SerdeConfig.XML_USE_WRAPPING, annotation.booleanValue("useWrapping").orElse(true))
-                .build());
-        return MAPPED;
+        AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
+        annotation.stringValue("useWrapping").ifPresent(useWrapping -> {
+                boolean flag = Boolean.parseBoolean(useWrapping);
+                if (!flag) {
+                    builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
+                }
+
+            }
+            );
+
+        annotation.stringValue("localName")
+            .filter(localName -> !localName.isEmpty())
+            .ifPresent(localName -> {
+                builder.member(SerdeConfig.PROPERTY,  localName);
+            });
+
+        return Collections.singletonList(builder.build());
     }
 }
