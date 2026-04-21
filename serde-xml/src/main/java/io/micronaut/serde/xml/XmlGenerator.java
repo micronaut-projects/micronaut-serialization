@@ -61,8 +61,16 @@ public final class XmlGenerator implements Encoder {
         // [O(),K ]
         try {
             if (!propertyStack.isEmpty()) {
-                var lastProperty = propertyStack.getLast().getKey();
-                var name = type.getName();
+                var lastPropertyKey = propertyStack.peekLast();
+                var lastProperty = lastPropertyKey.getKey();
+                //@jackson wrapping
+                if (lastPropertyKey instanceof KeyFrame kf && kf.arrayWrappingKey != null) {
+                    lastProperty = kf.arrayWrappingKey;
+                    xmlWriter.writeStartElement(lastProperty);
+                    propertyStack.addLast(new ArrayFrame(kf.getKey()));
+                    System.out.println("encoding Array :::> " + propertyStack.toString());
+                    return this;
+                }
                 //wrapping
                     xmlWriter.writeStartElement(lastProperty);
                 propertyStack.addLast(new ArrayFrame(lastProperty)); // [O(key), K2(nameKey_1, false), A(nameKey_1), ]
@@ -99,8 +107,8 @@ public final class XmlGenerator implements Encoder {
 
             if (propertyStack.peekLast() instanceof KeyFrame kf || propertyStack.peekLast() instanceof ArrayFrame) {
                 Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>();
-            //[O, K, A, O]
-                if (propertyStack.peekLast() instanceof KeyFrame kf) { // [O, K, O]
+                //[O, K, A, O]
+                if (propertyStack.peekLast() instanceof KeyFrame kf) { // [O, K, ] ==> inner = [K] ==> inner =[K, O]
                     xmlWriter.writeStartElement(kf.getKey());
                     innerPropertyStack.addLast(propertyStack.peekLast());
                 }
@@ -138,13 +146,20 @@ public final class XmlGenerator implements Encoder {
                     propertyStack.clear();
                 }
                 case ArrayFrame of -> {
-
+                    if (of.getKey() != null && of.getKey().isEmpty()) {
+                        propertyStack.removeLast();
+                        return;
+                    }
                     if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame af) { // [A(ArrayList)]
                         xmlWriter.writeEndElement();
                         return;
                     }
                     propertyStack.removeLast();  // // [o, k(name2, false), A(name2)]
                     xmlWriter.writeEndElement();  // [o, k(name2, false)]
+                    assert propertyStack.peekLast() instanceof KeyFrame : "This should be a keyFrame" + propertyStack.toString();
+                    KeyFrame last = (KeyFrame) propertyStack.peekLast();
+                    last.setConsumed(true);   //[O, K(,,false), ##K]
+
                 } case null -> {
                     assert  propertyStack.isEmpty() : "Root name mapping";
 
@@ -160,7 +175,6 @@ public final class XmlGenerator implements Encoder {
     @Override
     public void encodeKey(@NonNull String key) throws IOException {
         try {
-
             if (rootMapper) { // [O(name, true), ]
                 propertyStack.addLast(new ObjectFrame(key, true));  // @JsonRoot("dsq") [ObjectFrame("dsq")]
                 xmlWriter.writeStartElement(key);
@@ -170,6 +184,9 @@ public final class XmlGenerator implements Encoder {
             //simpleObjectSerializer  --- iteration on the loop
             if (!propertyStack.isEmpty() && propertyStack.getLast() instanceof KeyFrame of && of.consumed) {
                 propertyStack.removeLast(); // [ObjectFrame(name)]
+            } else if (propertyStack.peekLast() instanceof KeyFrame of && !of.consumed) { // [O, K(name, false, null)] && add wrapping tag, come from the xmlWrapperSerde
+                of.setArrayWrappingKey(key);
+                return;
             }
 
             propertyStack.addLast(new KeyFrame(key, false));  // [ObjectFrame(name), KeyFrame2(name, false)]
@@ -208,6 +225,22 @@ public final class XmlGenerator implements Encoder {
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Array Object inline to the XML generator.
+     * @param type
+     * @return Encoder
+     */
+    public @NonNull Encoder encodeInlineArray(@NonNull Argument<?> type) throws IOException {
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (!(lastProperty instanceof KeyFrame keyFrame) || keyFrame.consumed) {
+            throw new IllegalStateException("Expected a pending key before starting an inline array, but found: " + lastProperty);
+        }
+
+        propertyStack.removeLast(); // remove the property key, so no <values> or <kilo>
+        propertyStack.addLast(new ArrayFrame("")); // sentinel for inline/no-wrapper array
+        return this;
     }
 
     @Override
@@ -341,6 +374,9 @@ public final class XmlGenerator implements Encoder {
     private static class ObjectFrame extends ContextProperties {
 
         @Nullable
+        Boolean ignore;
+
+        @Nullable
         Boolean rootName;
 
         public ObjectFrame(String key) {
@@ -353,6 +389,10 @@ public final class XmlGenerator implements Encoder {
             this.rootName = rootName;
         }
 
+        public void setIgnore(@Nullable Boolean ignore) {
+            this.ignore = ignore;
+        }
+
         @Override
         public String toString() {
             return "ObjectFrame{" +
@@ -363,6 +403,11 @@ public final class XmlGenerator implements Encoder {
 
     private static class KeyFrame extends ContextProperties {
         boolean consumed;
+        @Nullable
+        String arrayWrappingKey;
+
+        @Nullable
+        Boolean ObjectWrappingKey;
 
         public KeyFrame(String key, Boolean consumed) {
 
@@ -378,10 +423,24 @@ public final class XmlGenerator implements Encoder {
             this.consumed = consumed;
         }
 
+        public String getArrayWrappingKey() {
+            return arrayWrappingKey;
+        }
+
+        public void setArrayWrappingKey(String arrayWrappingKey) {
+            this.arrayWrappingKey = arrayWrappingKey;
+        }
+
+        public void setObjectWrappingKey(@Nullable Boolean objectWrappingKey) {
+            ObjectWrappingKey = objectWrappingKey;
+        }
+
         @Override
         public String toString() {
             return "KeyFrame{" +
-                "consumed=" + consumed + "; \t key : " + getKey() +
+                "arrayWrappingKey='" + arrayWrappingKey + '\'' +
+                ", consumed=" + consumed +
+                ", key='" + this.getKey() + '\'' +
                 '}';
         }
     }
@@ -390,6 +449,9 @@ public final class XmlGenerator implements Encoder {
 
         @Nullable
         String IterableKey;
+
+        @Nullable
+        String wrappingKey;
 
         public ArrayFrame(String key) {
             super(key);
@@ -414,6 +476,14 @@ public final class XmlGenerator implements Encoder {
 
         public void setIterableKey(@Nullable String iterableKey) {
             IterableKey = iterableKey;
+        }
+
+        public @Nullable String getWrappingKey() {
+            return wrappingKey;
+        }
+
+        public void setWrappingKey(@Nullable String wrappingKey) {
+            this.wrappingKey = wrappingKey;
         }
     }
 }

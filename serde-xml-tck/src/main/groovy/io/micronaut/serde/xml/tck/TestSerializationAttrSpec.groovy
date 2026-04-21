@@ -16,6 +16,7 @@
 package io.micronaut.serde.xml.tck
 
 import com.fasterxml.jackson.annotation.*
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.json.JsonMapper
 import spock.lang.Specification
 import io.micronaut.serde.annotation.Serdeable
@@ -86,7 +87,7 @@ abstract class TestSerializationAttrSpec extends Specification{
         def xml = xmlMapper.writeValueAsString(bean)
 
         then:
-        xml == "<CollectionWrapper329><elements><elements>a</elements><elements>b</elements></elements></CollectionWrapper329>"
+        xml == "<CollectionWrapper329><elements><data>a</data><data>b</data></elements></CollectionWrapper329>"
     }
 
     def "StreamWrapper329 - wrapped disabled"() {
@@ -99,6 +100,30 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         then:
         xml == "<ListWrapper329><elements>a</elements><elements>b</elements></ListWrapper329>"
+    }
+
+    def "Values - List as Object with JacksonAnnotations"() {
+        given:
+        def bean = new Values()
+        bean.type = "list"
+
+        def first = new Value()
+        first.v = "a"
+
+        def second = new Value()
+        second.v = "b"
+
+        bean.values = [first, second]
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == "<Values>" +
+                    "<type>list</type>" +
+                    "<Value><vi>a</vi></Value>" +
+                    "<Value><vi>b</vi></Value>" +
+                "</Values>"
     }
 
     // ==================== Test Beans ====================
@@ -196,6 +221,57 @@ abstract class TestSerializationAttrSpec extends Specification{
         }
     }
 
+    @Serdeable
+    static final class Value {
+        @JacksonXmlProperty(localName = "vi")
+        public String v;
 
+        Value(String v) {
+            this.v = v
+        }
+        Value() {
+        }
 
+        String getV() {
+            return v
+        }
+
+        void setV(String v) {
+            this.v = v
+        }
+    }
+
+    @Serdeable
+    static final class Values
+    {
+        @JacksonXmlProperty(localName = "type")
+        private String type;
+
+        @JacksonXmlElementWrapper(localName = "kilo", useWrapping = false)
+        List<Value> values = new ArrayList<Value>();
+
+        Values(String type, List<Value> values) {
+            this.type = type
+            this.values = values
+        }
+
+        Values() {
+        }
+
+        String getType() {
+            return type
+        }
+
+        void setType(String type) {
+            this.type = type
+        }
+
+        List<Value> getValues() {
+            return values
+        }
+
+        void setValues(List<Value> values) {
+            this.values = values
+        }
+    }
 }

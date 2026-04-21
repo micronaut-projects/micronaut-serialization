@@ -40,19 +40,35 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.stringValue("useWrapping").ifPresent(useWrapping -> {
+        annotation.stringValue("useWrapping").ifPresentOrElse(useWrapping -> {
                 boolean flag = Boolean.parseBoolean(useWrapping);
-                if (!flag) {
-                    builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
+                builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, flag);
+                // behavior not desired ~ L55-57
+                // getting                    <tata312><name>hamza</name></tata312>
+                builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
+                if (!flag) {    // @JacksonXmlElementWrapper(localName = "kilo", usewrapping="false")
+                    annotation.stringValue("localName")
+                        .filter(localName -> !localName.isEmpty())
+                        .ifPresent(localName -> {
+                            builder.member(SerdeConfig.PROPERTY, localName);
+                        });
                 }
+            },
+            () -> {
+                annotation.stringValue("localName")
+                    .filter(localName -> !localName.isEmpty())
+                    .ifPresent(localName -> {
+                        builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, true);
+                        builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
 
+                    });
             }
             );
 
         annotation.stringValue("localName")
             .filter(localName -> !localName.isEmpty())
             .ifPresent(localName -> {
-                builder.member(SerdeConfig.PROPERTY,  localName);
+                builder.member(SerdeConfig.WRAPPER_PROPERTY,  localName);
             });
 
         return Collections.singletonList(builder.build());

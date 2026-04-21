@@ -17,12 +17,13 @@ package io.micronaut.serde.xml.serde;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 
 import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGenericWithParentMetadata;
@@ -45,6 +46,7 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>> {
     @Override
     public @NonNull Serializer<Iterable<T>> createSpecific(@NonNull EncoderContext context,
                                                             @NonNull Argument<? extends Iterable<T>> type) throws SerdeException {
+
         final Argument<?>[] generics = type.getTypeParameters();
 
         final Argument<T> specificGeneric = reconstructGenericWithParentMetadata(type, (Argument<T>) generics[0]);
@@ -59,18 +61,39 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>> {
                           @NonNull EncoderContext context,
                           @NonNull Argument<? extends Iterable<T>> type,
                           @NonNull Iterable<T> value) throws IOException {
+        System.out.println("is container type :" + !type.isContainerType());
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }
         if (componentSerializer == null || generic == null) {
             throw new SerdeException("XmlWrapperSerde was not specialized for: " + type);
         }
-        XmlGenerator xmlGenerator = (XmlGenerator) encoder;
-        XMLStreamWriter writer = xmlGenerator.getXmlWriter();
 
-//        try {
-            serializeValues(encoder, context, type, value, generic, componentSerializer);
+        var metadata = type.getAnnotationMetadata();
+        boolean useWrapping = metadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
+        var wrappingConfig = metadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY);
 
+        boolean inlineObjectItems = !useWrapping && componentSerializer instanceof ObjectSerializer<?>;
+        Encoder valuesEncoder = encoder;
+
+        if (useWrapping) {
+            wrappingConfig.ifPresent(wrappingName -> {
+                try {
+                    encoder.encodeKey(wrappingName);
+                    encoder.encodeArray(type);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } else if (inlineObjectItems) {
+            valuesEncoder = ((XmlGenerator) encoder).encodeInlineArray(type);
+        }
+
+        serializeValues(valuesEncoder, context, type, value, generic, componentSerializer);
+
+        if (useWrapping || inlineObjectItems) {
+            valuesEncoder.finishStructure();
+        }
 
     }
 
