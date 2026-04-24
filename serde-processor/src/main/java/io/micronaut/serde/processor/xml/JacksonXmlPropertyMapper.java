@@ -43,6 +43,7 @@ public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
         annotation.stringValue("isAttribute").ifPresent(isAttribute -> {
             boolean flagg = Boolean.valueOf(isAttribute);
             if (flagg) {
+                builder.member(SerdeConfig.XML_ATTRIBUTE_PROPERTY, true);
                 builder.member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
             }
         });

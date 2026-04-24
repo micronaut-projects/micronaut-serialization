@@ -1085,13 +1085,16 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final List<String> order;
         if (classElement.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false)) {
             List<String> newOrder = beanProperties.stream()
-                .map(p -> p.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElseGet(p::getName))
+                .map(this::resolvePropertyName)
                 .sorted()
                 .toList();
             classElement.annotate(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, b -> b.values(newOrder.toArray(new String[0])));
-            order = new ArrayList<>(newOrder);
+            order = prioritizeXmlAttributeProperties(beanProperties, newOrder);
         } else {
-            order = new ArrayList<>(List.of(classElement.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)));
+            order = prioritizeXmlAttributeProperties(
+                beanProperties,
+                List.of(classElement.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER))
+            );
         }
         Collections.reverse(order);
         final Set<Introspected.AccessKind> access = CollectionUtils.setOf(classElement.enumValues(Introspected.class,
@@ -1128,6 +1131,60 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     propertyNamingStrategy
             );
         }
+    }
+
+
+    private List<String> prioritizeXmlAttributeProperties(List<PropertyElement> beanProperties, List<String> baseOrder) {
+        List<String> prioritizedOrder = new ArrayList<>(baseOrder.size() + beanProperties.size());
+        List<String> prioritizedAttributes = new ArrayList<>(baseOrder.size());
+        List<String> prioritizedNonAttributes = new ArrayList<>(baseOrder.size());
+        for (String configuredName : baseOrder) {
+            PropertyElement propertyElement = findProperty(beanProperties, configuredName);
+            if (propertyElement != null && isXmlAttributeProperty(propertyElement)) {
+                prioritizedAttributes.add(configuredName);
+            } else {
+                prioritizedNonAttributes.add(configuredName);
+            }
+        }
+        prioritizedOrder.addAll(prioritizedAttributes);
+        prioritizedOrder.addAll(prioritizedNonAttributes);
+
+        List<String> remainingAttributes = new ArrayList<>(beanProperties.size());
+        List<String> remainingNonAttributes = new ArrayList<>(beanProperties.size());
+        for (PropertyElement beanProperty : beanProperties) {
+            String propertyName = resolvePropertyName(beanProperty);
+            if (prioritizedOrder.contains(propertyName) || prioritizedOrder.contains(beanProperty.getName())) {
+                continue;
+            }
+            if (isXmlAttributeProperty(beanProperty)) {
+                remainingAttributes.add(propertyName);
+            } else {
+                remainingNonAttributes.add(propertyName);
+            }
+        }
+        prioritizedOrder.addAll(remainingAttributes);
+        prioritizedOrder.addAll(remainingNonAttributes);
+        return prioritizedOrder;
+    }
+
+    @Nullable
+    private PropertyElement findProperty(List<PropertyElement> beanProperties, String configuredName) {
+        for (PropertyElement beanProperty : beanProperties) {
+            if (configuredName.equals(beanProperty.getName()) || configuredName.equals(resolvePropertyName(beanProperty))) {
+                return beanProperty;
+            }
+        }
+        return null;
+    }
+
+    private boolean isXmlAttributeProperty(PropertyElement beanProperty) {
+        return hasXmlAttributeProperty(beanProperty)
+            || beanProperty.getReadMethod().map(this::hasXmlAttributeProperty).orElse(false)
+            || beanProperty.getWriteMethod().map(this::hasXmlAttributeProperty).orElse(false);
+    }
+
+    private boolean hasXmlAttributeProperty(Element beanProperty) {
+        return beanProperty.booleanValue(SerdeConfig.class, SerdeConfig.XML_ATTRIBUTE_PROPERTY).orElse(false);
     }
 
     private void handleClassImport(VisitorContext context,

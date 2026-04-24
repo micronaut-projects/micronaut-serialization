@@ -61,6 +61,28 @@ abstract class TestSerializationAttrSpec extends Specification{
         xml.contains('value="13"') && xml.contains('name="Foo"')
     }
 
+    def "AlphabeticAttributeBean - attribute is prioritized before alphabetic order"() {
+        given:
+        def bean = new AlphabeticAttributeBean()
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<AlphabeticAttributeBean type="demo"><alpha>value</alpha></AlphabeticAttributeBean>'
+    }
+
+    def "OrderedAttributeBean - attribute is prioritized before explicit property order"() {
+        given:
+        def bean = new OrderedAttributeBean()
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<OrderedAttributeBean type="demo"><alpha>value</alpha></OrderedAttributeBean>'
+    }
+
     def "DynaBean - @JsonAnyGetter as elements"() {
         given:
         def bean = new DynaBean([foo: "bar", baz: "qux"])
@@ -173,6 +195,56 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         int getValue() {
             return value
+        }
+    }
+
+    @Serdeable
+    @JsonPropertyOrder(alphabetic = true)
+    static class AlphabeticAttributeBean {
+        private String alpha = "value"
+
+        @JacksonXmlProperty(isAttribute = true)
+        private String type = "demo"
+
+        String getAlpha() {
+            return alpha
+        }
+
+        void setAlpha(String alpha) {
+            this.alpha = alpha
+        }
+
+        String getType() {
+            return type
+        }
+
+        void setType(String type) {
+            this.type = type
+        }
+    }
+
+    @Serdeable
+    @JsonPropertyOrder(["alpha", "type"])
+    static class OrderedAttributeBean {
+        private String alpha = "value"
+
+        @JacksonXmlProperty(isAttribute = true)
+        private String type = "demo"
+
+        String getAlpha() {
+            return alpha
+        }
+
+        void setAlpha(String alpha) {
+            this.alpha = alpha
+        }
+
+        String getType() {
+            return type
+        }
+
+        void setType(String type) {
+            this.type = type
         }
     }
 

@@ -69,6 +69,11 @@ public @interface SerdeConfig {
     String PROPERTY = "property";
 
     /**
+     * Whether the XML property should be serialized as an attribute.
+     */
+    String XML_ATTRIBUTE_PROPERTY = "xmlAttributeProperty";
+
+    /**
      * Whether this property is required (must be present in the input).
      */
     String REQUIRED = "required";
