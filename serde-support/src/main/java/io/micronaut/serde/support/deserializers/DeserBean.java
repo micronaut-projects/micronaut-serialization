@@ -467,9 +467,12 @@ final class DeserBean<T> {
             try {
                 if (!initialized && !initializing) {
                     initializing = true;
-                    initializeInternal(decoderContext);
-                    initialized = true;
-                    initializing = false;
+                    try {
+                        initializeInternal(decoderContext);
+                        initialized = true;
+                    } finally {
+                        initializing = false;
+                    }
                 }
             } finally {
                 lock.unlock();
