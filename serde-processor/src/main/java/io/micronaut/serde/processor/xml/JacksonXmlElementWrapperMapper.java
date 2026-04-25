@@ -46,13 +46,6 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
                 // behavior not desired ~ L55-57
                 // getting                    <tata312><name>hamza</name></tata312>
                 builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
-                if (!flag) {    // @JacksonXmlElementWrapper(localName = "kilo", usewrapping="false")
-                    annotation.stringValue("localName")
-                        .filter(localName -> !localName.isEmpty())
-                        .ifPresent(localName -> {
-                            builder.member(SerdeConfig.PROPERTY, localName);
-                        });
-                }
             },
             () -> {
                 annotation.stringValue("localName")

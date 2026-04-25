@@ -16,7 +16,6 @@
 package io.micronaut.serde.xml.tck
 
 import io.micronaut.core.type.Argument
-import io.micronaut.json.JsonMapper
 import tools.jackson.databind.JsonNode
 
 import java.nio.charset.StandardCharsets
@@ -24,7 +23,7 @@ import java.nio.charset.StandardCharsets
 trait XmlSpec {
 
 
-    abstract JsonMapper getXmlMapper()
+    abstract Object getXmlMapper()
 
 
     String writeXml(Object bean) {

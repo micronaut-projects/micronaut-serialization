@@ -37,6 +37,7 @@ import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
+import io.micronaut.serde.IterableWrapperConfigurableSerializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
@@ -808,9 +809,13 @@ final class SerBean<T> {
             serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
         Serializer.EncoderContext propertyContext = encoderContext.withFeatures(prop.featuresWith, prop.featuresWithout);
-        prop.serializer = prop.format == null
+        Serializer<Z> specificSerializer = prop.format == null
             ? serializer.createSpecific(propertyContext, argument)
             : createSpecific(prop.format, serializer, propertyContext, argument);
+        if (specificSerializer instanceof IterableWrapperConfigurableSerializer<?> configurableSerializer) {
+            specificSerializer = (Serializer<Z>) configurableSerializer.withIterableWrapper(prop.xmlUseWrapping, prop.xmlWrapperName);
+        }
+        prop.serializer = specificSerializer;
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
@@ -1032,6 +1037,8 @@ final class SerBean<T> {
         public final SerdeConfig.SerInclude include;
         public final boolean serializableInto;
         public final boolean primitive;
+        public final boolean xmlUseWrapping;
+        public final @Nullable String xmlWrapperName;
         // Null when not initialized SerBean
         @Nullable
         public Serializer<P> serializer;
@@ -1074,6 +1081,8 @@ final class SerBean<T> {
                     .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
+            this.xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
+            this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.annotationMetadata = annotationMetadata;
             FormatConfiguration propertyFormat = FormatConfiguration.from(annotationMetadata);
             if (propertyFormat == null) {

@@ -1,12 +1,14 @@
 package io.micronaut.serde.xml.bean;
 
 import io.micronaut.serde.annotation.Serdeable;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import java.util.List;
 
 @Serdeable
 public class CustomBean {
 
     private String A1;
+    @JacksonXmlElementWrapper(useWrapping = true, localName = "tata")
     private List<String> C1;
     private String B1;
 

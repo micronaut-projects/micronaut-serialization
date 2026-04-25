@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
+import java.util.Base64;
 import java.util.Deque;
 import java.util.Optional;
 
@@ -68,7 +69,6 @@ public final class XmlGenerator implements Encoder {
                     lastProperty = kf.arrayWrappingKey;
                     xmlWriter.writeStartElement(lastProperty);
                     propertyStack.addLast(new ArrayFrame(kf.getKey()));
-                    System.out.println("encoding Array :::> " + propertyStack.toString());
                     return this;
                 }
                 //wrapping
@@ -109,11 +109,19 @@ public final class XmlGenerator implements Encoder {
                 Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>();
                 //[O, K, A, O]
                 if (propertyStack.peekLast() instanceof KeyFrame kf) { // [O, K, ] ==> inner = [K] ==> inner =[K, O]
-                    xmlWriter.writeStartElement(kf.getKey());
+                    kf.setObjectWrappingKey(Boolean.FALSE);
                     innerPropertyStack.addLast(propertyStack.peekLast());
+                    innerPropertyStack.addLast(new ObjectFrame(null));
+                    return new XmlGenerator(xmlWriter, innerPropertyStack);
                 }
-                innerPropertyStack.addLast(new ObjectFrame(name));
-                xmlWriter.writeStartElement(name);
+                if (propertyStack.peekLast() instanceof ArrayFrame af) {
+                    String itemName = Optional.ofNullable(af.getIterableKey())
+                        .filter(s -> !s.isEmpty())
+                        .or(() -> Optional.ofNullable(af.getKey()).filter(s -> !s.isEmpty()))
+                        .orElse(name);
+                    innerPropertyStack.addLast(new ObjectFrame(itemName));
+                    xmlWriter.writeStartElement(itemName);
+                }
 
                 return new XmlGenerator(xmlWriter, innerPropertyStack);
             }
@@ -132,9 +140,6 @@ public final class XmlGenerator implements Encoder {
         try {
 
             var lastProperty = propertyStack.peekLast();
-            if (propertyStack.peekFirst() instanceof KeyFrame kf) {
-                xmlWriter.writeEndElement();
-            }
             switch (lastProperty) {
                 case KeyFrame kf -> {
                     xmlWriter.writeEndElement();   // [ObjectFrame(name), KeyFrame3(name, false)] && <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3</c3>
@@ -142,7 +147,19 @@ public final class XmlGenerator implements Encoder {
 
                 }
                 case ObjectFrame of -> {
-                    xmlWriter.writeEndElement();
+                    if (of.getKey() != null) {
+                        xmlWriter.writeEndElement();
+                    }
+                    if (propertyStack.peekFirst() instanceof KeyFrame kf) {
+                        if (of.getKey() == null) {
+                            if (Boolean.TRUE.equals(kf.getObjectWrappingKey())) {
+                                xmlWriter.writeEndElement();
+                            } else {
+                                xmlWriter.writeEmptyElement(kf.getKey());
+                            }
+                        }
+                        kf.setConsumed(true);
+                    }
                     propertyStack.clear();
                 }
                 case ArrayFrame of -> {
@@ -176,10 +193,12 @@ public final class XmlGenerator implements Encoder {
     public void encodeKey(@NonNull String key) throws IOException {
         try {
             if (rootMapper) { // [O(name, true), ]
-                propertyStack.addLast(new ObjectFrame(key, true));  // @JsonRoot("dsq") [ObjectFrame("dsq")]
+                propertyStack.addLast(new ObjectFrame(key, Boolean.TRUE));  // @JsonRoot("dsq") [ObjectFrame("dsq")]
                 xmlWriter.writeStartElement(key);
                 return;
             }
+
+            ensurePendingObjectElementStarted();
 
             //simpleObjectSerializer  --- iteration on the loop
             if (!propertyStack.isEmpty() && propertyStack.getLast() instanceof KeyFrame of && of.consumed) {
@@ -193,6 +212,17 @@ public final class XmlGenerator implements Encoder {
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void ensurePendingObjectElementStarted() throws XMLStreamException {
+        if (propertyStack.size() == 2
+            && propertyStack.peekFirst() instanceof KeyFrame keyFrame
+            && propertyStack.peekLast() instanceof ObjectFrame objectFrame
+            && objectFrame.getKey() == null
+            && !Boolean.TRUE.equals(keyFrame.getObjectWrappingKey())) {
+            xmlWriter.writeStartElement(keyFrame.getKey());
+            keyFrame.setObjectWrappingKey(Boolean.TRUE);
         }
     }
 
@@ -238,8 +268,8 @@ public final class XmlGenerator implements Encoder {
             throw new IllegalStateException("Expected a pending key before starting an inline array, but found: " + lastProperty);
         }
 
-        propertyStack.removeLast(); // remove the property key, so no <values> or <kilo>
-        propertyStack.addLast(new ArrayFrame("")); // sentinel for inline/no-wrapper array
+        propertyStack.removeLast(); // remove the property key, so no wrapper element is written
+        propertyStack.addLast(new ArrayFrame("", keyFrame.getKey())); // sentinel for inline/no-wrapper array
         return this;
     }
 
@@ -256,6 +286,11 @@ public final class XmlGenerator implements Encoder {
     @Override
     public void encodeByte(byte value) throws IOException {
         writeScalar(new String(Byte.toString(value).getBytes(), StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void encodeBinary(byte @NonNull [] data) throws IOException {
+        writeScalar(Base64.getEncoder().encodeToString(data));
     }
 
     @Override
@@ -301,7 +336,15 @@ public final class XmlGenerator implements Encoder {
     @Override
     public void encodeNull() throws IOException {
         try {
-            xmlWriter.writeEndElement();
+            ContextProperties lastProperty = propertyStack.peekLast();
+            switch (lastProperty) {
+                case KeyFrame kf -> {
+                    xmlWriter.writeEmptyElement(kf.getKey());
+                    kf.setConsumed(true);
+                }
+                case null -> xmlWriter.writeEndElement();
+                default -> xmlWriter.writeEndElement();
+            }
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
@@ -433,6 +476,10 @@ public final class XmlGenerator implements Encoder {
 
         public void setObjectWrappingKey(@Nullable Boolean objectWrappingKey) {
             ObjectWrappingKey = objectWrappingKey;
+        }
+
+        public @Nullable Boolean getObjectWrappingKey() {
+            return ObjectWrappingKey;
         }
 
         @Override

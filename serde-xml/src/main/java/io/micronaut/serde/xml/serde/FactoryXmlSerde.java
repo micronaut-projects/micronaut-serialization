@@ -17,6 +17,7 @@ package io.micronaut.serde.xml.serde;
 
 import io.micronaut.context.annotation.Bean;
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 
 @Factory
@@ -31,6 +32,12 @@ public final class FactoryXmlSerde {
     @Bean(typed = XmlWrapperSerde.class)
     XmlWrapperSerde xmlWrapperSerde() {
         return new XmlWrapperSerde();
+    }
+
+    @Bean
+    @Primary
+    XmlByteArraySerde xmlByteArraySerde() {
+        return new XmlByteArraySerde();
     }
 
 }

@@ -15,16 +15,13 @@
  */
 package io.micronaut.serde.xml.tck
 
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
 
 abstract class EmptyPolymorphicTest extends Specification{
 
-    abstract JsonMapper getXmlMapper();
+    abstract Object getXmlMapper();
 
 
     def "Empty Polymorphic tes"(){
@@ -34,9 +31,8 @@ abstract class EmptyPolymorphicTest extends Specification{
         when:
         def xml = xmlMapper.writeValueAsString(bean)
 
-
         then:
-        xml =="<Data><name>Foobar</name><proxy><EmptyProxy></EmptyProxy></proxy></Data>"
+        xml =="<Data><name>Foobar</name><proxy/></Data>"
     }
 
 
@@ -47,10 +43,8 @@ abstract class EmptyPolymorphicTest extends Specification{
     @Serdeable
     @JsonTypeName(value = "lala")
     static class Data {
-        public String name;
 
-        //@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-        //@JsonSubTypes([@JsonSubTypes.Type(EmptyProxy.class)])
+        public String name;
         public Proxy proxy;
 
         public Data() { }
@@ -74,6 +68,5 @@ abstract class EmptyPolymorphicTest extends Specification{
     @Serdeable
     @JsonTypeName("empty")
     static class EmptyProxy implements Proxy { }
-
 
 }

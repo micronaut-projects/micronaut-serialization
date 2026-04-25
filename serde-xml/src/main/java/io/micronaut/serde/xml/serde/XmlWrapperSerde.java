@@ -17,6 +17,7 @@ package io.micronaut.serde.xml.serde;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.IterableWrapperConfigurableSerializer;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -28,19 +29,25 @@ import java.io.IOException;
 
 import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGenericWithParentMetadata;
 
-public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>> {
+public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>>, IterableWrapperConfigurableSerializer<Iterable<T>> {
 
     private final Argument<T> generic;
     private final Serializer<? super T> componentSerializer;
+    private final boolean useWrapping;
+    private final String wrapperName;
 
     public XmlWrapperSerde() {
         this.generic = null;
         this.componentSerializer = null;
+        this.useWrapping = true;
+        this.wrapperName = null;
     }
 
-    private XmlWrapperSerde(Argument<T> generic, Serializer<? super T> componentSerializer) {
+    private XmlWrapperSerde(Argument<T> generic, Serializer<? super T> componentSerializer, boolean useWrapping, String wrapperName) {
         this.generic = generic;
         this.componentSerializer = componentSerializer;
+        this.useWrapping = useWrapping;
+        this.wrapperName = wrapperName;
     }
 
     @Override
@@ -52,8 +59,22 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>> {
         final Argument<T> specificGeneric = reconstructGenericWithParentMetadata(type, (Argument<T>) generics[0]);
         final Serializer<? super T> specificComponentSerializer = context.findSerializer(specificGeneric)
             .createSpecific(context, specificGeneric);
+        boolean useWrapping = type.getAnnotationMetadata()
+            .booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY)
+            .orElse(true);
+        String wrapperName = type.getAnnotationMetadata()
+            .stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY)
+            .orElse(null);
 
-        return new XmlWrapperSerde<>(specificGeneric, specificComponentSerializer);
+        return new XmlWrapperSerde<>(specificGeneric, specificComponentSerializer, useWrapping, wrapperName);
+    }
+
+    @Override
+    public @NonNull Serializer<Iterable<T>> withIterableWrapper(boolean useWrapping, String wrapperName) {
+        if (componentSerializer == null || generic == null) {
+            return this;
+        }
+        return new XmlWrapperSerde<>(generic, componentSerializer, useWrapping, wrapperName);
     }
 
     @Override
@@ -61,7 +82,6 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>> {
                           @NonNull EncoderContext context,
                           @NonNull Argument<? extends Iterable<T>> type,
                           @NonNull Iterable<T> value) throws IOException {
-        System.out.println("is container type :" + !type.isContainerType());
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }
@@ -69,22 +89,14 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>> {
             throw new SerdeException("XmlWrapperSerde was not specialized for: " + type);
         }
 
-        var metadata = type.getAnnotationMetadata();
-        boolean useWrapping = metadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
-        var wrappingConfig = metadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY);
-
         boolean inlineObjectItems = !useWrapping && componentSerializer instanceof ObjectSerializer<?>;
         Encoder valuesEncoder = encoder;
 
         if (useWrapping) {
-            wrappingConfig.ifPresent(wrappingName -> {
-                try {
-                    encoder.encodeKey(wrappingName);
-                    encoder.encodeArray(type);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            if (wrapperName != null) {
+                encoder.encodeKey(wrapperName);
+                encoder.encodeArray(type);
+            }
         } else if (inlineObjectItems) {
             valuesEncoder = ((XmlGenerator) encoder).encodeInlineArray(type);
         }

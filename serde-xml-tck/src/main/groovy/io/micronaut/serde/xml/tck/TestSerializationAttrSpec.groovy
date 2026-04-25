@@ -16,17 +16,15 @@
 package io.micronaut.serde.xml.tck
 
 import com.fasterxml.jackson.annotation.*
-import io.micronaut.core.annotation.Introspected
-import io.micronaut.json.JsonMapper
 import spock.lang.Specification
 import io.micronaut.serde.annotation.Serdeable
 import tools.jackson.dataformat.xml.annotation.*;
 
 abstract class TestSerializationAttrSpec extends Specification{
 
-    abstract JsonMapper getXmlMapper();
+    abstract Object getXmlMapper();
 
-    def "NsAttrBean - attribute with namespace"() {
+    def "NsAttrBean - attribute"() {
         given:
         def bean = new NsAttrBean()
 
@@ -39,7 +37,7 @@ abstract class TestSerializationAttrSpec extends Specification{
         //xml.contains('xmlns:ns0="http://foo"')
     }
 
-    def "Issue19Bean - mixed attributes, namespace and root name"() {
+    def "Issue19Bean - mixed attributes, and root name"() {
         given:
         def bean = new Issue19Bean()
 
@@ -83,6 +81,17 @@ abstract class TestSerializationAttrSpec extends Specification{
         xml == '<OrderedAttributeBean type="demo"><alpha>value</alpha></OrderedAttributeBean>'
     }
 
+    def "RenamedAttributeBean - localName and isAttribute are both honored"() {
+        given:
+        def bean = new RenamedAttributeBean()
+
+        when:
+        def xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<RenamedAttributeBean Foo="bar"><value>baz</value></RenamedAttributeBean>'
+    }
+
     def "DynaBean - @JsonAnyGetter as elements"() {
         given:
         def bean = new DynaBean([foo: "bar", baz: "qux"])
@@ -121,7 +130,7 @@ abstract class TestSerializationAttrSpec extends Specification{
         def xml = xmlMapper.writeValueAsString(bean)
 
         then:
-        xml == "<ListWrapper329><elements>a</elements><elements>b</elements></ListWrapper329>"
+        xml == "<ListWrapper329><data>a</data><data>b</data></ListWrapper329>"
     }
 
     def "Values - List as Object with JacksonAnnotations"() {
@@ -143,8 +152,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         then:
         xml == "<Values>" +
                     "<type>list</type>" +
-                    "<Value><vi>a</vi></Value>" +
-                    "<Value><vi>b</vi></Value>" +
+                    "<values><vi>a</vi></values>" +
+                    "<values><vi>b</vi></values>" +
                 "</Values>"
     }
 
@@ -153,7 +162,7 @@ abstract class TestSerializationAttrSpec extends Specification{
     @Serdeable
     static class NsAttrBean {
         @JsonProperty("other")
-        @JacksonXmlProperty(namespace = "http://foo", isAttribute = true)
+        @JacksonXmlProperty(isAttribute = true)
         public String attr = "3"
 
         String getAttr() {
@@ -168,7 +177,7 @@ abstract class TestSerializationAttrSpec extends Specification{
         public boolean booleanA = true
 
         @JsonProperty
-        @JacksonXmlProperty(isAttribute = true, namespace = "http://my.ns")
+        @JacksonXmlProperty(isAttribute = true)
         public String id = "abc"
 
         boolean getBooleanA() {
@@ -249,6 +258,30 @@ abstract class TestSerializationAttrSpec extends Specification{
     }
 
     @Serdeable
+    static class RenamedAttributeBean {
+        @JacksonXmlProperty(localName = "Foo", isAttribute = true)
+        private String foo = "bar"
+
+        private String value = "baz"
+
+        String getFoo() {
+            return foo
+        }
+
+        void setFoo(String foo) {
+            this.foo = foo
+        }
+
+        String getValue() {
+            return value
+        }
+
+        void setValue(String value) {
+            this.value = value
+        }
+    }
+
+    @Serdeable
     @JsonRootName(value = "Root")
     static class DynaBean {
         private final Map<String, String> properties = new TreeMap<>()
@@ -267,9 +300,10 @@ abstract class TestSerializationAttrSpec extends Specification{
 
     @Serdeable
     static class ListWrapper329 {
+        @JacksonXmlElementWrapper(localName = "elements", useWrapping = false)
         private List<String> data
 
-        @JacksonXmlElementWrapper(localName = "elements", useWrapping = false)
+
         List<String> getData() {
             return data
         }

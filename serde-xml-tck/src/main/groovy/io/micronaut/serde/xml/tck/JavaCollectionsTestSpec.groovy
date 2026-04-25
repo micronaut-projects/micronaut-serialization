@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.xml.tck
 
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
 
@@ -24,7 +23,7 @@ import java.util.stream.Stream
 
 abstract class JavaCollectionsTestSpec extends Specification {
 
-    abstract JsonMapper getXmlMapper()
+    abstract Object getXmlMapper()
 
     @Serdeable
     static class ByteArrayWrapper {
@@ -66,15 +65,7 @@ abstract class JavaCollectionsTestSpec extends Specification {
         def xml = xmlMapper.writeValueAsString(bean)
 
         then:
-        xml == '<ByteArrayWrapper>' +
-                    '<values>' +
-                    '<values>115</values>' +
-                    '<values>117</values>' +
-                    '<values>114</values>' +
-                    '<values>101</values>' +
-                    '<values>46</values>' +
-                    '</values>' +
-                '</ByteArrayWrapper>'
+        xml == '<ByteArrayWrapper><values>c3VyZS4=</values></ByteArrayWrapper>'
     }
 
     def "Test int array encoding"() {

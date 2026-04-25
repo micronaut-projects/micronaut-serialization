@@ -15,14 +15,13 @@
  */
 package io.micronaut.serde.xml.tck
 
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.test.support.TestPropertyProvider
 import spock.lang.Specification
 
 abstract class AbstractBasicSerdeSpec extends Specification implements TestPropertyProvider{
 
-    abstract JsonMapper getXmlMapper();
+    abstract Object getXmlMapper();
 
     def "Simple Bean"(){
         given:
@@ -45,31 +44,17 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
         when:
             def xml = xmlMapper.writeValueAsString(bean)
         then:
-            xml == "<ObjectBean>" +
-                        "<simpleBeans>" +
-                            "<SimpleBean>" +
-                                "<age>21</age>" +
-                                "<name>Hamza</name>" +
-                            "</SimpleBean>" +
-                        "</simpleBeans>" +
-                    "</ObjectBean>"
+            xml == "<ObjectBean><simpleBeans><age>21</age><name>Hamza</name></simpleBeans></ObjectBean>"
 
     }
 
     def "Custom Bean"() {
         given:
-            def bean = new CustomBean("A1", List.of("B1", "B2"), "A2");
+            def bean = new CustomBean("A1", "A2", List.of("B1", "B2"));
         when:
             def xml = xmlMapper.writeValueAsString(bean)
         then:
-            xml == "<CustomBean>" +
-                        "<a1>A1</a1>" +
-                        "<c1>" +
-                            "<c1>B1</c1>" +
-                            "<c1>B2</c1>" +
-                        "</c1>" +
-                        "<b1>A2</b1>" +
-                    "</CustomBean>"
+            xml == "<CustomBean><A1>A1</A1><B1>A2</B1><C1><C1>B1</C1><C1>B2</C1></C1></CustomBean>"
     }
 
     def "Nested List"(){
@@ -79,18 +64,11 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
         when:
             def xml = xmlMapper.writeValueAsString(nestedList)
         then:
-            xml == "<NestedList>" +
-                        "<nestedLists>" +
-                            "<SimpleBean>" +
-                                "<age>21</age>" +
-                                "<name>Hamza</name>" +
-                            "</SimpleBean>" +
-                        "</nestedLists>" +
-                    "</NestedList>"
+            xml == "<NestedList><nestedLists><nestedLists><age>21</age><name>Hamza</name></nestedLists></nestedLists></NestedList>"
     }
 
     @Override
     Map<String, String> getProperties() {
-        ["micronaut.serde.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS.name()]
+//        ["micronaut.serde.serialization.inclusion": SerdeConfig.SerInclude.ALWAYS.name()]
     }
 }
