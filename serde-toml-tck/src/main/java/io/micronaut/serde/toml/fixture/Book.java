@@ -1,12 +1,23 @@
-package io.micronaut.serde.toml;
+package io.micronaut.serde.toml.fixture;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
+@JsonPropertyOrder({"title", "pages", "author"})
 public class Book {
     private String title;
     private int pages;
     private Author author;
+
+    public Book() {
+    }
+
+    public Book(String title, int pages, Author author) {
+        this.title = title;
+        this.pages = pages;
+        this.author = author;
+    }
 
     public String getTitle() {
         return title;
@@ -33,8 +44,16 @@ public class Book {
     }
 
     @Serdeable
+    @JsonPropertyOrder({"name"})
     public static class Author {
         private String name;
+
+        public Author() {
+        }
+
+        public Author(String name) {
+            this.name = name;
+        }
 
         public String getName() {
             return name;
