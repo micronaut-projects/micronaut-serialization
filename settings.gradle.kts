@@ -24,7 +24,7 @@ include("serde-tck")
 include("serde-jackson-tck")
 include("serde-tck-tests")
 include("serde-oracle-jdbc-json")
-
+include("serde-toml")
 include("doc-examples:example-bson-java")
 include("doc-examples:example-groovy")
 include("doc-examples:example-java")
