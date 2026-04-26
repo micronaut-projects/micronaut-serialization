@@ -1,13 +1,19 @@
 package io.micronaut.serde.toml
 
+import io.micronaut.core.type.Argument
 import io.micronaut.serde.toml.fixture.FiveMinuteUser
+import io.micronaut.serde.toml.fixture.ComplexField
 import io.micronaut.serde.toml.fixture.MediaItem
+import io.micronaut.serde.toml.fixture.NumericValues
+import io.micronaut.serde.toml.fixture.ObjectField
 import io.micronaut.serde.toml.fixture.Point
 import io.micronaut.serde.toml.fixture.PointListBean
 import io.micronaut.serde.toml.fixture.Rectangle
 import io.micronaut.serde.toml.fixture.TemporalValues
 
 import java.io.ByteArrayInputStream
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -38,6 +44,86 @@ abstract class AbstractTomlExtendedSerdeSpec extends AbstractTomlBasicSerdeSpec 
         "foo'"  | "abc = \"foo'\"\n"
         'foo"'  | "abc = 'foo\"'\n"
         'foo"\'' | "abc = \"foo\\\"'\"\n"
+    }
+
+    void "round trips curated unicode and escaping string categories semantically"() {
+        when:
+        def toml = writeToml([text: value])
+
+        then:
+        readTomlObject(toml).text == value
+        objRepresentationMatches([text: value], toml)
+
+        where:
+        value << [
+            "plain text",
+            'Tom "Dubs" Preston-Werner',
+            "line1\nline2",
+            "cafe\u00E9",
+            "\uD83C\uDD92"
+        ]
+    }
+
+    void "round trips curated bare and quoted key categories semantically"() {
+        when:
+        def toml = writeToml([(key): value])
+
+        then:
+        readTomlObject(toml) == [(key): value]
+        objRepresentationMatches([(key): value], toml)
+
+        where:
+        key                  | value
+        "plain_key-123"      | "value"
+        "character encoding" | "value"
+        "\u028e\u01dd\u029e" | "value"
+    }
+
+    void "writes representative key quoting categories with jackson compatible safety"() {
+        when:
+        def toml = writeToml([(key): value])
+
+        then:
+        toml == expected
+        readTomlObject(toml) == [(key): value]
+
+        where:
+        key           | value   | expected
+        "foo_bar-123" | "value" | "foo_bar-123 = 'value'\n"
+        "foo bar"     | "value" | "'foo bar' = 'value'\n"
+    }
+
+    void "writes representative string escaping categories with jackson compatible parity"() {
+        when:
+        def toml = writeToml([text: value])
+
+        then:
+        if (expected != null) {
+            toml == expected
+        }
+        readTomlObject(toml).text == value
+        objRepresentationMatches([text: value], toml)
+
+        where:
+        value                           | expected
+        "foo"                           | "text = 'foo'\n"
+        "foo'"                          | "text = \"foo'\"\n"
+        'foo"'                          | "text = 'foo\"'\n"
+        "back\\\\slash\tline1\nline2\u0001" | "text = \"back\\\\\\\\slash\\tline1\\nline2\\u0001\"\n"
+        "\uD83D\uDE80"                  | null
+    }
+
+    void "escapes forbidden raw control characters instead of emitting invalid toml"() {
+        given:
+        def value = "prefix\u0001suffix"
+
+        when:
+        def toml = writeToml([text: value])
+
+        then:
+        toml == "text = \"prefix\\u0001suffix\"\n"
+        readTomlObject(toml).text == value
+        objRepresentationMatches([text: value], toml)
     }
 
     void "serializes structural values deterministically"() {
@@ -145,7 +231,37 @@ trimmed in raw strings.
    is preserved.
 '''
 """,
+            'str5 = """Here are three quotation marks: ""\\"."""\n',
+            """quot15 = '''Here are fifteen quotation marks: \"\"\"\"\"\"\"\"\"\"\"\"\"\"\"'''
+apos15 = "Here are fifteen apostrophes: '''''''''''''''"
+str = ''''That,' she said, 'is still pointless.''''
+""",
             "foo = \"\\U0001f192\"\n"
+        ]
+    }
+
+    void "preserves quote heavy multiline strings exactly"() {
+        expect:
+        readTomlObject(toml)[field] == expected
+
+        where:
+        toml | field | expected
+        'str5 = """Here are three quotation marks: ""\\"."""\n' | "str5" | 'Here are three quotation marks: """.'
+        "quot15 = '''Here are fifteen quotation marks: \"\"\"\"\"\"\"\"\"\"\"\"\"\"\"'''\n" | "quot15" | 'Here are fifteen quotation marks: """""""""""""""'
+    }
+
+    void "round trips dense mixed quote strings through the writer"() {
+        when:
+        def toml = writeToml([text: value])
+
+        then:
+        readTomlObject(toml).text == value
+        objRepresentationMatches([text: value], toml)
+
+        where:
+        value << [
+            /He said "don't", then replied '"'"'""'./,
+            "line1 \"double\" and 'single'\nline2 'single' and \"double\""
         ]
     }
 
@@ -272,6 +388,168 @@ name = "plantain"
         roundTrip(media) == media
     }
 
+    void "serializes byte arrays with jackson compatible base64 text"() {
+        given:
+        def user = new FiveMinuteUser("Bob", "Palmer", FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
+        def expected = """firstName = 'Bob'
+lastName = 'Palmer'
+gender = 'MALE'
+verified = true
+userImage = 'AQIDBA=='
+"""
+
+        expect:
+        writeToml(user) == expected
+        writeTomlAsBytes(user) == tomlAsBytes(expected)
+    }
+
+    void "deserializes jackson compatible base64 byte arrays"() {
+        given:
+        def toml = """firstName = 'Bob'
+lastName = 'Palmer'
+gender = 'MALE'
+verified = true
+userImage = 'AQIDBA=='
+"""
+
+        when:
+        def user = readToml(toml, FiveMinuteUser)
+
+        then:
+        user == new FiveMinuteUser("Bob", "Palmer", FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
+    }
+
+    void "exposes byte arrays as base64 strings in semantic toml representations"() {
+        given:
+        def user = new FiveMinuteUser("Bob", "Palmer", FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
+        def expected = """firstName = 'Bob'
+lastName = 'Palmer'
+gender = 'MALE'
+verified = true
+userImage = 'AQIDBA=='
+"""
+
+        when:
+        def actual = readTomlObject(writeToml(user))
+
+        then:
+        actual.userImage == "AQIDBA=="
+        objRepresentationMatches(actual, expected)
+    }
+
+    void "serializes null reference fields with jackson compatible empty string sentinel"() {
+        given:
+        def bean = new ComplexField()
+
+        expect:
+        writeToml(bean) == "foo = ''\n"
+        writeTomlAsBytes(bean) == tomlAsBytes("foo = ''\n")
+    }
+
+    void "deserializes empty string sentinel into null reference fields"() {
+        given:
+        def toml = "foo = ''\n"
+
+        when:
+        def bean = readToml(toml, ComplexField)
+
+        then:
+        bean.foo == null
+    }
+
+    void "preserves empty string sentinel in semantic toml object representations"() {
+        expect:
+        readTomlObject("foo = ''\n").foo == ""
+    }
+
+    void "deserializes wide numeric values without precision loss"() {
+        given:
+        def decimal = new BigDecimal("0.0000000000000000000000000000000000000000000000000000000000000000000001")
+        def expected = new NumericValues(
+            99,
+            4242424242L,
+            new BigInteger("171717171717171717171717"),
+            new BigInteger("DDEADBEEFDDEADBEEF", 16),
+            new BigInteger("12345677777771234567777777", 8),
+            new BigInteger("11010110", 2),
+            decimal
+        )
+        def toml = """int1 = 99
+int2 = 4242424242
+int3 = 171717171717171717171717
+hex1 = 0xDDEADBEEFDDEADBEEF
+oct1 = 0o12345677777771234567777777
+bin1 = 0b11010110
+decimal1 = ${decimal.toPlainString()}
+"""
+
+        when:
+        def values = readToml(toml, NumericValues)
+
+        then:
+        values == expected
+        roundTripAs(values, Argument.of(NumericValues)) == expected
+    }
+
+    void "preserves numeric width in semantic toml object representations"() {
+        given:
+        def decimal = new BigDecimal("0.0000000000000000000000000000000000000000000000000000000000000000000001")
+        def toml = """int1 = 99
+int2 = 4242424242
+int3 = 171717171717171717171717
+hex1 = 0xDDEADBEEFDDEADBEEF
+oct1 = 0o12345677777771234567777777
+bin1 = 0b11010110
+decimal1 = ${decimal.toPlainString()}
+"""
+
+        when:
+        def values = readTomlObject(toml)
+
+        then:
+        values.int1 instanceof Integer
+        values.int1 == 99
+        values.int2 instanceof Long
+        values.int2 == 4242424242L
+        values.int3 instanceof BigInteger
+        values.int3 == new BigInteger("171717171717171717171717")
+        values.hex1 instanceof BigInteger
+        values.hex1 == new BigInteger("DDEADBEEFDDEADBEEF", 16)
+        values.oct1 instanceof BigInteger
+        values.oct1 == new BigInteger("12345677777771234567777777", 8)
+        values.bin1 instanceof Integer
+        values.bin1 == Integer.parseInt("11010110", 2)
+        values.decimal1 instanceof BigDecimal
+        values.decimal1 == decimal
+    }
+
+    void "deserializes temporal values into string-like generic object fields by default"() {
+        given:
+        def toml = "foo = 2021-03-26\n"
+
+        when:
+        def bean = readToml(toml, ObjectField)
+
+        then:
+        bean.foo instanceof String
+        bean.foo == "2021-03-26"
+    }
+
+    void "parses inline object arrays into typed beans semantically"() {
+        given:
+        def toml = """ids = ['a', 'b']
+points = [{x = 1, y = 2}, {x = 3, y = 4}]
+"""
+
+        when:
+        def bean = readToml(toml, PointListBean)
+
+        then:
+        bean.ids == ["a", "b"]
+        bean.points == [new Point(1, 2), new Point(3, 4)]
+        objRepresentationMatches(bean, toml)
+    }
+
     void "handles large strings across string bytes and stream inputs"() {
         given:
         def testValue = ("a" * 4000) + "\u5496"
@@ -312,9 +590,11 @@ name = "plantain"
         "foo = # bar\n" | ["Comment not permitted here"]
         "foo = \"\\k\"\n" | ["Unknown escape sequence"]
         "foo = \"\\Uffffffff\"\n" | ["Invalid code point"]
+        "str5 = \"\"\"Here are three quotation marks: \"\"\".\"\"\"\n" | ["More data after value has already ended", "Unknown token"]
         "invalid_float_1 = .7\n" | ["Unknown token"]
         "invalid_float_2 = 7.\n" | ["More data after value has already ended"]
         "invalid_float_3 = 3.e+20\n" | ["More data after value has already ended"]
         "a = '\u007F'\n" | ["Illegal control character"]
+        "a = \"0x7f\" # \u007F" | ["Illegal control character"]
     }
 }

@@ -33,7 +33,7 @@ import java.math.BigInteger;
  * TOML decoder backed by Jackson's TOML parser.
  */
 @Internal
-final class TomlParserDecoder extends AbstractStreamDecoder {
+public final class TomlParserDecoder extends AbstractStreamDecoder {
 
     private final JsonParser parser;
     @Nullable
@@ -133,6 +133,19 @@ final class TomlParserDecoder extends AbstractStreamDecoder {
             parser.skipChildren();
             currentToken = parser.currentToken();
         }
+    }
+
+    public boolean hasEmbeddedObjectValue() {
+        return currentToken == JsonToken.VALUE_EMBEDDED_OBJECT;
+    }
+
+    public @Nullable Object decodeEmbeddedObject() throws IOException {
+        if (!hasEmbeddedObjectValue()) {
+            return null;
+        }
+        Object value = parser.getEmbeddedObject();
+        nextToken();
+        return value;
     }
 
     @Override

@@ -33,7 +33,7 @@ import java.util.Objects;
  * TOML encoder backed by Jackson's TOML generator.
  */
 @Internal
-abstract class TomlGeneratorEncoder extends LimitingStream implements Encoder {
+public abstract class TomlGeneratorEncoder extends LimitingStream implements Encoder {
 
     protected final JsonGenerator generator;
     @Nullable

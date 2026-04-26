@@ -119,6 +119,81 @@ author.name = 'Bob'
         decoded.books*.author*.name == ["Ada", "Bob"]
     }
 
+    void "parses empty quoted keys semantically"() {
+        expect:
+        readTomlObject("\"\" = \"blank\"\n") == ["": "blank"]
+        readTomlObject("'' = 'blank'\n") == ["": "blank"]
+    }
+
+    void "parses mixed dotted key additions semantically"() {
+        given:
+        def toml = """fruit.apple.smooth = true
+fruit.orange = 2
+"""
+
+        when:
+        def result = readTomlObject(toml)
+
+        then:
+        result == [fruit: [apple: [smooth: true], orange: 2]]
+        objRepresentationMatches(result, toml)
+    }
+
+    void "parses out of order dotted siblings semantically"() {
+        given:
+        def toml = """apple.type = 'fruit'
+orange.type = 'fruit'
+apple.skin = 'thin'
+orange.skin = 'thick'
+apple.color = 'red'
+orange.color = 'orange'
+"""
+
+        when:
+        def result = readTomlObject(toml)
+
+        then:
+        result == [
+            apple : [type: "fruit", skin: "thin", color: "red"],
+            orange: [type: "fruit", skin: "thick", color: "orange"]
+        ]
+        objRepresentationMatches(result, toml)
+    }
+
+    void "parses parent tables after child tables semantically"() {
+        given:
+        def toml = """[x.y.z.w]
+answer = 42
+
+[x]
+name = 'root'
+"""
+
+        when:
+        def result = readTomlObject(toml)
+
+        then:
+        result == [x: [y: [z: [w: [answer: 42]]], name: "root"]]
+        objRepresentationMatches(result, toml)
+    }
+
+    void "rejects additional malformed parser inputs"() {
+        when:
+        readTomlObject(toml)
+
+        then:
+        def e = thrown(Exception)
+        e.message != null
+        messageMatchers.isEmpty() || messageMatchers.any { matcher -> e.message.contains(matcher) }
+
+        where:
+        toml                                                   | messageMatchers
+        "key =\n"                                              | []
+        "first = \"Tom\" last = \"Preston-Werner\"\n"          | ["More data after value has already ended", "Unknown token", "Unexpected character", "last"]
+        "= \"no key name\"\n"                                  | ["Unexpected", "Unknown token", "Invalid key", "no key"]
+        "foo = \"abc"                                          | []
+    }
+
     void "rejects duplicate keys"() {
         when:
         readToml("name = 'Tom'\nname = 'Pradyun'\n", Map)
