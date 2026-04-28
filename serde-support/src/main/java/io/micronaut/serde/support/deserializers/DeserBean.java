@@ -37,6 +37,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedDeserializer;
+import io.micronaut.serde.IterableWrapperConfigurableDeserializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -593,24 +594,29 @@ final class DeserBean<T> {
     }
 
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
-        if (!property.ignored) {
-            Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
-            property.deserializer = unwrapErrorCatching(property.format == null
-                ? findDeserializerWithoutFormat(propertyContext, property.argument)
-                : findDeserializer(propertyContext, property.argument, property.format));
-            if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
-                property.decoderValueKind = decoderValueKind.decoderValueKind().code();
-            }
-            if (property.merge
-                && property.beanReadProperty != null
-                && property.format == null
-                && !property.hasFeatureOverrides
-                && !property.argument.getType().isArray()
-                && !(property.deserializer instanceof UpdatingDeserializer)) {
-                UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
-                if (mergeDeserializer != null) {
-                    property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
-                }
+        if (property.ignored) {
+            return;
+        }
+        Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
+        Deserializer<Object> deserializer = property.format == null
+            ? findDeserializerWithoutFormat(propertyContext, property.argument)
+            : findDeserializer(propertyContext, property.argument, property.format);
+        if (deserializer instanceof IterableWrapperConfigurableDeserializer<?> configurableDeserializer) {
+            deserializer = (Deserializer<Object>) configurableDeserializer.withIterableWrapper(property.xmlUseWrapping, property.xmlWrapperName);
+        }
+        property.deserializer = unwrapErrorCatching(deserializer);
+        if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
+            property.decoderValueKind = decoderValueKind.decoderValueKind().code();
+        }
+        if (property.merge
+            && property.beanReadProperty != null
+            && property.format == null
+            && !property.hasFeatureOverrides
+            && !property.argument.getType().isArray()
+            && !(property.deserializer instanceof UpdatingDeserializer)) {
+            UpdatingDeserializer<Object> mergeDeserializer = ObjectShapeSerdeHelper.updatingObjectDeserializer(propertyContext, property.argument);
+            if (mergeDeserializer != null) {
+                property.mergeDeserializer = unwrapErrorCatching(mergeDeserializer);
             }
         }
     }
@@ -1003,6 +1009,8 @@ final class DeserBean<T> {
         @Nullable
         public final String backRef;
         public final boolean ignored;
+        public final boolean xmlUseWrapping;
+        public final @Nullable String xmlWrapperName;
         @Nullable
         public final String unresolvedTypeVariableName;
         @Nullable
@@ -1130,6 +1138,8 @@ final class DeserBean<T> {
                 .orElse(null);
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                 .orElse(null);
+            this.xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
+            this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
             this.explicitlyRequiredForConstructor = explicitlyRequired || deserializationConfiguration.isRequireAllCreatorParameters();

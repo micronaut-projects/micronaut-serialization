@@ -16,34 +16,99 @@
 package io.micronaut.serde.xml.serde;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.IterableWrapperConfigurableDeserializer;
 import io.micronaut.serde.IterableWrapperConfigurableSerializer;
 import io.micronaut.serde.ObjectSerializer;
+import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>>, IterableWrapperConfigurableSerializer<Iterable<T>> {
+public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
+    IterableWrapperConfigurableSerializer<Iterable<T>>,
+    IterableWrapperConfigurableDeserializer<Iterable<T>> {
 
+    @Nullable
+    private final Argument<T> generic;
+    @Nullable
+    private final Serializer<? super T> componentSerializer;
+    @Nullable
+    private final Deserializer<? extends T> componentDeserializer;
     private final boolean useWrapping;
+    @Nullable
     private final String wrapperName;
 
     public XmlWrapperSerde() {
+        this.generic = null;
+        this.componentSerializer = null;
+        this.componentDeserializer = null;
         this.useWrapping = true;
         this.wrapperName = null;
     }
 
-    private XmlWrapperSerde(boolean useWrapping, String wrapperName) {
+    private XmlWrapperSerde(@NonNull Argument<T> generic,
+                            @Nullable Serializer<? super T> componentSerializer,
+                            @Nullable Deserializer<? extends T> componentDeserializer,
+                            boolean useWrapping,
+                            @Nullable String wrapperName) {
+        this.generic = generic;
+        this.componentSerializer = componentSerializer;
+        this.componentDeserializer = componentDeserializer;
         this.useWrapping = useWrapping;
         this.wrapperName = wrapperName;
     }
 
     @Override
-    public @NonNull Serializer<Iterable<T>> withIterableWrapper(boolean useWrapping, String wrapperName) {
-        return new XmlWrapperSerde<>(useWrapping, wrapperName);
+    public @NonNull Serializer<Iterable<T>> createSpecific(@NonNull EncoderContext context,
+                                                            @NonNull Argument<? extends Iterable<T>> type) throws SerdeException {
+
+        final Argument<T> specificGeneric = resolveGeneric(type);
+        final Serializer<? super T> specificComponentSerializer = context.findSerializer(specificGeneric)
+            .createSpecific(context, specificGeneric);
+
+        return new XmlWrapperSerde<>(
+            specificGeneric,
+            specificComponentSerializer,
+            null,
+            useWrapping,
+            wrapperName
+        );
+    }
+
+    @Override
+    public @NonNull Deserializer<Iterable<T>> createSpecific(@NonNull DecoderContext context,
+                                                             @NonNull Argument<? super Iterable<T>> type) throws SerdeException {
+        final Argument<T> specificGeneric = resolveGeneric(type);
+        final Deserializer<? extends T> specificComponentDeserializer = context.findDeserializer(specificGeneric)
+            .createSpecific(context, specificGeneric);
+
+        return new XmlWrapperSerde<>(
+            specificGeneric,
+            null,
+            specificComponentDeserializer,
+            useWrapping,
+            wrapperName
+        );
+    }
+
+    @Override
+    public @NonNull XmlWrapperSerde<T> withIterableWrapper(boolean useWrapping, @Nullable String wrapperName) {
+        if (generic == null || componentSerializer == null && componentDeserializer == null) {
+            return this;
+        }
+        return new XmlWrapperSerde<>(generic, componentSerializer, componentDeserializer, useWrapping, wrapperName);
     }
 
     @Override
@@ -54,33 +119,50 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>>, Iterab
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }
-        final Argument<?>[] generics = type.getTypeParameters();
-        if (generics.length == 0) {
-            throw new SerdeException("Cannot serialize XML wrapper for an iterable without generic type information: " + type);
+        if (componentSerializer == null || generic == null) {
+            throw new SerdeException("XmlWrapperSerde was not specialized for serialization: " + type);
         }
-        @SuppressWarnings("unchecked")
-        final Argument<T> generic = (Argument<T>) generics[0];
-        final Serializer<? super T> componentSerializer = context.findSerializer(generic)
-            .createSpecific(context, generic);
 
-        boolean inlineObjectItems = !useWrapping && componentSerializer instanceof ObjectSerializer<?>;
+        boolean wrapped = useWrapping && wrapperName != null;
+        boolean inlineObjectItems = !wrapped && componentSerializer instanceof ObjectSerializer<?>;
         Encoder valuesEncoder = encoder;
 
-        if (useWrapping) {
-            if (wrapperName != null) {
-                encoder.encodeKey(wrapperName);
-                encoder.encodeArray(type);
-            }
+        if (wrapped) {
+            encoder.encodeKey(wrapperName);
+            encoder.encodeArray(type);
         } else if (inlineObjectItems) {
             valuesEncoder = ((XmlGenerator) encoder).encodeInlineArray(type);
         }
 
         serializeValues(valuesEncoder, context, type, value, generic, componentSerializer);
 
-        if (useWrapping || inlineObjectItems) {
+        if (wrapped || inlineObjectItems) {
             valuesEncoder.finishStructure();
         }
 
+    }
+
+    @Override
+    public @Nullable Iterable<T> deserialize(@NonNull Decoder decoder,
+                                             @NonNull DecoderContext context,
+                                             @NonNull Argument<? super Iterable<T>> type) throws IOException {
+        if (componentDeserializer == null || generic == null) {
+            throw new SerdeException("XmlWrapperSerde was not specialized for deserialization: " + type);
+        }
+        Collection<T> collection = createCollection(type);
+        Decoder arrayDecoder = decoder.decodeArray(type);
+        int index = 0;
+        try {
+            while (arrayDecoder.hasNextArrayValue()) {
+                collection.add(componentDeserializer.deserializeNullable(arrayDecoder, context, generic));
+                index++;
+            }
+            arrayDecoder.finishStructure();
+            return collection;
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(collection.getClass(), type, index));
+            throw e;
+        }
     }
 
     private static <T> void serializeValues(Encoder encoder,
@@ -103,5 +185,21 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>>, Iterab
                 throw e;
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Argument<T> resolveGeneric(Argument<?> type) {
+        final Argument<?>[] generics = type.getTypeParameters();
+        if (generics.length == 0) {
+            return (Argument<T>) Argument.OBJECT_ARGUMENT;
+        }
+        return (Argument<T>) generics[0];
+    }
+
+    private static <T> Collection<T> createCollection(Argument<?> type) {
+        if (Set.class.isAssignableFrom(type.getType())) {
+            return new LinkedHashSet<>();
+        }
+        return new ArrayList<>();
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.processor.xml;
 
+import io.micronaut.core.annotation.AnnotationClassValue;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.AnnotationValueBuilder;
 import io.micronaut.core.annotation.NonNull;
@@ -31,6 +32,8 @@ import java.util.List;
 public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
 
     static final String XML_WRAPPER_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlWrapperSerde";
+    private static final AnnotationClassValue<?> XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE =
+        new AnnotationClassValue<>(XML_WRAPPER_PROPERTY_SERDE_CLASS);
 
     @Override
     public @NonNull String getName() {
@@ -43,16 +46,14 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
         annotation.stringValue("useWrapping").ifPresentOrElse(useWrapping -> {
                 boolean flag = Boolean.parseBoolean(useWrapping);
                 builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, flag);
-                // behavior not desired ~ L55-57
-                // getting                    <tata312><name>hamza</name></tata312>
-                builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
+                configureWrapperSerde(builder);
             },
             () -> {
                 annotation.stringValue("localName")
                     .filter(localName -> !localName.isEmpty())
                     .ifPresent(localName -> {
                         builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, true);
-                        builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS);
+                        configureWrapperSerde(builder);
 
                     });
             }
@@ -62,8 +63,14 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
             .filter(localName -> !localName.isEmpty())
             .ifPresent(localName -> {
                 builder.member(SerdeConfig.WRAPPER_PROPERTY,  localName);
+                builder.member(SerdeConfig.ALIASES, new String[] { localName });
             });
 
         return Collections.singletonList(builder.build());
+    }
+
+    private static void configureWrapperSerde(AnnotationValueBuilder<SerdeConfig> builder) {
+        builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE);
+        builder.member(SerdeConfig.DESERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE);
     }
 }
