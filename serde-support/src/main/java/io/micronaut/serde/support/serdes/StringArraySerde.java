@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,7 +28,7 @@ import java.util.Arrays;
  * @author Denis Stepanov
  */
 @Internal
-final class StringArraySerde implements SerdeRegistrar<String[]> {
+final class StringArraySerde extends AbstractArraySerde<String[]> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends String[]> type, String[] strings)

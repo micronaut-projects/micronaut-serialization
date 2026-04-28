@@ -41,13 +41,15 @@ public final class EnumSerdeShapeResolver {
         if (hasCustomEnumValue(element) || hasCustomCreator(element)) {
             return Optional.empty();
         }
+        if (hasJsonEnumDefaultValue(element)) {
+            return Optional.empty();
+        }
 
         List<EnumSerdeShape.EnumConstant> overrides = new ArrayList<>();
         for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
             String name = enumConstant.getName();
             String serializedValue = enumConstant.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY)
                 .or(() -> enumConstant.stringValue("com.fasterxml.jackson.annotation.JsonProperty", "value"))
-                .or(() -> enumConstant.stringValue("tools.jackson.annotation.JsonProperty", "value"))
                 .orElse(name);
             if (!serializedValue.equals(name)) {
                 overrides.add(new EnumSerdeShape.EnumConstant(name, serializedValue));
@@ -71,5 +73,14 @@ public final class EnumSerdeShapeResolver {
             return true;
         }
         return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyDeclared().annotated(a -> a.hasDeclaredAnnotation(Creator.class))).isEmpty();
+    }
+
+    private boolean hasJsonEnumDefaultValue(ClassElement element) {
+        for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
+            if (enumConstant.hasAnnotation(SerdeConfig.SerEnumDefaultValue.class)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

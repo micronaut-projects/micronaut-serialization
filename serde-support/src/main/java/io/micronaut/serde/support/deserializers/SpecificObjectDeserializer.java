@@ -107,7 +107,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                 completed = true;
                 break;
             }
-            if (deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
+            if (deserBean.isIgnoredProperty(propertyName)) {
                 objectDecoder.skipValue();
                 continue;
             }
@@ -162,7 +162,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
                         completed = true;
                         break;
                     }
-                    if (deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
+                    if (deserBean.isIgnoredProperty(propertyName)) {
                         objectDecoder.skipValue();
                         continue;
                     }
@@ -232,7 +232,7 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
     private static void handleUnexpectedProperty(Decoder objectDecoder,
                                                  String propertyName,
                                                  DeserBean<?> deserBean) throws IOException {
-        if (deserBean.ignoreUnknown || deserBean.ignoredProperties != null && deserBean.ignoredProperties.contains(propertyName)) {
+        if (deserBean.ignoreUnknown || deserBean.isIgnoredProperty(propertyName)) {
             objectDecoder.skipValue();
         } else {
             Class<?> beanType = deserBean.introspection.getBeanType();

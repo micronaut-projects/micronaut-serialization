@@ -21,6 +21,8 @@ import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 
+import java.util.Set;
+
 /**
  * Default implementation of {@link DeserializationConfiguration}.
  *
@@ -35,6 +37,13 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean failOnNullForPrimitives;
     private final boolean subtypesRequireDefaultImpl;
     private final boolean acceptCaseInsensitiveEnums;
+    private final boolean acceptSingleValueAsArray;
+    private final boolean acceptCaseInsensitiveProperties;
+    private final boolean readUnknownEnumValuesAsNull;
+    private final boolean readUnknownEnumValuesUsingDefaultValue;
+    private final boolean readDateTimestampsAsNanoseconds;
+    private final boolean adjustDatesToContextTimeZone;
+    private final Set<DeserializationConfiguration.Feature> features;
 
     @ConfigurationInject
     DefaultDeserializationConfiguration(@Bindable(defaultValue = StringUtils.TRUE) boolean ignoreUnknown,
@@ -42,13 +51,26 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean failOnNullForPrimitives,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean subtypesRequireDefaultImpl,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean acceptCaseInsensitiveEnums) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean acceptCaseInsensitiveEnums,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean acceptSingleValueAsArray,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean acceptCaseInsensitiveProperties,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean readUnknownEnumValuesAsNull,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean readUnknownEnumValuesUsingDefaultValue,
+                                        @Bindable(defaultValue = StringUtils.TRUE) boolean readDateTimestampsAsNanoseconds,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean adjustDatesToContextTimeZone) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
         this.failOnNullForPrimitives = failOnNullForPrimitives;
         this.subtypesRequireDefaultImpl = subtypesRequireDefaultImpl;
         this.acceptCaseInsensitiveEnums = acceptCaseInsensitiveEnums;
+        this.acceptSingleValueAsArray = acceptSingleValueAsArray;
+        this.acceptCaseInsensitiveProperties = acceptCaseInsensitiveProperties;
+        this.readUnknownEnumValuesAsNull = readUnknownEnumValuesAsNull;
+        this.readUnknownEnumValuesUsingDefaultValue = readUnknownEnumValuesUsingDefaultValue;
+        this.readDateTimestampsAsNanoseconds = readDateTimestampsAsNanoseconds;
+        this.adjustDatesToContextTimeZone = adjustDatesToContextTimeZone;
+        this.features = DeserializationConfiguration.super.features();
     }
 
     @Override
@@ -79,5 +101,40 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean acceptCaseInsensitiveEnums() {
         return acceptCaseInsensitiveEnums;
+    }
+
+    @Override
+    public boolean acceptSingleValueAsArray() {
+        return acceptSingleValueAsArray;
+    }
+
+    @Override
+    public boolean acceptCaseInsensitiveProperties() {
+        return acceptCaseInsensitiveProperties;
+    }
+
+    @Override
+    public boolean readUnknownEnumValuesAsNull() {
+        return readUnknownEnumValuesAsNull;
+    }
+
+    @Override
+    public boolean readUnknownEnumValuesUsingDefaultValue() {
+        return readUnknownEnumValuesUsingDefaultValue;
+    }
+
+    @Override
+    public boolean readDateTimestampsAsNanoseconds() {
+        return readDateTimestampsAsNanoseconds;
+    }
+
+    @Override
+    public boolean adjustDatesToContextTimeZone() {
+        return adjustDatesToContextTimeZone;
+    }
+
+    @Override
+    public Set<DeserializationConfiguration.Feature> features() {
+        return features;
     }
 }

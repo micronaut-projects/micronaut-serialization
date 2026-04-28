@@ -22,13 +22,16 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
+import io.micronaut.serde.support.util.SerdeFeatures;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * The abstract map serializer.
@@ -43,11 +46,14 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
     protected final SerdeConfig.SerInclude includeContent;
     private final Argument<V> valueGeneric;
     private final Serializer<V> valueSerializer;
+    private final boolean sortMapEntries;
 
     AbstractMapObjectSerializer(Argument<? extends Map<K, V>> type, EncoderContext context) throws SerdeException {
+        context = SerdeFeatures.withFeatures(context, type.getAnnotationMetadata());
         includeContent = type.getAnnotationMetadata()
             .enumValue(SerdeConfig.class.getName(), SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class)
             .orElse(SerdeConfig.SerInclude.ALWAYS);
+        sortMapEntries = context.getFeatures().contains(SerdeConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES);
         final Argument<?>[] generics = type.getTypeParameters();
         final boolean hasGenerics = ArrayUtils.isNotEmpty(generics) && generics.length == 2;
         if (hasGenerics) {
@@ -70,7 +76,11 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-        for (Map.Entry<K, V> entry : value.entrySet()) {
+        Stream<Map.Entry<K, V>> entries = value.entrySet().stream();
+        if (sortMapEntries) {
+            entries = entries.sorted(AbstractMapObjectSerializer::compareEntriesByKey);
+        }
+        for (Map.Entry<K, V> entry : entries.toList()) {
             K k = entry.getKey();
             try {
                 V v = entry.getValue();
@@ -147,6 +157,27 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
             return true;
         }
         return false;
+    }
+
+    private static int compareEntriesByKey(Map.Entry<?, ?> left, Map.Entry<?, ?> right) {
+        return compareKeys(left.getKey(), right.getKey());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int compareKeys(Object left, Object right) {
+        if (left == right) {
+            return 0;
+        }
+        if (left == null) {
+            return -1;
+        }
+        if (right == null) {
+            return 1;
+        }
+        if (left instanceof Comparable<?> && left.getClass() == right.getClass()) {
+            return ((Comparable<Object>) left).compareTo(right);
+        }
+        return String.valueOf(left).compareTo(String.valueOf(right));
     }
 
 }

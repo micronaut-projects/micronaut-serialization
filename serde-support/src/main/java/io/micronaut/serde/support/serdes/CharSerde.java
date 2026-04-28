@@ -16,18 +16,19 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
-final class CharSerde implements SerdeRegistrar<Character> {
+final class CharSerde implements FormattedSerde<Character>, SerdeRegistrar<Character> {
     @Override
     public Character deserialize(Decoder decoder,
                                  DecoderContext decoderContext,

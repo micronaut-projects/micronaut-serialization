@@ -143,23 +143,28 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     private <T> SerBean<T> getSerializableBean(Argument<T> type,
                                                EncoderContext context) throws SerdeException {
         AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
+        SerializationConfiguration resolvedSerializationConfiguration = context.getSerializationConfiguration().orElse(serializationConfiguration);
         SerdeArgumentConf serdeArgumentConf = annotationMetadata.isEmpty() ? null : new SerdeArgumentConf(annotationMetadata);
+        if (serdeArgumentConf != null) {
+            context = serdeArgumentConf.withFeatures(context);
+        }
         SerBeanKey key = new SerBeanKey(
             context.getSerdeConfiguration().orElse(serdeConfiguration),
-            context.getSerializationConfiguration().orElse(serializationConfiguration),
+            resolvedSerializationConfiguration,
             type,
             serdeArgumentConf
         );
+        EncoderContext featureContext = context;
         // Use suppliers to prevent recursive update because the lambda will call the same method again
         Supplier<SerBean<?>> serBeanSupplier = serBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> {
             try {
-                return new SerBean<>(type, introspections, context, serdeArgumentConf, serializationConfiguration, beanContext);
+                return new SerBean<>(type, introspections, featureContext, serdeArgumentConf, serializationConfiguration, beanContext);
             } catch (SerdeException e) {
                 throw new IntrospectionException("Error creating deserializer for type [" + type + "]: " + e.getMessage(), e);
             }
         }));
         SerBean<?> serBean = serBeanSupplier.get();
-        serBean.initialize(lock, context);
+        serBean.initialize(lock, featureContext);
         return (SerBean<T>) serBean;
     }
 }

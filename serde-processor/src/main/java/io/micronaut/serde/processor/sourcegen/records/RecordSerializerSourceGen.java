@@ -24,6 +24,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ClassDef;
@@ -69,6 +70,13 @@ public final class RecordSerializerSourceGen {
     private static final Method CREATE_SPECIFIC_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         Serializer.class,
         "createSpecific",
+        Serializer.EncoderContext.class,
+        Argument.class
+    );
+    private static final Method WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeFallbackUtil.class,
+        "withRuntimeFallback",
+        Serializer.class,
         Serializer.EncoderContext.class,
         Argument.class
     );
@@ -190,10 +198,14 @@ public final class RecordSerializerSourceGen {
             .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(recordTypeDef)))
             .addThrows(TypeDef.of(SerdeException.class))
             .build((aThis, methodParameters) -> {
-                if (serializerFieldNames.isEmpty()) {
-                    return aThis.returning();
-                }
                 VariableDef.MethodParameter context = methodParameters.get(0);
+                VariableDef.MethodParameter type = methodParameters.get(1);
+                if (serializerFieldNames.isEmpty()) {
+                    return ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, type)
+                        .cast(TypeDef.parameterized(Serializer.class, recordTypeDef))
+                        .returning();
+                }
                 List<StatementDef> statements = new ArrayList<>();
                 List<ExpressionDef> serializerValues = new ArrayList<>();
                 List<TypeDef> constructorParameterTypes = new ArrayList<>();
@@ -210,7 +222,15 @@ public final class RecordSerializerSourceGen {
                     constructorParameterTypes.add(SERIALIZER_TYPE);
                     index++;
                 }
-                statements.add(serializerClassTypeDef.instantiate(constructorParameterTypes, serializerValues).returning());
+                statements.add(ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                    .invokeStatic(
+                        WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD,
+                        serializerClassTypeDef.instantiate(constructorParameterTypes, serializerValues),
+                        context,
+                        type
+                    )
+                    .cast(TypeDef.parameterized(Serializer.class, recordTypeDef))
+                    .returning());
                 return StatementDef.multi(statements);
             });
     }

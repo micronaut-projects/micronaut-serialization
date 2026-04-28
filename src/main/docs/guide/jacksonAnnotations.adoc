@@ -44,8 +44,8 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 |
 
 |link:{jacksonAnnotationJavadoc}/JsonEnumDefaultValue.html[@JsonEnumDefaultValue]
-|❌
-|
+|✅
+|supported for enum properties using `@JsonFormat(with = JsonFormat.Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)`
 
 |link:{jacksonAnnotationJavadoc}/JsonFilter.html[@JsonFilter]
 |✅
@@ -53,7 +53,7 @@ NOTE: If an unsupported annotation or member is used, a compilation error will r
 
 |link:{jacksonAnnotationJavadoc}/JsonFormat.html[@JsonFormat]
 |✅
-|unsupported members: `shape`, `with` & `without`
+|
 
 |link:{jacksonAnnotationJavadoc}/JsonGetter.html[@JsonGetter]
 |✅

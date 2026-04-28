@@ -19,8 +19,6 @@ import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
@@ -34,6 +32,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.qualifiers.Qualifiers;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
@@ -43,9 +43,13 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.FormattedHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
+import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Modifier;
@@ -111,8 +115,9 @@ final class SerBean<T> {
             SerializationConfiguration serializationConfiguration,
             @Nullable BeanContext beanContext) throws SerdeException {
         // !!! Avoid accessing annotations from the argument, the annotations are not included in the cache key
-        this.configuration = encoderContext.getSerializationConfiguration().orElse(serializationConfiguration);
         this.introspection = introspections.getSerializableIntrospection(type);
+        encoderContext = SerdeFeatures.withFeatures(encoderContext, introspection.getAnnotationMetadata());
+        this.configuration = encoderContext.getSerializationConfiguration().orElse(serializationConfiguration);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
         subtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();
 
@@ -436,6 +441,7 @@ final class SerBean<T> {
     }
 
     public void initialize(ReentrantLock lock, Serializer.EncoderContext encoderContext) throws SerdeException {
+        encoderContext = SerdeFeatures.withFeatures(encoderContext, introspection.getAnnotationMetadata());
         // Double check locking
         if (!initialized) {
             lock.lock();
@@ -471,7 +477,10 @@ final class SerBean<T> {
         } else {
             serializer = (Serializer<Z>) encoderContext.findSerializer(argument);
         }
-        prop.serializer = serializer.createSpecific(encoderContext, argument);
+        Serializer.EncoderContext propertyContext = encoderContext.withFeatures(prop.featuresWith, prop.featuresWithout);
+        prop.serializer = prop.format == null
+            ? serializer.createSpecific(propertyContext, argument)
+            : createSpecific(prop.format, serializer, propertyContext, argument);
 
         if (prop.serializableInto) {
             if (prop.serializer instanceof io.micronaut.serde.ObjectSerializer<Z> objectSerializer) {
@@ -481,6 +490,24 @@ final class SerBean<T> {
             }
         }
         prop.annotationMetadata = null;
+    }
+
+    private static <T> Serializer<T> createSpecific(@NonNull FormatConfiguration configuration,
+                                                    @NonNull Serializer<T> serializer,
+                                                    Serializer.EncoderContext encoderContext,
+                                                    @NonNull Argument<T> argument) throws SerdeException {
+        if (serializer instanceof FormattedSerializer<T> formattedSerializer) {
+            return formattedSerializer.createSpecific(encoderContext, argument, configuration);
+        }
+        Serializer<T> specific = serializer.createSpecific(encoderContext, argument);
+        FormatConfiguration.Shape shape = configuration.shape();
+        if (shape == FormatConfiguration.Shape.ANY) {
+            return specific;
+        }
+        if (shape.isPojoShape()) {
+            return FormattedHelper.objectSerializer(encoderContext, argument);
+        }
+        return specific;
     }
 
     private boolean isSimpleBean() {
@@ -629,6 +656,10 @@ final class SerBean<T> {
         public Serializer<P> serializer;
         public io.micronaut.serde.@Nullable ObjectSerializer<P> objectSerializer;
         public AnnotationMetadata annotationMetadata;
+        @Nullable
+        public final FormatConfiguration format;
+        public final Set<SerdeConfiguration.Feature> featuresWith;
+        public final Set<SerdeConfiguration.Feature> featuresWithout;
         // CHECKSTYLE:ON
 
         public SerProperty(
@@ -648,7 +679,7 @@ final class SerBean<T> {
             this.beanType = bean.introspection.getBeanType();
             this.name = name;
             this.originalName = originalName;
-            this.argument = argument;
+            this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);
             final AnnotationMetadata beanMetadata = bean.introspection.getAnnotationMetadata();
             final AnnotationMetadata hierarchy =
                     annotationMetadata.isEmpty() ? beanMetadata : new AnnotationMetadataHierarchy(beanMetadata, annotationMetadata);
@@ -661,6 +692,19 @@ final class SerBean<T> {
             this.backRef = annotationMetadata.stringValue(SerdeConfig.SerBackRef.class)
                     .orElse(null);
             this.annotationMetadata = annotationMetadata;
+            FormatConfiguration propertyFormat = FormatConfiguration.from(annotationMetadata);
+            if (propertyFormat == null) {
+                FormatConfiguration beanFormat = FormatConfiguration.from(beanMetadata);
+                if (beanFormat != null && switch (beanFormat.shape()) {
+                    case ARRAY, OBJECT, POJO -> false;
+                    default -> true;
+                }) {
+                    propertyFormat = beanFormat;
+                }
+            }
+            this.format = propertyFormat;
+            this.featuresWith = SerdeFeatures.serializationFeaturesWith(annotationMetadata);
+            this.featuresWithout = SerdeFeatures.serializationFeaturesWithout(annotationMetadata);
             this.serializableInto = annotationMetadata.hasAnnotation(SerdeConfig.SerUnwrapped.class) || annotationMetadata.hasAnnotation(SerdeConfig.SerAnyGetter.class);
         }
 

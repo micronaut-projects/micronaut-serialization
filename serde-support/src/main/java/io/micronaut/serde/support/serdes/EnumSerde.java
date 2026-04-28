@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Creator;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
@@ -28,6 +27,10 @@ import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormattedDeserializer;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerde;
+import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -35,12 +38,14 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.util.CustomizableDeserializer;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +54,8 @@ import java.util.stream.Collectors;
  * @param <E> The enum type.
  * @since 1.0.0
  */
-final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>, SerdeRegistrar<E> {
+final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>, FormattedSerde<E>, SerdeRegistrar<E> {
+
     private final SerdeIntrospections introspections;
 
     EnumSerde(SerdeIntrospections introspections) {
@@ -58,14 +64,17 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
 
     @Override
     @NonNull
-    public Deserializer<E> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super E> type) throws SerdeException {
-        boolean acceptCaseInsensitive = context.getDeserializationConfiguration().map(DeserializationConfiguration::acceptCaseInsensitiveEnums).orElse(false);
+    public Deserializer<E> createSpecific(@NonNull DecoderContext context,
+                                          @NonNull Argument<? super E> type) throws SerdeException {
+        Set<DeserializationConfiguration.Feature> features = context.getFeatures();
+        boolean acceptCaseInsensitive = features.contains(DeserializationConfiguration.Feature.ACCEPT_CASE_INSENSITIVE_VALUES);
+        boolean unknownAsNull = features.contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+        boolean unknownUsingDefaultValue = features.contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
         try {
             BeanIntrospection<E> deserializableIntrospection = introspections.getDeserializableIntrospection((Argument<E>) type);
             if (deserializableIntrospection.getConstructor().isAnnotationPresent(Creator.class)) {
                 return createEnumCreatorDeserializer(context, deserializableIntrospection);
-            }
-            if (deserializableIntrospection instanceof EnumBeanIntrospection<E> enumBeanIntrospection) {
+            } else if (deserializableIntrospection instanceof EnumBeanIntrospection<E> enumBeanIntrospection) {
                 List<EnumConstant<E>> constants = enumBeanIntrospection.getConstants();
                 for (BeanMethod<? super E, Object> beanMethod : deserializableIntrospection.getBeanMethods()) {
                     if (beanMethod.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
@@ -77,7 +86,16 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                             Object deserializedValue = beanMethod.invoke(enumValue);
                             cache.put(deserializedValue, enumValue);
                         }
-                        return new EnumValueDeserializer<>(valueType, valueDeserializer, valueType.isNullable(), cache, acceptCaseInsensitive);
+                        return new EnumValueDeserializer<>(
+                            valueType,
+                            valueDeserializer,
+                            valueType.isNullable(),
+                            cache,
+                            acceptCaseInsensitive,
+                            findDefaultValue(constants),
+                            unknownAsNull,
+                            unknownUsingDefaultValue
+                        );
                     }
                 }
                 for (BeanProperty<? super E, Object> beanProperty : deserializableIntrospection.getBeanProperties()) {
@@ -90,7 +108,16 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                             Object deserializedValue = beanProperty.get(enumValue);
                             cache.put(deserializedValue, enumValue);
                         }
-                        return new EnumValueDeserializer<>(valueType, valueDeserializer, valueType.isNullable(), cache, acceptCaseInsensitive);
+                        return new EnumValueDeserializer<>(
+                            valueType,
+                            valueDeserializer,
+                            valueType.isNullable(),
+                            cache,
+                            acceptCaseInsensitive,
+                            findDefaultValue(constants),
+                            unknownAsNull,
+                            unknownUsingDefaultValue
+                        );
                     }
                 }
                 Map<String, E> cache = CollectionUtils.newHashMap(constants.size());
@@ -101,10 +128,15 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                 }
                 return new EnumPropertyDeserializer<>(
                     cache,
-                    acceptCaseInsensitive
+                    acceptCaseInsensitive,
+                    false,
+                    findDefaultValue(constants),
+                    unknownAsNull,
+                    unknownUsingDefaultValue
                 );
+            } else {
+                return createEnumCreatorDeserializer(context, deserializableIntrospection);
             }
-            return createEnumCreatorDeserializer(context, deserializableIntrospection);
         } catch (IntrospectionException | SerdeException ignore) {
             // Ignore
         }
@@ -119,8 +151,24 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
         }
         return new EnumPropertyDeserializer<>(
             cache,
-            acceptCaseInsensitive
+            acceptCaseInsensitive,
+            false,
+            null,
+            unknownAsNull,
+            unknownUsingDefaultValue
         );
+    }
+
+    @Override
+    @NonNull
+    public Deserializer<E> createSpecific(@NonNull DecoderContext context,
+                                          @NonNull Argument<? super E> type,
+                                          @NonNull FormatConfiguration format) throws SerdeException {
+        Deserializer<E> specific = createSpecific(context, type);
+        if (specific instanceof FormattedDeserializer<E> formattedDeserializer) {
+            return formattedDeserializer.createSpecific(context, type, format);
+        }
+        return specific;
     }
 
     @SuppressWarnings("unchecked")
@@ -131,39 +179,29 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
         }
         Argument<Object> argumentType = (Argument<Object>) constructorArguments[0];
         Deserializer<Object> argumentDeserializer = (Deserializer<Object>) context.findDeserializer(argumentType);
+        argumentDeserializer = argumentDeserializer.createSpecific(context, argumentType);
 
         return new EnumCreatorDeserializer<E>(argumentType, argumentDeserializer, deserializableIntrospection, argumentType.isNullable());
     }
 
     @Override
     @NonNull
-    public Serializer<E> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends E> type) throws SerdeException {
+    public Serializer<E> createSpecific(@NonNull EncoderContext context,
+                                        @NonNull Argument<? extends E> type) throws SerdeException {
         try {
             BeanIntrospection<E> si = introspections.getSerializableIntrospection((Argument<E>) type);
             for (BeanMethod<? extends E, Object> beanMethod : si.getBeanMethods()) {
                 if (beanMethod.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                    Serializer<? super Object> valueSerializer = context.findSerializer(beanMethod.getReturnType().asArgument());
-                    return (encoder, subContext, subType, value) -> {
-                        Object result = ((BeanMethod) beanMethod).invoke(value);
-                        if (result == null) {
-                            encoder.encodeNull();
-                        } else {
-                            valueSerializer.serialize(encoder, subContext, subType, result);
-                        }
-                    };
+                    Argument<Object> valueType = beanMethod.getReturnType().asArgument();
+                    Serializer<? super Object> valueSerializer = context.findSerializer(valueType);
+                    return new EnumJsonValueSerializer<>(valueType, valueSerializer, beanMethod, null);
                 }
             }
             for (BeanProperty<? extends E, Object> beanProperty : si.getBeanProperties()) {
                 if (beanProperty.getAnnotationMetadata().hasDeclaredAnnotation(SerdeConfig.SerValue.class)) {
-                    Serializer<? super Object> valueSerializer = context.findSerializer(beanProperty.asArgument());
-                    return (encoder, subContext, subType, value) -> {
-                        Object result = ((BeanProperty) beanProperty).get(value);
-                        if (result == null) {
-                            encoder.encodeNull();
-                        } else {
-                            valueSerializer.serialize(encoder, subContext, subType, result);
-                        }
-                    };
+                    Argument<Object> valueType = beanProperty.asArgument();
+                    Serializer<? super Object> valueSerializer = context.findSerializer(valueType);
+                    return new EnumJsonValueSerializer<>(valueType, valueSerializer, null, beanProperty);
                 }
             }
             if (si instanceof EnumBeanIntrospection<E> enumBeanIntrospection) {
@@ -178,10 +216,55 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
                     return new EnumPropertySerializer<>(cache);
                 }
             }
-            return this;
-        } catch (IntrospectionException e) {
-            return this;
+        } catch (IntrospectionException ignore) {
+            // ignore
         }
+        return new EnumNameSerializer<>();
+    }
+
+    @Override
+    @NonNull
+    public Serializer<E> createSpecific(@NonNull EncoderContext context,
+                                        @NonNull Argument<? extends E> type,
+                                        @NonNull FormatConfiguration format) throws SerdeException {
+        Serializer<E> specific = createSpecific(context, type);
+        if (specific instanceof FormattedSerializer<E> formattedSerializer) {
+            return formattedSerializer.createSpecific(context, type, format);
+        }
+        return specific;
+    }
+
+    static <E extends Enum<E>> Serializer<E> createSerializerForShape(EncoderContext context,
+                                                                      Argument<? extends E> type,
+                                                                      Serializer<E> specific,
+                                                                      @NonNull FormatConfiguration format) throws SerdeException {
+        FormatConfiguration.Shape shape = format.shape();
+        if (shape.isNumeric() || shape == FormatConfiguration.Shape.ARRAY) {
+            return new EnumOrdinalSerializer<>(specific);
+        }
+        if (shape.isPojoShape()) {
+            return objectSerializer(context, type);
+        }
+        if (shape == FormatConfiguration.Shape.BOOLEAN || shape == FormatConfiguration.Shape.BINARY) {
+            throw new SerdeException("Unsupported serialization shape (%s) for Enum %s, not supported as property annotation".formatted(shape, type.getType().getName()));
+        }
+        return specific;
+    }
+
+    private static <E extends Enum<E>> E findDefaultValue(List<EnumConstant<E>> constants) {
+        for (EnumConstant<E> constant : constants) {
+            if (constant.getAnnotationMetadata().hasAnnotation(SerdeConfig.SerEnumDefaultValue.class)) {
+                return constant.getValue();
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static <E extends Enum<E>> Serializer<E> objectSerializer(EncoderContext context,
+                                                              Argument<? extends E> type) throws SerdeException {
+        Serializer<E> objectSerializer = (Serializer<E>) context.findSerializer((Argument) Argument.OBJECT_ARGUMENT);
+        return objectSerializer.createSpecific(context, type);
     }
 
     @Override
@@ -207,6 +290,37 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
         return decoder.createDeserializationException("Cannot deserialize value of type `%s` due to: %s".formatted(enumType, detail), value);
     }
 
+}
+
+final class EnumOrdinalSerializer<E extends Enum<E>> implements Serializer<E> {
+    private final Serializer<E> delegate;
+
+    EnumOrdinalSerializer(Serializer<E> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends E> type,
+                          @NonNull E value) throws IOException {
+        encoder.encodeInt(value.ordinal());
+    }
+
+    @Override
+    public boolean isEmpty(@NonNull EncoderContext context, E value) {
+        return delegate.isEmpty(context, value);
+    }
+
+    @Override
+    public boolean isAbsent(@NonNull EncoderContext context, E value) {
+        return delegate.isAbsent(context, value);
+    }
+
+    @Override
+    public boolean isDefault(@NonNull EncoderContext context, @NonNull E value) {
+        return delegate.isDefault(context, value);
+    }
 }
 
 /**
@@ -266,26 +380,61 @@ final class EnumCreatorDeserializer<E extends Enum<E>> implements Deserializer<E
     }
 }
 
-final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> {
+final class EnumValueDeserializer<E extends Enum<E>> implements FormattedDeserializer<E> {
 
     private final Argument<Object> valueType;
     private final Deserializer<?> valueDeserializer;
     private final boolean allowNull;
     private final Map<Object, E> cache;
     private final boolean acceptCaseInsensitive;
+    private final E defaultValue;
+    private final boolean unknownAsNull;
+    private final boolean unknownUsingDefaultValue;
 
     EnumValueDeserializer(Argument<Object> valueType,
                           Deserializer<?> valueDeserializer,
                           boolean allowNull,
-                          Map<Object, E> cache, boolean acceptCaseInsensitive) {
+                          Map<Object, E> cache,
+                          boolean acceptCaseInsensitive,
+                          E defaultValue) {
+        this(valueType, valueDeserializer, allowNull, cache, acceptCaseInsensitive, defaultValue, false, false);
+    }
+
+    EnumValueDeserializer(Argument<Object> valueType,
+                          Deserializer<?> valueDeserializer,
+                          boolean allowNull,
+                          Map<Object, E> cache,
+                          boolean acceptCaseInsensitive,
+                          E defaultValue,
+                          boolean unknownAsNull,
+                          boolean unknownUsingDefaultValue) {
         this.valueType = valueType;
         this.valueDeserializer = valueDeserializer;
         this.allowNull = allowNull;
         this.cache = cache;
         this.acceptCaseInsensitive = acceptCaseInsensitive;
+        this.defaultValue = defaultValue;
+        this.unknownAsNull = unknownAsNull;
+        this.unknownUsingDefaultValue = unknownUsingDefaultValue;
     }
 
-    @NonNull
+    @Override
+    public Deserializer<E> createSpecific(@NonNull DecoderContext context,
+                                          @NonNull Argument<? super E> type,
+                                          @NonNull FormatConfiguration format) {
+        Set<DeserializationConfiguration.Feature> features = context.getFeatures();
+        return new EnumValueDeserializer<>(
+            valueType,
+            valueDeserializer,
+            allowNull,
+            cache,
+            features.contains(DeserializationConfiguration.Feature.ACCEPT_CASE_INSENSITIVE_VALUES),
+            defaultValue,
+            features.contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL),
+            features.contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        );
+    }
+
     private E transform(@NonNull Decoder decoder, Object value) throws IOException {
         E enumValue = cache.get(value);
         if (enumValue != null) {
@@ -301,6 +450,12 @@ final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> 
                     break;
                 }
             }
+        }
+        if (unknownUsingDefaultValue && defaultValue != null) {
+            return defaultValue;
+        }
+        if (unknownAsNull) {
+            return null;
         }
         throw EnumSerde.failedToDeserialize(decoder, cache, value);
     }
@@ -320,7 +475,75 @@ final class EnumValueDeserializer<E extends Enum<E>> implements Deserializer<E> 
     }
 }
 
-final class EnumPropertySerializer<E extends Enum<E>> implements Serializer<E> {
+final class EnumJsonValueSerializer<E extends Enum<E>> implements FormattedSerializer<E> {
+
+    private final Argument<Object> valueType;
+    private final Serializer<? super Object> valueSerializer;
+    private final BeanMethod<? extends E, Object> beanMethod;
+    private final BeanProperty<? extends E, Object> beanProperty;
+
+    EnumJsonValueSerializer(Argument<Object> valueType,
+                            Serializer<? super Object> valueSerializer,
+                            BeanMethod<? extends E, Object> beanMethod,
+                            BeanProperty<? extends E, Object> beanProperty) {
+        this.valueType = valueType;
+        this.valueSerializer = valueSerializer;
+        this.beanMethod = beanMethod;
+        this.beanProperty = beanProperty;
+    }
+
+    @Override
+    public Serializer<E> createSpecific(@NonNull EncoderContext context,
+                                        @NonNull Argument<? extends E> type,
+                                        @NonNull FormatConfiguration format) throws SerdeException {
+        FormatConfiguration.Shape shape = format.shape();
+        if (shape.isPojoShape()) {
+            return EnumSerde.objectSerializer(context, type);
+        }
+        if (shape == FormatConfiguration.Shape.BOOLEAN || shape == FormatConfiguration.Shape.BINARY) {
+            throw new SerdeException("Unsupported serialization shape (%s) for Enum %s, not supported as property annotation".formatted(shape, type.getType().getName()));
+        }
+        return this;
+    }
+
+    @Override
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends E> type,
+                          E value) throws IOException {
+        Object result;
+        if (beanMethod != null) {
+            result = ((BeanMethod) beanMethod).invoke(value);
+        } else {
+            result = ((BeanProperty) beanProperty).get(value);
+        }
+        if (result == null) {
+            encoder.encodeNull();
+        } else {
+            valueSerializer.serialize(encoder, context, valueType, result);
+        }
+    }
+}
+
+final class EnumNameSerializer<E extends Enum<E>> implements FormattedSerializer<E> {
+
+    @Override
+    public Serializer<E> createSpecific(@NonNull EncoderContext context,
+                                        @NonNull Argument<? extends E> type,
+                                        @NonNull FormatConfiguration format) throws SerdeException {
+        return EnumSerde.createSerializerForShape(context, type, this, format);
+    }
+
+    @Override
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends E> type,
+                          @NonNull E value) throws IOException {
+        encoder.encodeString(value.name());
+    }
+}
+
+final class EnumPropertySerializer<E extends Enum<E>> implements FormattedSerializer<E> {
 
     private final EnumMap<E, String> cache;
 
@@ -329,23 +552,72 @@ final class EnumPropertySerializer<E extends Enum<E>> implements Serializer<E> {
     }
 
     @Override
+    public Serializer<E> createSpecific(@NonNull EncoderContext context,
+                                        @NonNull Argument<? extends E> type,
+                                        @NonNull FormatConfiguration format) throws SerdeException {
+        return EnumSerde.createSerializerForShape(context, type, this, format);
+    }
+
+    @Override
     public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends E> type, E value) throws IOException {
         encoder.encodeString(cache.get(value));
     }
 }
 
-final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<E> {
+final class EnumPropertyDeserializer<E extends Enum<E>> implements FormattedDeserializer<E> {
 
     private final Map<String, E> cache;
     private final boolean acceptCaseInsensitive;
+    private final boolean ordinal;
+    private final E defaultValue;
+    private final boolean unknownAsNull;
+    private final boolean unknownUsingDefaultValue;
+    private final Object[] constants;
+    private final String enumType;
 
-    EnumPropertyDeserializer(Map<String, E> cache, boolean acceptCaseInsensitive) {
+    EnumPropertyDeserializer(Map<String, E> cache, boolean acceptCaseInsensitive, E defaultValue) {
+        this(cache, acceptCaseInsensitive, false, defaultValue, false, false);
+    }
+
+    EnumPropertyDeserializer(Map<String, E> cache,
+                             boolean acceptCaseInsensitive,
+                             boolean ordinal,
+                             E defaultValue,
+                             boolean unknownAsNull,
+                             boolean unknownUsingDefaultValue) {
         this.cache = cache;
         this.acceptCaseInsensitive = acceptCaseInsensitive;
+        this.ordinal = ordinal;
+        this.defaultValue = defaultValue;
+        this.unknownAsNull = unknownAsNull;
+        this.unknownUsingDefaultValue = unknownUsingDefaultValue;
+        E firstValue = cache.values().stream().findFirst().orElse(null);
+        this.constants = firstValue == null ? new Object[0] : firstValue.getDeclaringClass().getEnumConstants();
+        this.enumType = firstValue == null ? Enum.class.getName() : firstValue.getDeclaringClass().getName();
+    }
+
+    @Override
+    public Deserializer<E> createSpecific(@NonNull DecoderContext context,
+                                          @NonNull Argument<? super E> type,
+                                          @NonNull FormatConfiguration format) {
+        FormatConfiguration.Shape shape = format.shape();
+        boolean ordinal = this.ordinal || shape.isNumeric() || shape == FormatConfiguration.Shape.ARRAY;
+        Set<DeserializationConfiguration.Feature> features = context.getFeatures();
+        return new EnumPropertyDeserializer<>(
+            cache,
+            features.contains(DeserializationConfiguration.Feature.ACCEPT_CASE_INSENSITIVE_VALUES),
+            ordinal,
+            defaultValue,
+            features.contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL),
+            features.contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
+        );
     }
 
     @Override
     public E deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super E> type) throws IOException {
+        if (ordinal) {
+            return deserializeOrdinal(decoder);
+        }
         String value = decoder.decodeString();
         E result = cache.get(value);
         if (result != null) {
@@ -358,6 +630,35 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<
                 }
             }
         }
+        E unknown = handleUnknown();
+        if (unknown != null || unknownAsNull) {
+            return unknown;
+        }
         throw EnumSerde.failedToDeserialize(decoder, cache, value);
+    }
+
+    private E deserializeOrdinal(@NonNull Decoder decoder) throws IOException {
+        int ordinal = decoder.decodeInt();
+        if (ordinal >= 0 && ordinal < constants.length) {
+            return (E) constants[ordinal];
+        }
+        E unknown = handleUnknown();
+        if (unknown != null || unknownAsNull) {
+            return unknown;
+        }
+        throw decoder.createDeserializationException(
+            "Cannot deserialize value of type `%s` due to: ordinal index outside legal index range [0..%s]".formatted(
+                enumType,
+                constants.length - 1
+            ),
+            ordinal
+        );
+    }
+
+    private E handleUnknown() {
+        if (unknownUsingDefaultValue && defaultValue != null) {
+            return defaultValue;
+        }
+        return null;
     }
 }

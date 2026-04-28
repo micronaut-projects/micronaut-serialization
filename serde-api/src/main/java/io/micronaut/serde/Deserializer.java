@@ -17,18 +17,23 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
+import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Interface that represents a deserializer.
@@ -151,6 +156,120 @@ public interface Deserializer<T> {
         @NonNull
         default Optional<DeserializationConfiguration> getDeserializationConfiguration() {
             return Optional.empty();
+        }
+
+        /**
+         * Get the active deserialization format features for this context.
+         *
+         * @return The active deserialization format features
+         * @since 3.0
+         */
+        @NonNull
+        default Set<DeserializationConfiguration.Feature> getFeatures() {
+            return getDeserializationConfiguration()
+                .map(configuration -> configuration.features())
+                .orElseGet(() -> DeserializationConfiguration.features(null));
+        }
+
+        /**
+         * Create a context with deserialization format features overridden by annotation metadata.
+         *
+         * @param featuresWith    Features to enable
+         * @param featuresWithout Features to disable
+         * @return The derived context
+         * @since 3.0
+         */
+        @NonNull
+        default DecoderContext withFeatures(@NonNull Set<DeserializationConfiguration.Feature> featuresWith,
+                                            @NonNull Set<DeserializationConfiguration.Feature> featuresWithout) {
+            if (featuresWith.isEmpty() && featuresWithout.isEmpty()) {
+                return this;
+            }
+            return featureContext(this, overrideFeatures(getFeatures(), featuresWith, featuresWithout));
+        }
+
+        private static DecoderContext featureContext(DecoderContext delegate,
+                                                     Set<DeserializationConfiguration.Feature> features) {
+            return new DecoderContext() {
+                @Override
+                public ConversionService getConversionService() {
+                    return delegate.getConversionService();
+                }
+
+                @Override
+                public boolean hasView(Class<?>... views) {
+                    return delegate.hasView(views);
+                }
+
+                @Override
+                public <B, P> PropertyReference<B, P> resolveReference(@NonNull PropertyReference<B, P> reference) {
+                    return delegate.resolveReference(reference);
+                }
+
+                @Override
+                public Optional<SerdeConfiguration> getSerdeConfiguration() {
+                    return delegate.getSerdeConfiguration();
+                }
+
+                @Override
+                public Optional<DeserializationConfiguration> getDeserializationConfiguration() {
+                    return delegate.getDeserializationConfiguration();
+                }
+
+                @Override
+                public Set<DeserializationConfiguration.Feature> getFeatures() {
+                    return features;
+                }
+
+                @Override
+                public DecoderContext withFeatures(@NonNull Set<DeserializationConfiguration.Feature> featuresWith,
+                                                   @NonNull Set<DeserializationConfiguration.Feature> featuresWithout) {
+                    if (featuresWith.isEmpty() && featuresWithout.isEmpty()) {
+                        return this;
+                    }
+                    return featureContext(delegate, overrideFeatures(features, featuresWith, featuresWithout));
+                }
+
+                @Override
+                public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(@NonNull Class<? extends D> deserializerClass) throws SerdeException {
+                    return delegate.findCustomDeserializer(deserializerClass);
+                }
+
+                @Override
+                public <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type) throws SerdeException {
+                    return delegate.findDeserializer(type);
+                }
+
+                @Override
+                public <T> Collection<BeanIntrospection<? extends T>> getDeserializableSubtypes(Class<T> superType) {
+                    return delegate.getDeserializableSubtypes(superType);
+                }
+
+                @Override
+                public <D extends PropertyNamingStrategy> D findNamingStrategy(@NonNull Class<? extends D> namingStrategyClass) throws SerdeException {
+                    return delegate.findNamingStrategy(namingStrategyClass);
+                }
+
+                @Override
+                public <B, P> void pushManagedRef(@NonNull PropertyReference<B, P> reference) {
+                    delegate.pushManagedRef(reference);
+                }
+
+                @Override
+                public void popManagedRef() {
+                    delegate.popManagedRef();
+                }
+            };
+        }
+
+        private static Set<DeserializationConfiguration.Feature> overrideFeatures(Set<DeserializationConfiguration.Feature> base,
+                                                                                  Set<DeserializationConfiguration.Feature> featuresWith,
+                                                                                  Set<DeserializationConfiguration.Feature> featuresWithout) {
+            EnumSet<DeserializationConfiguration.Feature> features = EnumSet.noneOf(DeserializationConfiguration.Feature.class);
+            features.addAll(base);
+            features.addAll(featuresWith);
+            features.removeAll(featuresWithout);
+            return Set.copyOf(features);
         }
     }
 }

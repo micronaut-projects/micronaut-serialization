@@ -15,9 +15,9 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.math.BigDecimal;

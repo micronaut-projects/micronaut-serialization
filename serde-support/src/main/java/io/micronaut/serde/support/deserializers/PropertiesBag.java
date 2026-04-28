@@ -28,6 +28,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,17 +50,22 @@ final class PropertiesBag<T> {
     private final DeserBean.DerProperty<T, Object>[] properties;
     @Nullable
     private final Map<String, Integer> nameToPropertiesMapping;
+    private final boolean acceptCaseInsensitiveProperties;
     private final long propertiesMask;
     private final StringIntMap nameToPosition;
+    @Nullable
+    private final StringIntMap caseInsensitiveNameToPosition;
 
     private PropertiesBag(BeanIntrospection<T> beanIntrospection,
                           int[] originalNameToPropertiesMapping,
                           DeserBean.DerProperty<T, Object>[] properties,
-                          Map<String, Integer> nameToPropertiesMapping) {
+                          Map<String, Integer> nameToPropertiesMapping,
+                          boolean acceptCaseInsensitiveProperties) {
         this.beanIntrospection = beanIntrospection;
         this.originalNameToPropertiesMapping = originalNameToPropertiesMapping;
         this.properties = properties;
         this.nameToPropertiesMapping = nameToPropertiesMapping;
+        this.acceptCaseInsensitiveProperties = acceptCaseInsensitiveProperties;
         if (properties.length > 0 && properties.length <= 64) {
             this.propertiesMask = -1L >>> (64 - properties.length);
         } else {
@@ -73,6 +79,14 @@ final class PropertiesBag<T> {
         nameToPosition = new StringIntMap(props.size());
         for (String prop : props) {
             nameToPosition.put(prop, propertyIndexOfSlow(prop));
+        }
+        if (acceptCaseInsensitiveProperties) {
+            caseInsensitiveNameToPosition = new StringIntMap(props.size());
+            for (String prop : props) {
+                caseInsensitiveNameToPosition.put(prop.toLowerCase(Locale.ROOT), propertyIndexOfSlow(prop));
+            }
+        } else {
+            caseInsensitiveNameToPosition = null;
         }
     }
 
@@ -112,7 +126,11 @@ final class PropertiesBag<T> {
     }
 
     int propertyIndexOf(@NonNull String name) {
-        return nameToPosition.get(name, -1);
+        int propertyIndex = nameToPosition.get(name, -1);
+        if (propertyIndex == -1 && acceptCaseInsensitiveProperties) {
+            return caseInsensitiveNameToPosition.get(name.toLowerCase(Locale.ROOT), -1);
+        }
+        return propertyIndex;
     }
 
     private int propertyIndexOfSlow(@NonNull String name) {
@@ -139,11 +157,11 @@ final class PropertiesBag<T> {
         }
 
         public boolean contains(String name) {
-            return nameToPosition.get(name, -1) != -1;
+            return propertyIndexOf(name) != -1;
         }
 
         public DeserBean.DerProperty<T, Object> consume(String name) {
-            int propertyIndex = nameToPosition.get(name, -1);
+            int propertyIndex = propertyIndexOf(name);
             if (propertyIndex == -1 || isConsumed(propertyIndex)) {
                 return null;
             }
@@ -222,6 +240,7 @@ final class PropertiesBag<T> {
         private final int[] originalNameToPropertiesMapping;
         @Nullable
         private Map<String, Integer> nameToPropertiesMapping;
+        private final boolean acceptCaseInsensitiveProperties;
 
         private final List<DeserBean.DerProperty<T, Object>> mutableProperties;
 
@@ -230,11 +249,16 @@ final class PropertiesBag<T> {
         }
 
         Builder(BeanIntrospection<T> beanIntrospection, int expectedPropertiesSize) {
+            this(beanIntrospection, expectedPropertiesSize, false);
+        }
+
+        Builder(BeanIntrospection<T> beanIntrospection, int expectedPropertiesSize, boolean acceptCaseInsensitiveProperties) {
             this.beanIntrospection = beanIntrospection;
             int beanPropertiesSize = beanIntrospection.getBeanProperties().size();
             this.originalNameToPropertiesMapping = new int[beanPropertiesSize];
             Arrays.fill(originalNameToPropertiesMapping, -1);
             this.mutableProperties = new ArrayList<>(expectedPropertiesSize);
+            this.acceptCaseInsensitiveProperties = acceptCaseInsensitiveProperties;
         }
 
         void register(String name, DeserBean.DerProperty<T, Object> derProperty, boolean addAliases) {
@@ -264,7 +288,8 @@ final class PropertiesBag<T> {
                 beanIntrospection,
                 originalNameToPropertiesMapping,
                 mutableProperties.toArray(DeserBean.DerProperty[]::new),
-                nameToPropertiesMapping
+                nameToPropertiesMapping,
+                acceptCaseInsensitiveProperties
             );
         }
 

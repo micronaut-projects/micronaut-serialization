@@ -19,12 +19,17 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.time.Instant;
 import java.time.LocalDate;
 
 /**
@@ -32,27 +37,52 @@ import java.time.LocalDate;
  *
  * @since 1.0.0
  */
-final class SqlDateSerde implements SerdeRegistrar<Date> {
-    private static final Argument<LocalDate> LOCAL_DATE_ARGUMENT = Argument.of(LocalDate.class);
+final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
+    private static final Argument<Instant> INSTANT_ARGUMENT = Argument.of(Instant.class);
     private final LocalDateSerde localDateSerde;
+    private final InstantSerde instantSerde;
 
-    SqlDateSerde(LocalDateSerde localDateSerde) {
+    SqlDateSerde(LocalDateSerde localDateSerde, InstantSerde instantSerde) {
         this.localDateSerde = localDateSerde;
+        this.instantSerde = instantSerde;
     }
 
     @Override
     public Deserializer<Date> createSpecific(DecoderContext decoderContext, Argument<? super Date> context)
-            throws SerdeException {
+        throws SerdeException {
+        decoderContext = SerdeFeatures.withFeatures(decoderContext, context.getAnnotationMetadata());
+        FormatConfiguration format = FormatConfiguration.from(context.getAnnotationMetadata());
+        return format == null ? createSpecificWithoutFormat(decoderContext, context) : createSpecific(decoderContext, context, format);
+    }
+
+    @Override
+    public Deserializer<Date> createSpecific(DecoderContext decoderContext,
+                                             Argument<? super Date> context,
+                                             @NonNull FormatConfiguration format) throws SerdeException {
+        if (format.shape().isNumeric()) {
+            return new TimestampMillisDateSerde();
+        }
+        if (format.pattern() == null) {
+            if (format.shape() == FormatConfiguration.Shape.ARRAY) {
+                final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, INSTANT_ARGUMENT);
+                return createInstantDeserializer(INSTANT_ARGUMENT, specific);
+            }
+            final Argument<Instant> argument = Argument.of(Instant.class, context.getAnnotationMetadata());
+            final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, argument, format);
+            return createInstantDeserializer(argument, specific);
+        }
         final Argument<LocalDate> argument = Argument.of(LocalDate.class, context.getAnnotationMetadata());
         final Deserializer<LocalDate> specific = localDateSerde.createSpecific(
-                decoderContext, argument
+            decoderContext,
+            argument,
+            format
         );
         if (specific != localDateSerde) {
             return (decoder, subContext, type) -> {
                 final LocalDate ld = specific.deserialize(
-                        decoder,
-                        subContext,
-                        argument
+                    decoder,
+                    subContext,
+                    argument
                 );
                 if (ld != null) {
                     return Date.valueOf(ld);
@@ -65,9 +95,32 @@ final class SqlDateSerde implements SerdeRegistrar<Date> {
 
     @Override
     public Serializer<Date> createSpecific(EncoderContext encoderContext, Argument<? extends Date> type) {
+        encoderContext = SerdeFeatures.withFeatures(encoderContext, type.getAnnotationMetadata());
+        FormatConfiguration format = FormatConfiguration.from(type.getAnnotationMetadata());
+        return format == null ? createSpecificWithoutFormat(encoderContext, type) : createSpecific(encoderContext, type, format);
+    }
+
+    @Override
+    public Serializer<Date> createSpecific(EncoderContext encoderContext,
+                                           Argument<? extends Date> type,
+                                           @NonNull FormatConfiguration format) {
+        if (format.shape().isNumeric()) {
+            return new TimestampMillisDateSerde();
+        }
+        if (format.pattern() == null) {
+            if (format.shape() == FormatConfiguration.Shape.ARRAY) {
+                final Serializer<Instant> specific = instantSerde.createSpecific(encoderContext, INSTANT_ARGUMENT);
+                return createInstantSerializer(INSTANT_ARGUMENT, specific);
+            }
+            final Argument<Instant> argument = Argument.of(Instant.class, type.getAnnotationMetadata());
+            final Serializer<Instant> specific = instantSerde.createSpecific(encoderContext, argument, format);
+            return createInstantSerializer(argument, specific);
+        }
         final Argument<LocalDate> argument = Argument.of(LocalDate.class, type.getAnnotationMetadata());
         final Serializer<LocalDate> specific = localDateSerde.createSpecific(
-                encoderContext, argument
+            encoderContext,
+            argument,
+            format
         );
         if (specific != localDateSerde) {
             return new Serializer<>() {
@@ -89,25 +142,73 @@ final class SqlDateSerde implements SerdeRegistrar<Date> {
         return this;
     }
 
+    private Deserializer<Date> createSpecificWithoutFormat(DecoderContext decoderContext,
+                                                           Argument<? super Date> context) throws SerdeException {
+        final Argument<Instant> argument = Argument.of(Instant.class, context.getAnnotationMetadata());
+        final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, argument);
+        return createInstantDeserializer(argument, specific);
+    }
+
+    private Serializer<Date> createSpecificWithoutFormat(EncoderContext encoderContext,
+                                                         Argument<? extends Date> type) {
+        final Argument<Instant> argument = Argument.of(Instant.class, type.getAnnotationMetadata());
+        final Serializer<Instant> specific = instantSerde.createSpecific(encoderContext, argument);
+        return createInstantSerializer(argument, specific);
+    }
+
+    private static Deserializer<Date> createInstantDeserializer(Argument<Instant> argument,
+                                                                Deserializer<Instant> specific) {
+        return (decoder, subContext, type) -> {
+            final Instant instant = specific.deserialize(
+                decoder,
+                subContext,
+                argument
+            );
+            if (instant != null) {
+                return new Date(instant.toEpochMilli());
+            }
+            return null;
+        };
+    }
+
+    private static Serializer<Date> createInstantSerializer(Argument<Instant> argument,
+                                                            Serializer<Instant> specific) {
+        return new Serializer<>() {
+            @Override
+            public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Date> t, Date value) throws IOException {
+                specific.serialize(
+                    encoder,
+                    context,
+                    argument, Instant.ofEpochMilli(value.getTime())
+                );
+            }
+
+            @Override
+            public boolean isDefault(EncoderContext context, Date value) {
+                return value.getTime() == 0L;
+            }
+        };
+    }
+
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Date> type, Date value) throws IOException {
-        localDateSerde.serialize(
-                encoder,
-                context,
-                LOCAL_DATE_ARGUMENT, value.toLocalDate()
+        instantSerde.serialize(
+            encoder,
+            context,
+            Argument.of(Instant.class), Instant.ofEpochMilli(value.getTime())
         );
     }
 
     @Override
     public Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
-            throws IOException {
-        final LocalDate localDate = localDateSerde.deserialize(
-                decoder,
-                decoderContext,
-                LOCAL_DATE_ARGUMENT
+        throws IOException {
+        final Instant instant = instantSerde.deserialize(
+            decoder,
+            decoderContext,
+            Argument.of(Instant.class)
         );
-        if (localDate != null) {
-            return Date.valueOf(localDate);
+        if (instant != null) {
+            return new Date(instant.toEpochMilli());
         }
         return null;
     }
@@ -120,5 +221,27 @@ final class SqlDateSerde implements SerdeRegistrar<Date> {
     @Override
     public Argument<Date> getType() {
         return Argument.of(Date.class);
+    }
+
+    private static final class TimestampMillisDateSerde implements Serializer<Date>, Deserializer<Date> {
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends Date> type,
+                              Date value) throws IOException {
+            encoder.encodeLong(value.getTime());
+        }
+
+        @Override
+        public Date deserialize(Decoder decoder,
+                                DecoderContext decoderContext,
+                                Argument<? super Date> type) throws IOException {
+            return new Date(decoder.decodeLong());
+        }
+
+        @Override
+        public boolean isDefault(EncoderContext context, Date value) {
+            return value.getTime() == 0L;
+        }
     }
 }

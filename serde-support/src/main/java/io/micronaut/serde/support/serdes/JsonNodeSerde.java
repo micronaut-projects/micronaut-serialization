@@ -51,13 +51,13 @@ final class JsonNodeSerde implements SerdeRegistrar<JsonNode> {
             Encoder objectEncoder = encoder.encodeObject(Argument.of(JsonNode.class));
             for (Map.Entry<String, JsonNode> entry : value.entries()) {
                 objectEncoder.encodeKey(entry.getKey());
-                serialize0(encoder, entry.getValue());
+                serialize0(objectEncoder, entry.getValue());
             }
             objectEncoder.finishStructure();
         } else if (value.isArray()) {
             Encoder arrayEncoder = encoder.encodeArray(Argument.of(JsonNode.class));
             for (JsonNode entry : value.values()) {
-                serialize0(encoder, entry);
+                serialize0(arrayEncoder, entry);
             }
             arrayEncoder.finishStructure();
         } else {

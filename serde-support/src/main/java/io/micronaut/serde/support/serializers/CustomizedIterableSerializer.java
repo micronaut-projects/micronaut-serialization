@@ -33,7 +33,7 @@ import java.util.Collection;
  * @since 1.0
  */
 @Internal
-final class CustomizedIterableSerializer<T> implements Serializer<Iterable<T>> {
+final class CustomizedIterableSerializer<T> extends AbstractIterableSerializer<T> {
 
     private final Argument<T> generic;
     private final Serializer<? super T> componentSerializer;

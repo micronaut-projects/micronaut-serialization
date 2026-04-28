@@ -18,6 +18,10 @@ package io.micronaut.serde.config;
 import io.micronaut.core.annotation.NextMajorVersion;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
+import org.jspecify.annotations.Nullable;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Configuration for deserialization.
@@ -74,5 +78,148 @@ public interface DeserializationConfiguration {
     @Bindable(defaultValue = StringUtils.FALSE)
     default boolean acceptCaseInsensitiveEnums() {
         return false;
+    }
+
+    /**
+     * Determines whether scalar values can be accepted as single-element arrays.
+     *
+     * @return {@code true} if scalar values can be read as arrays
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean acceptSingleValueAsArray() {
+        return false;
+    }
+
+    /**
+     * Determines whether properties should be matched case-insensitively.
+     *
+     * @return {@code true} if property names are case-insensitive
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean acceptCaseInsensitiveProperties() {
+        return false;
+    }
+
+    /**
+     * Determines whether unknown enum values should deserialize as {@code null}.
+     *
+     * @return {@code true} if unknown enum values should deserialize as {@code null}
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean readUnknownEnumValuesAsNull() {
+        return false;
+    }
+
+    /**
+     * Determines whether unknown enum values should use the configured default enum value.
+     *
+     * @return {@code true} if unknown enum values should use the default enum value
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean readUnknownEnumValuesUsingDefaultValue() {
+        return false;
+    }
+
+    /**
+     * Determines whether numeric timestamps are read with nanosecond precision.
+     *
+     * @return {@code true} if numeric timestamps use nanoseconds
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean readDateTimestampsAsNanoseconds() {
+        return true;
+    }
+
+    /**
+     * Determines whether temporal values are adjusted to the configured context time zone.
+     *
+     * @return {@code true} if dates should be adjusted to the context time zone
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean adjustDatesToContextTimeZone() {
+        return false;
+    }
+
+    /**
+     * @return The active format features for deserialization.
+     * @since 3.0
+     */
+    default Set<Feature> features() {
+        return features(this);
+    }
+
+    /**
+     * Resolve the active format features for the given deserialization configuration.
+     *
+     * @param configuration The deserialization configuration
+     * @return The active format features
+     * @since 3.0
+     */
+    static Set<Feature> features(@Nullable DeserializationConfiguration configuration) {
+        EnumSet<Feature> features = EnumSet.noneOf(Feature.class);
+        if (configuration != null && configuration.acceptSingleValueAsArray()) {
+            features.add(Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        }
+        if (configuration != null && configuration.acceptCaseInsensitiveProperties()) {
+            features.add(Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES);
+        }
+        if (configuration != null && configuration.readUnknownEnumValuesAsNull()) {
+            features.add(Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+        }
+        if (configuration != null && configuration.readUnknownEnumValuesUsingDefaultValue()) {
+            features.add(Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
+        }
+        if (configuration == null || configuration.readDateTimestampsAsNanoseconds()) {
+            features.add(Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
+        }
+        if (configuration != null && configuration.acceptCaseInsensitiveEnums()) {
+            features.add(Feature.ACCEPT_CASE_INSENSITIVE_VALUES);
+        }
+        if (configuration != null && configuration.adjustDatesToContextTimeZone()) {
+            features.add(Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        }
+        return Set.copyOf(features);
+    }
+
+    /**
+     * Deserialization format features.
+     *
+     * @since 3.0
+     */
+    enum Feature {
+        /**
+         * Accept a scalar JSON value as a single-element array or collection.
+         */
+        ACCEPT_SINGLE_VALUE_AS_ARRAY,
+        /**
+         * Match bean property names without considering case.
+         */
+        ACCEPT_CASE_INSENSITIVE_PROPERTIES,
+        /**
+         * Deserialize unknown enum values as {@code null}.
+         */
+        READ_UNKNOWN_ENUM_VALUES_AS_NULL,
+        /**
+         * Deserialize unknown enum values using the enum constant marked as the default value.
+         */
+        READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE,
+        /**
+         * Interpret numeric date/time timestamps as nanoseconds when timestamps are enabled.
+         */
+        READ_DATE_TIMESTAMPS_AS_NANOSECONDS,
+        /**
+         * Match scalar values, such as enum names, without considering case.
+         */
+        ACCEPT_CASE_INSENSITIVE_VALUES,
+        /**
+         * Adjust date/time values to the configured context time zone during deserialization.
+         */
+        ADJUST_DATES_TO_CONTEXT_TIME_ZONE
     }
 }

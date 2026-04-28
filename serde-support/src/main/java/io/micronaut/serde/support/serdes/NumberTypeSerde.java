@@ -16,17 +16,14 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 @Internal
 final class NumberTypeSerde implements SerdeRegistrar<Number>, NumberSerde<Number> {
@@ -53,25 +50,7 @@ final class NumberTypeSerde implements SerdeRegistrar<Number>, NumberSerde<Numbe
                           EncoderContext context,
                           Argument<? extends Number> type,
                           Number value) throws IOException {
-        if (value instanceof Integer integer) {
-            encoder.encodeInt(integer);
-        } else if (value instanceof Long aLong) {
-            encoder.encodeLong(aLong);
-        } else if (value instanceof Double aDouble) {
-            encoder.encodeDouble(aDouble);
-        } else if (value instanceof Float aFloat) {
-            encoder.encodeFloat(aFloat);
-        } else if (value instanceof Byte aByte) {
-            encoder.encodeByte(aByte);
-        } else if (value instanceof Short aShort) {
-            encoder.encodeShort(aShort);
-        } else if (value instanceof BigDecimal bigDecimal) {
-            encoder.encodeBigDecimal(bigDecimal);
-        } else if (value instanceof BigInteger bigInteger) {
-            encoder.encodeBigInteger(bigInteger);
-        } else {
-            throw new SerdeException("Unrecognized Number type: " + value.getClass().getName() + " " + value);
-        }
+        encodeNumber(encoder, value);
     }
 
     @Nullable

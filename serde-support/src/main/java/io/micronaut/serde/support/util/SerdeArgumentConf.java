@@ -17,13 +17,18 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -53,6 +58,12 @@ public final class SerdeArgumentConf {
     private final String[] order;
     @Nullable
     private final SubtypeInfo subtypeInfo;
+    @Nullable
+    private final FormatConfiguration format;
+    private final Set<SerdeConfiguration.Feature> serializationFeaturesWith;
+    private final Set<SerdeConfiguration.Feature> serializationFeaturesWithout;
+    private final Set<DeserializationConfiguration.Feature> deserializationFeaturesWith;
+    private final Set<DeserializationConfiguration.Feature> deserializationFeaturesWithout;
 
     public SerdeArgumentConf(AnnotationMetadata annotationMetadata) {
         prefix = annotationMetadata.stringValue(SerdeConfig.SerUnwrapped.class, SerdeConfig.SerUnwrapped.PREFIX).orElse(null);
@@ -82,6 +93,11 @@ public final class SerdeArgumentConf {
         }
         this.order = order;
         this.subtypeInfo = SubtypeInfo.createForProperty(annotationMetadata);
+        this.format = FormatConfiguration.from(annotationMetadata);
+        this.serializationFeaturesWith = SerdeFeatures.serializationFeaturesWith(annotationMetadata);
+        this.serializationFeaturesWithout = SerdeFeatures.serializationFeaturesWithout(annotationMetadata);
+        this.deserializationFeaturesWith = SerdeFeatures.deserializationFeaturesWith(annotationMetadata);
+        this.deserializationFeaturesWithout = SerdeFeatures.deserializationFeaturesWithout(annotationMetadata);
     }
 
     /**
@@ -191,12 +207,31 @@ public final class SerdeArgumentConf {
             return false;
         }
         SerdeArgumentConf that = (SerdeArgumentConf) o;
-        return Objects.equals(prefix, that.prefix) && Objects.equals(suffix, that.suffix) && Arrays.equals(ignored, that.ignored) && Arrays.equals(included, that.included) && Arrays.equals(order, that.order) && Objects.equals(subtypeInfo, that.subtypeInfo);
+        return Objects.equals(prefix, that.prefix)
+            && Objects.equals(suffix, that.suffix)
+            && Arrays.equals(ignored, that.ignored)
+            && Arrays.equals(included, that.included)
+            && Arrays.equals(order, that.order)
+            && Objects.equals(subtypeInfo, that.subtypeInfo)
+            && Objects.equals(format, that.format)
+            && Objects.equals(serializationFeaturesWith, that.serializationFeaturesWith)
+            && Objects.equals(serializationFeaturesWithout, that.serializationFeaturesWithout)
+            && Objects.equals(deserializationFeaturesWith, that.deserializationFeaturesWith)
+            && Objects.equals(deserializationFeaturesWithout, that.deserializationFeaturesWithout);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(prefix, suffix, subtypeInfo);
+        int result = Objects.hash(
+            prefix,
+            suffix,
+            subtypeInfo,
+            format,
+            serializationFeaturesWith,
+            serializationFeaturesWithout,
+            deserializationFeaturesWith,
+            deserializationFeaturesWithout
+        );
         result = 31 * result + Arrays.hashCode(ignored);
         result = 31 * result + Arrays.hashCode(included);
         result = 31 * result + Arrays.hashCode(order);
@@ -230,5 +265,29 @@ public final class SerdeArgumentConf {
     @Nullable
     public SubtypeInfo getSubtypeInfo() {
         return subtypeInfo;
+    }
+
+    /**
+     * @return The property format
+     */
+    @Nullable
+    public FormatConfiguration format() {
+        return format;
+    }
+
+    /**
+     * @param context The encoder context
+     * @return The encoder context with this argument's feature overrides
+     */
+    public Serializer.EncoderContext withFeatures(Serializer.EncoderContext context) {
+        return context.withFeatures(serializationFeaturesWith, serializationFeaturesWithout);
+    }
+
+    /**
+     * @param context The decoder context
+     * @return The decoder context with this argument's feature overrides
+     */
+    public Deserializer.DecoderContext withFeatures(Deserializer.DecoderContext context) {
+        return context.withFeatures(deserializationFeaturesWith, deserializationFeaturesWithout);
     }
 }

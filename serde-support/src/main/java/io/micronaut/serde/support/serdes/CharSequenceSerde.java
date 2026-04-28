@@ -16,16 +16,17 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
 @Internal
-final class CharSequenceSerde implements SerdeRegistrar<CharSequence> {
+final class CharSequenceSerde implements FormattedSerde<CharSequence>, SerdeRegistrar<CharSequence> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends CharSequence> type, CharSequence value) throws IOException {

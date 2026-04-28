@@ -196,19 +196,24 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
 
     @Override
     public <T> DeserBean<T> getDeserializableBean(Argument<T> type, @Nullable Map<String, Argument<?>> typeArguments, DecoderContext decoderContext) throws SerdeException {
+        DeserializationConfiguration resolvedDeserializationConfiguration = decoderContext.getDeserializationConfiguration().orElse(deserializationConfiguration);
         SerdeArgumentConf serdeArgumentConf = type.getAnnotationMetadata().isEmpty() ?
             null : new SerdeArgumentConf(type.getAnnotationMetadata());
+        if (serdeArgumentConf != null) {
+            decoderContext = serdeArgumentConf.withFeatures(decoderContext);
+        }
         DeserBeanKey key = new DeserBeanKey(
             decoderContext.getSerdeConfiguration().orElse(serdeConfiguration),
-            decoderContext.getDeserializationConfiguration().orElse(deserializationConfiguration),
+            resolvedDeserializationConfiguration,
             type,
             typeArguments,
             serdeArgumentConf
         );
+        DecoderContext beanContext = decoderContext;
         // Use suppliers to prevent recursive update because the lambda can call the same method again
-        Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, typeArguments, serdeArgumentConf, decoderContext)));
+        Supplier<DeserBean<?>> deserBeanSupplier = deserBeanMap.computeIfAbsent(key, ignore -> SupplierUtil.memoizedNonEmpty(() -> createDeserBean(type, typeArguments, serdeArgumentConf, beanContext)));
         DeserBean<?> deserBean = deserBeanSupplier.get();
-        deserBean.initialize(lock, decoderContext);
+        deserBean.initialize(lock, beanContext);
         return (DeserBean<T>) deserBean;
     }
 

@@ -20,13 +20,12 @@ import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
-final class FloatArraySerde implements SerdeRegistrar<float[]> {
+final class FloatArraySerde extends AbstractArraySerde<float[]> {
 
     @Override
     public float[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super float[]> type)

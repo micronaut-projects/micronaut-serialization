@@ -241,6 +241,95 @@ enum JsonValueEnum {
         context.close()
     }
 
+    void 'test json format annotations fall back from sourcegen fast path where required'() {
+        given:
+        def context = buildContext('test.JsonFormatBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.core.annotation.Introspected;
+import java.util.List;
+
+@Serdeable
+@Introspected
+@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+class JsonFormatBean {
+    private String value;
+
+    public JsonFormatBean() {
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+}
+
+@Serdeable
+@Introspected
+@JsonFormat(with = JsonFormat.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+record JsonFormatRecord(String value) {
+}
+
+@Serdeable
+@Introspected
+@JsonFormat(shape = JsonFormat.Shape.NUMBER)
+enum JsonFormatEnum {
+    A,
+    B
+}
+
+@Serdeable
+@Introspected
+enum PlainEnum {
+    A,
+    B
+}
+
+@Serdeable
+@Introspected
+class JsonFormatPropertyHolder {
+    @JsonFormat(shape = JsonFormat.Shape.NUMBER)
+    private PlainEnum value;
+    @JsonFormat(with = JsonFormat.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)
+    private List<String> values;
+
+    public JsonFormatPropertyHolder() {
+    }
+
+    public PlainEnum getValue() {
+        return value;
+    }
+
+    public void setValue(PlainEnum value) {
+        this.value = value;
+    }
+
+    public List<String> getValues() {
+        return values;
+    }
+
+    public void setValues(List<String> values) {
+        this.values = values;
+    }
+}
+''')
+
+        expect:
+        assertEligibility(context, 'test.JsonFormatBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertEligibility(context, 'test.JsonFormatRecord', 'RECORD', false, false)
+        assertEligibility(context, 'test.JsonFormatEnum', 'ENUM', false, false)
+        assertEligibility(context, 'test.PlainEnum', 'ENUM', true, true)
+        assertEligibility(context, 'test.JsonFormatPropertyHolder', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test json include usage falls back from sourcegen fast path'() {
         given:
         def context = buildContext('test.JsonIncludeTypeBean', '''

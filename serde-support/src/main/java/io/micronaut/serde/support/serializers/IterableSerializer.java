@@ -17,10 +17,15 @@ package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerializerRegistrar;
+import io.micronaut.serde.support.serdes.SingleElementArraySerde;
+import io.micronaut.serde.support.util.FormattedHelper;
 import io.micronaut.serde.util.CustomizableSerializer;
+import org.jspecify.annotations.NonNull;
 
 import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGenericWithParentMetadata;
 
@@ -29,7 +34,7 @@ import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGener
  * @param <T> The generic type
  */
 @Internal
-final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>, SerializerRegistrar<Iterable<T>> {
+final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>, FormattedSerializer<Iterable<T>>, SerializerRegistrar<Iterable<T>> {
     @Override
     public Serializer<Iterable<T>> createSpecific(EncoderContext context, Argument<? extends Iterable<T>> type)
             throws SerdeException {
@@ -38,13 +43,27 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
             // if there are annotations on the collection property we need to combine the annotation metadata with the generic.
             @SuppressWarnings("unchecked") final Argument<T> generic = reconstructGenericWithParentMetadata(type, (Argument<T>) generics[0]);
             if (generic.getType() == String.class) {
-                return (Serializer) StringIterableSerializer.INSTANCE;
+                return (Serializer) SingleElementArraySerde.writeSingleElementArraysUnwrapped(StringIterableSerializer.INSTANCE, context);
             }
             Serializer<? super T> componentSerializer = context.findSerializer(generic)
                     .createSpecific(context, generic);
-            return new CustomizedIterableSerializer<>(generic, componentSerializer);
+            return SingleElementArraySerde.writeSingleElementArraysUnwrapped(new CustomizedIterableSerializer<>(generic, componentSerializer), context);
         }
-        return new RuntimeValueIterableSerializer<>();
+        return SingleElementArraySerde.writeSingleElementArraysUnwrapped(new RuntimeValueIterableSerializer<>(), context);
+    }
+
+    @Override
+    public @NonNull Serializer<Iterable<T>> createSpecific(@NonNull EncoderContext context,
+                                                           @NonNull Argument<? extends Iterable<T>> type,
+                                                           @NonNull FormatConfiguration format) throws SerdeException {
+        if (format.shape().isPojoShape()) {
+            return FormattedHelper.objectSerializer(context, type);
+        }
+        Serializer<Iterable<T>> specific = createSpecific(context, type);
+        if (specific instanceof FormattedSerializer<Iterable<T>> formattedSerializer) {
+            return formattedSerializer.createSpecific(context, type, format);
+        }
+        return SingleElementArraySerde.writeSingleElementArraysUnwrapped(specific, context);
     }
 
     @Override

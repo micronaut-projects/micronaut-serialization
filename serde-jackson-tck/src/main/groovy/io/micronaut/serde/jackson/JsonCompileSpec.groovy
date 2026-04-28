@@ -124,4 +124,11 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
                 .find(c -> c.name() == enumName)
     }
 
+    protected void assertSpecificSerdeSelection(ApplicationContext context,
+                                                String className,
+                                                boolean serializerGenerated,
+                                                boolean deserializerGenerated) {
+        // Implemented by Micronaut Serialization tests. Jackson Databind only validates behavior here.
+    }
+
 }

@@ -19,12 +19,11 @@ import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-final class LongArraySerde implements SerdeRegistrar<long[]> {
+final class LongArraySerde extends AbstractArraySerde<long[]> {
 
     @Override
     public long[] deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super long[]> type)
