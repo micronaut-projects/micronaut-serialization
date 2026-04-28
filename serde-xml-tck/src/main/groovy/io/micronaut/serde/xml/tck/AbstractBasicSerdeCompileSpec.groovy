@@ -542,6 +542,194 @@ class SomeObject {
         context.close()
     }
 
+    void "validate arrays"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArray {
+    private List<SomeObject> vals;
+
+    List<SomeObject> getVals() {
+        return vals;
+    }
+
+    void setVals(List<SomeObject> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        and:
+        def xml = "<ObjectWithArray><vals><vals><val>A</val></vals><vals><val>B</val></vals></vals></ObjectWithArray>"
+        when:
+        def obj = xmlMapper.readValue(xml, typeUnderTest)
+        then:
+        obj
+        obj.vals.size() == 2
+        obj.vals[0].val == "A"
+        obj.vals[1].val == "B"
+        new String(xmlMapper.writeValueAsBytes(obj)) == xml
+        cleanup:
+        context.close()
+    }
+
+    void "validate empty arrays"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArray {
+    private List<SomeObject> vals;
+
+    List<SomeObject> getVals() {
+        return vals;
+    }
+
+    void setVals(List<SomeObject> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<ObjectWithArray></ObjectWithArray>', typeUnderTest)
+        then:
+        obj
+        obj.vals == null
+        cleanup:
+        context.close()
+    }
+
+    void "validate arrays with nulls"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArray {
+    private List<SomeObject> vals;
+
+    List<SomeObject> getVals() {
+        return vals;
+    }
+
+    void setVals(List<SomeObject> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        and:
+        def xml = "<ObjectWithArray><vals><vals><val>A</val></vals><vals></vals><vals><val>B</val></vals></vals></ObjectWithArray>"
+        when:
+        def obj = xmlMapper.readValue(xml, typeUnderTest)
+        then:
+        obj.vals.size() == 3
+        obj.vals[0].val == "A"
+        obj.vals[1] == null
+        obj.vals[2].val == "B"
+        cleanup:
+        context.close()
+    }
+
+    void "validate arrays as null"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArray {
+    private List<SomeObject> vals;
+
+    List<SomeObject> getVals() {
+        return vals;
+    }
+
+    void setVals(List<SomeObject> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        and:
+        def xml = "<ObjectWithArray><vals/></ObjectWithArray>"
+        when:
+        def obj = xmlMapper.readValue(xml, typeUnderTest)
+        then:
+        obj
+        obj.vals == null
+        new String(xmlMapper.writeValueAsBytes(obj)) == xml
+        cleanup:
+        context.close()
+    }
+
 
 
 
