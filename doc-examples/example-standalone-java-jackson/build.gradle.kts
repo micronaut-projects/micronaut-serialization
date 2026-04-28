@@ -6,7 +6,7 @@ plugins {
 dependencies {
     implementation(projects.micronautSerdeJackson)
     compileOnly(projects.micronautSerdeProcessor)
-    compileOnly("com.fasterxml.jackson.core:jackson-databind")
+    compileOnly(mn.jackson.databind)
     annotationProcessor(projects.micronautSerdeProcessor)
     annotationProcessor(mn.micronaut.inject.java)
 
