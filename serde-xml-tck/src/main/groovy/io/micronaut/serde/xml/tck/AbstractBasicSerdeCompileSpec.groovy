@@ -167,7 +167,6 @@ class Test {
 
     }
 
-    @Ignore("untill refactor decoder")
     void "test @JsonIgnore on method"() {
         given:
         def context = buildContext('test.Test', """
@@ -241,10 +240,9 @@ class Test {
         context.close()
     }
 
-    @Ignore("untill refactor decoder")
     void "test default constructor 1"() {
         given:
-        def context = buildContext('test.Test', """
+        def context = buildReadContext('test.Test', """
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
@@ -289,10 +287,9 @@ class Test {
         context.close()
     }
 
-    @Ignore("untill refactor decoder")
     void "test default constructor 2"() {
         given:
-        def context = buildContext('test.Test', """
+        def context = buildReadContext('test.Test', """
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
@@ -337,10 +334,9 @@ class Test {
         context.close()
     }
 
-    @Ignore("untill refactor decoder")
     void "test @Creator constructor"() {
         given:
-        def context = buildContext('test.Test', """
+        def context = buildReadContext('test.Test', """
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
