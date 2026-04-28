@@ -383,6 +383,165 @@ class Test {
         context.close()
     }
 
+    void "missing list"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArray {
+    private List<SomeObject> vals;
+
+    List<SomeObject> getVals() {
+        return vals;
+    }
+
+    void setVals(List<SomeObject> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<ObjectWithArray/>', typeUnderTest)
+        then:
+        obj
+        obj.vals == null
+        cleanup:
+        context.close()
+    }
+
+    void "missing list - constructor"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayConstructor', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArrayConstructor {
+    private final List<SomeObject> vals;
+
+    ObjectWithArrayConstructor(List<SomeObject> vals) {
+        this.vals = vals;
+    }
+
+    List<SomeObject> getVals() {
+        return vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<ObjectWithArrayConstructor/>', typeUnderTest)
+        then:
+        obj
+        obj.vals == null
+        cleanup:
+        context.close()
+    }
+
+    void "missing list - record"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayRecord', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+record ObjectWithArrayRecord(List<SomeObject> vals) {
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<ObjectWithArrayRecord/>', typeUnderTest)
+        then:
+        obj
+        obj.vals() == null
+        cleanup:
+        context.close()
+    }
+
+    void "missing list - required"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayRequired', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+record ObjectWithArrayRequired(@JsonProperty(required = true) List<SomeObject> vals) {
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        when:
+        xmlMapper.readValue('<ObjectWithArrayRequired/>', typeUnderTest)
+        then:
+        def e = thrown(Exception)
+        e.message.contains("Required constructor parameter") || e.message.contains("Missing required creator property")
+        cleanup:
+        context.close()
+    }
+
 
 
 
