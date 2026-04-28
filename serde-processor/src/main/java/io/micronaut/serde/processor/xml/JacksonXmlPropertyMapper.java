@@ -47,6 +47,7 @@ public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
         if (isAttribute) {
             builder.member(SerdeConfig.XML_ATTRIBUTE_PROPERTY, true);
             builder.member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
+            builder.member(SerdeConfig.DESERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
         }
         annotation.stringValue("localName")
             .filter(localName -> !localName.isEmpty())

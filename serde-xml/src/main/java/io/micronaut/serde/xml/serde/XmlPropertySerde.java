@@ -18,13 +18,14 @@ package io.micronaut.serde.xml.serde;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.XmlElementConfigurableSerializer;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
-public class XmlPropertySerde extends XmlSerde<Object> implements XmlElementConfigurableSerializer<Object> {
+public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementConfigurableSerializer<T> {
 
     private final @Nullable String namespace;
 
@@ -37,7 +38,21 @@ public class XmlPropertySerde extends XmlSerde<Object> implements XmlElementConf
     }
 
     @Override
-    public @NonNull Serializer<Object> withXmlElement(@NonNull String localName, @Nullable String namespace) {
+    public @Nullable T deserialize(@NonNull Decoder decoder,
+                                   @NonNull DecoderContext context,
+                                   @NonNull Argument<? super T> type) throws IOException {
+        String value = decoder.decodeStringNullable();
+        if (value == null) {
+            return null;
+        }
+        if (type.isInstance(value)) {
+            return (T) value;
+        }
+        return (T) context.getConversionService().convertRequired(value, type);
+    }
+
+    @Override
+    public @NonNull Serializer<T> withXmlElement(@NonNull String localName, @Nullable String namespace) {
         if (namespace == null || namespace.isEmpty()) {
             return this;
         }
@@ -45,7 +60,7 @@ public class XmlPropertySerde extends XmlSerde<Object> implements XmlElementConf
     }
 
     @Override
-    protected void doSerialize(XmlGenerator encoder, EncoderContext context, Object value, Argument<?> key) throws IOException {
+    protected void doSerialize(XmlGenerator encoder, EncoderContext context, T value, Argument<?> key) throws IOException {
         if (value == null) {
             encoder.encodeNull();
             return;

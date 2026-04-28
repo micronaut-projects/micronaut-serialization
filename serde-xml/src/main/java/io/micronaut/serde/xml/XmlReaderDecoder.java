@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -419,7 +420,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 throw createDeserializationException(
                         "Cannot decode XML attribute <@" + currentKey + "> as object", null);
             }
-            String childOwner = currentKey;
+            String childOwner = Objects.requireNonNull(currentKey, "currentKey");
             List<XmlAttr> childAttrs = pendingChildAttrs;
             clearKeyState();
             return new ObjectDecoder(childLimits(), cursor, childOwner, childAttrs);
@@ -432,7 +433,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 throw createDeserializationException(
                         "Cannot decode XML attribute <@" + currentKey + "> as array", null);
             }
-            String wrapper = currentKey;
+            String wrapper = Objects.requireNonNull(currentKey, "currentKey");
             clearKeyState();
             return new ArrayDecoder(childLimits(), cursor, wrapper);
         }
@@ -565,7 +566,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
             requireItem();
-            String name = currentItemName;
+            String name = Objects.requireNonNull(currentItemName, "currentItemName");
             List<XmlAttr> itemAttrs = currentItemAttrs;
             clearItem();
             return new ObjectDecoder(childLimits(), cursor, name, itemAttrs);
@@ -574,7 +575,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
             requireItem();
-            String name = currentItemName;
+            String name = Objects.requireNonNull(currentItemName, "currentItemName");
             clearItem();
             return new ArrayDecoder(childLimits(), cursor, name);
         }

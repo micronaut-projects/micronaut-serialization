@@ -96,6 +96,7 @@ public final class XmlObjectMapper implements ObjectMapper {
     }
 
     @Override
+    @SuppressWarnings("NullAway")
     public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
