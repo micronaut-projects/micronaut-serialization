@@ -730,6 +730,193 @@ class SomeObject {
         context.close()
     }
 
+    void "missing nested list"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayOfArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArrayOfArray {
+    private List<List<SomeObject>> vals;
+
+    List<List<SomeObject>> getVals() {
+        return vals;
+    }
+
+    void setVals(List<List<SomeObject>> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        when:
+        def obj = xmlMapper.readValue('<ObjectWithArrayOfArray/>', typeUnderTest)
+        then:
+        obj
+        obj.vals == null
+        cleanup:
+        context.close()
+    }
+
+    void "validate arrays of arrays"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayOfArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArrayOfArray {
+    private List<List<SomeObject>> vals;
+
+    List<List<SomeObject>> getVals() {
+        return vals;
+    }
+
+    void setVals(List<List<SomeObject>> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        and:
+        def xml = '<ObjectWithArrayOfArray><vals><SomeObject><SomeObject><val>A</val></SomeObject><SomeObject/><SomeObject><val>B</val></SomeObject></SomeObject></vals></ObjectWithArrayOfArray>'
+        when:
+        def obj = xmlMapper.readValue(xml, typeUnderTest)
+        then:
+        obj
+        obj.vals.size() == 1
+        obj.vals[0].size() == 3
+        obj.vals[0][0].val == "A"
+        obj.vals[0][1] == null
+        obj.vals[0][2].val == "B"
+        cleanup:
+        context.close()
+    }
+
+    void "validate empty arrays of arrays"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayOfArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArrayOfArray {
+    private List<List<SomeObject>> vals;
+
+    List<List<SomeObject>> getVals() {
+        return vals;
+    }
+
+    void setVals(List<List<SomeObject>> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        and:
+        def xml = "<ObjectWithArrayOfArray><vals><SomeObject><SomeObject/></SomeObject></vals></ObjectWithArrayOfArray>"
+        when:
+        def obj = xmlMapper.readValue(xml, typeUnderTest)
+        then:
+        obj.vals.size() == 1
+        obj.vals[0].size() == 1
+        cleanup:
+        context.close()
+    }
+
+    void "validate null arrays of arrays"() {
+        given:
+        def context = buildReadContext('test.ObjectWithArrayOfArray', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+import java.util.List;
+
+@Serdeable
+class ObjectWithArrayOfArray {
+    private List<List<SomeObject>> vals;
+
+    List<List<SomeObject>> getVals() {
+        return vals;
+    }
+
+    void setVals(List<List<SomeObject>> vals) {
+        this.vals = vals;
+    }
+}
+
+@Serdeable
+class SomeObject {
+    private String val;
+
+    String getVal() {
+        return val;
+    }
+
+    void setVal(String val) {
+        this.val = val;
+    }
+}
+""")
+        and:
+        def xml = '<ObjectWithArrayOfArray><vals><vals/></vals></ObjectWithArrayOfArray>'
+        when:
+        def obj = xmlMapper.readValue(xml, typeUnderTest)
+        then:
+        obj
+        obj.vals.size() == 1
+        obj.vals[0] == null
+        cleanup:
+        context.close()
+    }
+
 
 
 
