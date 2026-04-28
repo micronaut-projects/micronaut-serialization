@@ -30,10 +30,12 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, NsAttrBean)
 
         then:
         xml == '<NsAttrBean other="3"></NsAttrBean>'
         xml.contains('other="3"')
+        read.attr == "3"
         //xml.contains('xmlns:ns0="http://foo"')
     }
 
@@ -54,9 +56,12 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, Jurisdiction)
 
         then:
         xml.contains('value="13"') && xml.contains('name="Foo"')
+        read.name == "Foo"
+        read.value == 13
     }
 
     def "AlphabeticAttributeBean - attribute is prioritized before alphabetic order"() {
@@ -65,9 +70,12 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, AlphabeticAttributeBean)
 
         then:
         xml == '<AlphabeticAttributeBean type="demo"><alpha>value</alpha></AlphabeticAttributeBean>'
+        read.alpha == "value"
+        read.type == "demo"
     }
 
     def "OrderedAttributeBean - attribute is prioritized before explicit property order"() {
@@ -76,9 +84,12 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, OrderedAttributeBean)
 
         then:
         xml == '<OrderedAttributeBean type="demo"><alpha>value</alpha></OrderedAttributeBean>'
+        read.alpha == "value"
+        read.type == "demo"
     }
 
     def "RenamedAttributeBean - localName and isAttribute are both honored"() {
@@ -87,9 +98,12 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, RenamedAttributeBean)
 
         then:
         xml == '<RenamedAttributeBean Foo="bar"><value>baz</value></RenamedAttributeBean>'
+        read.foo == "bar"
+        read.value == "baz"
     }
 
     def "DynaBean - @JsonAnyGetter as elements"() {
