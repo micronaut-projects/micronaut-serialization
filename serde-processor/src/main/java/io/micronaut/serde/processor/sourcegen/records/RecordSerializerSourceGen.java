@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates optimized source serializers for records.
@@ -124,6 +125,7 @@ public final class RecordSerializerSourceGen {
                 serializerFieldNames.put(component.name(), serializerFieldName);
                 fields.add(FieldDef.builder(serializerFieldName, SERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                    .addAnnotation(Nullable.class)
                     .build());
             }
             index++;

@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates optimized source deserializers for records.
@@ -135,6 +136,7 @@ public final class RecordDeserializerSourceGen {
                 deserializerFieldNames.put(component.name(), deserializerFieldName);
                 fields.add(FieldDef.builder(deserializerFieldName, DESERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                    .addAnnotation(Nullable.class)
                     .build());
             }
             index++;
