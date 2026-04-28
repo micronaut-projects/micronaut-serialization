@@ -46,9 +46,9 @@ class Test {
 """, data)
         expect:
         def bytes = xmlMapper.writeValueAsBytes(beanUnderTest)
-        //def read = xmlMapper.readValue(bytes, typeUnderTest)
-        //typeUnderTest.type.isInstance(read)
-        //read.value == data.value
+        def read = xmlMapper.readValue(bytes, typeUnderTest)
+        typeUnderTest.type.isInstance(read)
+        read.value == data.value
         new String(bytes) == result
 
         cleanup:
@@ -91,10 +91,9 @@ class Test {
     //Todo: read value from tree
 
     @Unroll
-    @Ignore("untill implementing decoder")
     void "test basic type #type missing value"() {
         given:
-        def context = buildContext("""
+        def context = buildReadContext('test.Test', """
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
@@ -111,8 +110,6 @@ class Test {
     }
 }
 """)
-
-        def typeUnderTest = argumentOf(context, 'test.Test')
 
         expect:
         def read = xmlMapper.readValue('<Test></Test>', typeUnderTest)
@@ -211,6 +208,37 @@ class Test {
         cleanup:
         context.close()
 
+    }
+
+    void "test skip unknown value on read"() {
+        given:
+        def context = buildReadContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+class Test {
+    private String value;
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+}
+""")
+
+        when:
+        def read = xmlMapper.readValue('<Test><value>hello</value><ignored>world</ignored></Test>', typeUnderTest)
+
+        then:
+        read.value == 'hello'
+
+        cleanup:
+        context.close()
     }
 
     @Ignore("untill refactor decoder")

@@ -52,6 +52,14 @@ abstract class AbstractXmlCompileSpec extends AbstractTypeElementSpec{
         JsonMapper
     }
 
+    ApplicationContext buildReadContext(String className, @Language("java") String source) {
+        ApplicationContext context = buildContext(className, source, true)
+        xmlMapper = context.getBean(getXmlMapperClass())
+        typeUnderTest = Argument.of(context.classLoader.loadClass(className))
+        beanUnderTest = null
+        return context
+    }
+
     Argument<Object> argumentOf(ApplicationContext context, String name) {
         return Argument.of(context.classLoader.loadClass(name))
     }
