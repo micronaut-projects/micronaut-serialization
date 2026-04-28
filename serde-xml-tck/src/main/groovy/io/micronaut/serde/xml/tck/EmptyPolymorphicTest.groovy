@@ -19,9 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
 
-abstract class EmptyPolymorphicTest extends Specification{
-
-    abstract Object getXmlMapper();
+abstract class EmptyPolymorphicTest extends Specification implements XmlSpec {
 
 
     def "Empty Polymorphic tes"(){
@@ -29,7 +27,7 @@ abstract class EmptyPolymorphicTest extends Specification{
         def bean = new Data("Foobar");
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
+        def xml = writeXml(bean)
 
         then:
         xml =="<Data><name>Foobar</name><proxy/></Data>"
@@ -40,7 +38,7 @@ abstract class EmptyPolymorphicTest extends Specification{
         def xml = "<ReadableData><name>Foobar</name><proxy></proxy></ReadableData>"
 
         when:
-        xmlMapper.readValue(xml, ReadableData)
+        readXml(xml, ReadableData)
 
         then:
         thrown(Exception)

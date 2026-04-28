@@ -20,17 +20,15 @@ import spock.lang.Specification
 import io.micronaut.serde.annotation.Serdeable
 import tools.jackson.dataformat.xml.annotation.*;
 
-abstract class TestSerializationAttrSpec extends Specification{
-
-    abstract Object getXmlMapper();
+abstract class SerializationAttrSpec extends Specification implements XmlSpec {
 
     def "NsAttrBean - attribute"() {
         given:
         def bean = new NsAttrBean()
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, NsAttrBean)
+        def xml = writeXml(bean)
+        def read = readXml(xml, NsAttrBean)
 
         then:
         xml == '<NsAttrBean other="3"></NsAttrBean>'
@@ -44,8 +42,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         def bean = new Issue19Bean()
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, Issue19Bean)
+        def xml = writeXml(bean)
+        def read = readXml(xml, Issue19Bean)
 
         then:
         xml == "<test id=\"abc\"></test>"
@@ -57,8 +55,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         def bean = new Jurisdiction()
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, Jurisdiction)
+        def xml = writeXml(bean)
+        def read = readXml(xml, Jurisdiction)
 
         then:
         xml.contains('value="13"') && xml.contains('name="Foo"')
@@ -71,8 +69,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         def bean = new AlphabeticAttributeBean()
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, AlphabeticAttributeBean)
+        def xml = writeXml(bean)
+        def read = readXml(xml, AlphabeticAttributeBean)
 
         then:
         xml == '<AlphabeticAttributeBean type="demo"><alpha>value</alpha></AlphabeticAttributeBean>'
@@ -85,8 +83,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         def bean = new OrderedAttributeBean()
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, OrderedAttributeBean)
+        def xml = writeXml(bean)
+        def read = readXml(xml, OrderedAttributeBean)
 
         then:
         xml == '<OrderedAttributeBean type="demo"><alpha>value</alpha></OrderedAttributeBean>'
@@ -99,8 +97,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         def bean = new RenamedAttributeBean()
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, RenamedAttributeBean)
+        def xml = writeXml(bean)
+        def read = readXml(xml, RenamedAttributeBean)
 
         then:
         xml == '<RenamedAttributeBean Foo="bar"><value>baz</value></RenamedAttributeBean>'
@@ -113,7 +111,7 @@ abstract class TestSerializationAttrSpec extends Specification{
         def bean = new DynaBean([foo: "bar", baz: "qux"])
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
+        def xml = writeXml(bean)
 
         then:
         xml == "<Root>" +
@@ -131,8 +129,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         bean.setData(collection)
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, CollectionWrapper329)
+        def xml = writeXml(bean)
+        def read = readXml(xml, CollectionWrapper329)
 
         then:
         xml == "<CollectionWrapper329><elements><data>a</data><data>b</data></elements></CollectionWrapper329>"
@@ -145,8 +143,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         bean.setData(List.of("a", "b"))
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, ListWrapper329)
+        def xml = writeXml(bean)
+        def read = readXml(xml, ListWrapper329)
 
         then:
         xml == "<ListWrapper329><data>a</data><data>b</data></ListWrapper329>"
@@ -167,8 +165,8 @@ abstract class TestSerializationAttrSpec extends Specification{
         bean.values = [first, second]
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = xmlMapper.readValue(xml, Values)
+        def xml = writeXml(bean)
+        def read = readXml(xml, Values)
 
         then:
         xml == "<Values>" +

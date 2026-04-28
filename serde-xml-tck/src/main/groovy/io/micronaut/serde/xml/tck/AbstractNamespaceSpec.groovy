@@ -76,6 +76,17 @@ abstract class AbstractNamespaceSpec extends Specification {
         xml == '<MergedNsAttrBean xmlns:wstxns1="uri:ns1" wstxns1:value="3"></MergedNsAttrBean>'
     }
 
+    def "namespaced child element deserializes by local name"() {
+        when:
+        def bean = xmlMapper.readValue(
+                '<NamespacedChildBean><ns:ChildXML xmlns:ns="uri:other">v</ns:ChildXML></NamespacedChildBean>',
+                NamespacedChildBean
+        )
+
+        then:
+        bean.child == "v"
+    }
+
     @Serdeable
     static class MergedNsAttrBean {
         @JsonProperty(value = "value", namespace = "uri:ns1")

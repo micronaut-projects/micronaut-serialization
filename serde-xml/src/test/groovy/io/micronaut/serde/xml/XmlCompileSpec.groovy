@@ -12,7 +12,7 @@ import io.micronaut.serde.SerdeIntrospections
 import org.intellij.lang.annotations.Language
 import org.jspecify.annotations.NonNull
 
-class XmlCompileSpec extends AbstractTypeElementSpec implements XmlSpec {
+class XmlCompileSpec extends AbstractTypeElementSpec implements MicronautXmlSpec {
 
     XmlObjectMapper xmlMapper
     Object beanUnderTest

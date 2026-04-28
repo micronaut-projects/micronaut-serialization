@@ -1,13 +1,13 @@
 package io.micronaut.serde.xml.tck.jackson.databind
 
-import io.micronaut.serde.xml.tck.TestSerializationAttrSpec
+import io.micronaut.serde.xml.tck.SerializationAttrSpec
 import spock.lang.Shared
 import tools.jackson.dataformat.xml.XmlMapper
 import tools.jackson.dataformat.xml.XmlFactory
 import org.codehaus.stax2.XMLOutputFactory2
 import javax.xml.stream.XMLOutputFactory
 
-class JacksonXmlSerializationAttrSpec extends TestSerializationAttrSpec {
+class JacksonXmlSerializationAttrSpec extends SerializationAttrSpec implements JacksonDatabindXmlSpec {
 
     @Shared
     private final XmlMapper jacksonXmlMapper = createMapper()
@@ -27,7 +27,7 @@ class JacksonXmlSerializationAttrSpec extends TestSerializationAttrSpec {
     }
 
     @Override
-    Object getXmlMapper() {
+    XmlMapper getDatabindXmlMapper() {
         return jacksonXmlMapper
     }
 }

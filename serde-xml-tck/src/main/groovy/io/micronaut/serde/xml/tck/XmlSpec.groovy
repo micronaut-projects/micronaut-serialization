@@ -18,20 +18,35 @@ package io.micronaut.serde.xml.tck
 import io.micronaut.core.type.Argument
 import tools.jackson.databind.JsonNode
 
+import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 trait XmlSpec {
 
+    abstract <T> T readXml(String xml, Argument<T> type)
 
-    abstract Object getXmlMapper()
+    abstract <T> T readXml(byte[] xml, Argument<T> type)
 
+    abstract <T> T readXml(InputStream xml, Argument<T> type)
 
-    String writeXml(Object bean) {
-        new String(getXmlMapper().writeValueAsBytes(bean), StandardCharsets.UTF_8)
+    abstract String writeXml(Object bean)
+
+    abstract String writeXml(Argument<?> argument, Object bean)
+
+    abstract byte[] writeXmlAsBytes(Object bean)
+
+    abstract byte[] writeXmlAsBytes(Argument<?> argument, Object bean)
+
+    def <T> T readXml(String xml, Class<T> type) {
+        readXml(xml, Argument.of(type))
     }
 
-    String writeXml(Argument argument, Object bean) {
-        new String(getXmlMapper().writeValueAsBytes(argument, bean), StandardCharsets.UTF_8)
+    def <T> T readXml(byte[] xml, Class<T> type) {
+        readXml(xml, Argument.of(type))
+    }
+
+    def <T> T readXml(InputStream xml, Class<T> type) {
+        readXml(xml, Argument.of(type))
     }
 
     /**
@@ -46,23 +61,27 @@ trait XmlSpec {
         return xml.getBytes(StandardCharsets.UTF_8)
     }
 
-    boolean XmlMatches(String result, String expected) {
+    boolean xmlMatches(String result, String expected) {
         result == expected
     }
 
-    boolean objRepresentationMatches(Object obj, String xml2) {
-        def xml1 = xmlMapper.writeValueAsBytes(obj)
-        def xml1_string = new String(xml1, StandardCharsets.UTF_8)
-        assert xml1_string == xml2
-        xml1_string == xml2
+    boolean XmlMatches(String result, String expected) {
+        xmlMatches(result, expected)
+    }
+
+    boolean objRepresentationMatches(Object obj, String xml) {
+        xmlMatches(writeXml(obj), xml)
+    }
+
+    boolean objRepresentationMatches(Argument<?> argument, Object obj, String xml) {
+        xmlMatches(writeXml(argument, obj), xml)
     }
 
     def <T> T serializeDeserialize(T obj) {
         return serializeDeserializeAs(obj, Argument.of(obj.getClass()))
     }
 
-    def <T> T serializeDeserializeAs(T obj, Argument type) {
-        def output = getXmlMapper().writeValueAsBytes(obj)
-        return getXmlMapper().readValue(output, type) as T
+    def <T> T serializeDeserializeAs(T obj, Argument<T> type) {
+        return readXml(writeXmlAsBytes(type, obj), type)
     }
 }

@@ -4,13 +4,13 @@ import io.micronaut.serde.xml.tck.EmptyPolymorphicTest
 import spock.lang.Shared
 import tools.jackson.dataformat.xml.XmlMapper
 
-class JacksonXmlEmptyPolymorphicSpec extends EmptyPolymorphicTest {
+class JacksonXmlEmptyPolymorphicSpec extends EmptyPolymorphicTest implements JacksonDatabindXmlSpec {
 
     @Shared
     private final XmlMapper jacksonXmlMapper = XmlMapper.builder().build()
 
     @Override
-    Object getXmlMapper() {
+    XmlMapper getDatabindXmlMapper() {
         return jacksonXmlMapper
     }
 }

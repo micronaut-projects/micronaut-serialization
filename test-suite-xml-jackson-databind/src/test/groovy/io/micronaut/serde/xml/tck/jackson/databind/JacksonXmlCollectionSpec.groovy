@@ -4,13 +4,13 @@ import io.micronaut.serde.xml.tck.JavaCollectionsTestSpec
 import spock.lang.Shared
 import tools.jackson.dataformat.xml.XmlMapper
 
-class JacksonXmlCollectionSpec extends JavaCollectionsTestSpec {
+class JacksonXmlCollectionSpec extends JavaCollectionsTestSpec implements JacksonDatabindXmlSpec {
 
     @Shared
     private final XmlMapper jacksonXmlMapper = XmlMapper.builder().build()
 
     @Override
-    Object getXmlMapper() {
+    XmlMapper getDatabindXmlMapper() {
         return jacksonXmlMapper
     }
 }

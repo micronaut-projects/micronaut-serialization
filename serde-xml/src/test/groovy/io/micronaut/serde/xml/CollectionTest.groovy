@@ -1,18 +1,17 @@
 package io.micronaut.serde.xml
 
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.xml.tck.JavaCollectionsTestSpec
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 
 @MicronautTest
-class CollectionTest extends JavaCollectionsTestSpec {
+class CollectionTest extends JavaCollectionsTestSpec implements MicronautXmlSpec {
 
     @Inject
     XmlObjectMapper xmlMapper
 
     @Override
-    JsonMapper getXmlMapper() {
+    XmlObjectMapper getXmlMapper() {
         return xmlMapper
     }
 }

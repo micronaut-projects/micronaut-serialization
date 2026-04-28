@@ -27,7 +27,7 @@ import spock.lang.Specification
 import java.nio.charset.StandardCharsets
 
 @MicronautTest
-class XmlBasicSerdeSpec extends Specification implements TestPropertyProvider, XmlSpec {
+class XmlBasicSerdeSpec extends Specification implements TestPropertyProvider, MicronautXmlSpec {
 
 
     @Inject

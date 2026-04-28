@@ -19,9 +19,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.test.support.TestPropertyProvider
 import spock.lang.Specification
 
-abstract class AbstractBasicSerdeSpec extends Specification implements TestPropertyProvider{
-
-    abstract Object getXmlMapper();
+abstract class AbstractBasicSerdeSpec extends Specification implements TestPropertyProvider, XmlSpec {
 
     def "Simple Bean"(){
         given:
@@ -31,7 +29,7 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
                                     "<name>Hamza</name>" +
                                 "</SimpleBean>";
         when:
-            def xml = xmlMapper.writeValueAsString(bean)
+            def xml = writeXml(bean)
         then:
             xml == expectedXml
 
@@ -42,7 +40,7 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
             def inner = new SimpleBean(21, "Hamza");
             def bean = new ObjectBean(inner);
         when:
-            def xml = xmlMapper.writeValueAsString(bean)
+            def xml = writeXml(bean)
         then:
             xml == "<ObjectBean><simpleBeans><age>21</age><name>Hamza</name></simpleBeans></ObjectBean>"
 
@@ -52,7 +50,7 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
         given:
             def bean = new CustomBean("A1", "A2", List.of("B1", "B2"));
         when:
-            def xml = xmlMapper.writeValueAsString(bean)
+            def xml = writeXml(bean)
         then:
             xml == "<CustomBean><A1>A1</A1><B1>A2</B1><C1><C1>B1</C1><C1>B2</C1></C1></CustomBean>"
     }
@@ -62,7 +60,7 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
             def bean = new SimpleBean(21, "Hamza");
             def nestedList = new NestedList(List.of(bean));
         when:
-            def xml = xmlMapper.writeValueAsString(nestedList)
+            def xml = writeXml(nestedList)
         then:
             xml == "<NestedList><nestedLists><nestedLists><age>21</age><name>Hamza</name></nestedLists></nestedLists></NestedList>"
     }

@@ -16,17 +16,13 @@
 package io.micronaut.serde.xml.tck
 
 import io.micronaut.core.type.Argument
-import io.micronaut.json.JsonMapper
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
-import tools.jackson.databind.ObjectMapper
 
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 
-abstract class JavaCollectionsTestSpec extends Specification {
-
-    abstract Object getXmlMapper()
+abstract class JavaCollectionsTestSpec extends Specification implements XmlSpec {
 
     @Serdeable
     static class ByteArrayWrapper {
@@ -53,8 +49,8 @@ abstract class JavaCollectionsTestSpec extends Specification {
         List<String> input = Stream.of('a', 'b', 'c');
 
         when:
-        def xml = xmlMapper.writeValueAsString(input)
-        def read = readStringList(xml)
+        def xml = writeXml(input)
+        def read = readXml(xml, Argument.listOf(String))
 
         then:
         xml == "<ArrayList><item>a</item><item>b</item><item>c</item></ArrayList>"
@@ -67,8 +63,8 @@ abstract class JavaCollectionsTestSpec extends Specification {
         def bean = new ByteArrayWrapper(values: "sure.".getBytes(StandardCharsets.US_ASCII))
 
         when:
-        def xml = xmlMapper.writeValueAsString(bean)
-        def read = readBean(xml, ByteArrayWrapper)
+        def xml = writeXml(bean)
+        def read = readXml(xml, ByteArrayWrapper)
 
         then:
         xml == '<ByteArrayWrapper><values>c3VyZS4=</values></ByteArrayWrapper>'
@@ -80,8 +76,8 @@ abstract class JavaCollectionsTestSpec extends Specification {
         def input = new IntArrayWrapper(values: [1, -1, 0, 98, 127] as int[])
 
         when:
-        def xml = xmlMapper.writeValueAsString(input)
-        def read = readBean(xml, IntArrayWrapper)
+        def xml = writeXml(input)
+        def read = readXml(xml, IntArrayWrapper)
 
         then:
         xml == '<IntArrayWrapper><values><values>1</values><values>-1</values><values>0</values><values>98</values><values>127</values></values></IntArrayWrapper>'
@@ -93,8 +89,8 @@ abstract class JavaCollectionsTestSpec extends Specification {
         def input = new DoubleListWrapper(values: [0.0d, 0.25d, -0.125d, 10.5d, 9875.0d])
 
         when:
-        def xml = xmlMapper.writeValueAsString(input)
-        def read = readBean(xml, DoubleListWrapper)
+        def xml = writeXml(input)
+        def read = readXml(xml, DoubleListWrapper)
 
         then:
         xml.contains('<values>0.0</values>')
@@ -110,33 +106,11 @@ abstract class JavaCollectionsTestSpec extends Specification {
         def intListWrapper = new IntListWrapper(values: [4, 5, 6])
 
         when:
-        def listXml = xmlMapper.writeValueAsString(intListWrapper)
-        def read = readBean(listXml, IntListWrapper)
+        def listXml = writeXml(intListWrapper)
+        def read = readXml(listXml, IntListWrapper)
 
         then:
         listXml == '<IntListWrapper><values><values>4</values><values>5</values><values>6</values></values></IntListWrapper>'
         read.values == intListWrapper.values
-    }
-
-
-
-    private List<String> readStringList(String xml) {
-        if (xmlMapper instanceof JsonMapper jsonMapper) {
-            return jsonMapper.readValue(xml, Argument.listOf(String))
-        }
-        if (xmlMapper instanceof ObjectMapper jacksonMapper) {
-            return jacksonMapper.readValue(xml, List)
-        }
-        throw new IllegalStateException("Unsupported mapper type: ${xmlMapper.getClass().name}")
-    }
-
-    private <T> T readBean(String xml, Class<T> type) {
-        if (xmlMapper instanceof JsonMapper jsonMapper) {
-            return jsonMapper.readValue(xml, type)
-        }
-        if (xmlMapper instanceof ObjectMapper jacksonMapper) {
-            return jacksonMapper.readValue(xml, type)
-        }
-        throw new IllegalStateException("Unsupported mapper type: ${xmlMapper.getClass().name}")
     }
 }
