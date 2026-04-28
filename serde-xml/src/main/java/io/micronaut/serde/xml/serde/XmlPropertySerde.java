@@ -16,9 +16,9 @@
 package io.micronaut.serde.xml.serde;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.XmlElementConfigurableSerializer;
-import io.micronaut.serde.Decoder;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -38,6 +38,14 @@ public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementConfig
     }
 
     @Override
+    public @NonNull Serializer<T> withXmlElement(@NonNull String localName, @Nullable String namespace) {
+        if (namespace == null || namespace.isEmpty()) {
+            return this;
+        }
+        return new XmlPropertySerde<>(namespace);
+    }
+
+    @Override
     public @Nullable T deserialize(@NonNull Decoder decoder,
                                    @NonNull DecoderContext context,
                                    @NonNull Argument<? super T> type) throws IOException {
@@ -49,14 +57,6 @@ public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementConfig
             return (T) value;
         }
         return (T) context.getConversionService().convertRequired(value, type);
-    }
-
-    @Override
-    public @NonNull Serializer<T> withXmlElement(@NonNull String localName, @Nullable String namespace) {
-        if (namespace == null || namespace.isEmpty()) {
-            return this;
-        }
-        return new XmlPropertySerde(namespace);
     }
 
     @Override

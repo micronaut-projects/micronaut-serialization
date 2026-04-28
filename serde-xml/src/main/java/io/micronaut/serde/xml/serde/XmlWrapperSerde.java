@@ -123,11 +123,10 @@ public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
             throw new SerdeException("XmlWrapperSerde was not specialized for serialization: " + type);
         }
 
-        boolean wrapped = useWrapping && wrapperName != null;
-        boolean inlineObjectItems = !wrapped && componentSerializer instanceof ObjectSerializer<?>;
+        boolean inlineObjectItems = !(useWrapping && wrapperName != null) && componentSerializer instanceof ObjectSerializer<?>;
         Encoder valuesEncoder = encoder;
 
-        if (wrapped) {
+        if (useWrapping && wrapperName != null) {
             encoder.encodeKey(wrapperName);
             encoder.encodeArray(type);
         } else if (inlineObjectItems) {
@@ -136,7 +135,7 @@ public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
 
         serializeValues(valuesEncoder, context, type, value, generic, componentSerializer);
 
-        if (wrapped || inlineObjectItems) {
+        if ((useWrapping && wrapperName != null) || inlineObjectItems) {
             valuesEncoder.finishStructure();
         }
 
