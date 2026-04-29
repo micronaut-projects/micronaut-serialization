@@ -36,7 +36,7 @@ import java.util.Map;
  *
  * @since 2.13.0
  * @author Jonas Konrad
- * @implNote Recursive implementation. Recursion depth is limited by decoder/encoder constraints ({@link io.micronaut.serde.LimitingStream}) for security.
+ * Recursive implementation. Recursion depth is limited by decoder/encoder constraints ({@link io.micronaut.serde.LimitingStream}) for security.
  */
 final class JacksonJsonNodeSerde implements SerdeRegistrar<JsonNode> {
     private static final @NonNull Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);

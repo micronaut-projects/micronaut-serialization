@@ -467,9 +467,12 @@ final class DeserBean<T> {
             try {
                 if (!initialized && !initializing) {
                     initializing = true;
-                    initializeInternal(decoderContext);
-                    initialized = true;
-                    initializing = false;
+                    try {
+                        initializeInternal(decoderContext);
+                        initialized = true;
+                    } finally {
+                        initializing = false;
+                    }
                 }
             } finally {
                 lock.unlock();
@@ -656,7 +659,19 @@ final class DeserBean<T> {
                 argument.getTypeParameters()
             );
         }
-        return (Deserializer<T>) decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
+        Argument<T> lookupArgument = normalizeLookupArgument(argument);
+        return (Deserializer<T>) decoderContext.findDeserializer(lookupArgument).createSpecific(decoderContext, lookupArgument);
+    }
+
+    private static <T> Argument<T> normalizeLookupArgument(Argument<T> argument) {
+        if (argument.getType() != Iterable.class) {
+            return argument;
+        }
+        Argument<?>[] typeParameters = argument.getTypeParameters();
+        if (typeParameters.length == 0) {
+            return (Argument<T>) Argument.of(Collection.class, argument.getName(), argument.getAnnotationMetadata());
+        }
+        return (Argument<T>) Argument.of(Collection.class, argument.getName(), argument.getAnnotationMetadata(), typeParameters);
     }
 
     private boolean isIgnored(AnnotationMetadata annotationMetadata) {

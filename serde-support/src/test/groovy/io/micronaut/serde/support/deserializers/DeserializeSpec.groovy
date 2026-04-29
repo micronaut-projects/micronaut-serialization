@@ -44,12 +44,13 @@ class DeserializeSpec extends Specification {
 
         when:
             def serdeRegistry = ctx.getBean(SerdeRegistry)
+            def myRecordDeserializer = getDeserializer(serdeRegistry, MyRecord)
 
         then:
-            getDeserializer(serdeRegistry, MyRecord) instanceof SimpleRecordLikeObjectDeserializer
-            getDeserializer(serdeRegistry, MyConstructorPropertiesBean) instanceof SimpleRecordLikeObjectDeserializer
-            getDeserializer(serdeRegistry, MySetterPropertiesBean) instanceof SimpleObjectDeserializer
-            getDeserializer(serdeRegistry, MyMixSetterConstructorPropertiesBean) instanceof SpecificObjectDeserializer
+            isLegacyOrGenerated(myRecordDeserializer, SimpleRecordLikeObjectDeserializer)
+            isLegacyOrGenerated(getDeserializer(serdeRegistry, MyConstructorPropertiesBean), SimpleRecordLikeObjectDeserializer)
+            isLegacyOrGenerated(getDeserializer(serdeRegistry, MySetterPropertiesBean), SimpleObjectDeserializer)
+            isLegacyOrGenerated(getDeserializer(serdeRegistry, MyMixSetterConstructorPropertiesBean), SpecificObjectDeserializer)
         cleanup:
             ctx.close()
     }
@@ -61,5 +62,9 @@ class DeserializeSpec extends Specification {
             return deserializer.deserializer
         }
         return deserializer
+    }
+
+    private static boolean isLegacyOrGenerated(Deserializer deserializer, Class legacyType) {
+        deserializer.class.name.contains('.$Serde') || deserializer.class.name.contains('.Serde') || legacyType.isInstance(deserializer)
     }
 }

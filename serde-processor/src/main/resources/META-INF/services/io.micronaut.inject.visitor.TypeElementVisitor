@@ -1,1 +1,2 @@
 io.micronaut.serde.processor.SerdeAnnotationVisitor
+io.micronaut.serde.processor.sourcegen.SerdeSourceGenVisitor

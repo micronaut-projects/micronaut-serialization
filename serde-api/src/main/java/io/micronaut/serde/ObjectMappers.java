@@ -162,12 +162,17 @@ final class ObjectMappers {
     private static ApplicationContext createSerdeBeanContext(Map<String, Object> config, Set<String> includedPackages) {
         ApplicationContextBuilder applicationContextBuilder = ApplicationContext.builder()
             .beansPredicate(qualifiedBeanType -> includedPackages.stream().anyMatch(qualifiedBeanType.getBeanType().getName()::startsWith))
+            .beanConfigurationsPredicate(beanConfiguration -> includedPackages.stream().anyMatch(beanConfiguration.getPackage().getName()::startsWith))
             .eventsEnabled(false)
             .eagerBeansEnabled(false)
             .deducePackage(false)
             .bootstrapEnvironment(false)
             .deduceCloudEnvironment(false)
             .enableDefaultPropertySources(false);
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader != null) {
+            applicationContextBuilder.classLoader(contextClassLoader);
+        }
         if (!config.isEmpty()) {
             applicationContextBuilder.propertySources(PropertySource.of("config", config, PropertySource.PropertyConvention.JAVA_PROPERTIES, PropertySource.Origin.of("config")));
         }

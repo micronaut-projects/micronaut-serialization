@@ -199,7 +199,12 @@ final class EnumSerde<E extends Enum<E>> implements CustomizableDeserializer<E>,
         String allowedValues = values.keySet().stream()
             .map(Object::toString)
             .collect(Collectors.joining(", "));
-        return decoder.createDeserializationException("Expected one of [%s] but was '%s'".formatted(allowedValues, value), value);
+        String enumType = values.values().stream()
+            .findFirst()
+            .map(v -> v.getDeclaringClass().getName())
+            .orElse("java.lang.Enum");
+        String detail = "Expected one of [%s] but was '%s'".formatted(allowedValues, value);
+        return decoder.createDeserializationException("Cannot deserialize value of type `%s` due to: %s".formatted(enumType, detail), value);
     }
 
 }
@@ -356,4 +361,3 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements Deserializer<
         throw EnumSerde.failedToDeserialize(decoder, cache, value);
     }
 }
-

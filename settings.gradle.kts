@@ -6,7 +6,7 @@ pluginManagement {
 }
 
 plugins {
-    id("io.micronaut.build.shared.settings") version "8.0.0-M12"
+    id("io.micronaut.build.shared.settings") version "8.0.0-M17"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
@@ -31,6 +31,7 @@ include("doc-examples:example-java")
 include("doc-examples:example-jsonb-java")
 include("doc-examples:example-kotlin")
 include("doc-examples:example-kotlin-ksp")
+include("doc-examples:example-standalone-java-jackson")
 
 include("benchmarks")
 

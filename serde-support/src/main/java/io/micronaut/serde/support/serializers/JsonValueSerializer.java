@@ -41,11 +41,16 @@ final class JsonValueSerializer<T> implements ObjectSerializer<T> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value)
         throws IOException {
+        Object jsonValueValue = jsonValue.get(value);
+        if (jsonValueValue == null) {
+            encoder.encodeNull();
+            return;
+        }
         jsonValue.serializer.serialize(
             encoder,
             context,
             jsonValue.argument,
-            jsonValue.get(value)
+            jsonValueValue
         );
     }
 
@@ -56,12 +61,14 @@ final class JsonValueSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public boolean isEmpty(EncoderContext context, T value) {
-        return jsonValue.serializer.isEmpty(context, jsonValue.get(value));
+        Object jsonValueValue = jsonValue.get(value);
+        return jsonValueValue == null || jsonValue.serializer.isEmpty(context, jsonValueValue);
     }
 
     @Override
     public boolean isAbsent(EncoderContext context, T value) {
-        return jsonValue.serializer.isAbsent(context, jsonValue.get(value));
+        Object jsonValueValue = jsonValue.get(value);
+        return jsonValueValue == null || jsonValue.serializer.isAbsent(context, jsonValueValue);
     }
 
 }

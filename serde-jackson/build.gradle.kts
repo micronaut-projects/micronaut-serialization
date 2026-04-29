@@ -24,6 +24,7 @@ dependencies {
     testImplementation(projects.micronautSerdeTck)
     testImplementation(mn.micronaut.inject.java.test)
     testImplementation(mn.micronaut.inject.kotlin.test)
+    testImplementation(mn.micronaut.inject.kotlin)
     testImplementation(mnTest.micronaut.test.spock)
     testImplementation(mn.jackson.databind)
     testImplementation(mn.micronaut.management)
@@ -34,4 +35,5 @@ dependencies {
     testImplementation(projects.micronautSerdeJacksonTck)
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.micronaut.http.server.netty)
+    testImplementation(mn.jackson.dataformat.xml)
 }
