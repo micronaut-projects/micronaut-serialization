@@ -73,7 +73,7 @@ loadScripts(document, 'script');</script>
 <main role="main">
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<h1 title="Interface TemporalSerde" class="title">Interface TemporalSerde&lt;T extends <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</h1>
+<h1 title="Interface TemporalSerde" class="title">Interface TemporalSerde&lt;T extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</h1>
 </div>
 <section class="class-description" id="class-description">
 <dl class="notes">
@@ -90,7 +90,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">TemporalSerde&lt;T extends <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</span><span class="extends-implements">
+<div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">TemporalSerde&lt;T extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</span><span class="extends-implements">
 extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;</span></div>
 <div class="block">Interface for serializing and deserializing temporals.</div>
 </div>
@@ -118,7 +118,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZoneId.html" title="class or interface in java.time" class="external-link">ZoneId</a></code></div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/ZoneId.html" title="class or interface in java.time" class="external-link">ZoneId</a></code></div>
 <div class="col-second even-row-color"><code><a href="#UTC" class="member-name-link">UTC</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 </div>
@@ -147,7 +147,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a more specific serializer for the given definition.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>@NonNull <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/temporal/TemporalQuery.html" title="class or interface in java.time.temporal" class="external-link">TemporalQuery</a><wbr>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a>&gt;</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalQuery.html" title="class or interface in java.time.temporal" class="external-link">TemporalQuery</a><wbr>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#query()" class="member-name-link">query</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 </div>
@@ -174,7 +174,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <section class="detail" id="UTC">
 <h3>UTC</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZoneId.html" title="class or interface in java.time" class="external-link">ZoneId</a></span>&nbsp;<span class="element-name">UTC</span></div>
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/ZoneId.html" title="class or interface in java.time" class="external-link">ZoneId</a></span>&nbsp;<span class="element-name">UTC</span></div>
 </div>
 </section>
 </li>
@@ -196,7 +196,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <div class="block">Create a more specific serializer for the given definition.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../../Serializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
+<dd><code><a href="../../Serializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
 <dt>Parameters:</dt>
 <dd><code>context</code> - The encoder context</dd>
 <dd><code>type</code> - The type definition including any annotation metadata</dd>
@@ -217,7 +217,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <div class="block">Create a new child deserializer or return this if non is necessary for the given context.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../../Deserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
+<dd><code><a href="../../Deserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
 <dt>Parameters:</dt>
 <dd><code>decoderContext</code> - The decoder context</dd>
 <dd><code>context</code> - The context, including any annotation metadata and type information to narrow the deserializer type</dd>
@@ -233,7 +233,7 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <section class="detail" id="query()">
 <h3>query</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/temporal/TemporalQuery.html" title="class or interface in java.time.temporal" class="external-link">TemporalQuery</a>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">query</span>()</div>
+<div class="member-signature"><span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalQuery.html" title="class or interface in java.time.temporal" class="external-link">TemporalQuery</a>&lt;<a href="#type-param-T" title="type parameter in TemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">query</span>()</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The temporal query for the type.</dd>

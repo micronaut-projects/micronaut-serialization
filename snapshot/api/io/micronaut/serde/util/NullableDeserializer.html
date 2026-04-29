@@ -88,7 +88,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/FunctionalInterface.html" title="class or interface in java.lang" class="external-link">@FunctionalInterface</a>
+<div class="type-signature"><span class="annotations"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/FunctionalInterface.html" title="class or interface in java.lang" class="external-link">@FunctionalInterface</a>
 </span><span class="modifiers">public interface </span><span class="element-name type-name-label">NullableDeserializer&lt;T&gt;</span><span class="extends-implements">
 extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;</span></div>
 <div class="block">Sub-interface of <a href="../Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a> for deserializers that allow
@@ -162,7 +162,7 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="#type-param-T" title="type parameter in NullableDeserializer">T</a></span>&nbsp;<span class="element-name">deserialize</span><wbr><span class="parameters">(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</span>
-               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+               throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../Deserializer.html#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">Deserializer</a></code></span></div>
 <div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html#type-param-T" title="type parameter in Deserializer"><code>T</code></a>.</div>
 <dl class="notes">
@@ -175,7 +175,7 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <dt>Returns:</dt>
 <dd>The deserialized object or <code>null</code></dd>
 <dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
 </dl>
 </div>
 </section>
@@ -187,7 +187,7 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="#type-param-T" title="type parameter in NullableDeserializer">T</a></span>&nbsp;<span class="element-name">deserializeNullable</span><wbr><span class="parameters">(@NonNull <a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  @NonNull <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  @NonNull io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</span>
-                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">Deserializer</a></code></span></div>
 <div class="block">Deserializes from the current state of the <a href="../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../Deserializer.html#type-param-T" title="type parameter in Deserializer"><code>T</code></a>. If
 the decoder value is <code>null</code>, this <i>must</i> be permitted. By default, in this case,
@@ -202,7 +202,7 @@ this method will return <code>null</code>.</div>
 <dt>Returns:</dt>
 <dd>The deserialized object or <code>null</code></dd>
 <dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
 </dl>
 </div>
 </section>
@@ -214,7 +214,7 @@ this method will return <code>null</code>.</div>
 <div class="member-signature"><span class="return-type">@NonNull <a href="#type-param-T" title="type parameter in NullableDeserializer">T</a></span>&nbsp;<span class="element-name">deserializeNonNull</span><wbr><span class="parameters">(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in NullableDeserializer">T</a>&gt;&nbsp;type)</span>
-                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+                       throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block">A method that is invoked when the value is known not to be null.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -224,7 +224,7 @@ this method will return <code>null</code>.</div>
 <dt>Returns:</dt>
 <dd>The value</dd>
 <dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if something goes wrong during deserialization</dd>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - if something goes wrong during deserialization</dd>
 </dl>
 </div>
 </section>
