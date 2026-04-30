@@ -26,7 +26,6 @@ import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -133,8 +132,14 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                 try {
                     if (value.getClass().equals(outerType.getType())) {
                         if (outer == null) {
-                            IntrospectionException resolvedException = Objects.requireNonNull(introspectionException);
-                            throw new SerdeException(Objects.requireNonNull(resolvedException.getMessage()), resolvedException);
+                            if (introspectionException != null) {
+                                String message = introspectionException.getMessage();
+                                if (message == null) {
+                                    message = "No serializer found for type: " + value.getClass();
+                                }
+                                throw new SerdeException(message, introspectionException);
+                            }
+                            throw new SerdeException("No serializer found for type: " + value.getClass());
                         }
                         return outer;
                     } else {
