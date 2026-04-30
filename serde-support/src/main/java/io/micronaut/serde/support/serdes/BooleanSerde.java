@@ -15,17 +15,22 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerde;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-final class BooleanSerde implements SerdeRegistrar<Boolean> {
+final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Boolean> {
     @Override
     public Boolean deserialize(Decoder decoder,
                                DecoderContext decoderContext,
@@ -39,10 +44,28 @@ final class BooleanSerde implements SerdeRegistrar<Boolean> {
     }
 
     @Override
+    public Deserializer<Boolean> createSpecific(@NonNull DecoderContext context,
+                                                @NonNull Argument<? super Boolean> type,
+                                                @NonNull FormatConfiguration format) throws SerdeException {
+        return this;
+    }
+
+    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends Boolean> type, Boolean value) throws IOException {
         encoder.encodeBoolean(value);
+    }
+
+    @Override
+    public Serializer<Boolean> createSpecific(@NonNull EncoderContext context,
+                                              @NonNull Argument<? extends Boolean> type,
+                                              @NonNull FormatConfiguration format) throws SerdeException {
+        return switch (format.shape()) {
+            case STRING -> new StringShapeBooleanSerializer(this);
+            case NUMBER, NUMBER_INT, NUMBER_FLOAT -> new NumericShapeBooleanSerializer(this);
+            default -> this;
+        };
     }
 
     @Override
@@ -66,5 +89,58 @@ final class BooleanSerde implements SerdeRegistrar<Boolean> {
     @Override
     public Boolean getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) {
         return type.isPrimitive() ? false : null;
+    }
+}
+
+abstract class AbstractBooleanShapeSerializer implements Serializer<Boolean> {
+    final Serializer<Boolean> delegate;
+
+    AbstractBooleanShapeSerializer(Serializer<Boolean> delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public boolean isEmpty(@NonNull EncoderContext context, @Nullable Boolean value) {
+        return delegate.isEmpty(context, value);
+    }
+
+    @Override
+    public boolean isAbsent(@NonNull EncoderContext context, @Nullable Boolean value) {
+        return delegate.isAbsent(context, value);
+    }
+
+    @Override
+    public boolean isDefault(@NonNull EncoderContext context, @NonNull Boolean value) {
+        return delegate.isDefault(context, value);
+    }
+}
+
+final class StringShapeBooleanSerializer extends AbstractBooleanShapeSerializer {
+
+    StringShapeBooleanSerializer(Serializer<Boolean> delegate) {
+        super(delegate);
+    }
+
+    @Override
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends Boolean> type,
+                          @NonNull Boolean value) throws IOException {
+        encoder.encodeString(value.toString());
+    }
+}
+
+final class NumericShapeBooleanSerializer extends AbstractBooleanShapeSerializer {
+
+    NumericShapeBooleanSerializer(Serializer<Boolean> delegate) {
+        super(delegate);
+    }
+
+    @Override
+    public void serialize(@NonNull Encoder encoder,
+                          @NonNull EncoderContext context,
+                          @NonNull Argument<? extends Boolean> type,
+                          @NonNull Boolean value) throws IOException {
+        encoder.encodeInt(Boolean.FALSE.equals(value) ? 0 : 1);
     }
 }

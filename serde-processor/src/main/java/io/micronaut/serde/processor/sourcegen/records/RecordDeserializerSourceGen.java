@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -96,6 +97,13 @@ public final class RecordDeserializerSourceGen {
         Decoder.class,
         Deserializer.DecoderContext.class,
         String.class,
+        Argument.class
+    );
+    private static final Method WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeFallbackUtil.class,
+        "withRuntimeObjectFallback",
+        Deserializer.class,
+        Deserializer.DecoderContext.class,
         Argument.class
     );
     private static final Method WITH_PROPERTY_PATH_THROWABLE_METHOD = ReflectionUtils.getRequiredMethod(
@@ -200,10 +208,14 @@ public final class RecordDeserializerSourceGen {
             .addParameter("type", TypeDef.of(Argument.class))
             .addThrows(TypeDef.of(SerdeException.class))
             .build((aThis, methodParameters) -> {
-                if (deserializerFieldNames.isEmpty()) {
-                    return aThis.returning();
-                }
                 VariableDef.MethodParameter context = methodParameters.get(0);
+                VariableDef.MethodParameter type = methodParameters.get(1);
+                if (deserializerFieldNames.isEmpty()) {
+                    return ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD, aThis, context, type)
+                        .cast(TypeDef.parameterized(Deserializer.class, recordTypeDef))
+                        .returning();
+                }
                 List<StatementDef> statements = new ArrayList<>();
                 List<ExpressionDef> deserializerValues = new ArrayList<>();
                 List<TypeDef> constructorParameterTypes = new ArrayList<>();
@@ -220,7 +232,15 @@ public final class RecordDeserializerSourceGen {
                     constructorParameterTypes.add(DESERIALIZER_TYPE);
                     index++;
                 }
-                statements.add(deserializerClassTypeDef.instantiate(constructorParameterTypes, deserializerValues).returning());
+                statements.add(ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                    .invokeStatic(
+                        WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD,
+                        deserializerClassTypeDef.instantiate(constructorParameterTypes, deserializerValues),
+                        context,
+                        type
+                    )
+                    .cast(TypeDef.parameterized(Deserializer.class, recordTypeDef))
+                    .returning());
                 return StatementDef.multi(statements);
             });
     }
@@ -327,6 +347,9 @@ public final class RecordDeserializerSourceGen {
                                                          List<StatementDef> componentDeserializers) {
         StatementDef unknownPropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
             .invokeStatic(HANDLE_UNKNOWN_PROPERTY_METHOD, objectDecoder, context, keyVariable, type);
+        if (components.isEmpty()) {
+            return unknownPropertyStatement;
+        }
         if (components.size() > 3) {
             return keyVariable.asExpressionSwitch(
                 TypeDef.Primitive.BOOLEAN,

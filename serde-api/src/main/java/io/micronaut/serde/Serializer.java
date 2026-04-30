@@ -17,8 +17,6 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -26,9 +24,13 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Models a build time serializer. That is a class computed at build-time that can
@@ -156,6 +158,44 @@ public interface Serializer<T> {
         @NonNull
         default Optional<SerializationConfiguration> getSerializationConfiguration() {
             return Optional.empty();
+        }
+
+        /**
+         * Get the active serialization format features for this context.
+         *
+         * @return The active serialization format features
+         * @since 3.0
+         */
+        @NonNull
+        default Set<SerdeConfiguration.Feature> getFeatures() {
+            return SerdeConfiguration.serializationFeatures(getSerializationConfiguration().orElse(null));
+        }
+
+        /**
+         * Create a context with serialization format features overridden by annotation metadata.
+         *
+         * @param includedFeatures Features to enable
+         * @param excludedFeatures Features to disable
+         * @return The derived context
+         * @since 3.0
+         */
+        @NonNull
+        default EncoderContext withFeatures(@NonNull Set<SerdeConfiguration.Feature> includedFeatures,
+                                            @NonNull Set<SerdeConfiguration.Feature> excludedFeatures) {
+            if (includedFeatures.isEmpty() && excludedFeatures.isEmpty()) {
+                return this;
+            }
+            return new FeatureEncoderContext(this, overrideFeatures(getFeatures(), includedFeatures, excludedFeatures));
+        }
+
+        private static Set<SerdeConfiguration.Feature> overrideFeatures(Set<SerdeConfiguration.Feature> base,
+                                                                        Set<SerdeConfiguration.Feature> includedFeatures,
+                                                                        Set<SerdeConfiguration.Feature> excludedFeatures) {
+            EnumSet<SerdeConfiguration.Feature> features = EnumSet.noneOf(SerdeConfiguration.Feature.class);
+            features.addAll(base);
+            features.addAll(includedFeatures);
+            features.removeAll(excludedFeatures);
+            return Set.copyOf(features);
         }
     }
 }

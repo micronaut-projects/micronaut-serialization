@@ -33,7 +33,22 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
     private static final TemporalQuery<Instant> QUERY = Instant::from;
 
     public InstantSerde(SerdeConfiguration configuration) {
-        super(configuration, DateTimeFormatter.ISO_INSTANT, SerdeConfiguration.NumericTimeUnit.MILLISECONDS);
+        this(
+            stringFormatter(configuration),
+            configuration.getTimeWriteShape(),
+            configuration.getNumericTimeUnit()
+        );
+    }
+
+    private InstantSerde(DateTimeFormatter stringFormatter,
+                         SerdeConfiguration.TimeShape writeShape,
+                         SerdeConfiguration.NumericTimeUnit numericUnit) {
+        super(
+            stringFormatter,
+            SerdeConfiguration.NumericTimeUnit.MILLISECONDS,
+            writeShape,
+            numericUnit
+        );
     }
 
     @Override
@@ -57,12 +72,18 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
     }
 
     @Override
-    protected DefaultFormattedTemporalSerde<Instant> createSpecific(SerdeConfiguration configuration) {
-        return new InstantSerde(configuration);
+    protected DefaultFormattedTemporalSerde<Instant> createSpecific(DateTimeFormatter stringFormatter,
+                                                                    SerdeConfiguration.TimeShape timeWriteShape,
+                                                                    SerdeConfiguration.NumericTimeUnit numericUnit) {
+        return new InstantSerde(stringFormatter, timeWriteShape, numericUnit);
     }
 
     @Override
     public Argument<Instant> getType() {
         return Argument.of(Instant.class);
+    }
+
+    private static DateTimeFormatter stringFormatter(SerdeConfiguration configuration) {
+        return createFormatter(configuration).orElse(DateTimeFormatter.ISO_INSTANT);
     }
 }

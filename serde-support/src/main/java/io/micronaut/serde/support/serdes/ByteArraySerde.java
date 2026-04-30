@@ -24,7 +24,6 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.util.BinaryCodecUtil;
 
 import java.io.IOException;
@@ -33,7 +32,7 @@ import java.io.IOException;
  * Serde for byte arrays. Nested class for binary compatibility.
  */
 @Internal
-final class ByteArraySerde implements SerdeRegistrar<byte[]> {
+final class ByteArraySerde extends AbstractArraySerde<byte[]> {
     private final boolean writeLegacyByteArrays;
 
     public ByteArraySerde(SerdeConfiguration serdeConfiguration) {
@@ -46,12 +45,14 @@ final class ByteArraySerde implements SerdeRegistrar<byte[]> {
 
     @Override
     public @NonNull Serializer<byte[]> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends byte[]> type) throws SerdeException {
-        return context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
+        Serializer<byte[]> specific = context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
+        return SingleElementArraySerde.writeSingleElementArraysUnwrapped(specific, context);
     }
 
     @Override
     public @NonNull Deserializer<byte[]> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws SerdeException {
-        return context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
+        Deserializer<byte[]> specific = context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
+        return SingleElementArraySerde.acceptSingleValueAsArray(specific, context);
     }
 
     @Override

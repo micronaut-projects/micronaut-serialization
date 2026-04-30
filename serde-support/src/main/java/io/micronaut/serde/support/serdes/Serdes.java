@@ -97,6 +97,7 @@ public final class Serdes {
         new JsonNodeSerde(),
         new PeriodSerde(),
         new ByteBufferSerde(),
+        new MapEntrySerde(),
         new StringArraySerde(),
         new OptionalSerde<>(),
         new NumberTypeSerde()
@@ -116,7 +117,7 @@ public final class Serdes {
         consumer.accept(new LocalTimeSerde(serdeConfiguration));
         consumer.accept(new LocalDateTimeSerde(serdeConfiguration));
         consumer.accept(new OffsetDateTimeSerde(serdeConfiguration));
-        consumer.accept(new SqlDateSerde(localDateSerde));
+        consumer.accept(new SqlDateSerde(localDateSerde, instantSerde));
         consumer.accept(new SqlTimestampSerde(instantSerde));
         consumer.accept(new YearSerde());
         consumer.accept(new ZonedDateTimeSerde(serdeConfiguration));

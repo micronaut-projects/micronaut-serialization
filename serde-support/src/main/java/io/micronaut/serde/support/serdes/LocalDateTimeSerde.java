@@ -16,9 +16,18 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.NonNull;
 
+import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQuery;
@@ -32,7 +41,11 @@ public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<Loca
         implements TemporalSerde<LocalDateTime>, SerdeRegistrar<LocalDateTime> {
 
     public LocalDateTimeSerde(SerdeConfiguration configuration) {
-        super(configuration, DateTimeFormatter.ISO_DATE_TIME);
+        this(stringFormatter(configuration));
+    }
+
+    private LocalDateTimeSerde(DateTimeFormatter stringFormatter) {
+        super(stringFormatter);
     }
 
     @Override
@@ -41,12 +54,81 @@ public final class LocalDateTimeSerde extends DefaultFormattedTemporalSerde<Loca
     }
 
     @Override
-    protected DefaultFormattedTemporalSerde<LocalDateTime> createSpecific(SerdeConfiguration configuration) {
-        return new LocalDateTimeSerde(configuration);
+    public Serializer<LocalDateTime> createSpecific(EncoderContext context,
+                                                    Argument<? extends LocalDateTime> type,
+                                                    @NonNull FormatConfiguration format) {
+        Serializer<LocalDateTime> specific = super.createSpecific(context, type, format);
+        if (isArrayShape(format)) {
+            return new LocalDateTimeArrayShapeSerializer(specific, TemporalArrayShapeSupport.writeDateTimestampsAsNanos(context));
+        }
+        return specific;
+    }
+
+    @Override
+    public Deserializer<LocalDateTime> createSpecific(DecoderContext decoderContext,
+                                                      Argument<? super LocalDateTime> type,
+                                                      @NonNull FormatConfiguration format) throws SerdeException {
+        Deserializer<LocalDateTime> specific = super.createSpecific(decoderContext, type, format);
+        if (isArrayShape(format)) {
+            return new LocalDateTimeArrayShapeDeserializer(specific, TemporalArrayShapeSupport.readDateTimestampsAsNanos(decoderContext));
+        }
+        return specific;
+    }
+
+    @Override
+    protected DefaultFormattedTemporalSerde<LocalDateTime> createSpecific(DateTimeFormatter stringFormatter,
+                                                                          SerdeConfiguration.TimeShape timeWriteShape,
+                                                                          SerdeConfiguration.NumericTimeUnit numericUnit) {
+        return new LocalDateTimeSerde(stringFormatter);
     }
 
     @Override
     public Argument<LocalDateTime> getType() {
         return Argument.of(LocalDateTime.class);
+    }
+
+    private static boolean isArrayShape(@NonNull FormatConfiguration format) {
+        return TemporalArrayShapeSupport.isNumericOrArrayShape(format);
+    }
+
+    private static DateTimeFormatter stringFormatter(SerdeConfiguration configuration) {
+        return createFormatter(configuration).orElse(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
+    private static final class LocalDateTimeArrayShapeSerializer extends TemporalArrayShapeSupport.AbstractSerializer<LocalDateTime> {
+        private final boolean writeNanos;
+
+        private LocalDateTimeArrayShapeSerializer(Serializer<LocalDateTime> delegate, boolean writeNanos) {
+            super(delegate);
+            this.writeNanos = writeNanos;
+        }
+
+        @Override
+        void serializeArray(Encoder arrayEncoder, LocalDateTime value) throws IOException {
+            arrayEncoder.encodeInt(value.getYear());
+            arrayEncoder.encodeInt(value.getMonthValue());
+            arrayEncoder.encodeInt(value.getDayOfMonth());
+            TemporalArrayShapeSupport.serializeLocalTime(arrayEncoder, value.toLocalTime(), writeNanos);
+        }
+    }
+
+    private static final class LocalDateTimeArrayShapeDeserializer extends TemporalArrayShapeSupport.AbstractDeserializer<LocalDateTime> {
+        private final boolean readNanos;
+
+        private LocalDateTimeArrayShapeDeserializer(Deserializer<LocalDateTime> delegate, boolean readNanos) {
+            super(delegate);
+            this.readNanos = readNanos;
+        }
+
+        @Override
+        LocalDateTime deserializeArray(Decoder arrayDecoder) throws IOException {
+            int year = arrayDecoder.decodeInt();
+            int month = arrayDecoder.decodeInt();
+            int day = arrayDecoder.decodeInt();
+            return LocalDateTime.of(
+                LocalDate.of(year, month, day),
+                TemporalArrayShapeSupport.deserializeLocalTime(arrayDecoder, readNanos)
+            );
+        }
     }
 }

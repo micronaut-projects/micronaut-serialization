@@ -15,16 +15,14 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serde;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -40,11 +38,9 @@ final class FormattedNumberSerde<N extends Number> implements Serde<N> {
     private final String pattern;
     private final Locale locale;
 
-    FormattedNumberSerde(@NonNull String pattern, @NonNull AnnotationMetadata annotationMetadata) {
-        this.pattern = pattern;
-        this.locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
-                .map(StringUtils::parseLocale)
-                .orElse(null);
+    FormattedNumberSerde(@NonNull FormatConfiguration format) {
+        this.pattern = format.pattern();
+        this.locale = format.parseLocale();
     }
 
     @Override

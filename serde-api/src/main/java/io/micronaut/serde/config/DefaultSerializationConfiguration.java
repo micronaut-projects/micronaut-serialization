@@ -34,14 +34,26 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     private final SerdeConfig.SerInclude inclusion;
     private final boolean alwaysSerializeErrorsAsList;
     private final boolean sortPropertiesAlphabetically;
+    private final boolean writeDateTimestampsAsNanoseconds;
+    private final boolean writeDatesWithZoneId;
+    private final boolean writeSingleElemArraysUnwrapped;
+    private final boolean writeSortedMapEntries;
 
     @ConfigurationInject
     DefaultSerializationConfiguration(@Bindable(defaultValue = "NON_EMPTY") SerdeConfig.SerInclude inclusion,
                                       @Bindable(defaultValue = StringUtils.TRUE) boolean alwaysSerializeErrorsAsList,
-                                      @Bindable(defaultValue = StringUtils.FALSE) boolean sortPropertiesAlphabetically) {
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean sortPropertiesAlphabetically,
+                                      @Bindable(defaultValue = StringUtils.TRUE) boolean writeDateTimestampsAsNanoseconds,
+                                      @Bindable(defaultValue = StringUtils.TRUE) boolean writeDatesWithZoneId,
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean writeSingleElemArraysUnwrapped,
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean writeSortedMapEntries) {
         this.inclusion = inclusion;
         this.alwaysSerializeErrorsAsList = alwaysSerializeErrorsAsList;
         this.sortPropertiesAlphabetically = sortPropertiesAlphabetically;
+        this.writeDateTimestampsAsNanoseconds = writeDateTimestampsAsNanoseconds;
+        this.writeDatesWithZoneId = writeDatesWithZoneId;
+        this.writeSingleElemArraysUnwrapped = writeSingleElemArraysUnwrapped;
+        this.writeSortedMapEntries = writeSortedMapEntries;
     }
 
     @Override
@@ -57,6 +69,26 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     @Override
     public boolean sortPropertiesAlphabetically() {
         return sortPropertiesAlphabetically;
+    }
+
+    @Override
+    public boolean writeDateTimestampsAsNanoseconds() {
+        return writeDateTimestampsAsNanoseconds;
+    }
+
+    @Override
+    public boolean writeDatesWithZoneId() {
+        return writeDatesWithZoneId;
+    }
+
+    @Override
+    public boolean writeSingleElemArraysUnwrapped() {
+        return writeSingleElemArraysUnwrapped;
+    }
+
+    @Override
+    public boolean writeSortedMapEntries() {
+        return writeSortedMapEntries;
     }
 
 }

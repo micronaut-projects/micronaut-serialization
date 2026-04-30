@@ -15,9 +15,9 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -28,25 +28,27 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.concurrent.TimeUnit;
 
-abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends DefaultFormattedTemporalSerde<T> {
+abstract non-sealed class NumericSupportTemporalSerde<T extends TemporalAccessor> extends DefaultFormattedTemporalSerde<T> {
     private static final BigInteger NS_FACTOR = BigInteger.valueOf(1_000_000_000);
 
     private final SerdeConfiguration.TimeShape writeShape;
     private final SerdeConfiguration.NumericTimeUnit numericUnit;
 
     /**
-     * @param configuration          The configuration
-     * @param defaultStringFormatter Default string formatter to use if the user hasn't configured one
-     * @param legacyUnit             The unit to use in place of {@link io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit#LEGACY}
+     * @param stringFormatter The resolved string formatter
+     * @param legacyUnit      The unit to use in place of {@link io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit#LEGACY}
+     * @param writeShape      The configured write shape
+     * @param numericUnit     The configured numeric time unit
      */
     NumericSupportTemporalSerde(
-        @NonNull SerdeConfiguration configuration,
-        @NonNull DateTimeFormatter defaultStringFormatter,
-        SerdeConfiguration.@NonNull NumericTimeUnit legacyUnit
+        @NonNull DateTimeFormatter stringFormatter,
+        SerdeConfiguration.@NonNull NumericTimeUnit legacyUnit,
+        SerdeConfiguration.@NonNull TimeShape writeShape,
+        SerdeConfiguration.@NonNull NumericTimeUnit numericUnit
     ) {
-        super(configuration, defaultStringFormatter);
-        writeShape = configuration.getTimeWriteShape();
-        numericUnit = configuration.getNumericTimeUnit() == SerdeConfiguration.NumericTimeUnit.LEGACY ? legacyUnit : configuration.getNumericTimeUnit();
+        super(stringFormatter);
+        this.writeShape = writeShape;
+        this.numericUnit = normalizeNumericUnit(numericUnit, legacyUnit);
     }
 
     protected abstract T fromNanos(long seconds, int nanos);
@@ -101,5 +103,10 @@ abstract class NumericSupportTemporalSerde<T extends TemporalAccessor> extends D
             }
             default -> throw new AssertionError();
         }
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit normalizeNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                          SerdeConfiguration.NumericTimeUnit legacyUnit) {
+        return numericUnit == SerdeConfiguration.NumericTimeUnit.LEGACY ? legacyUnit : numericUnit;
     }
 }

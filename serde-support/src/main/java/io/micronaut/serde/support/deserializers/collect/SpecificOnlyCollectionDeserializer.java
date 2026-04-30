@@ -19,15 +19,20 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.FormattedDeserializer;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.DeserializerRegistrar;
+import io.micronaut.serde.support.serdes.SingleElementArraySerde;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 
 @Internal
-abstract class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> implements CustomizableDeserializer<C>, DeserializerRegistrar<C> {
+abstract class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> implements CustomizableDeserializer<C>, FormattedDeserializer<C>, DeserializerRegistrar<C> {
 
     private final Class<? extends Collection> type;
 
@@ -45,12 +50,22 @@ abstract class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> im
         final Deserializer<? extends E> valueDeser = context.findDeserializer(collectionItemArgument)
             .createSpecific(context, collectionItemArgument);
 
-        return createSpecific(type, collectionItemArgument, valueDeser);
+        return SingleElementArraySerde.acceptSingleValueAsArray(createSpecific(type, collectionItemArgument, valueDeser), context);
     }
 
     protected abstract Deserializer<C> createSpecific(Argument<? super C> collectionArgument,
                                                       Argument<E> collectionItemArgument,
                                                       Deserializer<? extends E> valueDeser);
+
+    @Override
+    public @NonNull Deserializer<C> createSpecific(@NonNull DecoderContext context,
+                                                   @NonNull Argument<? super C> type,
+                                                   @NonNull FormatConfiguration format) throws SerdeException {
+        if (format.shape().isPojoShape()) {
+            return ObjectShapeSerdeHelper.objectDeserializer(context, type);
+        }
+        return SingleElementArraySerde.acceptSingleValueAsArray(createSpecific(context, type), context);
+    }
 
     @Override
     public Argument<C> getType() {

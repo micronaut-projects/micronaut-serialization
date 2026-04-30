@@ -16,12 +16,17 @@
 package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.FormattedDeserializer;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
+import io.micronaut.serde.support.serdes.SingleElementArraySerde;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +37,7 @@ import java.util.ArrayList;
  * @author Denis Stepanov
  */
 @Internal
-final class StringListDeserializer implements DeserializerRegistrar<ArrayList<String>> {
+final class StringListDeserializer implements FormattedDeserializer<ArrayList<String>>, DeserializerRegistrar<ArrayList<String>> {
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
@@ -63,6 +68,22 @@ final class StringListDeserializer implements DeserializerRegistrar<ArrayList<St
     @Override
     public ArrayList<String> getDefaultValue(DecoderContext context, Argument<? super ArrayList<String>> type) {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Deserializer<ArrayList<String>> createSpecific(DecoderContext context,
+                                                          Argument<? super ArrayList<String>> type) {
+        return SingleElementArraySerde.acceptSingleValueAsArray(this, context);
+    }
+
+    @Override
+    public @NonNull Deserializer<ArrayList<String>> createSpecific(@NonNull DecoderContext context,
+                                                                   @NonNull Argument<? super ArrayList<String>> type,
+                                                                   @NonNull FormatConfiguration format) throws SerdeException {
+        if (format.shape().isPojoShape()) {
+            return ObjectShapeSerdeHelper.objectDeserializer(context, type);
+        }
+        return SingleElementArraySerde.acceptSingleValueAsArray(this, context);
     }
 
     @Override

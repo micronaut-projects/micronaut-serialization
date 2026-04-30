@@ -15,56 +15,40 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
-import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.FormatConfiguration;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.time.DateTimeException;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQuery;
-import java.util.Locale;
 
 @Internal
 final class FormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
     final DateTimeFormatter formatter;
     final TemporalQuery<T> query;
     final TemporalSerde<T> originalTemporalSerde;
+    final ZoneId adjustTimeZone;
 
-    FormattedTemporalSerde(@NonNull String pattern,
-                           @NonNull AnnotationMetadata annotationMetadata,
+    FormattedTemporalSerde(@NonNull DateTimeFormatter formatter,
+                           @NonNull FormatConfiguration format,
                            TemporalQuery<T> query,
-                           TemporalSerde<T> originalTemporalSerde) {
-
-        Locale locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
-                .map(StringUtils::parseLocale)
-                .orElse(null);
-        DateTimeFormatter f = locale != null ? DateTimeFormatter.ofPattern(pattern, locale) :
-                DateTimeFormatter.ofPattern(pattern);
-
-        final ZoneId zone = annotationMetadata
-                .stringValue(SerdeConfig.class, SerdeConfig.TIMEZONE)
-                .map(ZoneId::of).orElse(UTC);
-
-        this.formatter = f.withZone(zone);
-        this.query = query;
-        this.originalTemporalSerde = originalTemporalSerde;
-
-    }
-
-    FormattedTemporalSerde(DateTimeFormatter formatter,
-                           TemporalQuery<T> query,
-                           TemporalSerde<T> originalTemporalSerde) {
+                           TemporalSerde<T> originalTemporalSerde,
+                           boolean adjustDatesToContextTimeZone) {
         this.formatter = formatter;
         this.query = query;
         this.originalTemporalSerde = originalTemporalSerde;
+        this.adjustTimeZone = adjustDatesToContextTimeZone
+            ? format.parseTimeZone().toZoneId()
+            : null;
     }
 
     @Override
@@ -78,7 +62,7 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
     public T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         final String str = decoder.decodeString();
         try {
-            return formatter.parse(str, query());
+            return adjust(formatter.parse(str, query()));
         } catch (DateTimeException e) {
             if (originalTemporalSerde instanceof DefaultFormattedTemporalSerde<T> defaultFormattedTemporalSerde) {
                 return defaultFormattedTemporalSerde.deserializeFallback(e, str);
@@ -91,5 +75,19 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
     @Override
     public TemporalQuery<T> query() {
         return query;
+    }
+
+    @SuppressWarnings("unchecked")
+    private T adjust(T value) {
+        if (adjustTimeZone == null) {
+            return value;
+        }
+        if (value instanceof ZonedDateTime zonedDateTime) {
+            return (T) zonedDateTime.withZoneSameInstant(adjustTimeZone);
+        }
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return (T) offsetDateTime.atZoneSameInstant(adjustTimeZone).toOffsetDateTime();
+        }
+        return value;
     }
 }

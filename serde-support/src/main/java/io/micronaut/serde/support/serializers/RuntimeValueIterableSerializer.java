@@ -30,7 +30,7 @@ import java.util.Collection;
  * @author Denis Stepanov
  */
 @Internal
-final class RuntimeValueIterableSerializer<T> implements Serializer<Iterable<T>> {
+final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<T>> type, Iterable<T> value) throws IOException {

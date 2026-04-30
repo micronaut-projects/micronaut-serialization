@@ -160,6 +160,16 @@ public @interface SerdeConfig {
     String PATTERN = "pattern";
 
     /**
+     * The serialization shape to use.
+     */
+    String SHAPE = "shape";
+
+    /**
+     * The numeric base to use.
+     */
+    String RADIX = "radix";
+
+    /**
      * A locale to use.
      */
     String LOCALE = "locale";
@@ -173,6 +183,16 @@ public @interface SerdeConfig {
      * if parsing is required whether to be lenient.
      */
     String LENIENT = "lenient";
+
+    /**
+     * Format features to enable.
+     */
+    String FEATURES_WITH = "featuresWith";
+
+    /**
+     * Format features to disable.
+     */
+    String FEATURES_WITHOUT = "featuresWithout";
 
     /**
      * Custom serializer class.
@@ -389,6 +409,15 @@ public @interface SerdeConfig {
      */
     @Internal
     @interface SerValue {
+    }
+
+    /**
+     * Meta-annotation used to model the enum constant to use for unknown values.
+     *
+     * @since 3.0
+     */
+    @Internal
+    @interface SerEnumDefaultValue {
     }
 
     /**

@@ -20,10 +20,13 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedDeserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeEnumUtil;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
+import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.ClassTypeDef;
@@ -76,11 +79,26 @@ public final class EnumDeserializerSourceGen {
         String.class,
         Deserializer.DecoderContext.class
     );
-    private static final Method UNKNOWN_ENUM_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
+    private static final Method HANDLE_UNKNOWN_ENUM_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "unknownEnumValue",
+        "handleUnknownEnumValue",
+        Deserializer.DecoderContext.class,
         Argument.class,
         String.class
+    );
+    private static final Method RUNTIME_FALLBACK_FORMATTED_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeFallbackUtil.class,
+        "runtimeFormattedEnumDeserializer",
+        Deserializer.DecoderContext.class,
+        Argument.class,
+        FormatConfiguration.class
+    );
+    private static final Method RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeFallbackUtil.class,
+        "withRuntimeEnumFallback",
+        Deserializer.class,
+        Deserializer.DecoderContext.class,
+        Argument.class
     );
 
     public ClassDef generate(ClassElement element, EnumSerdeShape enumSerdeShape) {
@@ -92,7 +110,7 @@ public final class EnumDeserializerSourceGen {
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
-            .addSuperinterface(TypeDef.parameterized(Deserializer.class, enumTypeDef))
+            .addSuperinterface(TypeDef.parameterized(FormattedDeserializer.class, enumTypeDef))
             .addField(FieldDef.builder(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                 .initializer(EnumSerdeSourceGenUtils.stringArgumentExpression())
@@ -103,6 +121,7 @@ public final class EnumDeserializerSourceGen {
             .addMethod(generateNoArgsConstructor())
             .addMethod(generateSpecializedConstructor())
             .addMethod(generateCreateSpecificMethod(enumTypeDef, deserializerClassTypeDef))
+            .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))
             .addMethod(generateDeserializeMethod(element, enumTypeDef, enumSerdeShape, deserializerClassTypeDef))
             .build();
     }
@@ -136,15 +155,44 @@ public final class EnumDeserializerSourceGen {
             .addThrows(TypeDef.of(SerdeException.class))
             .build((aThis, methodParameters) -> {
                 VariableDef.MethodParameter context = methodParameters.get(0);
+                VariableDef.MethodParameter type = methodParameters.get(1);
                 ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
                 StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
                     .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
                     .newLocal(STRING_DESERIALIZER_LOCAL);
                 return StatementDef.multi(
                     deserializerDef,
-                    deserializerClassTypeDef.instantiate(List.of(DESERIALIZER_TYPE), List.of(deserializerDef.variable())).returning()
+                    ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                        .invokeStatic(
+                            RUNTIME_FALLBACK_DESERIALIZER_METHOD,
+                            deserializerClassTypeDef.instantiate(List.of(DESERIALIZER_TYPE), List.of(deserializerDef.variable())),
+                            context,
+                            type
+                        )
+                        .cast(TypeDef.parameterized(Deserializer.class, enumTypeDef))
+                        .returning()
                 );
             });
+    }
+
+    private MethodDef generateCreateSpecificWithFormatMethod(TypeDef enumTypeDef) {
+        return MethodDef.builder("createSpecific")
+            .addModifiers(Modifier.PUBLIC)
+            .overrides()
+            .returns(TypeDef.parameterized(Deserializer.class, enumTypeDef))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class))
+            .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSupertypeOf(enumTypeDef)))
+            .addParameter("format", TypeDef.of(FormatConfiguration.class))
+            .addThrows(TypeDef.of(SerdeException.class))
+            .build((aThis, methodParameters) -> ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                .invokeStatic(
+                    RUNTIME_FALLBACK_FORMATTED_DESERIALIZER_METHOD,
+                    methodParameters.get(0),
+                    methodParameters.get(1),
+                    methodParameters.get(2)
+                )
+                .cast(TypeDef.parameterized(Deserializer.class, enumTypeDef))
+                .returning());
     }
 
     private MethodDef generateDeserializeMethod(ClassElement element,
@@ -210,11 +258,13 @@ public final class EnumDeserializerSourceGen {
                     .doCatch(ClassTypeDef.of(IllegalArgumentException.class), exceptionVariable ->
                         ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                             .invokeStatic(
-                                UNKNOWN_ENUM_VALUE_METHOD,
+                                HANDLE_UNKNOWN_ENUM_VALUE_METHOD,
+                                context,
                                 methodParameters.get(2),
                                 decodedValueDef.variable()
                             )
-                            .doThrow()
+                            .cast(enumTypeDef)
+                            .returning()
                     ));
                 return StatementDef.multi(statements);
             });

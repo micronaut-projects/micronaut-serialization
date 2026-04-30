@@ -76,6 +76,27 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
+     * Handles an unknown enum value according to deserialization configuration.
+     *
+     * @param context The decoder context.
+     * @param enumType The enum argument being deserialized.
+     * @param value The incoming value that could not be resolved.
+     * @param <E> The enum type.
+     * @return {@code null} when unknown enum values are configured to deserialize as null.
+     * @throws SerdeException If the value should fail deserialization.
+     * @since 3.0
+     */
+    public static <E extends Enum<E>> E handleUnknownEnumValue(Deserializer.DecoderContext context,
+                                                               Argument<E> enumType,
+                                                               String value) throws SerdeException {
+        boolean unknownAsNull = context.getFeatures().contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+        if (unknownAsNull) {
+            return null;
+        }
+        throw unknownEnumValue(enumType, value);
+    }
+
+    /**
      * Handles an unknown property according to deserialization configuration.
      *
      * @param decoder The decoder currently positioned on the unknown value.

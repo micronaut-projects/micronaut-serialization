@@ -15,59 +15,141 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.time.DateTimeException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
+import java.util.Set;
+
+import static io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit.MILLISECONDS;
+import static io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit.SECONDS;
+import static io.micronaut.serde.config.SerdeConfiguration.TimeShape.DECIMAL;
+import static io.micronaut.serde.config.SerdeConfiguration.TimeShape.INTEGER;
+import static io.micronaut.serde.config.SerdeConfiguration.TimeShape.STRING;
 
 /**
  * Super class that can be used for the default date/time formatting.
  * @param <T> The temporal type
  * @author gkrocher
  */
-public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> {
+public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAccessor> implements TemporalSerde<T> permits LocalDateSerde, LocalDateTimeSerde, NumericSupportTemporalSerde {
 
     private final DateTimeFormatter stringFormatter;
 
     /**
-     * Allows configuring a default time format for temporal date/time types.
-     *
-     * @param configuration          The configuration
-     * @param defaultStringFormatter Default string formatter to use if the user hasn't configured one
+     * @param stringFormatter The resolved string formatter
      */
-    protected DefaultFormattedTemporalSerde(
-        @NonNull SerdeConfiguration configuration,
-        @NonNull DateTimeFormatter defaultStringFormatter
-    ) {
-        stringFormatter = createFormatter(configuration).orElse(defaultStringFormatter);
+    protected DefaultFormattedTemporalSerde(@NonNull DateTimeFormatter stringFormatter) {
+        this.stringFormatter = stringFormatter;
     }
 
     @Override
     public Serializer<T> createSpecific(EncoderContext context, Argument<? extends T> type) {
-        Serializer<T> specific = TemporalSerde.super.createSpecific(context, type);
-        if (specific != this) {
-            return specific;
-        }
-        return context.getSerdeConfiguration().map(this::createSpecific).orElse(this);
+        Set<SerdeConfiguration.Feature> featuresWith = SerdeFeatures.serializationFeaturesWith(type.getAnnotationMetadata());
+        Set<SerdeConfiguration.Feature> featuresWithout = SerdeFeatures.serializationFeaturesWithout(type.getAnnotationMetadata());
+        context = context.withFeatures(featuresWith, featuresWithout);
+        FormatConfiguration format = FormatConfiguration.from(type.getAnnotationMetadata());
+        return format == null ? createSpecificForConfiguration(context, featuresWith, featuresWithout) : createSpecificForFormat(context, type, format);
+    }
+
+    @Override
+    public Serializer<T> createSpecific(EncoderContext context,
+                                        Argument<? extends T> type,
+                                        @NonNull FormatConfiguration format) {
+        return createSpecificForFormat(context, type, format);
     }
 
     @Override
     public Deserializer<T> createSpecific(DecoderContext decoderContext, Argument<? super T> context) throws SerdeException {
-        Deserializer<T> specific = TemporalSerde.super.createSpecific(decoderContext, context);
+        Set<DeserializationConfiguration.Feature> featuresWith = SerdeFeatures.deserializationFeaturesWith(context.getAnnotationMetadata());
+        Set<DeserializationConfiguration.Feature> featuresWithout = SerdeFeatures.deserializationFeaturesWithout(context.getAnnotationMetadata());
+        decoderContext = decoderContext.withFeatures(featuresWith, featuresWithout);
+        FormatConfiguration format = FormatConfiguration.from(context.getAnnotationMetadata());
+        return format == null ? createSpecificForConfiguration(decoderContext, featuresWith, featuresWithout) : createSpecificForFormat(decoderContext, context, format);
+    }
+
+    @Override
+    public Deserializer<T> createSpecific(DecoderContext decoderContext,
+                                          Argument<? super T> type,
+                                          @NonNull FormatConfiguration format) throws SerdeException {
+        return createSpecificForFormat(decoderContext, type, format);
+    }
+
+    private Serializer<T> createSpecificForFormat(EncoderContext encoderContext,
+                                                  Argument<? extends T> type,
+                                                  @NonNull FormatConfiguration format) {
+        Serializer<T> specific = TemporalSerde.super.createSpecific(encoderContext, type, format);
         if (specific != this) {
             return specific;
         }
-        return decoderContext.getSerdeConfiguration().map(this::createSpecific).orElse(this);
+        return encoderContext.getSerdeConfiguration()
+            .map(configuration -> createSpecificForSerialization(
+                stringFormatter(configuration, format, encoderContext.getFeatures()),
+                serializationTimeShape(configuration, format.shape()),
+                serializationNumericUnit(format, encoderContext.getFeatures()),
+                format,
+                encoderContext.getFeatures()
+            ))
+            .orElse(this);
+    }
+
+    private Deserializer<T> createSpecificForFormat(DecoderContext decoderContext,
+                                                    Argument<? super T> type,
+                                                    @NonNull FormatConfiguration format) throws SerdeException {
+        Deserializer<T> specific = TemporalSerde.super.createSpecific(decoderContext, type, format);
+        if (specific != this) {
+            return specific;
+        }
+        return decoderContext.getSerdeConfiguration()
+            .map(configuration -> createSpecificForDeserialization(
+                stringFormatter(configuration, format, Set.of()),
+                deserializationTimeShape(configuration, format.shape()),
+                deserializationNumericUnit(format, decoderContext.getFeatures()),
+                format,
+                decoderContext.getFeatures()
+            ))
+            .orElse(this);
+    }
+
+    private DefaultFormattedTemporalSerde<T> createSpecificForConfiguration(EncoderContext encoderContext,
+                                                                            @NonNull Set<SerdeConfiguration.Feature> featuresWith,
+                                                                            @NonNull Set<SerdeConfiguration.Feature> featuresWithout) {
+        return encoderContext.getSerdeConfiguration()
+            .map(configuration -> createSpecificForSerialization(
+                stringFormatter(configuration, FormatConfiguration.EMPTY, encoderContext.getFeatures()),
+                configuration.getTimeWriteShape(),
+                serializationNumericUnit(configuration.getNumericTimeUnit(), encoderContext.getFeatures(), featuresWith, featuresWithout),
+                FormatConfiguration.EMPTY,
+                encoderContext.getFeatures()
+            ))
+            .orElse(this);
+    }
+
+    private DefaultFormattedTemporalSerde<T> createSpecificForConfiguration(DecoderContext decoderContext,
+                                                                            @NonNull Set<DeserializationConfiguration.Feature> featuresWith,
+                                                                            @NonNull Set<DeserializationConfiguration.Feature> featuresWithout) {
+        return decoderContext.getSerdeConfiguration()
+            .map(configuration -> createSpecificForDeserialization(
+                stringFormatter(configuration),
+                configuration.getTimeWriteShape(),
+                deserializationNumericUnit(configuration.getNumericTimeUnit(), decoderContext.getFeatures(), featuresWith, featuresWithout),
+                configuration,
+                decoderContext.getFeatures()
+            ))
+            .orElse(this);
     }
 
     /**
@@ -77,7 +159,95 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
      * @return The updated serde
      */
     protected DefaultFormattedTemporalSerde<T> createSpecific(SerdeConfiguration configuration) {
+        return createSpecific(
+            stringFormatter(configuration),
+            configuration.getTimeWriteShape(),
+            configuration.getNumericTimeUnit()
+        );
+    }
+
+    /**
+     * Create the same serde with a new string formatter and explicit shape-derived values.
+     *
+     * @param stringFormatter The resolved string formatter
+     * @param timeWriteShape  The time write shape
+     * @param numericUnit     The numeric time unit
+     * @return The updated serde
+     */
+    protected DefaultFormattedTemporalSerde<T> createSpecific(@NonNull DateTimeFormatter stringFormatter,
+                                                              SerdeConfiguration.TimeShape timeWriteShape,
+                                                              SerdeConfiguration.NumericTimeUnit numericUnit) {
         return this;
+    }
+
+    /**
+     * Create the same serde with a new string formatter and explicit format-derived values.
+     *
+     * @param stringFormatter The resolved string formatter
+     * @param timeWriteShape  The time write shape
+     * @param numericUnit     The numeric time unit
+     * @param format          The format configuration
+     * @return The updated serde
+     */
+    protected DefaultFormattedTemporalSerde<T> createSpecific(@NonNull DateTimeFormatter stringFormatter,
+                                                              SerdeConfiguration.TimeShape timeWriteShape,
+                                                              SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                              @NonNull FormatConfiguration format) {
+        return createSpecific(stringFormatter, timeWriteShape, numericUnit);
+    }
+
+    /**
+     * Create the same serde with serialization format-derived values.
+     *
+     * @param stringFormatter The resolved string formatter
+     * @param timeWriteShape  The time write shape
+     * @param numericUnit     The numeric time unit
+     * @param format          The format configuration
+     * @param features        The active serialization features
+     * @return The updated serde
+     */
+    protected DefaultFormattedTemporalSerde<T> createSpecificForSerialization(@NonNull DateTimeFormatter stringFormatter,
+                                                                              SerdeConfiguration.TimeShape timeWriteShape,
+                                                                              SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                              @NonNull FormatConfiguration format,
+                                                                              @NonNull Set<SerdeConfiguration.Feature> features) {
+        return createSpecific(stringFormatter, timeWriteShape, numericUnit, format);
+    }
+
+    /**
+     * Create the same serde with deserialization format-derived values.
+     *
+     * @param stringFormatter The resolved string formatter
+     * @param timeWriteShape  The time write shape
+     * @param numericUnit     The numeric time unit
+     * @param format          The format configuration
+     * @param features        The active deserialization features
+     * @return The updated serde
+     */
+    protected DefaultFormattedTemporalSerde<T> createSpecificForDeserialization(@NonNull DateTimeFormatter stringFormatter,
+                                                                                SerdeConfiguration.TimeShape timeWriteShape,
+                                                                                SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                                @NonNull FormatConfiguration format,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> features) {
+        return createSpecific(stringFormatter, timeWriteShape, numericUnit, format);
+    }
+
+    /**
+     * Create the same serde with deserialization configuration-derived values.
+     *
+     * @param stringFormatter The resolved string formatter
+     * @param timeWriteShape  The time write shape
+     * @param numericUnit     The numeric time unit
+     * @param configuration   The serde configuration
+     * @param features        The active deserialization features
+     * @return The updated serde
+     */
+    protected DefaultFormattedTemporalSerde<T> createSpecificForDeserialization(@NonNull DateTimeFormatter stringFormatter,
+                                                                                SerdeConfiguration.TimeShape timeWriteShape,
+                                                                                SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                                @NonNull SerdeConfiguration configuration,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> features) {
+        return createSpecific(stringFormatter, timeWriteShape, numericUnit);
     }
 
     @Override
@@ -99,10 +269,20 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         String text = decoder.decodeString();
         try {
-            return stringFormatter.parse(text, query());
+            return parseString(text);
         } catch (DateTimeException e) {
             return deserializeFallback(e, text);
         }
+    }
+
+    /**
+     * Parse a temporal string.
+     *
+     * @param text The text
+     * @return The parsed value
+     */
+    T parseString(String text) {
+        return stringFormatter.parse(text, query());
     }
 
     /**
@@ -117,7 +297,7 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
     }
 
     @NonNull
-    private static Optional<DateTimeFormatter> createFormatter(@NonNull SerdeConfiguration configuration) {
+    protected static Optional<DateTimeFormatter> createFormatter(@NonNull SerdeConfiguration configuration) {
         // Creates a pattern-based formatter if there is a date format configured
         return configuration.getDateFormat()
             .map(pattern -> configuration.getLocale()
@@ -126,5 +306,122 @@ public abstract class DefaultFormattedTemporalSerde<T extends TemporalAccessor> 
             .map(formatter -> configuration.getTimeZone()
                     .map(tz -> formatter.withZone(tz.toZoneId()))
                     .orElse(formatter));
+    }
+
+    private DateTimeFormatter stringFormatter(@NonNull SerdeConfiguration configuration) {
+        return createFormatter(configuration).orElse(defaultStringFormatter());
+    }
+
+    private DateTimeFormatter stringFormatter(@NonNull SerdeConfiguration configuration,
+                                              @NonNull FormatConfiguration format,
+                                              @NonNull Set<SerdeConfiguration.Feature> features) {
+        return createFormatter(configuration).orElse(defaultStringFormatter(format, features));
+    }
+
+    /**
+     * @return The default formatter to use when configuration doesn't define one.
+     */
+    @NonNull
+    protected DateTimeFormatter defaultStringFormatter() {
+        return stringFormatter;
+    }
+
+    /**
+     * @param format The format configuration
+     * @return The default formatter to use for this format when configuration doesn't define one.
+     */
+    @NonNull
+    protected DateTimeFormatter defaultStringFormatter(@NonNull FormatConfiguration format) {
+        return defaultStringFormatter();
+    }
+
+    /**
+     * @param format The format configuration
+     * @param features The active serialization features
+     * @return The default formatter to use for this format when configuration doesn't define one.
+     */
+    @NonNull
+    protected DateTimeFormatter defaultStringFormatter(@NonNull FormatConfiguration format,
+                                                       @NonNull Set<SerdeConfiguration.Feature> features) {
+        return defaultStringFormatter(format);
+    }
+
+    private static SerdeConfiguration.TimeShape serializationTimeShape(SerdeConfiguration configuration, FormatConfiguration.Shape shape) {
+        return switch (shape) {
+            case STRING -> STRING;
+            case NUMBER, NUMBER_FLOAT, ARRAY -> DECIMAL;
+            case NUMBER_INT -> INTEGER;
+            default -> configuration.getTimeWriteShape();
+        };
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit serializationNumericUnit(@NonNull FormatConfiguration format,
+                                                                              @NonNull Set<SerdeConfiguration.Feature> features) {
+        if (format.shape() == FormatConfiguration.Shape.NUMBER_INT) {
+            return MILLISECONDS;
+        }
+        if (features.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return SECONDS;
+        }
+        return MILLISECONDS;
+    }
+
+    private static SerdeConfiguration.TimeShape deserializationTimeShape(SerdeConfiguration configuration, FormatConfiguration.Shape shape) {
+        return switch (shape) {
+            case STRING -> STRING;
+            case NUMBER, NUMBER_FLOAT, ARRAY -> DECIMAL;
+            case NUMBER_INT -> INTEGER;
+            default -> configuration.getTimeWriteShape();
+        };
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit deserializationNumericUnit(@NonNull FormatConfiguration format,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> features) {
+        if (features.contains(DeserializationConfiguration.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return SECONDS;
+        }
+        return MILLISECONDS;
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit serializationNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                              @NonNull Set<SerdeConfiguration.Feature> features) {
+        if (features.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return numericUnit;
+        }
+        return MILLISECONDS;
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit serializationNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                              @NonNull Set<SerdeConfiguration.Feature> features,
+                                                                              @NonNull Set<SerdeConfiguration.Feature> featuresWith,
+                                                                              @NonNull Set<SerdeConfiguration.Feature> featuresWithout) {
+        if (featuresWith.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return SECONDS;
+        }
+        if (featuresWithout.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return MILLISECONDS;
+        }
+        return serializationNumericUnit(numericUnit, features);
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit deserializationNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> features) {
+        if (features.contains(DeserializationConfiguration.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return numericUnit;
+        }
+        return MILLISECONDS;
+    }
+
+    private static SerdeConfiguration.NumericTimeUnit deserializationNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> features,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> featuresWith,
+                                                                                @NonNull Set<DeserializationConfiguration.Feature> featuresWithout) {
+        if (featuresWith.contains(DeserializationConfiguration.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return SECONDS;
+        }
+        if (featuresWithout.contains(DeserializationConfiguration.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+            return MILLISECONDS;
+        }
+        return deserializationNumericUnit(numericUnit, features);
     }
 }

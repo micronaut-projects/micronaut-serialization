@@ -17,8 +17,6 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -26,9 +24,13 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Interface that represents a deserializer.
@@ -151,6 +153,46 @@ public interface Deserializer<T> {
         @NonNull
         default Optional<DeserializationConfiguration> getDeserializationConfiguration() {
             return Optional.empty();
+        }
+
+        /**
+         * Get the active deserialization format features for this context.
+         *
+         * @return The active deserialization format features
+         * @since 3.0
+         */
+        @NonNull
+        default Set<DeserializationConfiguration.Feature> getFeatures() {
+            return getDeserializationConfiguration()
+                .map(configuration -> configuration.features())
+                .orElseGet(() -> DeserializationConfiguration.features(null));
+        }
+
+        /**
+         * Create a context with deserialization format features overridden by annotation metadata.
+         *
+         * @param includedFeatures Features to enable
+         * @param excludedFeatures Features to disable
+         * @return The derived context
+         * @since 3.0
+         */
+        @NonNull
+        default DecoderContext withFeatures(@NonNull Set<DeserializationConfiguration.Feature> includedFeatures,
+                                            @NonNull Set<DeserializationConfiguration.Feature> excludedFeatures) {
+            if (includedFeatures.isEmpty() && excludedFeatures.isEmpty()) {
+                return this;
+            }
+            return new FeatureDecoderContext(this, overrideFeatures(getFeatures(), includedFeatures, excludedFeatures));
+        }
+
+        private static Set<DeserializationConfiguration.Feature> overrideFeatures(Set<DeserializationConfiguration.Feature> base,
+                                                                                  Set<DeserializationConfiguration.Feature> includedFeatures,
+                                                                                  Set<DeserializationConfiguration.Feature> excludedFeatures) {
+            EnumSet<DeserializationConfiguration.Feature> features = EnumSet.noneOf(DeserializationConfiguration.Feature.class);
+            features.addAll(base);
+            features.addAll(includedFeatures);
+            features.removeAll(excludedFeatures);
+            return Set.copyOf(features);
         }
     }
 }

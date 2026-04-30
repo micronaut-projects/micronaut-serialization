@@ -20,9 +20,12 @@ import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.ElementQuery;
+import io.micronaut.inject.ast.EnumConstantElement;
+import io.micronaut.inject.ast.EnumElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
@@ -39,9 +42,8 @@ import java.util.Set;
 public final class SimpleSerdeShapeAnalyzer {
     private static final String JACKSON_JSON_INCLUDE = "com.fasterxml.jackson.annotation.JsonInclude";
     private static final String JACKSON_JSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
-    private static final String JACKSON2_JSON_VALUE = "tools.jackson.annotation.JsonValue";
+    private static final String JACKSON_JSON_ENUM_DEFAULT_VALUE = "com.fasterxml.jackson.annotation.JsonEnumDefaultValue";
     private static final String JACKSON_JSON_PROPERTY_ORDER = "com.fasterxml.jackson.annotation.JsonPropertyOrder";
-    private static final String JACKSON2_JSON_PROPERTY_ORDER = "tools.jackson.annotation.JsonPropertyOrder";
     private static final String SERDEABLE_SERIALIZABLE = Serdeable.Serializable.class.getName();
     private static final String SERDEABLE_DESERIALIZABLE = Serdeable.Deserializable.class.getName();
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
@@ -132,7 +134,7 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (!element.isEnum()
             && !isBothFailed(serializerReasons, deserializerReasons)
-            && (hasAnnotation(element, JACKSON_JSON_VALUE) || hasAnnotation(element, JACKSON2_JSON_VALUE))
+            && hasAnnotation(element, JACKSON_JSON_VALUE)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -211,6 +213,12 @@ public final class SimpleSerdeShapeAnalyzer {
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
             && !isBothFailed(serializerReasons, deserializerReasons)
             && hasComplexEnumCustomization(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
+            && !isBothFailed(serializerReasons, deserializerReasons)
+            && hasJsonEnumDefaultValue(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -425,6 +433,18 @@ public final class SimpleSerdeShapeAnalyzer {
         })).isEmpty();
     }
 
+    private boolean hasJsonEnumDefaultValue(ClassElement element) {
+        if (!element.isEnum()) {
+            return false;
+        }
+        for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
+            if (enumConstant.hasAnnotation(JACKSON_JSON_ENUM_DEFAULT_VALUE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean hasSubtypedPropertyTypes(ClassElement element) {
         for (PropertyElement property : element.getBeanProperties()) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
@@ -476,7 +496,7 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyOrderConfig(ClassElement element) {
-        if (hasAnnotation(element, JACKSON_JSON_PROPERTY_ORDER) || hasAnnotation(element, JACKSON2_JSON_PROPERTY_ORDER)) {
+        if (hasAnnotation(element, JACKSON_JSON_PROPERTY_ORDER)) {
             return true;
         }
         if (element.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)) {
@@ -508,11 +528,11 @@ public final class SimpleSerdeShapeAnalyzer {
     private boolean hasJsonValueInPropertyTypes(ClassElement element) {
         for (PropertyElement property : element.getBeanProperties()) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
-            if (hasAnnotation(serializationType, JACKSON_JSON_VALUE) || hasAnnotation(serializationType, JACKSON2_JSON_VALUE)) {
+            if (hasAnnotation(serializationType, JACKSON_JSON_VALUE)) {
                 return true;
             }
             ClassElement deserializationType = property.getWriteMethod().map(m -> m.getParameters()[0].getType()).orElse(property.getType());
-            if (hasAnnotation(deserializationType, JACKSON_JSON_VALUE) || hasAnnotation(deserializationType, JACKSON2_JSON_VALUE)) {
+            if (hasAnnotation(deserializationType, JACKSON_JSON_VALUE)) {
                 return true;
             }
         }
@@ -639,6 +659,8 @@ public final class SimpleSerdeShapeAnalyzer {
             || element.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || element.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || element.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || FormatConfiguration.from(element.getAnnotationMetadata()) != null
+            || hasFeatureOverrides(element.getAnnotationMetadata())
             || hasSerializeAsOverride(element)
             || hasDeserializeAsOverride(element)
             || hasCustomNaming(element)
@@ -654,11 +676,18 @@ public final class SimpleSerdeShapeAnalyzer {
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.READ_ONLY).orElse(false)
             || annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.WRITE_ONLY).orElse(false)
+            || FormatConfiguration.from(annotationMetadata) != null
+            || hasFeatureOverrides(annotationMetadata)
             || hasSerializeAsOverride(annotationMetadata)
             || hasDeserializeAsOverride(annotationMetadata)
             || hasCustomNaming(annotationMetadata)
             || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.SERIALIZER_CLASS).isPresent()
             || annotationMetadata.classValue(SerdeConfig.class, SerdeConfig.DESERIALIZER_CLASS).isPresent();
+    }
+
+    private boolean hasFeatureOverrides(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.FEATURES_WITH).length > 0
+            || annotationMetadata.stringValues(SerdeConfig.class, SerdeConfig.FEATURES_WITHOUT).length > 0;
     }
 
     private boolean hasSerializeAsOverride(Element element) {

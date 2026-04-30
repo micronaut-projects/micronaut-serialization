@@ -80,22 +80,23 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                 }
 
                 final Serializer<Object> serializer = property.serializer;
+                Serializer.EncoderContext propertyContext = context.withFeatures(property.featuresWith, property.featuresWithout);
 
                 if (serBean.propertyFilter != null) {
-                    if (!serBean.propertyFilter.shouldInclude(context, serializer, value, property.name, propertyValue)) {
+                    if (!serBean.propertyFilter.shouldInclude(propertyContext, serializer, value, property.name, propertyValue)) {
                         continue;
                     }
                 } else {
                     SerdeConfig.SerInclude include = property.include;
                     if (include == SerdeConfig.SerInclude.USE_DEFAULTS) {
-                        include = context.getSerializationConfiguration().map(SerializationConfiguration::getInclusion).orElse(SerdeConfig.SerInclude.ALWAYS);
+                        include = propertyContext.getSerializationConfiguration().map(SerializationConfiguration::getInclusion).orElse(SerdeConfig.SerInclude.ALWAYS);
                     }
                     boolean skipped = switch (include) {
                         case ALWAYS, USE_DEFAULTS -> false;
                         case NON_NULL -> propertyValue == null;
-                        case NON_ABSENT -> serializer.isAbsent(context, propertyValue);
-                        case NON_DEFAULT -> serializer.isEmpty(context, propertyValue) || propertyValue != null && serializer.isDefault(context, propertyValue);
-                        case NON_EMPTY -> serializer.isEmpty(context, propertyValue);
+                        case NON_ABSENT -> serializer.isAbsent(propertyContext, propertyValue);
+                        case NON_DEFAULT -> serializer.isEmpty(propertyContext, propertyValue) || propertyValue != null && serializer.isDefault(propertyContext, propertyValue);
+                        case NON_EMPTY -> serializer.isEmpty(propertyContext, propertyValue);
                         case NEVER -> true;
                     };
                     if (skipped) {
@@ -103,13 +104,13 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                     }
                 }
 
-                if (property.views != null && !context.hasView(property.views)) {
+                if (property.views != null && !propertyContext.hasView(property.views)) {
                     continue;
                 }
 
                 final String managedRef = property.managedRef;
                 if (managedRef != null) {
-                    context.pushManagedRef(
+                    propertyContext.pushManagedRef(
                         new SerializationReference<>(
                             managedRef,
                             serBean.introspection,
@@ -123,7 +124,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                     if (property.serializableInto) {
                         if (property.objectSerializer != null) {
                             if (propertyValue != null) {
-                                property.objectSerializer.serializeInto(encoder, context, property.argument, propertyValue);
+                                property.objectSerializer.serializeInto(encoder, propertyContext, property.argument, propertyValue);
                             }
                         } else {
                             throw new SerdeException("Serializer for a property: " + property.name + " doesn't support serializing into an existing object");
@@ -133,12 +134,12 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                         if (propertyValue == null) {
                             encoder.encodeNull();
                         } else {
-                            serializer.serialize(encoder, context, property.argument, propertyValue);
+                            serializer.serialize(encoder, propertyContext, property.argument, propertyValue);
                         }
                     }
                 } finally {
                     if (managedRef != null) {
-                        context.popManagedRef();
+                        propertyContext.popManagedRef();
                     }
                 }
             } catch (SerdeException e) {

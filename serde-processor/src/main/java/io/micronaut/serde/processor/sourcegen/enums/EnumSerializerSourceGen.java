@@ -19,11 +19,16 @@ import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
+import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
+import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
@@ -49,6 +54,20 @@ public final class EnumSerializerSourceGen {
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
     private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
     private static final Method ENUM_NAME_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "name");
+    private static final Method RUNTIME_FALLBACK_FORMATTED_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeFallbackUtil.class,
+        "runtimeFormattedEnumSerializer",
+        Serializer.EncoderContext.class,
+        Argument.class,
+        FormatConfiguration.class
+    );
+    private static final Method RUNTIME_FALLBACK_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeFallbackUtil.class,
+        "withRuntimeEnumFallback",
+        Serializer.class,
+        Serializer.EncoderContext.class,
+        Argument.class
+    );
 
     public ClassDef generate(ClassElement element, EnumSerdeShape enumSerdeShape) {
         TypeDef enumTypeDef = TypeDef.of(element);
@@ -58,9 +77,10 @@ public final class EnumSerializerSourceGen {
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
-            .addSuperinterface(TypeDef.parameterized(Serializer.class, enumTypeDef))
+            .addSuperinterface(TypeDef.parameterized(FormattedSerializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))
+            .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))
             .addMethod(generateSerializeMethod(enumTypeDef, enumSerdeShape))
             .addMethod(generateSerializeIntoMethod(enumTypeDef, enumSerdeShape))
             .build();
@@ -73,7 +93,35 @@ public final class EnumSerializerSourceGen {
             .returns(TypeDef.parameterized(Serializer.class, enumTypeDef))
             .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
             .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(enumTypeDef)))
-            .build((aThis, methodParameters) -> aThis.returning());
+            .addThrows(TypeDef.of(SerdeException.class))
+            .build((aThis, methodParameters) -> {
+                VariableDef.MethodParameter context = methodParameters.get(0);
+                VariableDef.MethodParameter type = methodParameters.get(1);
+                return ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                    .invokeStatic(RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, type)
+                    .cast(TypeDef.parameterized(Serializer.class, enumTypeDef))
+                    .returning();
+            });
+    }
+
+    private MethodDef generateCreateSpecificWithFormatMethod(TypeDef enumTypeDef) {
+        return MethodDef.builder("createSpecific")
+            .addModifiers(Modifier.PUBLIC)
+            .overrides()
+            .returns(TypeDef.parameterized(Serializer.class, enumTypeDef))
+            .addParameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class))
+            .addParameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(enumTypeDef)))
+            .addParameter("format", TypeDef.of(FormatConfiguration.class))
+            .addThrows(TypeDef.of(SerdeException.class))
+            .build((aThis, methodParameters) -> ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                .invokeStatic(
+                    RUNTIME_FALLBACK_FORMATTED_SERIALIZER_METHOD,
+                    methodParameters.get(0),
+                    methodParameters.get(1),
+                    methodParameters.get(2)
+                )
+                .cast(TypeDef.parameterized(Serializer.class, enumTypeDef))
+                .returning());
     }
 
     private MethodDef generateSerializeMethod(TypeDef enumTypeDef, EnumSerdeShape enumSerdeShape) {

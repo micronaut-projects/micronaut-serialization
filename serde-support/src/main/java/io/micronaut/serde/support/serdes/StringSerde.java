@@ -16,16 +16,17 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
 @Internal
-final class StringSerde implements SerdeRegistrar<String> {
+final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String> {
 
     @Override
     public Argument<String> getType() {

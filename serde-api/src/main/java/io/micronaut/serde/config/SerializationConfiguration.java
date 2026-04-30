@@ -50,4 +50,48 @@ public interface SerializationConfiguration {
     default boolean sortPropertiesAlphabetically() {
         return false;
     }
+
+    /**
+     * Determines whether timestamps are written with nanosecond precision.
+     *
+     * @return true if timestamp values should preserve nanoseconds
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean writeDateTimestampsAsNanoseconds() {
+        return true;
+    }
+
+    /**
+     * Determines whether zone ids are included when serializing zoned date/time values.
+     *
+     * @return true if zone ids should be written
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.TRUE)
+    default boolean writeDatesWithZoneId() {
+        return true;
+    }
+
+    /**
+     * Determines whether single-element arrays should be written as unwrapped scalar values.
+     *
+     * @return true if single-element arrays should be unwrapped
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean writeSingleElemArraysUnwrapped() {
+        return false;
+    }
+
+    /**
+     * Determines whether map entries should be written sorted by key.
+     *
+     * @return true if map entries should be sorted
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean writeSortedMapEntries() {
+        return false;
+    }
 }

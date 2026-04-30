@@ -15,14 +15,16 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import io.micronaut.core.annotation.AnnotationMetadata;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.FormatConfiguration;
+import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
+import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.NonNull;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -34,30 +36,42 @@ import java.time.temporal.TemporalQuery;
  *
  * @param <T> The generic type
  */
-public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T> {
+public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T>, FormattedSerde<T> {
     ZoneId UTC = ZoneId.of(ZoneOffset.UTC.getId());
 
     @Override
     default Serializer<T> createSpecific(EncoderContext context, Argument<? extends T> type) {
-        final AnnotationMetadata annotationMetadata = type.getAnnotationMetadata();
-        final String pattern = annotationMetadata
-                .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
-        if (pattern != null) {
-            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query(), this);
-        }
-        return this;
+        context = SerdeFeatures.withFeatures(context, type.getAnnotationMetadata());
+        FormatConfiguration format = FormatConfiguration.from(type.getAnnotationMetadata());
+        return format == null ? this : createSpecific(context, type, format);
+    }
+
+    @Override
+    default Serializer<T> createSpecific(EncoderContext context,
+                                         Argument<? extends T> type,
+                                         @NonNull FormatConfiguration format) {
+        return format.createDateTimeFormatter()
+            .<Serializer<T>>map(formatter -> new FormattedTemporalSerde<>(formatter, format, query(), this, false))
+            .orElse(this);
 
     }
 
     @Override
     default Deserializer<T> createSpecific(DecoderContext decoderContext, Argument<? super T> context) throws SerdeException {
-        final AnnotationMetadata annotationMetadata = context.getAnnotationMetadata();
-        final String pattern = annotationMetadata
-                .stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
-        if (pattern != null) {
-            return new FormattedTemporalSerde<>(pattern, annotationMetadata, query(), this);
-        }
-        return this;
+        decoderContext = SerdeFeatures.withFeatures(decoderContext, context.getAnnotationMetadata());
+        FormatConfiguration format = FormatConfiguration.from(context.getAnnotationMetadata());
+        return format == null ? this : createSpecific(decoderContext, context, format);
+    }
+
+    @Override
+    default Deserializer<T> createSpecific(DecoderContext decoderContext,
+                                           Argument<? super T> context,
+                                           @NonNull FormatConfiguration format) throws SerdeException {
+        boolean adjustDatesToContextTimeZone = decoderContext.getFeatures()
+            .contains(DeserializationConfiguration.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        return format.createDateTimeFormatter()
+            .<Deserializer<T>>map(formatter -> new FormattedTemporalSerde<>(formatter, format, query(), this, adjustDatesToContextTimeZone))
+            .orElse(this);
     }
 
     /**
