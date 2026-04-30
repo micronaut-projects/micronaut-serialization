@@ -62,6 +62,8 @@ loadScripts(document, 'script');</script>
 <li><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" tabindex="0">resolveReference(PropertyReference)</a></li>
 <li><a href="#getSerdeConfiguration()" tabindex="0">getSerdeConfiguration()</a></li>
 <li><a href="#getDeserializationConfiguration()" tabindex="0">getDeserializationConfiguration()</a></li>
+<li><a href="#getFeatures()" tabindex="0">getFeatures()</a></li>
+<li><a href="#withFeatures(java.util.Set,java.util.Set)" tabindex="0">withFeatures(Set, Set)</a></li>
 </ol>
 </li>
 </ol>
@@ -112,18 +114,29 @@ extends <a href="reference/PropertyReferenceManager.html" title="interface in io
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Get the <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a> for this context.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getFeatures()" class="member-name-link">getFeatures</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Get the active deserialization format features for this context.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getSerdeConfiguration()" class="member-name-link">getSerdeConfiguration</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Get the <a href="config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config"><code>SerdeConfiguration</code></a> for this context.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hasView(java.lang.Class...)" class="member-name-link">hasView</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;...&nbsp;views)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;B,<wbr>P&gt;&nbsp;@Nullable <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a><wbr>&lt;B,<wbr>P&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference</a><wbr>(@NonNull <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#hasView(java.lang.Class...)" class="member-name-link">hasView</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;?&gt;...&nbsp;views)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;B,<wbr>P&gt;&nbsp;@Nullable <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a><wbr>&lt;B,<wbr>P&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#resolveReference(io.micronaut.serde.reference.PropertyReference)" class="member-name-link">resolveReference</a><wbr>(@NonNull <a href="reference/PropertyReference.html" title="class in io.micronaut.serde.reference">PropertyReference</a>&lt;B,<wbr>P&gt;&nbsp;reference)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Resolve a reference for the given type and value.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default @NonNull <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Create a context with deserialization format features overridden by annotation metadata.</div>
 </div>
 </div>
 </div>
@@ -219,6 +232,40 @@ extends <a href="reference/PropertyReferenceManager.html" title="interface in io
 <dd>The <a href="config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config"><code>DeserializationConfiguration</code></a>, or an empty optional if the default should be used</dd>
 <dt>Since:</dt>
 <dd>2.7.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="getFeatures()">
+<h3>getFeatures</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">getFeatures</span>()</div>
+<div class="block">Get the active deserialization format features for this context.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The active deserialization format features</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withFeatures(java.util.Set,java.util.Set)">
+<h3>withFeatures</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">@NonNull <a href="Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></span>&nbsp;<span class="element-name">withFeatures</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</span></div>
+<div class="block">Create a context with deserialization format features overridden by annotation metadata.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>includedFeatures</code> - Features to enable</dd>
+<dd><code>excludedFeatures</code> - Features to disable</dd>
+<dt>Returns:</dt>
+<dd>The derived context</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
 </dl>
 </div>
 </section>

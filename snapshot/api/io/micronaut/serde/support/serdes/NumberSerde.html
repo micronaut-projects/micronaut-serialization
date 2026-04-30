@@ -57,8 +57,11 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
+<li><a href="#encodeNumber(io.micronaut.serde.Encoder,java.lang.Number)" tabindex="0">encodeNumber(Encoder, Number)</a></li>
 <li><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">createSpecific(Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a></li>
 <li><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">createSpecific(Serializer.EncoderContext, Argument)</a></li>
+<li><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a></li>
 </ol>
 </li>
 </ol>
@@ -75,12 +78,13 @@ loadScripts(document, 'script');</script>
 </dl>
 <dl class="notes">
 <dt>All Superinterfaces:</dt>
-<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;N&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;, <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;N&gt;</code></dd>
+<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;N&gt;, <a href="../../FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a>&lt;N&gt;, <a href="../../FormattedSerde.html" title="interface in io.micronaut.serde">FormattedSerde</a>&lt;N&gt;, <a href="../../FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a>&lt;N&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;, <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;N&gt;</code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public interface </span><span class="element-name type-name-label">NumberSerde&lt;N extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</span><span class="extends-implements">
-extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;</span></div>
+<div class="type-signature"><span class="annotations">@Internal
+</span><span class="modifiers">public interface </span><span class="element-name type-name-label">NumberSerde&lt;N extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</span><span class="extends-implements">
+extends <a href="../../FormattedSerde.html" title="interface in io.micronaut.serde">FormattedSerde</a>&lt;N&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;N&gt;</span></div>
 <div class="block">Number serializer that handles formatting.</div>
 </div>
 </section>
@@ -110,16 +114,36 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
- io.micronaut.core.type.Argument&lt;? super <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;context)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;context)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a new child deserializer or return this if non is necessary for the given context.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a more specific serializer for the given definition.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#encodeNumber(io.micronaut.serde.Encoder,java.lang.Number)" class="member-name-link">encodeNumber</a><wbr>(@NonNull <a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&nbsp;value)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Encode the given number.</div>
 </div>
 </div>
 </div>
@@ -141,6 +165,26 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
+<li>
+<section class="detail" id="encodeNumber(io.micronaut.serde.Encoder,java.lang.Number)">
+<h3>encodeNumber</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">encodeNumber</span><wbr><span class="parameters">(@NonNull <a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&nbsp;value)</span>
+                   throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
+<div class="block">Encode the given number.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>encoder</code> - The encoder</dd>
+<dd><code>value</code> - The number value</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an I/O error occurs</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
 <li>
 <section class="detail" id="createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
 <h3>createSpecific</h3>
@@ -165,11 +209,37 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 </section>
 </li>
 <li>
+<section class="detail" id="createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
+                                throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">FormattedDeserializer</a></code></span></div>
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>context</code> - The decoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The more specific deserializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If the deserializer cannot be selected</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
 <h3>createSpecific</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type)</span></div>
+ io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type)</span>
+                              throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
 <div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../Serializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">Serializer</a></code></span></div>
 <div class="block">Create a more specific serializer for the given definition.</div>
 <dl class="notes">
@@ -180,6 +250,33 @@ extends <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde
 <dd><code>type</code> - The type definition including any annotation metadata</dd>
 <dt>Returns:</dt>
 <dd>The more specific serializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-N" title="type parameter in NumberSerde">N</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
+                              throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">FormattedSerializer</a></code></span></div>
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a>&lt;<a href="#type-param-N" title="type parameter in NumberSerde">N</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>context</code> - The encoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The more specific serializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If the serializer cannot be selected</dd>
 </dl>
 </div>
 </section>

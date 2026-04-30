@@ -66,6 +66,8 @@ loadScripts(document, 'script');</script>
 <ol class="toc-list">
 <li><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">createSpecific(Deserializer.DecoderContext, Argument)</a></li>
 <li><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">createSpecific(Serializer.EncoderContext, Argument)</a></li>
+<li><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a></li>
+<li><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a></li>
 <li><a href="#getType()" tabindex="0">getType()</a></li>
 </ol>
 </li>
@@ -82,13 +84,13 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code>io.micronaut.core.order.Ordered, <a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../DeserializerRegistrar.html" title="interface in io.micronaut.serde.support">DeserializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../SerializerRegistrar.html" title="interface in io.micronaut.serde.support">SerializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
+<dd><code>io.micronaut.core.order.Ordered, <a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../FormattedSerde.html" title="interface in io.micronaut.serde">FormattedSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../DeserializerRegistrar.html" title="interface in io.micronaut.serde.support">DeserializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../SerializerRegistrar.html" title="interface in io.micronaut.serde.support">SerializerRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">ObjectArraySerde</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
-implements <a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</span></div>
+implements <a href="../../FormattedSerde.html" title="interface in io.micronaut.serde">FormattedSerde</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../SerdeRegistrar.html" title="interface in io.micronaut.serde.support">SerdeRegistrar</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableSerializer.html" title="interface in io.micronaut.serde.util">CustomizableSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;, <a href="../../util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</span></div>
 <div class="block">Deserializer for object arrays.</div>
 <dl class="notes">
 <dt>Since:</dt>
@@ -145,11 +147,25 @@ implements <a href="../SerdeRegistrar.html" title="interface in io.micronaut.ser
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;? super <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull <a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;? super <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create a new child deserializer or return this if non is necessary for the given context.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@NonNull <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
@@ -250,6 +266,56 @@ implements <a href="../SerdeRegistrar.html" title="interface in io.micronaut.ser
 <dd>The more specific serializer</dd>
 <dt>Throws:</dt>
 <dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
+                                             throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">FormattedSerializer</a></code></span></div>
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>context</code> - The encoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The more specific serializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If the serializer cannot be selected</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">@NonNull <a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ @NonNull io.micronaut.core.type.Argument&lt;? super <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
+                                               throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">FormattedDeserializer</a></code></span></div>
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>context</code> - The decoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The more specific deserializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If the deserializer cannot be selected</dd>
 </dl>
 </div>
 </section>

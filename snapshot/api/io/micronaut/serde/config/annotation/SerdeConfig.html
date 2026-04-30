@@ -81,9 +81,13 @@ loadScripts(document, 'script');</script>
 <li><a href="#WRAPPER_PROPERTY" tabindex="0">WRAPPER_PROPERTY</a></li>
 <li><a href="#ARRAY_WRAPPER_PROPERTY" tabindex="0">ARRAY_WRAPPER_PROPERTY</a></li>
 <li><a href="#PATTERN" tabindex="0">PATTERN</a></li>
+<li><a href="#SHAPE" tabindex="0">SHAPE</a></li>
+<li><a href="#RADIX" tabindex="0">RADIX</a></li>
 <li><a href="#LOCALE" tabindex="0">LOCALE</a></li>
 <li><a href="#TIMEZONE" tabindex="0">TIMEZONE</a></li>
 <li><a href="#LENIENT" tabindex="0">LENIENT</a></li>
+<li><a href="#FEATURES_WITH" tabindex="0">FEATURES_WITH</a></li>
+<li><a href="#FEATURES_WITHOUT" tabindex="0">FEATURES_WITHOUT</a></li>
 <li><a href="#SERIALIZER_CLASS" tabindex="0">SERIALIZER_CLASS</a></li>
 <li><a href="#DESERIALIZER_CLASS" tabindex="0">DESERIALIZER_CLASS</a></li>
 <li><a href="#VIEWS" tabindex="0">VIEWS</a></li>
@@ -153,53 +157,58 @@ API for JSON like JSON-B or Jackson annotations should be used.</p></div>
 <div class="block">Creator mode used when invoking the <code>Creator</code>.</div>
 </div>
 <div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfig.SerError.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerError</a></code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfig.SerEnumDefaultValue.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerEnumDefaultValue</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">Meta-annotation used to model the enum constant to use for unknown values.</div>
+</div>
+<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerError.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerError</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Used to store errors.</div>
 </div>
-<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerGetter.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerGetter</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfig.SerGetter.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerGetter</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Internal metadata for a JSON getter.</div>
 </div>
-<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfig.SerIgnored.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerIgnored</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerIgnored.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerIgnored</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Ignore handling meta annotation.</div>
 </div>
-<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerInclude.html" class="type-name-link" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfig.SerInclude.html" class="type-name-link" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Include strategies for serialization.</div>
 </div>
-<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfig.SerIncluded.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerIncluded</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerIncluded.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerIncluded</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Include property meta annotation.</div>
 </div>
-<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerManagedRef.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerManagedRef</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfig.SerManagedRef.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerManagedRef</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Managed reference.</div>
 </div>
-<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfig.SerSetter.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerSetter</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerSetter.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerSetter</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Internal metadata for a setter.</div>
 </div>
-<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerSubtyped.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfig.SerSubtyped.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Meta annotations for subtyped mapping.</div>
 </div>
-<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfig.SerUnwrapped.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerUnwrapped</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerUnwrapped.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerUnwrapped</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Internal metadata type for wrapped settings.</div>
 </div>
-<div class="col-first odd-row-color"><code>static @interface&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SerdeConfig.SerValue.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerValue</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static @interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfig.SerValue.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerValue</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Meta-annotation used to model the value used during serialization.</div>
 </div>
 </div>
@@ -233,6 +242,16 @@ API for JSON like JSON-B or Jackson annotations should be used.</p></div>
 <div class="col-second odd-row-color"><code><a href="#DESERIALIZER_CLASS" class="member-name-link">DESERIALIZER_CLASS</a></code></div>
 <div class="col-last odd-row-color">
 <div class="block">Custom deserializer class.</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#FEATURES_WITH" class="member-name-link">FEATURES_WITH</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Format features to enable.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#FEATURES_WITHOUT" class="member-name-link">FEATURES_WITHOUT</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Format features to disable.</div>
 </div>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color"><code><a href="#FILTER" class="member-name-link">FILTER</a></code></div>
@@ -300,29 +319,39 @@ API for JSON like JSON-B or Jackson annotations should be used.</p></div>
 <div class="block">The property to use.</div>
 </div>
 <div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#READ_ONLY" class="member-name-link">READ_ONLY</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#RADIX" class="member-name-link">RADIX</a></code></div>
 <div class="col-last odd-row-color">
+<div class="block">The numeric base to use.</div>
+</div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#READ_ONLY" class="member-name-link">READ_ONLY</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Is this property to be used only for reading.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#REQUIRED" class="member-name-link">REQUIRED</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#REQUIRED" class="member-name-link">REQUIRED</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Whether this property is required (must be present in the input).</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#RUNTIME_NAMING" class="member-name-link">RUNTIME_NAMING</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#RUNTIME_NAMING" class="member-name-link">RUNTIME_NAMING</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Runtime naming strategy class.</div>
 </div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#SERIALIZE_AS" class="member-name-link">SERIALIZE_AS</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SERIALIZE_AS" class="member-name-link">SERIALIZE_AS</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Used to store the type that will serialize this type.</div>
 </div>
-<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="#SERIALIZER_CLASS" class="member-name-link">SERIALIZER_CLASS</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#SERIALIZER_CLASS" class="member-name-link">SERIALIZER_CLASS</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Custom serializer class.</div>
+</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#SHAPE" class="member-name-link">SHAPE</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">The serialization shape to use.</div>
 </div>
 <div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color"><code><a href="#SOURCEGEN_DESERIALIZER_CLASS" class="member-name-link">SOURCEGEN_DESERIALIZER_CLASS</a></code></div>
@@ -823,6 +852,40 @@ All the names would be mapped to the class during deserialization.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="SHAPE">
+<h3>SHAPE</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">SHAPE</span></div>
+<div class="block">The serialization shape to use.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.SHAPE">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="RADIX">
+<h3>RADIX</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">RADIX</span></div>
+<div class="block">The numeric base to use.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.RADIX">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="LOCALE">
 <h3>LOCALE</h3>
 <div class="horizontal-scroll">
@@ -867,6 +930,40 @@ All the names would be mapped to the class during deserialization.</div>
 <dd>
 <ul class="tag-list">
 <li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.LENIENT">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="FEATURES_WITH">
+<h3>FEATURES_WITH</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">FEATURES_WITH</span></div>
+<div class="block">Format features to enable.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.FEATURES_WITH">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="FEATURES_WITHOUT">
+<h3>FEATURES_WITHOUT</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">FEATURES_WITHOUT</span></div>
+<div class="block">Format features to disable.</div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../../../constant-values.html#io.micronaut.serde.config.annotation.SerdeConfig.FEATURES_WITHOUT">Constant Field Values</a></li>
 </ul>
 </dd>
 </dl>

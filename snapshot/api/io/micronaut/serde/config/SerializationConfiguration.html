@@ -65,6 +65,10 @@ loadScripts(document, 'script');</script>
 <li><a href="#getInclusion()" tabindex="0">getInclusion()</a></li>
 <li><a href="#isAlwaysSerializeErrorsAsList()" tabindex="0">isAlwaysSerializeErrorsAsList()</a></li>
 <li><a href="#sortPropertiesAlphabetically()" tabindex="0">sortPropertiesAlphabetically()</a></li>
+<li><a href="#writeDateTimestampsAsNanoseconds()" tabindex="0">writeDateTimestampsAsNanoseconds()</a></li>
+<li><a href="#writeDatesWithZoneId()" tabindex="0">writeDatesWithZoneId()</a></li>
+<li><a href="#writeSingleElemArraysUnwrapped()" tabindex="0">writeSingleElemArraysUnwrapped()</a></li>
+<li><a href="#writeSortedMapEntries()" tabindex="0">writeSortedMapEntries()</a></li>
 </ol>
 </li>
 </ol>
@@ -120,6 +124,26 @@ loadScripts(document, 'script');</script>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#sortPropertiesAlphabetically()" class="member-name-link">sortPropertiesAlphabetically</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether properties should be serialized in alphabetical order.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeDatesWithZoneId()" class="member-name-link">writeDatesWithZoneId</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Determines whether zone ids are included when serializing zoned date/time values.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeDateTimestampsAsNanoseconds()" class="member-name-link">writeDateTimestampsAsNanoseconds</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Determines whether timestamps are written with nanosecond precision.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeSingleElemArraysUnwrapped()" class="member-name-link">writeSingleElemArraysUnwrapped</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Determines whether single-element arrays should be written as unwrapped scalar values.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeSortedMapEntries()" class="member-name-link">writeSortedMapEntries</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Determines whether map entries should be written sorted by key.</div>
 </div>
 </div>
 </div>
@@ -203,6 +227,70 @@ loadScripts(document, 'script');</script>
 <dd>true if properties should be sorted alphabetically, false otherwise</dd>
 <dt>Since:</dt>
 <dd>2.14</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="writeDateTimestampsAsNanoseconds()">
+<h3>writeDateTimestampsAsNanoseconds</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">writeDateTimestampsAsNanoseconds</span>()</div>
+<div class="block">Determines whether timestamps are written with nanosecond precision.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true if timestamp values should preserve nanoseconds</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="writeDatesWithZoneId()">
+<h3>writeDatesWithZoneId</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">writeDatesWithZoneId</span>()</div>
+<div class="block">Determines whether zone ids are included when serializing zoned date/time values.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true if zone ids should be written</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="writeSingleElemArraysUnwrapped()">
+<h3>writeSingleElemArraysUnwrapped</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">writeSingleElemArraysUnwrapped</span>()</div>
+<div class="block">Determines whether single-element arrays should be written as unwrapped scalar values.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true if single-element arrays should be unwrapped</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="writeSortedMapEntries()">
+<h3>writeSortedMapEntries</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">writeSortedMapEntries</span>()</div>
+<div class="block">Determines whether map entries should be written sorted by key.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true if map entries should be sorted</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
 </dl>
 </div>
 </section>

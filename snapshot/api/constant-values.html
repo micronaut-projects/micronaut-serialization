@@ -63,6 +63,17 @@ loadScripts(document, 'script');</script>
 <h2 title="io.micronaut.*">io.micronaut.*</h2>
 <ul class="block-list">
 <li>
+<div class="caption"><span>io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Constant Field</div>
+<div class="table-header col-last">Value</div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.FormatConfiguration.DEFAULT_RADIX">public&nbsp;static&nbsp;final&nbsp;int</code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/FormatConfiguration.html#DEFAULT_RADIX">DEFAULT_RADIX</a></code></div>
+<div class="col-last even-row-color"><code>-1</code></div>
+</div>
+</li>
+<li>
 <div class="caption"><span>io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></span></div>
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
@@ -131,6 +142,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.DESERIALIZER_CLASS">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#DESERIALIZER_CLASS">DESERIALIZER_CLASS</a></code></div>
 <div class="col-last odd-row-color"><code>"deserializerClass"</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.FEATURES_WITH">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FEATURES_WITH">FEATURES_WITH</a></code></div>
+<div class="col-last even-row-color"><code>"featuresWith"</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.FEATURES_WITHOUT">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FEATURES_WITHOUT">FEATURES_WITHOUT</a></code></div>
+<div class="col-last odd-row-color"><code>"featuresWithout"</code></div>
 <div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.FILTER">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FILTER">FILTER</a></code></div>
 <div class="col-last even-row-color"><code>"filter"</code></div>
@@ -170,21 +187,27 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.PROPERTY">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#PROPERTY">PROPERTY</a></code></div>
 <div class="col-last even-row-color"><code>"property"</code></div>
-<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.READ_ONLY">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#READ_ONLY">READ_ONLY</a></code></div>
-<div class="col-last odd-row-color"><code>"readOnly"</code></div>
-<div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.REQUIRED">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#REQUIRED">REQUIRED</a></code></div>
-<div class="col-last even-row-color"><code>"required"</code></div>
-<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.RUNTIME_NAMING">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#RUNTIME_NAMING">RUNTIME_NAMING</a></code></div>
-<div class="col-last odd-row-color"><code>"runtimeNaming"</code></div>
-<div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_AS">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SERIALIZE_AS">SERIALIZE_AS</a></code></div>
-<div class="col-last even-row-color"><code>"serAs"</code></div>
-<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZER_CLASS">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SERIALIZER_CLASS">SERIALIZER_CLASS</a></code></div>
-<div class="col-last odd-row-color"><code>"serializerClass"</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.RADIX">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#RADIX">RADIX</a></code></div>
+<div class="col-last odd-row-color"><code>"radix"</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.READ_ONLY">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#READ_ONLY">READ_ONLY</a></code></div>
+<div class="col-last even-row-color"><code>"readOnly"</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.REQUIRED">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#REQUIRED">REQUIRED</a></code></div>
+<div class="col-last odd-row-color"><code>"required"</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.RUNTIME_NAMING">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#RUNTIME_NAMING">RUNTIME_NAMING</a></code></div>
+<div class="col-last even-row-color"><code>"runtimeNaming"</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZE_AS">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SERIALIZE_AS">SERIALIZE_AS</a></code></div>
+<div class="col-last odd-row-color"><code>"serAs"</code></div>
+<div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SERIALIZER_CLASS">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SERIALIZER_CLASS">SERIALIZER_CLASS</a></code></div>
+<div class="col-last even-row-color"><code>"serializerClass"</code></div>
+<div class="col-first odd-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SHAPE">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SHAPE">SHAPE</a></code></div>
+<div class="col-last odd-row-color"><code>"shape"</code></div>
 <div class="col-first even-row-color"><code id="io.micronaut.serde.config.annotation.SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS">public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color"><code><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SOURCEGEN_DESERIALIZER_CLASS">SOURCEGEN_DESERIALIZER_CLASS</a></code></div>
 <div class="col-last even-row-color"><code>"sourcegenDeserializerClass"</code></div>

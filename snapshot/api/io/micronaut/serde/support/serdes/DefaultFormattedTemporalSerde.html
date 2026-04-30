@@ -59,16 +59,27 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration,java.time.format.DateTimeFormatter)" tabindex="0">DefaultFormattedTemporalSerde(SerdeConfiguration, DateTimeFormatter)</a></li>
+<li><a href="#%3Cinit%3E(java.time.format.DateTimeFormatter)" tabindex="0">DefaultFormattedTemporalSerde(DateTimeFormatter)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">createSpecific(Serializer.EncoderContext, Argument)</a></li>
+<li><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a></li>
 <li><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">createSpecific(Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a></li>
 <li><a href="#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" tabindex="0">createSpecific(SerdeConfiguration)</a></li>
+<li><a href="#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" tabindex="0">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a></li>
+<li><a href="#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration)" tabindex="0">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration)</a></li>
+<li><a href="#createSpecificForSerialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" tabindex="0">createSpecificForSerialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration, Set)</a></li>
+<li><a href="#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" tabindex="0">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration, Set)</a></li>
+<li><a href="#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.config.SerdeConfiguration,java.util.Set)" tabindex="0">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, SerdeConfiguration, Set)</a></li>
 <li><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" tabindex="0">serialize(Encoder, Serializer.EncoderContext, Argument, T)</a></li>
 <li><a href="#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">deserialize(Decoder, Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#createFormatter(io.micronaut.serde.config.SerdeConfiguration)" tabindex="0">createFormatter(SerdeConfiguration)</a></li>
+<li><a href="#defaultStringFormatter()" tabindex="0">defaultStringFormatter()</a></li>
+<li><a href="#defaultStringFormatter(io.micronaut.serde.FormatConfiguration)" tabindex="0">defaultStringFormatter(FormatConfiguration)</a></li>
+<li><a href="#defaultStringFormatter(io.micronaut.serde.FormatConfiguration,java.util.Set)" tabindex="0">defaultStringFormatter(FormatConfiguration, Set)</a></li>
 </ol>
 </li>
 </ol>
@@ -88,7 +99,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;, <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;, <a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</code></dd>
+<dd><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;T&gt;, <a href="../../FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a>&lt;T&gt;, <a href="../../FormattedSerde.html" title="interface in io.micronaut.serde">FormattedSerde</a>&lt;T&gt;, <a href="../../FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a>&lt;T&gt;, <a href="../../Serde.html" title="interface in io.micronaut.serde">Serde</a>&lt;T&gt;, <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;T&gt;, <a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</code></dd>
 </dl>
 <dl class="notes">
 <dt>Direct Known Subclasses:</dt>
@@ -96,9 +107,10 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public abstract class </span><span class="element-name type-name-label">DefaultFormattedTemporalSerde&lt;T extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</span>
+<div class="type-signature"><span class="modifiers">public abstract sealed class </span><span class="element-name type-name-label">DefaultFormattedTemporalSerde&lt;T extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
-implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</span></div>
+implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;T&gt;</span>
+<span class="permits">permits <a href="LocalDateSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateSerde</a>, <a href="LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a> <span class="permits-note">(not exhaustive)</span></span></div>
 <div class="block">Super class that can be used for the default date/time formatting.</div>
 <dl class="notes">
 <dt>Author:</dt>
@@ -139,11 +151,8 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>protected </code></div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration,java.time.format.DateTimeFormatter)" class="member-name-link">DefaultFormattedTemporalSerde</a><wbr>(@NonNull <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
- @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;defaultStringFormatter)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Allows configuring a default time format for temporal date/time types.</div>
-</div>
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.time.format.DateTimeFormatter)" class="member-name-link">DefaultFormattedTemporalSerde</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter)</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -152,22 +161,32 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab4" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab4', 3)" class="table-tab">Concrete Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific</a><wbr>(<a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#createFormatter(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createFormatter</a><wbr>(@NonNull <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific</a><wbr>(<a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create the same serde with new configuration.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;context)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create a new child deserializer or return this if non is necessary for the given context.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
@@ -175,19 +194,78 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Create a more specific serializer for the given definition.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize</a><wbr>(<a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create the same serde with a new string formatter and explicit shape-derived values.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create the same serde with a new string formatter and explicit format-derived values.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;features)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create the same serde with deserialization format-derived values.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.config.SerdeConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;features)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create the same serde with deserialization configuration-derived values.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a><wbr>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#createSpecificForSerialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">createSpecificForSerialization</a><wbr>(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;features)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Create the same serde with serialization format-derived values.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#defaultStringFormatter()" class="member-name-link">defaultStringFormatter</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#defaultStringFormatter(io.micronaut.serde.FormatConfiguration)" class="member-name-link">defaultStringFormatter</a><wbr>(@NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#defaultStringFormatter(io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">defaultStringFormatter</a><wbr>(@NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;features)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#deserialize(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserialize</a><wbr>(<a href="../../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
  <a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
  io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Deserializes from the current state of the <a href="../../Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="../../Deserializer.html#type-param-T" title="type parameter in Deserializer"><code>T</code></a>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)" class="member-name-link">serialize</a><wbr>(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
  <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
  <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&nbsp;value)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Serializes the given value using the passed <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </div>
 </div>
@@ -217,16 +295,13 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(io.micronaut.serde.config.SerdeConfiguration,java.time.format.DateTimeFormatter)">
+<section class="detail" id="&lt;init&gt;(java.time.format.DateTimeFormatter)">
 <h3>DefaultFormattedTemporalSerde</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="element-name">DefaultFormattedTemporalSerde</span><wbr><span class="parameters">(@NonNull <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
- @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;defaultStringFormatter)</span></div>
-<div class="block">Allows configuring a default time format for temporal date/time types.</div>
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="element-name">DefaultFormattedTemporalSerde</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter)</span></div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>configuration</code> - The configuration</dd>
-<dd><code>defaultStringFormatter</code> - Default string formatter to use if the user hasn't configured one</dd>
+<dd><code>stringFormatter</code> - The resolved string formatter</dd>
 </dl>
 </div>
 </section>
@@ -262,6 +337,30 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 </section>
 </li>
 <li>
+<section class="detail" id="createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;? extends <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">FormattedSerializer</a></code></span></div>
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
+<dt>Specified by:</dt>
+<dd><code><a href="TemporalSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>context</code> - The encoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The more specific serializer</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
 <h3>createSpecific</h3>
 <div class="horizontal-scroll">
@@ -287,6 +386,33 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 </section>
 </li>
 <li>
+<section class="detail" id="createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;decoderContext,
+ io.micronaut.core.type.Argument&lt;? super <a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;&nbsp;type,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
+                               throws <span class="exceptions"><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">FormattedDeserializer</a></code></span></div>
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="../../FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="../../FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
+<dt>Specified by:</dt>
+<dd><code><a href="TemporalSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">createSpecific</a></code>&nbsp;in interface&nbsp;<code><a href="TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a> extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/temporal/TemporalAccessor.html" title="class or interface in java.time.temporal" class="external-link">TemporalAccessor</a>&gt;</code></dd>
+<dt>Parameters:</dt>
+<dd><code>decoderContext</code> - The decoder context</dd>
+<dd><code>type</code> - The type definition including any annotation metadata</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The more specific deserializer</dd>
+<dt>Throws:</dt>
+<dd><code><a href="../../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If the deserializer cannot be selected</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="createSpecific(io.micronaut.serde.config.SerdeConfiguration)">
 <h3>createSpecific</h3>
 <div class="horizontal-scroll">
@@ -295,6 +421,115 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>configuration</code> - The new configuration</dd>
+<dt>Returns:</dt>
+<dd>The updated serde</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit)</span></div>
+<div class="block">Create the same serde with a new string formatter and explicit shape-derived values.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>stringFormatter</code> - The resolved string formatter</dd>
+<dd><code>timeWriteShape</code> - The time write shape</dd>
+<dd><code>numericUnit</code> - The numeric time unit</dd>
+<dt>Returns:</dt>
+<dd>The updated serde</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration)">
+<h3>createSpecific</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecific</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span></div>
+<div class="block">Create the same serde with a new string formatter and explicit format-derived values.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>stringFormatter</code> - The resolved string formatter</dd>
+<dd><code>timeWriteShape</code> - The time write shape</dd>
+<dd><code>numericUnit</code> - The numeric time unit</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The updated serde</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecificForSerialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)">
+<h3>createSpecificForSerialization</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecificForSerialization</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;features)</span></div>
+<div class="block">Create the same serde with serialization format-derived values.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>stringFormatter</code> - The resolved string formatter</dd>
+<dd><code>timeWriteShape</code> - The time write shape</dd>
+<dd><code>numericUnit</code> - The numeric time unit</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dd><code>features</code> - The active serialization features</dd>
+<dt>Returns:</dt>
+<dd>The updated serde</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)">
+<h3>createSpecificForDeserialization</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecificForDeserialization</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;features)</span></div>
+<div class="block">Create the same serde with deserialization format-derived values.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>stringFormatter</code> - The resolved string formatter</dd>
+<dd><code>timeWriteShape</code> - The time write shape</dd>
+<dd><code>numericUnit</code> - The numeric time unit</dd>
+<dd><code>format</code> - The format configuration</dd>
+<dd><code>features</code> - The active deserialization features</dd>
+<dt>Returns:</dt>
+<dd>The updated serde</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.config.SerdeConfiguration,java.util.Set)">
+<h3>createSpecificForDeserialization</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type"><a href="DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a>&lt;<a href="#type-param-T" title="type parameter in DefaultFormattedTemporalSerde">T</a>&gt;</span>&nbsp;<span class="element-name">createSpecificForDeserialization</span><wbr><span class="parameters">(@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&nbsp;stringFormatter,
+ <a href="../../config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a>&nbsp;timeWriteShape,
+ <a href="../../config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a>&nbsp;numericUnit,
+ @NonNull <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;&nbsp;features)</span></div>
+<div class="block">Create the same serde with deserialization configuration-derived values.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>stringFormatter</code> - The resolved string formatter</dd>
+<dd><code>timeWriteShape</code> - The time write shape</dd>
+<dd><code>numericUnit</code> - The numeric time unit</dd>
+<dd><code>configuration</code> - The serde configuration</dd>
+<dd><code>features</code> - The active deserialization features</dd>
 <dt>Returns:</dt>
 <dd>The updated serde</dd>
 </dl>
@@ -347,6 +582,56 @@ implements <a href="TemporalSerde.html" title="interface in io.micronaut.serde.s
 <dd>The deserialized object or <code>null</code></dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="createFormatter(io.micronaut.serde.config.SerdeConfiguration)">
+<h3>createFormatter</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html" title="class or interface in java.util" class="external-link">Optional</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a>&gt;</span>&nbsp;<span class="element-name">createFormatter</span><wbr><span class="parameters">(@NonNull <a href="../../config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a>&nbsp;configuration)</span></div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="defaultStringFormatter()">
+<h3>defaultStringFormatter</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></span>&nbsp;<span class="element-name">defaultStringFormatter</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The default formatter to use when configuration doesn't define one.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="defaultStringFormatter(io.micronaut.serde.FormatConfiguration)">
+<h3>defaultStringFormatter</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></span>&nbsp;<span class="element-name">defaultStringFormatter</span><wbr><span class="parameters">(@NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>format</code> - The format configuration</dd>
+<dt>Returns:</dt>
+<dd>The default formatter to use for this format when configuration doesn't define one.</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="defaultStringFormatter(io.micronaut.serde.FormatConfiguration,java.util.Set)">
+<h3>defaultStringFormatter</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="return-type">@NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/format/DateTimeFormatter.html" title="class or interface in java.time.format" class="external-link">DateTimeFormatter</a></span>&nbsp;<span class="element-name">defaultStringFormatter</span><wbr><span class="parameters">(@NonNull <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format,
+ @NonNull <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="../../config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;features)</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>format</code> - The format configuration</dd>
+<dd><code>features</code> - The active serialization features</dd>
+<dt>Returns:</dt>
+<dd>The default formatter to use for this format when configuration doesn't define one.</dd>
 </dl>
 </div>
 </section>

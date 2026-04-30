@@ -72,6 +72,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#getIgnored()" tabindex="0">getIgnored()</a></li>
 <li><a href="#getIncluded()" tabindex="0">getIncluded()</a></li>
 <li><a href="#getSubtypeInfo()" tabindex="0">getSubtypeInfo()</a></li>
+<li><a href="#format()" tabindex="0">format()</a></li>
+<li><a href="#withFeatures(io.micronaut.serde.Serializer.EncoderContext)" tabindex="0">withFeatures(Serializer.EncoderContext)</a></li>
+<li><a href="#withFeatures(io.micronaut.serde.Deserializer.DecoderContext)" tabindex="0">withFeatures(Deserializer.DecoderContext)</a></li>
 </ol>
 </li>
 </ol>
@@ -138,30 +141,39 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Extend existing argument annotation metadata to include a new prefix/suffix.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getIgnored()" class="member-name-link">getIgnored</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#format()" class="member-name-link">format</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getIncluded()" class="member-name-link">getIncluded</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getSubtypeInfo()" class="member-name-link">getSubtypeInfo</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getIgnored()" class="member-name-link">getIgnored</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#order()" class="member-name-link">order</a>()</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getIncluded()" class="member-name-link">getIncluded</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;V&gt;&nbsp;@NonNull io.micronaut.core.type.Argument<wbr>&lt;V&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#reconstructGenericWithParentMetadata(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">reconstructGenericWithParentMetadata</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;?&gt;&nbsp;parentType,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getSubtypeInfo()" class="member-name-link">getSubtypeInfo</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#hashCode()" class="member-name-link">hashCode</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>[]</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#order()" class="member-name-link">order</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;V&gt;&nbsp;@NonNull io.micronaut.core.type.Argument<wbr>&lt;V&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#reconstructGenericWithParentMetadata(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">reconstructGenericWithParentMetadata</a><wbr>(@NonNull io.micronaut.core.type.Argument&lt;?&gt;&nbsp;parentType,
  @NonNull io.micronaut.core.type.Argument&lt;V&gt;&nbsp;valueGeneric)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Reconstruct the generic type with parent metadata if necessary.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Predicate.html" title="class or interface in java.util.function" class="external-link">Predicate</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveAllowPropertyPredicate(boolean)" class="member-name-link">resolveAllowPropertyPredicate</a><wbr>(boolean&nbsp;allowIgnoredProperties)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/function/Predicate.html" title="class or interface in java.util.function" class="external-link">Predicate</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resolveAllowPropertyPredicate(boolean)" class="member-name-link">resolveAllowPropertyPredicate</a><wbr>(boolean&nbsp;allowIgnoredProperties)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withFeatures(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">withFeatures</a><wbr>(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#withFeatures(io.micronaut.serde.Serializer.EncoderContext)" class="member-name-link">withFeatures</a><wbr>(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -326,6 +338,46 @@ loadScripts(document, 'script');</script>
 <h3>getSubtypeInfo</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">@Nullable <a href="SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></span>&nbsp;<span class="element-name">getSubtypeInfo</span>()</div>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="format()">
+<h3>format</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">@Nullable <a href="../../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></span>&nbsp;<span class="element-name">format</span>()</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The property format</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withFeatures(io.micronaut.serde.Serializer.EncoderContext)">
+<h3>withFeatures</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></span>&nbsp;<span class="element-name">withFeatures</span><wbr><span class="parameters">(<a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context)</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>context</code> - The encoder context</dd>
+<dt>Returns:</dt>
+<dd>The encoder context with this argument's feature overrides</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withFeatures(io.micronaut.serde.Deserializer.DecoderContext)">
+<h3>withFeatures</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></span>&nbsp;<span class="element-name">withFeatures</span><wbr><span class="parameters">(<a href="../../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</span></div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>context</code> - The decoder context</dd>
+<dt>Returns:</dt>
+<dd>The decoder context with this argument's feature overrides</dd>
+</dl>
 </div>
 </section>
 </li>

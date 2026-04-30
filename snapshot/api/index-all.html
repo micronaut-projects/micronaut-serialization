@@ -118,6 +118,18 @@ loadScripts(document, 'script');</script>
 <dd>
 <div class="block">Decoder function for a single value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#ACCEPT_CASE_INSENSITIVE_PROPERTIES" class="member-name-link">ACCEPT_CASE_INSENSITIVE_PROPERTIES</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Match bean property names without considering case.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#ACCEPT_CASE_INSENSITIVE_VALUES" class="member-name-link">ACCEPT_CASE_INSENSITIVE_VALUES</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Match scalar values, such as enum names, without considering case.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#ACCEPT_SINGLE_VALUE_AS_ARRAY" class="member-name-link">ACCEPT_SINGLE_VALUE_AS_ARRAY</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Accept a scalar JSON value as a single-element array or collection.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#acceptCaseInsensitiveEnums()" class="member-name-link">acceptCaseInsensitiveEnums()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
 <div class="block">Determines whether to accept case-insensitive enumeration values during deserialization.</div>
@@ -125,6 +137,18 @@ loadScripts(document, 'script');</script>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeEnumUtil.html#acceptCaseInsensitiveEnums(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">acceptCaseInsensitiveEnums(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeEnumUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeEnumUtil</a></dt>
 <dd>
 <div class="block">Resolves whether case-insensitive enum deserialization is enabled for the given context.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#acceptCaseInsensitiveProperties()" class="member-name-link">acceptCaseInsensitiveProperties()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether properties should be matched case-insensitively.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#acceptSingleValueAsArray()" class="member-name-link">acceptSingleValueAsArray()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether scalar values can be accepted as single-element arrays.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/SingleElementArraySerde.html#acceptSingleValueAsArray(io.micronaut.serde.Deserializer,io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">acceptSingleValueAsArray(Deserializer, Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/SingleElementArraySerde.html" title="class in io.micronaut.serde.support.serdes">SingleElementArraySerde</a></dt>
+<dd>
+<div class="block">Apply <a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#ACCEPT_SINGLE_VALUE_AS_ARRAY"><code>DeserializationConfiguration.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY</code></a> if enabled.</div>
 </dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#address" class="member-name-link">address</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
@@ -138,6 +162,14 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/builder/introspected/Address.Builder.html" class="type-name-link" title="class in io.micronaut.serde.jackson.builder.introspected">Address.Builder</a> - Class in <a href="io/micronaut/serde/jackson/builder/introspected/package-summary.html">io.micronaut.serde.jackson.builder.introspected</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#ADJUST_DATES_TO_CONTEXT_TIME_ZONE" class="member-name-link">ADJUST_DATES_TO_CONTEXT_TIME_ZONE</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Adjust date/time values to the configured context time zone during deserialization.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#adjustDatesToContextTimeZone()" class="member-name-link">adjustDatesToContextTimeZone()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether temporal values are adjusted to the configured context time zone.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/tst/MainAggregationVm.html#afterCare()" class="member-name-link">afterCare()</a> - Method in record class io.micronaut.serde.jackson.tst.<a href="io/micronaut/serde/jackson/tst/MainAggregationVm.html" title="class in io.micronaut.serde.jackson.tst">MainAggregationVm</a></dt>
 <dd>
 <div class="block">Returns the value of the <code>afterCare</code> record component.</div>
@@ -182,6 +214,8 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/AllTypesBean.html#%3Cinit%3E()" class="member-name-link">AllTypesBean()</a> - Constructor for class io.micronaut.serde.<a href="io/micronaut/serde/AllTypesBean.html" title="class in io.micronaut.serde">AllTypesBean</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#ALPHA" class="member-name-link">ALPHA</a> - Enum constant in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html#ALWAYS" class="member-name-link">ALWAYS</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></dt>
 <dd>
 <div class="block">Value that indicates that property is to be always included,
@@ -195,6 +229,10 @@ independent of value of the property.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/serde/SerializableMapper.html#annotationType()" class="member-name-link">annotationType()</a> - Method in class io.micronaut.serde.processor.serde.<a href="io/micronaut/serde/processor/serde/SerializableMapper.html" title="class in io.micronaut.serde.processor.serde">SerializableMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#ANY" class="member-name-link">ANY</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">No explicit shape preference.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#ANY_GETTER" class="member-name-link">ANY_GETTER</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#ANY_SETTER" class="member-name-link">ANY_SETTER</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
@@ -208,6 +246,10 @@ independent of value of the property.</div>
 <dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#applyPrefixSuffix(java.lang.String)" class="member-name-link">applyPrefixSuffix(String)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
 <dd>
 <div class="block">Apply prefix/suffix.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#ARRAY" class="member-name-link">ARRAY</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Array shape.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#ARRAY_WRAPPER_PROPERTY" class="member-name-link">ARRAY_WRAPPER_PROPERTY</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
@@ -296,6 +338,8 @@ independent of value of the property.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/graalvm/JsonpFeature.html#beforeAnalysis(org.graalvm.nativeimage.hosted.Feature.BeforeAnalysisAccess)" class="member-name-link">beforeAnalysis(Feature.BeforeAnalysisAccess)</a> - Method in class io.micronaut.serde.json.stream.graalvm.<a href="io/micronaut/serde/json/stream/graalvm/JsonpFeature.html" title="class in io.micronaut.serde.json.stream.graalvm">JsonpFeature</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#BETA" class="member-name-link">BETA</a> - Enum constant in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/SerdeArgumentConstants.html#BIG_DECIMAL" class="member-name-link">BIG_DECIMAL</a> - Static variable in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/SerdeArgumentConstants.html" title="class in io.micronaut.serde.util">SerdeArgumentConstants</a></dt>
 <dd>
 <div class="block"><code>Argument</code> constant for <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html" title="class or interface in java.math" class="external-link"><code>BigDecimal</code></a> values.</div>
@@ -308,9 +352,17 @@ independent of value of the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#BIG_INTEGER_SERDE" class="member-name-link">BIG_INTEGER_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#BINARY" class="member-name-link">BINARY</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Binary value shape.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/BinaryCodecUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">BinaryCodecUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
 <div class="block">Common implementations for reading/writing byte arrays.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#BOOLEAN" class="member-name-link">BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Boolean scalar shape.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#BOOLEAN" class="member-name-link">BOOLEAN</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
 <dd>
@@ -674,6 +726,10 @@ from the given package locations.</div>
 <dd>
 <div class="block">Create a new child decoder using <a href="io/micronaut/serde/support/AbstractDecoderPerStructureStreamDecoder.html#%3Cinit%3E(io.micronaut.serde.support.AbstractDecoderPerStructureStreamDecoder,io.micronaut.serde.LimitingStream.RemainingLimits)"><code>AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder,io.micronaut.serde.LimitingStream.RemainingLimits)</code></a>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#createDateFormat()" class="member-name-link">createDateFormat()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#createDateTimeFormatter()" class="member-name-link">createDateTimeFormatter()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Decoder.html#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException(String, Object)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde">Decoder</a></dt>
 <dd>
 <div class="block">Creates an exception for the given message.</div>
@@ -691,6 +747,8 @@ from the given package locations.</div>
 <dt><a href="io/micronaut/serde/json/stream/JsonParserDecoder.html#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException(String, Object)</a> - Method in class io.micronaut.serde.json.stream.<a href="io/micronaut/serde/json/stream/JsonParserDecoder.html" title="class in io.micronaut.serde.json.stream">JsonParserDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeDecoder.html#createDeserializationException(java.lang.String,java.lang.Object)" class="member-name-link">createDeserializationException(String, Object)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeDecoder.html" title="class in io.micronaut.serde.support.util">JsonNodeDecoder</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createFormatter(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createFormatter(SerdeConfiguration)</a> - Static method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#createForProperty(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">createForProperty(AnnotationMetadata)</a> - Static method in record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
 <dd>&nbsp;</dd>
@@ -712,27 +770,31 @@ from the given package locations.</div>
 <dd>
 <div class="block">Create the same serde with new configuration.</div>
 </dd>
-<dt><a href="io/micronaut/serde/support/serdes/InstantSerde.html#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific(SerdeConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/InstantSerde.html" title="class in io.micronaut.serde.support.serdes">InstantSerde</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/support/serdes/LocalDateSerde.html#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific(SerdeConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateSerde</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific(SerdeConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific(SerdeConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalTimeSerde</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific(SerdeConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html#createSpecific(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">createSpecific(SerdeConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></dt>
+<dt><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/InetAddressSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/InetAddressSerde.html" title="class in io.micronaut.serde.support.serdes">InetAddressSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/NumberSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Deserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a></dt>
 <dd>
 <div class="block">Create a new child deserializer or return this if non is necessary for the given context.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormattedDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/FormattedDeserializer.html" title="interface in io.micronaut.serde">FormattedDeserializer</a></dt>
+<dd>
+<div class="block">Create a more specific deserializer for the given definition and format configuration.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalDateSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/YearSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/YearSerde.html" title="class in io.micronaut.serde.support.serdes">YearSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/NumberSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a></dt>
 <dd>&nbsp;</dd>
@@ -740,15 +802,35 @@ from the given package locations.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/InetAddressSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/InetAddressSerde.html" title="class in io.micronaut.serde.support.serdes">InetAddressSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/NumberSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Serializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde">Serializer</a></dt>
 <dd>
 <div class="block">Create a more specific serializer for the given definition.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormattedSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/FormattedSerializer.html" title="interface in io.micronaut.serde">FormattedSerializer</a></dt>
+<dd>
+<div class="block">Create a more specific serializer for the given definition and format configuration.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serializers/ObjectSerializer.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument)</a> - Method in class io.micronaut.serde.support.serializers.<a href="io/micronaut/serde/support/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalDateSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/YearSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/YearSerde.html" title="class in io.micronaut.serde.support.serdes">YearSerde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/NumberSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a></dt>
 <dd>&nbsp;</dd>
@@ -756,6 +838,54 @@ from the given package locations.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/TemporalSerde.html#createSpecific(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/TemporalSerde.html" title="interface in io.micronaut.serde.support.serdes">TemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>
+<div class="block">Create the same serde with a new string formatter and explicit shape-derived values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>
+<div class="block">Create the same serde with a new string formatter and explicit format-derived values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/InstantSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/InstantSerde.html" title="class in io.micronaut.serde.support.serdes">InstantSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalDateSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html#createSpecific(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration)" class="member-name-link">createSpecific(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>
+<div class="block">Create the same serde with deserialization format-derived values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.config.SerdeConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, SerdeConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>
+<div class="block">Create the same serde with deserialization configuration-derived values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.config.SerdeConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, SerdeConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/OffsetDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">OffsetDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html#createSpecificForDeserialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.config.SerdeConfiguration,java.util.Set)" class="member-name-link">createSpecificForDeserialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, SerdeConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#createSpecificForSerialization(java.time.format.DateTimeFormatter,io.micronaut.serde.config.SerdeConfiguration.TimeShape,io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit,io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">createSpecificForSerialization(DateTimeFormatter, SerdeConfiguration.TimeShape, SerdeConfiguration.NumericTimeUnit, FormatConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>
+<div class="block">Create the same serde with serialization format-derived values.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/BsonWriterEncoder.html#currentPath()" class="member-name-link">currentPath()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonWriterEncoder.html" title="class in io.micronaut.serde.bson">BsonWriterEncoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Encoder.html#currentPath()" class="member-name-link">currentPath()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></dt>
@@ -1247,6 +1377,10 @@ from the given package locations.</div>
 <dd>
 <div class="block">Default nesting depth limit.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#DEFAULT_RADIX" class="member-name-link">DEFAULT_RADIX</a> - Static variable in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">The default radix marker.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#defaultConstructor()" class="member-name-link">defaultConstructor()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.html#param-defaultConstructor"><code>defaultConstructor</code></a> record component.</div>
@@ -1255,10 +1389,8 @@ from the given package locations.</div>
 <dd>
 <div class="block">Super class that can be used for the default date/time formatting.</div>
 </dd>
-<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration,java.time.format.DateTimeFormatter)" class="member-name-link">DefaultFormattedTemporalSerde(SerdeConfiguration, DateTimeFormatter)</a> - Constructor for class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
-<dd>
-<div class="block">Allows configuring a default time format for temporal date/time types.</div>
-</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#%3Cinit%3E(java.time.format.DateTimeFormatter)" class="member-name-link">DefaultFormattedTemporalSerde(DateTimeFormatter)</a> - Constructor for class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/SubtypeInfo.html#defaultImpl()" class="member-name-link">defaultImpl()</a> - Method in record class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SubtypeInfo.html" title="class in io.micronaut.serde.support.util">SubtypeInfo</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/support/util/SubtypeInfo.html#param-defaultImpl"><code>defaultImpl</code></a> record component.</div>
@@ -1280,6 +1412,14 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Default constructor.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#defaultStringFormatter()" class="member-name-link">defaultStringFormatter()</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#defaultStringFormatter(io.micronaut.serde.FormatConfiguration)" class="member-name-link">defaultStringFormatter(FormatConfiguration)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html#defaultStringFormatter(io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">defaultStringFormatter(FormatConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/DefaultFormattedTemporalSerde.html" title="class in io.micronaut.serde.support.serdes">DefaultFormattedTemporalSerde</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html#defaultStringFormatter(io.micronaut.serde.FormatConfiguration,java.util.Set)" class="member-name-link">defaultStringFormatter(FormatConfiguration, Set)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ZonedDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">ZonedDateTimeSerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/DelegatingDecoder.html#delegate()" class="member-name-link">delegate()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/DelegatingDecoder.html#delegateForDecodeValue()" class="member-name-link">delegateForDecodeValue()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/DelegatingDecoder.html" title="class in io.micronaut.serde">DelegatingDecoder</a></dt>
@@ -1306,6 +1446,14 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Configuration for deserialization.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" class="type-name-link" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">Deserialization format features.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#deserializationFeaturesWith(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">deserializationFeaturesWith(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#deserializationFeaturesWithout(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">deserializationFeaturesWithout(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#deserializationType()" class="member-name-link">deserializationType()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-deserializationType"><code>deserializationType</code></a> record component.</div>
@@ -1483,6 +1631,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users3.User.html#email" class="member-name-link">email</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#EMPTY" class="member-name-link">EMPTY</a> - Static variable in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Empty format configuration.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Encoder.html#encodeArray(io.micronaut.core.type.Argument)" class="member-name-link">encodeArray(Argument)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></dt>
 <dd>
 <div class="block">Encodes an array.</div>
@@ -1643,6 +1795,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#encodeNull()" class="member-name-link">encodeNull()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/serdes/NumberSerde.html#encodeNumber(io.micronaut.serde.Encoder,java.lang.Number)" class="member-name-link">encodeNumber(Encoder, Number)</a> - Method in interface io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/NumberSerde.html" title="interface in io.micronaut.serde.support.serdes">NumberSerde</a></dt>
+<dd>
+<div class="block">Encode the given number.</div>
+</dd>
 <dt><a href="io/micronaut/serde/Encoder.html#encodeObject(io.micronaut.core.type.Argument)" class="member-name-link">encodeObject(Argument)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Encoder.html" title="interface in io.micronaut.serde">Encoder</a></dt>
 <dd>
 <div class="block">Encodes an object.</div>
@@ -1719,6 +1875,14 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumDeserializerSourceGen.html#%3Cinit%3E()" class="member-name-link">EnumDeserializerSourceGen()</a> - Constructor for class io.micronaut.serde.processor.sourcegen.enums.<a href="io/micronaut/serde/processor/sourcegen/enums/EnumDeserializerSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumDeserializerSourceGen</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html" class="type-name-link" title="class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean</a> - Class in <a href="io/micronaut/serde/jackson/shape/package-summary.html">io.micronaut.serde.jackson.shape</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html#%3Cinit%3E()" class="member-name-link">EnumObjectShapeBean()</a> - Constructor for class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html" title="class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html#%3Cinit%3E(io.micronaut.serde.jackson.shape.EnumObjectShapeBean.Status)" class="member-name-link">EnumObjectShapeBean(EnumObjectShapeBean.Status)</a> - Constructor for class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html" title="class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" class="type-name-link" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a> - Enum Class in <a href="io/micronaut/serde/jackson/shape/package-summary.html">io.micronaut.serde.jackson.shape</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/enums/EnumSerdeShape.html" class="type-name-link" title="class in io.micronaut.serde.processor.sourcegen.enums">EnumSerdeShape</a> - Record Class in <a href="io/micronaut/serde/processor/sourcegen/enums/package-summary.html">io.micronaut.serde.processor.sourcegen.enums</a></dt>
 <dd>
 <div class="block">Shape model for enum-based source generation.</div>
@@ -1774,6 +1938,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dt><a href="io/micronaut/serde/data/Users3.User.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Dummy.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/Dummy.html" title="class in io.micronaut.serde">Dummy</a></dt>
+<dd>
+<div class="block">Indicates whether some other object is "equal to" this one.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#equals(java.lang.Object)" class="member-name-link">equals(Object)</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>
 <div class="block">Indicates whether some other object is "equal to" this one.</div>
 </dd>
@@ -1876,6 +2044,20 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dl class="index">
 <dt><a href="io/micronaut/serde/data/Users1.User.html#favoriteFruit" class="member-name-link">favoriteFruit</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#features()" class="member-name-link">features()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#features(io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">features(DeserializationConfiguration)</a> - Static method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Resolve the active format features for the given deserialization configuration.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FEATURES_WITH" class="member-name-link">FEATURES_WITH</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">Format features to enable.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#FEATURES_WITHOUT" class="member-name-link">FEATURES_WITHOUT</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">Format features to disable.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/tst/Aggregation.html#FIELD_1" class="member-name-link">FIELD_1</a> - Enum constant in enum class io.micronaut.serde.jackson.tst.<a href="io/micronaut/serde/jackson/tst/Aggregation.html" title="enum class in io.micronaut.serde.jackson.tst">Aggregation</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/tst/Aggregation.html#FIELD_2" class="member-name-link">FIELD_2</a> - Enum constant in enum class io.micronaut.serde.jackson.tst.<a href="io/micronaut/serde/jackson/tst/Aggregation.html" title="enum class in io.micronaut.serde.jackson.tst">Aggregation</a></dt>
@@ -1996,6 +2178,32 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/outerinterface/RecordCommandBroken.PrintCommand.html#fooBar()" class="member-name-link">fooBar()</a> - Method in record class io.micronaut.serde.jackson.outerinterface.<a href="io/micronaut/serde/jackson/outerinterface/RecordCommandBroken.PrintCommand.html" title="class in io.micronaut.serde.jackson.outerinterface">RecordCommandBroken.PrintCommand</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#format()" class="member-name-link">format()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html" class="type-name-link" title="class in io.micronaut.serde">FormatConfiguration</a> - Record Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Configuration mapped from format metadata.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#%3Cinit%3E(java.lang.String,io.micronaut.serde.FormatConfiguration.Shape,java.lang.String,java.lang.String,java.lang.Boolean,int)" class="member-name-link">FormatConfiguration(String, FormatConfiguration.Shape, String, String, Boolean, int)</a> - Constructor for record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Default constructor.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html" class="type-name-link" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a> - Enum Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Shape values supported by format metadata.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormattedDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde">FormattedDeserializer&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">A deserializer that can react to format metadata.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormattedSerde.html" class="type-name-link" title="interface in io.micronaut.serde">FormattedSerde&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">Combined interface for a serializer and deserializer pair.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormattedSerializer.html" class="type-name-link" title="interface in io.micronaut.serde">FormattedSerializer&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
+<dd>
+<div class="block">A serializer that can react to format metadata.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html#forName(java.lang.String)" class="member-name-link">forName(String)</a> - Static method in interface io.micronaut.serde.config.naming.<a href="io/micronaut/serde/config/naming/PropertyNamingStrategy.html" title="interface in io.micronaut.serde.config.naming">PropertyNamingStrategy</a></dt>
 <dd>
 <div class="block">Return an existing naming strategy for each name.</div>
@@ -2007,6 +2215,12 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#friends" class="member-name-link">friends</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users3.User.html#friends" class="member-name-link">friends</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#from(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">from(AnnotationMetadata)</a> - Static method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Resolve format configuration from annotation metadata.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#fromJson(java.util.Map)" class="member-name-link">fromJson(Map)</a> - Static method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/InstantSerde.html#fromNanos(long,int)" class="member-name-link">fromNanos(long, int)</a> - Method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/InstantSerde.html" title="class in io.micronaut.serde.support.serdes">InstantSerde</a></dt>
 <dd>&nbsp;</dd>
@@ -2046,6 +2260,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
 <div class="block">Exception helpers used by generated serdes.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Fallback helpers used by generated serdes when a runtime object serde is required.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html#generatedSerializerClassName(io.micronaut.inject.ast.ClassElement)" class="member-name-link">generatedSerializerClassName(ClassElement)</a> - Static method in class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SerdeSourceGenClassNaming.html" title="class in io.micronaut.serde.processor.sourcegen">SerdeSourceGenClassNaming</a></dt>
 <dd>&nbsp;</dd>
@@ -2143,6 +2361,8 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/builder/introspected/Address.html#getCity()" class="member-name-link">getCity()</a> - Method in class io.micronaut.serde.jackson.builder.introspected.<a href="io/micronaut/serde/jackson/builder/introspected/Address.html" title="class in io.micronaut.serde.jackson.builder.introspected">Address</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#getCode()" class="member-name-link">getCode()</a> - Method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/JsonNodeEncoder.html#getCompletedValue()" class="member-name-link">getCompletedValue()</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/JsonNodeEncoder.html" title="class in io.micronaut.serde.support.util">JsonNodeEncoder</a></dt>
 <dd>
 <div class="block">Obtains the completed value.</div>
@@ -2219,6 +2439,14 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Decode the current <a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER"><code>AbstractStreamDecoder.TokenType.NUMBER</code></a> value as a double value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html#getFeatures()" class="member-name-link">getFeatures()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
+<dd>
+<div class="block">Get the active deserialization format features for this context.</div>
+</dd>
+<dt><a href="io/micronaut/serde/Serializer.EncoderContext.html#getFeatures()" class="member-name-link">getFeatures()</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
+<dd>
+<div class="block">Get the active serialization format features for this context.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/tst/Aggregation.html#getFieldName()" class="member-name-link">getFieldName()</a> - Method in enum class io.micronaut.serde.jackson.tst.<a href="io/micronaut/serde/jackson/tst/Aggregation.html" title="enum class in io.micronaut.serde.jackson.tst">Aggregation</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/builder/TestBuildName.html#getFoo()" class="member-name-link">getFoo()</a> - Method in class io.micronaut.serde.jackson.builder.<a href="io/micronaut/serde/jackson/builder/TestBuildName.html" title="class in io.micronaut.serde.jackson.builder">TestBuildName</a></dt>
@@ -2281,6 +2509,8 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#getKey2()" class="member-name-link">getKey2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#getKey2()" class="member-name-link">getKey2()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#getLabel()" class="member-name-link">getLabel()</a> - Method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#getLocale()" class="member-name-link">getLocale()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -2351,6 +2581,8 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/processor/jackson/JsonClassDescriptionMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonClassDescriptionMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonClassDescriptionMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonCreatorMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonCreatorMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonCreatorMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonEnumDefaultValueMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonFilterMapper.html#getName()" class="member-name-link">getName()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonFilterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonFilterMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -2556,8 +2788,6 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/databind/JsonSerializeMapper.html#getSupportedMemberNames()" class="member-name-link">getSupportedMemberNames()</a> - Method in class io.micronaut.serde.processor.jackson.databind.<a href="io/micronaut/serde/processor/jackson/databind/JsonSerializeMapper.html" title="class in io.micronaut.serde.processor.jackson.databind">JsonSerializeMapper</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/processor/jackson/JsonFormatMapper.html#getSupportedMemberNames()" class="member-name-link">getSupportedMemberNames()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonFormatMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonFormatMapper</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonSetterMapper.html#getSupportedMemberNames()" class="member-name-link">getSupportedMemberNames()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonSetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonSetterMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html#getSupportedMemberNames()" class="member-name-link">getSupportedMemberNames()</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonTypeInfoMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonTypeInfoMapper</a></dt>
@@ -2612,6 +2842,8 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#getVal()" class="member-name-link">getVal()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html#getValue()" class="member-name-link">getValue()</a> - Method in class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html" title="class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#getValue1()" class="member-name-link">getValue1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#getValue1()" class="member-name-link">getValue1()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
@@ -2641,6 +2873,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 </dl>
 <h2 class="title" id="I:H">H</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#handleUnknownEnumValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">handleUnknownEnumValue(Deserializer.DecoderContext, Argument, String)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Handles an unknown enum value according to deserialization configuration.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#handleUnknownProperty(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">handleUnknownProperty(Decoder, Deserializer.DecoderContext, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Handles an unknown property according to deserialization configuration.</div>
@@ -2668,6 +2904,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/data/Users3.User.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Dummy.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/Dummy.html" title="class in io.micronaut.serde">Dummy</a></dt>
+<dd>
+<div class="block">Returns a hash code value for this object.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#hashCode()" class="member-name-link">hashCode()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>
 <div class="block">Returns a hash code value for this object.</div>
 </dd>
@@ -2923,6 +3163,8 @@ about the property that was incorrect.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/outerinterface/package-summary.html">io.micronaut.serde.jackson.outerinterface</a> - package io.micronaut.serde.jackson.outerinterface</dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/package-summary.html">io.micronaut.serde.jackson.shape</a> - package io.micronaut.serde.jackson.shape</dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/tst/package-summary.html">io.micronaut.serde.jackson.tst</a> - package io.micronaut.serde.jackson.tst</dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/json/stream/package-summary.html">io.micronaut.serde.json.stream</a> - package io.micronaut.serde.json.stream</dt>
@@ -3024,6 +3266,10 @@ about the property that was incorrect.</div>
 <div class="block">When <code>true</code>, mappers should respect JsonView annotations on arguments passed to
 read/write methods.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#isNumeric()" class="member-name-link">isNumeric()</a> - Method in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#isPojoShape()" class="member-name-link">isPojoShape()</a> - Method in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html#isPrettyPrint()" class="member-name-link">isPrettyPrint()</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/SerdeJacksonConfiguration.html" title="class in io.micronaut.serde.jackson">SerdeJacksonConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/AllTypesBean.html#isSomeBool()" class="member-name-link">isSomeBool()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/AllTypesBean.html" title="class in io.micronaut.serde">AllTypesBean</a></dt>
@@ -3032,6 +3278,8 @@ read/write methods.</div>
 <dd>
 <div class="block">Whether null field should be annotated with a nullable annotations.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#isStructured()" class="member-name-link">isStructured()</a> - Method in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
 <div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
@@ -3195,6 +3443,12 @@ read/write methods.</div>
 <dd>
 <div class="block">Mapper variant for Jackson 2 package names.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">JsonEnumDefaultValueMapper</a> - Class in <a href="io/micronaut/serde/processor/jackson/package-summary.html">io.micronaut.serde.processor.jackson</a></dt>
+<dd>
+<div class="block">Transformer for <code>JsonEnumDefaultValue</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html#%3Cinit%3E()" class="member-name-link">JsonEnumDefaultValueMapper()</a> - Constructor for class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonEnumDefaultValueMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonFilterMapper.html" class="type-name-link" title="class in io.micronaut.serde.processor.jackson">JsonFilterMapper</a> - Class in <a href="io/micronaut/serde/processor/jackson/package-summary.html">io.micronaut.serde.processor.jackson</a></dt>
 <dd>
 <div class="block">Maps the <code>com.fasterxml.jackson.annotation.JsonFilter</code> annotation to <a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation"><code>SerdeConfig</code></a>.</div>
@@ -3390,6 +3644,10 @@ in-memory <code>JsonNode</code>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#LEGACY_DEFAULT_SERDES" class="member-name-link">LEGACY_DEFAULT_SERDES</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#lenient()" class="member-name-link">lenient()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-lenient"><code>lenient</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#LENIENT" class="member-name-link">LENIENT</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">if parsing is required whether to be lenient.</div>
@@ -3422,6 +3680,10 @@ in-memory <code>JsonNode</code>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html#%3Cinit%3E(io.micronaut.serde.config.SerdeConfiguration)" class="member-name-link">LocalDateTimeSerde(SerdeConfiguration)</a> - Constructor for class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/LocalDateTimeSerde.html" title="class in io.micronaut.serde.support.serdes">LocalDateTimeSerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#locale()" class="member-name-link">locale()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-locale"><code>locale</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#LOCALE" class="member-name-link">LOCALE</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">A locale to use.</div>
@@ -3513,7 +3775,11 @@ in-memory <code>JsonNode</code>.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonCreatorMapper.html#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">map(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonCreatorMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonCreatorMapper</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">map(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonEnumDefaultValueMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonEnumDefaultValueMapper</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonFilterMapper.html#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">map(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonFilterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonFilterMapper</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/processor/jackson/JsonFormatMapper.html#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">map(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonFormatMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonFormatMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonGetterMapper.html#map(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">map(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonGetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonGetterMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -3556,8 +3822,6 @@ in-memory <code>JsonNode</code>.</div>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonAnyGetterMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonAnyGetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonAnyGetterMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonAnySetterMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonAnySetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonAnySetterMapper</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/processor/jackson/JsonFormatMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonFormatMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonFormatMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/processor/jackson/JsonSetterMapper.html#mapValid(io.micronaut.core.annotation.AnnotationValue,io.micronaut.inject.visitor.VisitorContext)" class="member-name-link">mapValid(AnnotationValue, VisitorContext)</a> - Method in class io.micronaut.serde.processor.jackson.<a href="io/micronaut/serde/processor/jackson/JsonSetterMapper.html" title="class in io.micronaut.serde.processor.jackson">JsonSetterMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -3690,6 +3954,10 @@ in-memory <code>JsonNode</code>.</div>
 <dd>
 <div class="block">Serialize as nanoseconds.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#NATURAL" class="member-name-link">NATURAL</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Natural shape for the value type.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html#NEVER" class="member-name-link">NEVER</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></dt>
 <dd>
 <div class="block">Ignore the property.</div>
@@ -3758,9 +4026,21 @@ values are to be included.</div>
 <dd>
 <div class="block">Specialization of <a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde"><code>Serde</code></a> for types that allow a value of <code>null</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#NUMBER" class="member-name-link">NUMBER</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Numeric scalar shape.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NUMBER" class="member-name-link">NUMBER</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
 <dd>
 <div class="block">A number.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#NUMBER_FLOAT" class="member-name-link">NUMBER_FLOAT</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Floating-point numeric scalar shape.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#NUMBER_INT" class="member-name-link">NUMBER_INT</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Integral numeric scalar shape.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/NumberSerde.html" class="type-name-link" title="interface in io.micronaut.serde.support.serdes">NumberSerde&lt;N&gt;</a> - Interface in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
 <dd>
@@ -3769,12 +4049,20 @@ values are to be included.</div>
 </dl>
 <h2 class="title" id="I:O">O</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#OBJECT" class="member-name-link">OBJECT</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Object shape.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
 <dd>
 <div class="block">Deserializer for object arrays.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html#%3Cinit%3E()" class="member-name-link">ObjectArraySerde()</a> - Constructor for class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/ObjectArraySerde.html" title="class in io.micronaut.serde.support.serdes">ObjectArraySerde</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/ObjectShapeSerdeHelper.html#objectDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">objectDeserializer(Deserializer.DecoderContext, Argument)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ObjectShapeSerdeHelper.html" title="class in io.micronaut.serde.support.util">ObjectShapeSerdeHelper</a></dt>
+<dd>
+<div class="block">Select the generic object deserializer for POJO-like shape handling.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/deserializers/ObjectDeserializer.html" class="type-name-link" title="class in io.micronaut.serde.support.deserializers">ObjectDeserializer</a> - Class in <a href="io/micronaut/serde/support/deserializers/package-summary.html">io.micronaut.serde.support.deserializers</a></dt>
 <dd>
 <div class="block">Implementation for deserialization of objects that uses introspection metadata.</div>
@@ -3789,6 +4077,10 @@ values are to be included.</div>
 <dd>
 <div class="block">A closeable object mapper.</div>
 </dd>
+<dt><a href="io/micronaut/serde/support/util/ObjectShapeSerdeHelper.html#objectSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">objectSerializer(Serializer.EncoderContext, Argument)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/ObjectShapeSerdeHelper.html" title="class in io.micronaut.serde.support.util">ObjectShapeSerdeHelper</a></dt>
+<dd>
+<div class="block">Select the generic object serializer for POJO-like shape handling.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/serializers/ObjectSerializer.html" class="type-name-link" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a> - Class in <a href="io/micronaut/serde/support/serializers/package-summary.html">io.micronaut.serde.support.serializers</a></dt>
 <dd>
 <div class="block">Fallback <a href="io/micronaut/serde/Serializer.html" title="interface in io.micronaut.serde"><code>Serializer</code></a> for general <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link"><code>Object</code></a> values.</div>
@@ -3801,6 +4093,10 @@ values are to be included.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serializers/ObjectSerializer.html#%3Cinit%3E(io.micronaut.serde.SerdeIntrospections,io.micronaut.serde.config.SerdeConfiguration,io.micronaut.serde.config.SerializationConfiguration,io.micronaut.context.BeanContext)" class="member-name-link">ObjectSerializer(SerdeIntrospections, SerdeConfiguration, SerializationConfiguration, BeanContext)</a> - Constructor for class io.micronaut.serde.support.serializers.<a href="io/micronaut/serde/support/serializers/ObjectSerializer.html" title="class in io.micronaut.serde.support.serializers">ObjectSerializer</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/ObjectShapeSerdeHelper.html" class="type-name-link" title="class in io.micronaut.serde.support.util">ObjectShapeSerdeHelper</a> - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">Common helpers for POJO-like shape handling.</div>
+</dd>
 <dt><a href="io/micronaut/serde/ObjectWithArrayRecordNotNull.html" class="type-name-link" title="class in io.micronaut.serde">ObjectWithArrayRecordNotNull</a> - Record Class in <a href="io/micronaut/serde/package-summary.html">io.micronaut.serde</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/ObjectWithArrayRecordNotNull.html#%3Cinit%3E(java.util.List)" class="member-name-link">ObjectWithArrayRecordNotNull(List)</a> - Constructor for record class io.micronaut.serde.<a href="io/micronaut/serde/ObjectWithArrayRecordNotNull.html" title="class in io.micronaut.serde">ObjectWithArrayRecordNotNull</a></dt>
@@ -3924,6 +4220,8 @@ values are to be included.</div>
 <dd>
 <div class="block">Specifies a package name where types can be found.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#parseLocale()" class="member-name-link">parseLocale()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#parseOne(byte%5B%5D)" class="member-name-link">parseOne(byte[])</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></dt>
 <dd>
 <div class="block">Parse a single node from the given stream.</div>
@@ -3931,6 +4229,12 @@ values are to be included.</div>
 <dt><a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html#parseOne(java.io.InputStream)" class="member-name-link">parseOne(InputStream)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/BufferingJsonNodeProcessor.html" title="class in io.micronaut.serde.support.util">BufferingJsonNodeProcessor</a></dt>
 <dd>
 <div class="block">Parse a single node from the given stream.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#parseTimeZone()" class="member-name-link">parseTimeZone()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#pattern()" class="member-name-link">pattern()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-pattern"><code>pattern</code></a> record component.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#PATTERN" class="member-name-link">PATTERN</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
@@ -3950,6 +4254,10 @@ values are to be included.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/data/Users3.User.html#picture" class="member-name-link">picture</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.User.html" title="class in io.micronaut.serde.data">Users3.User</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#POJO" class="member-name-link">POJO</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">POJO-like object shape.</div>
+</dd>
 <dt><a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html#popManagedRef()" class="member-name-link">popManagedRef()</a> - Method in class io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/AbstractPropertyReferenceManager.html" title="class in io.micronaut.serde.reference">AbstractPropertyReferenceManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/PropertyReferenceManager.html#popManagedRef()" class="member-name-link">popManagedRef()</a> - Method in interface io.micronaut.serde.reference.<a href="io/micronaut/serde/reference/PropertyReferenceManager.html" title="interface in io.micronaut.serde.reference">PropertyReferenceManager</a></dt>
@@ -4060,13 +4368,45 @@ values are to be included.</div>
 </dl>
 <h2 class="title" id="I:R">R</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#radix()" class="member-name-link">radix()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-radix"><code>radix</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#RADIX" class="member-name-link">RADIX</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">The numeric base to use.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#READ_DATE_TIMESTAMPS_AS_NANOSECONDS" class="member-name-link">READ_DATE_TIMESTAMPS_AS_NANOSECONDS</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Interpret numeric date/time timestamps as nanoseconds when timestamps are enabled.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#READ_ONLY" class="member-name-link">READ_ONLY</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Is this property to be used only for reading.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#READ_UNKNOWN_ENUM_VALUES_AS_NULL" class="member-name-link">READ_UNKNOWN_ENUM_VALUES_AS_NULL</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Deserialize unknown enum values as <code>null</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE" class="member-name-link">READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Deserialize unknown enum values using the enum constant marked as the default value.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#readDateTimestampsAsNanoseconds()" class="member-name-link">readDateTimestampsAsNanoseconds()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether numeric timestamps are read with nanosecond precision.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#readMethod()" class="member-name-link">readMethod()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-readMethod"><code>readMethod</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#readUnknownEnumValuesAsNull()" class="member-name-link">readUnknownEnumValuesAsNull()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether unknown enum values should deserialize as <code>null</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#readUnknownEnumValuesUsingDefaultValue()" class="member-name-link">readUnknownEnumValuesUsingDefaultValue()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether unknown enum values should use the configured default enum value.</div>
 </dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#readValue(byte%5B%5D,io.micronaut.core.type.Argument)" class="member-name-link">readValue(byte[], Argument)</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -4230,6 +4570,22 @@ values are to be included.</div>
 <dd>
 <div class="block">Runtime naming strategy class.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#runtimeEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">runtimeEnumDeserializer(Deserializer.DecoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns a runtime deserializer for generated enum deserializers.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#runtimeEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">runtimeEnumSerializer(Serializer.EncoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns a runtime serializer for generated enum serializers.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#runtimeFormattedEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">runtimeFormattedEnumDeserializer(Deserializer.DecoderContext, Argument, FormatConfiguration)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns a runtime formatted deserializer for generated enum deserializers.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#runtimeFormattedEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">runtimeFormattedEnumSerializer(Serializer.EncoderContext, Argument, FormatConfiguration)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns a runtime formatted serializer for generated enum serializers.</div>
+</dd>
 <dt><a href="io/micronaut/serde/exceptions/RuntimeSerdeException.html" class="type-name-link" title="class in io.micronaut.serde.exceptions">RuntimeSerdeException</a> - Exception Class in <a href="io/micronaut/serde/exceptions/package-summary.html">io.micronaut.serde.exceptions</a></dt>
 <dd>
 <div class="block">An exception that can be used as a wrapper for a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a>.</div>
@@ -4239,6 +4595,10 @@ values are to be included.</div>
 </dl>
 <h2 class="title" id="I:S">S</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#SCALAR" class="member-name-link">SCALAR</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Any scalar shape.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html#SECONDS" class="member-name-link">SECONDS</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></dt>
 <dd>
 <div class="block">Serialize as seconds, the default.</div>
@@ -4309,6 +4669,10 @@ models can be bind to.</div>
 <dd>
 <div class="block">Creator mode used when invoking the <code>Creator</code>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerEnumDefaultValue.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerEnumDefaultValue</a> - Annotation Interface in <a href="io/micronaut/serde/config/annotation/package-summary.html">io.micronaut.serde.config.annotation</a></dt>
+<dd>
+<div class="block">Meta-annotation used to model the enum constant to use for unknown values.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerError.html" class="type-name-link" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig.SerError</a> - Annotation Interface in <a href="io/micronaut/serde/config/annotation/package-summary.html">io.micronaut.serde.config.annotation</a></dt>
 <dd>
 <div class="block">Used to store errors.</div>
@@ -4373,6 +4737,10 @@ models can be bind to.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.html" class="type-name-link" title="interface in io.micronaut.serde.config">SerdeConfiguration</a> - Interface in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
+<dd>
+<div class="block">Serialization format features.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a> - Enum Class in <a href="io/micronaut/serde/config/package-summary.html">io.micronaut.serde.config</a></dt>
 <dd>
 <div class="block">Time unit to use when deserializing a numeric value, or when serializing to a numeric value
@@ -4398,6 +4766,10 @@ as configured by <a href="io/micronaut/serde/config/SerdeConfiguration.html#getT
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/exceptions/SerdeException.html#%3Cinit%3E(java.lang.Throwable)" class="member-name-link">SerdeException(Throwable)</a> - Constructor for exception class io.micronaut.serde.exceptions.<a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html" class="type-name-link" title="class in io.micronaut.serde.support.util">SerdeFeatures</a> - Class in <a href="io/micronaut/serde/support/util/package-summary.html">io.micronaut.serde.support.util</a></dt>
+<dd>
+<div class="block">Helpers for resolving format feature overrides from annotation metadata.</div>
+</dd>
 <dt><a href="io/micronaut/serde/annotation/SerdeImport.html" class="type-name-link" title="annotation interface in io.micronaut.serde.annotation">SerdeImport</a> - Annotation Interface in <a href="io/micronaut/serde/annotation/package-summary.html">io.micronaut.serde.annotation</a></dt>
 <dd>
 <div class="block">Annotation to allow external classes to be enabled for serialization / deserialization.</div>
@@ -4471,6 +4843,14 @@ for the serialization project.</div>
 <dd>
 <div class="block">Configuration for serialization.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.html#serializationFeatures(io.micronaut.serde.config.SerializationConfiguration)" class="member-name-link">serializationFeatures(SerializationConfiguration)</a> - Static method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.html" title="interface in io.micronaut.serde.config">SerdeConfiguration</a></dt>
+<dd>
+<div class="block">Resolve the active serialization format features for the given configuration.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#serializationFeaturesWith(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">serializationFeaturesWith(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#serializationFeaturesWithout(io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">serializationFeaturesWithout(AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/reference/SerializationReference.html" class="type-name-link" title="class in io.micronaut.serde.reference">SerializationReference&lt;B,<wbr>T&gt;</a> - Class in <a href="io/micronaut/serde/reference/package-summary.html">io.micronaut.serde.reference</a></dt>
 <dd>
 <div class="block">Represents a reference to a property for serialization.</div>
@@ -4628,6 +5008,8 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/SomeObject.html#setVal(java.lang.String)" class="member-name-link">setVal(String)</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/SomeObject.html" title="class in io.micronaut.serde">SomeObject</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html#setValue(io.micronaut.serde.jackson.shape.EnumObjectShapeBean.Status)" class="member-name-link">setValue(EnumObjectShapeBean.Status)</a> - Method in class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.html" title="class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#setValue1(java.lang.String)" class="member-name-link">setValue1(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanConstructorWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html#setValue1(java.lang.String)" class="member-name-link">setValue1(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerAlwaysInclude</a></dt>
@@ -4636,6 +5018,14 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html#setValue2(java.lang.String)" class="member-name-link">setValue2(String)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude.html" title="class in io.micronaut.serde.jackson">MyBeanWithUnwrappedAlwaysInclude.InnerDefaultInclude</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#shape()" class="member-name-link">shape()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-shape"><code>shape</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#SHAPE" class="member-name-link">SHAPE</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
+<dd>
+<div class="block">The serialization shape to use.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.html#shapeKind()" class="member-name-link">shapeKind()</a> - Method in record class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.html" title="class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.html#param-shapeKind"><code>shapeKind</code></a> record component.</div>
@@ -4675,6 +5065,10 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.ShapeKind.html" class="type-name-link" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a> - Enum Class in <a href="io/micronaut/serde/processor/sourcegen/package-summary.html">io.micronaut.serde.processor.sourcegen</a></dt>
 <dd>
 <div class="block">Supported simple shapes for source-generated serdes.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/SingleElementArraySerde.html" class="type-name-link" title="class in io.micronaut.serde.support.serdes">SingleElementArraySerde</a> - Class in <a href="io/micronaut/serde/support/serdes/package-summary.html">io.micronaut.serde.support.serdes</a></dt>
+<dd>
+<div class="block">Helpers for single-element array serialization and deserialization behavior.</div>
 </dd>
 <dt><a href="io/micronaut/serde/bson/BsonReaderDecoder.html#skipChildren()" class="member-name-link">skipChildren()</a> - Method in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/BsonReaderDecoder.html" title="class in io.micronaut.serde.bson">BsonReaderDecoder</a></dt>
 <dd>&nbsp;</dd>
@@ -4754,6 +5148,10 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></dt>
 <dd>
 <div class="block">Serialize as a string, either using <a href="io/micronaut/serde/config/SerdeConfiguration.html#getDateFormat()"><code>SerdeConfiguration.getDateFormat()</code></a> or as an ISO timestamp.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">String scalar shape.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
 <dd>
@@ -4844,6 +5242,10 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#TIME_ZONE_SERDE" class="member-name-link">TIME_ZONE_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#timezone()" class="member-name-link">timezone()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/FormatConfiguration.html#param-timezone"><code>timezone</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#TIMEZONE" class="member-name-link">TIMEZONE</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">A time zone to use.</div>
@@ -4873,6 +5275,10 @@ for the serialization project.</div>
 <dt><a href="io/micronaut/serde/data/Users3.html#toString()" class="member-name-link">toString()</a> - Method in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users3.html" title="class in io.micronaut.serde.data">Users3</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/Dummy.html#toString()" class="member-name-link">toString()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/Dummy.html" title="class in io.micronaut.serde">Dummy</a></dt>
+<dd>
+<div class="block">Returns a string representation of this record class.</div>
+</dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.html#toString()" class="member-name-link">toString()</a> - Method in record class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a></dt>
 <dd>
 <div class="block">Returns a string representation of this record class.</div>
 </dd>
@@ -5178,6 +5584,14 @@ for the serialization project.</div>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
@@ -5186,9 +5600,17 @@ for the serialization project.</div>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/jsonvalue/JdkVersion.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in class io.micronaut.serde.jackson.jsonvalue.<a href="io/micronaut/serde/jackson/jsonvalue/JdkVersion.html" title="class in io.micronaut.serde.jackson.jsonvalue">JdkVersion</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.jackson.jsonvalue.<a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html" title="enum class in io.micronaut.serde.jackson.jsonvalue">TokenError</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
@@ -5228,6 +5650,16 @@ the order they are declared.</div>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.NumericTimeUnit.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum class, in
@@ -5238,7 +5670,17 @@ the order they are declared.</div>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
 </dd>
+<dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
 <dt><a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.jackson.jsonvalue.<a href="io/micronaut/serde/jackson/jsonvalue/TokenError.html" title="enum class in io.micronaut.serde.jackson.jsonvalue">TokenError</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
+<dt><a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.jackson.shape.<a href="io/micronaut/serde/jackson/shape/EnumObjectShapeBean.Status.html" title="enum class in io.micronaut.serde.jackson.shape">EnumObjectShapeBean.Status</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
@@ -5286,6 +5728,26 @@ the order they are declared.</div>
 </dl>
 <h2 class="title" id="I:W">W</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#withFeatures(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">withFeatures(Deserializer.DecoderContext)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#withFeatures(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">withFeatures(Deserializer.DecoderContext, AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
+<dd>
+<div class="block">Create a deserialization context with annotation feature overrides.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeArgumentConf.html#withFeatures(io.micronaut.serde.Serializer.EncoderContext)" class="member-name-link">withFeatures(Serializer.EncoderContext)</a> - Method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeArgumentConf.html" title="class in io.micronaut.serde.support.util">SerdeArgumentConf</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/support/util/SerdeFeatures.html#withFeatures(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.annotation.AnnotationMetadata)" class="member-name-link">withFeatures(Serializer.EncoderContext, AnnotationMetadata)</a> - Static method in class io.micronaut.serde.support.util.<a href="io/micronaut/serde/support/util/SerdeFeatures.html" title="class in io.micronaut.serde.support.util">SerdeFeatures</a></dt>
+<dd>
+<div class="block">Create a serialization context with annotation feature overrides.</div>
+</dd>
+<dt><a href="io/micronaut/serde/Deserializer.DecoderContext.html#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures(Set, Set)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a></dt>
+<dd>
+<div class="block">Create a context with deserialization format features overridden by annotation metadata.</div>
+</dd>
+<dt><a href="io/micronaut/serde/Serializer.EncoderContext.html#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures(Set, Set)</a> - Method in interface io.micronaut.serde.<a href="io/micronaut/serde/Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></dt>
+<dd>
+<div class="block">Create a context with serialization format features overridden by annotation metadata.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#withPropertyPath(io.micronaut.serde.exceptions.SerdeException,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath(SerdeException, Argument, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Appends a property path segment to an existing <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a>.</div>
@@ -5293,6 +5755,22 @@ the order they are declared.</div>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath(Throwable, Argument, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Converts any <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link"><code>Throwable</code></a> into a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> and appends a property path segment.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#withRuntimeEnumFallback(io.micronaut.serde.Deserializer,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">withRuntimeEnumFallback(Deserializer, Deserializer.DecoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns the generated enum deserializer unless feature override metadata requires the runtime enum deserializer.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#withRuntimeEnumFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">withRuntimeEnumFallback(Serializer, Serializer.EncoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns the generated enum serializer unless feature override metadata requires the runtime enum serializer.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#withRuntimeObjectFallback(io.micronaut.serde.Deserializer,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">withRuntimeObjectFallback(Deserializer, Deserializer.DecoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns the generated deserializer unless the active features require the runtime object deserializer.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html#withRuntimeObjectFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">withRuntimeObjectFallback(Serializer, Serializer.EncoderContext, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a></dt>
+<dd>
+<div class="block">Returns the generated serializer unless the active features require the runtime object serializer.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorType.html#WRAPPER_ARRAY" class="member-name-link">WRAPPER_ARRAY</a> - Enum constant in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerSubtyped.DiscriminatorType.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerSubtyped.DiscriminatorType</a></dt>
 <dd>&nbsp;</dd>
@@ -5302,13 +5780,49 @@ the order they are declared.</div>
 <dd>
 <div class="block">A property that should be used to wrap this value when serializing.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS" class="member-name-link">WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Write numeric date/time timestamps using nanosecond precision when timestamps are enabled.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#WRITE_DATES_WITH_ZONE_ID" class="member-name-link">WRITE_DATES_WITH_ZONE_ID</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Include the zone id when serializing date/time values that support zone information.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#WRITE_ONLY" class="member-name-link">WRITE_ONLY</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Is this property to be used only for writing.</div>
 </dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED" class="member-name-link">WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Serialize single-element arrays and iterable values as the contained value instead of an array.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#WRITE_SORTED_MAP_ENTRIES" class="member-name-link">WRITE_SORTED_MAP_ENTRIES</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></dt>
+<dd>
+<div class="block">Serialize map entries ordered by key.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#writeDatesWithZoneId()" class="member-name-link">writeDatesWithZoneId()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether zone ids are included when serializing zoned date/time values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#writeDateTimestampsAsNanoseconds()" class="member-name-link">writeDateTimestampsAsNanoseconds()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether timestamps are written with nanosecond precision.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#writeMethod()" class="member-name-link">writeMethod()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-writeMethod"><code>writeMethod</code></a> record component.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#writeSingleElemArraysUnwrapped()" class="member-name-link">writeSingleElemArraysUnwrapped()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether single-element arrays should be written as unwrapped scalar values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/support/serdes/SingleElementArraySerde.html#writeSingleElementArraysUnwrapped(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext)" class="member-name-link">writeSingleElementArraysUnwrapped(Serializer, Serializer.EncoderContext)</a> - Static method in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/SingleElementArraySerde.html" title="class in io.micronaut.serde.support.serdes">SingleElementArraySerde</a></dt>
+<dd>
+<div class="block">Apply <a href="io/micronaut/serde/config/SerdeConfiguration.Feature.html#WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED"><code>SerdeConfiguration.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED</code></a> if enabled.</div>
+</dd>
+<dt><a href="io/micronaut/serde/config/SerializationConfiguration.html#writeSortedMapEntries()" class="member-name-link">writeSortedMapEntries()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a></dt>
+<dd>
+<div class="block">Determines whether map entries should be written sorted by key.</div>
 </dd>
 <dt><a href="io/micronaut/serde/jackson/JacksonJsonMapper.html#writeValue(java.io.OutputStream,java.lang.Object)" class="member-name-link">writeValue(OutputStream, Object)</a> - Method in class io.micronaut.serde.jackson.<a href="io/micronaut/serde/jackson/JacksonJsonMapper.html" title="class in io.micronaut.serde.jackson">JacksonJsonMapper</a></dt>
 <dd>&nbsp;</dd>
