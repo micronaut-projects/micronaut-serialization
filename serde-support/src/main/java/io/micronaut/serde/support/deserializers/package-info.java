@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Runtime deserializers for objects, subtypes, and property-based binding.
  */
 @NullMarked
 package io.micronaut.serde.support.deserializers;

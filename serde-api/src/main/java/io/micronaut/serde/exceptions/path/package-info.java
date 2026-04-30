@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Reference path model for reporting where serialization or deserialization failures occurred.
  */
 @NullMarked
 package io.micronaut.serde.exceptions.path;

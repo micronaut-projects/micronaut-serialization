@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Runtime deserializers for collection and map types.
  */
 @NullMarked
 package io.micronaut.serde.support.deserializers.collect;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Runtime configuration beans for JSON serialization support.
  */
 @NullMarked
 package io.micronaut.serde.support.config;

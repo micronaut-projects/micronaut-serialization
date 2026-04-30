@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Runtime serializers for objects, collections, maps, and dynamic values.
  */
 @NullMarked
 package io.micronaut.serde.support.serializers;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * JSON-P streaming encoder, decoder, and mapper support.
  */
 @NullMarked
 package io.micronaut.serde.json.stream;

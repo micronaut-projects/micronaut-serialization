@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Outer-interface and command fixture types used by Jackson compatibility tests.
  */
 @NullMarked
 package io.micronaut.serde.jackson.outerinterface;

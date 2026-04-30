@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Standalone Jackson-backed object mapper example used by the Micronaut Serialization guide.
  */
 @NullMarked
 package example;

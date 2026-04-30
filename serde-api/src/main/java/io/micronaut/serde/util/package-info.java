@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Shared utility types used by generated and runtime serialization code.
  */
 @NullMarked
 package io.micronaut.serde.util;

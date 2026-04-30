@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Record serializer and deserializer source generation support.
  */
 @NullMarked
 package io.micronaut.serde.processor.sourcegen.records;

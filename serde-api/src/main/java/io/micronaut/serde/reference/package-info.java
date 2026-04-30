@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Reusable property reference metadata for serialization and error reporting.
  */
 @NullMarked
 package io.micronaut.serde.reference;

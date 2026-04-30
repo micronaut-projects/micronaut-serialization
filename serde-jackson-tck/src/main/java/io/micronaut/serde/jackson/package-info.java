@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Jackson compatibility fixture types shared by the serde TCK.
  */
 @NullMarked
 package io.micronaut.serde.jackson;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Custom BSON serializers, deserializers, and codec adapters.
  */
 @NullMarked
 package io.micronaut.serde.bson.custom;

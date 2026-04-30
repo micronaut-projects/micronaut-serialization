@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Jackson-backed JSON mapper, encoder, decoder, and configuration support.
  */
 @NullMarked
 package io.micronaut.serde.jackson;

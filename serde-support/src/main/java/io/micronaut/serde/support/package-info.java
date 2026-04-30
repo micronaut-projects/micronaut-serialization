@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Runtime support for Micronaut Serialization registries, contexts, and stream processing.
  */
 @NullMarked
 package io.micronaut.serde.support;

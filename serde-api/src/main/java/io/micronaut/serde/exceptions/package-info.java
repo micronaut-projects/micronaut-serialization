@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Exception types raised by Micronaut Serialization.
  */
 @NullMarked
 package io.micronaut.serde.exceptions;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Oracle JDBC JSON object mapper, encoder, and decoder support.
  */
 @NullMarked
 package io.micronaut.serde.oracle.jdbc.json;

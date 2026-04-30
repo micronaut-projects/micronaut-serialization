@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Core Micronaut Serialization SPI for encoders, decoders, serializers, deserializers, and object mappers.
  */
 @NullMarked
 package io.micronaut.serde;

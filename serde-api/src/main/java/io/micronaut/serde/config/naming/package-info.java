@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Property naming strategies used to translate bean property names during serialization.
  */
 @NullMarked
 package io.micronaut.serde.config.naming;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Java examples used by the Micronaut Serialization guide.
  */
 @NullMarked
 package example;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Shape-related fixture types used by Jackson compatibility tests.
  */
 @NullMarked
 package io.micronaut.serde.jackson.shape;

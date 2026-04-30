@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Runtime helper types for serde metadata, JSON tree processing, and subtype handling.
  */
 @NullMarked
 package io.micronaut.serde.support.util;

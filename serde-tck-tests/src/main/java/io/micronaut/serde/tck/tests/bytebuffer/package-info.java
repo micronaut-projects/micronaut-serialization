@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 /**
- * Tests ported from Jackson Databind project.
- * Jackson-databind is licensed under Apache 2.0. License
+ * ByteBuffer compatibility tests ported from the Apache 2.0-licensed Jackson Databind project.
  */
 @NullMarked
 package io.micronaut.serde.tck.tests.bytebuffer;

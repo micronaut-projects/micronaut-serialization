@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Shared Java TCK tests for Micronaut Serialization behavior.
  */
 @NullMarked
 package io.micronaut.serde.tck.tests;

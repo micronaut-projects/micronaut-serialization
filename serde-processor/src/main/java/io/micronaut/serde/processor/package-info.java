@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Annotation processing entry point for generating Micronaut Serialization metadata and source.
  */
 @NullMarked
 package io.micronaut.serde.processor;

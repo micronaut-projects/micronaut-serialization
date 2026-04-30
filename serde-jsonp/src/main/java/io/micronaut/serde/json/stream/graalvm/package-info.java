@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * GraalVM feature registration for JSON-P streaming support.
  */
 @NullMarked
 package io.micronaut.serde.json.stream.graalvm;

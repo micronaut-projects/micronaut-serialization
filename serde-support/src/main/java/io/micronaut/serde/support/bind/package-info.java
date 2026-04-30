@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * HTTP binding integration for reporting serde errors during bean binding.
  */
 @NullMarked
 package io.micronaut.serde.support.bind;

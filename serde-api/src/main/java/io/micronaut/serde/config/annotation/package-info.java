@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Annotation model used by the serialization processor to describe serde configuration.
  */
 @NullMarked
 package io.micronaut.serde.config.annotation;

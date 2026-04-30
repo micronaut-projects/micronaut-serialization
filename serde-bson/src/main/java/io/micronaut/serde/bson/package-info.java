@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * BSON object mapper, encoder, and decoder support for Micronaut Serialization.
  */
 @NullMarked
 package io.micronaut.serde.bson;

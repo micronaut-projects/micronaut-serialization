@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Built-in serializers and deserializers for common JDK and Micronaut value types.
  */
 @NullMarked
 package io.micronaut.serde.support.serdes;

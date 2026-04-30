@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Configuration contracts and defaults for Micronaut Serialization behavior.
  */
 @NullMarked
 package io.micronaut.serde.config;

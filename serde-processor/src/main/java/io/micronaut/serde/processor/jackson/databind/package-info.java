@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Annotation mappers for Jackson databind annotations.
  */
 @NullMarked
 package io.micronaut.serde.processor.jackson.databind;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Source generation infrastructure for compile-time serializers and deserializers.
  */
 @NullMarked
 package io.micronaut.serde.processor.sourcegen;

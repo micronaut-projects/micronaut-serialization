@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Reusable TCK fixture types for serialization and deserialization tests.
  */
 @NullMarked
 package io.micronaut.serde;

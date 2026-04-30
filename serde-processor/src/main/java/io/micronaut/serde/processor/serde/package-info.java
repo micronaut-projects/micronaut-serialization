@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Annotation mappers for Micronaut Serialization annotations.
  */
 @NullMarked
 package io.micronaut.serde.processor.serde;

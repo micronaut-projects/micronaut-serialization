@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Annotations for declaring serializable types and importing external serialization metadata.
  */
 @NullMarked
 package io.micronaut.serde.annotation;

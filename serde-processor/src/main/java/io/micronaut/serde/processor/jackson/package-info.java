@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * The package info.
+ * Annotation mappers that translate Jackson annotations into Micronaut Serialization metadata.
  */
 @NullMarked
 package io.micronaut.serde.processor.jackson;
