@@ -28,6 +28,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
@@ -62,6 +63,27 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
             valueGeneric = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) Argument.OBJECT_ARGUMENT);
         }
         valueSerializer = (Serializer<V>) context.findSerializer(valueGeneric).createSpecific(context, valueGeneric);
+    }
+
+    private static int compareEntriesByKey(Map.Entry<?, ?> left, Map.Entry<?, ?> right) {
+        return compareKeys(left.getKey(), right.getKey());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int compareKeys(Object left, Object right) {
+        if (left == right) {
+            return 0;
+        }
+        if (left == null) {
+            return -1;
+        }
+        if (right == null) {
+            return 1;
+        }
+        if (left instanceof Comparable<?> && left.getClass() == right.getClass()) {
+            return ((Comparable<Object>) left).compareTo(right);
+        }
+        return String.valueOf(left).compareTo(String.valueOf(right));
     }
 
     protected abstract void encodeKey(Encoder encoder, EncoderContext context, K k) throws IOException;
@@ -125,12 +147,12 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
     }
 
     @Override
-    public final boolean isAbsent(EncoderContext context, Map<K, V> value) {
+    public final boolean isAbsent(EncoderContext context, @Nullable Map<K, V> value) {
         return value == null;
     }
 
     @Override
-    public final boolean isEmpty(EncoderContext context, Map<K, V> value) {
+    public final boolean isEmpty(EncoderContext context, @Nullable Map<K, V> value) {
         if (CollectionUtils.isEmpty(value)) {
             return true;
         }
@@ -159,27 +181,6 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
             return true;
         }
         return false;
-    }
-
-    private static int compareEntriesByKey(Map.Entry<?, ?> left, Map.Entry<?, ?> right) {
-        return compareKeys(left.getKey(), right.getKey());
-    }
-
-    @SuppressWarnings("unchecked")
-    private static int compareKeys(Object left, Object right) {
-        if (left == right) {
-            return 0;
-        }
-        if (left == null) {
-            return -1;
-        }
-        if (right == null) {
-            return 1;
-        }
-        if (left instanceof Comparable<?> && left.getClass() == right.getClass()) {
-            return ((Comparable<Object>) left).compareTo(right);
-        }
-        return String.valueOf(left).compareTo(String.valueOf(right));
     }
 
 }

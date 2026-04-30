@@ -16,11 +16,11 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -46,14 +46,14 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         return deserialize(decoder, context, type, false);
     }
 
     @Override
-    public Object deserializeNullable(@NonNull Decoder decoder,
-                                      @NonNull DecoderContext context,
-                                      @NonNull Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserializeNullable(Decoder decoder,
+                                                DecoderContext context,
+                                                Argument<? super Object> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }
@@ -61,10 +61,10 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
         return deserialize(decoder, context, type, true);
     }
 
-    private Object deserialize(Decoder decoder,
-                               DecoderContext context,
-                               Argument<? super Object> type,
-                               boolean isNullable) throws IOException {
+    private @Nullable Object deserialize(Decoder decoder,
+                                         DecoderContext context,
+                                         Argument<? super Object> type,
+                                         boolean isNullable) throws IOException {
 
         Decoder unwrappedDecoder = decoder.decodeObject();
         String key = unwrappedDecoder.decodeKey();

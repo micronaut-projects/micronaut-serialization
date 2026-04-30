@@ -15,6 +15,12 @@
  */
 package io.micronaut.serde.support.util;
 
+import io.micronaut.core.annotation.Experimental;
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.json.tree.JsonNode;
+import org.reactivestreams.Processor;
+import org.reactivestreams.Subscriber;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,13 +29,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.function.Consumer;
-
-import io.micronaut.core.annotation.Experimental;
-import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import io.micronaut.json.tree.JsonNode;
-import org.reactivestreams.Processor;
-import org.reactivestreams.Subscriber;
 
 /**
  * Utility class for buffering and parsing JSON to support {@link io.micronaut.json.JsonMapper#createReactiveParser(java.util.function.Consumer, boolean)}.
@@ -59,6 +58,7 @@ public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[],
 
     /**
      * Default constructor.
+     *
      * @param onSubscribe The onSubscribe callback.
      * @param streamArray Whether to stream an array.
      */
@@ -66,6 +66,78 @@ public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[],
                                       boolean streamArray) {
         this.onSubscribe = onSubscribe;
         this.streamArray = streamArray;
+    }
+
+    private static boolean isJsonWhitespace(byte b) {
+        return b == 0x20 || b == 0x0a || b == 0x0d || b == 0x09;
+    }
+
+    /**
+     * This method is a simple JSON lexer. It uses a single {@code long state}, which is {@code 0} when a JSON object
+     * or array has been fully visited. If there is still data missing (i.e. if there is still an unmatched brace or
+     * bracket), the state will be {@code != 0}. If the JSON is invalid, the state is undefined. Example:
+     *
+     * <pre>{@code
+     * long state = 0;
+     * for (byte b : bytes) state = walkJson(state, b);
+     * }</pre>
+     * <p>
+     * {@code state} will be 0 if the `bytes` contain a full JSON array or object.
+     * <p>
+     * Note: Does not work for top-level scalar values, or for invalid JSON.
+     *
+     * @param state The old state
+     * @param b     The new input byte to visit
+     * @return The new state
+     */
+    static long walkJson(long state, byte b) {
+        // unpack the two variables
+        int dfaState = (int) state;
+        int nestCount = (int) (state >> 32);
+
+        switch (dfaState) {
+            case 0:
+                // outside string
+                switch (b) {
+                    case '"':
+                        dfaState = 1;
+                        break;
+                    case '{':
+                    case '[':
+                        nestCount++;
+                        break;
+                    case '}':
+                    case ']':
+                        nestCount--;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 1:
+                // inside string
+                switch (b) {
+                    case '"':
+                        dfaState = 0;
+                        break;
+                    case '\\':
+                        dfaState = 2;
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case 2:
+                // inside escape sequence
+                // the only escape we care about is \", so we don't need to handle longer escapes.
+                dfaState = 1;
+                break;
+            default:
+                throw new AssertionError();
+        }
+
+        // repack the two variables
+        return ((long) nestCount << 32) | dfaState;
     }
 
     @Override
@@ -157,93 +229,23 @@ public abstract class BufferingJsonNodeProcessor extends SpreadProcessor<byte[],
 
     /**
      * Parse a single node from the given stream.
+     *
      * @param is The input stream
      * @return The node
      * @throws IOException if an error occurs
      */
-    protected abstract @NonNull JsonNode parseOne(@NonNull InputStream is) throws IOException;
+    protected abstract JsonNode parseOne(InputStream is) throws IOException;
 
     /**
      * Parse a single node from the given stream.
+     *
      * @param remaining The bytes
      * @return The node
      * @throws IOException if an error occurs
      */
-    protected @NonNull JsonNode parseOne(@NonNull byte[] remaining) throws IOException {
+    protected JsonNode parseOne(byte[] remaining) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(remaining)) {
             return parseOne(is);
         }
-    }
-
-    private static boolean isJsonWhitespace(byte b) {
-        return b == 0x20 || b == 0x0a || b == 0x0d || b == 0x09;
-    }
-
-    /**
-     * This method is a simple JSON lexer. It uses a single {@code long state}, which is {@code 0} when a JSON object
-     * or array has been fully visited. If there is still data missing (i.e. if there is still an unmatched brace or
-     * bracket), the state will be {@code != 0}. If the JSON is invalid, the state is undefined. Example:
-     *
-     * <pre>{@code
-     * long state = 0;
-     * for (byte b : bytes) state = walkJson(state, b);
-     * }</pre>
-     * <p>
-     * {@code state} will be 0 if the `bytes` contain a full JSON array or object.
-     * <p>
-     * Note: Does not work for top-level scalar values, or for invalid JSON.
-     *
-     * @param state The old state
-     * @param b     The new input byte to visit
-     * @return The new state
-     */
-    static long walkJson(long state, byte b) {
-        // unpack the two variables
-        int dfaState = (int) state;
-        int nestCount = (int) (state >> 32);
-
-        switch (dfaState) {
-            case 0:
-                // outside string
-                switch (b) {
-                    case '"':
-                        dfaState = 1;
-                        break;
-                    case '{':
-                    case '[':
-                        nestCount++;
-                        break;
-                    case '}':
-                    case ']':
-                        nestCount--;
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case 1:
-                // inside string
-                switch (b) {
-                    case '"':
-                        dfaState = 0;
-                        break;
-                    case '\\':
-                        dfaState = 2;
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case 2:
-                // inside escape sequence
-                // the only escape we care about is \", so we don't need to handle longer escapes.
-                dfaState = 1;
-                break;
-            default:
-                throw new AssertionError();
-        }
-
-        // repack the two variables
-        return ((long) nestCount << 32) | dfaState;
     }
 }

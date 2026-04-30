@@ -16,11 +16,11 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -46,7 +46,7 @@ final class BigIntegerSerde implements SerdeRegistrar<BigInteger>, NumberSerde<B
     }
 
     @Override
-    public BigInteger deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super BigInteger> type) throws IOException {
+    public @Nullable BigInteger deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super BigInteger> type) throws IOException {
         return decoder.decodeBigIntegerNullable();
     }
 }

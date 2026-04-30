@@ -17,4 +17,7 @@
  * Tests ported from Jackson Databind project.
  * Jackson-databind is licensed under Apache 2.0. License
  */
+@NullMarked
 package io.micronaut.serde.tck.tests.bytebuffer;
+
+import org.jspecify.annotations.NullMarked;

@@ -16,10 +16,10 @@
 package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ final class ArrayListDeserializer<E> extends CollectionDeserializer<E, ArrayList
     }
 
     @Override
-    public ArrayList<E> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super ArrayList<E>> type) throws IOException {
+    public @Nullable ArrayList<E> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super ArrayList<E>> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

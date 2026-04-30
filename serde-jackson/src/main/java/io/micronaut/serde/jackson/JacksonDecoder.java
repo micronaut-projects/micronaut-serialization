@@ -24,7 +24,6 @@ import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonParser;
 import tools.jackson.core.JsonToken;
@@ -81,7 +80,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message, Object invalidValue) {
+    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         if (invalidValue != null) {
             return new InvalidFormatException(message + " \n at " + parser.currentLocation(), null, invalidValue);
         } else {
@@ -149,7 +148,6 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
-    @NonNull
     @Override
     public JacksonDecoder decodeArray(Argument<?> type) throws IOException {
         JsonToken t = nextToken();
@@ -170,7 +168,6 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         return this;
     }
 
-    @NonNull
     @Override
     public JacksonDecoder decodeObject(Argument<?> type) throws IOException {
         JsonToken t = nextToken();
@@ -191,7 +188,6 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         return this;
     }
 
-    @NonNull
     @Override
     public String decodeString() throws IOException {
         String s = decodeStringNullable();
@@ -674,7 +670,6 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
-    @NonNull
     @Override
     public BigInteger decodeBigInteger() throws IOException {
         BigInteger v = decodeBigIntegerNullable();
@@ -724,7 +719,6 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
     }
 
-    @NonNull
     @Override
     public BigDecimal decodeBigDecimal() throws IOException {
         BigDecimal v = decodeBigDecimalNullable();
@@ -789,7 +783,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     }
 
     @Override
-    public byte @NonNull [] decodeBinary() throws IOException {
+    public byte[] decodeBinary() throws IOException {
         return switch (peekToken()) {
             case VALUE_STRING -> {
                 nextToken();
@@ -856,7 +850,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         return JsonNodeDecoder.create(node, ourLimits());
     }
 
-    @NonNull
+    @Override
     public JsonNode decodeNode() throws IOException {
         JsonToken t = peekToken();
         return switch (t) {
@@ -938,10 +932,11 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     }
 
     private abstract static class ArbitraryBuilder {
+        @Nullable
         final ArbitraryBuilder parent;
         final JacksonDecoder elementDecoder;
 
-        ArbitraryBuilder(ArbitraryBuilder parent, JacksonDecoder elementDecoder) {
+        ArbitraryBuilder(@Nullable ArbitraryBuilder parent, JacksonDecoder elementDecoder) {
             this.parent = parent;
             this.elementDecoder = elementDecoder;
         }
@@ -949,14 +944,15 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         // this is basically MapBuilder API, we emulate it with mock keys for RootBuilder and ListBuilder
 
         // also calls finishStructure
-        abstract String decodeKey() throws IOException;
+        abstract @Nullable String decodeKey() throws IOException;
 
-        abstract void put(String key, Object value);
+        abstract void put(String key, @Nullable Object value);
 
         /**
          * Consume some input. Returns the decoder responsible for further processing: Either this decoder, a new child
          * decoder, or the parent of this decoder (possibly null).
          */
+        @Nullable
         ArbitraryBuilder proceed() throws IOException {
             String key = decodeKey();
             if (key != null) {
@@ -1001,6 +997,7 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
 
     private static final class RootBuilder extends ArbitraryBuilder {
         boolean done = false;
+        @Nullable
         Object result;
 
         RootBuilder(JacksonDecoder decoder) {
@@ -1008,30 +1005,32 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
         }
 
         @Override
-        void put(String key, Object value) {
+        void put(String key, @Nullable Object value) {
             result = value;
             done = true;
         }
 
         @Override
+        @Nullable
         String decodeKey() {
             return !done ? "" : null;
         }
     }
 
     private static final class ListBuilder extends ArbitraryBuilder {
-        private final List<Object> items = new ArrayList<>();
+        private final List<@Nullable Object> items = new ArrayList<>();
 
         ListBuilder(ArbitraryBuilder parent, JacksonDecoder decoder) {
             super(parent, decoder);
         }
 
         @Override
-        void put(String key, Object value) {
+        void put(String key, @Nullable Object value) {
             items.add(value);
         }
 
         @Override
+        @Nullable
         String decodeKey() throws IOException {
             if (elementDecoder.hasNextArrayValue()) {
                 return "";
@@ -1043,18 +1042,19 @@ public final class JacksonDecoder extends LimitingStream implements Decoder {
     }
 
     private static final class MapBuilder extends ArbitraryBuilder {
-        private final Map<String, Object> items = new LinkedHashMap<>();
+        private final Map<String, @Nullable Object> items = new LinkedHashMap<>();
 
         MapBuilder(ArbitraryBuilder parent, JacksonDecoder elementDecoder) {
             super(parent, elementDecoder);
         }
 
         @Override
-        void put(String key, Object value) {
+        void put(String key, @Nullable Object value) {
             items.put(key, value);
         }
 
         @Override
+        @Nullable
         String decodeKey() throws IOException {
             String key = elementDecoder.decodeKey();
             if (key == null) {

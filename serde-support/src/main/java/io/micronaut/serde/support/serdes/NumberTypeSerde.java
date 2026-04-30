@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ final class NumberTypeSerde implements SerdeRegistrar<Number>, NumberSerde<Numbe
     }
 
     @Override
-    public Number deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Number> type) throws IOException {
+    public @Nullable Number deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Number> type) throws IOException {
         return decoder.decodeNumberNullable();
     }
 
@@ -55,7 +54,7 @@ final class NumberTypeSerde implements SerdeRegistrar<Number>, NumberSerde<Numbe
 
     @Nullable
     @Override
-    public Integer getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Number> type) {
+    public Integer getDefaultValue(DecoderContext context, Argument<? super Number> type) {
         return type.isPrimitive() ? 0 : null;
     }
 }

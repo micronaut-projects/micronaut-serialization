@@ -59,8 +59,8 @@ final class LegacyBeansFactory {
     @Any
     @Prototype
     @BootstrapContextCompatible
-    <S extends Serde<T>, T> S provideSerde(InjectionPoint<Serde<T>> serdeInjectionPoint,
-                                           BeanProvider<DefaultSerdeRegistry> serdeRegistry) {
+    <S extends Serde<T>, T> @Nullable S provideSerde(InjectionPoint<Serde<T>> serdeInjectionPoint,
+                                                     BeanProvider<DefaultSerdeRegistry> serdeRegistry) {
         if (serdeInjectionPoint instanceof ArgumentInjectionPoint<?, ?> argumentInjectionPoint) {
             Argument typeParameter = argumentInjectionPoint.getArgument().getTypeParameters()[0];
             if (typeParameter.getType() == Object[].class) {
@@ -75,8 +75,8 @@ final class LegacyBeansFactory {
     @Any
     @Prototype
     @BootstrapContextCompatible
-    <S extends Deserializer<T>, T> S provideDeserializer(InjectionPoint<Deserializer<T>> injectionPoint,
-                                                         BeanProvider<DefaultSerdeRegistry> serdeRegistry) throws SerdeException {
+    <S extends Deserializer<T>, T> @Nullable S provideDeserializer(InjectionPoint<Deserializer<T>> injectionPoint,
+                                                                   BeanProvider<DefaultSerdeRegistry> serdeRegistry) throws SerdeException {
         if (injectionPoint instanceof ArgumentInjectionPoint<?, ?> argumentInjectionPoint) {
             Argument typeParameter = argumentInjectionPoint.getArgument().getTypeParameters()[0];
             DefaultSerdeRegistry defaultSerdeRegistry = serdeRegistry.get();
@@ -88,8 +88,8 @@ final class LegacyBeansFactory {
     @Any
     @Prototype
     @BootstrapContextCompatible
-    <S extends Serializer<T>, T> S provideSerializer(InjectionPoint<Serializer<T>> injectionPoint,
-                                                     BeanProvider<DefaultSerdeRegistry> serdeRegistry) throws SerdeException {
+    <S extends Serializer<T>, T> @Nullable S provideSerializer(InjectionPoint<Serializer<T>> injectionPoint,
+                                                               BeanProvider<DefaultSerdeRegistry> serdeRegistry) throws SerdeException {
         if (injectionPoint instanceof ArgumentInjectionPoint<?, ?> argumentInjectionPoint) {
             Argument typeParameter = argumentInjectionPoint.getArgument().getTypeParameters()[0];
             DefaultSerdeRegistry defaultSerdeRegistry = serdeRegistry.get();

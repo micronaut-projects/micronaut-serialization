@@ -21,7 +21,6 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -37,7 +36,7 @@ final class CharSerde implements FormattedSerde<Character>, SerdeRegistrar<Chara
     }
 
     @Override
-    public Character deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Character> type) throws IOException {
+    public @Nullable Character deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Character> type) throws IOException {
         return decoder.decodeCharNullable();
     }
 
@@ -67,7 +66,7 @@ final class CharSerde implements FormattedSerde<Character>, SerdeRegistrar<Chara
 
     @Nullable
     @Override
-    public Character getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Character> type) {
+    public Character getDefaultValue(DecoderContext context, Argument<? super Character> type) {
         return type.isPrimitive() ? (char) 0 : null;
     }
 }

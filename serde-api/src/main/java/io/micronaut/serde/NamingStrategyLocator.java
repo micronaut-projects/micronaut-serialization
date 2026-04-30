@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -34,8 +33,7 @@ public interface NamingStrategyLocator {
      * @return The naming strategy
      * @throws SerdeException if no naming strategy is found
      */
-    @NonNull
-    <D extends PropertyNamingStrategy> D findNamingStrategy(@NonNull Class<? extends D> namingStrategyClass)
+    <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass)
             throws SerdeException;
 
 }

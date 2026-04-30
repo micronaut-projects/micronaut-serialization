@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -35,7 +34,6 @@ import java.util.Map;
 @Internal
 record ResolvedDeserializerSubtypeInfo<T>(
     DeserBeanSubtypeInfo<T> parent,
-    @NonNull
     Map<String, Deserializer<T>> subtypes,
     @Nullable
     Deserializer<T> defaultType
@@ -47,7 +45,6 @@ record ResolvedDeserializerSubtypeInfo<T>(
      * @param discriminatorValue The discriminator value
      * @return The {@link Deserializer}
      */
-    @NonNull
     @Override
     public Deserializer<T> findDeserializer(@Nullable String discriminatorValue) throws SerdeException {
         Deserializer<T> deserializer;

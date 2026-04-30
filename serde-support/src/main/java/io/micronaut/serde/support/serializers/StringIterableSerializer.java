@@ -18,6 +18,7 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 
@@ -55,7 +56,7 @@ final class StringIterableSerializer extends AbstractIterableSerializer<String> 
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, Iterable<String> value) {
+    public boolean isEmpty(EncoderContext context, @Nullable Iterable<String> value) {
         if (value == null) {
             return true;
         }
@@ -67,7 +68,7 @@ final class StringIterableSerializer extends AbstractIterableSerializer<String> 
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, Iterable<String> value) {
+    public boolean isAbsent(EncoderContext context, @Nullable Iterable<String> value) {
         return value == null;
     }
 

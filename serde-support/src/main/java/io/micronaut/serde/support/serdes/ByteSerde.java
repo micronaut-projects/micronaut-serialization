@@ -16,12 +16,11 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,7 +35,7 @@ final class ByteSerde implements SerdeRegistrar<Byte>, NumberSerde<Byte> {
     }
 
     @Override
-    public Byte deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Byte> type) throws IOException {
+    public @Nullable Byte deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Byte> type) throws IOException {
         return decoder.decodeByteNullable();
     }
 
@@ -66,7 +65,7 @@ final class ByteSerde implements SerdeRegistrar<Byte>, NumberSerde<Byte> {
 
     @Nullable
     @Override
-    public Byte getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Byte> type) {
+    public Byte getDefaultValue(DecoderContext context, Argument<? super Byte> type) {
         return type.isPrimitive() ? (byte) 0 : null;
     }
 }

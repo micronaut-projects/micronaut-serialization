@@ -24,7 +24,6 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.SerializationReference;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
@@ -57,7 +56,7 @@ final class FeatureEncoderContext implements Serializer.EncoderContext {
 
     @Override
     @Nullable
-    public <B, P> SerializationReference<B, P> resolveReference(@NonNull SerializationReference<B, P> reference) {
+    public <B, P> SerializationReference<B, P> resolveReference(SerializationReference<B, P> reference) {
         return delegate.resolveReference(reference);
     }
 
@@ -77,22 +76,22 @@ final class FeatureEncoderContext implements Serializer.EncoderContext {
     }
 
     @Override
-    public <T, D extends Serializer<? extends T>> D findCustomSerializer(@NonNull Class<? extends D> serializerClass) throws SerdeException {
+    public <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass) throws SerdeException {
         return delegate.findCustomSerializer(serializerClass);
     }
 
     @Override
-    public <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType) throws SerdeException {
+    public <T> Serializer<? super T> findSerializer(Argument<? extends T> forType) throws SerdeException {
         return delegate.findSerializer(forType);
     }
 
     @Override
-    public <D extends PropertyNamingStrategy> D findNamingStrategy(@NonNull Class<? extends D> namingStrategyClass) throws SerdeException {
+    public <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass) throws SerdeException {
         return delegate.findNamingStrategy(namingStrategyClass);
     }
 
     @Override
-    public <B, P> void pushManagedRef(@NonNull PropertyReference<B, P> reference) {
+    public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
         delegate.pushManagedRef(reference);
     }
 

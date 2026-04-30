@@ -20,8 +20,10 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.reference.PropertyReference;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Subtyped external property deserializer.
@@ -38,22 +40,22 @@ final class SubtypedExternalPropertyObjectDeserializer implements Deserializer<O
         this.subtypeInfo = subtypeInfo;
     }
 
-    static PropertyReference<Object, String> createExternalPropertyReference(DecoderContext decoderContext, String discriminator, String value) {
+    static PropertyReference<Object, String> createExternalPropertyReference(DecoderContext decoderContext, String discriminator, @Nullable String value) {
         String referenceName = "externalProperty@" + discriminator;
         // TODO: We need a better API for this case when there is no introspection
-        return decoderContext.resolveReference(
+        return Objects.requireNonNull(decoderContext.resolveReference(
             new PropertyReference<>(
                 referenceName,
                 null,
                 Argument.of(String.class, referenceName),
                 value)
-        );
+        ));
     }
 
     @Override
-    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
         PropertyReference<Object, String> externalPropertyReference = createExternalPropertyReference(decoderContext, subtypeInfo.parent().info().discriminatorName(), null);
-        PropertyReference<Object, String> ref = decoderContext.resolveReference(externalPropertyReference);
+        PropertyReference<Object, String> ref = Objects.requireNonNull(decoderContext.resolveReference(externalPropertyReference));
         String discriminatorValue = (String) ref.getReference();
         Deserializer<? super Object> deserializer = subtypeInfo.findDeserializer(discriminatorValue);
         return deserializer.deserialize(decoder, decoderContext, type);

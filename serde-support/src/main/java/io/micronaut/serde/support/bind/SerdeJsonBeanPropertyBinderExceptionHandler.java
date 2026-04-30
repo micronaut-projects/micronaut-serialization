@@ -24,6 +24,7 @@ import io.micronaut.json.bind.JsonBeanPropertyBinderExceptionHandler;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of {@link JsonBeanPropertyBinderExceptionHandler}.
@@ -33,7 +34,7 @@ import jakarta.inject.Singleton;
 public class SerdeJsonBeanPropertyBinderExceptionHandler
         implements JsonBeanPropertyBinderExceptionHandler {
     @Override
-    public Optional<ConversionErrorException> toConversionError(Object object, Exception e) {
+    public Optional<ConversionErrorException> toConversionError(@Nullable Object object, Exception e) {
         if (e instanceof InvalidFormatException) {
             InvalidFormatException ife = (InvalidFormatException) e;
             Argument<?> argument;

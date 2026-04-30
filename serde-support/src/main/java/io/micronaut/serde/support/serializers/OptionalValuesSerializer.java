@@ -20,6 +20,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalValues;
 import io.micronaut.serde.Encoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
@@ -75,8 +76,8 @@ final class OptionalValuesSerializer<V> implements CustomizableSerializer<Option
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, OptionalValues<V> value) {
-        return value.isEmpty();
+    public boolean isEmpty(EncoderContext context, @Nullable OptionalValues<V> value) {
+        return value == null || value.isEmpty();
     }
 
     @Override

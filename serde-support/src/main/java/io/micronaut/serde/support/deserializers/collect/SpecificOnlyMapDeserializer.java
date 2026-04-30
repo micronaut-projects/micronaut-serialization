@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -24,9 +23,14 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 @Internal
 abstract class SpecificOnlyMapDeserializer<K, V, M extends Map<K, V>> implements CustomizableDeserializer<M>, DeserializerRegistrar<M> {
@@ -43,7 +47,7 @@ abstract class SpecificOnlyMapDeserializer<K, V, M extends Map<K, V>> implements
         if (generics.length == 2) {
             @SuppressWarnings("unchecked") final Argument<K> keyType = (Argument<K>) generics[0];
             @SuppressWarnings("unchecked") final Argument<V> valueType = SerdeArgumentConf.reconstructGenericWithParentMetadata(type, (Argument<V>) generics[1]);
-            final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
+            final @Nullable Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
                 .createSpecific(context, valueType);
             return createSpecific(keyType, valueType, valueDeser);
         }
@@ -54,9 +58,9 @@ abstract class SpecificOnlyMapDeserializer<K, V, M extends Map<K, V>> implements
                 // raw map
                 final Object o = decoder.decodeArbitrary();
                 if (type.isInstance(o)) {
-                    return (M) o;
+                    return (M) Objects.requireNonNull(o);
                 } else if (o instanceof Map) {
-                    final M map = getDefaultValue(decoderContext, type);
+                    final M map = newMap();
                     map.putAll((Map) o);
                     return map;
                 } else {
@@ -67,8 +71,17 @@ abstract class SpecificOnlyMapDeserializer<K, V, M extends Map<K, V>> implements
         };
     }
 
-    @NonNull
-    protected abstract Deserializer<M> createSpecific(Argument<K> keyType, Argument<V> valueType, Deserializer<? extends V> valueDeser);
+    private M newMap() {
+        if (type == TreeMap.class) {
+            return (M) new TreeMap<>();
+        }
+        if (type == LinkedHashMap.class) {
+            return (M) new LinkedHashMap<>();
+        }
+        return (M) new HashMap<>();
+    }
+
+    protected abstract Deserializer<M> createSpecific(Argument<K> keyType, Argument<V> valueType, @Nullable Deserializer<? extends V> valueDeser);
 
     @Override
     public Argument<M> getType() {

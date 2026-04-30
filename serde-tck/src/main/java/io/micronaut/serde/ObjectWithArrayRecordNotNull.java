@@ -15,11 +15,10 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.annotation.Serdeable;
 
 import java.util.List;
 
 @Serdeable
-public record ObjectWithArrayRecordNotNull(@NonNull List<SomeObject> vals) {
+public record ObjectWithArrayRecordNotNull(List<SomeObject> vals) {
 }

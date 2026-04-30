@@ -16,12 +16,14 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.Map;
 
 final class JsonObjectNodeDecoder extends JsonNodeDecoder {
     private final Iterator<Map.Entry<String, JsonNode>> iterator;
+    @Nullable
     private JsonNode nextValue = null;
 
     JsonObjectNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {
@@ -51,7 +53,7 @@ final class JsonObjectNodeDecoder extends JsonNodeDecoder {
     }
 
     @Override
-    public String decodeKey() {
+    public @Nullable String decodeKey() {
         if (nextValue != null) {
             throw new IllegalStateException("Field value not parsed yet");
         }

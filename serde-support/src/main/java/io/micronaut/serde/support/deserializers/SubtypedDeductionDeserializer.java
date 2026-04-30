@@ -16,17 +16,18 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Subtyped deduction deserializer.
@@ -38,13 +39,15 @@ import java.util.Map;
 final class SubtypedDeductionDeserializer implements Deserializer<Object> {
 
     private final DeserBean<? super Object> deserBean;
+    private final DeserBeanSubtypeInfo<? super Object> subtypeInfo;
     private final Map<String, Deserializer<Object>> deserializers;
 
     SubtypedDeductionDeserializer(DeserBean<? super Object> deserBean,
                                   Map<String, Deserializer<Object>> deserializers) {
         this.deserBean = deserBean;
+        this.subtypeInfo = Objects.requireNonNull(deserBean.subtypeInfo);
         this.deserializers = deserializers;
-        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = deserBean.subtypeInfo.info().discriminatorType();
+        SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = subtypeInfo.info().discriminatorType();
         if (discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.PROPERTY
             && discriminatorType != SerdeConfig.SerSubtyped.DiscriminatorType.EXISTING_PROPERTY) {
             throw new IllegalStateException("Unsupported discriminator type: " + discriminatorType);
@@ -52,7 +55,7 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
         try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
             Decoder typeFinder = primed.decodeObjectNonConsuming(type);
@@ -67,13 +70,16 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
         }
     }
 
-    @NonNull
     private Deserializer<Object> findDeserializer(Decoder objectDecoder) throws IOException {
-        Map<String, DeserBeanSubtypeInfo.SubtypeDef<?>> subtypes = new LinkedHashMap<>(deserBean.subtypeInfo.subtypes());
+        Map<String, DeserBeanSubtypeInfo.SubtypeDef<?>> subtypes = new LinkedHashMap<>(subtypeInfo.subtypes());
 
         while (true) {
             if (subtypes.size() == 1) {
-                return deserializers.get(subtypes.keySet().iterator().next());
+                Deserializer<Object> deserializer = deserializers.get(subtypes.keySet().iterator().next());
+                if (deserializer != null) {
+                    return deserializer;
+                }
+                break;
             }
             if (subtypes.isEmpty()) {
                 break;
@@ -85,6 +91,10 @@ final class SubtypedDeductionDeserializer implements Deserializer<Object> {
             Iterator<Map.Entry<String, DeserBeanSubtypeInfo.SubtypeDef<?>>> iterator = subtypes.entrySet().iterator();
             while (iterator.hasNext()) {
                 DeserBean<?> subtype = iterator.next().getValue().deserBean();
+                if (subtype == null) {
+                    iterator.remove();
+                    continue;
+                }
                 if (subtype.injectProperties != null && subtype.injectProperties.propertyIndexOf(key) != -1) {
                     // Found property
                     continue;

@@ -24,7 +24,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.time.DateTimeException;
@@ -63,7 +62,7 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
     @Override
     public Serializer<LocalDate> createSpecific(EncoderContext context,
                                                 Argument<? extends LocalDate> type,
-                                                @NonNull FormatConfiguration format) {
+                                                FormatConfiguration format) {
         Serializer<LocalDate> specific = super.createSpecific(context, type, format);
         if (isArrayShape(format)) {
             return new LocalDateArrayShapeSerializer(specific);
@@ -74,7 +73,7 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
     @Override
     public Deserializer<LocalDate> createSpecific(DecoderContext decoderContext,
                                                   Argument<? super LocalDate> type,
-                                                  @NonNull FormatConfiguration format) throws SerdeException {
+                                                  FormatConfiguration format) throws SerdeException {
         Deserializer<LocalDate> specific = super.createSpecific(decoderContext, type, format);
         if (isArrayShape(format)) {
             return new LocalDateArrayShapeDeserializer(specific);
@@ -115,7 +114,7 @@ public final class LocalDateSerde extends DefaultFormattedTemporalSerde<LocalDat
         return Argument.of(LocalDate.class);
     }
 
-    private static boolean isArrayShape(@NonNull FormatConfiguration format) {
+    private static boolean isArrayShape(FormatConfiguration format) {
         FormatConfiguration.Shape shape = format.shape();
         return shape == FormatConfiguration.Shape.NUMBER
             || shape == FormatConfiguration.Shape.NUMBER_FLOAT

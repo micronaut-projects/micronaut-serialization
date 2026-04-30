@@ -16,14 +16,13 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -42,54 +41,30 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     private boolean currentlyUnwrappingArray = false;
 
-    public AbstractStreamDecoder(@NonNull RemainingLimits remainingLimits) {
+    public AbstractStreamDecoder(RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
 
-    /**
-     * The token type.
-     */
-    protected enum TokenType {
-        /**
-         * Start of an array.
-         */
-        START_ARRAY,
-        /**
-         * End of an array.
-         */
-        END_ARRAY,
-        /**
-         * Start of an object.
-         */
-        START_OBJECT,
-        /**
-         * End of an object.
-         */
-        END_OBJECT,
-        /**
-         * A key.
-         */
-        KEY,
-        /**
-         * A number.
-         */
-        NUMBER,
-        /**
-         * A string.
-         */
-        STRING,
-        /**
-         * A boolean.
-         */
-        BOOLEAN,
-        /**
-         * A {@code null} value.
-         */
-        NULL,
-        /**
-         * Any other token.
-         */
-        OTHER
+    private static JsonNode decodeObjectNode(AbstractStreamDecoder elementDecoder) throws IOException {
+        Map<String, JsonNode> result = new LinkedHashMap<>();
+        while (true) {
+            String key = elementDecoder.decodeKey();
+            if (key == null) {
+                break;
+            }
+            result.put(key, elementDecoder.decodeNode());
+        }
+        elementDecoder.finishStructure();
+        return JsonNode.createObjectNode(result);
+    }
+
+    private static JsonNode decodeArrayNode(AbstractStreamDecoder elementDecoder) throws IOException {
+        List<JsonNode> result = new ArrayList<>();
+        while (elementDecoder.hasNextArrayValue()) {
+            result.add(elementDecoder.decodeNode());
+        }
+        elementDecoder.finishStructure();
+        return JsonNode.createArrayNode(result);
     }
 
     /**
@@ -99,6 +74,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Move to the next token.
+     *
      * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract void nextToken() throws IOException;
@@ -111,9 +87,18 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         return createDeserializationException("Unexpected token " + currentToken() + ", expected " + expected, null);
     }
 
+    private TokenType requireCurrentToken() throws IOException {
+        TokenType currentToken = currentToken();
+        if (currentToken == null) {
+            throw createDeserializationException("Unexpected end of input", null);
+        }
+        return currentToken;
+    }
+
     /**
      * Should be called before attempting to decode a value. Has basic sanity checks, such as confirming we're not
      * currently in a {@link TokenType#KEY} and that there's no child decoder currently running.
+     *
      * @param currentToken The current token
      */
     protected void preDecodeValue(TokenType currentToken) {
@@ -146,7 +131,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     @Override
     public void finishStructure(boolean consumeLeftElements) throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         if (consumeLeftElements) {
             consumeLeftElements(currentToken);
         } else if (currentToken != TokenType.END_ARRAY && currentToken != TokenType.END_OBJECT) {
@@ -157,6 +142,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Consumes left elements.
+     *
      * @param currentToken The current token
      * @throws IOException
      */
@@ -177,6 +163,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Get the current object field name. Only called for {@link TokenType#KEY}.
+     *
      * @return The current field key
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -198,14 +185,14 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         return fieldName;
     }
 
-    @NonNull
     @Override
     public final Decoder decodeArray(Argument<?> type) throws IOException {
-        return decodeArray0(currentToken());
+        return decodeArray0(requireCurrentToken());
     }
 
     /**
      * Decodes the array.
+     *
      * @param currentToken The current token
      * @return The decoder
      * @throws IOException The exception
@@ -220,14 +207,14 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         return this;
     }
 
-    @NonNull
     @Override
     public final Decoder decodeObject(Argument<?> type) throws IOException {
-        return decodeObject0(currentToken());
+        return decodeObject0(requireCurrentToken());
     }
 
     /**
      * Decodes the object.
+     *
      * @param currentToken The current token
      * @return The decoder
      * @throws IOException The exception
@@ -244,16 +231,16 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode any non-null scalar value (number, string or boolean) to its string representation.
+     *
      * @param currentToken The current token
      * @return The current value, coerced to a string
      * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected abstract String coerceScalarToString(TokenType currentToken) throws IOException;
 
-    @NonNull
     @Override
     public String decodeString() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         switch (currentToken) {
             case STRING:
@@ -283,6 +270,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#STRING} value. Called for no other token type.
+     *
      * @return The String value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -290,6 +278,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#BOOLEAN} value. Called for no other token type.
+     *
      * @return The boolean value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -297,7 +286,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     @Override
     public final boolean decodeBoolean() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         switch (currentToken) {
             case BOOLEAN:
@@ -360,6 +349,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a long value. Called for no other token type.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -367,6 +357,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a long value. Called for no other token type.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -376,6 +367,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a double value. Called for no other token type.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -383,6 +375,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link BigInteger} value. Called for no other token type.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -390,6 +383,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link BigDecimal} value. Called for no other token type.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -397,6 +391,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     /**
      * Decode the current {@link TokenType#NUMBER} value as a {@link Number} value. Called for no other token type.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -427,6 +422,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     /**
      * Decode the current {@link TokenType#NUMBER} value as a numeric {@link JsonNode}. Called for no other token type.
      * Default implementation tries to construct a node from {@link #getBestNumber()}.
+     *
      * @return The number value
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -451,7 +447,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     }
 
     private int decodeInteger(long min, long max, boolean stringsAsChars) throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         switch (currentToken) {
             case STRING:
@@ -498,7 +494,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     }
 
     private long decodeLong(long min, long max, boolean stringsAsChars) throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         switch (currentToken) {
             case STRING:
@@ -552,7 +548,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     @Override
     public final double decodeDouble() throws IOException {
         // could use decodeNumber but this is more efficient
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         switch (currentToken) {
             case NUMBER:
@@ -565,7 +561,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
                 try {
                     number = Double.parseDouble(string);
                 } catch (NumberFormatException e) {
-                    throw createDeserializationException("Unable to coerce string to double",  string);
+                    throw createDeserializationException("Unable to coerce string to double", string);
                 }
                 nextToken();
                 return number;
@@ -588,10 +584,9 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         }
     }
 
-    @NonNull
     @Override
     public final BigInteger decodeBigInteger() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         BigInteger value;
         switch (currentToken) {
@@ -626,10 +621,9 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         return value;
     }
 
-    @NonNull
     @Override
     public final BigDecimal decodeBigDecimal() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         BigDecimal value;
         switch (currentToken) {
@@ -667,7 +661,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     /**
      * Decode a number type, applying all necessary coercions.
      *
-     * @param currentToken   The current token
+     * @param currentToken    The current token
      * @param fromNumberToken Called if {@link #currentToken()} is a {@link TokenType#NUMBER}.
      * @param fromString      Called for the textual value if {@link #currentToken()} is a {@link TokenType#STRING}. Should throw {@link NumberFormatException} on parse failure.
      * @param zero            The zero value.
@@ -715,8 +709,8 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     }
 
     @Override
-    public byte @NonNull [] decodeBinary() throws IOException {
-        TokenType currentToken = currentToken();
+    public byte[] decodeBinary() throws IOException {
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         return switch (currentToken) {
             case STRING -> BinaryCodecUtil.decodeFromBase64String(this);
@@ -729,7 +723,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
      * Decode a custom type.
      *
      * @param readFunction Function to call for reading the value. The {@link AbstractStreamDecoder} parameter to the function will just be {@code this}, but this allows subclasses to avoid capturing {@code this} to avoid an allocation.
-     * @param <T> Value type
+     * @param <T>          Value type
      * @return The parsed value.
      * @throws java.io.IOException if an unrecoverable error occurs
      */
@@ -742,12 +736,12 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
      *
      * @param readFunction Function to call for reading the value. The {@link AbstractStreamDecoder} parameter to the function will just be {@code this}, but this allows subclasses to avoid capturing {@code this} to avoid an allocation.
      * @param callNext     Pass "true" if next token should be read after invocation
-     * @param <T> Value type
+     * @param <T>          Value type
      * @return The parsed value.
      * @throws java.io.IOException if an unrecoverable error occurs
      */
     protected final <T> T decodeCustom(ValueDecoder<T> readFunction, boolean callNext) throws IOException {
-        preDecodeValue(currentToken());
+        preDecodeValue(requireCurrentToken());
         T value = readFunction.decode(this);
         if (callNext) {
             nextToken();
@@ -757,7 +751,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     @Override
     public final boolean decodeNull() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         if (currentToken == TokenType.NULL) {
             nextToken();
@@ -775,10 +769,9 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         return JsonNodeDecoder.create(node, ourLimits());
     }
 
-    @NonNull
     @Override
     public JsonNode decodeNode() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         switch (currentToken) {
             case START_OBJECT:
                 return decodeObjectNode((AbstractStreamDecoder) decodeObject());
@@ -799,28 +792,6 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
             default:
                 throw createDeserializationException("Unexpected token " + currentToken + ", expected value", null);
         }
-    }
-
-    private static JsonNode decodeObjectNode(AbstractStreamDecoder elementDecoder) throws IOException {
-        Map<String, JsonNode> result = new LinkedHashMap<>();
-        while (true) {
-            String key = elementDecoder.decodeKey();
-            if (key == null) {
-                break;
-            }
-            result.put(key, elementDecoder.decodeNode());
-        }
-        elementDecoder.finishStructure();
-        return JsonNode.createObjectNode(result);
-    }
-
-    private static JsonNode decodeArrayNode(AbstractStreamDecoder elementDecoder) throws IOException {
-        List<JsonNode> result = new ArrayList<>();
-        while (elementDecoder.hasNextArrayValue()) {
-            result.add(elementDecoder.decodeNode());
-        }
-        elementDecoder.finishStructure();
-        return JsonNode.createArrayNode(result);
     }
 
     @Nullable
@@ -845,14 +816,61 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     @Override
     public final void skipValue() throws IOException {
-        TokenType currentToken = currentToken();
+        TokenType currentToken = requireCurrentToken();
         preDecodeValue(currentToken);
         skipChildren();
         nextToken();
     }
 
     /**
+     * The token type.
+     */
+    protected enum TokenType {
+        /**
+         * Start of an array.
+         */
+        START_ARRAY,
+        /**
+         * End of an array.
+         */
+        END_ARRAY,
+        /**
+         * Start of an object.
+         */
+        START_OBJECT,
+        /**
+         * End of an object.
+         */
+        END_OBJECT,
+        /**
+         * A key.
+         */
+        KEY,
+        /**
+         * A number.
+         */
+        NUMBER,
+        /**
+         * A string.
+         */
+        STRING,
+        /**
+         * A boolean.
+         */
+        BOOLEAN,
+        /**
+         * A {@code null} value.
+         */
+        NULL,
+        /**
+         * Any other token.
+         */
+        OTHER
+    }
+
+    /**
      * Decoder function for a single value.
+     *
      * @param <R> Value type
      */
     @Internal
@@ -868,10 +886,11 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     }
 
     private abstract static sealed class ArbitraryBuilder {
+        @Nullable
         final ArbitraryBuilder parent;
         final AbstractStreamDecoder elementDecoder;
 
-        ArbitraryBuilder(ArbitraryBuilder parent, AbstractStreamDecoder elementDecoder) {
+        ArbitraryBuilder(@Nullable ArbitraryBuilder parent, AbstractStreamDecoder elementDecoder) {
             this.parent = parent;
             this.elementDecoder = elementDecoder;
         }
@@ -879,19 +898,20 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         // this is basically MapBuilder API, we emulate it with mock keys for RootBuilder and ListBuilder
 
         // also calls finishStructure
-        abstract String decodeKey() throws IOException;
+        abstract @Nullable String decodeKey() throws IOException;
 
-        abstract void put(String key, Object value);
+        abstract void put(String key, @Nullable Object value);
 
         /**
          * Consume some input. Returns the decoder responsible for further processing: Either this decoder, a new child
          * decoder, or the parent of this decoder (possibly null).
          */
+        @Nullable
         ArbitraryBuilder proceed() throws IOException {
             String key = decodeKey();
             if (key != null) {
                 //noinspection ConstantConditions
-                TokenType currentToken = elementDecoder.currentToken();
+                TokenType currentToken = elementDecoder.requireCurrentToken();
                 switch (currentToken) {
                     case START_OBJECT:
                         MapBuilder map = new MapBuilder(this, elementDecoder.decodeObject0(currentToken));
@@ -928,6 +948,7 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
 
     private static final class RootBuilder extends ArbitraryBuilder {
         boolean done = false;
+        @Nullable
         Object result;
 
         RootBuilder(AbstractStreamDecoder decoder) {
@@ -935,30 +956,32 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
         }
 
         @Override
-        void put(String key, Object value) {
+        void put(String key, @Nullable Object value) {
             result = value;
             done = true;
         }
 
         @Override
+        @Nullable
         String decodeKey() {
             return !done ? "" : null;
         }
     }
 
     private static final class ListBuilder extends ArbitraryBuilder {
-        final List<Object> items = new ArrayList<>();
+        final List<@Nullable Object> items = new ArrayList<>();
 
         ListBuilder(ArbitraryBuilder parent, AbstractStreamDecoder decoder) {
             super(parent, decoder);
         }
 
         @Override
-        void put(String key, Object value) {
+        void put(String key, @Nullable Object value) {
             items.add(value);
         }
 
         @Override
+        @Nullable
         String decodeKey() throws IOException {
             if (elementDecoder.hasNextArrayValue()) {
                 return "";
@@ -970,18 +993,19 @@ public abstract class AbstractStreamDecoder extends LimitingStream implements De
     }
 
     private static final class MapBuilder extends ArbitraryBuilder {
-        final Map<String, Object> items = new LinkedHashMap<>();
+        final Map<String, @Nullable Object> items = new LinkedHashMap<>();
 
         MapBuilder(ArbitraryBuilder parent, AbstractStreamDecoder elementDecoder) {
             super(parent, elementDecoder);
         }
 
         @Override
-        void put(String key, Object value) {
+        void put(String key, @Nullable Object value) {
             items.put(key, value);
         }
 
         @Override
+        @Nullable
         String decodeKey() throws IOException {
             String key = elementDecoder.decodeKey();
             if (key == null) {

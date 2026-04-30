@@ -26,6 +26,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -101,7 +102,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, Object value) {
+    public boolean isEmpty(EncoderContext context, @Nullable Object value) {
         if (value == null) {
             return true;
         }
@@ -114,7 +115,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, Object value) {
+    public boolean isAbsent(EncoderContext context, @Nullable Object value) {
         if (value == null) {
             return true;
         }
@@ -132,7 +133,8 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                 try {
                     if (value.getClass().equals(outerType.getType())) {
                         if (outer == null) {
-                            throw new SerdeException(introspectionException.getMessage(), introspectionException);
+                            IntrospectionException resolvedException = Objects.requireNonNull(introspectionException);
+                            throw new SerdeException(Objects.requireNonNull(resolvedException.getMessage()), resolvedException);
                         }
                         return outer;
                     } else {

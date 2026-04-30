@@ -24,7 +24,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
-import org.jspecify.annotations.NonNull;
 
 /**
  * Base serde for array types that can react to array-related format features.
@@ -39,21 +38,21 @@ abstract sealed class AbstractArraySerde<T> implements FormattedSerde<T>, SerdeR
     IntArraySerde, LongArraySerde, ShortArraySerde, StringArraySerde {
 
     @Override
-    public @NonNull Serializer<T> createSpecific(@NonNull EncoderContext context,
-                                                 @NonNull Argument<? extends T> type) throws SerdeException {
+    public Serializer<T> createSpecific(EncoderContext context,
+                                        Argument<? extends T> type) throws SerdeException {
         return SingleElementArraySerde.writeSingleElementArraysUnwrapped(this, context);
     }
 
     @Override
-    public @NonNull Deserializer<T> createSpecific(@NonNull DecoderContext context,
-                                                   @NonNull Argument<? super T> type) throws SerdeException {
+    public Deserializer<T> createSpecific(DecoderContext context,
+                                          Argument<? super T> type) throws SerdeException {
         return SingleElementArraySerde.acceptSingleValueAsArray(this, context);
     }
 
     @Override
-    public @NonNull Serializer<T> createSpecific(@NonNull EncoderContext context,
-                                                 @NonNull Argument<? extends T> type,
-                                                 @NonNull FormatConfiguration format) throws SerdeException {
+    public Serializer<T> createSpecific(EncoderContext context,
+                                        Argument<? extends T> type,
+                                        FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectSerializer(context, type);
         }
@@ -61,9 +60,9 @@ abstract sealed class AbstractArraySerde<T> implements FormattedSerde<T>, SerdeR
     }
 
     @Override
-    public @NonNull Deserializer<T> createSpecific(@NonNull DecoderContext context,
-                                                   @NonNull Argument<? super T> type,
-                                                   @NonNull FormatConfiguration format) throws SerdeException {
+    public Deserializer<T> createSpecific(DecoderContext context,
+                                          Argument<? super T> type,
+                                          FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }

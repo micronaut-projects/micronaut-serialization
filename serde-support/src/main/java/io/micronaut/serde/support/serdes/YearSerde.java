@@ -24,7 +24,6 @@ import io.micronaut.serde.FormatConfiguration.Shape;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class YearSerde implements TemporalSerde<Year>, SerdeRegistrar<Year> {
     @Override
     public Serializer<Year> createSpecific(EncoderContext context,
                                            Argument<? extends Year> type,
-                                           @NonNull FormatConfiguration format) {
+                                           FormatConfiguration format) {
         Serializer<Year> specific = TemporalSerde.super.createSpecific(context, type, format);
         if (specific != this || format.shape() != Shape.STRING) {
             return specific;
@@ -52,7 +51,7 @@ public class YearSerde implements TemporalSerde<Year>, SerdeRegistrar<Year> {
     @Override
     public Deserializer<Year> createSpecific(DecoderContext context,
                                              Argument<? super Year> type,
-                                             @NonNull FormatConfiguration format) throws SerdeException {
+                                             FormatConfiguration format) throws SerdeException {
         Deserializer<Year> specific = TemporalSerde.super.createSpecific(context, type, format);
         if (specific != this || format.shape() != Shape.STRING) {
             return specific;

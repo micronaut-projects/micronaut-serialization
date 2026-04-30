@@ -52,7 +52,6 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeAnalyzer;
 import io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -67,6 +66,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -80,13 +80,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     private static final String DEFAULT_REF_ALIAS_NAME = "defaultReference";
 
     private boolean failOnError = true;
-    private ClassElement currentClass;
-    private MethodElement anyGetterMethod;
-    private MethodElement anySetterMethod;
-    private FieldElement anyGetterField;
-    private FieldElement anySetterField;
-    private MethodElement jsonValueMethod;
-    private FieldElement jsonValueField;
+    private @Nullable ClassElement currentClass;
+    private @Nullable MethodElement anyGetterMethod;
+    private @Nullable MethodElement anySetterMethod;
+    private @Nullable FieldElement anyGetterField;
+    private @Nullable FieldElement anySetterField;
+    private @Nullable MethodElement jsonValueMethod;
+    private @Nullable FieldElement jsonValueField;
     private final Set<MethodElement> readMethods = new HashSet<>(20);
     private final Set<MethodElement> writeMethods = new HashSet<>(20);
     private final Set<String> elementVisitedAsSubtype = new HashSet<>(10);
@@ -324,7 +324,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             } else if (propertyType.isAssignable(Temporal.class)) {
                 try {
-                    DateTimeFormatter.ofPattern(pattern);
+                    var ignored = DateTimeFormatter.ofPattern(pattern);
                 } catch (Exception e) {
                     throw new ProcessingException(element, "Specified pattern [" + pattern + "] is not a valid date format. See the javadoc for DateTimeFormatter: " + e.getMessage());
                 }
@@ -338,7 +338,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "Unwrapped cannot be declared on basic types");
             }
             final List<String> thatProperties = resolvePropertyNames(context, propertyType, element);
-            final List<String> thisProperties = resolvePropertyNames(context, currentClass, null);
+            final List<String> thisProperties = resolvePropertyNames(context, currentClass(), null);
             String currentUnwrappedName = null;
             if (element instanceof TypedElement te) {
                 currentUnwrappedName = resolvePropertyName(te);
@@ -351,7 +351,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
                 for (String thatProperty : thatProperties) {
                     if (thisProperty.equals(thatProperty)) {
-                        throw new ProcessingException(element, "Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass.getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.");
+                        throw new ProcessingException(element, "Unwrapped property contains a property [" + thatProperty + "] that conflicts with an existing property of the outer type: " + currentClass().getName() + ". Consider specifying a prefix or suffix to disambiguate this conflict.");
                     }
                 }
             }
@@ -411,7 +411,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 throw new ProcessingException(element, "More than one potential inverse property found " + inverseElements + ", consider specifying a value to the reference to configure the association");
             } else {
                 final TypedElement otherElement = inverseElements.iterator().next();
-                if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass)) {
+                if (!isCompatibleInverseSide(otherElement.getGenericType(), currentClass())) {
                     throw new ProcessingException(element, "Managed reference declares an incompatible inverse property [" + otherElement +
                         "]. The inverse side should be a map, collection, bean or array of the same type as the property.");
                 } else {
@@ -467,7 +467,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                     .filter(p ->
                        isMappedCandidate(refType, aliasPropertyName, ref, p) &&
                         p.hasAnnotation(refType) &&
-                        isCompatibleInverseSide(p.getGenericType(), currentClass)
+                        isCompatibleInverseSide(p.getGenericType(), currentClass())
                     ).forEach(otherElements::add);
         }
         if (accessKindSet.contains(Introspected.AccessKind.FIELD)) {
@@ -478,7 +478,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                                                      && ann.hasDeclaredAnnotation(refType))
                                                  .modifiers(m -> m.contains(ElementModifier.PUBLIC))
                                                  .typed(t -> isCompatibleInverseSide(t.getGenericType(),
-                                                                                     currentClass)));
+                                                                                     currentClass())));
             otherElements.addAll(fields);
 
         }
@@ -731,7 +731,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                             }
                         });
                  value.stringValue("packageName").ifPresent(packageName -> {
-                     @NonNull ClassElement[] classElements = context.getClassElements(packageName, "*");
+                     ClassElement[] classElements = context.getClassElements(packageName, "*");
                      for (ClassElement c : classElements) {
                          if (c.isPublic()) {
                              handleClassImport(context, value, c, classValues);
@@ -774,7 +774,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             final MethodElement primaryConstructor = element.getPrimaryConstructor().orElse(null);
             if (primaryConstructor != null) {
 
-                this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class).orElse(null);
+                this.creatorMode = primaryConstructor.enumValue(Creator.class, "mode", SerdeConfig.SerCreatorMode.class)
+                    .orElse(SerdeConfig.SerCreatorMode.PROPERTIES);
                 if (creatorMode == SerdeConfig.SerCreatorMode.DELEGATING) {
                     if (failOnError && primaryConstructor.getParameters().length != 1) {
                         throw new ProcessingException(element, "DELEGATING creator mode requires exactly one Creator parameter, but more were defined.");
@@ -1031,7 +1032,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     @Nullable
-    private PropertyNamingStrategy getPropertyNamingStrategy(@NonNull  TypedElement element, @Nullable PropertyNamingStrategy defaultValue) {
+    private PropertyNamingStrategy getPropertyNamingStrategy(TypedElement element, @Nullable PropertyNamingStrategy defaultValue) {
         String namingStrategy = element.stringValue(SerdeConfig.class, SerdeConfig.NAMING)
                 .filter(val -> !val.equals(PropertyNamingStrategy.IDENTITY.getClass().getName()))
                 .orElse(null);
@@ -1172,6 +1173,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         this.writeMethods.clear();
     }
 
+    private ClassElement currentClass() {
+        return Objects.requireNonNull(currentClass);
+    }
+
     private SerdeConfig.SerSubtyped.DiscriminatorValueKind getDiscriminatorValueKind(Element typeInfo) {
         // Missing type info might be the scenario where the JsonTypeInfo defined on the argument
         // For that case we assume the name discriminator so the name can be added to the metadata
@@ -1214,7 +1219,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
     }
 
-    private ClassElement findInDeclaredInterfaces(@NonNull ClassElement superElement) {
+    private @Nullable ClassElement findInDeclaredInterfaces(ClassElement superElement) {
         Collection<ClassElement> interfaces = superElement.getInterfaces();
         if (CollectionUtils.isNotEmpty(interfaces)) {
             for (ClassElement anInterface : interfaces) {
@@ -1230,7 +1235,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return null;
     }
 
-    private Optional<String> resolveTypeProperty(@NonNull ClassElement superType) {
+    private Optional<String> resolveTypeProperty(ClassElement superType) {
         ClassElement typeInfo = findTypeInfo(superType, true).orElse(null);
         if (typeInfo != null) {
             return typeInfo.stringValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.DISCRIMINATOR_PROP);

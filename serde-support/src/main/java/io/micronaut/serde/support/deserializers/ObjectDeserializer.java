@@ -35,6 +35,7 @@ import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableDeserializer;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -84,7 +85,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                                                            DeserializationConfiguration deserializationConfiguration,
                                                            DeserBean<? super Object> deserBean,
                                                            Argument<? super Object> type) {
-        DeserBeanSubtypeInfo<Object> subtypeInfo = deserBean.subtypeInfo;
+        DeserBeanSubtypeInfo<Object> subtypeInfo = Objects.requireNonNull(deserBean.subtypeInfo);
         SubtypeInfo info = subtypeInfo.info();
         SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType = info.discriminatorType();
         Map<String, Deserializer<Object>> subtypeDeserializers = CollectionUtils.newHashMap(subtypeInfo.subtypes().size());
@@ -126,7 +127,7 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
                 }
 
                 @Override
-                public Deserializer<Object> findDeserializer(String discriminatorValue) throws SerdeException {
+                public Deserializer<Object> findDeserializer(@Nullable String discriminatorValue) throws SerdeException {
                     Deserializer<Object> deserializer = subtypeDeserializers.get(discriminatorValue);
                     if (deserializer != null) {
                         return deserializer;

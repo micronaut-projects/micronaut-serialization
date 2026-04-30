@@ -15,12 +15,12 @@
  */
 package io.micronaut.serde.json.stream;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.util.BinaryCodecUtil;
 import jakarta.json.stream.JsonGenerator;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -28,7 +28,9 @@ import java.math.BigInteger;
 
 final class JsonStreamEncoder extends LimitingStream implements Encoder {
     private final JsonGenerator jsonGenerator;
+    @Nullable
     private final JsonStreamEncoder parent;
+    @Nullable
     private String currentKey;
     private int currentIndex;
 
@@ -142,7 +144,7 @@ final class JsonStreamEncoder extends LimitingStream implements Encoder {
     }
 
     @Override
-    public void encodeBinary(byte @NonNull [] data) throws IOException {
+    public void encodeBinary(byte[] data) throws IOException {
         // we're allowed to encode to string because our decoder can handle it
         BinaryCodecUtil.encodeToBase64String(this, data);
     }
@@ -153,11 +155,10 @@ final class JsonStreamEncoder extends LimitingStream implements Encoder {
         postEncodeValue();
     }
 
-    @NonNull
     @Override
     public String currentPath() {
         StringBuilder builder = new StringBuilder();
-        JsonStreamEncoder enc = this;
+        @Nullable JsonStreamEncoder enc = this;
         while (enc != null) {
             if (enc != this) {
                 builder.insert(0, "->");

@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.jackson;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.ObjectMapper;
 
 /**
@@ -33,7 +32,6 @@ public interface JacksonObjectMapper extends ObjectMapper {
      * @return A new {@link JacksonObjectMapper} with the updated config
      * @since 2.9
      */
-    @NonNull
-    JacksonObjectMapper cloneWithConfiguration(@NonNull SerdeJacksonConfiguration jacksonConfiguration);
+    JacksonObjectMapper cloneWithConfiguration(SerdeJacksonConfiguration jacksonConfiguration);
 
 }

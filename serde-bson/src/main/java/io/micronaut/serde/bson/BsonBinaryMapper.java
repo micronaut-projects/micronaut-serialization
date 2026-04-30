@@ -26,6 +26,7 @@ import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonReader;
 import org.bson.io.BasicOutputBuffer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,7 +47,7 @@ public final class BsonBinaryMapper extends AbstractBsonMapper {
         super(registry, serdeConfiguration);
     }
 
-    public BsonBinaryMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+    public BsonBinaryMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         super(registry, serdeConfiguration, view);
     }
 

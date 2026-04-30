@@ -17,7 +17,6 @@ package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -45,8 +44,8 @@ public final class JsonViewUtil {
      * @param defaultValue  The fallback view
      * @return The extracted view, or {@code defaultValue} as a fallback
      */
-    @Contract(pure = true, value = "_, _, !null -> !null")
-    public static Class<?> extractView(@Nullable SerdeConfiguration configuration, @NonNull Argument<?> argument, Class<?> defaultValue) {
+    @Contract(pure = true, value = "_, _, !null -> !null; _, _, null -> _")
+    public static @Nullable Class<?> extractView(@Nullable SerdeConfiguration configuration, Argument<?> argument, @Nullable Class<?> defaultValue) {
         if (configuration != null && configuration.isJsonViewEnabled()) {
             AnnotationMetadata annotationMetadata = argument.getAnnotationMetadata();
             Optional<Class> jackson = annotationMetadata.classValue("com.fasterxml.jackson.annotation.JsonView");

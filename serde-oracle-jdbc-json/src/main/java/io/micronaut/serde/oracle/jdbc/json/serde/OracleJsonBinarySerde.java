@@ -16,7 +16,6 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.context.annotation.Secondary;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
@@ -42,14 +41,14 @@ public class OracleJsonBinarySerde extends AbstractOracleJsonSerde<byte[]> {
     }
 
     @Override
-    protected byte @NonNull [] doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                                    @NonNull Argument<? super byte[]> type) {
+    protected byte[] doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext,
+                                                    Argument<? super byte[]> type) {
         return decoder.decodeBinary();
     }
 
     @Override
-    protected void doSerializeNonNull(@NonNull OracleJdbcJsonGeneratorEncoder encoder, @NonNull EncoderContext context,
-                                      @NonNull Argument<? extends byte[]> type, @NonNull byte[] value) {
+    protected void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context,
+                                      Argument<? extends byte[]> type, byte[] value) {
         encoder.encodeString(OracleJsonBinaryImpl.getString(value, false));
     }
 

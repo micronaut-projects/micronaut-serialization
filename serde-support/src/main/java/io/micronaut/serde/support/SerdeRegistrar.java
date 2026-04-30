@@ -16,7 +16,6 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
 
@@ -32,13 +31,13 @@ public interface SerdeRegistrar<T> extends Serde<T>, SerializerRegistrar<T>, Des
     /**
      * @return The serde argument type
      */
-    @NonNull
+    @Override
     Argument<T> getType();
 
     /**
      * @return The multiple serde argument types
      */
-    @NonNull
+    @Override
     default Iterable<Argument<?>> getTypes() {
         return Collections.singleton(getType());
     }

@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serde;
@@ -44,10 +43,9 @@ public class OracleJsonLocaleTimeSerde extends AbstractOracleJsonSerde<LocalTime
     }
 
     @Override
-    @NonNull
-    protected LocalTime doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder,
-                                           @NonNull DecoderContext decoderContext,
-                                           @NonNull Argument<? super LocalTime> type) {
+    protected LocalTime doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder,
+                                           DecoderContext decoderContext,
+                                           Argument<? super LocalTime> type) {
         return decoder.decodeLocalDateTime().toLocalTime();
     }
 

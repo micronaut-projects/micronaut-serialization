@@ -24,7 +24,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -58,7 +57,7 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
 
     @Override
     @Nullable
-    public <B, P> PropertyReference<B, P> resolveReference(@NonNull PropertyReference<B, P> reference) {
+    public <B, P> PropertyReference<B, P> resolveReference(PropertyReference<B, P> reference) {
         return delegate.resolveReference(reference);
     }
 
@@ -78,12 +77,12 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     }
 
     @Override
-    public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(@NonNull Class<? extends D> deserializerClass) throws SerdeException {
+    public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
         return delegate.findCustomDeserializer(deserializerClass);
     }
 
     @Override
-    public <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type) throws SerdeException {
+    public <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type) throws SerdeException {
         return delegate.findDeserializer(type);
     }
 
@@ -93,12 +92,12 @@ final class FeatureDecoderContext implements Deserializer.DecoderContext {
     }
 
     @Override
-    public <D extends PropertyNamingStrategy> D findNamingStrategy(@NonNull Class<? extends D> namingStrategyClass) throws SerdeException {
+    public <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass) throws SerdeException {
         return delegate.findNamingStrategy(namingStrategyClass);
     }
 
     @Override
-    public <B, P> void pushManagedRef(@NonNull PropertyReference<B, P> reference) {
+    public <B, P> void pushManagedRef(PropertyReference<B, P> reference) {
         delegate.pushManagedRef(reference);
     }
 

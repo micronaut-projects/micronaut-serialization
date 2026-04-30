@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -42,7 +41,7 @@ final class DeserBeanKey {
 
     public DeserBeanKey(SerdeConfiguration serdeConfiguration,
                         DeserializationConfiguration deserializationConfiguration,
-                        @NonNull Argument<?> type,
+                        Argument<?> type,
                         @Nullable Map<String, Argument<?>> typeArguments,
                         @Nullable SerdeArgumentConf serdeArgumentConf) {
         this.serdeConfiguration = serdeConfiguration;
@@ -70,7 +69,7 @@ final class DeserBeanKey {
         return hashCode;
     }
 
-    public @NonNull Argument<?> getType() {
+    public Argument<?> getType() {
         return type;
     }
 }

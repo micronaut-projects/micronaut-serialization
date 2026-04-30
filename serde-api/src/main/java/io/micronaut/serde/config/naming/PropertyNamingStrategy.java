@@ -16,8 +16,8 @@
 package io.micronaut.serde.config.naming;
 
 import io.micronaut.core.annotation.AnnotatedElement;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.util.StringUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -75,14 +75,14 @@ public interface PropertyNamingStrategy {
      * @param element The annotated element to translate
      * @return The translated name
      */
-    @NonNull String translate(@NonNull AnnotatedElement element);
+    String translate(AnnotatedElement element);
 
     /**
      * Return an existing naming strategy for each name.
      * @param namingStrategy The naming strategy name.
      * @return The naming strategy
      */
-    static Optional<PropertyNamingStrategy> forName(String namingStrategy) {
+    static Optional<PropertyNamingStrategy> forName(@Nullable String namingStrategy) {
         if (StringUtils.isNotEmpty(namingStrategy)) {
             return switch (namingStrategy) {
                 case "KEBAB_CASE", "io.micronaut.serde.config.naming.KebabCaseStrategy" ->

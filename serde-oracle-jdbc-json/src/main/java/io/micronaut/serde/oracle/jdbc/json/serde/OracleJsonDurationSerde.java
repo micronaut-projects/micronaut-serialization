@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -38,15 +37,14 @@ import java.time.Duration;
 public class OracleJsonDurationSerde implements Serde<Duration> {
 
     @Override
-    @NonNull
     public Duration deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type) throws IOException {
         String duration = decoder.decodeString();
         return Duration.parse(duration);
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Duration> type, Duration value) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context,
+                          Argument<? extends Duration> type, Duration value) throws IOException {
         if (value == null) {
             encoder.encodeNull();
         } else {

@@ -21,6 +21,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -32,6 +33,7 @@ import java.io.IOException;
  */
 @Internal
 class ErrorCatchingDeserializer<T> implements Deserializer<T> {
+    @Nullable
     private static final Class<?> JACKSON_EXCEPTION_CLASS;
 
     private final Deserializer<T> deserializer;
@@ -56,7 +58,7 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+    public @Nullable T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         try {
             return deserializer.deserialize(decoder, context, type);
         } catch (StackOverflowError e) {
@@ -74,7 +76,7 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+    public @Nullable T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         try {
             return deserializer.deserializeNullable(decoder, context, type);
         } catch (StackOverflowError e) {
@@ -92,7 +94,7 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public T getDefaultValue(DecoderContext context, Argument<? super T> type) {
+    public @Nullable T getDefaultValue(DecoderContext context, Argument<? super T> type) {
         return deserializer.getDefaultValue(context, type);
     }
 

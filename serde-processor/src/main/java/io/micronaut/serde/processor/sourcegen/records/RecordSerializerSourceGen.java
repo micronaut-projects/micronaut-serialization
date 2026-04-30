@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -214,7 +215,7 @@ public final class RecordSerializerSourceGen {
                 int index = 0;
                 for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                     String componentName = serializerFieldEntry.getKey();
-                    String argumentFieldName = argumentFieldNames.get(componentName);
+                    String argumentFieldName = required(argumentFieldNames, componentName);
                     ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign serializerDef = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
@@ -303,7 +304,7 @@ public final class RecordSerializerSourceGen {
         List<StatementDef> statements = new ArrayList<>();
         int index = 0;
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE)));
+            statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE)));
             statements.add(serializeComponent(aThis, serializerClassTypeDef, encoder, context, type, value, component, index++, argumentFieldNames, serializerFieldNames));
         }
         return statements;
@@ -320,7 +321,7 @@ public final class RecordSerializerSourceGen {
                                             int index,
                                             Map<String, String> argumentFieldNames,
                                             Map<String, String> serializerFieldNames) {
-        ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(argumentFieldNames.get(component.name()), ARGUMENT_TYPE);
+        ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
         Method scalarMethod = scalarEncoderMethod(component.type());
         ExpressionDef componentValue = value.getPropertyValue(component.propertyElement());
         if (scalarMethod != null) {
@@ -339,7 +340,7 @@ public final class RecordSerializerSourceGen {
             }
             return wrapWithPropertyPath(scalarStatement, type, component.name(), argumentExpression);
         }
-        String serializerFieldName = serializerFieldNames.get(component.name());
+        String serializerFieldName = required(serializerFieldNames, component.name());
         StatementDef.DefineAndAssign serializerDef = aThis.field(serializerFieldName, SERIALIZER_TYPE)
             .newLocal(RecordSerdeSourceGenUtils.localName("serializer", component.name(), index));
         StatementDef initializeSerializerStatement = serializerDef.variable().isNull().ifTrue(
@@ -385,7 +386,11 @@ public final class RecordSerializerSourceGen {
         return prefix + "_" + componentName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
     }
 
-    private Method scalarEncoderMethod(ClassElement type) {
+    private static String required(Map<String, String> names, String key) {
+        return Objects.requireNonNull(names.get(key));
+    }
+
+    private @Nullable Method scalarEncoderMethod(ClassElement type) {
         return switch (type.getName()) {
             case "boolean", "java.lang.Boolean" -> type.isArray() ? null : ENCODE_BOOLEAN_METHOD;
             case "byte", "java.lang.Byte" -> type.isArray() ? null : ENCODE_BYTE_METHOD;

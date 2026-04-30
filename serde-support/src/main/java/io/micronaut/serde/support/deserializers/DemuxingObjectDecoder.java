@@ -16,14 +16,13 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,7 +91,6 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
         return entry.key;
     }
 
-    @NonNull
     private DemuxerState.Entry entryForValue() throws IOException {
         if (nextKeyIndex == 0) {
             throw new IllegalStateException("Must call decodeKey first");
@@ -151,7 +149,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
     }
 
     @Override
-    public @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
+    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         return state.delegate.createDeserializationException(message, invalidValue);
     }
 
@@ -165,6 +163,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
             this.delegate = delegate;
         }
 
+        @Nullable
         Entry getEntry(int i) throws IOException {
             if (buffer.size() > i) {
                 return buffer.get(i);
@@ -200,6 +199,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
 
         private class Entry {
             final String key;
+            @Nullable
             Decoder buffer = null;
             boolean consumed = false;
 
@@ -257,7 +257,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
         }
 
         @Override
-        public @NonNull DemuxingObjectDecoder decodeObject() throws IOException {
+        public DemuxingObjectDecoder decodeObject() throws IOException {
             if (state == null) {
                 state = new DemuxerState(delegate.decodeObject());
                 state.outputCount++;
@@ -266,7 +266,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
         }
 
         @Override
-        public @NonNull DemuxingObjectDecoder decodeObject(@NonNull Argument<?> type) throws IOException {
+        public DemuxingObjectDecoder decodeObject(Argument<?> type) throws IOException {
             if (state == null) {
                 state = new DemuxerState(delegate.decodeObject(type));
                 state.outputCount++;
@@ -283,7 +283,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
          * @return The object decoder
          * @throws IOException If an unrecoverable error occurs
          */
-        public @NonNull DemuxingObjectDecoder decodeObjectNonConsuming(@NonNull Argument<?> type) throws IOException {
+        public DemuxingObjectDecoder decodeObjectNonConsuming(Argument<?> type) throws IOException {
             if (state == null) {
                 state = new DemuxerState(delegate.decodeObject(type));
                 state.outputCount++;
@@ -302,7 +302,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
         }
 
         @Override
-        public @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
+        public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
             return delegate.createDeserializationException(message, invalidValue);
         }
 

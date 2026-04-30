@@ -28,7 +28,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -53,7 +52,7 @@ public final class SingleElementArraySerde {
      * @param <T> The serialized type
      * @return The serializer, wrapped when needed
      */
-    public static <T> Serializer<T> writeSingleElementArraysUnwrapped(@NonNull Serializer<T> serializer,
+    public static <T> Serializer<T> writeSingleElementArraysUnwrapped(Serializer<T> serializer,
                                                                       Serializer.EncoderContext context) throws SerdeException {
         if (context.getFeatures().contains(SerdeConfiguration.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)) {
             return new SingleElementArrayUnwrappingSerializer<>(serializer, context);
@@ -69,7 +68,7 @@ public final class SingleElementArraySerde {
      * @param <T> The deserialized type
      * @return The deserializer, wrapped when needed
      */
-    public static <T> Deserializer<T> acceptSingleValueAsArray(@NonNull Deserializer<T> deserializer,
+    public static <T> Deserializer<T> acceptSingleValueAsArray(Deserializer<T> deserializer,
                                                                Deserializer.DecoderContext context) {
         if (context.getFeatures().contains(DeserializationConfiguration.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)) {
             return new SingleValueAsArrayDeserializer<>(deserializer, context);
@@ -105,10 +104,10 @@ public final class SingleElementArraySerde {
         }
 
         @Override
-        public void serialize(@NonNull Encoder encoder,
-                              @NonNull EncoderContext context,
-                              @NonNull Argument<? extends T> type,
-                              @NonNull T value) throws IOException {
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends T> type,
+                              T value) throws IOException {
             JsonNodeEncoder nodeEncoder = JsonNodeEncoder.create(remainingLimits);
             delegate.serialize(nodeEncoder, context, type, value);
             JsonNode node = nodeEncoder.getCompletedValue();
@@ -120,17 +119,17 @@ public final class SingleElementArraySerde {
         }
 
         @Override
-        public boolean isEmpty(@NonNull EncoderContext context, @Nullable T value) {
+        public boolean isEmpty(EncoderContext context, @Nullable T value) {
             return delegate.isEmpty(context, value);
         }
 
         @Override
-        public boolean isAbsent(@NonNull EncoderContext context, @Nullable T value) {
+        public boolean isAbsent(EncoderContext context, @Nullable T value) {
             return delegate.isAbsent(context, value);
         }
 
         @Override
-        public boolean isDefault(@NonNull EncoderContext context, @NonNull T value) {
+        public boolean isDefault(EncoderContext context, T value) {
             return delegate.isDefault(context, value);
         }
     }
@@ -146,9 +145,9 @@ public final class SingleElementArraySerde {
         }
 
         @Override
-        public T deserialize(@NonNull Decoder decoder,
-                             @NonNull DecoderContext context,
-                             @NonNull Argument<? super T> type) throws IOException {
+        public @Nullable T deserialize(Decoder decoder,
+                                       DecoderContext context,
+                                       Argument<? super T> type) throws IOException {
             JsonNode node = decoder.decodeNode();
             if (!node.isArray()) {
                 node = JsonNode.createArrayNode(List.of(node));
@@ -157,9 +156,9 @@ public final class SingleElementArraySerde {
         }
 
         @Override
-        public T deserializeNullable(@NonNull Decoder decoder,
-                                     @NonNull DecoderContext context,
-                                     @NonNull Argument<? super T> type) throws IOException {
+        public @Nullable T deserializeNullable(Decoder decoder,
+                                               DecoderContext context,
+                                               Argument<? super T> type) throws IOException {
             if (decoder.decodeNull()) {
                 return null;
             }
@@ -167,8 +166,8 @@ public final class SingleElementArraySerde {
         }
 
         @Override
-        public @Nullable T getDefaultValue(@NonNull DecoderContext context,
-                                           @NonNull Argument<? super T> type) {
+        public @Nullable T getDefaultValue(DecoderContext context,
+                                           Argument<? super T> type) {
             return delegate.getDefaultValue(context, type);
         }
     }

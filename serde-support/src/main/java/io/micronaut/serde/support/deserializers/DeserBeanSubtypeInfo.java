@@ -17,7 +17,6 @@ package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanProperty;
@@ -45,7 +44,6 @@ import java.util.Map;
 @Internal
 record DeserBeanSubtypeInfo<T>(
     Class<T> beanType,
-    @NonNull
     Map<String, SubtypeDef<T>> subtypes,
     SubtypeInfo info,
     @Nullable
@@ -58,7 +56,6 @@ record DeserBeanSubtypeInfo<T>(
      * @param discriminatorValue The discriminator value
      * @return The {@link DeserBean}
      */
-    @NonNull
     DeserBean<? extends T> findDeserBean(@Nullable String discriminatorValue) throws SerdeException {
         SubtypeDef<T> subtypeDef;
         if (discriminatorValue == null) {
@@ -69,13 +66,16 @@ record DeserBeanSubtypeInfo<T>(
         if (subtypeDef == null) {
             throw unknownSuperTypeException();
         }
-        return subtypeDef.deserBean;
+        DeserBean<? extends T> deserBean = subtypeDef.deserBean;
+        if (deserBean == null) {
+            throw unknownSuperTypeException();
+        }
+        return deserBean;
     }
 
     /**
      * @return Creates unknown supertype exception
      */
-    @NonNull
     public SerdeException unknownSuperTypeException() {
         return new SerdeException("Could not resolve subtype of ["
             + beanType.getName() + "] missing type id property '" + info.discriminatorName() + "'");

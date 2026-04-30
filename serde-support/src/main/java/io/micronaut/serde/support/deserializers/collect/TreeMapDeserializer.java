@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.TreeMap;
@@ -33,7 +34,7 @@ import java.util.TreeMap;
 @Internal
 final class TreeMapDeserializer<K, V> extends MapDeserializer<K, V, TreeMap<K, V>> {
 
-    TreeMapDeserializer(Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
+    TreeMapDeserializer(@Nullable Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
         super(valueDeser, keyArgument, valueArgument);
     }
 

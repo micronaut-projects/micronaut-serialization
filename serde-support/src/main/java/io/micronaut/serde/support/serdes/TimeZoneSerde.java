@@ -16,9 +16,9 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 
@@ -46,7 +46,7 @@ final class TimeZoneSerde implements SerdeRegistrar<TimeZone> {
     }
 
     @Override
-    public TimeZone deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super TimeZone> type) throws IOException {
+    public @Nullable TimeZone deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super TimeZone> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

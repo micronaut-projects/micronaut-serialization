@@ -16,14 +16,15 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.reflect.exception.InstantiationException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Json value deserializer.
@@ -46,7 +47,7 @@ final class JsonValueDeserializer implements Deserializer<Object> {
             throw new SerdeException("Expected at least one constructor parameter");
         }
         final Object[] params = new Object[1];
-        final DeserBean.DerProperty<Object, Object> constructorJsonValue = deserBean.creatorParams.getDerProperties().get(0);
+        final DeserBean.DerProperty<Object, Object> constructorJsonValue = Objects.requireNonNull(deserBean.creatorParams).getDerProperties().get(0);
         if (constructorJsonValue != null) {
             constructorJsonValue.deserializeAndSetConstructorValue(decoder, decoderContext, params);
         }
@@ -58,7 +59,7 @@ final class JsonValueDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

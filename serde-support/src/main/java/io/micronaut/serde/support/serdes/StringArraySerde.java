@@ -18,6 +18,7 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ final class StringArraySerde extends AbstractArraySerde<String[]> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, String[] strings) {
+    public boolean isEmpty(EncoderContext context, String @Nullable [] strings) {
         return strings == null || strings.length == 0;
     }
 

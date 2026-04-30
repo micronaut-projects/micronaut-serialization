@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Deserializer;
@@ -26,9 +25,8 @@ import java.util.Map;
 
 @Internal
 interface DeserBeanRegistry {
-    @NonNull
-    <T> DeserBean<T> getDeserializableBean(@NonNull Argument<T> type,
+    <T> DeserBean<T> getDeserializableBean(Argument<T> type,
                                            @Nullable Map<String, Argument<?>> typeArguments,
-                                           Deserializer.@NonNull DecoderContext decoderContext) throws SerdeException;
+                                           Deserializer.DecoderContext decoderContext) throws SerdeException;
 
 }

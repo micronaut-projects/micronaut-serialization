@@ -28,6 +28,7 @@ import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.util.CustomizableDeserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.EnumMap;
 
@@ -47,7 +48,7 @@ final class EnumMapDeserializer<E extends Enum<E>, V> implements CustomizableDes
         }
         @SuppressWarnings("unchecked") final Argument<E> enumType = (Argument<E>) generics[0];
         @SuppressWarnings("unchecked") final Argument<V> valueType = (Argument<V>) generics[1];
-        final Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
+        final @Nullable Deserializer<? extends V> valueDeser = valueType.equalsType(Argument.OBJECT_ARGUMENT) ? null : context.findDeserializer(valueType)
             .createSpecific(context, valueType);
         final Deserializer<? extends E> enumDeser = context.findDeserializer(enumType).createSpecific(context, enumType);
         return (decoder, decoderContext, mapType) -> {

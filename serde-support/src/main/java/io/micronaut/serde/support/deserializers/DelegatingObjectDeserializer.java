@@ -16,15 +16,15 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A simple delegating deserializer.
@@ -47,7 +47,7 @@ final class DelegatingObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
 
         if (deserBean.creatorParams != null) {
@@ -55,7 +55,7 @@ final class DelegatingObjectDeserializer implements Deserializer<Object> {
             final DeserBean.DerProperty<Object, Object> creator = creatorParams.getNotConsumed().iterator().next();
             Object result;
             try {
-                Deserializer<Object> deserializer = creator.deserializer;
+                Deserializer<Object> deserializer = Objects.requireNonNull(creator.deserializer);
                 result = deserializer.deserializeNullable(
                     decoder,
                     decoderContext,
@@ -75,7 +75,7 @@ final class DelegatingObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

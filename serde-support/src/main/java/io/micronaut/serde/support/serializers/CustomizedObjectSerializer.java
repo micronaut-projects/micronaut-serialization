@@ -30,6 +30,7 @@ import io.micronaut.serde.reference.SerializationReference;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Fallback {@link Serializer} for general {@link Object} values. For deserialization, deserializes to
@@ -65,6 +66,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
         for (SerBean.SerProperty<T, Object> property : serBean.writeProperties) {
             try {
                 final Object propertyValue = property.get(value);
+                final Serializer<Object> serializer = Objects.requireNonNull(property.serializer);
                 final String backRef = property.backRef;
                 if (backRef != null) {
                     final PropertyReference<T, Object> ref = context.resolveReference(
@@ -72,14 +74,13 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                             serBean.introspection,
                             property.argument,
                             propertyValue,
-                            property.serializer)
+                            serializer)
                     );
                     if (ref == null) {
                         continue;
                     }
                 }
 
-                final Serializer<Object> serializer = property.serializer;
                 Serializer.EncoderContext propertyContext = context.withFeatures(property.featuresWith, property.featuresWithout);
 
                 if (serBean.propertyFilter != null) {
@@ -116,7 +117,7 @@ final class CustomizedObjectSerializer<T> implements ObjectSerializer<T> {
                             serBean.introspection,
                             property.argument,
                             value,
-                            property.serializer
+                            serializer
                         )
                     );
                 }

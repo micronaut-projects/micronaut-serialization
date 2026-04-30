@@ -19,4 +19,7 @@
  * @author radovanradic
  * @since 2.0.0
  */
+@NullMarked
 package io.micronaut.serde.oracle.jdbc.json.serde;
+
+import org.jspecify.annotations.NullMarked;

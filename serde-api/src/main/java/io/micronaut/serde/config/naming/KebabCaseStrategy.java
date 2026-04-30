@@ -16,7 +16,6 @@
 package io.micronaut.serde.config.naming;
 
 import io.micronaut.core.annotation.AnnotatedElement;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.util.StringUtils;
 
@@ -25,7 +24,7 @@ import io.micronaut.core.util.StringUtils;
  */
 public final class KebabCaseStrategy implements PropertyNamingStrategy {
     @Override
-    public @NonNull String translate(@NonNull AnnotatedElement element) {
+    public String translate(AnnotatedElement element) {
         String name = element.getName();
         if (StringUtils.isNotEmpty(name)) {
             return NameUtils.hyphenate(name, true);

@@ -17,10 +17,10 @@ package io.micronaut.serde.util;
 
 import java.io.IOException;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sub-interface of {@link io.micronaut.serde.Deserializer} for deserializers that allow
@@ -31,7 +31,7 @@ import io.micronaut.serde.Deserializer;
 @FunctionalInterface
 public interface NullableDeserializer<T> extends Deserializer<T> {
     @Override
-    default T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+    default @Nullable T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         } else {
@@ -40,7 +40,7 @@ public interface NullableDeserializer<T> extends Deserializer<T> {
     }
 
     @Override
-    default T deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super T> type) throws IOException {
+    default @Nullable T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 
@@ -52,6 +52,5 @@ public interface NullableDeserializer<T> extends Deserializer<T> {
      * @return The value
      * @throws IOException if something goes wrong during deserialization
      */
-    @NonNull
     T deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException;
 }

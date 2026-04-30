@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ import java.util.HashMap;
 @Internal
 final class HashMapDeserializer<K, V> extends MapDeserializer<K, V, HashMap<K, V>> {
 
-    HashMapDeserializer(Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
+    HashMapDeserializer(@Nullable Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
         super(valueDeser, keyArgument, valueArgument);
     }
 

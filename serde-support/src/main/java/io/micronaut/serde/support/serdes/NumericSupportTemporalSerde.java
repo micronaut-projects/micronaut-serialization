@@ -17,7 +17,6 @@ package io.micronaut.serde.support.serdes;
 
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.config.SerdeConfiguration;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -41,10 +40,10 @@ abstract non-sealed class NumericSupportTemporalSerde<T extends TemporalAccessor
      * @param numericUnit     The configured numeric time unit
      */
     NumericSupportTemporalSerde(
-        @NonNull DateTimeFormatter stringFormatter,
-        SerdeConfiguration.@NonNull NumericTimeUnit legacyUnit,
-        SerdeConfiguration.@NonNull TimeShape writeShape,
-        SerdeConfiguration.@NonNull NumericTimeUnit numericUnit
+        DateTimeFormatter stringFormatter,
+        SerdeConfiguration.NumericTimeUnit legacyUnit,
+        SerdeConfiguration.TimeShape writeShape,
+        SerdeConfiguration.NumericTimeUnit numericUnit
     ) {
         super(stringFormatter);
         this.writeShape = writeShape;

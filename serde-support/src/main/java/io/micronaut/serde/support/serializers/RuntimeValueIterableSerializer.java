@@ -18,10 +18,12 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Serializer;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * The customized iterable serializer.
@@ -49,13 +51,13 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
                 componentSerializer = context.findSerializer(generic).createSpecific(context, generic);
                 lastValueClass = t.getClass();
             }
-            componentSerializer.serialize(childEncoder, context, generic, t);
+            componentSerializer.serialize(childEncoder, context, Objects.requireNonNull(generic), t);
         }
         childEncoder.finishStructure();
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, Iterable<T> value) {
+    public boolean isEmpty(EncoderContext context, @Nullable Iterable<T> value) {
         if (value == null) {
             return true;
         }
@@ -67,7 +69,7 @@ final class RuntimeValueIterableSerializer<T> extends AbstractIterableSerializer
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, Iterable<T> value) {
+    public boolean isAbsent(EncoderContext context, @Nullable Iterable<T> value) {
         return value == null;
     }
 

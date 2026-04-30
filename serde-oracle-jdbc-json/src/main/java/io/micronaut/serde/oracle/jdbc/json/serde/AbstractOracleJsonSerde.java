@@ -16,13 +16,13 @@
 package io.micronaut.serde.oracle.jdbc.json.serde;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonGeneratorEncoder;
 import io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonParserDecoder;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -35,8 +35,7 @@ import java.io.IOException;
 public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
-    @NonNull
-    public final T deserialize(@NonNull Decoder decoder, @NonNull DecoderContext decoderContext, @NonNull Argument<? super T> type) throws IOException {
+    public final @Nullable T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
             return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
         } else {
@@ -45,7 +44,7 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends T> type, T value) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         if (encoder instanceof OracleJdbcJsonGeneratorEncoder oracleEncoder) {
             if (value == null) {
                 encoder.encodeNull();
@@ -60,26 +59,25 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
     /**
      * Deserializes object using {@link OracleJdbcJsonParserDecoder}.
      *
-     * @param decoder the Oracle JSON decoder
+     * @param decoder        the Oracle JSON decoder
      * @param decoderContext the decoder context
-     * @param type the type being deserialized
+     * @param type           the type being deserialized
      * @return the deserialized instance of given type
      * @throws IOException if an unrecoverable error occurs
      */
-    @NonNull
-    protected abstract T doDeserializeNonNull(@NonNull OracleJdbcJsonParserDecoder decoder, @NonNull DecoderContext decoderContext,
-                                              @NonNull Argument<? super T> type) throws IOException;
+    protected abstract T doDeserializeNonNull(OracleJdbcJsonParserDecoder decoder, DecoderContext decoderContext,
+                                              Argument<? super T> type) throws IOException;
 
     /**
      * Serializes non null value.
      *
      * @param encoder the encoder
      * @param context the encoder context
-     * @param type the type of object being serialized
-     * @param value the value being serialized
+     * @param type    the type of object being serialized
+     * @param value   the value being serialized
      * @throws IOException if an unrecoverable error occurs
      */
-    protected abstract void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends T> type, @NonNull T value) throws IOException;
+    protected abstract void doSerializeNonNull(OracleJdbcJsonGeneratorEncoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException;
 
     /**
      * @return The default behaviour

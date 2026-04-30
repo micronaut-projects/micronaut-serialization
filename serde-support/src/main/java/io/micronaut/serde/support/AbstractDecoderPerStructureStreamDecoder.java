@@ -16,9 +16,8 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -31,14 +30,16 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
     @Nullable
     AbstractDecoderPerStructureStreamDecoder parent;
 
-    private AbstractStreamDecoder child = null;
+    @Nullable
+    private AbstractStreamDecoder child;
 
     /**
      * Child constructor. Should inherit the parser from the parent.
-     * @param parent The parent decoder.
+     *
+     * @param parent          The parent decoder.
      * @param remainingLimits The limits for this decoder
      */
-    protected AbstractDecoderPerStructureStreamDecoder(@NonNull AbstractDecoderPerStructureStreamDecoder parent, @NonNull RemainingLimits remainingLimits) {
+    protected AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder parent, RemainingLimits remainingLimits) {
         this(remainingLimits);
         this.parent = parent;
     }
@@ -48,12 +49,13 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      *
      * @param remainingLimits The limits for this decoder
      */
-    protected AbstractDecoderPerStructureStreamDecoder(@NonNull RemainingLimits remainingLimits) {
+    protected AbstractDecoderPerStructureStreamDecoder(RemainingLimits remainingLimits) {
         super(remainingLimits);
     }
 
     /**
-     * Create a new child decoder using {@link AbstractDecoderPerStructureStreamDecoder#AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder,io.micronaut.serde.LimitingStream.RemainingLimits)}.
+     * Create a new child decoder using {@link AbstractDecoderPerStructureStreamDecoder#AbstractDecoderPerStructureStreamDecoder(AbstractDecoderPerStructureStreamDecoder, io.micronaut.serde.LimitingStream.RemainingLimits)}.
+     *
      * @return The new decoder
      */
     protected abstract AbstractStreamDecoder createChildDecoder() throws SerdeException;
@@ -89,6 +91,8 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
         return super.hasNextArrayValue();
     }
 
+    @Nullable
+    @Override
     public final String decodeKey() throws IOException {
         checkChild();
         return super.decodeKey();
@@ -123,8 +127,12 @@ public abstract class AbstractDecoderPerStructureStreamDecoder extends AbstractS
      * Transfer control back to the parent (for {@link #checkChild()}), and call {@link #backFromChild}.
      */
     void transferControlToParent() throws IOException {
-        parent.child = null;
-        parent.backFromChild(this);
+        AbstractDecoderPerStructureStreamDecoder p = parent;
+        if (p == null) {
+            throw new IllegalStateException("Root parser cannot transfer control to a parent");
+        }
+        p.child = null;
+        p.backFromChild(this);
     }
 
     /**

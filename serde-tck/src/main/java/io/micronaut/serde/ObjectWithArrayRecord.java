@@ -16,9 +16,10 @@
 package io.micronaut.serde;
 
 import io.micronaut.serde.annotation.Serdeable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 @Serdeable
-record ObjectWithArrayRecord(List<SomeObject> vals) {
+record ObjectWithArrayRecord(@Nullable List<SomeObject> vals) {
 }

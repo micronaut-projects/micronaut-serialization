@@ -22,6 +22,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
 
 import java.io.IOException;
@@ -38,8 +39,8 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("java:S3077")
 final class ObjectMappers {
-    private static volatile ObjectMapper defaultObjectMapper;
-    private static volatile ApplicationContext beanContext;
+    private static volatile @Nullable ObjectMapper defaultObjectMapper;
+    private static volatile @Nullable ApplicationContext beanContext;
     private static final Object MAPPER_LOCK = new Object();
     private static final Object CONTEXT_LOCK = new Object();
     private static final Set<String> DEFAULT_INCLUDE_PACKAGES = Set.of("io.micronaut.serde",
@@ -97,17 +98,17 @@ final class ObjectMappers {
             }
 
             @Override
-            public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
+            public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
                 return objectMapper.readValueFromTree(tree, type);
             }
 
             @Override
-            public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
+            public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
                 return objectMapper.readValue(inputStream, type);
             }
 
             @Override
-            public <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
+            public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
                 return objectMapper.readValue(byteArray, type);
             }
 
@@ -117,32 +118,32 @@ final class ObjectMappers {
             }
 
             @Override
-            public JsonNode writeValueToTree(Object value) throws IOException {
+            public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
                 return objectMapper.writeValueToTree(value);
             }
 
             @Override
-            public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
-                return writeValueToTree(type, value);
+            public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
+                return objectMapper.writeValueToTree(type, value);
             }
 
             @Override
-            public void writeValue(OutputStream outputStream, Object object) throws IOException {
+            public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
                 objectMapper.writeValue(outputStream, object);
             }
 
             @Override
-            public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+            public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
                 objectMapper.writeValue(outputStream, type, object);
             }
 
             @Override
-            public byte[] writeValueAsBytes(Object object) throws IOException {
+            public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
                 return objectMapper.writeValueAsBytes(object);
             }
 
             @Override
-            public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+            public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
                 return objectMapper.writeValueAsBytes(type, object);
             }
 

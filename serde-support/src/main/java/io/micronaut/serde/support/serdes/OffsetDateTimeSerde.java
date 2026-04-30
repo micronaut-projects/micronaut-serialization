@@ -20,7 +20,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -33,6 +33,7 @@ import java.util.Set;
  * Serde for OffsetDateTime.
  */
 public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<OffsetDateTime> implements SerdeRegistrar<OffsetDateTime> {
+    @Nullable
     private final ZoneId adjustTimeZone;
 
     /**
@@ -52,7 +53,7 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
     private OffsetDateTimeSerde(DateTimeFormatter stringFormatter,
                                 SerdeConfiguration.TimeShape writeShape,
                                 SerdeConfiguration.NumericTimeUnit numericUnit,
-                                ZoneId adjustTimeZone) {
+                                @Nullable ZoneId adjustTimeZone) {
         super(
             stringFormatter,
             SerdeConfiguration.NumericTimeUnit.MILLISECONDS,
@@ -102,25 +103,25 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
     protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecific(DateTimeFormatter stringFormatter,
                                                                           SerdeConfiguration.TimeShape timeWriteShape,
                                                                           SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                          @NonNull FormatConfiguration format) {
+                                                                          FormatConfiguration format) {
         return new OffsetDateTimeSerde(stringFormatter, timeWriteShape, numericUnit, null);
     }
 
     @Override
-    protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecificForDeserialization(@NonNull DateTimeFormatter stringFormatter,
+    protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecificForDeserialization(DateTimeFormatter stringFormatter,
                                                                                              SerdeConfiguration.TimeShape timeWriteShape,
                                                                                              SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                                             @NonNull FormatConfiguration format,
-                                                                                             @NonNull Set<DeserializationConfiguration.Feature> features) {
+                                                                                             FormatConfiguration format,
+                                                                                             Set<DeserializationConfiguration.Feature> features) {
         return new OffsetDateTimeSerde(stringFormatter, timeWriteShape, numericUnit, adjustTimeZone(format, features));
     }
 
     @Override
-    protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecificForDeserialization(@NonNull DateTimeFormatter stringFormatter,
+    protected DefaultFormattedTemporalSerde<OffsetDateTime> createSpecificForDeserialization(DateTimeFormatter stringFormatter,
                                                                                              SerdeConfiguration.TimeShape timeWriteShape,
                                                                                              SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                                             @NonNull SerdeConfiguration configuration,
-                                                                                             @NonNull Set<DeserializationConfiguration.Feature> features) {
+                                                                                             SerdeConfiguration configuration,
+                                                                                             Set<DeserializationConfiguration.Feature> features) {
         return new OffsetDateTimeSerde(stringFormatter, timeWriteShape, numericUnit, adjustTimeZone(configuration, features));
     }
 
@@ -129,16 +130,18 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
         return Argument.of(OffsetDateTime.class);
     }
 
-    private static ZoneId adjustTimeZone(@NonNull FormatConfiguration format,
-                                         @NonNull Set<DeserializationConfiguration.Feature> features) {
+    @Nullable
+    private static ZoneId adjustTimeZone(FormatConfiguration format,
+                                         Set<DeserializationConfiguration.Feature> features) {
         if (features.contains(DeserializationConfiguration.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)) {
             return format.parseTimeZone().toZoneId();
         }
         return null;
     }
 
-    private static ZoneId adjustTimeZone(@NonNull SerdeConfiguration configuration,
-                                         @NonNull Set<DeserializationConfiguration.Feature> features) {
+    @Nullable
+    private static ZoneId adjustTimeZone(SerdeConfiguration configuration,
+                                         Set<DeserializationConfiguration.Feature> features) {
         if (features.contains(DeserializationConfiguration.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)) {
             return configuration.getTimeZone()
                 .map(timeZone -> timeZone.toZoneId())

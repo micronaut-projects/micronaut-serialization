@@ -25,7 +25,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -52,7 +51,7 @@ final class SqlTimestampSerde implements FormattedSerde<Timestamp>, SerdeRegistr
     @Override
     public Serializer<Timestamp> createSpecific(EncoderContext encoderContext,
                                                 Argument<? extends Timestamp> type,
-                                                @NonNull FormatConfiguration format) {
+                                                FormatConfiguration format) {
         if (format.shape().isNumeric()) {
             return new TimestampMillisSerde();
         }
@@ -105,7 +104,7 @@ final class SqlTimestampSerde implements FormattedSerde<Timestamp>, SerdeRegistr
     @Override
     public Deserializer<Timestamp> createSpecific(DecoderContext decoderContext,
                                                   Argument<? super Timestamp> context,
-                                                  @NonNull FormatConfiguration format) throws SerdeException {
+                                                  FormatConfiguration format) throws SerdeException {
         if (format.shape().isNumeric()) {
             return new TimestampMillisSerde();
         }

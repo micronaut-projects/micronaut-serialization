@@ -18,9 +18,9 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.time.DateTimeException;
@@ -36,10 +36,11 @@ final class FormattedTemporalSerde<T extends TemporalAccessor> implements Tempor
     final DateTimeFormatter formatter;
     final TemporalQuery<T> query;
     final TemporalSerde<T> originalTemporalSerde;
+    @Nullable
     final ZoneId adjustTimeZone;
 
-    FormattedTemporalSerde(@NonNull DateTimeFormatter formatter,
-                           @NonNull FormatConfiguration format,
+    FormattedTemporalSerde(DateTimeFormatter formatter,
+                           FormatConfiguration format,
                            TemporalQuery<T> query,
                            TemporalSerde<T> originalTemporalSerde,
                            boolean adjustDatesToContextTimeZone) {

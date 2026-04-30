@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.naming.Named;
@@ -30,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -59,7 +59,7 @@ final class PropertiesBag<T> {
     private PropertiesBag(BeanIntrospection<T> beanIntrospection,
                           int[] originalNameToPropertiesMapping,
                           DeserBean.DerProperty<T, Object>[] properties,
-                          Map<String, Integer> nameToPropertiesMapping,
+                          @Nullable Map<String, Integer> nameToPropertiesMapping,
                           boolean acceptCaseInsensitiveProperties) {
         this.beanIntrospection = beanIntrospection;
         this.originalNameToPropertiesMapping = originalNameToPropertiesMapping;
@@ -100,11 +100,9 @@ final class PropertiesBag<T> {
             .filter(index -> index != -1)
             .mapToObj(index -> {
                 DeserBean.DerProperty<T, Object> prop = properties[index];
-                if (prop.beanProperty == null) {
-                    return null;
-                }
-                return prop;
-            });
+                return prop.beanProperty == null ? null : prop;
+            })
+            .filter(Objects::nonNull);
         Stream<DeserBean.DerProperty<T, Object>> mappedByName = nameToPropertiesMapping == null ? Stream.empty() : nameToPropertiesMapping.values()
             .stream()
             .map(index -> properties[index]);
@@ -125,15 +123,15 @@ final class PropertiesBag<T> {
         return properties;
     }
 
-    int propertyIndexOf(@NonNull String name) {
+    int propertyIndexOf(String name) {
         int propertyIndex = nameToPosition.get(name, -1);
         if (propertyIndex == -1 && acceptCaseInsensitiveProperties) {
-            return caseInsensitiveNameToPosition.get(name.toLowerCase(Locale.ROOT), -1);
+            return Objects.requireNonNull(caseInsensitiveNameToPosition).get(name.toLowerCase(Locale.ROOT), -1);
         }
         return propertyIndex;
     }
 
-    private int propertyIndexOfSlow(@NonNull String name) {
+    private int propertyIndexOfSlow(String name) {
         int propertyIndex = -1;
         int beanPropertyIndex = beanIntrospection.propertyIndexOf(name);
         if (beanPropertyIndex != -1) {
@@ -160,7 +158,7 @@ final class PropertiesBag<T> {
             return propertyIndexOf(name) != -1;
         }
 
-        public DeserBean.DerProperty<T, Object> consume(String name) {
+        public DeserBean.@Nullable DerProperty<T, Object> consume(String name) {
             int propertyIndex = propertyIndexOf(name);
             if (propertyIndex == -1 || isConsumed(propertyIndex)) {
                 return null;
@@ -264,12 +262,14 @@ final class PropertiesBag<T> {
         void register(String name, DeserBean.DerProperty<T, Object> derProperty, boolean addAliases) {
             int newPropertyIndex = mutableProperties.size();
             if (derProperty.beanProperty != null && derProperty.beanProperty.getDeclaringBean() == beanIntrospection && name.equals(derProperty.beanProperty.getName())) {
-                originalNameToPropertiesMapping[beanIntrospection.propertyIndexOf(name)] = newPropertyIndex;
-            } else {
-                if (nameToPropertiesMapping == null) {
-                    nameToPropertiesMapping = new HashMap<>();
+                int propertyIndex = beanIntrospection.propertyIndexOf(name);
+                if (propertyIndex >= 0) {
+                    originalNameToPropertiesMapping[propertyIndex] = newPropertyIndex;
+                } else {
+                    addMappedProperty(name, newPropertyIndex);
                 }
-                nameToPropertiesMapping.put(name, newPropertyIndex);
+            } else {
+                addMappedProperty(name, newPropertyIndex);
             }
             if (addAliases && derProperty.aliases != null && derProperty.aliases.length > 0) {
                 if (nameToPropertiesMapping == null) {
@@ -282,7 +282,13 @@ final class PropertiesBag<T> {
             mutableProperties.add(derProperty);
         }
 
-        @NonNull
+        private void addMappedProperty(String name, int propertyIndex) {
+            if (nameToPropertiesMapping == null) {
+                nameToPropertiesMapping = new HashMap<>();
+            }
+            nameToPropertiesMapping.put(name, propertyIndex);
+        }
+
         PropertiesBag<T> buildNotNull() {
             return new PropertiesBag<>(
                 beanIntrospection,

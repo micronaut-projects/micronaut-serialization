@@ -20,7 +20,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -37,6 +37,7 @@ import java.util.Set;
 public final class ZonedDateTimeSerde
     extends NumericSupportTemporalSerde<ZonedDateTime>
         implements TemporalSerde<ZonedDateTime>, SerdeRegistrar<ZonedDateTime> {
+    @Nullable
     private final ZoneId adjustTimeZone;
 
     public ZonedDateTimeSerde(SerdeConfiguration configuration) {
@@ -51,7 +52,7 @@ public final class ZonedDateTimeSerde
     private ZonedDateTimeSerde(DateTimeFormatter stringFormatter,
                                SerdeConfiguration.TimeShape writeShape,
                                SerdeConfiguration.NumericTimeUnit numericUnit,
-                               ZoneId adjustTimeZone) {
+                               @Nullable ZoneId adjustTimeZone) {
         super(
             stringFormatter,
             SerdeConfiguration.NumericTimeUnit.MILLISECONDS,
@@ -98,7 +99,7 @@ public final class ZonedDateTimeSerde
     protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecific(DateTimeFormatter stringFormatter,
                                                                          SerdeConfiguration.TimeShape timeWriteShape,
                                                                          SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                         @NonNull FormatConfiguration format) {
+                                                                         FormatConfiguration format) {
         return new ZonedDateTimeSerde(
             stringFormatter,
             timeWriteShape,
@@ -108,11 +109,11 @@ public final class ZonedDateTimeSerde
     }
 
     @Override
-    protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecificForDeserialization(@NonNull DateTimeFormatter stringFormatter,
+    protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecificForDeserialization(DateTimeFormatter stringFormatter,
                                                                                             SerdeConfiguration.TimeShape timeWriteShape,
                                                                                             SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                                            @NonNull FormatConfiguration format,
-                                                                                            @NonNull Set<DeserializationConfiguration.Feature> features) {
+                                                                                            FormatConfiguration format,
+                                                                                            Set<DeserializationConfiguration.Feature> features) {
         return new ZonedDateTimeSerde(
             stringFormatter,
             timeWriteShape,
@@ -122,11 +123,11 @@ public final class ZonedDateTimeSerde
     }
 
     @Override
-    protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecificForDeserialization(@NonNull DateTimeFormatter stringFormatter,
+    protected DefaultFormattedTemporalSerde<ZonedDateTime> createSpecificForDeserialization(DateTimeFormatter stringFormatter,
                                                                                             SerdeConfiguration.TimeShape timeWriteShape,
                                                                                             SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                                            @NonNull SerdeConfiguration configuration,
-                                                                                            @NonNull Set<DeserializationConfiguration.Feature> features) {
+                                                                                            SerdeConfiguration configuration,
+                                                                                            Set<DeserializationConfiguration.Feature> features) {
         return new ZonedDateTimeSerde(
             stringFormatter,
             timeWriteShape,
@@ -141,24 +142,26 @@ public final class ZonedDateTimeSerde
     }
 
     @Override
-    protected DateTimeFormatter defaultStringFormatter(@NonNull FormatConfiguration format,
-                                                       @NonNull Set<SerdeConfiguration.Feature> features) {
+    protected DateTimeFormatter defaultStringFormatter(FormatConfiguration format,
+                                                       Set<SerdeConfiguration.Feature> features) {
         if (!features.contains(SerdeConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID)) {
             return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
         }
         return DateTimeFormatter.ISO_ZONED_DATE_TIME;
     }
 
-    private static ZoneId adjustTimeZone(@NonNull FormatConfiguration format,
-                                         @NonNull Set<DeserializationConfiguration.Feature> features) {
+    @Nullable
+    private static ZoneId adjustTimeZone(FormatConfiguration format,
+                                         Set<DeserializationConfiguration.Feature> features) {
         if (features.contains(DeserializationConfiguration.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)) {
             return format.parseTimeZone().toZoneId();
         }
         return null;
     }
 
-    private static ZoneId adjustTimeZone(@NonNull SerdeConfiguration configuration,
-                                         @NonNull Set<DeserializationConfiguration.Feature> features) {
+    @Nullable
+    private static ZoneId adjustTimeZone(SerdeConfiguration configuration,
+                                         Set<DeserializationConfiguration.Feature> features) {
         if (features.contains(DeserializationConfiguration.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE)) {
             return configuration.getTimeZone()
                 .map(timeZone -> timeZone.toZoneId())

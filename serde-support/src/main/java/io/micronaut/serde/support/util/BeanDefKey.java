@@ -16,9 +16,8 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -34,7 +33,7 @@ public final class BeanDefKey {
     private final String suffix;
     private final int hashCode;
 
-    public BeanDefKey(@NonNull Argument<?> type, @Nullable String prefix, @Nullable String suffix) {
+    public BeanDefKey(Argument<?> type, @Nullable String prefix, @Nullable String suffix) {
         this.type = type;
         this.hashCode = type.typeHashCode();
         this.prefix = prefix;
@@ -58,7 +57,7 @@ public final class BeanDefKey {
         return hashCode;
     }
 
-    public @NonNull Argument<?> getType() {
+    public Argument<?> getType() {
         return type;
     }
 }

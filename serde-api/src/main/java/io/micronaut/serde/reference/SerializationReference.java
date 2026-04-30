@@ -16,10 +16,10 @@
 package io.micronaut.serde.reference;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serializer;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a reference to a property for serialization.
@@ -33,7 +33,7 @@ public class SerializationReference<B, T> extends PropertyReference<B, T> {
     public SerializationReference(String referenceName,
                                   BeanIntrospection<B> introspection,
                                   Argument<T> property,
-                                  T value,
+                                  @Nullable T value,
                                   Serializer<T> serializer) {
         super(referenceName, introspection, property, value);
         this.serializer = serializer;
@@ -42,7 +42,7 @@ public class SerializationReference<B, T> extends PropertyReference<B, T> {
     /**
      * @return The serializer
      */
-    public @NonNull Serializer<T> getSerializer() {
+    public Serializer<T> getSerializer() {
         return serializer;
     }
 }

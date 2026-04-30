@@ -16,7 +16,6 @@
 package io.micronaut.serde.reference;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 
 /**
  * interface for managing property references.
@@ -31,7 +30,7 @@ public interface PropertyReferenceManager {
      * @param <P> The parent
      * @see #popManagedRef()
      */
-    <B, P> void pushManagedRef(@NonNull PropertyReference<B, P> reference);
+    <B, P> void pushManagedRef(PropertyReference<B, P> reference);
 
     /**
      * Remove the last parent (if present) from the stack.

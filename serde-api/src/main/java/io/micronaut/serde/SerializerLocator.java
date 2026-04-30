@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -33,8 +32,7 @@ public interface SerializerLocator {
      * @return The serializer
      * @throws io.micronaut.serde.exceptions.SerdeException if no serializer is found
      */
-    @NonNull
-    <T, D extends Serializer<? extends T>> D findCustomSerializer(@NonNull Class<? extends D> serializerClass)
+    <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass)
             throws SerdeException;
 
     /**
@@ -44,8 +42,7 @@ public interface SerializerLocator {
      * @return The serializer
      * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
      */
-    @NonNull
-    <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType)
+    <T> Serializer<? super T> findSerializer(Argument<? extends T> forType)
             throws SerdeException;
 
     /**
@@ -55,8 +52,7 @@ public interface SerializerLocator {
      * @return The serializer
      * @throws io.micronaut.serde.exceptions.SerdeException if an exception occurs
      */
-    default @NonNull
-    <T> Serializer<? super T> findSerializer(@NonNull Class<? extends T> forType)
+    default <T> Serializer<? super T> findSerializer(Class<? extends T> forType)
             throws SerdeException {
         return findSerializer(Argument.of(forType));
     }

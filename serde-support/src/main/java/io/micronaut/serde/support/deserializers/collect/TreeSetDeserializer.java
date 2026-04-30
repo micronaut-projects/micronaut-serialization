@@ -16,10 +16,10 @@
 package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.TreeSet;
@@ -45,7 +45,7 @@ final class TreeSetDeserializer<E> extends CollectionDeserializer<E, TreeSet<E>>
     }
 
     @Override
-    public TreeSet<E> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super TreeSet<E>> type) throws IOException {
+    public @Nullable TreeSet<E> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super TreeSet<E>> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

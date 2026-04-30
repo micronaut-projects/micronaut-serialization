@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
@@ -28,6 +27,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A simple all-args constructor and no setter properties implementation for deserialization of objects that uses introspection metadata.
@@ -48,7 +48,7 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
                                        DeserBean<? super Object> deserBean,
                                        @Nullable SerdeDeserializationPreInstantiateCallback preInstantiateCallback) {
         this.introspection = deserBean.introspection;
-        this.constructorParameters = deserBean.creatorParams;
+        this.constructorParameters = Objects.requireNonNull(deserBean.creatorParams);
         this.valuesSize = deserBean.creatorSize;
         this.preInstantiateCallback = preInstantiateCallback;
         this.ignoreUnknown = deserBean.ignoreUnknown;
@@ -125,13 +125,14 @@ final class SimpleRecordLikeObjectDeserializer implements Deserializer<Object>, 
     }
 
     @Override
-    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }
         return deserialize(decoder, context, type);
     }
 
+    @Override
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object value)
         throws IOException {
         throw new SerdeException("Unsupported deserialize into immutable [" + beanType + "]");

@@ -20,8 +20,10 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Serializer for the `@JsonValue` annotation.
@@ -46,7 +48,7 @@ final class JsonValueSerializer<T> implements ObjectSerializer<T> {
             encoder.encodeNull();
             return;
         }
-        jsonValue.serializer.serialize(
+        Objects.requireNonNull(jsonValue.serializer).serialize(
             encoder,
             context,
             jsonValue.argument,
@@ -60,15 +62,21 @@ final class JsonValueSerializer<T> implements ObjectSerializer<T> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, T value) {
+    public boolean isEmpty(EncoderContext context, @Nullable T value) {
+        if (value == null) {
+            return true;
+        }
         Object jsonValueValue = jsonValue.get(value);
-        return jsonValueValue == null || jsonValue.serializer.isEmpty(context, jsonValueValue);
+        return jsonValueValue == null || Objects.requireNonNull(jsonValue.serializer).isEmpty(context, jsonValueValue);
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, T value) {
+    public boolean isAbsent(EncoderContext context, @Nullable T value) {
+        if (value == null) {
+            return true;
+        }
         Object jsonValueValue = jsonValue.get(value);
-        return jsonValueValue == null || jsonValue.serializer.isAbsent(context, jsonValueValue);
+        return jsonValueValue == null || Objects.requireNonNull(jsonValue.serializer).isAbsent(context, jsonValueValue);
     }
 
 }

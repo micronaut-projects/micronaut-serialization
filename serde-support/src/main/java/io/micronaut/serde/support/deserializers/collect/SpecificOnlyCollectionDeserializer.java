@@ -27,7 +27,6 @@ import io.micronaut.serde.support.serdes.SingleElementArraySerde;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -58,9 +57,9 @@ abstract class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> im
                                                       Deserializer<? extends E> valueDeser);
 
     @Override
-    public @NonNull Deserializer<C> createSpecific(@NonNull DecoderContext context,
-                                                   @NonNull Argument<? super C> type,
-                                                   @NonNull FormatConfiguration format) throws SerdeException {
+    public Deserializer<C> createSpecific(DecoderContext context,
+                                                   Argument<? super C> type,
+                                                   FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }

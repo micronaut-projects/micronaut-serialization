@@ -25,7 +25,6 @@ import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.support.serdes.SingleElementArraySerde;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.util.CustomizableSerializer;
-import org.jspecify.annotations.NonNull;
 
 import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGenericWithParentMetadata;
 
@@ -53,9 +52,9 @@ final class IterableSerializer<T> implements CustomizableSerializer<Iterable<T>>
     }
 
     @Override
-    public @NonNull Serializer<Iterable<T>> createSpecific(@NonNull EncoderContext context,
-                                                           @NonNull Argument<? extends Iterable<T>> type,
-                                                           @NonNull FormatConfiguration format) throws SerdeException {
+    public Serializer<Iterable<T>> createSpecific(EncoderContext context,
+                                                           Argument<? extends Iterable<T>> type,
+                                                           FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectSerializer(context, type);
         }

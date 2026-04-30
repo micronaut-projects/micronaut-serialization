@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.util;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -36,7 +35,7 @@ public interface CustomizableDeserializer<T> extends Deserializer<T> {
     }
 
     @Override
-    default T deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super T> type) throws IOException {
+    default T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         throw new IllegalStateException("Specific deserializer required!");
     }
 

@@ -27,7 +27,6 @@ import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -49,7 +48,7 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
      * @throws IOException If an I/O error occurs
      * @since 3.0
      */
-    default void encodeNumber(@NonNull Encoder encoder, @NonNull Number value) throws IOException {
+    default void encodeNumber(Encoder encoder, Number value) throws IOException {
         switch (value) {
             case Integer integer -> encoder.encodeInt(integer);
             case Long aLong -> encoder.encodeLong(aLong);
@@ -71,9 +70,9 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
     }
 
     @Override
-    default Deserializer<N> createSpecific(@NonNull DecoderContext context,
-                                           @NonNull Argument<? super N> type,
-                                           @NonNull FormatConfiguration format) throws SerdeException {
+    default Deserializer<N> createSpecific(DecoderContext context,
+                                           Argument<? super N> type,
+                                           FormatConfiguration format) throws SerdeException {
         return createSpecificSerde(format);
     }
 
@@ -85,13 +84,13 @@ public interface NumberSerde<N extends Number> extends FormattedSerde<N>, Serde<
     }
 
     @Override
-    default Serializer<N> createSpecific(@NonNull EncoderContext context,
-                                         @NonNull Argument<? extends N> type,
-                                         @NonNull FormatConfiguration format) throws SerdeException {
+    default Serializer<N> createSpecific(EncoderContext context,
+                                         Argument<? extends N> type,
+                                         FormatConfiguration format) throws SerdeException {
         return createSpecificSerde(format);
     }
 
-    private Serde<N> createSpecificSerde(@NonNull FormatConfiguration format) {
+    private Serde<N> createSpecificSerde(FormatConfiguration format) {
         if (format.pattern() != null) {
             return new FormattedNumberSerde<>(format);
         }
@@ -117,17 +116,17 @@ final class StringShapeNumberSerde<N extends Number> implements FormattedSerde<N
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends N> type,
-                          @NonNull N value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends N> type,
+                          N value) throws IOException {
         encoder.encodeString(encodeNumber(value, type.getType(), radix));
     }
 
     @Override
-    public N deserialize(@NonNull Decoder decoder,
-                         @NonNull DecoderContext context,
-                         @NonNull Argument<? super N> type) throws IOException {
+    public N deserialize(Decoder decoder,
+                         DecoderContext context,
+                         Argument<? super N> type) throws IOException {
         String value = decoder.decodeString();
         try {
             if (radix != FormatConfiguration.DEFAULT_RADIX && isIntegralNumber(type.getType())) {
@@ -143,17 +142,17 @@ final class StringShapeNumberSerde<N extends Number> implements FormattedSerde<N
     }
 
     @Override
-    public boolean isEmpty(@NonNull EncoderContext context, @Nullable N value) {
+    public boolean isEmpty(EncoderContext context, @Nullable N value) {
         return delegate == null ? value == null : delegate.isEmpty(context, value);
     }
 
     @Override
-    public boolean isAbsent(@NonNull EncoderContext context, @Nullable N value) {
+    public boolean isAbsent(EncoderContext context, @Nullable N value) {
         return delegate == null ? value == null : delegate.isAbsent(context, value);
     }
 
     @Override
-    public boolean isDefault(@NonNull EncoderContext context, @NonNull N value) {
+    public boolean isDefault(EncoderContext context, N value) {
         return delegate != null && delegate.isDefault(context, value);
     }
 

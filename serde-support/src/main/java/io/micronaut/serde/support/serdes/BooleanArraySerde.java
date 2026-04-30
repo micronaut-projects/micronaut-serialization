@@ -16,10 +16,10 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ final class BooleanArraySerde extends AbstractArraySerde<boolean[]> {
     }
 
     @Override
-    public boolean[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super boolean[]> type) throws IOException {
+    public boolean @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super boolean[]> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }
@@ -65,7 +65,7 @@ final class BooleanArraySerde extends AbstractArraySerde<boolean[]> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, boolean[] value) {
+    public boolean isEmpty(EncoderContext context, boolean @Nullable [] value) {
         return value == null || value.length == 0;
     }
 

@@ -15,6 +15,8 @@
  */
 package io.micronaut.serde.exceptions;
 
+import java.util.Objects;
+
 /**
  * An exception that can be used as a wrapper for a {@link SerdeException}.
  *
@@ -27,6 +29,6 @@ public final class RuntimeSerdeException extends RuntimeException {
 
     @Override
     public synchronized SerdeException getCause() {
-        return (SerdeException) super.getCause();
+        return Objects.requireNonNull((SerdeException) super.getCause());
     }
 }
