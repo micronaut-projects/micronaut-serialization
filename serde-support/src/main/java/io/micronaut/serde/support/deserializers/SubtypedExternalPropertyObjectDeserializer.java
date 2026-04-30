@@ -19,11 +19,11 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Subtyped external property deserializer.
@@ -40,25 +40,37 @@ final class SubtypedExternalPropertyObjectDeserializer implements Deserializer<O
         this.subtypeInfo = subtypeInfo;
     }
 
-    static PropertyReference<Object, String> createExternalPropertyReference(DecoderContext decoderContext, String discriminator, @Nullable String value) {
+    static PropertyReference<Object, String> createExternalPropertyReference(DecoderContext decoderContext, String discriminator, @Nullable String value) throws SerdeException {
         String referenceName = "externalProperty@" + discriminator;
         // TODO: We need a better API for this case when there is no introspection
-        return Objects.requireNonNull(decoderContext.resolveReference(
+        PropertyReference<Object, String> reference = decoderContext.resolveReference(
             new PropertyReference<>(
                 referenceName,
                 null,
                 Argument.of(String.class, referenceName),
                 value)
-        ));
+        );
+        if (reference == null) {
+            throw unresolvedExternalPropertyReference(discriminator);
+        }
+        return reference;
     }
 
     @Override
     public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
-        PropertyReference<Object, String> externalPropertyReference = createExternalPropertyReference(decoderContext, subtypeInfo.parent().info().discriminatorName(), null);
-        PropertyReference<Object, String> ref = Objects.requireNonNull(decoderContext.resolveReference(externalPropertyReference));
+        String discriminator = subtypeInfo.parent().info().discriminatorName();
+        PropertyReference<Object, String> externalPropertyReference = createExternalPropertyReference(decoderContext, discriminator, null);
+        PropertyReference<Object, String> ref = decoderContext.resolveReference(externalPropertyReference);
+        if (ref == null) {
+            throw unresolvedExternalPropertyReference(discriminator);
+        }
         String discriminatorValue = (String) ref.getReference();
         Deserializer<? super Object> deserializer = subtypeInfo.findDeserializer(discriminatorValue);
         return deserializer.deserialize(decoder, decoderContext, type);
+    }
+
+    private static SerdeException unresolvedExternalPropertyReference(String discriminator) {
+        return new SerdeException("Cannot resolve external property reference for discriminator: " + discriminator);
     }
 
 }
