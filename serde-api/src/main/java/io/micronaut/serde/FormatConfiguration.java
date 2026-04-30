@@ -156,17 +156,53 @@ public record FormatConfiguration(
      * Shape values supported by format metadata.
      */
     public enum Shape {
+        /**
+         * Binary value shape.
+         */
         BINARY,
+        /**
+         * Boolean scalar shape.
+         */
         BOOLEAN,
+        /**
+         * Numeric scalar shape.
+         */
         NUMBER,
+        /**
+         * Floating-point numeric scalar shape.
+         */
         NUMBER_FLOAT,
+        /**
+         * Integral numeric scalar shape.
+         */
         NUMBER_INT,
+        /**
+         * String scalar shape.
+         */
         STRING,
+        /**
+         * Any scalar shape.
+         */
         SCALAR,
+        /**
+         * Array shape.
+         */
         ARRAY,
+        /**
+         * Object shape.
+         */
         OBJECT,
+        /**
+         * No explicit shape preference.
+         */
         ANY,
+        /**
+         * Natural shape for the value type.
+         */
         NATURAL,
+        /**
+         * POJO-like object shape.
+         */
         POJO;
 
         /**

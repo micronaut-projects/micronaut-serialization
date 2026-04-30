@@ -23,7 +23,7 @@ import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -55,7 +55,7 @@ abstract sealed class AbstractArraySerde<T> implements FormattedSerde<T>, SerdeR
                                                  @NonNull Argument<? extends T> type,
                                                  @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectSerializer(context, type);
+            return ObjectShapeSerdeHelper.objectSerializer(context, type);
         }
         return createSpecific(context, type);
     }
@@ -65,7 +65,7 @@ abstract sealed class AbstractArraySerde<T> implements FormattedSerde<T>, SerdeR
                                                    @NonNull Argument<? super T> type,
                                                    @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectDeserializer(context, type);
+            return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }
         return createSpecific(context, type);
     }

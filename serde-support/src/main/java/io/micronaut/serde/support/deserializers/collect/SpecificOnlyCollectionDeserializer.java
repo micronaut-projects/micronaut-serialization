@@ -24,7 +24,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.serdes.SingleElementArraySerde;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import org.jspecify.annotations.NonNull;
@@ -62,7 +62,7 @@ abstract class SpecificOnlyCollectionDeserializer<E, C extends Collection<E>> im
                                                    @NonNull Argument<? super C> type,
                                                    @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectDeserializer(context, type);
+            return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }
         return SingleElementArraySerde.acceptSingleValueAsArray(createSpecific(context, type), context);
     }

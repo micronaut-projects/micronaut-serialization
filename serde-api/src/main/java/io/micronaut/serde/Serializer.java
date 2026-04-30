@@ -21,9 +21,7 @@ import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
 import org.jspecify.annotations.NonNull;
@@ -176,96 +174,27 @@ public interface Serializer<T> {
         /**
          * Create a context with serialization format features overridden by annotation metadata.
          *
-         * @param featuresWith    Features to enable
-         * @param featuresWithout Features to disable
+         * @param includedFeatures Features to enable
+         * @param excludedFeatures Features to disable
          * @return The derived context
          * @since 3.0
          */
         @NonNull
-        default EncoderContext withFeatures(@NonNull Set<SerdeConfiguration.Feature> featuresWith,
-                                            @NonNull Set<SerdeConfiguration.Feature> featuresWithout) {
-            if (featuresWith.isEmpty() && featuresWithout.isEmpty()) {
+        default EncoderContext withFeatures(@NonNull Set<SerdeConfiguration.Feature> includedFeatures,
+                                            @NonNull Set<SerdeConfiguration.Feature> excludedFeatures) {
+            if (includedFeatures.isEmpty() && excludedFeatures.isEmpty()) {
                 return this;
             }
-            return featureContext(this, overrideFeatures(getFeatures(), featuresWith, featuresWithout));
-        }
-
-        private static EncoderContext featureContext(EncoderContext delegate,
-                                                     Set<SerdeConfiguration.Feature> features) {
-            return new EncoderContext() {
-                @Override
-                public ConversionService getConversionService() {
-                    return delegate.getConversionService();
-                }
-
-                @Override
-                public boolean hasView(Class<?>... views) {
-                    return delegate.hasView(views);
-                }
-
-                @Override
-                public <B, P> SerializationReference<B, P> resolveReference(@NonNull SerializationReference<B, P> reference) {
-                    return delegate.resolveReference(reference);
-                }
-
-                @Override
-                public Optional<SerdeConfiguration> getSerdeConfiguration() {
-                    return delegate.getSerdeConfiguration();
-                }
-
-                @Override
-                public Optional<SerializationConfiguration> getSerializationConfiguration() {
-                    return delegate.getSerializationConfiguration();
-                }
-
-                @Override
-                public Set<SerdeConfiguration.Feature> getFeatures() {
-                    return features;
-                }
-
-                @Override
-                public EncoderContext withFeatures(@NonNull Set<SerdeConfiguration.Feature> featuresWith,
-                                                   @NonNull Set<SerdeConfiguration.Feature> featuresWithout) {
-                    if (featuresWith.isEmpty() && featuresWithout.isEmpty()) {
-                        return this;
-                    }
-                    return featureContext(delegate, overrideFeatures(features, featuresWith, featuresWithout));
-                }
-
-                @Override
-                public <T, D extends Serializer<? extends T>> D findCustomSerializer(@NonNull Class<? extends D> serializerClass) throws SerdeException {
-                    return delegate.findCustomSerializer(serializerClass);
-                }
-
-                @Override
-                public <T> Serializer<? super T> findSerializer(@NonNull Argument<? extends T> forType) throws SerdeException {
-                    return delegate.findSerializer(forType);
-                }
-
-                @Override
-                public <D extends PropertyNamingStrategy> D findNamingStrategy(@NonNull Class<? extends D> namingStrategyClass) throws SerdeException {
-                    return delegate.findNamingStrategy(namingStrategyClass);
-                }
-
-                @Override
-                public <B, P> void pushManagedRef(@NonNull PropertyReference<B, P> reference) {
-                    delegate.pushManagedRef(reference);
-                }
-
-                @Override
-                public void popManagedRef() {
-                    delegate.popManagedRef();
-                }
-            };
+            return new FeatureEncoderContext(this, overrideFeatures(getFeatures(), includedFeatures, excludedFeatures));
         }
 
         private static Set<SerdeConfiguration.Feature> overrideFeatures(Set<SerdeConfiguration.Feature> base,
-                                                                        Set<SerdeConfiguration.Feature> featuresWith,
-                                                                        Set<SerdeConfiguration.Feature> featuresWithout) {
+                                                                        Set<SerdeConfiguration.Feature> includedFeatures,
+                                                                        Set<SerdeConfiguration.Feature> excludedFeatures) {
             EnumSet<SerdeConfiguration.Feature> features = EnumSet.noneOf(SerdeConfiguration.Feature.class);
             features.addAll(base);
-            features.addAll(featuresWith);
-            features.removeAll(featuresWithout);
+            features.addAll(includedFeatures);
+            features.removeAll(excludedFeatures);
             return Set.copyOf(features);
         }
     }

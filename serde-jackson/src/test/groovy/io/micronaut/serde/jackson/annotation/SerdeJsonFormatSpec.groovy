@@ -137,14 +137,14 @@ class GeneratedLikePayloadSerde implements Serializer<Payload>, Deserializer<Pay
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Serializer<Payload> createSpecific(EncoderContext context,
                                               Argument<? extends Payload> type) throws SerdeException {
-        return (Serializer<Payload>) GeneratedSerdeFallbackUtil.withRuntimeFallback((Serializer<?>) this, context, (Argument) type);
+        return (Serializer<Payload>) GeneratedSerdeFallbackUtil.withRuntimeObjectFallback((Serializer<?>) this, context, (Argument) type);
     }
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Deserializer<Payload> createSpecific(DecoderContext context,
                                                 Argument<? super Payload> type) throws SerdeException {
-        return (Deserializer<Payload>) GeneratedSerdeFallbackUtil.withRuntimeFallback((Deserializer<?>) this, context, (Argument) type);
+        return (Deserializer<Payload>) GeneratedSerdeFallbackUtil.withRuntimeObjectFallback((Deserializer<?>) this, context, (Argument) type);
     }
 
     @Override
@@ -223,14 +223,14 @@ class GeneratedLikeChoiceSerde implements Serializer<Choice>, Deserializer<Choic
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Serializer<Choice> createSpecific(EncoderContext context,
                                              Argument<? extends Choice> type) throws SerdeException {
-        return (Serializer<Choice>) GeneratedSerdeFallbackUtil.runtimeFallback((Serializer<?>) this, context, (Argument) type);
+        return (Serializer<Choice>) GeneratedSerdeFallbackUtil.withRuntimeEnumFallback((Serializer<?>) this, context, (Argument) type);
     }
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public Deserializer<Choice> createSpecific(DecoderContext context,
                                                Argument<? super Choice> type) throws SerdeException {
-        return (Deserializer<Choice>) GeneratedSerdeFallbackUtil.runtimeFallback((Deserializer<?>) this, context, (Argument) type);
+        return (Deserializer<Choice>) GeneratedSerdeFallbackUtil.withRuntimeEnumFallback((Deserializer<?>) this, context, (Argument) type);
     }
 
     @Override
@@ -652,6 +652,54 @@ class Test {
 
         expect:
         validateJsonWithoutOrder(jsonMapper, '{"value":"alpha","explicitArray":["beta"]}', writeJson(jsonMapper, beanUnderTest))
+
+        cleanup:
+        context.close()
+    }
+
+    void "test object fallback property serialization feature overrides do not leak"() {
+        given:
+        def context = buildContext('test.Holder', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+class Holder {
+    @JsonFormat(with = JsonFormat.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)
+    private List<String> aUnwrapped;
+    private List<String> zArray;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String zzMarker;
+    public List<String> getAUnwrapped() {
+        return aUnwrapped;
+    }
+    public void setAUnwrapped(List<String> aUnwrapped) {
+        this.aUnwrapped = aUnwrapped;
+    }
+    public List<String> getZArray() {
+        return zArray;
+    }
+    public void setZArray(List<String> zArray) {
+        this.zArray = zArray;
+    }
+    public String getZzMarker() {
+        return zzMarker;
+    }
+    public void setZzMarker(String zzMarker) {
+        this.zzMarker = zzMarker;
+    }
+}
+""", [
+            aUnwrapped: ['alpha'],
+            zArray: ['beta']
+        ])
+
+        expect:
+        validateJsonWithoutOrder(jsonMapper, '{"aUnwrapped":"alpha","zArray":["beta"]}', writeJson(jsonMapper, beanUnderTest))
 
         cleanup:
         context.close()

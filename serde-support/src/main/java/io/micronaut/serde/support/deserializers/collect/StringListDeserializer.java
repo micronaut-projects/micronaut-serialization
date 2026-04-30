@@ -25,7 +25,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.serdes.SingleElementArraySerde;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
@@ -81,7 +81,7 @@ final class StringListDeserializer implements FormattedDeserializer<ArrayList<St
                                                                    @NonNull Argument<? super ArrayList<String>> type,
                                                                    @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectDeserializer(context, type);
+            return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }
         return SingleElementArraySerde.acceptSingleValueAsArray(this, context);
     }

@@ -22,7 +22,7 @@ import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.serdes.SingleElementArraySerde;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -41,7 +41,7 @@ abstract sealed class AbstractIterableSerializer<T> implements FormattedSerializ
                                                            @NonNull Argument<? extends Iterable<T>> type,
                                                            @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectSerializer(context, type);
+            return ObjectShapeSerdeHelper.objectSerializer(context, type);
         }
         return SingleElementArraySerde.writeSingleElementArraysUnwrapped(createSpecific(context, type), context);
     }

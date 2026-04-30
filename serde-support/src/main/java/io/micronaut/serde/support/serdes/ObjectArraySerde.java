@@ -22,7 +22,7 @@ import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
 import org.jspecify.annotations.NonNull;
@@ -55,7 +55,7 @@ public class ObjectArraySerde implements FormattedSerde<Object[]>, SerdeRegistra
                                                         @NonNull Argument<? extends Object[]> type,
                                                         @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectSerializer(context, type);
+            return ObjectShapeSerdeHelper.objectSerializer(context, type);
         }
         return createSpecific(context, type);
     }
@@ -65,7 +65,7 @@ public class ObjectArraySerde implements FormattedSerde<Object[]>, SerdeRegistra
                                                           @NonNull Argument<? super Object[]> type,
                                                           @NonNull FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
-            return FormattedHelper.objectDeserializer(context, type);
+            return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }
         return createSpecific(context, type);
     }

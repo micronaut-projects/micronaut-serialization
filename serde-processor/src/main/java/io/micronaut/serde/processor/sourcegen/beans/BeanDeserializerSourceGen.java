@@ -103,7 +103,7 @@ public final class BeanDeserializerSourceGen {
     );
     private static final Method WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "withRuntimeFallback",
+        "withRuntimeObjectFallback",
         Deserializer.class,
         Deserializer.DecoderContext.class,
         Argument.class

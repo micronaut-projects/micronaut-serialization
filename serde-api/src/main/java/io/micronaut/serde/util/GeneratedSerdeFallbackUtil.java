@@ -51,9 +51,9 @@ public final class GeneratedSerdeFallbackUtil {
      * @since 3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Deserializer<?> withRuntimeFallback(Deserializer<?> generatedDeserializer,
-                                                      Deserializer.DecoderContext context,
-                                                      Argument<?> type) throws SerdeException {
+    public static Deserializer<?> withRuntimeObjectFallback(Deserializer<?> generatedDeserializer,
+                                                            Deserializer.DecoderContext context,
+                                                            Argument<?> type) throws SerdeException {
         if (!context.getFeatures().contains(DeserializationConfiguration.Feature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)) {
             return generatedDeserializer;
         }
@@ -72,9 +72,9 @@ public final class GeneratedSerdeFallbackUtil {
      * @since 3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Deserializer<?> runtimeFallback(Deserializer.DecoderContext context,
-                                                  Argument<?> type,
-                                                  FormatConfiguration format) throws SerdeException {
+    public static Deserializer<?> runtimeFormattedEnumDeserializer(Deserializer.DecoderContext context,
+                                                                   Argument<?> type,
+                                                                   FormatConfiguration format) throws SerdeException {
         Deserializer<?> enumDeserializer = context.findDeserializer(Enum.class);
         if (enumDeserializer instanceof FormattedDeserializer formattedDeserializer) {
             return formattedDeserializer.createSpecific(context, type, format);
@@ -92,8 +92,8 @@ public final class GeneratedSerdeFallbackUtil {
      * @since 3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Deserializer<?> runtimeFallback(Deserializer.DecoderContext context,
-                                                  Argument<?> type) throws SerdeException {
+    public static Deserializer<?> runtimeEnumDeserializer(Deserializer.DecoderContext context,
+                                                          Argument<?> type) throws SerdeException {
         Deserializer<?> enumDeserializer = context.findDeserializer(Enum.class);
         return enumDeserializer.createSpecific(context, (Argument) type);
     }
@@ -108,10 +108,10 @@ public final class GeneratedSerdeFallbackUtil {
      * @throws SerdeException If no deserializer can be resolved
      * @since 3.0
      */
-    public static Deserializer<?> runtimeFallback(Deserializer<?> generatedDeserializer,
-                                                  Deserializer.DecoderContext context,
-                                                  Argument<?> type) throws SerdeException {
-        return hasFeatureOverrides(type) ? runtimeFallback(context, type) : generatedDeserializer;
+    public static Deserializer<?> withRuntimeEnumFallback(Deserializer<?> generatedDeserializer,
+                                                          Deserializer.DecoderContext context,
+                                                          Argument<?> type) throws SerdeException {
+        return hasFeatureOverrides(type) ? runtimeEnumDeserializer(context, type) : generatedDeserializer;
     }
 
     /**
@@ -125,9 +125,9 @@ public final class GeneratedSerdeFallbackUtil {
      * @since 3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Serializer<?> withRuntimeFallback(Serializer<?> generatedSerializer,
-                                                    Serializer.EncoderContext context,
-                                                    Argument<?> type) throws SerdeException {
+    public static Serializer<?> withRuntimeObjectFallback(Serializer<?> generatedSerializer,
+                                                          Serializer.EncoderContext context,
+                                                          Argument<?> type) throws SerdeException {
         if (!hasUnsupportedSerializationFeatures(context)) {
             return generatedSerializer;
         }
@@ -146,9 +146,9 @@ public final class GeneratedSerdeFallbackUtil {
      * @since 3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Serializer<?> runtimeFallback(Serializer.EncoderContext context,
-                                                Argument<?> type,
-                                                FormatConfiguration format) throws SerdeException {
+    public static Serializer<?> runtimeFormattedEnumSerializer(Serializer.EncoderContext context,
+                                                               Argument<?> type,
+                                                               FormatConfiguration format) throws SerdeException {
         Serializer<?> enumSerializer = context.findSerializer(Enum.class);
         if (enumSerializer instanceof FormattedSerializer formattedSerializer) {
             return formattedSerializer.createSpecific(context, type, format);
@@ -166,8 +166,8 @@ public final class GeneratedSerdeFallbackUtil {
      * @since 3.0
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Serializer<?> runtimeFallback(Serializer.EncoderContext context,
-                                                Argument<?> type) throws SerdeException {
+    public static Serializer<?> runtimeEnumSerializer(Serializer.EncoderContext context,
+                                                      Argument<?> type) throws SerdeException {
         Serializer<?> enumSerializer = context.findSerializer(Enum.class);
         return enumSerializer.createSpecific(context, (Argument) type);
     }
@@ -182,10 +182,10 @@ public final class GeneratedSerdeFallbackUtil {
      * @throws SerdeException If no serializer can be resolved
      * @since 3.0
      */
-    public static Serializer<?> runtimeFallback(Serializer<?> generatedSerializer,
-                                                Serializer.EncoderContext context,
-                                                Argument<?> type) throws SerdeException {
-        return hasFeatureOverrides(type) ? runtimeFallback(context, type) : generatedSerializer;
+    public static Serializer<?> withRuntimeEnumFallback(Serializer<?> generatedSerializer,
+                                                        Serializer.EncoderContext context,
+                                                        Argument<?> type) throws SerdeException {
+        return hasFeatureOverrides(type) ? runtimeEnumSerializer(context, type) : generatedSerializer;
     }
 
     private static boolean hasFeatureOverrides(Argument<?> type) {

@@ -75,7 +75,7 @@ public final class RecordSerializerSourceGen {
     );
     private static final Method WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "withRuntimeFallback",
+        "withRuntimeObjectFallback",
         Serializer.class,
         Serializer.EncoderContext.class,
         Argument.class

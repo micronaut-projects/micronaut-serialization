@@ -88,14 +88,14 @@ public final class EnumDeserializerSourceGen {
     );
     private static final Method RUNTIME_FALLBACK_FORMATTED_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "runtimeFallback",
+        "runtimeFormattedEnumDeserializer",
         Deserializer.DecoderContext.class,
         Argument.class,
         FormatConfiguration.class
     );
     private static final Method RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "runtimeFallback",
+        "withRuntimeEnumFallback",
         Deserializer.class,
         Deserializer.DecoderContext.class,
         Argument.class

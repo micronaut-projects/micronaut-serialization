@@ -56,14 +56,14 @@ public final class EnumSerializerSourceGen {
     private static final Method ENUM_NAME_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "name");
     private static final Method RUNTIME_FALLBACK_FORMATTED_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "runtimeFallback",
+        "runtimeFormattedEnumSerializer",
         Serializer.EncoderContext.class,
         Argument.class,
         FormatConfiguration.class
     );
     private static final Method RUNTIME_FALLBACK_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
-        "runtimeFallback",
+        "withRuntimeEnumFallback",
         Serializer.class,
         Serializer.EncoderContext.class,
         Argument.class

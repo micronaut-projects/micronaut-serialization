@@ -31,7 +31,6 @@ import io.micronaut.serde.support.util.SerdeFeatures;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.stream.Stream;
 
 /**
  * The abstract map serializer.
@@ -76,11 +75,14 @@ abstract sealed class AbstractMapObjectSerializer<K, V> implements ObjectSeriali
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends Map<K, V>> type, Map<K, V> value) throws IOException {
-        Stream<Map.Entry<K, V>> entries = value.entrySet().stream();
+        Iterable<Map.Entry<K, V>> entries = value.entrySet();
         if (sortMapEntries) {
-            entries = entries.sorted(AbstractMapObjectSerializer::compareEntriesByKey);
+            entries = value.entrySet()
+                .stream()
+                .sorted(AbstractMapObjectSerializer::compareEntriesByKey)
+                .toList();
         }
-        for (Map.Entry<K, V> entry : entries.toList()) {
+        for (Map.Entry<K, V> entry : entries) {
             K k = entry.getKey();
             try {
                 V v = entry.getValue();

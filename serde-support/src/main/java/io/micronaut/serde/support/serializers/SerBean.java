@@ -43,7 +43,7 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
@@ -505,7 +505,7 @@ final class SerBean<T> {
             return specific;
         }
         if (shape.isPojoShape()) {
-            return FormattedHelper.objectSerializer(encoderContext, argument);
+            return ObjectShapeSerdeHelper.objectSerializer(encoderContext, argument);
         }
         return specific;
     }

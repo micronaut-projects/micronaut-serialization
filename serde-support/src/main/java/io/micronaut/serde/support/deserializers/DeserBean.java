@@ -45,7 +45,7 @@ import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.InvalidPropertyFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
-import io.micronaut.serde.support.util.FormattedHelper;
+import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
@@ -714,7 +714,7 @@ final class DeserBean<T> {
             return specific;
         }
         if (shape.isPojoShape()) {
-            return FormattedHelper.objectDeserializer(decoderContext, argument);
+            return ObjectShapeSerdeHelper.objectDeserializer(decoderContext, argument);
         }
         return specific;
     }

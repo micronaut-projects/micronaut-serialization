@@ -22,15 +22,15 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
 /**
- * Common helpers for applying format behavior in concrete serdes.
+ * Common helpers for POJO-like shape handling.
  *
  * @author Denis Stepanov
  * @since 3.0
  */
 @Internal
-public final class FormattedHelper {
+public final class ObjectShapeSerdeHelper {
 
-    private FormattedHelper() {
+    private ObjectShapeSerdeHelper() {
     }
 
     /**
