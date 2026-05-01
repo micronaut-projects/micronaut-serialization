@@ -104,12 +104,19 @@ public final class XmlObjectMapper implements ObjectMapper {
         XMLStreamReader xmlReader = null;
         try {
             xmlReader = xmlInputFactory.createXMLStreamReader(inputStream);
-            XmlReader decoder = new XmlReader(limits(), xmlReader);
-            deserializer.deserialize(decoder, decoderContext, type);
+            XmlReaderDecoder decoder = new XmlReaderDecoder.DocumentDecoder(limits(), xmlReader);
+            return deserializer.deserialize(decoder, decoderContext, type);
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (xmlReader != null) {
+                try {
+                    xmlReader.close();
+                } catch (XMLStreamException ignored) {
+                    // ignore close failures
+                }
+            }
         }
-        return readValue(toByteArray(inputStream), type);
     }
 
     @Override
