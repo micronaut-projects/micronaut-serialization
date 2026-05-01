@@ -30,12 +30,18 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
  */
 public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder
-        permits XmlReaderDecoder.DocumentDecoder, XmlReaderDecoder.ObjectDecoder, XmlReaderDecoder.ArrayDecoder {
+        permits XmlReaderDecoder.DocumentDecoder,
+                XmlReaderDecoder.ObjectDecoder,
+                XmlReaderDecoder.ArrayDecoder,
+                XmlReaderDecoder.SyntheticRootDecoder {
 
     final Cursor cursor;
 
@@ -173,6 +179,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     /**
      *
      */
+    /** Captured XML attribute name + value pair, surfaced to deserializers as object keys. */
+    record XmlAttr(@NonNull String name, @NonNull String value) { }
+
     static final class Cursor {
         private final XMLStreamReader reader;
 
@@ -190,6 +199,23 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         String text() {
             return reader.getText();
+        }
+
+        /**
+         * Snapshot the attributes of the current {@code START_ELEMENT}. Must be called BEFORE
+         * advancing past the element start, since {@link XMLStreamReader#getAttributeCount()}
+         * is only valid at {@code START_ELEMENT}.
+         */
+        @NonNull List<XmlAttr> captureAttributes() {
+            int n = reader.getAttributeCount();
+            if (n == 0) {
+                return Collections.emptyList();
+            }
+            List<XmlAttr> out = new ArrayList<>(n);
+            for (int i = 0; i < n; i++) {
+                out.add(new XmlAttr(reader.getAttributeLocalName(i), reader.getAttributeValue(i)));
+            }
+            return out;
         }
 
         /** Advance to the next significant event and return its type. */
@@ -236,9 +262,16 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 throw new IllegalStateException("XML root already consumed");
             }
             String name = cursor.localName();
+            // Untyped object → expose synthetic document wrapper whose only key is the root
+            // element local name. Required by WrappedObjectDeserializer for @JsonRootName beans.
+            if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
+                rootConsumed = true;
+                return new SyntheticRootDecoder(childLimits(), cursor, name);
+            }
+            List<XmlAttr> attrs = cursor.captureAttributes();
             cursor.advance(); // consume START_ELEMENT, cursor now inside root element
             rootConsumed = true;
-            return new ObjectDecoder(childLimits(), cursor, name);
+            return new ObjectDecoder(childLimits(), cursor, name, attrs);
         }
 
         @Override
@@ -270,14 +303,27 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     public static final class ObjectDecoder extends XmlReaderDecoder {
 
         private final String ownerElement;
-        /** Local name of the current key/value element returned by the most recent decodeKey(). */
+        /** Attributes captured from the owner element's {@code START_ELEMENT}, emitted as keys before child elements. */
+        private final List<XmlAttr> attrs;
+        private int attrIndex;
+
+        /** Set after {@link #decodeKey} returned an attribute name; holds the attribute's value text. */
+        private @Nullable String currentAttrValue;
+        /** Local name of the current child element returned by {@link #decodeKey}, after its {@code START_ELEMENT} was consumed. */
         private @Nullable String currentKey;
-        /** True after we've consumed the owner's END_ELEMENT in finishStructure. */
+        /** Attributes of the just-consumed child element; passed to a nested {@link ObjectDecoder} when the deserializer calls {@link #decodeObject}. */
+        private List<XmlAttr> pendingChildAttrs = Collections.emptyList();
+        /** True after {@link #finishStructure} consumed the owner's {@code END_ELEMENT}. */
         private boolean finished;
 
         ObjectDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String ownerElement) {
+            this(limits, cursor, ownerElement, Collections.emptyList());
+        }
+
+        ObjectDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String ownerElement, @NonNull List<XmlAttr> attrs) {
             super(limits, cursor);
             this.ownerElement = ownerElement;
+            this.attrs = attrs;
         }
 
         @Override
@@ -285,16 +331,23 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (finished) {
                 return null;
             }
-            // Skip whitespace text between elements; stop on START_ELEMENT or matching END_ELEMENT.
+            // Emit attributes first; their value sits in currentAttrValue until consumed via a scalar decode.
+            if (attrIndex < attrs.size()) {
+                XmlAttr a = attrs.get(attrIndex++);
+                currentAttrValue = a.value();
+                currentKey = a.name();
+                return a.name();
+            }
+            // Move on to child elements.
             while (true) {
                 int e = cursor.current();
                 switch (e) {
                     case XMLStreamConstants.START_ELEMENT:
                         currentKey = cursor.localName();
-                        cursor.advance(); // consume START_ELEMENT, cursor now inside the value element
+                        pendingChildAttrs = cursor.captureAttributes();
+                        cursor.advance(); // consume child START_ELEMENT, cursor now inside child element
                         return currentKey;
                     case XMLStreamConstants.END_ELEMENT:
-                        // Owner end — caller will call finishStructure
                         return null;
                     case XMLStreamConstants.CHARACTERS:
                     case XMLStreamConstants.CDATA:
@@ -312,6 +365,11 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public @NonNull String decodeString() throws IOException {
             requireKey();
+            if (currentAttrValue != null) {
+                String v = currentAttrValue;
+                clearKeyState();
+                return v;
+            }
             StringBuilder sb = new StringBuilder();
             while (true) {
                 int e = cursor.current();
@@ -324,7 +382,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                         break;
                     case XMLStreamConstants.END_ELEMENT:
                         cursor.advance(); // consume value's END_ELEMENT
-                        currentKey = null;
+                        clearKeyState();
                         return sb.toString();
                     case XMLStreamConstants.START_ELEMENT:
                         throw createDeserializationException(
@@ -340,11 +398,15 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public boolean decodeNull() throws IOException {
+            // Attribute key — attributes always carry text, never null.
+            if (currentAttrValue != null) {
+                return false;
+            }
             // Empty-element coercion: <x/> or <x></x> reads as null.
             int e = cursor.current();
             if (e == XMLStreamConstants.END_ELEMENT) {
                 cursor.advance();
-                currentKey = null;
+                clearKeyState();
                 return true;
             }
             return false;
@@ -353,22 +415,35 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         @Override
         public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
             requireKey();
+            if (currentAttrValue != null) {
+                throw createDeserializationException(
+                        "Cannot decode XML attribute <@" + currentKey + "> as object", null);
+            }
             String childOwner = currentKey;
-            currentKey = null;
-            return new ObjectDecoder(childLimits(), cursor, childOwner);
+            List<XmlAttr> childAttrs = pendingChildAttrs;
+            clearKeyState();
+            return new ObjectDecoder(childLimits(), cursor, childOwner, childAttrs);
         }
 
         @Override
         public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
             requireKey();
+            if (currentAttrValue != null) {
+                throw createDeserializationException(
+                        "Cannot decode XML attribute <@" + currentKey + "> as array", null);
+            }
             String wrapper = currentKey;
-            currentKey = null;
+            clearKeyState();
             return new ArrayDecoder(childLimits(), cursor, wrapper);
         }
 
         @Override
         public void skipValue() throws IOException {
-            // cursor is positioned inside the value element (after its START_ELEMENT was consumed by decodeKey).
+            if (currentAttrValue != null) {
+                clearKeyState();
+                return;
+            }
+            // cursor is inside the value element (after its START_ELEMENT was consumed by decodeKey).
             int depth = 1;
             while (depth > 0) {
                 int e = cursor.current();
@@ -385,7 +460,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 }
                 cursor.advance();
             }
-            currentKey = null;
+            clearKeyState();
         }
 
         @Override
@@ -396,18 +471,15 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (consumeLeftElements) {
                 String key;
                 while ((key = decodeKey()) != null) {
-                    // drain remaining children
                     skipValue();
                 }
             } else {
-                // Verify cursor is at END_ELEMENT of owner — if not, leftover content remains.
                 int e = cursor.current();
                 if (e != XMLStreamConstants.END_ELEMENT) {
                     throw new IllegalStateException(
                             "Unconsumed XML elements remain in <" + ownerElement + "> (event " + e + ")");
                 }
             }
-            // consume the owner's END_ELEMENT
             int e = cursor.current();
             if (e == XMLStreamConstants.END_ELEMENT) {
                 cursor.advance();
@@ -420,6 +492,12 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 throw new IllegalStateException("No XML element currently open for value decoding (call decodeKey first)");
             }
         }
+
+        private void clearKeyState() {
+            currentKey = null;
+            currentAttrValue = null;
+            pendingChildAttrs = Collections.emptyList();
+        }
     }
 
     /**
@@ -430,6 +508,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private final String wrapperElement;
         private boolean itemPending;
         private @Nullable String currentItemName;
+        private List<XmlAttr> currentItemAttrs = Collections.emptyList();
         private boolean finished;
 
         ArrayDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String wrapperElement) {
@@ -450,6 +529,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 switch (e) {
                     case XMLStreamConstants.START_ELEMENT:
                         currentItemName = cursor.localName();
+                        currentItemAttrs = cursor.captureAttributes();
                         cursor.advance(); // consume item's START_ELEMENT
                         itemPending = true;
                         return true;
@@ -486,8 +566,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
             requireItem();
             String name = currentItemName;
+            List<XmlAttr> itemAttrs = currentItemAttrs;
             clearItem();
-            return new ObjectDecoder(childLimits(), cursor, name);
+            return new ObjectDecoder(childLimits(), cursor, name, itemAttrs);
         }
 
         @Override
@@ -602,6 +683,108 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private void clearItem() {
             itemPending = false;
             currentItemName = null;
+            currentItemAttrs = Collections.emptyList();
+        }
+    }
+
+    /**
+     *
+     */
+    public static final class SyntheticRootDecoder extends XmlReaderDecoder {
+
+        private final String rootName;
+        private boolean keyEmitted;
+        private boolean valueConsumed;
+        private boolean finished;
+
+        SyntheticRootDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String rootName) {
+            super(limits, cursor);
+            this.rootName = rootName;
+        }
+
+        @Override
+        public @Nullable String decodeKey() throws IOException {
+            if (!keyEmitted) {
+                keyEmitted = true;
+                return rootName;
+            }
+            return null;
+        }
+
+        @Override
+        public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+            if (!keyEmitted || valueConsumed) {
+                throw new IllegalStateException("SyntheticRootDecoder.decodeObject called out of order");
+            }
+            valueConsumed = true;
+            // Cursor is still at the root START_ELEMENT — capture attrs, then advance.
+            List<XmlAttr> attrs = cursor.captureAttributes();
+            cursor.advance();
+            return new ObjectDecoder(childLimits(), cursor, rootName, attrs);
+        }
+
+        @Override
+        public @NonNull String decodeString() throws IOException {
+            // Treat root as scalar text element when caller asks for a plain string.
+            if (!keyEmitted || valueConsumed) {
+                throw new IllegalStateException("SyntheticRootDecoder.decodeString called out of order");
+            }
+            valueConsumed = true;
+            cursor.advance(); // consume root START_ELEMENT
+            StringBuilder sb = new StringBuilder();
+            while (true) {
+                int e = cursor.current();
+                switch (e) {
+                    case XMLStreamConstants.CHARACTERS:
+                    case XMLStreamConstants.CDATA:
+                    case XMLStreamConstants.SPACE:
+                        sb.append(cursor.text());
+                        cursor.advance();
+                        break;
+                    case XMLStreamConstants.END_ELEMENT:
+                        cursor.advance();
+                        return sb.toString();
+                    case XMLStreamConstants.END_DOCUMENT:
+                        return sb.toString();
+                    default:
+                        cursor.advance();
+                }
+            }
+        }
+
+        @Override
+        public boolean decodeNull() throws IOException {
+            return false;
+        }
+
+        @Override
+        public void skipValue() throws IOException {
+            if (!keyEmitted || valueConsumed) {
+                return;
+            }
+            valueConsumed = true;
+            // Skip the entire root element subtree.
+            int depth = 0;
+            int e = cursor.current();
+            while (true) {
+                if (e == XMLStreamConstants.START_ELEMENT) {
+                    depth++;
+                } else if (e == XMLStreamConstants.END_ELEMENT) {
+                    depth--;
+                    if (depth == 0) {
+                        cursor.advance();
+                        return;
+                    }
+                } else if (e == XMLStreamConstants.END_DOCUMENT) {
+                    return;
+                }
+                e = cursor.advance();
+            }
+        }
+
+        @Override
+        public void finishStructure(boolean consumeLeftElements) throws IOException {
+            finished = true;
         }
     }
 }
