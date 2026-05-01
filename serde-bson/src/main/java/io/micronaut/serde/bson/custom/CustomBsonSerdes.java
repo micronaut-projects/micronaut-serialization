@@ -17,7 +17,6 @@ package io.micronaut.serde.bson.custom;
 
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.annotation.Order;
 import jakarta.inject.Singleton;
 import org.bson.BsonBinary;
@@ -43,45 +42,39 @@ import java.util.Optional;
 final class CustomBsonSerdes {
 
     @Singleton
-    @NonNull
-    @Order(10000) // Avoid being chosen for Map
+    @Order(10000)
+        // Avoid being chosen for Map
     CodecBsonDecoder<BsonDocument> bsonDecoder(Optional<CodecRegistry> codecRegistry) {
         return codecRegistry.map(registry -> new CodecBsonDecoder<>(new BsonDocumentCodec(registry)))
-                .orElseGet(() -> new CodecBsonDecoder<>(new BsonDocumentCodec()));
+            .orElseGet(() -> new CodecBsonDecoder<>(new BsonDocumentCodec()));
     }
 
     @Singleton
-    @NonNull
     CodecBsonDecoder<ObjectId> objectId() {
         return new CodecBsonDecoder<>(new ObjectIdCodec());
     }
 
     @Singleton
-    @NonNull
     CodecBsonDecoder<Decimal128> decimal128() {
         return new CodecBsonDecoder<>(new Decimal128Codec());
     }
 
     @Singleton
-    @NonNull
     CodecBsonDecoder<BsonRegularExpression> bsonRegularExpression() {
         return new CodecBsonDecoder<>(new BsonRegularExpressionCodec());
     }
 
     @Singleton
-    @NonNull
     CodecBsonDecoder<BsonBinary> bsonBinary() {
         return new CodecBsonDecoder<>(new BsonBinaryCodec());
     }
 
     @Singleton
-    @NonNull
     CodecBsonDecoder<BsonDbPointer> bsonDbPointer() {
         return new CodecBsonDecoder<>(new BsonDBPointerCodec());
     }
 
     @Singleton
-    @NonNull
     CodecBsonDecoder<BsonTimestamp> bsonTimestamp() {
         return new CodecBsonDecoder<>(new BsonTimestampCodec());
     }

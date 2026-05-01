@@ -101,7 +101,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, Object value) {
+    public boolean isEmpty(EncoderContext context, @Nullable Object value) {
         if (value == null) {
             return true;
         }
@@ -114,7 +114,7 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, Object value) {
+    public boolean isAbsent(EncoderContext context, @Nullable Object value) {
         if (value == null) {
             return true;
         }
@@ -132,7 +132,14 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
                 try {
                     if (value.getClass().equals(outerType.getType())) {
                         if (outer == null) {
-                            throw new SerdeException(introspectionException.getMessage(), introspectionException);
+                            if (introspectionException != null) {
+                                String message = introspectionException.getMessage();
+                                if (message == null) {
+                                    message = "No serializer found for type: " + value.getClass();
+                                }
+                                throw new SerdeException(message, introspectionException);
+                            }
+                            throw new SerdeException("No serializer found for type: " + value.getClass());
                         }
                         return outer;
                     } else {

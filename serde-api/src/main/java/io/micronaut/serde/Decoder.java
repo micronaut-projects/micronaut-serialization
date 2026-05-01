@@ -15,11 +15,10 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -33,19 +32,19 @@ import java.math.BigInteger;
 public interface Decoder extends AutoCloseable {
     /**
      * Start decoding an array.
+     *
      * @param type The array type
      * @return The array decoder
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     Decoder decodeArray(Argument<?> type) throws IOException;
 
     /**
      * Start decoding an array.
+     *
      * @return The array decoder
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     default Decoder decodeArray() throws IOException {
         return decodeArray(Argument.OBJECT_ARGUMENT);
     }
@@ -58,25 +57,26 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes an object.
+     *
      * @param type The type, never {@code null}
      * @return The object decoder
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
-    Decoder decodeObject(@NonNull Argument<?> type) throws IOException;
+    Decoder decodeObject(Argument<?> type) throws IOException;
 
     /**
      * Decodes an object.
+     *
      * @return The object decoder
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     default Decoder decodeObject() throws IOException {
         return decodeObject(Argument.OBJECT_ARGUMENT);
     }
 
     /**
      * Decodes a key, if there are no more keys to decode returns {@code null}.
+     *
      * @return The key or {@code null} if there aren't any more keys
      * @throws IOException If an unrecoverable error occurs
      */
@@ -85,10 +85,10 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a string.
+     *
      * @return The string, never {@code null}
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     String decodeString() throws IOException;
 
     /**
@@ -104,6 +104,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a boolean.
+     *
      * @return The boolean
      * @throws IOException If an unrecoverable error occurs
      */
@@ -122,6 +123,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a byte.
+     *
      * @return The byte
      * @throws IOException If an unrecoverable error occurs
      */
@@ -140,6 +142,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a short.
+     *
      * @return The short
      * @throws IOException If an unrecoverable error occurs
      */
@@ -158,6 +161,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a char.
+     *
      * @return The char
      * @throws IOException If an unrecoverable error occurs
      */
@@ -176,6 +180,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a number.
+     *
      * @return The number
      * @throws IOException If an unrecoverable error occurs
      * @since 2.9.0
@@ -198,6 +203,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a int.
+     *
      * @return The int
      * @throws IOException If an unrecoverable error occurs
      */
@@ -216,6 +222,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a long.
+     *
      * @return The long
      * @throws IOException If an unrecoverable error occurs
      */
@@ -234,6 +241,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a float.
+     *
      * @return The float
      * @throws IOException If an unrecoverable error occurs
      */
@@ -252,6 +260,7 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a double.
+     *
      * @return The double
      * @throws IOException If an unrecoverable error occurs
      */
@@ -270,10 +279,10 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a BigInteger.
+     *
      * @return The BigInteger, never {@code null}
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     BigInteger decodeBigInteger() throws IOException;
 
     /**
@@ -289,10 +298,10 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Decodes a BigDecimal.
+     *
      * @return The BigDecimal, never {@code null}
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     BigDecimal decodeBigDecimal() throws IOException;
 
     /**
@@ -319,13 +328,13 @@ public interface Decoder extends AutoCloseable {
      *     <li>Other format specific behavior. Oracle JDBC Json will parse strings as hex, for
      *     example.</li>
      * </ul>
-     *
+     * <p>
      * Implementations <b>must</b> support the array shape, but the other shapes are optional.
      *
      * @return The decoded byte array
      * @since 2.1
      */
-    default byte @NonNull [] decodeBinary() throws IOException {
+    default byte[] decodeBinary() throws IOException {
         return BinaryCodecUtil.decodeFromArray(this);
     }
 
@@ -344,8 +353,9 @@ public interface Decoder extends AutoCloseable {
      * Attempt to decode a null value. Returns {@code false} if this value is not null, and another method should be
      * used for decoding. Returns {@code true} if this value was null, and the cursor has been advanced to the next
      * value.
-     * @throws IOException If an unrecoverable error occurs
+     *
      * @return Returns {@code true} if the value was {@code null}
+     * @throws IOException If an unrecoverable error occurs
      */
     boolean decodeNull() throws IOException;
 
@@ -360,7 +370,6 @@ public interface Decoder extends AutoCloseable {
      *  <li>JSON primitive types into the equivalent Java wrapper type</li>
      * </ul>
      *
-     *
      * @return The decoded object
      * @throws IOException If an unrecoverable error occurs
      */
@@ -373,7 +382,6 @@ public interface Decoder extends AutoCloseable {
      * @return The decoded node
      * @throws IOException If an unrecoverable error occurs
      */
-    @NonNull
     JsonNode decodeNode() throws IOException;
 
     /**
@@ -390,13 +398,14 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Skips the current value.
+     *
      * @throws IOException If an unrecoverable error occurs
      */
     void skipValue() throws IOException;
 
     /**
      * @throws IllegalStateException If there are still elements left to consume
-     * @throws IOException If an unrecoverable error occurs
+     * @throws IOException           If an unrecoverable error occurs
      */
     default void finishStructure() throws IOException {
         finishStructure(false);
@@ -405,12 +414,13 @@ public interface Decoder extends AutoCloseable {
     /**
      * @param consumeLeftElements True to consume left elements
      * @throws IllegalStateException If there are still elements left to consume and consumeLeftElements is false
-     * @throws IOException If an unrecoverable error occurs
+     * @throws IOException           If an unrecoverable error occurs
      */
     void finishStructure(boolean consumeLeftElements) throws IOException;
 
     /**
      * Finalize the current structure. Equivalent to calling {@link #finishStructure()}.
+     *
      * @throws IOException If an unrecoverable error occurs
      */
     @Override
@@ -420,9 +430,10 @@ public interface Decoder extends AutoCloseable {
 
     /**
      * Creates an exception for the given message.
-     * @param message The message, never {@code null}
+     *
+     * @param message      The message, never {@code null}
      * @param invalidValue The invalid value. Can be {@code null}.
      * @return The exception, never {@code null}
      */
-    @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue);
+    IOException createDeserializationException(String message, @Nullable Object invalidValue);
 }

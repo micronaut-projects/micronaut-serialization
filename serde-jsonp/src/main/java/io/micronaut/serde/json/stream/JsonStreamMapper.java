@@ -16,7 +16,6 @@
 package io.micronaut.serde.json.stream;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
@@ -64,11 +63,11 @@ public class JsonStreamMapper implements ObjectMapper {
     private final Class<?> view;
 
     @Inject
-    public JsonStreamMapper(@NonNull SerdeRegistry registry, @NonNull SerdeConfiguration serdeConfiguration) {
+    public JsonStreamMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);
     }
 
-    private JsonStreamMapper(@NonNull SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
+    private JsonStreamMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
@@ -90,7 +89,7 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
@@ -101,20 +100,20 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         try (JsonParser parser = Json.createParser(inputStream)) {
             return readValue(parser, type);
         }
     }
 
     @Override
-    public <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
         try (JsonParser parser = Json.createParser(new ByteArrayInputStream(byteArray))) {
             return readValue(parser, type);
         }
     }
 
-    private <T> T readValue(JsonParser parser, Argument<T> type) throws IOException {
+    private <T> @Nullable T readValue(JsonParser parser, Argument<T> type) throws IOException {
         Decoder decoder = new JsonParserDecoder(parser, limits());
         Deserializer.DecoderContext context = registry.newDecoderContext(JsonViewUtil.extractView(serdeConfiguration, type, view));
         final Deserializer<? extends T> deserializer = context.findDeserializer(type).createSpecific(context, type);
@@ -129,9 +128,8 @@ public class JsonStreamMapper implements ObjectMapper {
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
         return new BufferingJsonNodeProcessor(onSubscribe, streamArray) {
-            @NonNull
             @Override
-            protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
+            protected JsonNode parseOne(InputStream is) throws IOException {
                 try (JsonParser parser = Json.createParser(is)) {
                     final JsonParserDecoder decoder = new JsonParserDecoder(parser, limits());
                     final Object o = decoder.decodeArbitrary();
@@ -142,21 +140,27 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
-    public JsonNode writeValueToTree(Object value) throws IOException {
+    public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
+        if (value == null) {
+            return JsonNode.nullNode();
+        }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
 
     @Override
-    public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
+    public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
+        if (value == null) {
+            return JsonNode.nullNode();
+        }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value, type);
         return encoder.getCompletedValue();
     }
 
     @Override
-    public void writeValue(OutputStream outputStream, Object object) throws IOException {
+    public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
         try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
                 generator.writeNull();
@@ -169,7 +173,7 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
         try (JsonGenerator generator = Json.createGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object == null) {
                 generator.writeNull();
@@ -181,7 +185,7 @@ public class JsonStreamMapper implements ObjectMapper {
         }
     }
 
-    private LimitingStream.@NonNull RemainingLimits limits() {
+    private LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
@@ -200,14 +204,14 @@ public class JsonStreamMapper implements ObjectMapper {
     }
 
     @Override
-    public byte[] writeValueAsBytes(Object object) throws IOException {
+    public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, object);
         return output.toByteArray();
     }
 
     @Override
-    public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+    public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, type, object);
         return output.toByteArray();

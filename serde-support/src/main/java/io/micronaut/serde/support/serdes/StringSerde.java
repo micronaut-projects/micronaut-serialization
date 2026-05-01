@@ -18,10 +18,10 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
@@ -45,12 +45,12 @@ final class StringSerde implements FormattedSerde<String>, SerdeRegistrar<String
     }
 
     @Override
-    public String deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super String> type) throws IOException {
+    public @Nullable String deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super String> type) throws IOException {
         return decoder.decodeStringNullable();
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, String value) {
+    public boolean isEmpty(EncoderContext context, @Nullable String value) {
         return value == null || value.isEmpty();
     }
 }

@@ -23,6 +23,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
@@ -38,11 +39,12 @@ import java.util.Map;
 @Internal
 abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserializer<M> {
 
+    @Nullable
     private final Deserializer<? extends V> valueDeser;
     private final Argument<K> keyArgument;
     private final Argument<V> valueArgument;
 
-    MapDeserializer(Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
+    MapDeserializer(@Nullable Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
         this.valueDeser = valueDeser;
         this.keyArgument = keyArgument;
         this.valueArgument = valueArgument;
@@ -73,7 +75,7 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
                     map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
                 }
             } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofMap(getDefaultValue(decoderContext, mapType).getClass(), mapType, key));
+                e.getPath().add(ReferencePath.ofMap(map.getClass(), mapType, key));
                 throw e;
             }
             key = objectDecoder.decodeKey();

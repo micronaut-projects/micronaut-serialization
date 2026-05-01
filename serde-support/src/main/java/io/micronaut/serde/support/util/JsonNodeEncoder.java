@@ -16,13 +16,13 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -46,7 +46,6 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
      *
      * @return The {@link JsonNodeEncoder}
      */
-    @NonNull
     public static JsonNodeEncoder create() {
         return create(DEFAULT_LIMITS);
     }
@@ -57,7 +56,6 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
      * @param limits The limits
      * @return The {@link JsonNodeEncoder}
      */
-    @NonNull
     @Internal
     public static JsonNodeEncoder create(RemainingLimits limits) {
         return new Outer(limits);
@@ -126,7 +124,7 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
     }
 
     @Override
-    public void encodeBinary(byte @NonNull [] data) throws IOException {
+    public void encodeBinary(byte[] data) throws IOException {
         // we're allowed to encode to string because JsonNodeDecoder can handle it
         BinaryCodecUtil.encodeToBase64String(this, data);
     }
@@ -151,13 +149,14 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
      *
      * @return The materialized {@link io.micronaut.json.tree.JsonNode}
      */
-    public @NonNull JsonNode getCompletedValue() {
+    public JsonNode getCompletedValue() {
         throw new IllegalStateException("Can only get the completed value of the outermost encoder");
     }
 
     private static final class Obj extends JsonNodeEncoder {
         private final JsonNodeEncoder target;
         private final Map<String, JsonNode> nodes = new LinkedHashMap<>();
+        @Nullable
         private String currentKey;
 
         Obj(JsonNodeEncoder target, RemainingLimits remainingLimits) {
@@ -214,6 +213,7 @@ public abstract class JsonNodeEncoder extends LimitingStream implements Encoder 
     }
 
     private static final class Outer extends JsonNodeEncoder {
+        @Nullable
         JsonNode result;
 
         Outer(RemainingLimits remainingLimits) {

@@ -24,7 +24,6 @@ import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -39,14 +38,14 @@ final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Bool
     }
 
     @Override
-    public Boolean deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) throws IOException {
+    public @Nullable Boolean deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Boolean> type) throws IOException {
         return decoder.decodeBooleanNullable();
     }
 
     @Override
-    public Deserializer<Boolean> createSpecific(@NonNull DecoderContext context,
-                                                @NonNull Argument<? super Boolean> type,
-                                                @NonNull FormatConfiguration format) throws SerdeException {
+    public Deserializer<Boolean> createSpecific(DecoderContext context,
+                                                Argument<? super Boolean> type,
+                                                FormatConfiguration format) throws SerdeException {
         return this;
     }
 
@@ -58,9 +57,9 @@ final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Bool
     }
 
     @Override
-    public Serializer<Boolean> createSpecific(@NonNull EncoderContext context,
-                                              @NonNull Argument<? extends Boolean> type,
-                                              @NonNull FormatConfiguration format) throws SerdeException {
+    public Serializer<Boolean> createSpecific(EncoderContext context,
+                                              Argument<? extends Boolean> type,
+                                              FormatConfiguration format) throws SerdeException {
         return switch (format.shape()) {
             case STRING -> new StringShapeBooleanSerializer(this);
             case NUMBER, NUMBER_INT, NUMBER_FLOAT -> new NumericShapeBooleanSerializer(this);
@@ -87,7 +86,7 @@ final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Bool
 
     @Nullable
     @Override
-    public Boolean getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Boolean> type) {
+    public Boolean getDefaultValue(DecoderContext context, Argument<? super Boolean> type) {
         return type.isPrimitive() ? false : null;
     }
 }
@@ -100,17 +99,17 @@ abstract class AbstractBooleanShapeSerializer implements Serializer<Boolean> {
     }
 
     @Override
-    public boolean isEmpty(@NonNull EncoderContext context, @Nullable Boolean value) {
+    public boolean isEmpty(EncoderContext context, @Nullable Boolean value) {
         return delegate.isEmpty(context, value);
     }
 
     @Override
-    public boolean isAbsent(@NonNull EncoderContext context, @Nullable Boolean value) {
+    public boolean isAbsent(EncoderContext context, @Nullable Boolean value) {
         return delegate.isAbsent(context, value);
     }
 
     @Override
-    public boolean isDefault(@NonNull EncoderContext context, @NonNull Boolean value) {
+    public boolean isDefault(EncoderContext context, Boolean value) {
         return delegate.isDefault(context, value);
     }
 }
@@ -122,10 +121,10 @@ final class StringShapeBooleanSerializer extends AbstractBooleanShapeSerializer 
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Boolean> type,
-                          @NonNull Boolean value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends Boolean> type,
+                          Boolean value) throws IOException {
         encoder.encodeString(value.toString());
     }
 }
@@ -137,10 +136,10 @@ final class NumericShapeBooleanSerializer extends AbstractBooleanShapeSerializer
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Boolean> type,
-                          @NonNull Boolean value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends Boolean> type,
+                          Boolean value) throws IOException {
         encoder.encodeInt(Boolean.FALSE.equals(value) ? 0 : 1);
     }
 }

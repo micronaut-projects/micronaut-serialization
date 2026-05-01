@@ -39,6 +39,7 @@ import io.micronaut.sourcegen.generator.SourceGenerators;
 import io.micronaut.sourcegen.model.AnnotationDef;
 import io.micronaut.sourcegen.model.ClassDef;
 import io.micronaut.sourcegen.model.TypeDef;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
@@ -51,7 +52,7 @@ import java.util.Set;
 public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, Object> {
 
     private final SimpleSerdeShapeAnalyzer analyzer = new SimpleSerdeShapeAnalyzer();
-    private SourceGenerator sourceGenerator;
+    private @Nullable SourceGenerator sourceGenerator;
     private final RecordSerdeShapeResolver recordSerdeShapeResolver = new RecordSerdeShapeResolver();
     private final BeanSerdeShapeResolver beanSerdeShapeResolver = new BeanSerdeShapeResolver();
     private final EnumSerdeShapeResolver enumSerdeShapeResolver = new EnumSerdeShapeResolver();
@@ -155,11 +156,15 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     }
 
     private void write(VisitorContext context, ClassElement element, String generatedClassName, ClassDef classDef) {
+        SourceGenerator generator = sourceGenerator;
+        if (generator == null) {
+            return;
+        }
         if (writtenGeneratedClassNames.contains(generatedClassName)) {
             return;
         }
         try {
-            sourceGenerator.write(classDef, context, element);
+            generator.write(classDef, context, element);
             writtenGeneratedClassNames.add(generatedClassName);
         } catch (Exception e) {
             SourceGenerators.handleFatalException(element, Serdeable.class, e, runtimeException -> {

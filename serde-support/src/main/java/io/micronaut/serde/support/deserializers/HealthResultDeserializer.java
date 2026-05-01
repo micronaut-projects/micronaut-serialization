@@ -17,7 +17,6 @@ package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.health.HealthStatus;
@@ -31,6 +30,7 @@ import jakarta.inject.Singleton;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 @Internal
 @Singleton
@@ -40,9 +40,8 @@ final class HealthResultDeserializer implements CustomizableDeserializer<HealthR
 
     private static final Argument<HealthResultDto> DELEGATE_ARGUMENT = Argument.of(HealthResultDto.class);
 
-    @NonNull
     @Override
-    public Deserializer<HealthResult> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super HealthResult> type) throws SerdeException {
+    public Deserializer<HealthResult> createSpecific(DecoderContext context, Argument<? super HealthResult> type) throws SerdeException {
         return new Impl(context.findDeserializer(DELEGATE_ARGUMENT).createSpecific(context, DELEGATE_ARGUMENT));
     }
 
@@ -51,15 +50,15 @@ final class HealthResultDeserializer implements CustomizableDeserializer<HealthR
     ) implements Deserializer<HealthResult> {
         @Nullable
         @Override
-        public HealthResult deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super HealthResult> type) throws IOException {
-            HealthResultDto dto = delegate.deserialize(decoder, context, DELEGATE_ARGUMENT);
-            assert dto != null;
-            HealthStatus status = switch (dto.status) {
+        public HealthResult deserialize(Decoder decoder, DecoderContext context, Argument<? super HealthResult> type) throws IOException {
+            HealthResultDto dto = Objects.requireNonNull(delegate.deserialize(decoder, context, DELEGATE_ARGUMENT));
+            String dtoStatus = Objects.requireNonNull(dto.status);
+            HealthStatus status = switch (dtoStatus) {
                 case HealthStatus.NAME_DOWN -> HealthStatus.DOWN;
                 case HealthStatus.NAME_UP -> HealthStatus.UP;
-                default -> new HealthStatus(dto.status);
+                default -> new HealthStatus(dtoStatus);
             };
-            return HealthResult.builder(dto.name)
+            return HealthResult.builder(Objects.requireNonNull(dto.name))
                 .status(status)
                 .details(dto.details)
                 .build();
@@ -68,9 +67,9 @@ final class HealthResultDeserializer implements CustomizableDeserializer<HealthR
 
     @Serdeable
     record HealthResultDto(
-        String name,
-        String status,
-        Map<String, Object> details
+        @Nullable String name,
+        @Nullable String status,
+        @Nullable Map<String, Object> details
     ) {
     }
 }

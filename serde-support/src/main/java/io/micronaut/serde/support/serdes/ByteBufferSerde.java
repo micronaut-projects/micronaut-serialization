@@ -15,13 +15,12 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,18 +32,18 @@ import java.nio.ByteBuffer;
 public class ByteBufferSerde implements SerdeRegistrar<ByteBuffer> {
 
     @Override
-    public @Nullable ByteBuffer deserialize(@NonNull Decoder decoder,
-                                            @NonNull DecoderContext context,
-                                            @NonNull Argument<? super ByteBuffer> type) throws IOException {
+    public @Nullable ByteBuffer deserialize(Decoder decoder,
+                                            DecoderContext context,
+                                            Argument<? super ByteBuffer> type) throws IOException {
         byte[] b = decoder.decodeBinary();
         return ByteBuffer.wrap(b);
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends ByteBuffer> type,
-                          @NonNull ByteBuffer value) throws IOException {
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends ByteBuffer> type,
+                          ByteBuffer value) throws IOException {
         ByteBuffer slice = value.asReadOnlyBuffer();
         ByteBuffer copy = ByteBuffer.allocate(slice.remaining());
         copy.put(slice);

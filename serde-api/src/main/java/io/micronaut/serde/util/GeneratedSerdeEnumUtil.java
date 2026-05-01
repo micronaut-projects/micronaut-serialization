@@ -23,6 +23,7 @@ import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -136,7 +137,7 @@ public final class GeneratedSerdeEnumUtil {
             return serializedNames.getOrDefault(enumValue, enumValue.name());
         }
 
-        private E resolve(String serializedValue, boolean caseInsensitive) {
+        private @Nullable E resolve(String serializedValue, boolean caseInsensitive) {
             E resolved = bySerialized.get(serializedValue);
             if (resolved != null) {
                 return resolved;

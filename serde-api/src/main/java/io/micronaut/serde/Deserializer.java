@@ -24,7 +24,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
 import io.micronaut.serde.reference.PropertyReferenceManager;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -48,8 +47,8 @@ public interface Deserializer<T> {
      * @param type The context, including any annotation metadata and type information to narrow the deserializer type
      * @return An instance of the same type of deserializer
      */
-    default @NonNull Deserializer<T> createSpecific(@NonNull DecoderContext context,
-                                                    @NonNull Argument<? super T> type) throws SerdeException {
+    default Deserializer<T> createSpecific(DecoderContext context,
+                                                    Argument<? super T> type) throws SerdeException {
         return this;
     }
 
@@ -64,9 +63,9 @@ public interface Deserializer<T> {
      */
     @Nullable
     T deserialize(
-            @NonNull Decoder decoder,
-            @NonNull DecoderContext context,
-            @NonNull Argument<? super T> type) throws IOException;
+            Decoder decoder,
+            DecoderContext context,
+            Argument<? super T> type) throws IOException;
 
     /**
      * Deserializes from the current state of the {@link Decoder} an object of type {@link T}. If
@@ -80,10 +79,10 @@ public interface Deserializer<T> {
      * @throws IOException If an error occurs during deserialization of the object
      * @since 2.0.0
      */
-    default T deserializeNullable(
-        @NonNull Decoder decoder,
-        @NonNull DecoderContext context,
-        @NonNull Argument<? super T> type) throws IOException {
+    default @Nullable T deserializeNullable(
+        Decoder decoder,
+        DecoderContext context,
+        Argument<? super T> type) throws IOException {
         return decoder.decodeNull() ? null : deserialize(decoder, context, type);
     }
 
@@ -93,8 +92,8 @@ public interface Deserializer<T> {
      * @param context The decoder context, never {@code null}
      * @param type The generic type to be deserialized
      */
-    default @Nullable T getDefaultValue(@NonNull DecoderContext context,
-                                        @NonNull Argument<? super T> type) {
+    default @Nullable T getDefaultValue(DecoderContext context,
+                                        Argument<? super T> type) {
         return null;
     }
 
@@ -106,7 +105,6 @@ public interface Deserializer<T> {
         /**
          * @return Conversion service
          */
-        @NonNull
         default ConversionService getConversionService() {
             return ConversionService.SHARED;
         }
@@ -130,7 +128,7 @@ public interface Deserializer<T> {
         @Internal
         @Nullable
         <B, P> PropertyReference<B, P> resolveReference(
-                @NonNull PropertyReference<B, P> reference
+                PropertyReference<B, P> reference
         );
 
         /**
@@ -139,7 +137,6 @@ public interface Deserializer<T> {
          * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
          * @since 2.7.0
          */
-        @NonNull
         default Optional<SerdeConfiguration> getSerdeConfiguration() {
             return Optional.empty();
         }
@@ -150,7 +147,6 @@ public interface Deserializer<T> {
          * @return The {@link DeserializationConfiguration}, or an empty optional if the default should be used
          * @since 2.7.0
          */
-        @NonNull
         default Optional<DeserializationConfiguration> getDeserializationConfiguration() {
             return Optional.empty();
         }
@@ -161,7 +157,6 @@ public interface Deserializer<T> {
          * @return The active deserialization format features
          * @since 3.0
          */
-        @NonNull
         default Set<DeserializationConfiguration.Feature> getFeatures() {
             return getDeserializationConfiguration()
                 .map(configuration -> configuration.features())
@@ -176,9 +171,8 @@ public interface Deserializer<T> {
          * @return The derived context
          * @since 3.0
          */
-        @NonNull
-        default DecoderContext withFeatures(@NonNull Set<DeserializationConfiguration.Feature> includedFeatures,
-                                            @NonNull Set<DeserializationConfiguration.Feature> excludedFeatures) {
+        default DecoderContext withFeatures(Set<DeserializationConfiguration.Feature> includedFeatures,
+                                            Set<DeserializationConfiguration.Feature> excludedFeatures) {
             if (includedFeatures.isEmpty() && excludedFeatures.isEmpty()) {
                 return this;
             }

@@ -16,8 +16,6 @@
 package io.micronaut.serde.support.deserializers.collect;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.convert.ConversionService;
 import io.micronaut.core.convert.value.ConvertibleValues;
 import io.micronaut.core.convert.value.MutableConvertibleValuesMap;
@@ -35,16 +33,14 @@ import java.util.Optional;
 @Internal
 @SuppressWarnings("rawtypes")
 final class ConvertibleValuesDeserializer implements DeserializerRegistrar<ConvertibleValues> {
-    @NonNull
     private final ConversionService conversionService;
 
-    ConvertibleValuesDeserializer(@NonNull ConversionService conversionService) {
+    ConvertibleValuesDeserializer(ConversionService conversionService) {
         this.conversionService = conversionService;
     }
 
-    @NonNull
     @Override
-    public Deserializer<ConvertibleValues> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super ConvertibleValues> type) throws SerdeException {
+    public Deserializer<ConvertibleValues> createSpecific(DecoderContext context, Argument<? super ConvertibleValues> type) throws SerdeException {
         Optional<Argument<?>> var = type.getFirstTypeVariable();
         if (var.isPresent()) {
             //noinspection unchecked
@@ -55,7 +51,7 @@ final class ConvertibleValuesDeserializer implements DeserializerRegistrar<Conve
     }
 
     @Override
-    public ConvertibleValues deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super ConvertibleValues> type) throws IOException {
+    public ConvertibleValues deserialize(Decoder decoder, DecoderContext context, Argument<? super ConvertibleValues> type) throws IOException {
         JsonNode node = decoder.decodeNode();
         if (!node.isObject()) {
             throw decoder.createDeserializationException("Expected object", node);
@@ -69,19 +65,16 @@ final class ConvertibleValuesDeserializer implements DeserializerRegistrar<Conve
     }
 
     private class Specialized implements Deserializer<ConvertibleValues> {
-        @Nullable
         private final Argument<Object> componentType;
-        @Nullable
         private final Deserializer<Object> componentDeserializer;
 
-        Specialized(@Nullable Argument<Object> componentType, @Nullable Deserializer<Object> componentDeserializer) {
+        Specialized(Argument<Object> componentType, Deserializer<Object> componentDeserializer) {
             this.componentType = componentType;
             this.componentDeserializer = componentDeserializer;
         }
 
-        @Nullable
         @Override
-        public ConvertibleValues deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super ConvertibleValues> type) throws IOException {
+        public ConvertibleValues deserialize(Decoder decoder, DecoderContext context, Argument<? super ConvertibleValues> type) throws IOException {
             Decoder obj = decoder.decodeObject(type);
             MutableConvertibleValuesMap map = new MutableConvertibleValuesMap();
             map.setConversionService(conversionService);

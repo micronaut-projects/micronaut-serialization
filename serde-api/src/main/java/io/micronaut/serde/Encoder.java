@@ -17,7 +17,6 @@ package io.micronaut.serde;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.util.BinaryCodecUtil;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -35,7 +34,7 @@ public interface Encoder extends AutoCloseable {
      * @return The encoder, never {@code null}
      * @throws IOException if an error occurs
      */
-    @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException;
+    Encoder encodeArray(Argument<?> type) throws IOException;
 
     /**
      * Encodes an object.
@@ -43,7 +42,7 @@ public interface Encoder extends AutoCloseable {
      * @return The encoder, never {@code null}
      * @throws IOException if an error occurs
      */
-    @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException;
+    Encoder encodeObject(Argument<?> type) throws IOException;
 
     /**
      * Finalize a previously created structure, like an array or object.
@@ -65,14 +64,14 @@ public interface Encoder extends AutoCloseable {
      * @param key The key, never {@code null}
      * @throws IOException If an error occurs
      */
-    void encodeKey(@NonNull String key) throws IOException;
+    void encodeKey(String key) throws IOException;
 
     /**
      * Encode a string.
      * @param value The string, never {@code null}
      * @throws IOException If an error occurs
      */
-    void encodeString(@NonNull String value) throws IOException;
+    void encodeString(String value) throws IOException;
 
     /**
      * Encode a boolean.
@@ -135,14 +134,14 @@ public interface Encoder extends AutoCloseable {
      * @param value The BigInteger, never {@code null}
      * @throws IOException If an error occurs
      */
-    void encodeBigInteger(@NonNull BigInteger value) throws IOException;
+    void encodeBigInteger(BigInteger value) throws IOException;
 
     /**
      * Encode a BigDecimal.
      * @param value The BigDecimal, never {@code null}
      * @throws IOException If an error occurs
      */
-    void encodeBigDecimal(@NonNull BigDecimal value) throws IOException;
+    void encodeBigDecimal(BigDecimal value) throws IOException;
 
     /**
      * Encode the given binary data. The shape of the data in the output is unspecified, the only
@@ -154,7 +153,7 @@ public interface Encoder extends AutoCloseable {
      * @implNote For symmetry with {@link Decoder#decodeBinary()}, the default implementation
      * writes to an array, but most implementations should write base64 instead.
      */
-    default void encodeBinary(byte @NonNull [] data) throws IOException {
+    default void encodeBinary(byte[] data) throws IOException {
         BinaryCodecUtil.encodeToArray(this, data);
     }
 
@@ -169,7 +168,7 @@ public interface Encoder extends AutoCloseable {
      *
      * @return The current path if known
      */
-    default @NonNull String currentPath() {
+    default String currentPath() {
         return "";
     }
 }

@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -43,22 +42,22 @@ public class InetAddressSerde implements SerdeRegistrar<InetAddress> {
     }
 
     @Override
-    public @NonNull Deserializer<InetAddress> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super InetAddress> type) throws SerdeException {
+    public Deserializer<InetAddress> createSpecific(DecoderContext context, Argument<? super InetAddress> type) throws SerdeException {
         return context.getSerdeConfiguration().map(InetAddressSerde::new).orElse(this);
     }
 
     @Override
-    public @NonNull Serializer<InetAddress> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends InetAddress> type) throws SerdeException {
+    public Serializer<InetAddress> createSpecific(EncoderContext context, Argument<? extends InetAddress> type) throws SerdeException {
         return context.getSerdeConfiguration().map(InetAddressSerde::new).orElse(this);
     }
 
     @Override
-    public @Nullable InetAddress deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super InetAddress> type) throws IOException {
+    public @Nullable InetAddress deserialize(Decoder decoder, DecoderContext context, Argument<? super InetAddress> type) throws IOException {
         return InetAddress.getByName(decoder.decodeString());
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends InetAddress> type, @NonNull InetAddress value) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends InetAddress> type, InetAddress value) throws IOException {
         String str;
         if (asNumeric) {
             str = value.getHostAddress();

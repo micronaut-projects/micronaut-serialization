@@ -16,7 +16,6 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Indexed;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 
 import java.io.IOException;
@@ -40,9 +39,9 @@ public interface ObjectSerializer<T> extends Serializer<T> {
      * @param value   The value, can be {@code null}
      * @throws IOException If an error occurs during serialization
      */
-    void serializeInto(@NonNull Encoder encoder,
-                       @NonNull EncoderContext context,
-                       @NonNull Argument<? extends T> type,
-                       @NonNull T value) throws IOException;
+    void serializeInto(Encoder encoder,
+                       EncoderContext context,
+                       Argument<? extends T> type,
+                       T value) throws IOException;
 
 }

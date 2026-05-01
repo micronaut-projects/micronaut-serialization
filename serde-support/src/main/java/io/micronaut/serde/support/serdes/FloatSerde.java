@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -37,7 +36,7 @@ final class FloatSerde implements SerdeRegistrar<Float>, NumberSerde<Float> {
     }
 
     @Override
-    public Float deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Float> type) throws IOException {
+    public @Nullable Float deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Float> type) throws IOException {
         return decoder.decodeFloatNullable();
     }
 
@@ -67,7 +66,7 @@ final class FloatSerde implements SerdeRegistrar<Float>, NumberSerde<Float> {
 
     @Nullable
     @Override
-    public Float getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Float> type) {
+    public Float getDefaultValue(DecoderContext context, Argument<? super Float> type) {
         return type.isPrimitive() ? 0F : null;
     }
 }

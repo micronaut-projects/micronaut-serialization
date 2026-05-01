@@ -27,7 +27,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -50,6 +49,14 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         this.instantSerde = instantSerde;
     }
 
+    private static boolean isNumericShape(FormatConfiguration format) {
+        return format.shape().isNumeric();
+    }
+
+    private static Optional<SimpleDateFormat> createDateFormat(FormatConfiguration format) {
+        return format.createDateFormat();
+    }
+
     @Override
     public Serializer<Date> createSpecific(EncoderContext encoderContext, Argument<? extends Date> type) {
         encoderContext = SerdeFeatures.withFeatures(encoderContext, type.getAnnotationMetadata());
@@ -60,7 +67,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     @Override
     public Serializer<Date> createSpecific(EncoderContext encoderContext,
                                            Argument<? extends Date> type,
-                                           @NonNull FormatConfiguration format) {
+                                           FormatConfiguration format) {
         if (isNumericShape(format)) {
             return new TimestampMillisDateSerde<>();
         }
@@ -79,7 +86,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
 
     @Override
     public Deserializer<Date> createSpecific(DecoderContext decoderContext, Argument<? super Date> context)
-            throws SerdeException {
+        throws SerdeException {
         decoderContext = SerdeFeatures.withFeatures(decoderContext, context.getAnnotationMetadata());
         FormatConfiguration format = FormatConfiguration.from(context.getAnnotationMetadata());
         return format == null ? createSpecificWithoutFormat(decoderContext, context) : createSpecific(decoderContext, context, format);
@@ -88,7 +95,7 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     @Override
     public Deserializer<Date> createSpecific(DecoderContext decoderContext,
                                              Argument<? super Date> context,
-                                             @NonNull FormatConfiguration format) throws SerdeException {
+                                             FormatConfiguration format) throws SerdeException {
         if (isNumericShape(format)) {
             return new TimestampMillisDateSerde<>();
         }
@@ -166,11 +173,11 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
 
     @Override
     public Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
-            throws IOException {
+        throws IOException {
         return Date.from(instantSerde.deserialize(
-                decoder,
-                decoderContext,
-                INSTANT_ARGUMENT
+            decoder,
+            decoderContext,
+            INSTANT_ARGUMENT
         ));
     }
 
@@ -182,14 +189,6 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     @Override
     public Argument<Date> getType() {
         return Argument.of(Date.class);
-    }
-
-    private static boolean isNumericShape(@NonNull FormatConfiguration format) {
-        return format.shape().isNumeric();
-    }
-
-    private static Optional<SimpleDateFormat> createDateFormat(@NonNull FormatConfiguration format) {
-        return format.createDateFormat();
     }
 
     private static final class TimestampMillisDateSerde<T extends Date> implements Serializer<T>, Deserializer<T> {
@@ -223,6 +222,24 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
             this.pattern = dateFormat.toPattern();
         }
 
+        private static Date deserializeNumericFallback(String value, DecoderContext decoderContext) {
+            BigDecimal raw = new BigDecimal(value);
+            SerdeConfiguration.NumericTimeUnit numericUnit = decoderContext.getSerdeConfiguration()
+                .map(SerdeConfiguration::getNumericTimeUnit)
+                .orElse(SerdeConfiguration.NumericTimeUnit.LEGACY);
+            if (numericUnit == SerdeConfiguration.NumericTimeUnit.LEGACY) {
+                numericUnit = SerdeConfiguration.NumericTimeUnit.MILLISECONDS;
+            }
+            BigDecimal seconds = switch (numericUnit) {
+                case SECONDS -> raw;
+                case MILLISECONDS -> raw.scaleByPowerOfTen(-3);
+                case NANOSECONDS -> raw.scaleByPowerOfTen(-9);
+                case LEGACY -> throw new AssertionError("Should be replaced before conversion");
+            };
+            seconds = seconds.setScale(9, RoundingMode.DOWN);
+            return Date.from(Instant.ofEpochSecond(seconds.longValue(), seconds.remainder(BigDecimal.ONE).unscaledValue().intValueExact()));
+        }
+
         @Override
         public void serialize(Encoder encoder,
                               EncoderContext context,
@@ -250,24 +267,6 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
                     throw new SerdeException("Error decoding date of type " + type + " using pattern " + pattern + ": " + e.getMessage(), e);
                 }
             }
-        }
-
-        private static Date deserializeNumericFallback(String value, DecoderContext decoderContext) {
-            BigDecimal raw = new BigDecimal(value);
-            SerdeConfiguration.NumericTimeUnit numericUnit = decoderContext.getSerdeConfiguration()
-                .map(SerdeConfiguration::getNumericTimeUnit)
-                .orElse(SerdeConfiguration.NumericTimeUnit.LEGACY);
-            if (numericUnit == SerdeConfiguration.NumericTimeUnit.LEGACY) {
-                numericUnit = SerdeConfiguration.NumericTimeUnit.MILLISECONDS;
-            }
-            BigDecimal seconds = switch (numericUnit) {
-                case SECONDS -> raw;
-                case MILLISECONDS -> raw.scaleByPowerOfTen(-3);
-                case NANOSECONDS -> raw.scaleByPowerOfTen(-9);
-                case LEGACY -> throw new AssertionError("Should be replaced before conversion");
-            };
-            seconds = seconds.setScale(9, RoundingMode.DOWN);
-            return Date.from(Instant.ofEpochSecond(seconds.longValue(), seconds.remainder(BigDecimal.ONE).unscaledValue().intValueExact()));
         }
     }
 }

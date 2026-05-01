@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -36,7 +35,7 @@ final class ShortSerde implements SerdeRegistrar<Short>, NumberSerde<Short> {
     }
 
     @Override
-    public Short deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Short> type) throws IOException {
+    public @Nullable Short deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Short> type) throws IOException {
         return decoder.decodeShortNullable();
     }
 
@@ -66,7 +65,7 @@ final class ShortSerde implements SerdeRegistrar<Short>, NumberSerde<Short> {
 
     @Nullable
     @Override
-    public Short getDefaultValue(@NonNull DecoderContext context, @NonNull Argument<? super Short> type) {
+    public Short getDefaultValue(DecoderContext context, Argument<? super Short> type) {
         return type.isPrimitive() ? (short) 0 : null;
     }
 }

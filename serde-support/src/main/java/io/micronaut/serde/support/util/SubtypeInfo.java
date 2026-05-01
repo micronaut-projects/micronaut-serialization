@@ -19,7 +19,6 @@ import io.micronaut.context.annotation.DefaultImplementation;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.AnnotationValue;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -44,10 +43,8 @@ import static io.micronaut.serde.config.annotation.SerdeConfig.SerSubtyped.Discr
  */
 @Internal
 public record SubtypeInfo(
-    @NonNull
     Map<Class<?>, String[]> subtypes,
-    SerdeConfig.SerSubtyped.@NonNull DiscriminatorType discriminatorType,
-    @NonNull
+    SerdeConfig.SerSubtyped.DiscriminatorType discriminatorType,
     String discriminatorName,
     @Nullable
     Class<?> defaultImpl,
@@ -55,14 +52,17 @@ public record SubtypeInfo(
     boolean deduct
 ) {
 
+    @Nullable
     public static SubtypeInfo createForProperty(AnnotationMetadata annotationMetadata) {
         return create(annotationMetadata, false);
     }
 
+    @Nullable
     public static SubtypeInfo createForType(AnnotationMetadata annotationMetadata) {
         return create(annotationMetadata, true);
     }
 
+    @Nullable
     private static SubtypeInfo create(AnnotationMetadata annotationMetadata, boolean isClassDefinition) {
         Optional<SerdeConfig.SerSubtyped.DiscriminatorType> optionalDiscriminatorType = annotationMetadata.enumValue(
             SerdeConfig.SerSubtyped.class,

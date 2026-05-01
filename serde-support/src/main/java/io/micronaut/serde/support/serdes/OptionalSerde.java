@@ -16,10 +16,10 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
@@ -72,7 +72,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
             }
 
             @Override
-            public boolean isEmpty(EncoderContext context, Optional<T> value) {
+            public boolean isEmpty(EncoderContext context, @Nullable Optional<T> value) {
                 if (value == null || value.isEmpty()) {
                     return true;
                 }
@@ -83,7 +83,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
             }
 
             @Override
-            public boolean isAbsent(EncoderContext context, Optional<T> value) {
+            public boolean isAbsent(EncoderContext context, @Nullable Optional<T> value) {
                 if (value == null || value.isEmpty()) {
                     return true;
                 }
@@ -126,7 +126,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
             }
 
             @Override
-            public Optional<T> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Optional<T>> type) throws IOException {
+            public @Nullable Optional<T> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Optional<T>> type) throws IOException {
                 return deserialize(decoder, context, type);
             }
 

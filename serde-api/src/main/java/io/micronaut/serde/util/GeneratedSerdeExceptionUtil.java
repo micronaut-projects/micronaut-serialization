@@ -23,6 +23,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -86,9 +87,9 @@ public final class GeneratedSerdeExceptionUtil {
      * @throws SerdeException If the value should fail deserialization.
      * @since 3.0
      */
-    public static <E extends Enum<E>> E handleUnknownEnumValue(Deserializer.DecoderContext context,
-                                                               Argument<E> enumType,
-                                                               String value) throws SerdeException {
+    public static <E extends Enum<E>> @Nullable E handleUnknownEnumValue(Deserializer.DecoderContext context,
+                                                                         Argument<E> enumType,
+                                                                         String value) throws SerdeException {
         boolean unknownAsNull = context.getFeatures().contains(DeserializationConfiguration.Feature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
         if (unknownAsNull) {
             return null;

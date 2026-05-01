@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.micronaut.core.annotation.AnnotationValue;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
@@ -64,7 +63,7 @@ public abstract class ValidatingAnnotationMapper implements NamedAnnotationMappe
     /**
      * @return The set of annotation member names that are supported.
      */
-    protected @NonNull Set<String> getSupportedMemberNames() {
+    protected Set<String> getSupportedMemberNames() {
         return Collections.emptySet();
     }
 }

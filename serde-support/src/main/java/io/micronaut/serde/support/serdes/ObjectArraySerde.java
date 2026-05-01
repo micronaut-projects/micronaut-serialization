@@ -25,7 +25,6 @@ import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
 import io.micronaut.serde.util.CustomizableDeserializer;
 import io.micronaut.serde.util.CustomizableSerializer;
-import org.jspecify.annotations.NonNull;
 
 /**
  * Deserializer for object arrays.
@@ -51,9 +50,9 @@ public class ObjectArraySerde implements FormattedSerde<Object[]>, SerdeRegistra
     }
 
     @Override
-    public @NonNull Serializer<Object[]> createSpecific(@NonNull EncoderContext context,
-                                                        @NonNull Argument<? extends Object[]> type,
-                                                        @NonNull FormatConfiguration format) throws SerdeException {
+    public Serializer<Object[]> createSpecific(EncoderContext context,
+                                                        Argument<? extends Object[]> type,
+                                                        FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectSerializer(context, type);
         }
@@ -61,9 +60,9 @@ public class ObjectArraySerde implements FormattedSerde<Object[]>, SerdeRegistra
     }
 
     @Override
-    public @NonNull Deserializer<Object[]> createSpecific(@NonNull DecoderContext context,
-                                                          @NonNull Argument<? super Object[]> type,
-                                                          @NonNull FormatConfiguration format) throws SerdeException {
+    public Deserializer<Object[]> createSpecific(DecoderContext context,
+                                                          Argument<? super Object[]> type,
+                                                          FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }

@@ -26,7 +26,7 @@ import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.DeserializerRegistrar;
 import io.micronaut.serde.support.serdes.SingleElementArraySerde;
 import io.micronaut.serde.support.util.ObjectShapeSerdeHelper;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ final class StringListDeserializer implements FormattedDeserializer<ArrayList<St
     }
 
     @Override
-    public ArrayList<String> deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super ArrayList<String>> type) throws IOException {
+    public @Nullable ArrayList<String> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }
@@ -77,9 +77,9 @@ final class StringListDeserializer implements FormattedDeserializer<ArrayList<St
     }
 
     @Override
-    public @NonNull Deserializer<ArrayList<String>> createSpecific(@NonNull DecoderContext context,
-                                                                   @NonNull Argument<? super ArrayList<String>> type,
-                                                                   @NonNull FormatConfiguration format) throws SerdeException {
+    public Deserializer<ArrayList<String>> createSpecific(DecoderContext context,
+                                                                   Argument<? super ArrayList<String>> type,
+                                                                   FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return ObjectShapeSerdeHelper.objectDeserializer(context, type);
         }

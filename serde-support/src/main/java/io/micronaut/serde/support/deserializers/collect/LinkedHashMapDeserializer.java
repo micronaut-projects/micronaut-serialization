@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -33,7 +34,7 @@ import java.util.LinkedHashMap;
 @Internal
 final class LinkedHashMapDeserializer<K, V> extends MapDeserializer<K, V, LinkedHashMap<K, V>> {
 
-    LinkedHashMapDeserializer(Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
+    LinkedHashMapDeserializer(@Nullable Deserializer<? extends V> valueDeser, Argument<K> keyArgument, Argument<V> valueArgument) {
         super(valueDeser, keyArgument, valueArgument);
     }
 

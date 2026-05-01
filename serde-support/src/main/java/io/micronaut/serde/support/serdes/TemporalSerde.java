@@ -24,7 +24,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.NonNull;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -49,7 +48,7 @@ public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T>, For
     @Override
     default Serializer<T> createSpecific(EncoderContext context,
                                          Argument<? extends T> type,
-                                         @NonNull FormatConfiguration format) {
+                                         FormatConfiguration format) {
         return format.createDateTimeFormatter()
             .<Serializer<T>>map(formatter -> new FormattedTemporalSerde<>(formatter, format, query(), this, false))
             .orElse(this);
@@ -66,7 +65,7 @@ public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T>, For
     @Override
     default Deserializer<T> createSpecific(DecoderContext decoderContext,
                                            Argument<? super T> context,
-                                           @NonNull FormatConfiguration format) throws SerdeException {
+                                           FormatConfiguration format) throws SerdeException {
         boolean adjustDatesToContextTimeZone = decoderContext.getFeatures()
             .contains(DeserializationConfiguration.Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
         return format.createDateTimeFormatter()
@@ -77,6 +76,5 @@ public interface TemporalSerde<T extends TemporalAccessor> extends Serde<T>, For
     /**
      * @return The temporal query for the type.
      */
-    @NonNull
     TemporalQuery<T> query();
 }

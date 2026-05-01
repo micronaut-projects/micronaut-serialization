@@ -17,7 +17,6 @@ package io.micronaut.serde;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
-import org.jspecify.annotations.NonNull;
 
 /**
  * A serializer that can react to format metadata.
@@ -37,9 +36,9 @@ public interface FormattedSerializer<T> extends Serializer<T> {
      * @return The more specific serializer
      * @throws SerdeException If the serializer cannot be selected
      */
-    default @NonNull Serializer<T> createSpecific(@NonNull EncoderContext context,
-                                                  @NonNull Argument<? extends T> type,
-                                                  @NonNull FormatConfiguration format) throws SerdeException {
+    default Serializer<T> createSpecific(EncoderContext context,
+                                                  Argument<? extends T> type,
+                                                  FormatConfiguration format) throws SerdeException {
         return createSpecific(context, type);
     }
 }

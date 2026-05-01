@@ -18,16 +18,17 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.exceptions.SerdeException;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * Adapts serialization for formatted numbers.
@@ -36,10 +37,11 @@ import java.util.Locale;
 @Internal
 final class FormattedNumberSerde<N extends Number> implements Serde<N> {
     private final String pattern;
+    @Nullable
     private final Locale locale;
 
-    FormattedNumberSerde(@NonNull FormatConfiguration format) {
-        this.pattern = format.pattern();
+    FormattedNumberSerde(FormatConfiguration format) {
+        this.pattern = Objects.requireNonNull(format.pattern());
         this.locale = format.parseLocale();
     }
 

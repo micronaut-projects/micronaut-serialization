@@ -17,6 +17,7 @@ package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
@@ -25,7 +26,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -58,7 +58,7 @@ final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     @Override
     public Deserializer<Date> createSpecific(DecoderContext decoderContext,
                                              Argument<? super Date> context,
-                                             @NonNull FormatConfiguration format) throws SerdeException {
+                                             FormatConfiguration format) throws SerdeException {
         if (format.shape().isNumeric()) {
             return new TimestampMillisDateSerde();
         }
@@ -103,7 +103,7 @@ final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     @Override
     public Serializer<Date> createSpecific(EncoderContext encoderContext,
                                            Argument<? extends Date> type,
-                                           @NonNull FormatConfiguration format) {
+                                           FormatConfiguration format) {
         if (format.shape().isNumeric()) {
             return new TimestampMillisDateSerde();
         }
@@ -200,7 +200,7 @@ final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     }
 
     @Override
-    public Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
+    public @Nullable Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
         throws IOException {
         final Instant instant = instantSerde.deserialize(
             decoder,

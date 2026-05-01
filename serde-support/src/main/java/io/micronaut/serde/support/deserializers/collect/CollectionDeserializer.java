@@ -62,7 +62,7 @@ abstract sealed class CollectionDeserializer<E, C extends Collection<E>> impleme
             }
             arrayDecoder.finishStructure();
         } catch (SerdeException e) {
-            e.getPath().add(ReferencePath.ofCollection(getDefaultValue(decoderContext, collectionArgument).getClass(), collectionArgument, index));
+            e.getPath().add(ReferencePath.ofCollection(collection.getClass(), collectionArgument, index));
             throw e;
         }
     }

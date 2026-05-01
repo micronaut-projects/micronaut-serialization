@@ -21,6 +21,7 @@ import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility methods for annotations.
@@ -35,8 +36,8 @@ public final class SerdeAnnotationUtil {
      * @param annotationMetadata The element metadata
      * @return The views
      */
-    public static Class<?>[] resolveViews(AnnotationMetadata beanMetadata,
-                                          AnnotationMetadata annotationMetadata) {
+    public static Class<?> @Nullable [] resolveViews(AnnotationMetadata beanMetadata,
+                                                     AnnotationMetadata annotationMetadata) {
         Class<?>[] views = annotationMetadata.classValues(SerdeConfig.class, SerdeConfig.VIEWS);
         if (ArrayUtils.isEmpty(views)) {
             views = beanMetadata.classValues(SerdeConfig.class, SerdeConfig.VIEWS);

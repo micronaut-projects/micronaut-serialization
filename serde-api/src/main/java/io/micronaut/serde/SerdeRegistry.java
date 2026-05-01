@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.convert.ConversionServiceProvider;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -41,7 +40,6 @@ public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, N
      * @return A new {@link SerdeRegistry} with the updated config
      * @since 2.7.0
      */
-    @NonNull
     default SerdeRegistry cloneWithConfiguration(
         @Nullable SerdeConfiguration configuration,
         @Nullable SerializationConfiguration serializationConfiguration,
@@ -55,12 +53,12 @@ public interface SerdeRegistry extends SerializerLocator, DeserializerLocator, N
      * @param view The view
      * @return The encoder context
      */
-    Serializer.@NonNull  EncoderContext newEncoderContext(@Nullable Class<?> view);
+    Serializer.EncoderContext newEncoderContext(@Nullable Class<?> view);
 
     /**
      * Creates a new decoder context.
      * @param view The view
      * @return The decoder context
      */
-    Deserializer.@NonNull DecoderContext newDecoderContext(@Nullable Class<?> view);
+    Deserializer.DecoderContext newDecoderContext(@Nullable Class<?> view);
 }

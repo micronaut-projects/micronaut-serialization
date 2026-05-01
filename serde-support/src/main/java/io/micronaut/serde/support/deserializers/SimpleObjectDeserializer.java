@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.reflect.exception.InstantiationException;
@@ -41,6 +40,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     private final boolean ignoreUnknown;
     private final boolean strictNullable;
     private final BeanIntrospection<Object> introspection;
+    @Nullable
     private final PropertiesBag<Object> properties;
     @Nullable
     private final SerdeDeserializationPreInstantiateCallback preInstantiateCallback;
@@ -74,13 +74,14 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     }
 
     @Override
-    public Object deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Object> type) throws IOException {
+    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }
         return deserialize(decoder, context, type);
     }
 
+    @Override
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object beanInstance)
             throws IOException {
         Decoder objectDecoder = decoder.decodeObject(beanType);
@@ -129,7 +130,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
         }
     }
 
-    private SerdeException unexpectedProperty(Argument<? super Object> beanType, PropertiesBag<Object>.Consumer propertiesConsumer, String propertyName) {
+    private SerdeException unexpectedProperty(Argument<? super Object> beanType, PropertiesBag<Object>.@Nullable Consumer propertiesConsumer, String propertyName) {
         if (propertiesConsumer != null && propertiesConsumer.contains(propertyName)) {
             return duplicateProperty(beanType, propertyName);
         }

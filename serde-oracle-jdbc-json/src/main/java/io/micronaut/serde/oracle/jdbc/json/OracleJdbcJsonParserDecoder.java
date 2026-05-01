@@ -16,7 +16,6 @@
 package io.micronaut.serde.oracle.jdbc.json;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.exceptions.InvalidFormatException;
@@ -44,7 +43,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     private static final String METHOD_CALLED_IN_WRONG_CONTEXT = "Method called in wrong context ";
 
     private final OracleJsonParser jsonParser;
-    private OracleJsonParser.Event currentEvent;
+    private OracleJsonParser.@Nullable Event currentEvent;
 
     OracleJdbcJsonParserDecoder(OracleJsonParser jsonParser, RemainingLimits remainingLimits) {
         super(remainingLimits);
@@ -59,8 +58,12 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected TokenType currentToken() {
-        return switch (currentEvent) {
+    protected @Nullable TokenType currentToken() {
+        OracleJsonParser.@Nullable Event event = currentEvent;
+        if (event == null) {
+            return null;
+        }
+        return switch (event) {
             case START_ARRAY -> TokenType.START_ARRAY;
             case START_OBJECT -> TokenType.START_OBJECT;
             case KEY_NAME -> TokenType.KEY;
@@ -72,6 +75,14 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
             case END_ARRAY -> TokenType.END_ARRAY;
             default -> TokenType.OTHER;
         };
+    }
+
+    private OracleJsonParser.Event requireCurrentEvent() {
+        OracleJsonParser.@Nullable Event event = currentEvent;
+        if (event == null) {
+            throw new IllegalStateException("No current Oracle JSON event");
+        }
+        return event;
     }
 
     @Override
@@ -91,7 +102,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected String coerceScalarToString(TokenType currentToken) {
-        return switch (currentEvent) {
+        return switch (requireCurrentEvent()) {
             case VALUE_STRING, VALUE_DECIMAL, VALUE_DOUBLE, VALUE_FLOAT, VALUE_INTERVALDS, VALUE_INTERVALYM,
                  VALUE_DATE, VALUE_TIMESTAMP, VALUE_TIMESTAMPTZ ->
                 // only allowed for string, number
@@ -142,7 +153,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected Number getBestNumber() {
-        return switch (currentEvent) {
+        return switch (requireCurrentEvent()) {
             case VALUE_DECIMAL -> jsonParser.getBigDecimal();
             case VALUE_DOUBLE -> jsonParser.getDouble();
             case VALUE_FLOAT -> jsonParser.getFloat();
@@ -161,8 +172,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    @NonNull
-    public IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue) {
+    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         if (invalidValue != null) {
             return new InvalidFormatException(message, null, invalidValue);
         } else {
@@ -212,7 +222,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      */
     public LocalDateTime decodeLocalDateTime() {
         LocalDateTime value =
-            switch (currentEvent) {
+            switch (requireCurrentEvent()) {
                 case VALUE_DATE, VALUE_TIMESTAMP -> jsonParser.getLocalDateTime();
                 case VALUE_STRING -> LocalDateTime.parse(jsonParser.getString());
                 default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
@@ -228,7 +238,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      */
     public OffsetDateTime decodeOffsetDateTime() {
         OffsetDateTime value =
-            switch (currentEvent) {
+            switch (requireCurrentEvent()) {
                 case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime();
                 case VALUE_STRING -> OffsetDateTime.parse(jsonParser.getString());
                 default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);
@@ -244,7 +254,7 @@ public final class OracleJdbcJsonParserDecoder extends AbstractStreamDecoder {
      */
     public ZonedDateTime decodeZonedDateTime() {
         ZonedDateTime value =
-            switch (currentEvent) {
+            switch (requireCurrentEvent()) {
                 case VALUE_TIMESTAMPTZ -> jsonParser.getOffsetDateTime().toZonedDateTime();
                 case VALUE_STRING -> ZonedDateTime.parse(jsonParser.getString());
                 default -> throw new IllegalStateException(METHOD_CALLED_IN_WRONG_CONTEXT + currentEvent);

@@ -16,10 +16,9 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -45,12 +44,12 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+    public Decoder decodeArray(Argument<?> type) throws IOException {
         return delegate().decodeArray(type);
     }
 
     @Override
-    public @NonNull Decoder decodeArray() throws IOException {
+    public Decoder decodeArray() throws IOException {
         return delegate().decodeArray();
     }
 
@@ -60,12 +59,12 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+    public Decoder decodeObject(Argument<?> type) throws IOException {
         return delegate().decodeObject(type);
     }
 
     @Override
-    public @NonNull Decoder decodeObject() throws IOException {
+    public Decoder decodeObject() throws IOException {
         return delegate().decodeObject();
     }
 
@@ -75,7 +74,7 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public @NonNull String decodeString() throws IOException {
+    public String decodeString() throws IOException {
         return delegate().decodeString();
     }
 
@@ -165,7 +164,7 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public @NonNull BigInteger decodeBigInteger() throws IOException {
+    public BigInteger decodeBigInteger() throws IOException {
         return delegate().decodeBigInteger();
     }
 
@@ -175,7 +174,7 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public @NonNull BigDecimal decodeBigDecimal() throws IOException {
+    public BigDecimal decodeBigDecimal() throws IOException {
         return delegate().decodeBigDecimal();
     }
 
@@ -185,7 +184,7 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public byte @NonNull [] decodeBinary() throws IOException {
+    public byte[] decodeBinary() throws IOException {
         return delegate().decodeBinary();
     }
 
@@ -205,7 +204,7 @@ public abstract class DelegatingDecoder implements Decoder {
     }
 
     @Override
-    public @NonNull JsonNode decodeNode() throws IOException {
+    public JsonNode decodeNode() throws IOException {
         return delegate().decodeNode();
     }
 
@@ -240,5 +239,5 @@ public abstract class DelegatingDecoder implements Decoder {
      * {@inheritDoc}
      */
     @Override
-    public abstract @NonNull IOException createDeserializationException(@NonNull String message, @Nullable Object invalidValue);
+    public abstract IOException createDeserializationException(String message, @Nullable Object invalidValue);
 }

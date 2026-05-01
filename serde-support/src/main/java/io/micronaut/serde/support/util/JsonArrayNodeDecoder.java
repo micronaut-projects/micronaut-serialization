@@ -16,12 +16,14 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.json.tree.JsonNode;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Iterator;
 
 final class JsonArrayNodeDecoder extends JsonNodeDecoder {
 
     private final Iterator<JsonNode> iterator;
+    @Nullable
     private JsonNode peeked;
 
     JsonArrayNodeDecoder(JsonNode node, RemainingLimits remainingLimits) {

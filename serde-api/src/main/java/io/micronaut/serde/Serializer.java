@@ -24,7 +24,6 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReferenceManager;
 import io.micronaut.serde.reference.SerializationReference;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -49,9 +48,8 @@ public interface Serializer<T> {
      * @param type The type definition including any annotation metadata
      * @return The more specific serializer
      */
-    default @NonNull
-    Serializer<T> createSpecific(@NonNull EncoderContext context,
-                                 @NonNull Argument<? extends T> type) throws
+    default Serializer<T> createSpecific(EncoderContext context,
+                                         Argument<? extends T> type) throws
             SerdeException {
         return this;
     }
@@ -64,10 +62,10 @@ public interface Serializer<T> {
      * @param value The value, can be {@code null}
      * @throws IOException If an error occurs during serialization
      */
-    void serialize(@NonNull Encoder encoder,
-                   @NonNull EncoderContext context,
-                   @NonNull Argument<? extends T> type,
-                   @NonNull T value) throws IOException;
+    void serialize(Encoder encoder,
+                   EncoderContext context,
+                   Argument<? extends T> type,
+                   T value) throws IOException;
 
     /**
      * Used for {@code JsonInclude.Include#NON_EMPTY} checking.
@@ -76,7 +74,7 @@ public interface Serializer<T> {
      * @param value The check to check
      * @return Return {@code true} if the value is empty
      */
-    default boolean isEmpty(@NonNull EncoderContext context, @Nullable T value) {
+    default boolean isEmpty(EncoderContext context, @Nullable T value) {
         return value == null;
     }
 
@@ -87,7 +85,7 @@ public interface Serializer<T> {
      * @param value The value to check
      * @return Return {@code true} if the value is absent
      */
-    default boolean isAbsent(@NonNull EncoderContext context, @Nullable T value) {
+    default boolean isAbsent(EncoderContext context, @Nullable T value) {
         return value == null;
     }
 
@@ -99,7 +97,7 @@ public interface Serializer<T> {
      * @return Return {@code true} if the value is the default value
      * @since 1.14
      */
-    default boolean isDefault(@NonNull EncoderContext context, @NonNull T value) {
+    default boolean isDefault(EncoderContext context, T value) {
         return false;
     }
 
@@ -112,7 +110,6 @@ public interface Serializer<T> {
         /**
          * @return Conversion service
          */
-        @NonNull
         default ConversionService getConversionService() {
             return ConversionService.SHARED;
         }
@@ -135,7 +132,7 @@ public interface Serializer<T> {
         @Internal
         @Nullable
         <B, P> SerializationReference<B, P> resolveReference(
-                @NonNull SerializationReference<B, P> reference
+                SerializationReference<B, P> reference
         );
 
         /**
@@ -144,7 +141,6 @@ public interface Serializer<T> {
          * @return The {@link SerdeConfiguration}, or an empty optional if the default should be used
          * @since 2.7.0
          */
-        @NonNull
         default Optional<SerdeConfiguration> getSerdeConfiguration() {
             return Optional.empty();
         }
@@ -155,7 +151,6 @@ public interface Serializer<T> {
          * @return The {@link SerializationConfiguration}, or an empty optional if the default should be used
          * @since 2.7.0
          */
-        @NonNull
         default Optional<SerializationConfiguration> getSerializationConfiguration() {
             return Optional.empty();
         }
@@ -166,7 +161,6 @@ public interface Serializer<T> {
          * @return The active serialization format features
          * @since 3.0
          */
-        @NonNull
         default Set<SerdeConfiguration.Feature> getFeatures() {
             return SerdeConfiguration.serializationFeatures(getSerializationConfiguration().orElse(null));
         }
@@ -179,9 +173,8 @@ public interface Serializer<T> {
          * @return The derived context
          * @since 3.0
          */
-        @NonNull
-        default EncoderContext withFeatures(@NonNull Set<SerdeConfiguration.Feature> includedFeatures,
-                                            @NonNull Set<SerdeConfiguration.Feature> excludedFeatures) {
+        default EncoderContext withFeatures(Set<SerdeConfiguration.Feature> includedFeatures,
+                                            Set<SerdeConfiguration.Feature> excludedFeatures) {
             if (includedFeatures.isEmpty() && excludedFeatures.isEmpty()) {
                 return this;
             }

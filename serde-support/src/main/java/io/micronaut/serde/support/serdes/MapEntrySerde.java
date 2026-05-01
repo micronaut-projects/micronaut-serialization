@@ -26,7 +26,6 @@ import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -45,15 +44,15 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
     private static final String MAP_ENTRY_VALUE = "value";
 
     @Override
-    public @NonNull Serializer<Map.Entry<?, ?>> createSpecific(@NonNull EncoderContext context,
-                                                               @NonNull Argument<? extends Map.Entry<?, ?>> type) throws SerdeException {
+    public Serializer<Map.Entry<?, ?>> createSpecific(EncoderContext context,
+                                                               Argument<? extends Map.Entry<?, ?>> type) throws SerdeException {
         return new MapEntryNaturalSerializer<>(this, context, type);
     }
 
     @Override
-    public @NonNull Serializer<Map.Entry<?, ?>> createSpecific(@NonNull EncoderContext context,
-                                                               @NonNull Argument<? extends Map.Entry<?, ?>> type,
-                                                               @NonNull FormatConfiguration format) throws SerdeException {
+    public Serializer<Map.Entry<?, ?>> createSpecific(EncoderContext context,
+                                                               Argument<? extends Map.Entry<?, ?>> type,
+                                                               FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return new MapEntryPojoSerializer<>(this, context, type);
         }
@@ -61,15 +60,15 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
     }
 
     @Override
-    public @NonNull Deserializer<Map.Entry<?, ?>> createSpecific(@NonNull DecoderContext context,
-                                                                 @NonNull Argument<? super Map.Entry<?, ?>> type) throws SerdeException {
+    public Deserializer<Map.Entry<?, ?>> createSpecific(DecoderContext context,
+                                                                 Argument<? super Map.Entry<?, ?>> type) throws SerdeException {
         return new MapEntryNaturalDeserializer<>(context, type);
     }
 
     @Override
-    public @NonNull Deserializer<Map.Entry<?, ?>> createSpecific(@NonNull DecoderContext context,
-                                                                 @NonNull Argument<? super Map.Entry<?, ?>> type,
-                                                                 @NonNull FormatConfiguration format) throws SerdeException {
+    public Deserializer<Map.Entry<?, ?>> createSpecific(DecoderContext context,
+                                                                 Argument<? super Map.Entry<?, ?>> type,
+                                                                 FormatConfiguration format) throws SerdeException {
         if (format.shape().isPojoShape()) {
             return new MapEntryPojoDeserializer<>(context, type);
         }
@@ -77,27 +76,27 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Map.Entry<?, ?>> type,
+    public void serialize(Encoder encoder,
+                          EncoderContext context,
+                          Argument<? extends Map.Entry<?, ?>> type,
                           Map.Entry<?, ?> value) throws IOException {
         createSpecific(context, type).serialize(encoder, context, type, value);
     }
 
     @Override
-    public Map.Entry<?, ?> deserialize(@NonNull Decoder decoder,
-                                       @NonNull DecoderContext context,
-                                       @NonNull Argument<? super Map.Entry<?, ?>> type) throws IOException {
+    public Map.@Nullable Entry<?, ?> deserialize(Decoder decoder,
+                                                 DecoderContext context,
+                                                 Argument<? super Map.Entry<?, ?>> type) throws IOException {
         return createSpecific(context, type).deserialize(decoder, context, type);
     }
 
     @Override
-    public boolean isEmpty(@NonNull EncoderContext context, Map.Entry<?, ?> value) {
+    public boolean isEmpty(EncoderContext context, Map.@Nullable Entry<?, ?> value) {
         return value == null;
     }
 
     @Override
-    public boolean isAbsent(@NonNull EncoderContext context, Map.Entry<?, ?> value) {
+    public boolean isAbsent(EncoderContext context, Map.@Nullable Entry<?, ?> value) {
         return value == null;
     }
 
@@ -160,17 +159,17 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public boolean isEmpty(@NonNull EncoderContext context, @Nullable T value) {
+        public boolean isEmpty(EncoderContext context, @Nullable T value) {
             return delegate.isEmpty(context, value);
         }
 
         @Override
-        public boolean isAbsent(@NonNull EncoderContext context, @Nullable T value) {
+        public boolean isAbsent(EncoderContext context, @Nullable T value) {
             return delegate.isAbsent(context, value);
         }
 
         @Override
-        public boolean isDefault(@NonNull EncoderContext context, @NonNull T value) {
+        public boolean isDefault(EncoderContext context, T value) {
             return delegate.isDefault(context, value);
         }
     }
@@ -184,10 +183,10 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public void serialize(@NonNull Encoder encoder,
-                              @NonNull EncoderContext context,
-                              @NonNull Argument<? extends T> type,
-                              @NonNull T value) throws IOException {
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends T> type,
+                              T value) throws IOException {
             try (Encoder objectEncoder = encoder.encodeObject(type)) {
                 objectEncoder.encodeKey(MAP_ENTRY_KEY);
                 encodeNullable(objectEncoder, context, keyArgument, keySerializer, value.getKey());
@@ -206,10 +205,10 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public void serialize(@NonNull Encoder encoder,
-                              @NonNull EncoderContext context,
-                              @NonNull Argument<? extends T> type,
-                              @NonNull T value) throws IOException {
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends T> type,
+                              T value) throws IOException {
             Object key = value.getKey();
             try (Encoder objectEncoder = encoder.encodeObject(type)) {
                 objectEncoder.encodeKey(key == null ? "null" : key.toString());
@@ -242,9 +241,9 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public T deserialize(@NonNull Decoder decoder,
-                             @NonNull DecoderContext context,
-                             @NonNull Argument<? super T> type) throws IOException {
+        public @Nullable T deserialize(Decoder decoder,
+                                       DecoderContext context,
+                                       Argument<? super T> type) throws IOException {
             Object key = null;
             Object value = null;
             try (Decoder objectDecoder = decoder.decodeObject(type)) {
@@ -271,9 +270,9 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public T deserialize(@NonNull Decoder decoder,
-                             @NonNull DecoderContext context,
-                             @NonNull Argument<? super T> type) throws IOException {
+        public @Nullable T deserialize(Decoder decoder,
+                                       DecoderContext context,
+                                       Argument<? super T> type) throws IOException {
             Decoder objectDecoder = decoder.decodeObject(type);
             String key = objectDecoder.decodeKey();
             if (key == null) {

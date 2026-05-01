@@ -25,6 +25,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import oracle.sql.json.OracleJsonGenerator;
 import oracle.sql.json.OracleJsonParser;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,7 +47,7 @@ public final class OracleJdbcJsonTextObjectMapper extends AbstractOracleJdbcJson
         super(registry, serdeConfiguration);
     }
 
-    private OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+    private OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         super(registry, serdeConfiguration, view);
     }
 

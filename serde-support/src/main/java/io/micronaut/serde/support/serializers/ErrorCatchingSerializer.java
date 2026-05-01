@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 
@@ -60,12 +61,12 @@ class ErrorCatchingSerializer<T> implements Serializer<T> {
     }
 
     @Override
-    public final boolean isEmpty(EncoderContext context, T value) {
+    public final boolean isEmpty(EncoderContext context, @Nullable T value) {
         return serializer.isEmpty(context, value);
     }
 
     @Override
-    public final boolean isAbsent(EncoderContext context, T value) {
+    public final boolean isAbsent(EncoderContext context, @Nullable T value) {
         return serializer.isAbsent(context, value);
     }
 

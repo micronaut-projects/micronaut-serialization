@@ -18,7 +18,6 @@ package io.micronaut.serde;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
@@ -43,7 +42,7 @@ import java.util.TimeZone;
  */
 public record FormatConfiguration(
     @Nullable String pattern,
-    @NonNull Shape shape,
+    Shape shape,
     @Nullable String locale,
     @Nullable String timezone,
     @Nullable Boolean lenient,
@@ -80,7 +79,7 @@ public record FormatConfiguration(
      * @return The format configuration
      */
     @Nullable
-    public static FormatConfiguration from(@NonNull AnnotationMetadata annotationMetadata) {
+    public static FormatConfiguration from(AnnotationMetadata annotationMetadata) {
         String pattern = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PATTERN).orElse(null);
         Shape shape = annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.SHAPE, Shape.class).orElse(Shape.ANY);
         String locale = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE).orElse(null);
@@ -112,7 +111,6 @@ public record FormatConfiguration(
     /**
      * @return The parsed time zone, defaulting to UTC if no time zone is configured
      */
-    @NonNull
     public TimeZone parseTimeZone() {
         return Optional.ofNullable(timezone)
             .map(TimeZone::getTimeZone)
@@ -122,7 +120,6 @@ public record FormatConfiguration(
     /**
      * @return A date format when a pattern is configured
      */
-    @NonNull
     public Optional<SimpleDateFormat> createDateFormat() {
         return Optional.ofNullable(pattern).map(p -> {
             Locale parsedLocale = parseLocale();
@@ -138,7 +135,6 @@ public record FormatConfiguration(
     /**
      * @return A date-time formatter when a pattern is configured
      */
-    @NonNull
     public Optional<DateTimeFormatter> createDateTimeFormatter() {
         return Optional.ofNullable(pattern).map(p -> {
             Locale parsedLocale = parseLocale();

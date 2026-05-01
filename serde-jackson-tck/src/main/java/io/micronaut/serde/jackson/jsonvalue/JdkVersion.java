@@ -17,7 +17,6 @@ package io.micronaut.serde.jackson.jsonvalue;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.annotation.Serdeable;
 
@@ -115,7 +114,7 @@ public final class JdkVersion {
         return majorVersion;
     }
 
-    public boolean greaterThanEqual(@NonNull JdkVersion jdk) {
+    public boolean greaterThanEqual(JdkVersion jdk) {
         return majorVersion >= jdk.majorVersion;
     }
 }

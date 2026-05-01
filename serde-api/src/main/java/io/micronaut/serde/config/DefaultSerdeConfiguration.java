@@ -19,10 +19,10 @@ import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationInject;
 import io.micronaut.context.annotation.ConfigurationProperties;
 import io.micronaut.context.annotation.Property;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Locale;
@@ -47,8 +47,8 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final List<String> includedIntrospectionPackages;
     private final int maximumNestingDepth;
     private final boolean inetAddressAsNumeric;
-    private final String propertyNamingStrategyName;
-    private final PropertyNamingStrategy propertyNamingStrategy;
+    private final @Nullable String propertyNamingStrategyName;
+    private final @Nullable PropertyNamingStrategy propertyNamingStrategy;
     private final boolean jsonViewEnabled;
 
     @ConfigurationInject
@@ -79,12 +79,12 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     }
 
     @Override
-    public PropertyNamingStrategy getPropertyNamingStrategy() {
+    public @Nullable PropertyNamingStrategy getPropertyNamingStrategy() {
         return propertyNamingStrategy;
     }
 
     @Override
-    public String getPropertyNamingStrategyName() {
+    public @Nullable String getPropertyNamingStrategyName() {
         return propertyNamingStrategyName;
     }
 

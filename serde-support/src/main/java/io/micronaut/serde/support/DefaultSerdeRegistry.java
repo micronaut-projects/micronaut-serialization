@@ -22,8 +22,6 @@ import io.micronaut.context.annotation.Secondary;
 import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.annotation.Order;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.convert.ConversionService;
@@ -52,6 +50,7 @@ import io.micronaut.serde.support.serializers.CoreSerializers;
 import io.micronaut.serde.support.serializers.ObjectSerializer;
 import io.micronaut.serde.support.util.TypeKey;
 import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,6 +77,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     private final Map<TypeKey, SerializerWrapper> serializerMap = new ConcurrentHashMap<>(50);
     private final Map<TypeKey, Deserializer<?>> deserializerMap = new ConcurrentHashMap<>(50);
 
+    @Nullable
     private final BeanContext beanContext;
     private final SerdeIntrospections introspections;
     private final ObjectSerializer objectSerializer;
@@ -218,25 +218,29 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     @Override
     public <T, D extends Serializer<? extends T>> D findCustomSerializer(Class<? extends D> serializerClass) throws SerdeException {
         checkBeanContext();
-        return beanContext.findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
+        return beanContext().findBean(serializerClass).orElseThrow(() -> new SerdeException("Cannot find serializer: " + serializerClass));
     }
 
     @Override
     public <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass) throws SerdeException {
         checkBeanContext();
-        return beanContext.findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
+        return beanContext().findBean(deserializerClass).orElseThrow(() -> new SerdeException("Cannot find deserializer: " + deserializerClass));
     }
 
     @Override
     public <D extends PropertyNamingStrategy> D findNamingStrategy(Class<? extends D> namingStrategyClass) throws SerdeException {
         checkBeanContext();
-        return beanContext.findBean(namingStrategyClass).orElseThrow(() -> new SerdeException("Cannot find naming strategy: " + namingStrategyClass));
+        return beanContext().findBean(namingStrategyClass).orElseThrow(() -> new SerdeException("Cannot find naming strategy: " + namingStrategyClass));
     }
 
     private void checkBeanContext() throws SerdeException {
         if (beanContext == null) {
             throw new SerdeException("No bean context present!");
         }
+    }
+
+    private BeanContext beanContext() {
+        return Objects.requireNonNull(beanContext);
     }
 
     @Override
@@ -278,7 +282,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         if (definition instanceof InternalSerdeBeanDefinition<?> internalSerdeBeanDefinition) {
             return (T) internalSerdeBeanDefinition.value;
         }
-        return beanContext.getBean(definition);
+        return Objects.requireNonNull(beanContext, "Bean context cannot be null").getBean(definition);
     }
 
     @Override
@@ -322,7 +326,6 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         return objectSerializer;
     }
 
-    @NonNull
     private <T> BeanDefinition<T> lastChanceResolve(Argument<?> type,
                                                     Collection<BeanDefinition<T>> candidates,
                                                     String beansResolved) throws SerdeException {
@@ -376,7 +379,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     @Override
-    public Serializer.EncoderContext newEncoderContext(Class<?> view) {
+    public Serializer.EncoderContext newEncoderContext(@Nullable Class<?> view) {
         if (view != null && view != Object.class) {
             return new DefaultEncoderContext(this) {
                 @Override
@@ -394,7 +397,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
     }
 
     @Override
-    public Deserializer.DecoderContext newDecoderContext(Class<?> view) {
+    public Deserializer.DecoderContext newDecoderContext(@Nullable Class<?> view) {
         if (view != null && view != Object.class) {
             return new DefaultDecoderContext(this) {
                 @Override
@@ -459,19 +462,16 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
             return annotationMetadata;
         }
 
-        @NonNull
         @Override
         public Argument<T> asArgument() {
             return (Argument<T>) argument;
         }
 
-        @NonNull
         @Override
         public List<Argument<?>> getTypeArguments() {
             return typeParameters;
         }
 
-        @NonNull
         @Override
         public List<Argument<?>> getTypeArguments(Class<?> type) {
             if (type == Serializer.class || type == Deserializer.class) {
@@ -486,7 +486,7 @@ public class DefaultSerdeRegistry implements SerdeRegistry {
         }
 
         @Override
-        public boolean isEnabled(@NonNull BeanContext context, @Nullable BeanResolutionContext resolutionContext) {
+        public boolean isEnabled(BeanContext context, @Nullable BeanResolutionContext resolutionContext) {
             return true;
         }
 

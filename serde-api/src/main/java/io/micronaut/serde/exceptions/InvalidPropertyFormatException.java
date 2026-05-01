@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.exceptions;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 
 /**
@@ -32,7 +31,7 @@ public class InvalidPropertyFormatException extends InvalidFormatException {
      * @param cause The cause
      * @param argument The argument
      */
-    public InvalidPropertyFormatException(@NonNull InvalidFormatException cause, @NonNull Argument<?> argument) {
+    public InvalidPropertyFormatException(InvalidFormatException cause, Argument<?> argument) {
         super("Cannot deserialize value of type `" + argument.getType().getName() + "` due to: " + cause.getMessage(), cause, cause.getOriginalValue());
         this.argument = argument;
     }
@@ -40,7 +39,7 @@ public class InvalidPropertyFormatException extends InvalidFormatException {
     /**
      * @return The property.
      */
-    public @NonNull Argument<?> getArgument() {
+    public Argument<?> getArgument() {
         return argument;
     }
 }

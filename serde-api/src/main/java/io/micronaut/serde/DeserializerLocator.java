@@ -17,7 +17,6 @@ package io.micronaut.serde;
 
 import java.util.Collection;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -36,8 +35,7 @@ public interface DeserializerLocator {
      * @return The deserializer
      * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
      */
-    @NonNull
-    <T, D extends Deserializer<? extends T>> D findCustomDeserializer(@NonNull Class<? extends D> deserializerClass)
+    <T, D extends Deserializer<? extends T>> D findCustomDeserializer(Class<? extends D> deserializerClass)
             throws SerdeException;
 
     /**
@@ -47,7 +45,7 @@ public interface DeserializerLocator {
      * @return The deserializer
      * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
      */
-    @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type)
+    <T> Deserializer<? extends T> findDeserializer(Argument<? extends T> type)
             throws SerdeException;
 
     /**
@@ -57,7 +55,7 @@ public interface DeserializerLocator {
      * @return The deserializer
      * @throws io.micronaut.serde.exceptions.SerdeException if no deserializer is found
      */
-    default @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Class<? extends T> type)
+    default <T> Deserializer<? extends T> findDeserializer(Class<? extends T> type)
             throws SerdeException {
         return findDeserializer(Argument.of(type));
     }

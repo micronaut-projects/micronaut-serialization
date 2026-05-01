@@ -28,6 +28,7 @@ import org.bson.json.JsonMode;
 import org.bson.json.JsonReader;
 import org.bson.json.JsonWriter;
 import org.bson.json.JsonWriterSettings;
+import org.jspecify.annotations.Nullable;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -49,7 +50,7 @@ public final class BsonJsonMapper extends AbstractBsonMapper {
         super(registry, serdeConfiguration);
     }
 
-    private BsonJsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+    private BsonJsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         super(registry, serdeConfiguration, view);
     }
 

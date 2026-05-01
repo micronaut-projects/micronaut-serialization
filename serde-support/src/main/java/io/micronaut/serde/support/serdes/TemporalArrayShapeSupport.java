@@ -23,7 +23,6 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -39,7 +38,7 @@ final class TemporalArrayShapeSupport {
     private TemporalArrayShapeSupport() {
     }
 
-    static boolean isNumericOrArrayShape(@NonNull FormatConfiguration format) {
+    static boolean isNumericOrArrayShape(FormatConfiguration format) {
         return format.shape().isNumeric() || format.shape() == FormatConfiguration.Shape.ARRAY;
     }
 
@@ -51,8 +50,8 @@ final class TemporalArrayShapeSupport {
         return context.getFeatures().contains(DeserializationConfiguration.Feature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS);
     }
 
-    static void serializeLocalTime(@NonNull Encoder encoder,
-                                   @NonNull LocalTime localTime,
+    static void serializeLocalTime(Encoder encoder,
+                                   LocalTime localTime,
                                    boolean writeNanos) throws IOException {
         encoder.encodeInt(localTime.getHour());
         encoder.encodeInt(localTime.getMinute());
@@ -66,7 +65,7 @@ final class TemporalArrayShapeSupport {
         }
     }
 
-    static LocalTime deserializeLocalTime(@NonNull Decoder arrayDecoder, boolean readNanos) throws IOException {
+    static LocalTime deserializeLocalTime(Decoder arrayDecoder, boolean readNanos) throws IOException {
         int hour = arrayDecoder.decodeInt();
         int minute = arrayDecoder.decodeInt();
         int second = arrayDecoder.hasNextArrayValue() ? arrayDecoder.decodeInt() : 0;
@@ -80,7 +79,7 @@ final class TemporalArrayShapeSupport {
     abstract static class AbstractSerializer<T> implements Serializer<T> {
         private final Serializer<T> delegate;
 
-        AbstractSerializer(@NonNull Serializer<T> delegate) {
+        AbstractSerializer(Serializer<T> delegate) {
             this.delegate = delegate;
         }
 
@@ -115,7 +114,7 @@ final class TemporalArrayShapeSupport {
     abstract static class AbstractDeserializer<T> implements Deserializer<T> {
         private final Deserializer<T> delegate;
 
-        AbstractDeserializer(@NonNull Deserializer<T> delegate) {
+        AbstractDeserializer(Deserializer<T> delegate) {
             this.delegate = delegate;
         }
 
@@ -131,7 +130,7 @@ final class TemporalArrayShapeSupport {
         abstract T deserializeArray(Decoder arrayDecoder) throws IOException;
 
         @Override
-        public final T deserializeNullable(Decoder decoder,
+        public @Nullable final T deserializeNullable(Decoder decoder,
                                            DecoderContext context,
                                            Argument<? super T> type) throws IOException {
             if (decoder.decodeNull()) {

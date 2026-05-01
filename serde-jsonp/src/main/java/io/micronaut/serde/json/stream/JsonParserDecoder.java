@@ -20,6 +20,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.AbstractStreamDecoder;
 import jakarta.json.JsonNumber;
 import jakarta.json.stream.JsonParser;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -30,7 +31,7 @@ import java.math.BigInteger;
  */
 public class JsonParserDecoder extends AbstractStreamDecoder {
     private final JsonParser jsonParser;
-    private JsonParser.Event currentEvent;
+    private JsonParser.@Nullable Event currentEvent;
 
     public JsonParserDecoder(JsonParser jsonParser) {
         this(jsonParser, DEFAULT_LIMITS);
@@ -50,8 +51,12 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    protected TokenType currentToken() {
-        return switch (currentEvent) {
+    protected @Nullable TokenType currentToken() {
+        JsonParser.@Nullable Event event = currentEvent;
+        if (event == null) {
+            return null;
+        }
+        return switch (event) {
             case START_ARRAY -> TokenType.START_ARRAY;
             case START_OBJECT -> TokenType.START_OBJECT;
             case KEY_NAME -> TokenType.KEY;
@@ -63,6 +68,14 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
             case END_ARRAY -> TokenType.END_ARRAY;
             default -> TokenType.OTHER;
         };
+    }
+
+    private JsonParser.Event requireCurrentEvent() {
+        JsonParser.@Nullable Event event = currentEvent;
+        if (event == null) {
+            throw new IllegalStateException("No current JSON event");
+        }
+        return event;
     }
 
     @Override
@@ -82,7 +95,7 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
 
     @Override
     protected String coerceScalarToString(TokenType currentToken) {
-        return switch (currentEvent) {
+        return switch (requireCurrentEvent()) {
             case VALUE_STRING, VALUE_NUMBER ->
                 // only allowed for string and number
                 jsonParser.getString();
@@ -138,7 +151,7 @@ public class JsonParserDecoder extends AbstractStreamDecoder {
     }
 
     @Override
-    public IOException createDeserializationException(String message, Object invalidValue) {
+    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         return new SerdeException(message + " \n at " + jsonParser.getLocation());
     }
 }

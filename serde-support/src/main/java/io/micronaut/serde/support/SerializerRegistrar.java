@@ -16,7 +16,6 @@
 package io.micronaut.serde.support;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.order.Ordered;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Serializer;
@@ -33,13 +32,11 @@ public interface SerializerRegistrar<T> extends Serializer<T>, Ordered {
     /**
      * @return The serde argument type
      */
-    @NonNull
     Argument<T> getType();
 
     /**
      * @return The multiple serde argument types
      */
-    @NonNull
     default Iterable<Argument<?>> getTypes() {
         return Collections.singleton(getType());
     }

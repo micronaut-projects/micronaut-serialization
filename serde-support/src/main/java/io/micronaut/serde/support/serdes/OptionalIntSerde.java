@@ -16,9 +16,9 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 
@@ -52,7 +52,7 @@ final class OptionalIntSerde implements SerdeRegistrar<OptionalInt> {
     }
 
     @Override
-    public OptionalInt deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super OptionalInt> type) throws IOException {
+    public @Nullable OptionalInt deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalInt> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 
@@ -62,12 +62,12 @@ final class OptionalIntSerde implements SerdeRegistrar<OptionalInt> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, OptionalInt value) {
+    public boolean isEmpty(EncoderContext context, @Nullable OptionalInt value) {
         return value == null || value.isEmpty();
     }
 
     @Override
-    public boolean isAbsent(EncoderContext context, OptionalInt value) {
+    public boolean isAbsent(EncoderContext context, @Nullable OptionalInt value) {
         return value == null || value.isEmpty();
     }
 

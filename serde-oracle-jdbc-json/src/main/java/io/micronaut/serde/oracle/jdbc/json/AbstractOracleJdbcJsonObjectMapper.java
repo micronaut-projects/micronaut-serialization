@@ -16,8 +16,6 @@
 package io.micronaut.serde.oracle.jdbc.json;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -37,6 +35,7 @@ import oracle.sql.json.OracleJsonFactory;
 import oracle.sql.json.OracleJsonGenerator;
 import oracle.sql.json.OracleJsonObject;
 import oracle.sql.json.OracleJsonParser;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
 
 import java.io.ByteArrayInputStream;
@@ -58,16 +57,17 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     protected final SerdeRegistry registry;
     @Nullable
     protected final SerdeConfiguration serdeConfiguration;
+    @Nullable
     protected final Class<?> view;
     protected final OracleJsonFactory oracleJsonFactory = new OracleJsonFactory();
 
-    protected AbstractOracleJdbcJsonObjectMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
+    protected AbstractOracleJdbcJsonObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = null;
     }
 
-    protected AbstractOracleJdbcJsonObjectMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+    protected AbstractOracleJdbcJsonObjectMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
@@ -83,7 +83,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     abstract OracleJsonGenerator createJsonGenerator(OutputStream outputStream);
 
     @Override
-    public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         Deserializer.DecoderContext context = registry.newDecoderContext(view);
         final Deserializer<? extends T> deserializer = this.registry.findDeserializer(type).createSpecific(context, type);
         return deserializer.deserialize(
@@ -94,14 +94,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         try (OracleJsonParser parser = getJsonParser(inputStream)) {
             return readValue(parser, type);
         }
     }
 
     @Override
-    public <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
         try (OracleJsonParser parser = getJsonParser(new ByteArrayInputStream(byteArray))) {
             return readValue(parser, type);
         }
@@ -116,8 +116,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
      * @return The value
      * @throws IOException
      */
-    @NonNull
-    public <T> T readValue(@NonNull OracleJsonParser parser, @NonNull Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(OracleJsonParser parser, Argument<T> type) throws IOException {
         if (type.getType() == OracleJsonObject.class) {
             OracleJsonParser.Event event = parser.next();
             if (event != OracleJsonParser.Event.START_OBJECT) {
@@ -145,9 +144,8 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
         return new BufferingJsonNodeProcessor(onSubscribe, streamArray) {
-            @NonNull
             @Override
-            protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
+            protected JsonNode parseOne(InputStream is) throws IOException {
                 try (OracleJsonParser parser = getJsonParser(is)) {
                     final OracleJdbcJsonParserDecoder decoder = new OracleJdbcJsonParserDecoder(parser, limits());
                     final Object o = decoder.decodeArbitrary();
@@ -157,26 +155,32 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
         };
     }
 
-    private LimitingStream.@NonNull RemainingLimits limits() {
+    private LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
     @Override
-    public JsonNode writeValueToTree(Object value) throws IOException {
+    public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
+        if (value == null) {
+            return JsonNode.nullNode();
+        }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
 
     @Override
-    public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
+    public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
+        if (value == null) {
+            return JsonNode.nullNode();
+        }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value, type);
         return encoder.getCompletedValue();
     }
 
     @Override
-    public void writeValue(OutputStream outputStream, Object object) throws IOException {
+    public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
         try (OracleJsonGenerator generator = createJsonGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             if (object instanceof OracleJsonObject) {
                 generator.write((OracleJsonObject) object);
@@ -193,7 +197,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
         try (OracleJsonGenerator generator = createJsonGenerator(Objects.requireNonNull(outputStream, "Output stream cannot be null"))) {
             writeValue(generator, object, type);
         }
@@ -208,7 +212,7 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
      * @param <T>       The type
      * @throws IOException
      */
-    public <T> void writeValue(@NonNull OracleJsonGenerator generator, @NonNull T value, @NonNull Argument<T> type) throws IOException {
+    public <T> void writeValue(OracleJsonGenerator generator, @Nullable T value, Argument<T> type) throws IOException {
         if (value == null) {
             generator.writeNull();
         } else {
@@ -233,14 +237,14 @@ abstract class AbstractOracleJdbcJsonObjectMapper implements ObjectMapper {
     }
 
     @Override
-    public byte[] writeValueAsBytes(Object object) throws IOException {
+    public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, object);
         return output.toByteArray();
     }
 
     @Override
-    public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+    public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, type, object);
         return output.toByteArray();

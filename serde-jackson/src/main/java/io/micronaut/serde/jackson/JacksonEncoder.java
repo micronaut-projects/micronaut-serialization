@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JsonGenerator;
 import tools.jackson.core.TokenStreamContext;
@@ -38,22 +37,22 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
     @Nullable
     private final JacksonEncoder parent;
 
-    private JacksonEncoder child = null;
+    @Nullable
+    private JacksonEncoder child;
 
-    private JacksonEncoder(@NonNull JacksonEncoder parent, RemainingLimits remainingLimits) {
+    private JacksonEncoder(JacksonEncoder parent, RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.generator = parent.generator;
         this.parent = parent;
     }
 
-    private JacksonEncoder(@NonNull JsonGenerator generator, RemainingLimits remainingLimits) {
+    private JacksonEncoder(JsonGenerator generator, RemainingLimits remainingLimits) {
         super(remainingLimits);
         this.generator = generator;
         this.parent = null;
     }
 
-    @NonNull
-    public static Encoder create(@NonNull JsonGenerator generator) {
+    public static Encoder create(JsonGenerator generator) {
         return create(generator, DEFAULT_LIMITS);
     }
 
@@ -64,9 +63,8 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
      * @param remainingLimits The maximum nesting depth
      * @return The encoder
      */
-    @NonNull
     @Internal
-    public static Encoder create(@NonNull JsonGenerator generator, @NonNull RemainingLimits remainingLimits) {
+    public static Encoder create(JsonGenerator generator, RemainingLimits remainingLimits) {
         Objects.requireNonNull(generator, "generator");
         return new ReuseChildEncoder(generator, remainingLimits);
     }
@@ -131,13 +129,13 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
     }
 
     @Override
-    public final void encodeKey(@NonNull String key) throws IOException {
+    public final void encodeKey(String key) throws IOException {
         Objects.requireNonNull(key, "key");
         generator.writeName(key);
     }
 
     @Override
-    public final void encodeString(@NonNull String value) throws IOException {
+    public final void encodeString(String value) throws IOException {
         Objects.requireNonNull(value, "value");
         generator.writeString(value);
     }
@@ -183,19 +181,19 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
     }
 
     @Override
-    public final void encodeBigInteger(@NonNull BigInteger value) throws IOException {
+    public final void encodeBigInteger(BigInteger value) throws IOException {
         Objects.requireNonNull(value, "value");
         generator.writeNumber(value);
     }
 
     @Override
-    public final void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
+    public final void encodeBigDecimal(BigDecimal value) throws IOException {
         Objects.requireNonNull(value, "value");
         generator.writeNumber(value);
     }
 
     @Override
-    public void encodeBinary(byte @NonNull [] data) throws IOException {
+    public void encodeBinary(byte[] data) throws IOException {
         generator.writeBinary(data);
     }
 
@@ -227,7 +225,7 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
     }
 
     private static final class OuterEncoder extends JacksonEncoder {
-        OuterEncoder(@NonNull JsonGenerator generator, RemainingLimits remainingLimits) {
+        OuterEncoder(JsonGenerator generator, RemainingLimits remainingLimits) {
             super(generator, remainingLimits);
         }
 
@@ -241,7 +239,7 @@ public abstract class JacksonEncoder extends LimitingStream implements Encoder {
         private long type = 0;
         private int depth = 0;
 
-        ReuseChildEncoder(@NonNull JsonGenerator generator, RemainingLimits remainingLimits) {
+        ReuseChildEncoder(JsonGenerator generator, RemainingLimits remainingLimits) {
             super(generator, remainingLimits);
         }
 

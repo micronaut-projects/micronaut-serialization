@@ -16,11 +16,11 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -46,7 +46,7 @@ final class CharsetSerde implements SerdeRegistrar<Charset> {
     }
 
     @Override
-    public Charset deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super Charset> type) throws IOException {
+    public @Nullable Charset deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Charset> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

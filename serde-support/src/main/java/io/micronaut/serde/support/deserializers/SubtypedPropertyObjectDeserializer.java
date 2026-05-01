@@ -16,11 +16,11 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -45,7 +45,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
         try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
             Decoder typeFinder;
@@ -65,7 +65,6 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
         }
     }
 
-    @NonNull
     private Deserializer<? super Object> findDeserializer(Decoder objectDecoder) throws IOException {
         final DeserBeanSubtypeInfo<?> deserBeanSubtypeInfo = subtypeInfo.parent();
         final String discriminatorName = deserBeanSubtypeInfo.info().discriminatorName();

@@ -28,6 +28,7 @@ import io.micronaut.serde.support.util.JsonNodeEncoder;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The runtime key map serializer.
@@ -105,7 +106,7 @@ final class RuntimeMapSerializer<K, V> extends AbstractMapObjectSerializer<K, V>
         } else if (keyNode.isBoolean() || keyNode.isNumber()) {
             encoder.encodeKey(keyNode.coerceStringValue());
         } else {
-            convertMapKeyToStringAndEncode(context, encoder, keyNode.getValue());
+            convertMapKeyToStringAndEncode(context, encoder, Objects.requireNonNull(keyNode.getValue()));
         }
     }
 

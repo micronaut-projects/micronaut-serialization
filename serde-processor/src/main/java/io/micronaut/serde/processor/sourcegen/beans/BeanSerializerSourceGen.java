@@ -26,25 +26,26 @@ import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
 import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import io.micronaut.serde.util.GeneratedSerdeFallbackUtil;
 import io.micronaut.sourcegen.model.AnnotationDef;
-import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ClassDef;
+import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.FieldDef;
 import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
+import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
-import javax.lang.model.element.Modifier;
 import javax.annotation.processing.Generated;
+import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.inject.Singleton;
+import java.util.Objects;
 
 /**
  * Generates optimized source serializers for bean types.
@@ -105,6 +106,10 @@ public final class BeanSerializerSourceGen {
         String.class,
         Argument.class
     );
+
+    private static String required(Map<String, String> names, String key) {
+        return Objects.requireNonNull(names.get(key));
+    }
 
     public ClassDef generate(ClassElement element, BeanSerdeShape beanSerdeShape) {
         TypeDef beanTypeDef = TypeDef.of(element);
@@ -215,7 +220,7 @@ public final class BeanSerializerSourceGen {
                 int index = 0;
                 for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
                     String propertyName = serializerFieldEntry.getKey();
-                    String argumentFieldName = argumentFieldNames.get(propertyName);
+                    String argumentFieldName = required(argumentFieldNames, propertyName);
                     ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign serializerDef = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
@@ -304,7 +309,7 @@ public final class BeanSerializerSourceGen {
         List<StatementDef> statements = new ArrayList<>();
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
-            statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(keyFieldNames.get(property.name()), STRING_TYPE)));
+            statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE)));
             statements.add(serializeProperty(aThis, serializerClassTypeDef, encoder, context, type, value, property, index++, argumentFieldNames, serializerFieldNames));
         }
         return statements;
@@ -321,7 +326,7 @@ public final class BeanSerializerSourceGen {
                                            int index,
                                            Map<String, String> argumentFieldNames,
                                            Map<String, String> serializerFieldNames) {
-        ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(argumentFieldNames.get(property.name()), ARGUMENT_TYPE);
+        ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
         Method scalarMethod = scalarEncoderMethod(property.serializationType());
         ExpressionDef propertyValue = value.invoke(property.readMethod());
         if (scalarMethod != null) {
@@ -340,7 +345,7 @@ public final class BeanSerializerSourceGen {
             }
             return wrapWithPropertyPath(scalarStatement, type, property.name(), argumentExpression);
         }
-        String serializerFieldName = serializerFieldNames.get(property.name());
+        String serializerFieldName = required(serializerFieldNames, property.name());
         StatementDef.DefineAndAssign serializerDef = new StatementDef.DefineAndAssign(
             new VariableDef.Local(BeanSerdeSourceGenUtils.localName("serializer", property.name(), index), NULLABLE_SERIALIZER_TYPE),
             aThis.field(serializerFieldName, SERIALIZER_TYPE)
@@ -388,7 +393,7 @@ public final class BeanSerializerSourceGen {
         return prefix + "_" + propertyName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
     }
 
-    private Method scalarEncoderMethod(ClassElement type) {
+    private @Nullable Method scalarEncoderMethod(ClassElement type) {
         return switch (type.getName()) {
             case "boolean", "java.lang.Boolean" -> type.isArray() ? null : ENCODE_BOOLEAN_METHOD;
             case "byte", "java.lang.Byte" -> type.isArray() ? null : ENCODE_BYTE_METHOD;

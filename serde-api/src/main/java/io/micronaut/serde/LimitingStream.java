@@ -16,7 +16,6 @@
 package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -52,7 +51,7 @@ public abstract class LimitingStream {
 
     private int remainingDepth;
 
-    public LimitingStream(@NonNull RemainingLimits remainingLimits) {
+    public LimitingStream(RemainingLimits remainingLimits) {
         this.remainingDepth = remainingLimits.remainingDepth;
     }
 
@@ -62,7 +61,6 @@ public abstract class LimitingStream {
      *
      * @return The current limits
      */
-    @NonNull
     protected final RemainingLimits ourLimits() {
         return new RemainingLimits(remainingDepth);
     }
@@ -73,7 +71,6 @@ public abstract class LimitingStream {
      * @return The new limits
      * @throws SerdeException If there is a nesting depth limit violation
      */
-    @NonNull
     protected final RemainingLimits childLimits() throws SerdeException {
         if (remainingDepth == 0) {
             reportMaxDepthExceeded();

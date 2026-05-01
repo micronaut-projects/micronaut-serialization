@@ -91,7 +91,7 @@ public final class BsonRepresentationSerde extends AbstractBsonSerde<Object> {
                 default:
                     throw new UncheckedIOException(new SerdeException("Unsupported BsonType: " + bsonType));
             }
-        }, null);
+        }, org.bson.codecs.DecoderContext.builder().build());
     }
 
     private Object convert(DecoderContext context, Argument<? super Object> type, Object value) {

@@ -15,9 +15,9 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ final class LongArraySerde extends AbstractArraySerde<long[]> {
     }
 
     @Override
-    public long[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super long[]> type) throws IOException {
+    public long @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super long[]> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }
@@ -64,7 +64,7 @@ final class LongArraySerde extends AbstractArraySerde<long[]> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, long[] value) {
+    public boolean isEmpty(EncoderContext context, long @Nullable [] value) {
         return value == null || value.length == 0;
     }
 

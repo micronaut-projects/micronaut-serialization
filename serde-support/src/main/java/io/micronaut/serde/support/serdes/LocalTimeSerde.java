@@ -24,7 +24,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.time.LocalTime;
@@ -70,7 +69,7 @@ public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime>
     @Override
     public Serializer<LocalTime> createSpecific(EncoderContext context,
                                                 Argument<? extends LocalTime> type,
-                                                @NonNull FormatConfiguration format) {
+                                                FormatConfiguration format) {
         Serializer<LocalTime> specific = super.createSpecific(context, type, format);
         if (isArrayShape(format)) {
             return new LocalTimeArrayShapeSerializer(specific, TemporalArrayShapeSupport.writeDateTimestampsAsNanos(context));
@@ -81,7 +80,7 @@ public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime>
     @Override
     public Deserializer<LocalTime> createSpecific(DecoderContext decoderContext,
                                                   Argument<? super LocalTime> type,
-                                                  @NonNull FormatConfiguration format) throws SerdeException {
+                                                  FormatConfiguration format) throws SerdeException {
         Deserializer<LocalTime> specific = super.createSpecific(decoderContext, type, format);
         if (isArrayShape(format)) {
             return new LocalTimeArrayShapeDeserializer(specific, TemporalArrayShapeSupport.readDateTimestampsAsNanos(decoderContext));
@@ -116,7 +115,7 @@ public final class LocalTimeSerde extends NumericSupportTemporalSerde<LocalTime>
         return Argument.of(LocalTime.class);
     }
 
-    private static boolean isArrayShape(@NonNull FormatConfiguration format) {
+    private static boolean isArrayShape(FormatConfiguration format) {
         return TemporalArrayShapeSupport.isNumericOrArrayShape(format);
     }
 

@@ -23,6 +23,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Simple object serializer.
@@ -53,7 +54,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
                     if (v == null) {
                         childEncoder.encodeNull();
                     } else {
-                        property.serializer.serialize(childEncoder, context, property.argument, v);
+                        Objects.requireNonNull(property.serializer).serialize(childEncoder, context, property.argument, v);
                     }
                 } catch (SerdeException e) {
                     e.getPath().add(property.getReferencePath());
@@ -72,7 +73,7 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
             if (v == null) {
                 encoder.encodeNull();
             } else {
-                property.serializer.serialize(encoder, context, property.argument, v);
+                Objects.requireNonNull(property.serializer).serialize(encoder, context, property.argument, v);
             }
         }
     }

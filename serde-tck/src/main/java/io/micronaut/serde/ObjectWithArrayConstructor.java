@@ -16,6 +16,7 @@
 package io.micronaut.serde;
 
 import io.micronaut.serde.annotation.Serdeable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -23,13 +24,13 @@ import java.util.Objects;
 @Serdeable
 final class ObjectWithArrayConstructor {
 
-    private final List<SomeObject> vals;
+    private final @Nullable List<SomeObject> vals;
 
-    ObjectWithArrayConstructor(List<SomeObject> vals) {
+    ObjectWithArrayConstructor(@Nullable List<SomeObject> vals) {
         this.vals = vals;
     }
 
-    public List<SomeObject> getVals() {
+    public @Nullable List<SomeObject> getVals() {
         return vals;
     }
 

@@ -16,7 +16,6 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
@@ -25,6 +24,7 @@ import org.bson.BsonBinary;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -39,9 +39,11 @@ import java.math.BigInteger;
 public final class BsonWriterEncoder extends LimitingStream implements Encoder {
     private final BsonWriter bsonWriter;
     private final boolean isArray;
+    @Nullable
     private final BsonWriterEncoder parent;
 
-    private String currentKey = null;
+    @Nullable
+    private String currentKey;
     private int currentIndex = 0;
 
     public BsonWriterEncoder(BsonWriter bsonWriter, RemainingLimits remainingLimits) {
@@ -159,7 +161,7 @@ public final class BsonWriterEncoder extends LimitingStream implements Encoder {
     }
 
     @Override
-    public void encodeBinary(byte @NonNull [] data) throws IOException {
+    public void encodeBinary(byte[] data) throws IOException {
         bsonWriter.writeBinaryData(new BsonBinary(data));
         postEncodeValue();
     }
@@ -170,11 +172,10 @@ public final class BsonWriterEncoder extends LimitingStream implements Encoder {
         postEncodeValue();
     }
 
-    @NonNull
     @Override
     public String currentPath() {
         StringBuilder builder = new StringBuilder();
-        BsonWriterEncoder enc = this;
+        @Nullable BsonWriterEncoder enc = this;
         while (enc != null) {
             if (enc != this) {
                 builder.insert(0, "->");

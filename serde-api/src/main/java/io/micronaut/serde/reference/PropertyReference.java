@@ -16,10 +16,9 @@
 package io.micronaut.serde.reference;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.type.Argument;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a reference to a property.
@@ -29,13 +28,14 @@ import io.micronaut.core.type.Argument;
 @Internal
 public class PropertyReference<B, T> {
     private final String referenceName;
+    @Nullable
     private final BeanIntrospection<B> introspection;
     private final Argument<T> property;
-    private final Object value;
+    private final @Nullable Object value;
 
-    public PropertyReference(@NonNull String referenceName,
-                             @NonNull BeanIntrospection<B> introspection,
-                             @NonNull Argument<T> property,
+    public PropertyReference(String referenceName,
+                             @Nullable BeanIntrospection<B> introspection,
+                             Argument<T> property,
                              @Nullable Object value) {
         this.referenceName = referenceName;
         this.introspection = introspection;
@@ -46,21 +46,21 @@ public class PropertyReference<B, T> {
     /**
      * @return The reference name
      */
-    public @NonNull String getReferenceName() {
+    public String getReferenceName() {
         return referenceName;
     }
 
     /**
      * @return The introspection
      */
-    public @NonNull BeanIntrospection<B> getIntrospection() {
+    public @Nullable BeanIntrospection<B> getIntrospection() {
         return introspection;
     }
 
     /**
      * @return The property
      */
-    public @NonNull Argument<T> getProperty() {
+    public Argument<T> getProperty() {
         return property;
     }
 

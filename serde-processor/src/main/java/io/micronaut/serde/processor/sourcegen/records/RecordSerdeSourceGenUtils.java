@@ -22,6 +22,7 @@ import io.micronaut.inject.ast.WildcardElement;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.TypeDef;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -76,7 +77,7 @@ final class RecordSerdeSourceGenUtils {
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
     }
 
-    private static ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
+    private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
         if (argumentType.isArray()) {
             return null;
         }

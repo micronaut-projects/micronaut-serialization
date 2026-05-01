@@ -18,7 +18,6 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.context.BeanContext;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
@@ -79,12 +78,14 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
     }
 
     @Override
-    public io.micronaut.serde.Serializer<Object> createSpecific(@NonNull EncoderContext encoderContext, Argument<?> type) throws SerdeException {
+    public io.micronaut.serde.Serializer<Object> createSpecific(EncoderContext encoderContext, Argument<?> type) throws SerdeException {
         boolean isObjectType = type.equalsType(Argument.OBJECT_ARGUMENT);
         if (isObjectType || type instanceof GenericPlaceholder) {
             // dynamic type resolving
             Serializer<Object> outer = !isObjectType ? createSpecificInternal(encoderContext, type) : null;
-            return new RuntimeTypeSerializer(encoderContext, outer, type);
+            return outer == null
+                ? new RuntimeTypeSerializer(encoderContext, null, null, type)
+                : new RuntimeTypeSerializer(encoderContext, outer, type);
         } else {
             return createSpecificInternal(encoderContext, type);
         }

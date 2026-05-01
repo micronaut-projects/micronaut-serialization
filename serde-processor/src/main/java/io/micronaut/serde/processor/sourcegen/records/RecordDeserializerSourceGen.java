@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
@@ -222,7 +223,7 @@ public final class RecordDeserializerSourceGen {
                 int index = 0;
                 for (Map.Entry<String, String> deserializerFieldEntry : deserializerFieldNames.entrySet()) {
                     String componentName = deserializerFieldEntry.getKey();
-                    String argumentFieldName = argumentFieldNames.get(componentName);
+                    String argumentFieldName = required(argumentFieldNames, componentName);
                     ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression)
@@ -366,7 +367,7 @@ public final class RecordDeserializerSourceGen {
         StatementDef switchStatement = unknownPropertyStatement;
         for (int i = components.size() - 1; i >= 0; i--) {
             RecordSerdeShape.RecordComponent component = components.get(i);
-            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
+            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
             StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                 .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
                 .doThrow();
@@ -394,7 +395,7 @@ public final class RecordDeserializerSourceGen {
         Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
         for (int i = 0; i < components.size(); i++) {
             RecordSerdeShape.RecordComponent component = components.get(i);
-            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
+            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
             StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                 .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
                 .doThrow();
@@ -430,8 +431,8 @@ public final class RecordDeserializerSourceGen {
                                               Map<String, String> keyFieldNames,
                                               Map<String, String> argumentFieldNames,
                                               Map<String, String> deserializerFieldNames) {
-        ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(argumentFieldNames.get(component.name()), ARGUMENT_TYPE);
-        ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(component.name()), STRING_TYPE);
+        ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
+        ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
         Method scalarDecodeMethod = scalarDecoderMethod(component.type());
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
@@ -439,7 +440,7 @@ public final class RecordDeserializerSourceGen {
                 objectDecoder.invoke(scalarDecodeMethod).cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()))
             );
         } else {
-            String deserializerFieldName = deserializerFieldNames.get(component.name());
+            String deserializerFieldName = required(deserializerFieldNames, component.name());
             StatementDef.DefineAndAssign deserializerDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE)
                 .newLocal(RecordSerdeSourceGenUtils.localName("deserializer", component.name(), index));
             StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
@@ -478,6 +479,10 @@ public final class RecordDeserializerSourceGen {
         return prefix + "_" + componentName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
     }
 
+    private static String required(Map<String, String> names, String key) {
+        return Objects.requireNonNull(names.get(key));
+    }
+
     private static ClassElement resolveLookupType(ClassElement type) {
         if ("java.lang.Iterable".equals(type.getName())) {
             ClassElement collectionType = ClassElement.of(Collection.class);
@@ -494,7 +499,7 @@ public final class RecordDeserializerSourceGen {
         return type;
     }
 
-    private Method scalarDecoderMethod(ClassElement type) {
+    private @Nullable Method scalarDecoderMethod(ClassElement type) {
         if (type.isArray()) {
             return null;
         }

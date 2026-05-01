@@ -17,7 +17,6 @@ package io.micronaut.serde;
 
 import io.micronaut.core.annotation.Indexed;
 import io.micronaut.core.type.Argument;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
@@ -41,8 +40,8 @@ public interface UpdatingDeserializer<T> extends Deserializer<T> {
      * @throws IOException If an error occurs during deserialization of the object
      */
     void deserializeInto(
-            @NonNull Decoder decoder,
-            @NonNull DecoderContext decoderContext,
-            @NonNull Argument<? super T> type,
+            Decoder decoder,
+            DecoderContext decoderContext,
+            Argument<? super T> type,
             T value) throws IOException;
 }

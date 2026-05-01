@@ -33,10 +33,11 @@ import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
+import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
-import javax.lang.model.element.Modifier;
 import javax.annotation.processing.Generated;
+import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.inject.Singleton;
+import java.util.Objects;
 
 /**
  * Generates optimized source deserializers for bean types.
@@ -116,6 +117,26 @@ public final class BeanDeserializerSourceGen {
         String.class,
         Argument.class
     );
+
+    private static String required(Map<String, String> names, String key) {
+        return Objects.requireNonNull(names.get(key));
+    }
+
+    private static ClassElement resolveLookupType(ClassElement type) {
+        if ("java.lang.Iterable".equals(type.getName())) {
+            ClassElement collectionType = ClassElement.of(Collection.class);
+            Map<String, ClassElement> byName = type.getTypeArguments();
+            if (!byName.isEmpty()) {
+                return collectionType.withTypeArguments(new ArrayList<>(byName.values()));
+            }
+            List<? extends ClassElement> boundGenericTypes = type.getBoundGenericTypes();
+            if (!boundGenericTypes.isEmpty()) {
+                return collectionType.withTypeArguments(new ArrayList<>(boundGenericTypes));
+            }
+            return collectionType;
+        }
+        return type;
+    }
 
     public ClassDef generate(ClassElement element, BeanSerdeShape beanSerdeShape) {
         TypeDef beanTypeDef = TypeDef.of(element);
@@ -224,7 +245,7 @@ public final class BeanDeserializerSourceGen {
                 int index = 0;
                 for (Map.Entry<String, String> deserializerFieldEntry : deserializerFieldNames.entrySet()) {
                     String propertyName = deserializerFieldEntry.getKey();
-                    String argumentFieldName = argumentFieldNames.get(propertyName);
+                    String argumentFieldName = required(argumentFieldNames, propertyName);
                     ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression)
@@ -374,7 +395,7 @@ public final class BeanDeserializerSourceGen {
         StatementDef switchStatement = unknownPropertyStatement;
         for (int i = properties.size() - 1; i >= 0; i--) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
-            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(property.name()), STRING_TYPE);
+            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
             StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                 .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
                 .doThrow();
@@ -402,7 +423,7 @@ public final class BeanDeserializerSourceGen {
         Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
         for (int i = 0; i < properties.size(); i++) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
-            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(property.name()), STRING_TYPE);
+            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
             StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
                 .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
                 .doThrow();
@@ -438,8 +459,8 @@ public final class BeanDeserializerSourceGen {
                                                       Map<String, String> keyFieldNames,
                                                       Map<String, String> argumentFieldNames,
                                                       Map<String, String> deserializerFieldNames) {
-        ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(argumentFieldNames.get(property.name()), ARGUMENT_TYPE);
-        ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(keyFieldNames.get(property.name()), STRING_TYPE);
+        ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
+        ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
         Method scalarDecodeMethod = scalarDecoderMethod(property.deserializationType());
         StatementDef.DefineAndAssign deserializedValueDef;
         StatementDef deserializeAndAssign;
@@ -449,7 +470,7 @@ public final class BeanDeserializerSourceGen {
                 .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
             deserializeAndAssign = deserializedValueDef;
         } else {
-            String deserializerFieldName = deserializerFieldNames.get(property.name());
+            String deserializerFieldName = required(deserializerFieldNames, property.name());
             StatementDef.DefineAndAssign deserializerDef = new StatementDef.DefineAndAssign(
                 new VariableDef.Local(BeanSerdeSourceGenUtils.localName("deserializer", property.name(), index), NULLABLE_DESERIALIZER_TYPE),
                 aThis.field(deserializerFieldName, DESERIALIZER_TYPE)
@@ -509,23 +530,7 @@ public final class BeanDeserializerSourceGen {
         return prefix + "_" + propertyName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
     }
 
-    private static ClassElement resolveLookupType(ClassElement type) {
-        if ("java.lang.Iterable".equals(type.getName())) {
-            ClassElement collectionType = ClassElement.of(Collection.class);
-            Map<String, ClassElement> byName = type.getTypeArguments();
-            if (!byName.isEmpty()) {
-                return collectionType.withTypeArguments(new ArrayList<>(byName.values()));
-            }
-            List<? extends ClassElement> boundGenericTypes = type.getBoundGenericTypes();
-            if (!boundGenericTypes.isEmpty()) {
-                return collectionType.withTypeArguments(new ArrayList<>(boundGenericTypes));
-            }
-            return collectionType;
-        }
-        return type;
-    }
-
-    private Method scalarDecoderMethod(ClassElement type) {
+    private @Nullable Method scalarDecoderMethod(ClassElement type) {
         if (type.isArray()) {
             return null;
         }

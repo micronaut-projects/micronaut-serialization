@@ -15,10 +15,10 @@
  */
 package io.micronaut.serde.config;
 
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
+import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.util.EnumSet;
@@ -144,7 +144,7 @@ public interface SerdeConfiguration {
      * @return The active serialization format features
      * @since 3.0
      */
-    static Set<Feature> serializationFeatures(SerializationConfiguration configuration) {
+    static Set<Feature> serializationFeatures(@Nullable SerializationConfiguration configuration) {
         EnumSet<Feature> features = EnumSet.noneOf(Feature.class);
         if (configuration == null || configuration.writeDateTimestampsAsNanoseconds()) {
             features.add(Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);

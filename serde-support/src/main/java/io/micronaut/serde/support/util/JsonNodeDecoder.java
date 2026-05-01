@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.util;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.json.tree.JsonNode;
@@ -25,6 +24,7 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -292,7 +292,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     }
 
     @Override
-    public byte @NonNull [] decodeBinary() throws IOException {
+    public byte[] decodeBinary() throws IOException {
         JsonNode peeked = peekValue();
         if (peeked.isString()) {
             return BinaryCodecUtil.decodeFromBase64String(this);
@@ -313,11 +313,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     }
 
     @Override
-    public Object decodeArbitrary() throws IOException {
+    public @Nullable Object decodeArbitrary() throws IOException {
         return toArbitrary(decodeNode());
     }
 
-    @NonNull
     @Override
     public JsonNode decodeNode() throws IOException {
         JsonNode node = peekValue();
@@ -325,6 +324,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         return node;
     }
 
+    @Nullable
     private static Object toArbitrary(JsonNode node) {
         if (node.isNull()) {
             return null;
@@ -359,7 +359,7 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     }
 
     @Override
-    public IOException createDeserializationException(String message, Object invalidValue) {
+    public IOException createDeserializationException(String message, @Nullable Object invalidValue) {
         if (invalidValue != null) {
             return new InvalidFormatException(message, null, invalidValue);
         } else {

@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -25,6 +24,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -44,13 +44,13 @@ final class ByteArraySerde extends AbstractArraySerde<byte[]> {
     }
 
     @Override
-    public @NonNull Serializer<byte[]> createSpecific(@NonNull EncoderContext context, @NonNull Argument<? extends byte[]> type) throws SerdeException {
+    public Serializer<byte[]> createSpecific(EncoderContext context, Argument<? extends byte[]> type) throws SerdeException {
         Serializer<byte[]> specific = context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
         return SingleElementArraySerde.writeSingleElementArraysUnwrapped(specific, context);
     }
 
     @Override
-    public @NonNull Deserializer<byte[]> createSpecific(@NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws SerdeException {
+    public Deserializer<byte[]> createSpecific(DecoderContext context, Argument<? super byte[]> type) throws SerdeException {
         Deserializer<byte[]> specific = context.getSerdeConfiguration().map(ByteArraySerde::new).orElse(this);
         return SingleElementArraySerde.acceptSingleValueAsArray(specific, context);
     }
@@ -62,7 +62,7 @@ final class ByteArraySerde extends AbstractArraySerde<byte[]> {
     }
 
     @Override
-    public byte[] deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super byte[]> type) throws IOException {
+    public byte @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super byte[]> type) throws IOException {
         return decoder.decodeBinaryNullable();
     }
 
@@ -78,7 +78,7 @@ final class ByteArraySerde extends AbstractArraySerde<byte[]> {
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, byte[] value) {
+    public boolean isEmpty(EncoderContext context, byte @Nullable [] value) {
         return value == null || value.length == 0;
     }
 

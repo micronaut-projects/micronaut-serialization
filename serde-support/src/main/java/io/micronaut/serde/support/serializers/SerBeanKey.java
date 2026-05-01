@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -37,7 +36,7 @@ final class SerBeanKey {
     private final SerdeArgumentConf serdeArgumentConf;
     private final int hashCode;
 
-    public SerBeanKey(SerdeConfiguration serdeConfiguration, SerializationConfiguration serializationConfiguration, @NonNull Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
+    public SerBeanKey(SerdeConfiguration serdeConfiguration, SerializationConfiguration serializationConfiguration, Argument<?> type, @Nullable SerdeArgumentConf serdeArgumentConf) {
         this.serdeConfiguration = serdeConfiguration;
         this.serializationConfiguration = serializationConfiguration;
         this.type = type;
@@ -62,7 +61,7 @@ final class SerBeanKey {
         return hashCode;
     }
 
-    public @NonNull Argument<?> getType() {
+    public Argument<?> getType() {
         return type;
     }
 }

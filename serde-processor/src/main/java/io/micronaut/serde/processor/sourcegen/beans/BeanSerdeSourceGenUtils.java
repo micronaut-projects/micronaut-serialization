@@ -22,6 +22,7 @@ import io.micronaut.inject.ast.WildcardElement;
 import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.TypeDef;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -76,33 +77,49 @@ final class BeanSerdeSourceGenUtils {
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
     }
 
-    private static ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
+    private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
         if (argumentType.isArray()) {
             return null;
         }
         return switch (argumentType.getName()) {
-            case "java.lang.String" -> ClassTypeDef.of(Argument.class).getStaticField("STRING", ARGUMENT_TYPE);
-            case "java.lang.Boolean" -> ClassTypeDef.of(Argument.class).getStaticField("BOOLEAN", ARGUMENT_TYPE);
-            case "java.lang.Byte" -> ClassTypeDef.of(Argument.class).getStaticField("BYTE", ARGUMENT_TYPE);
-            case "java.lang.Short" -> ClassTypeDef.of(Argument.class).getStaticField("SHORT", ARGUMENT_TYPE);
-            case "java.lang.Character" -> ClassTypeDef.of(Argument.class).getStaticField("CHAR", ARGUMENT_TYPE);
-            case "java.lang.Integer" -> ClassTypeDef.of(Argument.class).getStaticField("INT", ARGUMENT_TYPE);
-            case "java.lang.Long" -> ClassTypeDef.of(Argument.class).getStaticField("LONG", ARGUMENT_TYPE);
-            case "java.lang.Float" -> ClassTypeDef.of(Argument.class).getStaticField("FLOAT", ARGUMENT_TYPE);
-            case "java.lang.Double" -> ClassTypeDef.of(Argument.class).getStaticField("DOUBLE", ARGUMENT_TYPE);
-            case "java.lang.Object" -> ClassTypeDef.of(Argument.class).getStaticField("OBJECT_ARGUMENT", ARGUMENT_TYPE);
-            case "java.math.BigInteger" -> SERDE_ARGUMENT_CONSTANTS.getStaticField("BIG_INTEGER", ARGUMENT_TYPE);
-            case "java.math.BigDecimal" -> SERDE_ARGUMENT_CONSTANTS.getStaticField("BIG_DECIMAL", ARGUMENT_TYPE);
+            case "java.lang.String" ->
+                ClassTypeDef.of(Argument.class).getStaticField("STRING", ARGUMENT_TYPE);
+            case "java.lang.Boolean" ->
+                ClassTypeDef.of(Argument.class).getStaticField("BOOLEAN", ARGUMENT_TYPE);
+            case "java.lang.Byte" ->
+                ClassTypeDef.of(Argument.class).getStaticField("BYTE", ARGUMENT_TYPE);
+            case "java.lang.Short" ->
+                ClassTypeDef.of(Argument.class).getStaticField("SHORT", ARGUMENT_TYPE);
+            case "java.lang.Character" ->
+                ClassTypeDef.of(Argument.class).getStaticField("CHAR", ARGUMENT_TYPE);
+            case "java.lang.Integer" ->
+                ClassTypeDef.of(Argument.class).getStaticField("INT", ARGUMENT_TYPE);
+            case "java.lang.Long" ->
+                ClassTypeDef.of(Argument.class).getStaticField("LONG", ARGUMENT_TYPE);
+            case "java.lang.Float" ->
+                ClassTypeDef.of(Argument.class).getStaticField("FLOAT", ARGUMENT_TYPE);
+            case "java.lang.Double" ->
+                ClassTypeDef.of(Argument.class).getStaticField("DOUBLE", ARGUMENT_TYPE);
+            case "java.lang.Object" ->
+                ClassTypeDef.of(Argument.class).getStaticField("OBJECT_ARGUMENT", ARGUMENT_TYPE);
+            case "java.math.BigInteger" ->
+                SERDE_ARGUMENT_CONSTANTS.getStaticField("BIG_INTEGER", ARGUMENT_TYPE);
+            case "java.math.BigDecimal" ->
+                SERDE_ARGUMENT_CONSTANTS.getStaticField("BIG_DECIMAL", ARGUMENT_TYPE);
             default -> null;
         };
     }
 
     static ExpressionDef optionalDefaultValueExpression(ClassElement classElement) {
         return switch (classElement.getName()) {
-            case "java.util.Optional" -> ClassTypeDef.of(Optional.class).invokeStatic(OPTIONAL_EMPTY_METHOD);
-            case "java.util.OptionalInt" -> ClassTypeDef.of(OptionalInt.class).invokeStatic(OPTIONAL_INT_EMPTY_METHOD);
-            case "java.util.OptionalDouble" -> ClassTypeDef.of(OptionalDouble.class).invokeStatic(OPTIONAL_DOUBLE_EMPTY_METHOD);
-            case "java.util.OptionalLong" -> ClassTypeDef.of(OptionalLong.class).invokeStatic(OPTIONAL_LONG_EMPTY_METHOD);
+            case "java.util.Optional" ->
+                ClassTypeDef.of(Optional.class).invokeStatic(OPTIONAL_EMPTY_METHOD);
+            case "java.util.OptionalInt" ->
+                ClassTypeDef.of(OptionalInt.class).invokeStatic(OPTIONAL_INT_EMPTY_METHOD);
+            case "java.util.OptionalDouble" ->
+                ClassTypeDef.of(OptionalDouble.class).invokeStatic(OPTIONAL_DOUBLE_EMPTY_METHOD);
+            case "java.util.OptionalLong" ->
+                ClassTypeDef.of(OptionalLong.class).invokeStatic(OPTIONAL_LONG_EMPTY_METHOD);
             default -> ExpressionDef.nullValue();
         };
     }
@@ -117,7 +134,8 @@ final class BeanSerdeSourceGenUtils {
             case FLOAT_TYPE -> ExpressionDef.constant(0f);
             case DOUBLE_TYPE -> ExpressionDef.constant(0d);
             case "char" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
-            case "byte", SHORT_TYPE, "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
+            case "byte", SHORT_TYPE, "int" ->
+                ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
             default -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
         };
     }

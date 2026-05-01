@@ -16,7 +16,6 @@
 package io.micronaut.serde.support.deserializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -41,7 +40,6 @@ interface DeserializerSubtypeInfo<T> {
      * @param discriminatorValue The discriminator value
      * @return The {@link Deserializer}
      */
-    @NonNull
     Deserializer<T> findDeserializer(@Nullable String discriminatorValue) throws SerdeException;
 
 }

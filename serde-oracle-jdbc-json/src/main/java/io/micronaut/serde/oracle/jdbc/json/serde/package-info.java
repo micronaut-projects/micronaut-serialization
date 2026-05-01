@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 /**
- * Custom serializers and deserializers that can be used to serde given types from Oracle JSON.
+ * Custom serializers and deserializers for Oracle JSON-specific value representations.
  *
  * @author radovanradic
  * @since 2.0.0
  */
+@NullMarked
 package io.micronaut.serde.oracle.jdbc.json.serde;
+
+import org.jspecify.annotations.NullMarked;

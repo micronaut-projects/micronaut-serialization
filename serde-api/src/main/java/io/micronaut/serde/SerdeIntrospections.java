@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanIntrospector;
 import io.micronaut.core.type.Argument;
@@ -33,7 +32,7 @@ public interface SerdeIntrospections {
      * The bean introspector to use.
      * @return The introspector
      */
-    default @NonNull BeanIntrospector getBeanIntrospector() {
+    default BeanIntrospector getBeanIntrospector() {
         return BeanIntrospector.SHARED;
     }
 
@@ -44,8 +43,7 @@ public interface SerdeIntrospections {
      * @return The introspection, never {@code null}
      * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
      */
-    @NonNull
-    <T> BeanIntrospection<T> getSerializableIntrospection(@NonNull Argument<T> type);
+    <T> BeanIntrospection<T> getSerializableIntrospection(Argument<T> type);
 
     /**
      * Gets an introspection for the given type for deserialization.
@@ -54,7 +52,7 @@ public interface SerdeIntrospections {
      * @return The introspection, never {@code null}
      * @throws io.micronaut.core.beans.exceptions.IntrospectionException if no introspection exists
      */
-    @NonNull <T> BeanIntrospection<T> getDeserializableIntrospection(@NonNull Argument<T> type);
+    <T> BeanIntrospection<T> getDeserializableIntrospection(Argument<T> type);
 
     /**
      * Gets an subtype introspection for the given type for deserialization.
@@ -62,7 +60,7 @@ public interface SerdeIntrospections {
      * @param <T> The generic type
      * @return A collection of introspections, never {@code null}
      */
-    default @NonNull <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
+    default <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(Class<T> type) {
         final List list =
                 getBeanIntrospector().findIntrospections(ref -> {
                     if (ref.isPresent()) {

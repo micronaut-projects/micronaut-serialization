@@ -16,8 +16,6 @@
 package io.micronaut.serde.bson;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonStreamConfig;
 import io.micronaut.json.tree.JsonNode;
@@ -33,6 +31,7 @@ import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import org.bson.AbstractBsonWriter;
 import org.bson.BsonReader;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Processor;
 
 import java.io.ByteArrayOutputStream;
@@ -52,15 +51,16 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     protected final SerdeRegistry registry;
     @Nullable
     protected final SerdeConfiguration serdeConfiguration;
+    @Nullable
     protected final Class<?> view;
     protected Serializer.EncoderContext encoderContext;
     protected Deserializer.DecoderContext decoderContext;
 
-    public AbstractBsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration) {
+    public AbstractBsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration) {
         this(registry, serdeConfiguration, null);
     }
 
-    protected AbstractBsonMapper(SerdeRegistry registry, SerdeConfiguration serdeConfiguration, Class<?> view) {
+    protected AbstractBsonMapper(SerdeRegistry registry, @Nullable SerdeConfiguration serdeConfiguration, @Nullable Class<?> view) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.view = view;
@@ -77,19 +77,22 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
 
     protected abstract AbstractBsonWriter createBsonWriter(OutputStream bsonOutput) throws IOException;
 
-    private LimitingStream.@NonNull RemainingLimits limits() {
+    private LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
     @Override
-    public <T> JsonNode writeValueToTree(Argument<T> type, T value) throws IOException {
+    public <T> JsonNode writeValueToTree(Argument<T> type, @Nullable T value) throws IOException {
+        if (value == null) {
+            return JsonNode.nullNode();
+        }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
 
     @Override
-    public <T> void writeValue(OutputStream outputStream, Argument<T> type, T object) throws IOException {
+    public <T> void writeValue(OutputStream outputStream, Argument<T> type, @Nullable T object) throws IOException {
         try (AbstractBsonWriter bsonWriter = createBsonWriter(outputStream)) {
             if (object == null) {
                 bsonWriter.writeNull();
@@ -102,47 +105,46 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> byte[] writeValueAsBytes(Argument<T> type, T object) throws IOException {
+    public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, type, object);
         return output.toByteArray();
     }
 
     @Override
-    public <T> T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValueFromTree(JsonNode tree, Argument<T> type) throws IOException {
         final Deserializer<? extends T> deserializer = this.decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserialize(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
 
     @Override
-    public <T> T readValue(InputStream inputStream, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(InputStream inputStream, Argument<T> type) throws IOException {
         return readValue(toByteBuffer(inputStream), type);
     }
 
     @Override
-    public <T> T readValue(byte[] byteArray, Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(byte[] byteArray, Argument<T> type) throws IOException {
         return readValue(ByteBuffer.wrap(byteArray), type);
     }
 
-    private <T> T readValue(ByteBuffer byteBuffer, Argument<T> type) throws IOException {
+    private <T> @Nullable T readValue(ByteBuffer byteBuffer, Argument<T> type) throws IOException {
         try (BsonReader bsonReader = createBsonReader(byteBuffer)) {
             return readValue(bsonReader, type);
         }
     }
 
-    private <T> T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
+    private <T> @Nullable T readValue(BsonReader bsonReader, Argument<T> type) throws IOException {
         return decoderContext.findDeserializer(type)
-                .createSpecific(decoderContext, type)
-                .deserialize(new BsonReaderDecoder(bsonReader, limits()), decoderContext, type);
+            .createSpecific(decoderContext, type)
+            .deserialize(new BsonReaderDecoder(bsonReader, limits()), decoderContext, type);
     }
 
     @Override
     public Processor<byte[], JsonNode> createReactiveParser(Consumer<Processor<byte[], JsonNode>> onSubscribe,
                                                             boolean streamArray) {
         return new BufferingJsonNodeProcessor(onSubscribe, streamArray) {
-            @NonNull
             @Override
-            protected JsonNode parseOne(@NonNull InputStream is) throws IOException {
+            protected JsonNode parseOne(InputStream is) throws IOException {
                 try (BsonReader bsonReader = createBsonReader(toByteBuffer(is))) {
                     final BsonReaderDecoder decoder = new BsonReaderDecoder(bsonReader, limits());
                     final Object o = decoder.decodeArbitrary();
@@ -162,14 +164,17 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     @Override
-    public JsonNode writeValueToTree(Object value) throws IOException {
+    public JsonNode writeValueToTree(@Nullable Object value) throws IOException {
+        if (value == null) {
+            return JsonNode.nullNode();
+        }
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
 
     @Override
-    public void writeValue(OutputStream outputStream, Object object) throws IOException {
+    public void writeValue(OutputStream outputStream, @Nullable Object object) throws IOException {
         try (AbstractBsonWriter bsonWriter = createBsonWriter(outputStream)) {
             if (object == null) {
                 bsonWriter.writeNull();
@@ -191,7 +196,7 @@ public abstract class AbstractBsonMapper implements ObjectMapper {
     }
 
     @Override
-    public byte[] writeValueAsBytes(Object object) throws IOException {
+    public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         writeValue(output, object);
         return output.toByteArray();

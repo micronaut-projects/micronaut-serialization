@@ -18,6 +18,7 @@ package io.micronaut.serde.support.util;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,11 +39,14 @@ import java.util.concurrent.atomic.AtomicLong;
 abstract class SpreadProcessor<T, R> implements Processor<T, R> {
     private static final Logger LOG = LoggerFactory.getLogger(SpreadProcessor.class);
 
+    @Nullable
     private volatile Subscription upstreamSubscription;
+    @Nullable
     private volatile Subscriber<? super R> downstreamSubscriber;
 
     private volatile boolean cancelled = false;
 
+    @Nullable
     private Throwable upstreamError = null;
     private volatile boolean upstreamComplete = false;
 
@@ -125,12 +129,17 @@ abstract class SpreadProcessor<T, R> implements Processor<T, R> {
     }
 
     private void workImpl() {
+        Subscriber<? super R> downstreamSubscriber = this.downstreamSubscriber;
+        if (downstreamSubscriber == null) {
+            return;
+        }
+        Subscription upstreamSubscription = this.upstreamSubscription;
         if (cancelled && upstreamSubscription != null) {
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Cancelling upstream subscription");
             }
             upstreamSubscription.cancel();
-            upstreamSubscription = null;
+            this.upstreamSubscription = null;
         }
 
         // need to check this before looking at demand
@@ -172,6 +181,7 @@ abstract class SpreadProcessor<T, R> implements Processor<T, R> {
                             }
                         }
                     } else {
+                        upstreamSubscription = this.upstreamSubscription;
                         if (upstreamRequested == 0 && upstreamSubscription != null) {
                             if (LOG.isTraceEnabled()) {
                                 LOG.trace("No more data available, requesting more from upstream");

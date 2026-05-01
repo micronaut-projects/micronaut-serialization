@@ -15,13 +15,12 @@
  */
 package io.micronaut.serde;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.json.JsonFeatures;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -37,8 +36,7 @@ public interface ObjectMapper extends JsonMapper {
 
     // Delete when this is merged and core is released in RC2 https://github.com/micronaut-projects/micronaut-core/pull/9453
     @Override
-    @NonNull
-    default String writeValueAsString(@NonNull Object object) throws IOException {
+    default String writeValueAsString(@Nullable Object object) throws IOException {
         Objects.requireNonNull(object, "Object cannot be null");
         return new String(writeValueAsBytes(object), StandardCharsets.UTF_8);
     }
@@ -58,7 +56,6 @@ public interface ObjectMapper extends JsonMapper {
      * @return A new {@link JsonMapper} with the updated config
      * @since 2.7.0
      */
-    @NonNull
     default ObjectMapper cloneWithConfiguration(
         @Nullable SerdeConfiguration configuration,
         @Nullable SerializationConfiguration serializationConfiguration,
@@ -72,7 +69,7 @@ public interface ObjectMapper extends JsonMapper {
      *
      * @return The serde registry
      */
-    default @NonNull SerdeRegistry getSerdeRegistry() {
+    default SerdeRegistry getSerdeRegistry() {
         throw new UnsupportedOperationException("No accessible SerdeRegistry");
     }
 
@@ -90,7 +87,7 @@ public interface ObjectMapper extends JsonMapper {
      * @return The default object mapper
      * @since 1.3.0
      */
-    static @NonNull ObjectMapper getDefault() {
+    static ObjectMapper getDefault() {
         return ObjectMappers.resolveDefault();
     }
 
@@ -103,7 +100,7 @@ public interface ObjectMapper extends JsonMapper {
      * @return The new object mapper
      * @since 1.5.1
      */
-    static @NonNull CloseableObjectMapper create(Map<String, Object> configuration, String... packageNames) {
+    static CloseableObjectMapper create(Map<String, Object> configuration, String... packageNames) {
         return ObjectMappers.create(configuration, packageNames);
     }
 

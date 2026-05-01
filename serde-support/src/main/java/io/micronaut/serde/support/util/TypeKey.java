@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.support.util;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 
 /**
@@ -25,7 +24,7 @@ public final class TypeKey {
     private final Argument<?> type;
     private final int hashCode;
 
-    public TypeKey(@NonNull Argument<?> type) {
+    public TypeKey(Argument<?> type) {
         this.type = type;
         this.hashCode = type.typeHashCode();
     }
@@ -47,7 +46,7 @@ public final class TypeKey {
         return hashCode;
     }
 
-    public @NonNull Argument<?> getType() {
+    public Argument<?> getType() {
         return type;
     }
 }

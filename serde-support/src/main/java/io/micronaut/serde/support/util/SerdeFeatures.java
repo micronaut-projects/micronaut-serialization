@@ -22,7 +22,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import org.jspecify.annotations.NonNull;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -43,8 +42,7 @@ public final class SerdeFeatures {
      * @param annotationMetadata The annotation metadata
      * @return Serialization features to enable
      */
-    @NonNull
-    public static Set<SerdeConfiguration.Feature> serializationFeaturesWith(@NonNull AnnotationMetadata annotationMetadata) {
+    public static Set<SerdeConfiguration.Feature> serializationFeaturesWith(AnnotationMetadata annotationMetadata) {
         return features(annotationMetadata, SerdeConfig.FEATURES_WITH, SerdeConfiguration.Feature.class);
     }
 
@@ -52,8 +50,7 @@ public final class SerdeFeatures {
      * @param annotationMetadata The annotation metadata
      * @return Serialization features to disable
      */
-    @NonNull
-    public static Set<SerdeConfiguration.Feature> serializationFeaturesWithout(@NonNull AnnotationMetadata annotationMetadata) {
+    public static Set<SerdeConfiguration.Feature> serializationFeaturesWithout(AnnotationMetadata annotationMetadata) {
         return features(annotationMetadata, SerdeConfig.FEATURES_WITHOUT, SerdeConfiguration.Feature.class);
     }
 
@@ -61,8 +58,7 @@ public final class SerdeFeatures {
      * @param annotationMetadata The annotation metadata
      * @return Deserialization features to enable
      */
-    @NonNull
-    public static Set<DeserializationConfiguration.Feature> deserializationFeaturesWith(@NonNull AnnotationMetadata annotationMetadata) {
+    public static Set<DeserializationConfiguration.Feature> deserializationFeaturesWith(AnnotationMetadata annotationMetadata) {
         return features(annotationMetadata, SerdeConfig.FEATURES_WITH, DeserializationConfiguration.Feature.class);
     }
 
@@ -70,8 +66,7 @@ public final class SerdeFeatures {
      * @param annotationMetadata The annotation metadata
      * @return Deserialization features to disable
      */
-    @NonNull
-    public static Set<DeserializationConfiguration.Feature> deserializationFeaturesWithout(@NonNull AnnotationMetadata annotationMetadata) {
+    public static Set<DeserializationConfiguration.Feature> deserializationFeaturesWithout(AnnotationMetadata annotationMetadata) {
         return features(annotationMetadata, SerdeConfig.FEATURES_WITHOUT, DeserializationConfiguration.Feature.class);
     }
 
@@ -83,7 +78,7 @@ public final class SerdeFeatures {
      * @return The derived encoder context
      */
     public static Serializer.EncoderContext withFeatures(Serializer.EncoderContext context,
-                                                         @NonNull AnnotationMetadata annotationMetadata) {
+                                                         AnnotationMetadata annotationMetadata) {
         return context.withFeatures(
             serializationFeaturesWith(annotationMetadata),
             serializationFeaturesWithout(annotationMetadata)
@@ -98,7 +93,7 @@ public final class SerdeFeatures {
      * @return The derived decoder context
      */
     public static Deserializer.DecoderContext withFeatures(Deserializer.DecoderContext context,
-                                                           @NonNull AnnotationMetadata annotationMetadata) {
+                                                           AnnotationMetadata annotationMetadata) {
         return context.withFeatures(
             deserializationFeaturesWith(annotationMetadata),
             deserializationFeaturesWithout(annotationMetadata)

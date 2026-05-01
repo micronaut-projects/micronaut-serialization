@@ -27,7 +27,6 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
@@ -50,12 +49,9 @@ public final class SerdeArgumentConf {
     private final String prefix;
     @Nullable
     private final String suffix;
-    @Nullable
-    private final String[] ignored;
-    @Nullable
-    private final String[] included;
-    @Nullable
-    private final String[] order;
+    private final String @Nullable [] ignored;
+    private final String @Nullable [] included;
+    private final String @Nullable [] order;
     @Nullable
     private final SubtypeInfo subtypeInfo;
     @Nullable
@@ -107,7 +103,7 @@ public final class SerdeArgumentConf {
      * @return The new argument
      * @param <V> The value generic
      */
-    public static <V> @NonNull Argument<V> reconstructGenericWithParentMetadata(@NonNull Argument<?> parentType, @NonNull Argument<V> valueGeneric) {
+    public static <V> Argument<V> reconstructGenericWithParentMetadata(Argument<?> parentType, Argument<V> valueGeneric) {
         if (parentType.getAnnotationMetadata().hasStereotype(SerdeConfig.class)) {
             AnnotationMetadataHierarchy reconstructed = new AnnotationMetadataHierarchy(true, parentType.getAnnotationMetadata(), valueGeneric.getAnnotationMetadata());
             return valueGeneric
@@ -242,7 +238,7 @@ public final class SerdeArgumentConf {
      * @return The order
      */
     @Nullable
-    public String[] order() {
+    public String @Nullable [] order() {
         return order;
     }
 
@@ -250,7 +246,7 @@ public final class SerdeArgumentConf {
      * @return The ignored properties
      */
     @Nullable
-    public String[] getIgnored() {
+    public String @Nullable [] getIgnored() {
         return ignored;
     }
 
@@ -258,7 +254,7 @@ public final class SerdeArgumentConf {
      * @return The included properties
      */
     @Nullable
-    public String[] getIncluded() {
+    public String @Nullable [] getIncluded() {
         return included;
     }
 

@@ -19,7 +19,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
@@ -39,20 +38,20 @@ import java.util.Map;
  * Recursive implementation. Recursion depth is limited by decoder/encoder constraints ({@link io.micronaut.serde.LimitingStream}) for security.
  */
 final class JacksonJsonNodeSerde implements SerdeRegistrar<JsonNode> {
-    private static final @NonNull Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
+    private static final Argument<JsonNode> JSON_NODE_ARGUMENT = Argument.of(JsonNode.class);
 
     @Override
-    public @NonNull Argument<JsonNode> getType() {
+    public Argument<JsonNode> getType() {
         return JSON_NODE_ARGUMENT;
     }
 
     @Override
-    public JsonNode deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super JsonNode> type) throws IOException {
+    public @Nullable JsonNode deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super JsonNode> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 
     @Override
-    public @Nullable JsonNode deserialize(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super JsonNode> type) throws IOException {
+    public @Nullable JsonNode deserialize(Decoder decoder, DecoderContext context, Argument<? super JsonNode> type) throws IOException {
         return toJacksonNode(JsonNodeFactory.instance, decoder.decodeNode());
     }
 
@@ -99,7 +98,7 @@ final class JacksonJsonNodeSerde implements SerdeRegistrar<JsonNode> {
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder, @NonNull EncoderContext context, @NonNull Argument<? extends JsonNode> type, @NonNull JsonNode node) throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends JsonNode> type, JsonNode node) throws IOException {
         switch (node.getNodeType()) {
             case BOOLEAN -> encoder.encodeBoolean(node.booleanValue());
             case NULL -> encoder.encodeNull();

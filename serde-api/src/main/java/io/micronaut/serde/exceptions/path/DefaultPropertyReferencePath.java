@@ -16,11 +16,11 @@
 package io.micronaut.serde.exceptions.path;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 
 @Internal
-record DefaultPropertyReferencePath(@NonNull Class<?> type, @NonNull Argument<?> property) implements PropertyReferencePath {
+record DefaultPropertyReferencePath(Class<?> type,
+                                    Argument<?> property) implements PropertyReferencePath {
 
     @Override
     public String toString() {

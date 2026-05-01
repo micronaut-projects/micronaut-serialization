@@ -15,9 +15,8 @@
  */
 package io.micronaut.serde.exceptions;
 
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.convert.ConversionError;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -27,18 +26,21 @@ import java.util.Optional;
  * @since 1.0.0
  */
 public class InvalidFormatException extends SerdeException {
-    private final Object originalValue;
+    private final @Nullable Object originalValue;
 
     public InvalidFormatException(
             String message,
             @Nullable Exception cause,
             @Nullable Object originalValue) {
-        super(message, cause);
+        super(message);
+        if (cause != null) {
+            initCause(cause);
+        }
         this.originalValue = originalValue;
     }
 
     @Override
-    public synchronized Exception getCause() {
+    public synchronized @Nullable Exception getCause() {
         return (Exception) super.getCause();
     }
 
@@ -53,11 +55,11 @@ public class InvalidFormatException extends SerdeException {
      * Converts the exception to a conversion error.
      * @return The conversion error.
      */
-    public @NonNull ConversionError toConversionError() {
+    public ConversionError toConversionError() {
         return new ConversionError() {
             @Override
             public Exception getCause() {
-                final Exception cause = InvalidFormatException.this.getCause();
+                final @Nullable Exception cause = InvalidFormatException.this.getCause();
                 if (cause != null) {
                     return cause;
                 } else {

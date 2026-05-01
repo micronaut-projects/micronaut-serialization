@@ -16,12 +16,12 @@
 package io.micronaut.serde.oracle.jdbc.json;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import oracle.sql.json.OracleJsonGenerator;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -38,7 +38,9 @@ import java.time.OffsetDateTime;
 @Internal
 public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream implements Encoder {
     private final OracleJsonGenerator jsonGenerator;
+    @Nullable
     private final OracleJdbcJsonGeneratorEncoder parent;
+    @Nullable
     private String currentKey;
     private int currentIndex;
 
@@ -152,7 +154,7 @@ public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream impleme
     }
 
     @Override
-    public void encodeBinary(byte @NonNull [] data) throws IOException {
+    public void encodeBinary(byte[] data) throws IOException {
         // custom oson type, can be read by our decoder
         jsonGenerator.write(data);
         postEncodeValue();
@@ -164,11 +166,10 @@ public final class OracleJdbcJsonGeneratorEncoder extends LimitingStream impleme
         postEncodeValue();
     }
 
-    @NonNull
     @Override
     public String currentPath() {
         StringBuilder builder = new StringBuilder();
-        OracleJdbcJsonGeneratorEncoder enc = this;
+        @Nullable OracleJdbcJsonGeneratorEncoder enc = this;
         while (enc != null) {
             if (enc != this) {
                 builder.insert(0, "->");

@@ -16,9 +16,9 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
+import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 
@@ -46,7 +46,7 @@ final class URLSerde implements SerdeRegistrar<URL> {
     }
 
     @Override
-    public URL deserializeNullable(@NonNull Decoder decoder, @NonNull DecoderContext context, @NonNull Argument<? super URL> type) throws IOException {
+    public @Nullable URL deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super URL> type) throws IOException {
         if (decoder.decodeNull()) {
             return null;
         }

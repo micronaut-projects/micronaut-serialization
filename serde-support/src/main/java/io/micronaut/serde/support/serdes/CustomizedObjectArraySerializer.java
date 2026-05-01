@@ -21,6 +21,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -62,7 +63,7 @@ public final class CustomizedObjectArraySerializer implements Serializer<Object[
     }
 
     @Override
-    public boolean isEmpty(EncoderContext context, Object[] value) {
+    public boolean isEmpty(EncoderContext context, Object @Nullable [] value) {
         return ArrayUtils.isEmpty(value);
     }
 }
