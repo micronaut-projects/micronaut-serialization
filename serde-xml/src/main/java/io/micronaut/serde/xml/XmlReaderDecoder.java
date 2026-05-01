@@ -31,9 +31,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
 
 /**
  *
@@ -180,6 +183,78 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     /**
      *
      */
+    static @Nullable Object readArbitraryValue(@NonNull Cursor cursor) throws IOException {
+        StringBuilder text = null;
+        while (true) {
+            int e = cursor.current();
+            switch (e) {
+                case XMLStreamConstants.CHARACTERS:
+                case XMLStreamConstants.CDATA:
+                case XMLStreamConstants.SPACE:
+                    if (text == null) {
+                        text = new StringBuilder();
+                    }
+                    text.append(cursor.text());
+                    cursor.advance();
+                    break;
+                case XMLStreamConstants.END_ELEMENT:
+                    cursor.advance(); // consume the element's END_ELEMENT
+                    if (text == null) {
+                        return null;
+                    }
+                    return text.toString();
+                case XMLStreamConstants.START_ELEMENT:
+                    return readArbitraryObject(cursor);
+                case XMLStreamConstants.END_DOCUMENT:
+                    return text == null ? null : text.toString();
+                default:
+                    cursor.advance();
+            }
+        }
+    }
+
+    private static Map<String, Object> readArbitraryObject(@NonNull Cursor cursor) throws IOException {
+        Map<String, Object> map = new LinkedHashMap<>();
+        while (true) {
+            int e = cursor.current();
+            switch (e) {
+                case XMLStreamConstants.START_ELEMENT:
+                    String childName = cursor.localName();
+                    cursor.advance(); // consume child START_ELEMENT
+                    Object childValue = readArbitraryValue(cursor);
+                    Object existing = map.get(childName);
+                    if (existing == null && !map.containsKey(childName)) {
+                        map.put(childName, childValue);
+                    } else if (existing instanceof List<?>) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> list = (List<Object>) existing;
+                        list.add(childValue);
+                    } else {
+                        List<Object> list = new ArrayList<>(2);
+                        list.add(existing);
+                        list.add(childValue);
+                        map.put(childName, list);
+                    }
+                    break;
+                case XMLStreamConstants.END_ELEMENT:
+                    cursor.advance(); // consume parent's END_ELEMENT
+                    return map;
+                case XMLStreamConstants.CHARACTERS:
+                case XMLStreamConstants.CDATA:
+                case XMLStreamConstants.SPACE:
+                    cursor.advance(); // discard whitespace between children
+                    break;
+                case XMLStreamConstants.END_DOCUMENT:
+                    return map;
+                default:
+                    cursor.advance();
+            }
+        }
+    }
+
+    /**
+     *
+     */
     /** Captured XML attribute name + value pair, surfaced to deserializers as object keys. */
     record XmlAttr(@NonNull String name, @NonNull String value) { }
 
@@ -273,6 +348,18 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             cursor.advance(); // consume START_ELEMENT, cursor now inside root element
             rootConsumed = true;
             return new ObjectDecoder(childLimits(), cursor, name, attrs);
+        }
+
+        @Override
+        public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+            // Top-level array: treat the root element as the wrapper (e.g. <ArrayList><item>..</item></ArrayList>).
+            if (rootConsumed) {
+                throw new IllegalStateException("XML root already consumed");
+            }
+            String name = cursor.localName();
+            cursor.advance(); // consume root START_ELEMENT, cursor now inside root
+            rootConsumed = true;
+            return new ArrayDecoder(childLimits(), cursor, name);
         }
 
         @Override
@@ -411,6 +498,34 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public byte @NonNull [] decodeBinary() throws IOException {
+            // XML idiomatically encodes binary as base64 text inside the element. Decode that
+            // directly rather than going through the array-of-numbers default.
+            String text = decodeString();
+            if (text.isEmpty()) {
+                return new byte[0];
+            }
+            try {
+                return Base64.getDecoder().decode(text.trim());
+            } catch (IllegalArgumentException ex) {
+                throw createDeserializationException("Invalid base64 binary content: " + ex.getMessage(), text);
+            }
+        }
+
+        @Override
+        public @Nullable Object decodeArbitrary() throws IOException {
+            requireKey();
+            if (currentAttrValue != null) {
+                String v = currentAttrValue;
+                clearKeyState();
+                return v;
+            }
+            Object v = readArbitraryValue(cursor);
+            clearKeyState();
+            return v;
         }
 
         @Override
@@ -633,6 +748,33 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public @Nullable Object decodeArbitrary() throws IOException {
+            if (firstItemPending) {
+                String v = firstScalarText == null ? "" : firstScalarText;
+                firstScalarText = null;
+                firstItemPending = false;
+                return v;
+            }
+            requireItem();
+            Object v = readArbitraryValue(cursor);
+            clearItem();
+            return v;
+        }
+
+        @Override
+        public byte @NonNull [] decodeBinary() throws IOException {
+            String text = decodeString();
+            if (text.isEmpty()) {
+                return new byte[0];
+            }
+            try {
+                return Base64.getDecoder().decode(text.trim());
+            } catch (IllegalArgumentException ex) {
+                throw createDeserializationException("Invalid base64 binary content: " + ex.getMessage(), text);
+            }
         }
 
         @Override
