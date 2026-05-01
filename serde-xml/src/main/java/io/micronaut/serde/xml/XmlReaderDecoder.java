@@ -506,15 +506,77 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      */
     public static final class ArrayDecoder extends XmlReaderDecoder {
 
+        private enum Mode {
+            /** Standard case: caller-consumed element is a wrapper containing item children. */
+            WRAPPED,
+            /** {@code @JacksonXmlElementWrapper(useWrapping=false)} case: caller-consumed element
+             *  IS the first array item; subsequent items are sibling elements with the same name. */
+            INLINE
+        }
+
         private final String wrapperElement;
+        private final Mode mode;
         private boolean itemPending;
         private @Nullable String currentItemName;
         private List<XmlAttr> currentItemAttrs = Collections.emptyList();
+        /** INLINE only: scalar text already drained from the first item; consumed by next decodeString. */
+        private @Nullable String firstScalarText;
+        /** INLINE only: true while the pre-cached first item is the next pending array value. */
+        private boolean firstItemPending;
         private boolean finished;
 
-        ArrayDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String wrapperElement) {
+        ArrayDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor, @NonNull String wrapperOrItemElement) throws IOException {
             super(limits, cursor);
-            this.wrapperElement = wrapperElement;
+            this.wrapperElement = wrapperOrItemElement;
+            // Auto-detect WRAPPED vs INLINE by peeking inside the just-entered element.
+            // If the first non-whitespace event is a child START_ELEMENT, the element wraps items.
+            // If it is text + END_ELEMENT, the element IS itself the first scalar item (inline list).
+            StringBuilder bufferedText = null;
+            Mode detected;
+            while (true) {
+                int e = cursor.current();
+                if (e == XMLStreamConstants.CHARACTERS
+                        || e == XMLStreamConstants.CDATA
+                        || e == XMLStreamConstants.SPACE) {
+                    if (bufferedText == null) {
+                        bufferedText = new StringBuilder();
+                    }
+                    bufferedText.append(cursor.text());
+                    cursor.advance();
+                    continue;
+                }
+                if (e == XMLStreamConstants.START_ELEMENT) {
+                    detected = Mode.WRAPPED;
+                    break;
+                }
+                if (e == XMLStreamConstants.END_ELEMENT) {
+                    if (bufferedText != null && !isBlank(bufferedText)) {
+                        // The element we're inside contained scalar text — treat as the first inline item.
+                        cursor.advance(); // consume that item's END_ELEMENT
+                        this.firstScalarText = bufferedText.toString();
+                        this.firstItemPending = true;
+                        detected = Mode.INLINE;
+                        break;
+                    }
+                    detected = Mode.WRAPPED;
+                    break;
+                }
+                if (e == XMLStreamConstants.END_DOCUMENT) {
+                    detected = Mode.WRAPPED;
+                    break;
+                }
+                cursor.advance();
+            }
+            this.mode = detected;
+        }
+
+        private static boolean isBlank(CharSequence s) {
+            for (int i = 0; i < s.length(); i++) {
+                if (!Character.isWhitespace(s.charAt(i))) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         @Override
@@ -522,20 +584,26 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (finished) {
                 return false;
             }
-            if (itemPending) {
+            if (firstItemPending || itemPending) {
                 return true;
             }
             while (true) {
                 int e = cursor.current();
                 switch (e) {
                     case XMLStreamConstants.START_ELEMENT:
+                        if (mode == Mode.INLINE) {
+                            // In inline mode, only same-name siblings count as items.
+                            if (!cursor.localName().equals(wrapperElement)) {
+                                return false;
+                            }
+                        }
                         currentItemName = cursor.localName();
                         currentItemAttrs = cursor.captureAttributes();
                         cursor.advance(); // consume item's START_ELEMENT
                         itemPending = true;
                         return true;
                     case XMLStreamConstants.END_ELEMENT:
-                        return false; // wrapper close
+                        return false; // wrapper close (WRAPPED) or parent's end (INLINE)
                     case XMLStreamConstants.CHARACTERS:
                     case XMLStreamConstants.CDATA:
                     case XMLStreamConstants.SPACE:
@@ -551,6 +619,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public boolean decodeNull() throws IOException {
+            if (firstItemPending) {
+                // The pre-cached first inline item carried scalar text — never null.
+                return false;
+            }
             if (!itemPending) {
                 return false;
             }
@@ -565,6 +637,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public @NonNull Decoder decodeObject(@NonNull Argument<?> type) throws IOException {
+            if (firstItemPending) {
+                throw createDeserializationException(
+                        "Inline array first item carried scalar text and cannot be decoded as object", firstScalarText);
+            }
             requireItem();
             String name = Objects.requireNonNull(currentItemName, "currentItemName");
             List<XmlAttr> itemAttrs = currentItemAttrs;
@@ -574,6 +650,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
+            if (firstItemPending) {
+                throw createDeserializationException(
+                        "Inline array first item carried scalar text and cannot be decoded as nested array", firstScalarText);
+            }
             requireItem();
             String name = Objects.requireNonNull(currentItemName, "currentItemName");
             clearItem();
@@ -582,6 +662,12 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public @NonNull String decodeString() throws IOException {
+            if (firstItemPending) {
+                String v = firstScalarText == null ? "" : firstScalarText;
+                firstScalarText = null;
+                firstItemPending = false;
+                return v;
+            }
             requireItem();
             StringBuilder sb = new StringBuilder();
             while (true) {
@@ -611,6 +697,11 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public void skipValue() throws IOException {
+            if (firstItemPending) {
+                firstItemPending = false;
+                firstScalarText = null;
+                return;
+            }
             if (!itemPending) {
                 return;
             }
@@ -644,7 +735,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (finished) {
                 return;
             }
-            if (itemPending) {
+            if (firstItemPending || itemPending) {
                 if (consumeLeftElements) {
                     skipValue();
                 } else {
@@ -656,10 +747,14 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                     skipValue();
                 }
             }
+            // INLINE: the parent ObjectDecoder owns the surrounding END_ELEMENT — do NOT consume it.
+            if (mode == Mode.INLINE) {
+                finished = true;
+                return;
+            }
             int e = cursor.current();
             if (e != XMLStreamConstants.END_ELEMENT) {
                 if (consumeLeftElements) {
-                    // drain remaining content until END_ELEMENT of wrapper
                     while (cursor.current() != XMLStreamConstants.END_ELEMENT
                             && cursor.current() != XMLStreamConstants.END_DOCUMENT) {
                         cursor.advance();
