@@ -26,11 +26,9 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Base64;
 import java.util.Deque;
-import java.util.Optional;
 
 /**
  *
@@ -62,18 +60,18 @@ public final class XmlGenerator implements Encoder {
         // [O(),K ]
         try {
             if (!propertyStack.isEmpty()) {
-                var lastPropertyKey = propertyStack.peekLast();
-                var lastProperty = lastPropertyKey.getKey();
+                ContextProperties lastPropertyKey = propertyStack.peekLast();
+                String lastProperty = lastPropertyKey.key();
                 //@jackson wrapping
-                if (lastPropertyKey instanceof KeyFrame kf && kf.arrayWrappingKey != null) {
-                    lastProperty = kf.arrayWrappingKey;
+                if (lastPropertyKey instanceof KeyFrame kf && kf.arrayWrappingKey() != null) {
+                    lastProperty = kf.arrayWrappingKey();
                     xmlWriter.writeStartElement(lastProperty);
-                    propertyStack.addLast(new ArrayFrame(kf.getKey()));
+                    propertyStack.addLast(new ArrayFrame(kf.key(), null));
                     return this;
                 }
                 //wrapping
-                    xmlWriter.writeStartElement(lastProperty);
-                propertyStack.addLast(new ArrayFrame(lastProperty)); // [O(key), K2(nameKey_1, false), A(nameKey_1), ]
+                xmlWriter.writeStartElement(lastProperty);
+                propertyStack.addLast(new ArrayFrame(lastProperty, null)); // [O(key), K2(nameKey_1, false), A(nameKey_1), ]
                 return this;
             } else  {
                 // IterableValueSerializer
@@ -81,8 +79,8 @@ public final class XmlGenerator implements Encoder {
                 ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item");
                 propertyStack.addLast(arrayFrame);  // [A(name), ..., ]
 
-                    // <ArrayList>  ... </ArrayList>
-                    xmlWriter.writeStartElement(collectionName);
+                // <ArrayList>  ... </ArrayList>
+                xmlWriter.writeStartElement(collectionName);
             }
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -105,28 +103,33 @@ public final class XmlGenerator implements Encoder {
                 return this;
             }
 
-            if (propertyStack.peekLast() instanceof KeyFrame kf || propertyStack.peekLast() instanceof ArrayFrame) {
-                Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>();
+            ContextProperties last = propertyStack.peekLast();
+            if (last instanceof KeyFrame || last instanceof ArrayFrame) {
+                Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>(8);
                 //[O, K, A, O]
-                if (propertyStack.peekLast() instanceof KeyFrame kf) { // [O, K, ] ==> inner = [K] ==> inner =[K, O]
-                    kf.setObjectWrappingKey(Boolean.FALSE);
-                    innerPropertyStack.addLast(propertyStack.peekLast());
-                    innerPropertyStack.addLast(new ObjectFrame(null));
+                if (last instanceof KeyFrame kf) { // [O, K, ] ==> inner = [K] ==> inner =[K, O]
+                    // Replace-on-update: set objectWrappingKey = FALSE
+                    KeyFrame updated = new KeyFrame(kf.key(), kf.consumed(), kf.arrayWrappingKey(), Boolean.FALSE);
+                    propertyStack.removeLast();
+                    propertyStack.addLast(updated);
+                    innerPropertyStack.addLast(updated);
+                    innerPropertyStack.addLast(new ObjectFrame(null, null));
                     return new XmlGenerator(xmlWriter, innerPropertyStack);
                 }
-                if (propertyStack.peekLast() instanceof ArrayFrame af) {
-                    String itemName = Optional.ofNullable(af.getIterableKey())
-                        .filter(s -> !s.isEmpty())
-                        .or(() -> Optional.ofNullable(af.getKey()).filter(s -> !s.isEmpty()))
-                        .orElse(name);
-                    innerPropertyStack.addLast(new ObjectFrame(itemName));
+                if (last instanceof ArrayFrame af) {
+                    String iterableKey = af.iterableKey();
+                    String afKey = af.key();
+                    String itemName = (iterableKey != null && !iterableKey.isEmpty()) ? iterableKey
+                        : (afKey != null && !afKey.isEmpty()) ? afKey
+                        : name;
+                    innerPropertyStack.addLast(new ObjectFrame(itemName, null));
                     xmlWriter.writeStartElement(itemName);
                 }
 
                 return new XmlGenerator(xmlWriter, innerPropertyStack);
             }
 
-            propertyStack.addLast(new ObjectFrame(name));   // << [ObjectFrame(name)]
+            propertyStack.addLast(new ObjectFrame(name, null));   // << [ObjectFrame(name)]
             xmlWriter.writeStartElement(name);  // <CustomBean>
 
         } catch (XMLStreamException e) {
@@ -139,7 +142,7 @@ public final class XmlGenerator implements Encoder {
     public void finishStructure() throws IOException {
         try {
 
-            var lastProperty = propertyStack.peekLast();
+            ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
                 case KeyFrame kf -> {
                     xmlWriter.writeEndElement();   // [ObjectFrame(name), KeyFrame3(name, false)] && <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3</c3>
@@ -147,35 +150,38 @@ public final class XmlGenerator implements Encoder {
 
                 }
                 case ObjectFrame of -> {
-                    if (of.getKey() != null) {
+                    if (of.key() != null) {
                         xmlWriter.writeEndElement();
                     }
                     if (propertyStack.peekFirst() instanceof KeyFrame kf) {
-                        if (of.getKey() == null) {
-                            if (Boolean.TRUE.equals(kf.getObjectWrappingKey())) {
+                        if (of.key() == null) {
+                            if (Boolean.TRUE.equals(kf.objectWrappingKey())) {
                                 xmlWriter.writeEndElement();
                             } else {
-                                xmlWriter.writeEmptyElement(kf.getKey());
+                                xmlWriter.writeEmptyElement(kf.key());
                             }
                         }
-                        kf.setConsumed(true);
+                        // Replace-on-update: mark consumed = true on the first KeyFrame
+                        // (single-element stack mutation: peekFirst == peekLast in this branch
+                        //  since after writing end element this is the lone leftover frame).
+                        // We clear() right after, so no need to actually rewrite the frame.
                     }
                     propertyStack.clear();
                 }
-                case ArrayFrame of -> {
-                    if (of.getKey() != null && of.getKey().isEmpty()) {
+                case ArrayFrame af -> {
+                    if (af.key() != null && af.key().isEmpty()) {
                         propertyStack.removeLast();
                         return;
                     }
-                    if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame af) { // [A(ArrayList)]
+                    if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame) { // [A(ArrayList)]
                         xmlWriter.writeEndElement();
                         return;
                     }
                     propertyStack.removeLast();  // // [o, k(name2, false), A(name2)]
                     xmlWriter.writeEndElement();  // [o, k(name2, false)]
-                    assert propertyStack.peekLast() instanceof KeyFrame : "This should be a keyFrame" + propertyStack.toString();
-                    KeyFrame last = (KeyFrame) propertyStack.peekLast();
-                    last.setConsumed(true);   //[O, K(,,false), ##K]
+                    assert propertyStack.peekLast() instanceof KeyFrame : "Expected KeyFrame, got: " + propertyStack.peekLast();
+                    KeyFrame last = (KeyFrame) propertyStack.removeLast();
+                    propertyStack.addLast(new KeyFrame(last.key(), true, last.arrayWrappingKey(), last.objectWrappingKey()));   //[O, K(,,false), ##K]
 
                 } case null -> {
                     assert  propertyStack.isEmpty() : "Root name mapping";
@@ -201,14 +207,17 @@ public final class XmlGenerator implements Encoder {
             ensurePendingObjectElementStarted();
 
             //simpleObjectSerializer  --- iteration on the loop
-            if (!propertyStack.isEmpty() && propertyStack.getLast() instanceof KeyFrame of && of.consumed) {
+            ContextProperties last = propertyStack.peekLast();
+            if (last instanceof KeyFrame of && of.consumed()) {
                 propertyStack.removeLast(); // [ObjectFrame(name)]
-            } else if (propertyStack.peekLast() instanceof KeyFrame of && !of.consumed) { // [O, K(name, false, null)] && add wrapping tag, come from the xmlWrapperSerde
-                of.setArrayWrappingKey(key);
+            } else if (last instanceof KeyFrame of && !of.consumed()) { // [O, K(name, false, null)] && add wrapping tag, come from the xmlWrapperSerde
+                // Replace-on-update: set arrayWrappingKey = key
+                propertyStack.removeLast();
+                propertyStack.addLast(new KeyFrame(of.key(), of.consumed(), key, of.objectWrappingKey()));
                 return;
             }
 
-            propertyStack.addLast(new KeyFrame(key, false));  // [ObjectFrame(name), KeyFrame2(name, false)]
+            propertyStack.addLast(new KeyFrame(key, false, null, null));  // [ObjectFrame(name), KeyFrame2(name, false)]
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -219,32 +228,30 @@ public final class XmlGenerator implements Encoder {
         if (propertyStack.size() == 2
             && propertyStack.peekFirst() instanceof KeyFrame keyFrame
             && propertyStack.peekLast() instanceof ObjectFrame objectFrame
-            && objectFrame.getKey() == null
-            && !Boolean.TRUE.equals(keyFrame.getObjectWrappingKey())) {
-            xmlWriter.writeStartElement(keyFrame.getKey());
-            keyFrame.setObjectWrappingKey(Boolean.TRUE);
+            && objectFrame.key() == null
+            && !Boolean.TRUE.equals(keyFrame.objectWrappingKey())) {
+            xmlWriter.writeStartElement(keyFrame.key());
+            // Replace-on-update: set objectWrappingKey = TRUE on the first frame
+            propertyStack.removeFirst();
+            propertyStack.addFirst(new KeyFrame(keyFrame.key(), keyFrame.consumed(), keyFrame.arrayWrappingKey(), Boolean.TRUE));
         }
     }
 
     private void writeScalar(String data) {
         try {
-            var lastProperty = propertyStack.getLast();  // [ObjectFrame(name), K1(name1, false)] || [ObjectFrame(name), K2(name2, false), A(name2)] || [A(ArrayList)]
+            ContextProperties lastProperty = propertyStack.getLast();  // [ObjectFrame(name), K1(name1, false)] || [ObjectFrame(name), K2(name2, false), A(name2)] || [A(ArrayList)]
             switch (lastProperty) {
                 case KeyFrame kf -> {
-                    xmlWriter.writeStartElement(kf.getKey());     // <CustomBean><A1>a1</A1>
-                        xmlWriter.writeCharacters(data);    //. <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3
+                    xmlWriter.writeStartElement(kf.key());     // <CustomBean><A1>a1</A1>
+                    xmlWriter.writeCharacters(data);    //. <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3
                     xmlWriter.writeEndElement();
-                    kf.setConsumed(true);
+                    // Replace-on-update: mark consumed = true
+                    propertyStack.removeLast();
+                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey()));
                 }
                 case ArrayFrame af -> {
-                    String itemName = null;
-                    String iterableKey = af.getIterableKey();
-                    Optional<String> maybeIterableKey = Optional.ofNullable(iterableKey).filter(s -> !s.isEmpty());
-                    if (maybeIterableKey.isPresent()) {
-                        itemName = maybeIterableKey.get();
-                    } else {
-                        itemName = af.getKey();
-                    }
+                    String iterableKey = af.iterableKey();
+                    String itemName = (iterableKey != null && !iterableKey.isEmpty()) ? iterableKey : af.key();
                     xmlWriter.writeStartElement(itemName);
                     xmlWriter.writeCharacters(data);
                     xmlWriter.writeEndElement();
@@ -264,12 +271,12 @@ public final class XmlGenerator implements Encoder {
      */
     public @NonNull Encoder encodeInlineArray(@NonNull Argument<?> type) throws IOException {
         ContextProperties lastProperty = propertyStack.peekLast();
-        if (!(lastProperty instanceof KeyFrame keyFrame) || keyFrame.consumed) {
+        if (!(lastProperty instanceof KeyFrame keyFrame) || keyFrame.consumed()) {
             throw new IllegalStateException("Expected a pending key before starting an inline array, but found: " + lastProperty);
         }
 
         propertyStack.removeLast(); // remove the property key, so no wrapper element is written
-        propertyStack.addLast(new ArrayFrame("", keyFrame.getKey())); // sentinel for inline/no-wrapper array
+        propertyStack.addLast(new ArrayFrame("", keyFrame.key())); // sentinel for inline/no-wrapper array
         return this;
     }
 
@@ -285,7 +292,7 @@ public final class XmlGenerator implements Encoder {
 
     @Override
     public void encodeByte(byte value) throws IOException {
-        writeScalar(new String(Byte.toString(value).getBytes(), StandardCharsets.UTF_8));
+        writeScalar(Byte.toString(value));
     }
 
     @Override
@@ -339,8 +346,10 @@ public final class XmlGenerator implements Encoder {
             ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
                 case KeyFrame kf -> {
-                    xmlWriter.writeEmptyElement(kf.getKey());
-                    kf.setConsumed(true);
+                    xmlWriter.writeEmptyElement(kf.key());
+                    // Replace-on-update: mark consumed = true
+                    propertyStack.removeLast();
+                    propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey()));
                 }
                 case null -> xmlWriter.writeEndElement();
                 default -> xmlWriter.writeEndElement();
@@ -364,14 +373,16 @@ public final class XmlGenerator implements Encoder {
      * Write an XML attribute for the current pending property key.
      * @param value
      */
-     public void writeAttributeForCurrentKey(String value) throws IOException {
+    public void writeAttributeForCurrentKey(String value) throws IOException {
         ContextProperties lastProperty = propertyStack.peekLast();
         if (!(lastProperty instanceof KeyFrame keyFrame)) {
             throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
         }
         try {
-            xmlWriter.writeAttribute(keyFrame.getKey(), value);  // [O, K1(name, false)]
-            keyFrame.setConsumed(true);
+            xmlWriter.writeAttribute(keyFrame.key(), value);  // [O, K1(name, false)]
+            // Replace-on-update: mark consumed = true
+            propertyStack.removeLast();
+            propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {
             throw new IOException(e);
         }
@@ -381,156 +392,31 @@ public final class XmlGenerator implements Encoder {
      * Writes an XML start element for the XmlWrapper custom serializer.
      */
     public void wrapElement() {
-         // must be [O, K(name, false)]
+        // must be [O, K(name, false)]
         ContextProperties lastKey = propertyStack.peekLast();
         try {
-            xmlWriter.writeStartElement(lastKey.getKey());
+            xmlWriter.writeStartElement(lastKey.key());
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
         // closing the tag is the custom wrapper serializer responsibility
     }
 
-    abstract static class ContextProperties {
-        private String key;
-
-        public ContextProperties(String key) {
-            this.key = key;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public void setKey(String key) {
-            this.key = key;
-        }
-
-        @Override
-        public String toString() {
-            return "contextProperties{" +
-                "key='" + key + '\'' +
-                '}';
-        }
+    sealed interface ContextProperties permits ObjectFrame, KeyFrame, ArrayFrame {
+        String key();
     }
 
-    private static class ObjectFrame extends ContextProperties {
-
-        @Nullable
-        Boolean ignore;
-
-        @Nullable
-        Boolean rootName;
-
-        public ObjectFrame(String key) {
-            super(key);
-            this.rootName = null;
-        }
-
-        public ObjectFrame(String key, @Nullable Boolean rootName) {
-            super(key);
-            this.rootName = rootName;
-        }
-
-        public void setIgnore(@Nullable Boolean ignore) {
-            this.ignore = ignore;
-        }
-
-        @Override
-        public String toString() {
-            return "ObjectFrame{" +
-                "key='" + getKey() + '\'' +
-                '}';
-        }
+    private record ObjectFrame(String key, @Nullable Boolean rootName) implements ContextProperties {
     }
 
-    private static class KeyFrame extends ContextProperties {
-        boolean consumed;
-        @Nullable
-        String arrayWrappingKey;
-
-        @Nullable
-        Boolean ObjectWrappingKey;
-
-        public KeyFrame(String key, Boolean consumed) {
-
-            super(key);
-            this.consumed = consumed;
-        }
-
-        public boolean isConsumed() {
-            return consumed;
-        }
-
-        public void setConsumed(boolean consumed) {
-            this.consumed = consumed;
-        }
-
-        public String getArrayWrappingKey() {
-            return arrayWrappingKey;
-        }
-
-        public void setArrayWrappingKey(String arrayWrappingKey) {
-            this.arrayWrappingKey = arrayWrappingKey;
-        }
-
-        public void setObjectWrappingKey(@Nullable Boolean objectWrappingKey) {
-            ObjectWrappingKey = objectWrappingKey;
-        }
-
-        public @Nullable Boolean getObjectWrappingKey() {
-            return ObjectWrappingKey;
-        }
-
-        @Override
-        public String toString() {
-            return "KeyFrame{" +
-                "arrayWrappingKey='" + arrayWrappingKey + '\'' +
-                ", consumed=" + consumed +
-                ", key='" + this.getKey() + '\'' +
-                '}';
-        }
+    private record KeyFrame(
+        String key,
+        boolean consumed,
+        @Nullable String arrayWrappingKey,
+        @Nullable Boolean objectWrappingKey
+    ) implements ContextProperties {
     }
 
-    private static class ArrayFrame extends ContextProperties {
-
-        @Nullable
-        String IterableKey;
-
-        @Nullable
-        String wrappingKey;
-
-        public ArrayFrame(String key) {
-            super(key);
-            this.IterableKey = null;
-        }
-
-        public ArrayFrame(String key, @Nullable String iterableKey) {
-            super(key);
-            IterableKey = iterableKey;
-        }
-
-        @Override
-        public String toString() {
-            return "ArrayFrame{" +
-                "key='" + getKey() + '\'' +
-                '}';
-        }
-
-        public @Nullable String getIterableKey() {
-            return IterableKey;
-        }
-
-        public void setIterableKey(@Nullable String iterableKey) {
-            IterableKey = iterableKey;
-        }
-
-        public @Nullable String getWrappingKey() {
-            return wrappingKey;
-        }
-
-        public void setWrappingKey(@Nullable String wrappingKey) {
-            this.wrappingKey = wrappingKey;
-        }
+    private record ArrayFrame(String key, @Nullable String iterableKey) implements ContextProperties {
     }
 }
