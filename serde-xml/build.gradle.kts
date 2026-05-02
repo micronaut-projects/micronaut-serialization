@@ -17,8 +17,9 @@ dependencies {
     implementation(projects.micronautSerdeSupport)
 
     implementation(mn.jackson.dataformat.xml) {
-        exclude(group = "com.fasterxml.woodstox", module = "woodstox-core")
-        exclude(group = "org.codehaus.woodstox", module = "stax2-api")
+        // woodstox is self closing tag behavior by default
+//        exclude(group = "com.fasterxml.woodstox", module = "woodstox-core")
+//        exclude(group = "org.codehaus.woodstox", module = "stax2-api")
     }
 
     testAnnotationProcessor(mn.micronaut.inject.java)
