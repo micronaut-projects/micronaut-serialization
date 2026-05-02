@@ -74,6 +74,11 @@ public @interface SerdeConfig {
     String XML_ATTRIBUTE_PROPERTY = "xmlAttributeProperty";
 
     /**
+     * The XML namespace URI bound to a property or root element.
+     */
+    String XML_NAMESPACE = "xmlNamespace";
+
+    /**
      * Whether this property is required (must be present in the input).
      */
     String REQUIRED = "required";

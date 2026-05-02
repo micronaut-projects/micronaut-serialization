@@ -20,61 +20,30 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.IterableWrapperConfigurableSerializer;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.xml.XmlGenerator;
 import org.jspecify.annotations.NonNull;
 import java.io.IOException;
 
-import static io.micronaut.serde.support.util.SerdeArgumentConf.reconstructGenericWithParentMetadata;
-
 public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>>, IterableWrapperConfigurableSerializer<Iterable<T>> {
 
-    private final Argument<T> generic;
-    private final Serializer<? super T> componentSerializer;
     private final boolean useWrapping;
     private final String wrapperName;
 
     public XmlWrapperSerde() {
-        this.generic = null;
-        this.componentSerializer = null;
         this.useWrapping = true;
         this.wrapperName = null;
     }
 
-    private XmlWrapperSerde(Argument<T> generic, Serializer<? super T> componentSerializer, boolean useWrapping, String wrapperName) {
-        this.generic = generic;
-        this.componentSerializer = componentSerializer;
+    private XmlWrapperSerde(boolean useWrapping, String wrapperName) {
         this.useWrapping = useWrapping;
         this.wrapperName = wrapperName;
     }
 
     @Override
-    public @NonNull Serializer<Iterable<T>> createSpecific(@NonNull EncoderContext context,
-                                                            @NonNull Argument<? extends Iterable<T>> type) throws SerdeException {
-
-        final Argument<?>[] generics = type.getTypeParameters();
-
-        final Argument<T> specificGeneric = reconstructGenericWithParentMetadata(type, (Argument<T>) generics[0]);
-        final Serializer<? super T> specificComponentSerializer = context.findSerializer(specificGeneric)
-            .createSpecific(context, specificGeneric);
-        boolean useWrapping = type.getAnnotationMetadata()
-            .booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY)
-            .orElse(true);
-        String wrapperName = type.getAnnotationMetadata()
-            .stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY)
-            .orElse(null);
-
-        return new XmlWrapperSerde<>(specificGeneric, specificComponentSerializer, useWrapping, wrapperName);
-    }
-
-    @Override
     public @NonNull Serializer<Iterable<T>> withIterableWrapper(boolean useWrapping, String wrapperName) {
-        if (componentSerializer == null || generic == null) {
-            return this;
-        }
-        return new XmlWrapperSerde<>(generic, componentSerializer, useWrapping, wrapperName);
+        return new XmlWrapperSerde<>(useWrapping, wrapperName);
     }
 
     @Override
@@ -85,9 +54,14 @@ public final class XmlWrapperSerde<T> implements Serializer<Iterable<T>>, Iterab
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }
-        if (componentSerializer == null || generic == null) {
-            throw new SerdeException("XmlWrapperSerde was not specialized for: " + type);
+        final Argument<?>[] generics = type.getTypeParameters();
+        if (generics.length == 0) {
+            throw new SerdeException("Cannot serialize XML wrapper for an iterable without generic type information: " + type);
         }
+        @SuppressWarnings("unchecked")
+        final Argument<T> generic = (Argument<T>) generics[0];
+        final Serializer<? super T> componentSerializer = context.findSerializer(generic)
+            .createSpecific(context, generic);
 
         boolean inlineObjectItems = !useWrapping && componentSerializer instanceof ObjectSerializer<?>;
         Encoder valuesEncoder = encoder;

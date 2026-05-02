@@ -35,6 +35,11 @@ public final class FactoryXmlSerde {
     }
 
     @Bean
+    XmlNamespacedElementSerde xmlNamespacedElementSerde() {
+        return new XmlNamespacedElementSerde();
+    }
+
+    @Bean
     @Primary
     XmlByteArraySerde xmlByteArraySerde() {
         return new XmlByteArraySerde();

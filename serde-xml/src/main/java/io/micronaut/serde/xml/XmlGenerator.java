@@ -389,6 +389,34 @@ public final class XmlGenerator implements Encoder {
     }
 
     /**
+     * Writes a namespaced scalar element for the current pending property key.
+     *
+     * @param localName the element local name
+     * @param namespaceUri the namespace URI (may be null/empty for the default namespace)
+     * @param value the textual value
+     */
+    public void writeNamespacedScalarForCurrentKey(String localName, String namespaceUri, String value) throws IOException {
+        try {
+            ensurePendingObjectElementStarted();
+            ContextProperties last = propertyStack.peekLast();
+            if (!(last instanceof KeyFrame keyFrame)) {
+                throw new IllegalStateException("Expected a pending XML key before writing a namespaced element, but found: " + last);
+            }
+            if (namespaceUri == null || namespaceUri.isEmpty()) {
+                xmlWriter.writeStartElement(localName);
+            } else {
+                xmlWriter.writeStartElement(namespaceUri, localName);
+            }
+            xmlWriter.writeCharacters(value);
+            xmlWriter.writeEndElement();
+            propertyStack.removeLast();
+            propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
      * Writes an XML start element for the XmlWrapper custom serializer.
      */
     public void wrapElement() {

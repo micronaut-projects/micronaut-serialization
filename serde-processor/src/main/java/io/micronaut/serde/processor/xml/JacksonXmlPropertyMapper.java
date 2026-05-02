@@ -30,7 +30,8 @@ import java.util.List;
  */
 public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
 
-    static final String XML_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlSerde";
+    static final String XML_PROPERTY_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlPropertySerde";
+    static final String XML_NAMESPACED_ELEMENT_SERDE_CLASS = "io.micronaut.serde.xml.serde.XmlNamespacedElementSerde";
 
     @Override
     public String getName() {
@@ -40,16 +41,24 @@ public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.stringValue("isAttribute").ifPresent(isAttribute -> {
-            boolean flagg = Boolean.valueOf(isAttribute);
-            if (flagg) {
-                builder.member(SerdeConfig.XML_ATTRIBUTE_PROPERTY, true);
-                builder.member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
-            }
-        });
+        boolean isAttribute = annotation.stringValue("isAttribute")
+            .map(Boolean::valueOf)
+            .orElse(false);
+        if (isAttribute) {
+            builder.member(SerdeConfig.XML_ATTRIBUTE_PROPERTY, true);
+            builder.member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_PROPERTY_SERDE_CLASS));
+        }
         annotation.stringValue("localName")
             .filter(localName -> !localName.isEmpty())
             .ifPresent(localName -> builder.member(SerdeConfig.PROPERTY, localName));
+        annotation.stringValue("namespace")
+            .filter(ns -> !ns.isEmpty())
+            .ifPresent(ns -> {
+                builder.member(SerdeConfig.XML_NAMESPACE, ns);
+                if (!isAttribute) {
+                    builder.member(SerdeConfig.SERIALIZER_CLASS, new AnnotationClassValue<>(XML_NAMESPACED_ELEMENT_SERDE_CLASS));
+                }
+            });
         return Collections.singletonList(builder.build());
     }
 }

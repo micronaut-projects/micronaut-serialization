@@ -42,6 +42,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.XmlElementConfigurableSerializer;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -815,6 +816,9 @@ final class SerBean<T> {
         if (specificSerializer instanceof IterableWrapperConfigurableSerializer<?> configurableSerializer) {
             specificSerializer = (Serializer<Z>) configurableSerializer.withIterableWrapper(prop.xmlUseWrapping, prop.xmlWrapperName);
         }
+        if (specificSerializer instanceof XmlElementConfigurableSerializer<?> configurableSerializer) {
+            specificSerializer = (Serializer<Z>) configurableSerializer.withXmlElement(prop.name, prop.xmlNamespace);
+        }
         prop.serializer = specificSerializer;
 
         if (prop.serializableInto) {
@@ -1039,6 +1043,7 @@ final class SerBean<T> {
         public final boolean primitive;
         public final boolean xmlUseWrapping;
         public final @Nullable String xmlWrapperName;
+        public final @Nullable String xmlNamespace;
         // Null when not initialized SerBean
         @Nullable
         public Serializer<P> serializer;
@@ -1083,6 +1088,7 @@ final class SerBean<T> {
                     .orElse(null);
             this.xmlUseWrapping = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.META_ANNOTATION_PROPERTY).orElse(true);
             this.xmlWrapperName = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.WRAPPER_PROPERTY).orElse(null);
+            this.xmlNamespace = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
             this.annotationMetadata = annotationMetadata;
             FormatConfiguration propertyFormat = FormatConfiguration.from(annotationMetadata);
             if (propertyFormat == null) {

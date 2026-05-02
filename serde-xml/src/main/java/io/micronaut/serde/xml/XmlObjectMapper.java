@@ -80,6 +80,8 @@ public final class XmlObjectMapper implements ObjectMapper {
         this.xmlFactory = XmlFactory.builder().build();
         this.defaultRootName = xmlConfiguration != null ? xmlConfiguration.getDefaultRootName() : null;
         this.xmlOutputFactory = XMLOutputFactory.newInstance();
+        // TODO: Make it configurable
+        this.xmlOutputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
         // Woodstox (and any stax2-api compliant factory) auto-converts empty <x></x> elements
         // into self-closing <x/>. Our textual XML contracts treat `<x></x>` and `<x/>` as
         // distinct on the encode side (they are equivalent on the read side), so opt out of
