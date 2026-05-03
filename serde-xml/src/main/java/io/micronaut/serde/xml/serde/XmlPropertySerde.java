@@ -16,14 +16,42 @@
 package io.micronaut.serde.xml.serde;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.XmlElementConfigurableSerializer;
 import io.micronaut.serde.xml.XmlGenerator;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 
-public class XmlPropertySerde extends XmlSerde {
+public class XmlPropertySerde extends XmlSerde<Object> implements XmlElementConfigurableSerializer<Object> {
+
+    private final @Nullable String namespace;
+
+    public XmlPropertySerde() {
+        this(null);
+    }
+
+    private XmlPropertySerde(@Nullable String namespace) {
+        this.namespace = namespace;
+    }
+
     @Override
-    protected void doSerialize(XmlGenerator encoder, EncoderContext context, Object value, Argument key) throws IOException {
+    public @NonNull Serializer<Object> withXmlElement(@NonNull String localName, @Nullable String namespace) {
+        if (namespace == null || namespace.isEmpty()) {
+            return this;
+        }
+        return new XmlPropertySerde(namespace);
+    }
+
+    @Override
+    protected void doSerialize(XmlGenerator encoder, EncoderContext context, Object value, Argument<?> key) throws IOException {
         if (value == null) {
             encoder.encodeNull();
+            return;
+        }
+        if (namespace != null) {
+            encoder.writeNamespacedAttributeForCurrentKey(namespace, String.valueOf(value));
         } else {
             encoder.writeAttributeForCurrentKey(String.valueOf(value));
         }

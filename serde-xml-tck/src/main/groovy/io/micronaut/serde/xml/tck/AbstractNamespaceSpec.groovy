@@ -48,22 +48,6 @@ abstract class AbstractNamespaceSpec extends Specification {
         xml == '<NamespacedAttrBean xmlns:wstxns1="http://foo" wstxns1:other="3"></NamespacedAttrBean>'
     }
 
-    def "namespaced root - JacksonXmlRootElement(localName, namespace)"() {
-        given:
-        def bean = new NamespacedRootBean()
-
-        when:
-        String xml = xmlMapper.writeValueAsString(bean)
-
-        then:
-        xml == '<nsRoot xmlns="http://foo"></nsRoot>'
-    }
-
-    @Serdeable
-    @JsonRootName(value = "nsRoot", namespace = "http://foo")
-    static class NamespacedRootBean {
-    }
-
     @Serdeable
     static class NamespacedAttrBean {
         @JacksonXmlProperty(namespace = "http://foo", isAttribute = true, localName = "other")

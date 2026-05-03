@@ -389,6 +389,27 @@ public final class XmlGenerator implements Encoder {
     }
 
     /**
+     * Write a namespaced XML attribute for the current pending property key.
+     * The local name is the pending key on the stack; the namespace URI is supplied here.
+     *
+     * @param namespaceUri the attribute namespace URI
+     * @param value the textual attribute value
+     */
+    public void writeNamespacedAttributeForCurrentKey(String namespaceUri, String value) throws IOException {
+        ContextProperties lastProperty = propertyStack.peekLast();
+        if (!(lastProperty instanceof KeyFrame keyFrame)) {
+            throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
+        }
+        try {
+            xmlWriter.writeAttribute(namespaceUri, keyFrame.key(), value);
+            propertyStack.removeLast();
+            propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
+        } catch (XMLStreamException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
      * Writes a namespaced scalar element for the current pending property key.
      *
      * @param localName the element local name
