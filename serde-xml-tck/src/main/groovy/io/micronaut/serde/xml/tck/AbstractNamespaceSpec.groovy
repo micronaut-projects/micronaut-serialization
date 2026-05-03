@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.xml.tck
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonRootName
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
@@ -62,6 +63,28 @@ abstract class AbstractNamespaceSpec extends Specification {
     @Serdeable
     @JsonRootName(value = "nsRoot", namespace = "http://foo")
     static class NamespacedRootBean {
+    }
+
+    def "namespace from JsonProperty merges with JacksonXmlProperty isAttribute"() {
+        given:
+        def bean = new MergedNsAttrBean()
+
+        when:
+        String xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<MergedNsAttrBean xmlns:wstxns1="uri:ns1" wstxns1:value="3"></MergedNsAttrBean>'
+    }
+
+    @Serdeable
+    static class MergedNsAttrBean {
+        @JsonProperty(value = "value", namespace = "uri:ns1")
+        @JacksonXmlProperty(isAttribute = true)
+        String attr = "3"
+
+        String getAttr() { return attr }
+
+        void setAttr(String attr) { this.attr = attr }
     }
 
     @Serdeable
