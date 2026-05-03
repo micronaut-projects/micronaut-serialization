@@ -15,8 +15,11 @@
  */
 package io.micronaut.serde.xml.tck
 
+import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
+import tools.jackson.databind.ObjectMapper
 
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
@@ -51,9 +54,11 @@ abstract class JavaCollectionsTestSpec extends Specification {
 
         when:
         def xml = xmlMapper.writeValueAsString(input)
+        def read = readStringList(xml)
 
         then:
         xml == "<ArrayList><item>a</item><item>b</item><item>c</item></ArrayList>"
+        read == ["a", "b", "c"]
 
     }
 
@@ -63,9 +68,11 @@ abstract class JavaCollectionsTestSpec extends Specification {
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = readBean(xml, ByteArrayWrapper)
 
         then:
         xml == '<ByteArrayWrapper><values>c3VyZS4=</values></ByteArrayWrapper>'
+        read.values == bean.values
     }
 
     def "Test int array encoding"() {
@@ -74,9 +81,11 @@ abstract class JavaCollectionsTestSpec extends Specification {
 
         when:
         def xml = xmlMapper.writeValueAsString(input)
+        def read = readBean(xml, IntArrayWrapper)
 
         then:
         xml == '<IntArrayWrapper><values><values>1</values><values>-1</values><values>0</values><values>98</values><values>127</values></values></IntArrayWrapper>'
+        read.values == input.values
     }
 
     def "Test decimal list encoding"() {
@@ -85,6 +94,7 @@ abstract class JavaCollectionsTestSpec extends Specification {
 
         when:
         def xml = xmlMapper.writeValueAsString(input)
+        def read = readBean(xml, DoubleListWrapper)
 
         then:
         xml.contains('<values>0.0</values>')
@@ -92,6 +102,7 @@ abstract class JavaCollectionsTestSpec extends Specification {
         xml.contains('<values>-0.125</values>')
         xml.contains('<values>10.5</values>')
         xml.contains('<values>9875.0</values>')
+        read.values == input.values
     }
 
     def "Test integer list encoding"() {
@@ -100,11 +111,32 @@ abstract class JavaCollectionsTestSpec extends Specification {
 
         when:
         def listXml = xmlMapper.writeValueAsString(intListWrapper)
+        def read = readBean(listXml, IntListWrapper)
 
         then:
         listXml == '<IntListWrapper><values><values>4</values><values>5</values><values>6</values></values></IntListWrapper>'
+        read.values == intListWrapper.values
     }
 
 
 
+    private List<String> readStringList(String xml) {
+        if (xmlMapper instanceof JsonMapper jsonMapper) {
+            return jsonMapper.readValue(xml, Argument.listOf(String))
+        }
+        if (xmlMapper instanceof ObjectMapper jacksonMapper) {
+            return jacksonMapper.readValue(xml, List)
+        }
+        throw new IllegalStateException("Unsupported mapper type: ${xmlMapper.getClass().name}")
+    }
+
+    private <T> T readBean(String xml, Class<T> type) {
+        if (xmlMapper instanceof JsonMapper jsonMapper) {
+            return jsonMapper.readValue(xml, type)
+        }
+        if (xmlMapper instanceof ObjectMapper jacksonMapper) {
+            return jacksonMapper.readValue(xml, type)
+        }
+        throw new IllegalStateException("Unsupported mapper type: ${xmlMapper.getClass().name}")
+    }
 }

@@ -240,6 +240,62 @@ class Test {
         context.close()
     }
 
+    void "test arbitrary object values on read"() {
+        given:
+        def context = buildReadContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import java.util.List;
+
+@Serdeable
+class Test {
+    private Object scalar;
+    private Object nested;
+    private List<Object> items;
+
+    public Object getScalar() {
+        return scalar;
+    }
+
+    public void setScalar(Object scalar) {
+        this.scalar = scalar;
+    }
+
+    public Object getNested() {
+        return nested;
+    }
+
+    public void setNested(Object nested) {
+        this.nested = nested;
+    }
+
+    public List<Object> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Object> items) {
+        this.items = items;
+    }
+}
+""")
+
+        when:
+        def read = xmlMapper.readValue(
+                '<Test><scalar>hello</scalar><nested><key>world</key></nested><items><items>alpha</items><items>beta</items></items></Test>',
+                typeUnderTest
+        )
+
+        then:
+        read.scalar == 'hello'
+        read.nested instanceof Map
+        read.nested.key == 'world'
+        read.items == ['alpha', 'beta']
+
+        cleanup:
+        context.close()
+    }
+
     void "test default constructor 1"() {
         given:
         def context = buildReadContext('test.Test', """
