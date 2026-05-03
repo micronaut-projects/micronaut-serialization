@@ -60,6 +60,9 @@ public class JsonPropertyMapper implements NamedAnnotationMapper {
         if (annotation.booleanValue("required").orElse(false)) {
             builder.member(SerdeConfig.REQUIRED, true);
         }
+        annotation.stringValue("namespace")
+            .filter(ns -> !ns.isEmpty())
+            .ifPresent(ns -> builder.member(SerdeConfig.XML_NAMESPACE, ns));
         values.add(builder.build());
         return values;
     }

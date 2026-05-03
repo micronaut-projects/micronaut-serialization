@@ -41,11 +41,6 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     private Boolean rootMapper;
     private @Nullable String pendingRootNamespace;
 
-    @Override
-    public void setPendingRootNamespace(@NonNull String namespaceUri) {
-        this.pendingRootNamespace = namespaceUri;
-    }
-
     public XmlGenerator(XMLStreamWriter xmlWriter) {
         this.xmlWriter = xmlWriter;
         this.rootMapper = false;
@@ -60,6 +55,11 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
         this.xmlWriter = xmlWriter;
         this.propertyStack.addAll(propertyStack);
         this.rootMapper = false;
+    }
+
+    @Override
+    public void setPendingRootNamespace(@NonNull String namespaceUri) {
+        this.pendingRootNamespace = namespaceUri;
     }
 
     @Override
