@@ -15,6 +15,7 @@
  */
 package io.micronaut.serde.xml.tck
 
+import com.fasterxml.jackson.annotation.JsonRootName
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
@@ -34,6 +35,47 @@ abstract class AbstractNamespaceSpec extends Specification {
 
         then:
         xml == '<NamespacedChildBean><wstxns1:ChildXML xmlns:wstxns1="uri:child">v</wstxns1:ChildXML></NamespacedChildBean>'
+    }
+
+    def "namespaced attribute - namespace + isAttribute on a property"() {
+        given:
+        def bean = new NamespacedAttrBean()
+
+        when:
+        String xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<NamespacedAttrBean xmlns:wstxns1="http://foo" wstxns1:other="3"></NamespacedAttrBean>'
+    }
+
+    def "namespaced root - JacksonXmlRootElement(localName, namespace)"() {
+        given:
+        def bean = new NamespacedRootBean()
+
+        when:
+        String xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        xml == '<nsRoot xmlns="http://foo"></nsRoot>'
+    }
+
+    @Serdeable
+    @JsonRootName(value = "nsRoot", namespace = "http://foo")
+    static class NamespacedRootBean {
+    }
+
+    @Serdeable
+    static class NamespacedAttrBean {
+        @JacksonXmlProperty(namespace = "http://foo", isAttribute = true, localName = "other")
+        String attr = "3"
+
+        String getAttr() {
+            return attr
+        }
+
+        void setAttr(String attr) {
+            this.attr = attr
+        }
     }
 
     @Serdeable
