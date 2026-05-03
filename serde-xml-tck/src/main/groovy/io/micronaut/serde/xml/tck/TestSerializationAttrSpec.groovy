@@ -115,8 +115,8 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         then:
         xml == "<Root>" +
-                    "<baz>qux</baz>" +
-                    "<foo>bar</foo>" +
+                "<baz>qux</baz>" +
+                "<foo>bar</foo>" +
                 "</Root>"
     }
 
@@ -130,9 +130,11 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, CollectionWrapper329)
 
         then:
         xml == "<CollectionWrapper329><elements><data>a</data><data>b</data></elements></CollectionWrapper329>"
+        read.data as List == ["a", "b"]
     }
 
     def "StreamWrapper329 - wrapped disabled"() {
@@ -142,9 +144,11 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, ListWrapper329)
 
         then:
         xml == "<ListWrapper329><data>a</data><data>b</data></ListWrapper329>"
+        read.data == ["a", "b"]
     }
 
     def "Values - List as Object with JacksonAnnotations"() {
@@ -162,13 +166,16 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, Values)
 
         then:
         xml == "<Values>" +
-                    "<type>list</type>" +
-                    "<values><vi>a</vi></values>" +
-                    "<values><vi>b</vi></values>" +
+                "<type>list</type>" +
+                "<values><vi>a</vi></values>" +
+                "<values><vi>b</vi></values>" +
                 "</Values>"
+        read.type == "list"
+        read.values*.v == ["a", "b"]
     }
 
     // ==================== Test Beans ====================
