@@ -22,6 +22,8 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
+import io.micronaut.serde.XmlRootNamespaceWriter;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -37,15 +39,22 @@ final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
 
     private final Serializer<T> serializer;
     private final Keys wrapperKeys;
+    private final @Nullable String wrapperNamespace;
 
     WrappedObjectSerializer(Serializer<T> serializer, String wrapperProperty) {
+        this(serializer, wrapperProperty, null);
+    }
+
+    WrappedObjectSerializer(Serializer<T> serializer, String wrapperProperty, @Nullable String wrapperNamespace) {
         this.serializer = serializer;
         this.wrapperKeys = Keys.create(wrapperProperty);
+        this.wrapperNamespace = wrapperNamespace;
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         try (KeysAwareEncoder wrapperEncoder = KeysAwareEncoder.of(encoder.encodeObject(Argument.OBJECT_ARGUMENT))) {
+            attachNamespace(wrapperEncoder);
             wrapperEncoder.encodeKey(wrapperKeys, 0);
             serializer.serialize(wrapperEncoder, context, type, value);
         }
@@ -54,7 +63,14 @@ final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);
+        attachNamespace(keysAwareEncoder);
         keysAwareEncoder.encodeKey(wrapperKeys, 0);
         serializer.serialize(keysAwareEncoder, context, type, value);
+    }
+
+    private void attachNamespace(Encoder target) {
+        if (wrapperNamespace != null && target instanceof XmlRootNamespaceWriter writer) {
+            writer.setPendingRootNamespace(wrapperNamespace);
+        }
     }
 }

@@ -18,6 +18,7 @@ package io.micronaut.serde.xml;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.XmlRootNamespaceWriter;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -33,11 +34,17 @@ import java.util.Deque;
 /**
  *
  */
-public final class XmlGenerator implements Encoder {
+public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
 
     private final XMLStreamWriter xmlWriter;
     private final Deque<ContextProperties> propertyStack = new ArrayDeque<>();
     private Boolean rootMapper;
+    private @Nullable String pendingRootNamespace;
+
+    @Override
+    public void setPendingRootNamespace(@NonNull String namespaceUri) {
+        this.pendingRootNamespace = namespaceUri;
+    }
 
     public XmlGenerator(XMLStreamWriter xmlWriter) {
         this.xmlWriter = xmlWriter;
@@ -200,7 +207,13 @@ public final class XmlGenerator implements Encoder {
         try {
             if (rootMapper) { // [O(name, true), ]
                 propertyStack.addLast(new ObjectFrame(key, Boolean.TRUE));  // @JsonRoot("dsq") [ObjectFrame("dsq")]
-                xmlWriter.writeStartElement(key);
+                if (pendingRootNamespace != null) {
+                    // empty prefix → default namespace declaration: <key xmlns="uri">
+                    xmlWriter.writeStartElement("", key, pendingRootNamespace);
+                    pendingRootNamespace = null;
+                } else {
+                    xmlWriter.writeStartElement(key);
+                }
                 return;
             }
 

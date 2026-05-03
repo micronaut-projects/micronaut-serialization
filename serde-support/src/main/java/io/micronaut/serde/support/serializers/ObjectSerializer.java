@@ -127,7 +127,7 @@ public final class ObjectSerializer implements CustomizableSerializer<Object> {
             } else if (serBean.dynamicArrayWrapperProperty != null) {
                 serializer = new DynamicWrappedArraySerializer<>(serializer, serBean.dynamicArrayWrapperProperty);
             } else if (serBean.wrapperProperty != null) {
-                serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty);
+                serializer = new WrappedObjectSerializer<>(serializer, serBean.wrapperProperty, serBean.wrapperNamespace);
             } else if (serBean.arrayWrapperProperty != null) {
                 serializer = new WrappedArraySerializer<>(serializer, serBean.arrayWrapperProperty);
             } else {

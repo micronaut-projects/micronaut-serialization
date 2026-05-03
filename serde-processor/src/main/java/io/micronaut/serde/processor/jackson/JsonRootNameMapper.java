@@ -41,6 +41,9 @@ public class JsonRootNameMapper implements NamedAnnotationMapper {
         if (v != null) {
             builder.member(SerdeConfig.WRAPPER_PROPERTY, v);
         }
+        annotation.stringValue("namespace")
+            .filter(ns -> !ns.isEmpty())
+            .ifPresent(ns -> builder.member(SerdeConfig.XML_NAMESPACE, ns));
         return Collections.singletonList(
                 builder.build()
         );

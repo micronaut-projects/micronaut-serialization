@@ -104,6 +104,8 @@ final class SerBean<T> {
     @Nullable
     public final String wrapperProperty;
     @Nullable
+    public final String wrapperNamespace;
+    @Nullable
     public final String arrayWrapperProperty;
     @Nullable
     public final SerProperty<T, Object> typeIdProperty;
@@ -142,6 +144,7 @@ final class SerBean<T> {
         encoderContext = SerdeFeatures.withFeatures(encoderContext, introspection.getAnnotationMetadata());
         this.configuration = encoderContext.getSerializationConfiguration().orElse(serializationConfiguration);
         this.propertyFilter = getPropertyFilterIfPresent(beanContext, type.getSimpleName());
+        this.wrapperNamespace = introspection.stringValue(SerdeConfig.class, SerdeConfig.XML_NAMESPACE).orElse(null);
         @Nullable SubtypeInfo resolvedSubtypeInfo = serdeArgumentConf == null ? null : serdeArgumentConf.getSubtypeInfo();
         this.subtypeInfo = resolvedSubtypeInfo;
         List<Initializer> resolvedInitializers = Objects.requireNonNull(initializers);
