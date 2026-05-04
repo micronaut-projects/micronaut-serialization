@@ -33,9 +33,11 @@ import io.micronaut.sourcegen.model.MethodDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
+import jakarta.inject.Singleton;
+import org.jspecify.annotations.Nullable;
 
-import javax.lang.model.element.Modifier;
 import javax.annotation.processing.Generated;
+import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -44,8 +46,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import jakarta.inject.Singleton;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Generates optimized source deserializers for records.
@@ -55,9 +55,11 @@ public final class RecordDeserializerSourceGen {
     private static final TypeDef ARGUMENT_TYPE = TypeDef.of(Argument.class);
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
+    private static final int STRING_SWITCH_PROPERTY_THRESHOLD = 5;
     private static final String CONTEXT_PARAMETER = "context";
     private static final String GENERATED_VALUE_MEMBER = "value";
 
+    private static final Method STRING_EQUALS_METHOD = ReflectionUtils.getRequiredMethod(String.class, "equals", Object.class);
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         Deserializer.class,
@@ -75,16 +77,25 @@ public final class RecordDeserializerSourceGen {
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", Argument.class);
     private static final Method DECODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeKey");
     private static final Method DECODE_STRING_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeStringNullable");
+    private static final Method DECODE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBoolean");
     private static final Method DECODE_BOOLEAN_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable");
+    private static final Method DECODE_BYTE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByte");
     private static final Method DECODE_BYTE_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByteNullable");
+    private static final Method DECODE_SHORT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShort");
     private static final Method DECODE_SHORT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShortNullable");
+    private static final Method DECODE_CHAR_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeChar");
     private static final Method DECODE_CHAR_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeCharNullable");
+    private static final Method DECODE_INT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeInt");
     private static final Method DECODE_INT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeIntNullable");
+    private static final Method DECODE_LONG_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLong");
     private static final Method DECODE_LONG_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLongNullable");
+    private static final Method DECODE_FLOAT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloat");
     private static final Method DECODE_FLOAT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloatNullable");
+    private static final Method DECODE_DOUBLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDouble");
     private static final Method DECODE_DOUBLE_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDoubleNullable");
     private static final Method DECODE_BIG_INTEGER_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigIntegerNullable");
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
+    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
     private static final Method DUPLICATE_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
@@ -126,8 +137,8 @@ public final class RecordDeserializerSourceGen {
 
         int index = 0;
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
-            String keyFieldName = constantFieldName("KEY", component.name(), index);
-            String argumentFieldName = constantFieldName("ARGUMENT", component.name(), index);
+            String keyFieldName = indexedName("KEY", index);
+            String argumentFieldName = indexedName("ARGUMENT", index);
             keyFieldNames.put(component.name(), keyFieldName);
             argumentFieldNames.put(component.name(), argumentFieldName);
 
@@ -141,7 +152,7 @@ public final class RecordDeserializerSourceGen {
                 .initializer(RecordSerdeSourceGenUtils.argumentExpression(lookupType))
                 .build());
             if (scalarDecoderMethod(component.type()) == null) {
-                String deserializerFieldName = constantFieldName("DESERIALIZER", component.name(), index);
+                String deserializerFieldName = indexedName("DESERIALIZER", index);
                 deserializerFieldNames.put(component.name(), deserializerFieldName);
                 fields.add(FieldDef.builder(deserializerFieldName, DESERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
@@ -163,6 +174,11 @@ public final class RecordDeserializerSourceGen {
             .addMethod(generateCreateSpecificMethod(recordTypeDef, deserializerClassTypeDef, argumentFieldNames, deserializerFieldNames))
             .addMethod(generateDeserializeMethod(element, recordTypeDef, deserializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
 
+        if (recordSerdeShape.components().size() > STRING_SWITCH_PROPERTY_THRESHOLD) {
+            classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+                .addMember(GENERATED_VALUE_MEMBER, "FallThrough")
+                .build());
+        }
         if (!deserializerFieldNames.isEmpty()) {
             classDefBuilder.addMethod(generateSpecializedConstructor(deserializerFieldNames));
         }
@@ -227,7 +243,7 @@ public final class RecordDeserializerSourceGen {
                     ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression)
-                        .newLocal(RecordSerdeSourceGenUtils.localName("deserializer", componentName, index));
+                        .newLocal(RecordSerdeSourceGenUtils.localName("deserializer", index));
                     statements.add(deserializerDef);
                     deserializerValues.add(deserializerDef.variable());
                     constructorParameterTypes.add(DESERIALIZER_TYPE);
@@ -274,22 +290,23 @@ public final class RecordDeserializerSourceGen {
                 List<RecordSerdeShape.RecordComponent> components = recordSerdeShape.components();
                 List<VariableDef.Local> seenPropertyVariables = new ArrayList<>(components.size());
                 for (int i = 0; i < components.size(); i++) {
-                    RecordSerdeShape.RecordComponent component = components.get(i);
                     StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.falseValue()
-                        .newLocal(RecordSerdeSourceGenUtils.localName("seenProperty", component.name(), i));
+                        .newLocal(RecordSerdeSourceGenUtils.localName("seenProperty", i));
                     statements.add(seenPropertyDef);
                     seenPropertyVariables.add(seenPropertyDef.variable());
                 }
 
                 List<ExpressionDef> constructorValues = new ArrayList<>(recordSerdeShape.components().size());
+                List<VariableDef> valueVariables = new ArrayList<>(components.size());
                 List<StatementDef> componentDeserializers = new ArrayList<>(components.size());
                 int index = 0;
                 for (RecordSerdeShape.RecordComponent component : components) {
                     boolean nonNull = component.propertyElement().isNonNull();
                     StatementDef.DefineAndAssign valueDef = RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), nonNull)
-                        .newLocal(RecordSerdeSourceGenUtils.localName("component", component.name(), index));
+                        .newLocal(RecordSerdeSourceGenUtils.localName("propertyValue", index));
                     statements.add(valueDef);
                     VariableDef valueVariable = valueDef.variable();
+                    valueVariables.add(valueVariable);
                     constructorValues.add(valueVariable);
                     componentDeserializers.add(deserializeComponent(
                         aThis,
@@ -321,17 +338,20 @@ public final class RecordDeserializerSourceGen {
                     seenPropertyVariables,
                     componentDeserializers
                 );
-                if (components.isEmpty()) {
-                    statements.add(keyVariable.isNonNull().whileLoop(switchStatement));
-                } else {
-                    statements.add(keyVariable.isNonNull().whileLoop(
-                        StatementDef.multi(
-                            switchStatement,
-                            keyVariable.assign(objectDecoder.invoke(DECODE_KEY_METHOD))
-                        )
+                statements.add(keyVariable.isNonNull().whileLoop(
+                    StatementDef.multi(
+                        switchStatement,
+                        keyVariable.assign(objectDecoder.invoke(DECODE_KEY_METHOD))
+                    )
+                ));
+                statements.add(objectDecoder.invoke(FINISH_STRUCTURE_METHOD));
+                for (int i = 0; i < components.size(); i++) {
+                    RecordSerdeShape.RecordComponent component = components.get(i);
+                    boolean nonNull = component.propertyElement().isNonNull();
+                    statements.add(seenPropertyVariables.get(i).ifFalse(
+                        valueVariables.get(i).assign(RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), nonNull))
                     ));
                 }
-                statements.add(objectDecoder.invoke(FINISH_STRUCTURE_METHOD));
                 statements.add(ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning());
                 return StatementDef.multi(statements);
             });
@@ -351,18 +371,17 @@ public final class RecordDeserializerSourceGen {
         if (components.isEmpty()) {
             return unknownPropertyStatement;
         }
-        if (components.size() > 3) {
-            return keyVariable.asExpressionSwitch(
-                TypeDef.Primitive.BOOLEAN,
-                buildSwitchCases(deserializerClassTypeDef, components, keyFieldNames, seenPropertyVariables, componentDeserializers, type),
-                new ExpressionDef.SwitchYieldCase(
-                    TypeDef.Primitive.BOOLEAN,
-                    StatementDef.multi(
-                        unknownPropertyStatement,
-                        ExpressionDef.trueValue().returning()
-                    )
+        if (components.size() > STRING_SWITCH_PROPERTY_THRESHOLD) {
+            StatementDef.DefineAndAssign handledPropertyDef = ExpressionDef.falseValue().newLocal("handledProperty");
+            VariableDef.Local handledPropertyVariable = handledPropertyDef.variable();
+            return StatementDef.multi(
+                handledPropertyDef,
+                keyVariable.asStatementSwitch(
+                    STRING_TYPE,
+                    buildSwitchCases(deserializerClassTypeDef, components, keyFieldNames, seenPropertyVariables, componentDeserializers, handledPropertyVariable, type),
+                    handledPropertyVariable.ifFalse(unknownPropertyStatement)
                 )
-            ).newLocal("switchResult");
+            );
         }
         StatementDef switchStatement = unknownPropertyStatement;
         for (int i = components.size() - 1; i >= 0; i--) {
@@ -372,7 +391,7 @@ public final class RecordDeserializerSourceGen {
                 .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
                 .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
-            switchStatement = keyVariable.equalsStructurally(componentNameExpression).ifTrue(
+            switchStatement = keyVariable.invoke(STRING_EQUALS_METHOD, componentNameExpression).ifTrue(
                 seenPropertyVariable.ifTrue(
                     duplicatePropertyStatement,
                     StatementDef.multi(
@@ -386,13 +405,14 @@ public final class RecordDeserializerSourceGen {
         return switchStatement;
     }
 
-    private Map<ExpressionDef.Constant, ExpressionDef> buildSwitchCases(ClassTypeDef deserializerClassTypeDef,
-                                                                        List<RecordSerdeShape.RecordComponent> components,
-                                                                        Map<String, String> keyFieldNames,
-                                                                        List<VariableDef.Local> seenPropertyVariables,
-                                                                        List<StatementDef> componentDeserializers,
-                                                                        VariableDef.MethodParameter type) {
-        Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
+    private Map<ExpressionDef.Constant, StatementDef> buildSwitchCases(ClassTypeDef deserializerClassTypeDef,
+                                                                       List<RecordSerdeShape.RecordComponent> components,
+                                                                       Map<String, String> keyFieldNames,
+                                                                       List<VariableDef.Local> seenPropertyVariables,
+                                                                       List<StatementDef> componentDeserializers,
+                                                                       VariableDef.Local handledPropertyVariable,
+                                                                       VariableDef.MethodParameter type) {
+        Map<ExpressionDef.Constant, StatementDef> switchCases = new LinkedHashMap<>();
         for (int i = 0; i < components.size(); i++) {
             RecordSerdeShape.RecordComponent component = components.get(i);
             ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
@@ -401,17 +421,14 @@ public final class RecordDeserializerSourceGen {
                 .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             switchCases.put(ExpressionDef.constant(component.name()),
-                new ExpressionDef.SwitchYieldCase(
-                    TypeDef.Primitive.BOOLEAN,
-                    StatementDef.multi(
-                        seenPropertyVariable.ifTrue(
-                            duplicatePropertyStatement,
-                            StatementDef.multi(
-                                seenPropertyVariable.assign(ExpressionDef.trueValue()),
-                                componentDeserializers.get(i)
-                            )
-                        ),
-                        ExpressionDef.trueValue().returning()
+                handledPropertyVariable.ifFalse(
+                    seenPropertyVariable.ifTrue(
+                        duplicatePropertyStatement,
+                        StatementDef.multi(
+                            handledPropertyVariable.assign(ExpressionDef.trueValue()),
+                            seenPropertyVariable.assign(ExpressionDef.trueValue()),
+                            componentDeserializers.get(i)
+                        )
                     )
                 )
             );
@@ -436,13 +453,21 @@ public final class RecordDeserializerSourceGen {
         Method scalarDecodeMethod = scalarDecoderMethod(component.type());
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
-            deserializeAndAssign = valueVariable.assign(
-                objectDecoder.invoke(scalarDecodeMethod).cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()))
-            );
+            if (component.type().isPrimitive() && !component.type().isArray()) {
+                deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
+                    valueVariable.assign(objectDecoder.invoke(scalarDecodeMethod))
+                );
+            } else {
+                ExpressionDef decodedValue = objectDecoder.invoke(scalarDecodeMethod);
+                if (!component.type().isPrimitive() || component.type().isArray()) {
+                    decodedValue = decodedValue.cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()));
+                }
+                deserializeAndAssign = valueVariable.assign(decodedValue);
+            }
         } else {
             String deserializerFieldName = required(deserializerFieldNames, component.name());
             StatementDef.DefineAndAssign deserializerDef = aThis.field(deserializerFieldName, DESERIALIZER_TYPE)
-                .newLocal(RecordSerdeSourceGenUtils.localName("deserializer", component.name(), index));
+                .newLocal(RecordSerdeSourceGenUtils.localName("deserializer", index));
             StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
                 deserializerDef.variable().assign(context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression).invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression))
             );
@@ -475,8 +500,8 @@ public final class RecordDeserializerSourceGen {
             );
     }
 
-    private String constantFieldName(String prefix, String componentName, int index) {
-        return prefix + "_" + componentName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
+    private String indexedName(String prefix, int index) {
+        return prefix + "_" + index;
     }
 
     private static String required(Map<String, String> names, String key) {
@@ -504,14 +529,22 @@ public final class RecordDeserializerSourceGen {
             return null;
         }
         return switch (type.getName()) {
-            case "boolean", "java.lang.Boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
-            case "byte", "java.lang.Byte" -> DECODE_BYTE_NULLABLE_METHOD;
-            case "short", "java.lang.Short" -> DECODE_SHORT_NULLABLE_METHOD;
-            case "char", "java.lang.Character" -> DECODE_CHAR_NULLABLE_METHOD;
-            case "int", "java.lang.Integer" -> DECODE_INT_NULLABLE_METHOD;
-            case "long", "java.lang.Long" -> DECODE_LONG_NULLABLE_METHOD;
-            case "float", "java.lang.Float" -> DECODE_FLOAT_NULLABLE_METHOD;
-            case "double", "java.lang.Double" -> DECODE_DOUBLE_NULLABLE_METHOD;
+            case "boolean" -> DECODE_BOOLEAN_METHOD;
+            case "java.lang.Boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
+            case "byte" -> DECODE_BYTE_METHOD;
+            case "java.lang.Byte" -> DECODE_BYTE_NULLABLE_METHOD;
+            case "short" -> DECODE_SHORT_METHOD;
+            case "java.lang.Short" -> DECODE_SHORT_NULLABLE_METHOD;
+            case "char" -> DECODE_CHAR_METHOD;
+            case "java.lang.Character" -> DECODE_CHAR_NULLABLE_METHOD;
+            case "int" -> DECODE_INT_METHOD;
+            case "java.lang.Integer" -> DECODE_INT_NULLABLE_METHOD;
+            case "long" -> DECODE_LONG_METHOD;
+            case "java.lang.Long" -> DECODE_LONG_NULLABLE_METHOD;
+            case "float" -> DECODE_FLOAT_METHOD;
+            case "java.lang.Float" -> DECODE_FLOAT_NULLABLE_METHOD;
+            case "double" -> DECODE_DOUBLE_METHOD;
+            case "java.lang.Double" -> DECODE_DOUBLE_NULLABLE_METHOD;
             case "java.lang.String" -> DECODE_STRING_NULLABLE_METHOD;
             case "java.math.BigInteger" -> DECODE_BIG_INTEGER_NULLABLE_METHOD;
             case "java.math.BigDecimal" -> DECODE_BIG_DECIMAL_NULLABLE_METHOD;

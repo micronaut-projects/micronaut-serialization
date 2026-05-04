@@ -97,6 +97,16 @@ class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSpec {
         return new String(jsonMapper.cloneWithViewClass(view).writeValueAsBytes(value), StandardCharsets.UTF_8)
     }
 
+    static String generatedTestSource(String className) {
+        String sourcePath = className.replace('.', File.separator) + ".java"
+        def sourceFile = new File("build/generated/sources/annotationProcessor/java/test", sourcePath)
+        if (!sourceFile.exists()) {
+            sourceFile = new File("serde-jackson/build/generated/sources/annotationProcessor/java/test", sourcePath)
+        }
+        assert sourceFile.exists() : "Generated test source not found: ${sourcePath}"
+        return sourceFile.text
+    }
+
     static <T> T deserializeFromString(JsonMapper jsonMapper, Class<T> type, @Language("json") String json, Class<?> view = Object.class) {
         return jsonMapper.cloneWithViewClass(view).readValue(json, Argument.of(type))
     }

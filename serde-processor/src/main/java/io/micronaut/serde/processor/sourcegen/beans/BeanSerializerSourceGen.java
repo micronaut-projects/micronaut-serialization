@@ -121,8 +121,8 @@ public final class BeanSerializerSourceGen {
 
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
-            String keyFieldName = constantFieldName("KEY", property.name(), index);
-            String argumentFieldName = constantFieldName("ARGUMENT", property.name(), index);
+            String keyFieldName = indexedName("KEY", index);
+            String argumentFieldName = indexedName("ARGUMENT", index);
             keyFieldNames.put(property.name(), keyFieldName);
             argumentFieldNames.put(property.name(), argumentFieldName);
 
@@ -135,7 +135,7 @@ public final class BeanSerializerSourceGen {
                 .initializer(BeanSerdeSourceGenUtils.argumentExpression(property.serializationType()))
                 .build());
             if (scalarEncoderMethod(property.serializationType()) == null) {
-                String serializerFieldName = constantFieldName("SERIALIZER", property.name(), index);
+                String serializerFieldName = indexedName("SERIALIZER", index);
                 serializerFieldNames.put(property.name(), serializerFieldName);
                 fields.add(FieldDef.builder(serializerFieldName, SERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
@@ -156,7 +156,7 @@ public final class BeanSerializerSourceGen {
             .addFields(fields)
             .addMethod(generateNoArgsConstructor(serializerFieldNames))
             .addMethod(generateCreateSpecificMethod(beanTypeDef, serializerClassTypeDef, argumentFieldNames, serializerFieldNames))
-            .addMethod(generateSerializeMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames))
+            .addMethod(generateSerializeMethod(beanTypeDef))
             .addMethod(generateSerializeIntoMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
 
         if (!serializerFieldNames.isEmpty()) {
@@ -224,7 +224,7 @@ public final class BeanSerializerSourceGen {
                     ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign serializerDef = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
-                        .newLocal(BeanSerdeSourceGenUtils.localName("serializer", propertyName, index));
+                        .newLocal(BeanSerdeSourceGenUtils.localName("serializer", index));
                     statements.add(serializerDef);
                     serializerValues.add(serializerDef.variable());
                     constructorParameterTypes.add(SERIALIZER_TYPE);
@@ -243,12 +243,7 @@ public final class BeanSerializerSourceGen {
             });
     }
 
-    private MethodDef generateSerializeMethod(TypeDef beanTypeDef,
-                                              ClassTypeDef serializerClassTypeDef,
-                                              BeanSerdeShape beanSerdeShape,
-                                              Map<String, String> keyFieldNames,
-                                              Map<String, String> argumentFieldNames,
-                                              Map<String, String> serializerFieldNames) {
+    private MethodDef generateSerializeMethod(TypeDef beanTypeDef) {
         return MethodDef.builder("serialize")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
@@ -266,7 +261,7 @@ public final class BeanSerializerSourceGen {
                 List<StatementDef> objectStatements = new ArrayList<>();
                 StatementDef.DefineAndAssign objectEncoderDef = encoder.invoke(ENCODE_OBJECT_METHOD, type).newLocal("objectEncoder");
                 objectStatements.add(objectEncoderDef);
-                objectStatements.addAll(serializeIntoStatements(aThis, serializerClassTypeDef, objectEncoderDef.variable(), context, type, value, beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
+                objectStatements.add(aThis.invoke("serializeInto", TypeDef.VOID, objectEncoderDef.variable(), context, type, value));
                 objectStatements.add(objectEncoderDef.variable().invoke(FINISH_STRUCTURE_METHOD));
 
                 return value.isNull().ifTrue(
@@ -310,7 +305,7 @@ public final class BeanSerializerSourceGen {
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
             statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE)));
-            statements.add(serializeProperty(aThis, serializerClassTypeDef, encoder, context, type, value, property, index++, argumentFieldNames, serializerFieldNames));
+            statements.add(serializeProperty(aThis, serializerClassTypeDef, encoder, context, type, value, property, index++, keyFieldNames, argumentFieldNames, serializerFieldNames));
         }
         return statements;
     }
@@ -324,9 +319,11 @@ public final class BeanSerializerSourceGen {
                                            VariableDef.MethodParameter value,
                                            BeanSerdeShape.BeanProperty property,
                                            int index,
+                                           Map<String, String> keyFieldNames,
                                            Map<String, String> argumentFieldNames,
                                            Map<String, String> serializerFieldNames) {
         ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
+        ExpressionDef propertyNameExpression = serializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
         Method scalarMethod = scalarEncoderMethod(property.serializationType());
         ExpressionDef propertyValue = value.invoke(property.readMethod());
         if (scalarMethod != null) {
@@ -334,7 +331,7 @@ public final class BeanSerializerSourceGen {
             if (property.serializationType().isPrimitive() && !property.serializationType().isArray()) {
                 scalarStatement = objectEncoder.invoke(scalarMethod, propertyValue);
             } else {
-                StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
+                StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
                 scalarStatement = StatementDef.multi(
                     propertyValueDef,
                     propertyValueDef.variable().isNull().ifTrue(
@@ -343,11 +340,11 @@ public final class BeanSerializerSourceGen {
                     )
                 );
             }
-            return wrapWithPropertyPath(scalarStatement, type, property.name(), argumentExpression);
+            return wrapWithPropertyPath(scalarStatement, type, propertyNameExpression, argumentExpression);
         }
         String serializerFieldName = required(serializerFieldNames, property.name());
         StatementDef.DefineAndAssign serializerDef = new StatementDef.DefineAndAssign(
-            new VariableDef.Local(BeanSerdeSourceGenUtils.localName("serializer", property.name(), index), NULLABLE_SERIALIZER_TYPE),
+            new VariableDef.Local(BeanSerdeSourceGenUtils.localName("serializer", index), NULLABLE_SERIALIZER_TYPE),
             aThis.field(serializerFieldName, SERIALIZER_TYPE)
         );
         StatementDef initializeSerializerStatement = serializerDef.variable().isNull().ifTrue(
@@ -367,9 +364,9 @@ public final class BeanSerializerSourceGen {
             )
         );
         if (property.serializationType().isPrimitive() && !property.serializationType().isArray()) {
-            return wrapWithPropertyPath(serializeStatement, type, property.name(), argumentExpression);
+            return wrapWithPropertyPath(serializeStatement, type, propertyNameExpression, argumentExpression);
         }
-        StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
+        StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
         return wrapWithPropertyPath(StatementDef.multi(
             propertyValueDef,
             propertyValueDef.variable().isNull().ifTrue(
@@ -386,11 +383,11 @@ public final class BeanSerializerSourceGen {
                     )
                 )
             )
-        ), type, property.name(), argumentExpression);
+        ), type, propertyNameExpression, argumentExpression);
     }
 
-    private String constantFieldName(String prefix, String propertyName, int index) {
-        return prefix + "_" + propertyName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
+    private String indexedName(String prefix, int index) {
+        return prefix + "_" + index;
     }
 
     private @Nullable Method scalarEncoderMethod(ClassElement type) {
@@ -412,7 +409,7 @@ public final class BeanSerializerSourceGen {
 
     private StatementDef wrapWithPropertyPath(StatementDef statement,
                                               VariableDef.MethodParameter type,
-                                              String propertyName,
+                                              ExpressionDef propertyNameExpression,
                                               ExpressionDef argumentExpression) {
         return StatementDef.doTry(statement)
             .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
@@ -421,7 +418,7 @@ public final class BeanSerializerSourceGen {
                         WITH_PROPERTY_PATH_THROWABLE_METHOD,
                         exceptionVariable,
                         type,
-                        ExpressionDef.constant(propertyName),
+                        propertyNameExpression,
                         argumentExpression
                     )
                     .doThrow()

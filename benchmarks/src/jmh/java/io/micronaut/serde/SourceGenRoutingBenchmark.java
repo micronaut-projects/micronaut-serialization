@@ -6,6 +6,7 @@ import io.micronaut.core.annotation.Introspected;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.JsonMapper;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.jackson.JacksonJsonMapper;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -77,7 +78,7 @@ public class SourceGenRoutingBenchmark {
         }
     }
 
-    @Serdeable
+    @SerdeableGenerated
     @Introspected
     public record GeneratedShape(String name, int count) {
     }
