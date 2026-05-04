@@ -48,11 +48,6 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 XmlReaderDecoder.ArrayDecoder,
                 XmlReaderDecoder.SyntheticRootDecoder {
 
-    @Override
-    public boolean isCoercedNullValue() {
-        return false;
-    }
-
     final Cursor cursor;
 
     XmlReaderDecoder(@NonNull RemainingLimits limits, @NonNull Cursor cursor) {
@@ -60,11 +55,16 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         this.cursor = cursor;
     }
 
-    // default Decoder surface
 
+    // default Decoder surface
     @Override
     public @NonNull Decoder decodeArray(Argument<?> type) throws IOException {
         throw createDeserializationException("Array decoding not supported in current XML decoder.", null);
+    }
+
+    @Override
+    public boolean isCoercedNullValue() {
+        return false;
     }
 
     @Override
@@ -259,9 +259,10 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
     }
 
     /**
-     *
-     */
-    /** Captured XML attribute name + value pair, surfaced to deserializers as object keys. */
+     * Captured XML attribute name + value pair, surfaced to deserializers as object keys.
+     * @param name
+     * @param value
+     * */
     record XmlAttr(@NonNull String name, @NonNull String value) { }
 
     static final class Cursor {
@@ -751,19 +752,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
 
         @Override
         public boolean decodeNull() throws IOException {
-            if (firstItemPending) {
-                // The pre-cached first inline item carried scalar text — never null.
-                return false;
-            }
-            if (!itemPending) {
-                return false;
-            }
-            int e = cursor.current();
-            if (e == XMLStreamConstants.END_ELEMENT) {
-                cursor.advance(); // consume item's END_ELEMENT
-                clearItem();
-                return true;
-            }
+            // Empty array items are auto-coerced to null. <tag></tag> -> null
             return false;
         }
 
