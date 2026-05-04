@@ -35,6 +35,17 @@ abstract class EmptyPolymorphicTest extends Specification{
         xml =="<Data><name>Foobar</name><proxy/></Data>"
     }
 
+    def "Empty Polymorphic read rejects abstract proxy without type info"() {
+        given:
+        def xml = "<ReadableData><name>Foobar</name><proxy></proxy></ReadableData>"
+
+        when:
+        xmlMapper.readValue(xml, ReadableData)
+
+        then:
+        thrown(Exception)
+    }
+
 
 
 
@@ -68,5 +79,11 @@ abstract class EmptyPolymorphicTest extends Specification{
     @Serdeable
     @JsonTypeName("empty")
     static class EmptyProxy implements Proxy { }
+
+    @Serdeable
+    static class ReadableData {
+        String name
+        Proxy proxy
+    }
 
 }

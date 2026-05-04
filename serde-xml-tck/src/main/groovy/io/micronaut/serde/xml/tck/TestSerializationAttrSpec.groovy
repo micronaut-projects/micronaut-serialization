@@ -45,9 +45,11 @@ abstract class TestSerializationAttrSpec extends Specification{
 
         when:
         def xml = xmlMapper.writeValueAsString(bean)
+        def read = xmlMapper.readValue(xml, Issue19Bean)
 
         then:
         xml == "<test id=\"abc\"></test>"
+        read.id == "abc"
     }
 
     def "Jurisdiction - multiple attributes with order"() {
@@ -171,8 +173,10 @@ abstract class TestSerializationAttrSpec extends Specification{
         then:
         xml == "<Values>" +
                 "<type>list</type>" +
+                "<kilo>" +
                 "<values><vi>a</vi></values>" +
                 "<values><vi>b</vi></values>" +
+                "</kilo>" +
                 "</Values>"
         read.type == "list"
         read.values*.v == ["a", "b"]
@@ -374,7 +378,7 @@ abstract class TestSerializationAttrSpec extends Specification{
         @JacksonXmlProperty(localName = "type")
         private String type;
 
-        @JacksonXmlElementWrapper(localName = "kilo", useWrapping = false)
+        @JacksonXmlElementWrapper(localName = "kilo", useWrapping = true)
         List<Value> values = new ArrayList<Value>();
 
         Values(String type, List<Value> values) {
