@@ -13,6 +13,11 @@ import java.util.Locale
 
 class DatabindJsonFormatSpec extends JsonFormatSpec {
 
+    @Override
+    protected boolean supportsClassLevelJsonFormatPropagation() {
+        false
+    }
+
     @PendingFeature(reason = "Remove CompoundLocaleObjectMapperListener when Jackson Databind handles compound @JsonFormat(locale) values")
     void "plain Jackson Databind supports compound JsonFormat locale values"() {
         given:
