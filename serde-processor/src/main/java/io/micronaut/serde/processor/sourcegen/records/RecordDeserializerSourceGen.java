@@ -106,6 +106,15 @@ public final class RecordDeserializerSourceGen {
         String.class,
         Argument.class
     );
+    private static final Method CHECK_STRICT_NULLABLE_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "checkStrictNullableConstructorParameter",
+        Deserializer.DecoderContext.class,
+        Object.class,
+        Argument.class,
+        String.class,
+        Argument.class
+    );
     private static final Method WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
         "withRuntimeObjectFallback",
@@ -342,10 +351,17 @@ public final class RecordDeserializerSourceGen {
                 statements.add(objectDecoder.invoke(FINISH_STRUCTURE_METHOD));
                 for (int i = 0; i < components.size(); i++) {
                     RecordSerdeShape.RecordComponent component = components.get(i);
-                    boolean nonNull = component.propertyElement().isNonNull();
-                    statements.add(seenPropertyVariables.get(i).ifFalse(
-                        valueVariables.get(i).assign(RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), nonNull))
-                    ));
+                    if (requiresStrictNullableCheck(component)) {
+                        statements.add(ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                            .invokeStatic(
+                                CHECK_STRICT_NULLABLE_CONSTRUCTOR_PARAMETER_METHOD,
+                                context,
+                                valueVariables.get(i).cast(TypeDef.OBJECT),
+                                type,
+                                deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE),
+                                deserializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE)
+                            ));
+                    }
                 }
                 statements.add(ClassTypeDef.of(element).instantiate(recordSerdeShape.canonicalConstructor(), constructorValues).returning());
                 return StatementDef.multi(statements);
@@ -491,6 +507,12 @@ public final class RecordDeserializerSourceGen {
 
     private String indexedName(String prefix, int index) {
         return prefix + "_" + index;
+    }
+
+    private boolean requiresStrictNullableCheck(RecordSerdeShape.RecordComponent component) {
+        return component.propertyElement().isNonNull()
+            && !component.propertyElement().isNullable()
+            && (!component.type().isPrimitive() || component.type().isArray());
     }
 
     private static String required(Map<String, String> names, String key) {

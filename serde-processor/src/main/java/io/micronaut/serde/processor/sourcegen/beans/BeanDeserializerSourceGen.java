@@ -459,27 +459,30 @@ public final class BeanDeserializerSourceGen {
         ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
         Method scalarDecodeMethod = scalarDecoderMethod(property.deserializationType());
         boolean primitiveScalar = scalarDecodeMethod != null && property.deserializationType().isPrimitive() && !property.deserializationType().isArray();
+        if (scalarDecodeMethod != null && primitiveScalar) {
+            StatementDef deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
+                beanVariable.invoke(property.writeMethod(), objectDecoder.invoke(scalarDecodeMethod))
+            );
+            return StatementDef.doTry(deserializeAndAssign)
+                .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
+                    ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                        .invokeStatic(
+                            WITH_PROPERTY_PATH_THROWABLE_METHOD,
+                            exceptionVariable,
+                            type,
+                            propertyNameExpression,
+                            argumentExpression
+                        )
+                        .doThrow()
+                );
+        }
         StatementDef.DefineAndAssign deserializedValueDef;
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
-            if (primitiveScalar) {
-                deserializedValueDef = BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType())
-                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                deserializeAndAssign = StatementDef.multi(
-                    deserializedValueDef,
-                    objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
-                        StatementDef.multi(
-                            deserializedValueDef.variable().assign(objectDecoder.invoke(scalarDecodeMethod)),
-                            beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable())
-                        )
-                    )
-                );
-            } else {
-                deserializedValueDef = objectDecoder.invoke(scalarDecodeMethod)
-                    .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                    .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
-                deserializeAndAssign = deserializedValueDef;
-            }
+            deserializedValueDef = objectDecoder.invoke(scalarDecodeMethod)
+                .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
+                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
+            deserializeAndAssign = deserializedValueDef;
         } else {
             String deserializerFieldName = required(deserializerFieldNames, property.name());
             StatementDef.DefineAndAssign deserializerDef = new StatementDef.DefineAndAssign(
@@ -502,11 +505,9 @@ public final class BeanDeserializerSourceGen {
                 deserializedValueDef
             );
         }
-        StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
         StatementDef propertyAssignment;
-        if (primitiveScalar) {
-            propertyAssignment = StatementDef.multi();
-        } else if (property.deserializationType().isPrimitive() || property.nullable()) {
+        if (property.deserializationType().isPrimitive() || property.nullable()) {
+            StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
             if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
                 propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
                     beanVariable.invoke(property.writeMethod(), BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType())),
@@ -516,6 +517,7 @@ public final class BeanDeserializerSourceGen {
                 propertyAssignment = assignStatement;
             }
         } else {
+            StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
             propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
                 StatementDef.multi(),
                 assignStatement

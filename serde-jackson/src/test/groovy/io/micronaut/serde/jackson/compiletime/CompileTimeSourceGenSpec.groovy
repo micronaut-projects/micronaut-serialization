@@ -88,7 +88,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         then:
         assertSmallDispatchSource(smallDeserializerSource)
         assertSmallDispatchSource(boundaryDeserializerSource)
-        assertLargeDispatchSource(largeDeserializerSource, 'boolean value2 = false;', 'value2 = objectDecoder.decodeBoolean();')
+        assertLargeBeanDispatchSource(largeDeserializerSource)
         small.getA() == 'x'
         small.getB() == 7
         small.isC()
@@ -159,7 +159,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         then:
         assertSmallDispatchSource(smallDeserializerSource)
         assertSmallDispatchSource(boundaryDeserializerSource)
-        assertLargeDispatchSource(largeDeserializerSource, 'boolean propertyValue2 = false;', 'propertyValue2 = objectDecoder.decodeBoolean();')
+        assertLargeRecordDispatchSource(largeDeserializerSource)
         small.a() == 'x'
         small.b() == 7
         small.c()
@@ -200,6 +200,25 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test generated record constructor failures match runtime for small and large property sets'() {
+        given:
+        def context = ApplicationContext.run(['micronaut.serde.deserialization.strict-nullable': true])
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadFailureMatches(jsonMapper, generatedType, runtimeType, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                         | generatedType                                  | runtimeType                                         | json
+        'small missing non-null value'   | SourceGenSmallDispatchNonNullRecord.class      | SourceGenRuntimeSmallDispatchNonNullRecord.class    | '{"b":7,"c":true}'
+        'small explicit non-null null'   | SourceGenSmallDispatchNonNullRecord.class      | SourceGenRuntimeSmallDispatchNonNullRecord.class    | '{"a":null,"b":7,"c":true}'
+        'large missing non-null value'   | SourceGenLargeDispatchNonNullRecord.class      | SourceGenRuntimeLargeDispatchNonNullRecord.class    | '{"a":"x","b":7,"c":true,"d":9,"e":3.5}'
+        'large explicit non-null null'   | SourceGenLargeDispatchNonNullRecord.class      | SourceGenRuntimeLargeDispatchNonNullRecord.class    | '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":null}'
+    }
+
     private static void assertSerializeMethodUsesObjectEncoder(String serializerSource) {
         String serializeMethodSource = serializerSource.substring(
             serializerSource.indexOf('public void serialize('),
@@ -221,9 +240,23 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assert !deserializerSource.contains('duplicateProperty')
     }
 
-    private static void assertLargeDispatchSource(String deserializerSource,
-                                                  String primitiveDefault,
-                                                  String primitiveDecode) {
+    private static void assertLargeBeanDispatchSource(String deserializerSource) {
+        assertLargeDispatchSource(deserializerSource)
+        assert !deserializerSource.contains('boolean value2 = false;')
+        assert !deserializerSource.contains('value2 = objectDecoder.decodeBoolean();')
+        assert deserializerSource.contains('bean.setC(objectDecoder.decodeBoolean());')
+        assert !deserializerSource.contains('decodeBooleanNullable')
+    }
+
+    private static void assertLargeRecordDispatchSource(String deserializerSource) {
+        assertLargeDispatchSource(deserializerSource)
+        assert deserializerSource.contains('boolean propertyValue2 = false;')
+        assert deserializerSource.contains('propertyValue2 = objectDecoder.decodeBoolean();')
+        assert !deserializerSource.contains('decodeBooleanNullable')
+        assert !deserializerSource.contains('if (!seenProperty')
+    }
+
+    private static void assertLargeDispatchSource(String deserializerSource) {
         assert deserializerSource.contains('switch (key)')
         assert !deserializerSource.contains('key.equals(')
         assert !deserializerSource.contains('Objects.equals(key')
@@ -234,9 +267,6 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assert deserializerSource.count('decodeKey()') == 2
         assert deserializerSource.contains('skipValue')
         assert !deserializerSource.contains('duplicateProperty')
-        assert deserializerSource.contains(primitiveDefault)
-        assert deserializerSource.contains(primitiveDecode)
-        assert !deserializerSource.contains('decodeBooleanNullable')
     }
 
     private Object buildDeserializer(def context, Class<?> type) {
@@ -258,6 +288,25 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
             result = deserializer.deserialize(decoder, decoderContext, type)
         }
         result
+    }
+
+    private static void assertReadFailureMatches(JsonMapper jsonMapper,
+                                                 Class<?> generatedType,
+                                                 Class<?> runtimeType,
+                                                 String json) {
+        def generatedFailure = readFailure(jsonMapper, generatedType, json)
+        def runtimeFailure = readFailure(jsonMapper, runtimeType, json)
+        assert generatedFailure != null
+        assert runtimeFailure != null
+    }
+
+    private static Throwable readFailure(JsonMapper jsonMapper, Class<?> type, String json) {
+        try {
+            jsonMapper.readValue(json, Argument.of(type))
+            return null
+        } catch (Throwable e) {
+            return e
+        }
     }
 
     private static String simpleName(String className) {

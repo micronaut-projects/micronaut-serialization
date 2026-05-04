@@ -23,8 +23,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         deserializerSource.contains('propertyValue1 = objectDecoder.decodeBoolean();')
         !deserializerSource.contains('propertyValue1 = objectDecoder.decodeBooleanNullable();')
         !deserializerSource.contains('component0')
-        deserializerSource.indexOf('if (!seenProperty') > -1
-        deserializerSource.indexOf('if (!seenProperty') < deserializerSource.indexOf('return new io.micronaut.serde.jackson.compiletime.SourceGenGeneratedConstructorDefaults')
+        !deserializerSource.contains('if (!seenProperty')
         !deserializerSource.contains('duplicateProperty')
 
         cleanup:
@@ -41,8 +40,9 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         String deserializerSource = generatedTestSource(deserializerClassName)
 
         expect:
-        deserializerSource.contains('boolean value1 = false;')
-        deserializerSource.contains('value1 = objectDecoder.decodeBoolean();')
+        !deserializerSource.contains('boolean value1 = false;')
+        !deserializerSource.contains('value1 = objectDecoder.decodeBoolean();')
+        deserializerSource.contains('bean.setActive(objectDecoder.decodeBoolean());')
         !deserializerSource.contains('value1 = objectDecoder.decodeBooleanNullable();')
         !deserializerSource.contains('duplicateProperty')
 

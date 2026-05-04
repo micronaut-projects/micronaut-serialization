@@ -121,6 +121,33 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
+     * Checks a constructor argument value against strict nullable deserialization.
+     *
+     * @param context The decoder context.
+     * @param value The constructor argument value.
+     * @param beanType The declaring bean argument.
+     * @param propertyName The property name.
+     * @param propertyArgument The property argument.
+     * @throws SerdeException If strict nullable deserialization rejects the value.
+     * @since 3.0
+     */
+    public static void checkStrictNullableConstructorParameter(Deserializer.DecoderContext context,
+                                                              @Nullable Object value,
+                                                              Argument<?> beanType,
+                                                              String propertyName,
+                                                              Argument<?> propertyArgument) throws SerdeException {
+        boolean strictNullable = context.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::isStrictNullable)
+            .orElse(false);
+        if (strictNullable && value == null) {
+            SerdeException serdeException = new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+                "]. Non-null constructor parameter [" + propertyArgument + "] is not present or is null in the supplied data");
+            serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument.withName(propertyName)));
+            throw serdeException;
+        }
+    }
+
+    /**
      * Appends a property path segment to an existing {@link SerdeException}.
      *
      * @param exception The exception to enrich.
