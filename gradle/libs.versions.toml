@@ -12,7 +12,7 @@ jetbrains-annotations = "26.1.0"
 jmh = "1.37"
 lombok = "1.18.46"
 errorprone-gradle-plugin = "5.1.0"
-nullaway = "0.12.15"
+nullaway = "0.13.4"
 error_prone_core = "2.48.0"
 
 micronaut-platform = "5.0.0-M2"
