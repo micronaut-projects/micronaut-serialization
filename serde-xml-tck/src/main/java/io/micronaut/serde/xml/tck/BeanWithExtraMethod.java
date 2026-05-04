@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2026 original authors
+ * Copyright 2017-2021 original authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,29 +15,12 @@
  */
 package io.micronaut.serde.xml.tck;
 
+import io.micronaut.context.annotation.Executable;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-public class SimpleBean {
-
-    String name;
-    int age;
-
-    public SimpleBean() {
-    }
-
-    public SimpleBean(int age, String name) {
-        this.age = age;
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
+public class BeanWithExtraMethod {
+    private String name;
 
     public String getName() {
         return name;
@@ -47,12 +30,8 @@ public class SimpleBean {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "SimpleBean{" +
-            "age=" + age +
-            ", name='" + name + '\'' +
-            '}';
+    @Executable
+    public String something() {
+        return "xyz";
     }
 }
-

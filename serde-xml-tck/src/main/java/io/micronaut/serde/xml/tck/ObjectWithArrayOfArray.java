@@ -16,43 +16,34 @@
 package io.micronaut.serde.xml.tck;
 
 import io.micronaut.serde.annotation.Serdeable;
+import org.jspecify.annotations.Nullable;
+
+import java.util.List;
+import java.util.Objects;
 
 @Serdeable
-public class SimpleBean {
+public final class ObjectWithArrayOfArray {
 
-    String name;
-    int age;
+    private @Nullable List<List<SomeObject>> vals;
 
-    public SimpleBean() {
+    public @Nullable List<List<SomeObject>> getVals() {
+        return vals;
     }
 
-    public SimpleBean(int age, String name) {
-        this.age = age;
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setVals(@Nullable List<List<SomeObject>> vals) {
+        this.vals = vals;
     }
 
     @Override
-    public String toString() {
-        return "SimpleBean{" +
-            "age=" + age +
-            ", name='" + name + '\'' +
-            '}';
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectWithArrayOfArray that = (ObjectWithArrayOfArray) o;
+        return Objects.equals(vals, that.vals);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vals);
     }
 }
-

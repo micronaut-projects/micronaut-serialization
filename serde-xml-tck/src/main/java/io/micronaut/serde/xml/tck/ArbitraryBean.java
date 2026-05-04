@@ -18,26 +18,10 @@ package io.micronaut.serde.xml.tck;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-public class SimpleBean {
+public class ArbitraryBean {
 
-    String name;
-    int age;
-
-    public SimpleBean() {
-    }
-
-    public SimpleBean(int age, String name) {
-        this.age = age;
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
+    private String name;
+    private Object value;
 
     public String getName() {
         return name;
@@ -47,12 +31,11 @@ public class SimpleBean {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "SimpleBean{" +
-            "age=" + age +
-            ", name='" + name + '\'' +
-            '}';
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 }
-

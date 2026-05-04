@@ -18,41 +18,15 @@ package io.micronaut.serde.xml.tck;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-public class SimpleBean {
+public class NestedOnlyBean {
 
-    String name;
-    int age;
+    private Object nested;
 
-    public SimpleBean() {
+    public Object getNested() {
+        return nested;
     }
 
-    public SimpleBean(int age, String name) {
-        this.age = age;
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String toString() {
-        return "SimpleBean{" +
-            "age=" + age +
-            ", name='" + name + '\'' +
-            '}';
+    public void setNested(Object nested) {
+        this.nested = nested;
     }
 }
-

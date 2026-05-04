@@ -17,42 +17,31 @@ package io.micronaut.serde.xml.tck;
 
 import io.micronaut.serde.annotation.Serdeable;
 
+import java.util.Objects;
+
 @Serdeable
-public class SimpleBean {
+public class SomeObject {
 
-    String name;
-    int age;
+    private String val;
 
-    public SimpleBean() {
+    public String getVal() {
+        return val;
     }
 
-    public SimpleBean(int age, String name) {
-        this.age = age;
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setVal(String val) {
+        this.val = val;
     }
 
     @Override
-    public String toString() {
-        return "SimpleBean{" +
-            "age=" + age +
-            ", name='" + name + '\'' +
-            '}';
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SomeObject that = (SomeObject) o;
+        return Objects.equals(val, that.val);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(val);
     }
 }
-
