@@ -8,7 +8,6 @@ io.micronaut.serde.config.naming
 io.micronaut.serde.data
 io.micronaut.serde.exceptions
 io.micronaut.serde.exceptions.path
-io.micronaut.serde.info
 io.micronaut.serde.jackson
 io.micronaut.serde.jackson.builder
 io.micronaut.serde.jackson.builder.introspected
