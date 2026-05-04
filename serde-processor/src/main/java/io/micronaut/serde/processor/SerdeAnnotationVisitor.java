@@ -47,6 +47,7 @@ import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
@@ -798,10 +799,21 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
     private void applySourceGenDecision(ClassElement element) {
         SimpleSerdeShapeDecision decision = sourceGenShapeAnalyzer.analyze(element);
+        validateRequiredGeneratedSerde(element, decision);
         element.annotate(SerdeConfig.class, builder -> {
             builder.member(SerdeConfig.SOURCEGEN_SHAPE, decision.shapeKind().name());
             builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE, decision.serializerEligible());
             builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE, decision.deserializerEligible());
+            if (!decision.serializerFallbackReasons().isEmpty()) {
+                builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS, decision.serializerFallbackReasons().stream()
+                    .map(Enum::name)
+                    .toArray(String[]::new));
+            }
+            if (!decision.deserializerFallbackReasons().isEmpty()) {
+                builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS, decision.deserializerFallbackReasons().stream()
+                    .map(Enum::name)
+                    .toArray(String[]::new));
+            }
             if (decision.serializerEligible()) {
                 builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_CLASS, SerdeSourceGenClassNaming.generatedSerializerClassName(element));
             }
@@ -809,6 +821,22 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS, SerdeSourceGenClassNaming.generatedDeserializerClassName(element));
             }
         });
+    }
+
+    private void validateRequiredGeneratedSerde(ClassElement element, SimpleSerdeShapeDecision decision) {
+        if (!element.hasAnnotation(SerdeableGenerated.class)
+            || !element.booleanValue(SerdeableGenerated.class, "required").orElse(true)
+            || element.booleanValue(SerdeableGenerated.class, "skip").orElse(false)) {
+            return;
+        }
+        if (!element.booleanValue(SerdeableGenerated.class, "skipSerializer").orElse(false) && !decision.serializerEligible()) {
+            throw new ProcessingException(element, "Source-generated serializer required for " + element.getName()
+                + " but generation is not supported. Fallback reasons: " + decision.serializerFallbackReasons());
+        }
+        if (!element.booleanValue(SerdeableGenerated.class, "skipDeserializer").orElse(false) && !decision.deserializerEligible()) {
+            throw new ProcessingException(element, "Source-generated deserializer required for " + element.getName()
+                + " but generation is not supported. Fallback reasons: " + decision.deserializerFallbackReasons());
+        }
     }
 
     private void visitProperties(ClassElement classElement, VisitorContext context) {

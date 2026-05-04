@@ -180,18 +180,14 @@ public class ParityBean {
         beanType.getMethod('getTags').invoke(fromSpecificNull).toString() == '[a, b]'
 
         when:
-        def duplicateDefaultFailure = captureFailure {
-            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
-        }
-        def duplicateSpecificFailure = captureFailure {
-            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
-        }
+        def duplicateDefault = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        def duplicateSpecific = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
 
         then:
-        duplicateDefaultFailure != null
-        duplicateSpecificFailure != null
-        duplicateDefaultFailure.message?.contains('value')
-        duplicateSpecificFailure.message?.contains('value')
+        beanType.getMethod('getValue').invoke(duplicateDefault) == 'a'
+        beanType.getMethod('getValue').invoke(duplicateSpecific) == 'a'
+        beanType.getMethod('getCount').invoke(duplicateDefault) == 1
+        beanType.getMethod('getCount').invoke(duplicateSpecific) == 1
 
         when:
         def unknownDefaultFailure = captureFailure {
@@ -299,18 +295,18 @@ class LargeDispatchBean {
         invokeDeclared(large, 'getE') == 3.5d
 
         when:
-        def smallDuplicate = captureFailure {
-            deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
-        }
-        def largeDuplicate = captureFailure {
-            deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
-        }
+        def smallDuplicate = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
+        def largeDuplicate = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
 
         then:
-        smallDuplicate instanceof SerdeException
-        largeDuplicate instanceof SerdeException
-        smallDuplicate.message?.contains('a')
-        largeDuplicate.message?.contains('e')
+        invokeDeclared(smallDuplicate, 'getA') == 'x'
+        invokeDeclared(smallDuplicate, 'getB') == 7
+        invokeDeclared(smallDuplicate, 'isC')
+        invokeDeclared(largeDuplicate, 'getA') == 'x'
+        invokeDeclared(largeDuplicate, 'getB') == 7
+        invokeDeclared(largeDuplicate, 'isC')
+        invokeDeclared(largeDuplicate, 'getD') == 9L
+        invokeDeclared(largeDuplicate, 'getE') == 3.5d
 
         cleanup:
         context.close()

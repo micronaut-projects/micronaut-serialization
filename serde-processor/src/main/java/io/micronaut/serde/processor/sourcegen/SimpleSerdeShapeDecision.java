@@ -57,6 +57,7 @@ public record SimpleSerdeShapeDecision(
         COMPLEX_CREATOR,
         COMPLEX_ENUM,
         SUBTYPED,
+        SOURCEGEN_SKIPPED,
         UNSUPPORTED_SHAPE
     }
 }

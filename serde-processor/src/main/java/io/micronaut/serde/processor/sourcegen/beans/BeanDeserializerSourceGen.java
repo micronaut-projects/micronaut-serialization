@@ -56,10 +56,12 @@ public final class BeanDeserializerSourceGen {
     private static final TypeDef DESERIALIZER_TYPE = TypeDef.of(Deserializer.class);
     private static final TypeDef NULLABLE_DESERIALIZER_TYPE = DESERIALIZER_TYPE.annotated(AnnotationDef.builder(Nullable.class).build());
     private static final TypeDef STRING_TYPE = TypeDef.of(String.class);
+    private static final int STRING_SWITCH_PROPERTY_THRESHOLD = 5;
     private static final String CONTEXT_PARAMETER = "context";
     private static final String VALUE_LOCAL_PREFIX = "value";
     private static final String GENERATED_VALUE_MEMBER = "value";
 
+    private static final Method STRING_EQUALS_METHOD = ReflectionUtils.getRequiredMethod(String.class, "equals", Object.class);
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
     private static final Method CREATE_SPECIFIC_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         Deserializer.class,
@@ -76,24 +78,28 @@ public final class BeanDeserializerSourceGen {
     );
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", Argument.class);
     private static final Method DECODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeKey");
+    private static final Method SKIP_VALUE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "skipValue");
     private static final Method DECODE_STRING_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeStringNullable");
+    private static final Method DECODE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBoolean");
     private static final Method DECODE_BOOLEAN_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable");
+    private static final Method DECODE_BYTE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByte");
     private static final Method DECODE_BYTE_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeByteNullable");
+    private static final Method DECODE_SHORT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShort");
     private static final Method DECODE_SHORT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeShortNullable");
+    private static final Method DECODE_CHAR_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeChar");
     private static final Method DECODE_CHAR_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeCharNullable");
+    private static final Method DECODE_INT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeInt");
     private static final Method DECODE_INT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeIntNullable");
+    private static final Method DECODE_LONG_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLong");
     private static final Method DECODE_LONG_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeLongNullable");
+    private static final Method DECODE_FLOAT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloat");
     private static final Method DECODE_FLOAT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeFloatNullable");
+    private static final Method DECODE_DOUBLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDouble");
     private static final Method DECODE_DOUBLE_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDoubleNullable");
     private static final Method DECODE_BIG_INTEGER_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigIntegerNullable");
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
+    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
-    private static final Method DUPLICATE_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeExceptionUtil.class,
-        "duplicateProperty",
-        String.class,
-        Argument.class
-    );
     private static final Method HANDLE_UNKNOWN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
         "handleUnknownProperty",
@@ -148,8 +154,8 @@ public final class BeanDeserializerSourceGen {
 
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
-            String keyFieldName = constantFieldName("KEY", property.name(), index);
-            String argumentFieldName = constantFieldName("ARGUMENT", property.name(), index);
+            String keyFieldName = indexedName("KEY", index);
+            String argumentFieldName = indexedName("ARGUMENT", index);
             keyFieldNames.put(property.name(), keyFieldName);
             argumentFieldNames.put(property.name(), argumentFieldName);
 
@@ -163,7 +169,7 @@ public final class BeanDeserializerSourceGen {
                 .initializer(BeanSerdeSourceGenUtils.argumentExpression(lookupType))
                 .build());
             if (scalarDecoderMethod(property.deserializationType()) == null) {
-                String deserializerFieldName = constantFieldName("DESERIALIZER", property.name(), index);
+                String deserializerFieldName = indexedName("DESERIALIZER", index);
                 deserializerFieldNames.put(property.name(), deserializerFieldName);
                 fields.add(FieldDef.builder(deserializerFieldName, DESERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
@@ -185,6 +191,11 @@ public final class BeanDeserializerSourceGen {
             .addMethod(generateCreateSpecificMethod(beanTypeDef, deserializerClassTypeDef, argumentFieldNames, deserializerFieldNames))
             .addMethod(generateDeserializeMethod(element, beanTypeDef, deserializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
 
+        if (beanSerdeShape.properties().size() > STRING_SWITCH_PROPERTY_THRESHOLD) {
+            classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+                .addMember(GENERATED_VALUE_MEMBER, "FallThrough")
+                .build());
+        }
         if (!deserializerFieldNames.isEmpty()) {
             classDefBuilder.addMethod(generateSpecializedConstructor(deserializerFieldNames));
         }
@@ -249,7 +260,7 @@ public final class BeanDeserializerSourceGen {
                     ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
                     StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, argumentExpression)
                         .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, argumentExpression)
-                        .newLocal(BeanSerdeSourceGenUtils.localName("deserializer", propertyName, index));
+                        .newLocal(BeanSerdeSourceGenUtils.localName("deserializer", index));
                     statements.add(deserializerDef);
                     deserializerValues.add(deserializerDef.variable());
                     constructorParameterTypes.add(DESERIALIZER_TYPE);
@@ -300,9 +311,8 @@ public final class BeanDeserializerSourceGen {
                 List<BeanSerdeShape.BeanProperty> properties = beanSerdeShape.properties();
                 List<VariableDef.Local> seenPropertyVariables = new ArrayList<>(properties.size());
                 for (int i = 0; i < properties.size(); i++) {
-                    BeanSerdeShape.BeanProperty property = properties.get(i);
                     StatementDef.DefineAndAssign seenPropertyDef = ExpressionDef.falseValue()
-                        .newLocal(BeanSerdeSourceGenUtils.localName("seenProperty", property.name(), i));
+                        .newLocal(BeanSerdeSourceGenUtils.localName("seenProperty", i));
                     statements.add(seenPropertyDef);
                     seenPropertyVariables.add(seenPropertyDef.variable());
                 }
@@ -348,16 +358,12 @@ public final class BeanDeserializerSourceGen {
                     seenPropertyVariables,
                     propertyDeserializers
                 );
-                if (properties.isEmpty()) {
-                    statements.add(keyVariable.isNonNull().whileLoop(switchStatement));
-                } else {
-                    statements.add(keyVariable.isNonNull().whileLoop(
-                        StatementDef.multi(
-                            switchStatement,
-                            keyVariable.assign(objectDecoder.invoke(DECODE_KEY_METHOD))
-                        )
-                    ));
-                }
+                statements.add(keyVariable.isNonNull().whileLoop(
+                    StatementDef.multi(
+                        switchStatement,
+                        keyVariable.assign(objectDecoder.invoke(DECODE_KEY_METHOD))
+                    )
+                ));
                 statements.add(objectDecoder.invoke(FINISH_STRUCTURE_METHOD));
                 statements.add(beanVariable.returning());
 
@@ -379,30 +385,26 @@ public final class BeanDeserializerSourceGen {
         if (properties.isEmpty()) {
             return unknownPropertyStatement;
         }
-        if (properties.size() > 3) {
-            return keyVariable.asExpressionSwitch(
-                TypeDef.Primitive.BOOLEAN,
-                buildSwitchCases(deserializerClassTypeDef, properties, keyFieldNames, seenPropertyVariables, propertyDeserializers, type),
-                new ExpressionDef.SwitchYieldCase(
-                    TypeDef.Primitive.BOOLEAN,
-                    StatementDef.multi(
-                        unknownPropertyStatement,
-                        ExpressionDef.trueValue().returning()
-                    )
+        if (properties.size() > STRING_SWITCH_PROPERTY_THRESHOLD) {
+            StatementDef.DefineAndAssign handledPropertyDef = ExpressionDef.falseValue().newLocal("handledProperty");
+            VariableDef.Local handledPropertyVariable = handledPropertyDef.variable();
+            return StatementDef.multi(
+                handledPropertyDef,
+                keyVariable.asStatementSwitch(
+                    STRING_TYPE,
+                    buildSwitchCases(objectDecoder, properties, seenPropertyVariables, propertyDeserializers, handledPropertyVariable),
+                    handledPropertyVariable.ifFalse(unknownPropertyStatement)
                 )
-            ).newLocal("switchResult");
+            );
         }
         StatementDef switchStatement = unknownPropertyStatement;
         for (int i = properties.size() - 1; i >= 0; i--) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
             ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
-            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
-                .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
-            switchStatement = keyVariable.equalsStructurally(propertyNameExpression).ifTrue(
+            switchStatement = keyVariable.invoke(STRING_EQUALS_METHOD, propertyNameExpression).ifTrue(
                 seenPropertyVariable.ifTrue(
-                    duplicatePropertyStatement,
+                    objectDecoder.invoke(SKIP_VALUE_METHOD),
                     StatementDef.multi(
                         seenPropertyVariable.assign(ExpressionDef.trueValue()),
                         propertyDeserializers.get(i)
@@ -414,32 +416,26 @@ public final class BeanDeserializerSourceGen {
         return switchStatement;
     }
 
-    private Map<ExpressionDef.Constant, ExpressionDef> buildSwitchCases(ClassTypeDef deserializerClassTypeDef,
-                                                                        List<BeanSerdeShape.BeanProperty> properties,
-                                                                        Map<String, String> keyFieldNames,
-                                                                        List<VariableDef.Local> seenPropertyVariables,
-                                                                        List<StatementDef> propertyDeserializers,
-                                                                        VariableDef.MethodParameter type) {
-        Map<ExpressionDef.Constant, ExpressionDef> switchCases = new LinkedHashMap<>();
+    private Map<ExpressionDef.Constant, StatementDef> buildSwitchCases(VariableDef objectDecoder,
+                                                                       List<BeanSerdeShape.BeanProperty> properties,
+                                                                       List<VariableDef.Local> seenPropertyVariables,
+                                                                       List<StatementDef> propertyDeserializers,
+                                                                       VariableDef.Local handledPropertyVariable) {
+        Map<ExpressionDef.Constant, StatementDef> switchCases = new LinkedHashMap<>();
         for (int i = 0; i < properties.size(); i++) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
-            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
-            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
-                .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             switchCases.put(ExpressionDef.constant(property.name()),
-                new ExpressionDef.SwitchYieldCase(
-                    TypeDef.Primitive.BOOLEAN,
+                handledPropertyVariable.ifFalse(
                     StatementDef.multi(
+                        handledPropertyVariable.assign(ExpressionDef.trueValue()),
                         seenPropertyVariable.ifTrue(
-                            duplicatePropertyStatement,
+                            objectDecoder.invoke(SKIP_VALUE_METHOD),
                             StatementDef.multi(
                                 seenPropertyVariable.assign(ExpressionDef.trueValue()),
                                 propertyDeserializers.get(i)
                             )
-                        ),
-                        ExpressionDef.trueValue().returning()
+                        )
                     )
                 )
             );
@@ -462,17 +458,35 @@ public final class BeanDeserializerSourceGen {
         ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
         ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
         Method scalarDecodeMethod = scalarDecoderMethod(property.deserializationType());
+        boolean primitiveScalar = scalarDecodeMethod != null && property.deserializationType().isPrimitive() && !property.deserializationType().isArray();
+        if (scalarDecodeMethod != null && primitiveScalar) {
+            StatementDef deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
+                beanVariable.invoke(property.writeMethod(), objectDecoder.invoke(scalarDecodeMethod))
+            );
+            return StatementDef.doTry(deserializeAndAssign)
+                .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
+                    ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                        .invokeStatic(
+                            WITH_PROPERTY_PATH_THROWABLE_METHOD,
+                            exceptionVariable,
+                            type,
+                            propertyNameExpression,
+                            argumentExpression
+                        )
+                        .doThrow()
+                );
+        }
         StatementDef.DefineAndAssign deserializedValueDef;
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
             deserializedValueDef = objectDecoder.invoke(scalarDecodeMethod)
                 .cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType()))
-                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
+                .newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
             deserializeAndAssign = deserializedValueDef;
         } else {
             String deserializerFieldName = required(deserializerFieldNames, property.name());
             StatementDef.DefineAndAssign deserializerDef = new StatementDef.DefineAndAssign(
-                new VariableDef.Local(BeanSerdeSourceGenUtils.localName("deserializer", property.name(), index), NULLABLE_DESERIALIZER_TYPE),
+                new VariableDef.Local(BeanSerdeSourceGenUtils.localName("deserializer", index), NULLABLE_DESERIALIZER_TYPE),
                 aThis.field(deserializerFieldName, DESERIALIZER_TYPE)
             );
             StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
@@ -484,16 +498,16 @@ public final class BeanDeserializerSourceGen {
                 objectDecoder,
                 context,
                 argumentExpression
-            ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, property.name(), index));
+            ).cast(BeanSerdeSourceGenUtils.deserializedCastType(property.deserializationType())).newLocal(BeanSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
             deserializeAndAssign = StatementDef.multi(
                 deserializerDef,
                 initializeDeserializerStatement,
                 deserializedValueDef
             );
         }
-        StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
         StatementDef propertyAssignment;
         if (property.deserializationType().isPrimitive() || property.nullable()) {
+            StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
             if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
                 propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
                     beanVariable.invoke(property.writeMethod(), BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType())),
@@ -503,6 +517,7 @@ public final class BeanDeserializerSourceGen {
                 propertyAssignment = assignStatement;
             }
         } else {
+            StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
             propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
                 StatementDef.multi(),
                 assignStatement
@@ -526,8 +541,8 @@ public final class BeanDeserializerSourceGen {
             );
     }
 
-    private String constantFieldName(String prefix, String propertyName, int index) {
-        return prefix + "_" + propertyName.replaceAll("[^A-Za-z0-9]", "_").toUpperCase() + "_" + index;
+    private String indexedName(String prefix, int index) {
+        return prefix + "_" + index;
     }
 
     private @Nullable Method scalarDecoderMethod(ClassElement type) {
@@ -535,14 +550,22 @@ public final class BeanDeserializerSourceGen {
             return null;
         }
         return switch (type.getName()) {
-            case "boolean", "java.lang.Boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
-            case "byte", "java.lang.Byte" -> DECODE_BYTE_NULLABLE_METHOD;
-            case "short", "java.lang.Short" -> DECODE_SHORT_NULLABLE_METHOD;
-            case "char", "java.lang.Character" -> DECODE_CHAR_NULLABLE_METHOD;
-            case "int", "java.lang.Integer" -> DECODE_INT_NULLABLE_METHOD;
-            case "long", "java.lang.Long" -> DECODE_LONG_NULLABLE_METHOD;
-            case "float", "java.lang.Float" -> DECODE_FLOAT_NULLABLE_METHOD;
-            case "double", "java.lang.Double" -> DECODE_DOUBLE_NULLABLE_METHOD;
+            case "boolean" -> DECODE_BOOLEAN_METHOD;
+            case "java.lang.Boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
+            case "byte" -> DECODE_BYTE_METHOD;
+            case "java.lang.Byte" -> DECODE_BYTE_NULLABLE_METHOD;
+            case "short" -> DECODE_SHORT_METHOD;
+            case "java.lang.Short" -> DECODE_SHORT_NULLABLE_METHOD;
+            case "char" -> DECODE_CHAR_METHOD;
+            case "java.lang.Character" -> DECODE_CHAR_NULLABLE_METHOD;
+            case "int" -> DECODE_INT_METHOD;
+            case "java.lang.Integer" -> DECODE_INT_NULLABLE_METHOD;
+            case "long" -> DECODE_LONG_METHOD;
+            case "java.lang.Long" -> DECODE_LONG_NULLABLE_METHOD;
+            case "float" -> DECODE_FLOAT_METHOD;
+            case "java.lang.Float" -> DECODE_FLOAT_NULLABLE_METHOD;
+            case "double" -> DECODE_DOUBLE_METHOD;
+            case "java.lang.Double" -> DECODE_DOUBLE_NULLABLE_METHOD;
             case "java.lang.String" -> DECODE_STRING_NULLABLE_METHOD;
             case "java.math.BigInteger" -> DECODE_BIG_INTEGER_NULLABLE_METHOD;
             case "java.math.BigDecimal" -> DECODE_BIG_DECIMAL_NULLABLE_METHOD;

@@ -1,8 +1,8 @@
 package io.micronaut.serde.data;
 
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@Serdeable
+@SerdeableGenerated
 public class SimpleBean {
 
     private Long id;

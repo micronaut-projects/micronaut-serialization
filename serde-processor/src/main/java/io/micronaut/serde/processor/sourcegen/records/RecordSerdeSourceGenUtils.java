@@ -153,8 +153,8 @@ final class RecordSerdeSourceGenUtils {
         };
     }
 
-    static String localName(String prefix, String componentName, int index) {
-        return prefix + componentName.replace("$", "_") + index;
+    static String localName(String prefix, int index) {
+        return prefix + index;
     }
 
     private static List<? extends ClassElement> resolveTypeArguments(ClassElement classElement) {

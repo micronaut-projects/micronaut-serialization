@@ -127,18 +127,14 @@ public record ParityRecord(String value, int count, java.util.List<String> tags)
         fromSpecificMissing.tags().toString() == '[a, b]'
 
         when:
-        def duplicateDefaultFailure = captureFailure {
-            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
-        }
-        def duplicateSpecificFailure = captureFailure {
-            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
-        }
+        def duplicateDefault = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        def duplicateSpecific = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
 
         then:
-        duplicateDefaultFailure != null
-        duplicateSpecificFailure != null
-        duplicateDefaultFailure.message?.contains('value')
-        duplicateSpecificFailure.message?.contains('value')
+        duplicateDefault.value() == 'a'
+        duplicateSpecific.value() == 'a'
+        duplicateDefault.count() == 1
+        duplicateSpecific.count() == 1
 
         when:
         def unknownDefaultFailure = captureFailure {
@@ -218,18 +214,18 @@ record LargeDispatchRecord(String a, int b, boolean c, long d, double e) {}
         invokeDeclared(large, 'e') == 3.5d
 
         when:
-        def smallDuplicate = captureFailure {
-            deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
-        }
-        def largeDuplicate = captureFailure {
-            deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
-        }
+        def smallDuplicate = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
+        def largeDuplicate = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
 
         then:
-        smallDuplicate instanceof SerdeException
-        largeDuplicate instanceof SerdeException
-        smallDuplicate.message?.contains('a')
-        largeDuplicate.message?.contains('e')
+        invokeDeclared(smallDuplicate, 'a') == 'x'
+        invokeDeclared(smallDuplicate, 'b') == 7
+        invokeDeclared(smallDuplicate, 'c')
+        invokeDeclared(largeDuplicate, 'a') == 'x'
+        invokeDeclared(largeDuplicate, 'b') == 7
+        invokeDeclared(largeDuplicate, 'c')
+        invokeDeclared(largeDuplicate, 'd') == 9L
+        invokeDeclared(largeDuplicate, 'e') == 3.5d
 
         cleanup:
         context.close()

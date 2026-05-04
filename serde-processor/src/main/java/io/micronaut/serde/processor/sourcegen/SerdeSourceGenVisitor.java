@@ -16,9 +16,13 @@
 package io.micronaut.serde.processor.sourcegen;
 
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
 import io.micronaut.inject.visitor.TypeElementVisitor;
 import io.micronaut.inject.visitor.VisitorContext;
-import io.micronaut.inject.beans.visitor.IntrospectedTypeElementVisitor;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.processor.sourcegen.beans.BeanDeserializerSourceGen;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShape;
 import io.micronaut.serde.processor.sourcegen.beans.BeanSerdeShapeResolver;
@@ -31,9 +35,6 @@ import io.micronaut.serde.processor.sourcegen.records.RecordDeserializerSourceGe
 import io.micronaut.serde.processor.sourcegen.records.RecordSerdeShape;
 import io.micronaut.serde.processor.sourcegen.records.RecordSerdeShapeResolver;
 import io.micronaut.serde.processor.sourcegen.records.RecordSerializerSourceGen;
-import io.micronaut.serde.annotation.Serdeable;
-import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.Serializer;
 import io.micronaut.sourcegen.generator.SourceGenerator;
 import io.micronaut.sourcegen.generator.SourceGenerators;
 import io.micronaut.sourcegen.model.AnnotationDef;
@@ -62,6 +63,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
     public Set<String> getSupportedAnnotationNames() {
         return Set.of(
             Serdeable.class.getName(),
+            SerdeableGenerated.class.getName(),
             Serdeable.Serializable.class.getName(),
             Serdeable.Deserializable.class.getName()
         );
@@ -78,6 +80,7 @@ public final class SerdeSourceGenVisitor implements TypeElementVisitor<Object, O
             return;
         }
         if (!element.hasDeclaredAnnotation(Serdeable.class)
+            && !element.hasDeclaredAnnotation(SerdeableGenerated.class)
             && !element.hasDeclaredAnnotation(Serdeable.Serializable.class)
             && !element.hasDeclaredAnnotation(Serdeable.Deserializable.class)) {
             return;

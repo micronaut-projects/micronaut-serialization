@@ -15,8 +15,8 @@
  */
 package io.micronaut.serde.processor.sourcegen;
 
-import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.AnnotationMetadata;
+import io.micronaut.core.annotation.Creator;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.inject.ast.Element;
 import io.micronaut.inject.ast.ElementQuery;
@@ -27,6 +27,7 @@ import io.micronaut.inject.ast.ParameterElement;
 import io.micronaut.inject.ast.PropertyElement;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
@@ -55,6 +56,13 @@ public final class SimpleSerdeShapeAnalyzer {
         EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
         EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
         SimpleSerdeShapeDecision.ShapeKind shapeKind = resolveShapeKind(element);
+        boolean generated = element.hasAnnotation(SerdeableGenerated.class);
+        if (isSerializerSkipped(element)) {
+            failSerializer(serializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+        }
+        if (isDeserializerSkipped(element)) {
+            failDeserializer(deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.SOURCEGEN_SKIPPED);
+        }
 
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
             failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
@@ -121,7 +129,8 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+        if (!generated
+            && serializerReasons.isEmpty() && deserializerReasons.isEmpty()
             && hasPotentialGlobalOrderingConflict(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
@@ -154,7 +163,8 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+        if (!generated
+            && serializerReasons.isEmpty() && deserializerReasons.isEmpty()
             && hasPotentialGlobalNamingConflict(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
@@ -393,6 +403,16 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         return true;
+    }
+
+    private boolean isSerializerSkipped(ClassElement element) {
+        return element.booleanValue(SerdeableGenerated.class, "skip").orElse(false)
+            || element.booleanValue(SerdeableGenerated.class, "skipSerializer").orElse(false);
+    }
+
+    private boolean isDeserializerSkipped(ClassElement element) {
+        return element.booleanValue(SerdeableGenerated.class, "skip").orElse(false)
+            || element.booleanValue(SerdeableGenerated.class, "skipDeserializer").orElse(false);
     }
 
     private boolean hasDirectIterableProperties(ClassElement element) {
