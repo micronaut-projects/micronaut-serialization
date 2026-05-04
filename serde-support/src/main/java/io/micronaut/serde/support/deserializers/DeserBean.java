@@ -33,6 +33,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
+import io.micronaut.serde.CoercedNullAwareDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
@@ -1339,10 +1340,15 @@ final class DeserBean<T> {
         P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             decoderContext = resolveFeatures(decoderContext);
             try {
+                boolean coercedNullForAbstractType = isCoercedNullForAbstractType(objectDecoder);
                 P value = decoderValueKind == DecoderValueKind.NONE_CODE
                     ? deserializer.deserializeNullable(objectDecoder, decoderContext, argument)
                     : deserializeDirectValue(objectDecoder);
-                if (value != null) {
+                if (value == null && coercedNullForAbstractType) {
+                    throw new SerdeException("Unable to deserialize abstract property [" + argument +
+                        "] in type [" + introspection.getBeanType().getName() + "] from an empty value without subtype information");
+                }
+                if (value != null || nullable) {
                     return value;
                 }
                 if (explicitlyRequired) {
@@ -1555,6 +1561,7 @@ final class DeserBean<T> {
         P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             decoderContext = resolveFeatures(decoderContext);
             try {
+                boolean coercedNullForAbstractType = isCoercedNullForAbstractType(objectDecoder);
                 P value;
                 if (primitive && !failOnNullForPrimitives) {
                     if (decoderValueKind == DecoderValueKind.NONE_CODE) {
@@ -1573,7 +1580,11 @@ final class DeserBean<T> {
                         ? deserializer.deserializeNullable(objectDecoder, decoderContext, argument)
                         : deserializeDirectValue(objectDecoder);
                 }
-                if (value != null) {
+                if (value == null && coercedNullForAbstractType) {
+                    throw new SerdeException("Unable to deserialize abstract constructor parameter [" + argument +
+                        "] in type [" + introspection.getBeanType().getName() + "] from an empty value without subtype information");
+                }
+                if (value != null || nullable) {
                     return value;
                 }
                 if (explicitlyRequiredForConstructor) {
@@ -1589,6 +1600,13 @@ final class DeserBean<T> {
             } catch (Exception e) {
                 throw convertException(e, false);
             }
+        }
+
+        private boolean isCoercedNullForAbstractType(Decoder objectDecoder) {
+            Class<?> propertyType = argument.getType();
+            return !propertyType.isPrimitive()
+                && objectDecoder instanceof CoercedNullAwareDecoder coercedNullAwareDecoder
+                && coercedNullAwareDecoder.isCoercedNullValue();
         }
 
         @Nullable

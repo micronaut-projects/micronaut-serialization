@@ -17,6 +17,7 @@ package io.micronaut.serde.xml;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
+import io.micronaut.serde.CoercedNullAwareDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -41,11 +42,16 @@ import java.util.Map;
 /**
  *
  */
-public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder
+public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder, CoercedNullAwareDecoder
         permits XmlReaderDecoder.DocumentDecoder,
                 XmlReaderDecoder.ObjectDecoder,
                 XmlReaderDecoder.ArrayDecoder,
                 XmlReaderDecoder.SyntheticRootDecoder {
+
+    @Override
+    public boolean isCoercedNullValue() {
+        return false;
+    }
 
     final Cursor cursor;
 
@@ -498,6 +504,17 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public boolean isCoercedNullValue() {
+            // Attributes are never null-coerced; they always carry text.
+            if (currentAttrValue != null) {
+                return false;
+            }
+            // We're positioned just inside the just-consumed child START_ELEMENT;
+            // an immediate END_ELEMENT means "<x/>" / "<x></x>" empty-element coercion.
+            return cursor.current() == XMLStreamConstants.END_ELEMENT;
         }
 
         @Override
