@@ -80,15 +80,15 @@ public final class XmlObjectMapper implements ObjectMapper {
         this.xmlFactory = XmlFactory.builder().build();
         this.defaultRootName = xmlConfiguration != null ? xmlConfiguration.getDefaultRootName() : null;
         this.xmlOutputFactory = XMLOutputFactory.newInstance();
-        // TODO: Make it configurable
-        this.xmlOutputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true);
-        // Woodstox (and any stax2-api compliant factory) auto-converts empty <x></x> elements
-        // into self-closing <x/>. Our textual XML contracts treat `<x></x>` and `<x/>` as
-        // distinct on the encode side (they are equivalent on the read side), so opt out of
-        // the Woodstox optimization. The property is silently ignored on factories that don't
-        // recognize it (e.g. the JDK's built-in StAX writer, which already emits `<x></x>`).
+        this.xmlOutputFactory.setProperty(
+            XMLOutputFactory.IS_REPAIRING_NAMESPACES,
+            xmlConfiguration == null || xmlConfiguration.isRepairingNamespaces()
+        );
         try {
-            this.xmlOutputFactory.setProperty("org.codehaus.stax2.automaticEmptyElements", false);
+            this.xmlOutputFactory.setProperty(
+                "org.codehaus.stax2.automaticEmptyElements",
+                xmlConfiguration != null && xmlConfiguration.isAutomaticEmptyElements()
+            );
         } catch (IllegalArgumentException ignored) {
             // Factory doesn't recognize the property — its default behavior already matches.
         }
@@ -239,32 +239,4 @@ public final class XmlObjectMapper implements ObjectMapper {
             outputStream);
     }
 
-    private byte[] toByteArray(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[512];
-        int bytesRead;
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            baos.write(buffer, 0, bytesRead);
-        }
-        return baos.toByteArray();
-    }
-
-    private String resolveRootName(Argument<?> type) {
-
-        String annotationRootName = null;
-        try {
-            BeanIntrospection<?> introspection = introspections.getSerializableIntrospection(type);
-            annotationRootName = introspection.stringValue(XmlRootName.class).orElse(null);
-        } catch (Exception ignored) {
-            // fallback to defaults
-        }
-        if (annotationRootName != null && !annotationRootName.isBlank()) {
-            return annotationRootName;
-        }
-        if (defaultRootName != null) {
-            return defaultRootName;
-        }
-        String name = type.getSimpleName();
-        return (name == null || name.isEmpty()) ? "root" : name;
-    }
 }

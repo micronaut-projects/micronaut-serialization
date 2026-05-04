@@ -34,6 +34,8 @@ public final class XmlSerdeConfiguration {
     @Nullable
     private String defaultRootName;
 
+    private boolean repairingNamespaces = true;
+    private boolean automaticEmptyElements;
     private Map<String, Boolean> xmlReadFeatures = Collections.emptyMap();
     private Map<String, Boolean> xmlWriteFeatures = Collections.emptyMap();
 
@@ -44,6 +46,22 @@ public final class XmlSerdeConfiguration {
 
     public void setDefaultRootName(String defaultRootName) {
         this.defaultRootName = defaultRootName;
+    }
+
+    public boolean isRepairingNamespaces() {
+        return repairingNamespaces;
+    }
+
+    public void setRepairingNamespaces(boolean repairingNamespaces) {
+        this.repairingNamespaces = repairingNamespaces;
+    }
+
+    public boolean isAutomaticEmptyElements() {
+        return automaticEmptyElements;
+    }
+
+    public void setAutomaticEmptyElements(boolean automaticEmptyElements) {
+        this.automaticEmptyElements = automaticEmptyElements;
     }
 
     public Map<String, Boolean> getXmlReadFeatures() {
