@@ -78,6 +78,7 @@ public final class BeanDeserializerSourceGen {
     );
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", Argument.class);
     private static final Method DECODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeKey");
+    private static final Method SKIP_VALUE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "skipValue");
     private static final Method DECODE_STRING_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeStringNullable");
     private static final Method DECODE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBoolean");
     private static final Method DECODE_BOOLEAN_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable");
@@ -99,12 +100,6 @@ public final class BeanDeserializerSourceGen {
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
     private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
-    private static final Method DUPLICATE_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeExceptionUtil.class,
-        "duplicateProperty",
-        String.class,
-        Argument.class
-    );
     private static final Method HANDLE_UNKNOWN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
         "handleUnknownProperty",
@@ -397,7 +392,7 @@ public final class BeanDeserializerSourceGen {
                 handledPropertyDef,
                 keyVariable.asStatementSwitch(
                     STRING_TYPE,
-                    buildSwitchCases(deserializerClassTypeDef, properties, keyFieldNames, seenPropertyVariables, propertyDeserializers, handledPropertyVariable, type),
+                    buildSwitchCases(objectDecoder, properties, seenPropertyVariables, propertyDeserializers, handledPropertyVariable),
                     handledPropertyVariable.ifFalse(unknownPropertyStatement)
                 )
             );
@@ -406,13 +401,10 @@ public final class BeanDeserializerSourceGen {
         for (int i = properties.size() - 1; i >= 0; i--) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
             ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
-            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
-                .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             switchStatement = keyVariable.invoke(STRING_EQUALS_METHOD, propertyNameExpression).ifTrue(
                 seenPropertyVariable.ifTrue(
-                    duplicatePropertyStatement,
+                    objectDecoder.invoke(SKIP_VALUE_METHOD),
                     StatementDef.multi(
                         seenPropertyVariable.assign(ExpressionDef.trueValue()),
                         propertyDeserializers.get(i)
@@ -424,29 +416,25 @@ public final class BeanDeserializerSourceGen {
         return switchStatement;
     }
 
-    private Map<ExpressionDef.Constant, StatementDef> buildSwitchCases(ClassTypeDef deserializerClassTypeDef,
+    private Map<ExpressionDef.Constant, StatementDef> buildSwitchCases(VariableDef objectDecoder,
                                                                        List<BeanSerdeShape.BeanProperty> properties,
-                                                                       Map<String, String> keyFieldNames,
                                                                        List<VariableDef.Local> seenPropertyVariables,
                                                                        List<StatementDef> propertyDeserializers,
-                                                                       VariableDef.Local handledPropertyVariable,
-                                                                       VariableDef.MethodParameter type) {
+                                                                       VariableDef.Local handledPropertyVariable) {
         Map<ExpressionDef.Constant, StatementDef> switchCases = new LinkedHashMap<>();
         for (int i = 0; i < properties.size(); i++) {
             BeanSerdeShape.BeanProperty property = properties.get(i);
-            ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
-            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                .invokeStatic(DUPLICATE_PROPERTY_METHOD, propertyNameExpression, type)
-                .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             switchCases.put(ExpressionDef.constant(property.name()),
                 handledPropertyVariable.ifFalse(
-                    seenPropertyVariable.ifTrue(
-                        duplicatePropertyStatement,
-                        StatementDef.multi(
-                            handledPropertyVariable.assign(ExpressionDef.trueValue()),
-                            seenPropertyVariable.assign(ExpressionDef.trueValue()),
-                            propertyDeserializers.get(i)
+                    StatementDef.multi(
+                        handledPropertyVariable.assign(ExpressionDef.trueValue()),
+                        seenPropertyVariable.ifTrue(
+                            objectDecoder.invoke(SKIP_VALUE_METHOD),
+                            StatementDef.multi(
+                                seenPropertyVariable.assign(ExpressionDef.trueValue()),
+                                propertyDeserializers.get(i)
+                            )
                         )
                     )
                 )
@@ -480,7 +468,10 @@ public final class BeanDeserializerSourceGen {
                 deserializeAndAssign = StatementDef.multi(
                     deserializedValueDef,
                     objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
-                        deserializedValueDef.variable().assign(objectDecoder.invoke(scalarDecodeMethod))
+                        StatementDef.multi(
+                            deserializedValueDef.variable().assign(objectDecoder.invoke(scalarDecodeMethod)),
+                            beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable())
+                        )
                     )
                 );
             } else {
@@ -514,7 +505,7 @@ public final class BeanDeserializerSourceGen {
         StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
         StatementDef propertyAssignment;
         if (primitiveScalar) {
-            propertyAssignment = assignStatement;
+            propertyAssignment = StatementDef.multi();
         } else if (property.deserializationType().isPrimitive() || property.nullable()) {
             if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
                 propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(

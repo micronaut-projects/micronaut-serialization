@@ -8,7 +8,6 @@ import io.micronaut.serde.Deserializer
 import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeIntrospections
 import io.micronaut.serde.config.annotation.SerdeConfig
-import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.serde.jackson.JacksonDecoder
 import io.micronaut.serde.jackson.JsonCompileSpec
 import tools.jackson.core.json.JsonFactory
@@ -106,23 +105,25 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         large.getF() == 'z'
 
         when:
-        def smallDuplicate = captureFailure {
-            deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
-        }
-        def boundaryDuplicate = captureFailure {
-            deserializeValue(boundaryDeserializer, decoderContext, boundaryArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
-        }
-        def largeDuplicate = captureFailure {
-            deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":"z","f":"y"}')
-        }
+        def smallDuplicate = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
+        def boundaryDuplicate = deserializeValue(boundaryDeserializer, decoderContext, boundaryArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
+        def largeDuplicate = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":"z","f":"y"}')
 
         then:
-        smallDuplicate instanceof SerdeException
-        boundaryDuplicate instanceof SerdeException
-        largeDuplicate instanceof SerdeException
-        smallDuplicate.message?.contains('a')
-        boundaryDuplicate.message?.contains('e')
-        largeDuplicate.message?.contains('f')
+        smallDuplicate.getA() == 'x'
+        smallDuplicate.getB() == 7
+        smallDuplicate.isC()
+        boundaryDuplicate.getA() == 'x'
+        boundaryDuplicate.getB() == 7
+        boundaryDuplicate.isC()
+        boundaryDuplicate.getD() == 9L
+        boundaryDuplicate.getE() == 3.5d
+        largeDuplicate.getA() == 'x'
+        largeDuplicate.getB() == 7
+        largeDuplicate.isC()
+        largeDuplicate.getD() == 9L
+        largeDuplicate.getE() == 3.5d
+        largeDuplicate.getF() == 'z'
 
         cleanup:
         context.close()
@@ -175,23 +176,25 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         large.f() == 'z'
 
         when:
-        def smallDuplicate = captureFailure {
-            deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
-        }
-        def boundaryDuplicate = captureFailure {
-            deserializeValue(boundaryDeserializer, decoderContext, boundaryArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
-        }
-        def largeDuplicate = captureFailure {
-            deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":"z","f":"y"}')
-        }
+        def smallDuplicate = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
+        def boundaryDuplicate = deserializeValue(boundaryDeserializer, decoderContext, boundaryArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
+        def largeDuplicate = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":"z","f":"y"}')
 
         then:
-        smallDuplicate instanceof SerdeException
-        boundaryDuplicate instanceof SerdeException
-        largeDuplicate instanceof SerdeException
-        smallDuplicate.message?.contains('a')
-        boundaryDuplicate.message?.contains('e')
-        largeDuplicate.message?.contains('f')
+        smallDuplicate.a() == 'x'
+        smallDuplicate.b() == 7
+        smallDuplicate.c()
+        boundaryDuplicate.a() == 'x'
+        boundaryDuplicate.b() == 7
+        boundaryDuplicate.c()
+        boundaryDuplicate.d() == 9L
+        boundaryDuplicate.e() == 3.5d
+        largeDuplicate.a() == 'x'
+        largeDuplicate.b() == 7
+        largeDuplicate.c()
+        largeDuplicate.d() == 9L
+        largeDuplicate.e() == 3.5d
+        largeDuplicate.f() == 'z'
 
         cleanup:
         context.close()
@@ -214,6 +217,8 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assert deserializerSource.contains('key.equals(')
         assert !deserializerSource.contains('Objects.equals(key')
         assert !deserializerSource.contains('switch (key)')
+        assert deserializerSource.contains('skipValue')
+        assert !deserializerSource.contains('duplicateProperty')
     }
 
     private static void assertLargeDispatchSource(String deserializerSource,
@@ -227,6 +232,8 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assert !deserializerSource.contains('= switch (key)')
         assert !deserializerSource.contains('yield')
         assert deserializerSource.count('decodeKey()') == 2
+        assert deserializerSource.contains('skipValue')
+        assert !deserializerSource.contains('duplicateProperty')
         assert deserializerSource.contains(primitiveDefault)
         assert deserializerSource.contains(primitiveDecode)
         assert !deserializerSource.contains('decodeBooleanNullable')
@@ -251,15 +258,6 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
             result = deserializer.deserialize(decoder, decoderContext, type)
         }
         result
-    }
-
-    private static Exception captureFailure(Closure<?> action) {
-        try {
-            action.call()
-            return null
-        } catch (Exception e) {
-            return e
-        }
     }
 
     private static String simpleName(String className) {

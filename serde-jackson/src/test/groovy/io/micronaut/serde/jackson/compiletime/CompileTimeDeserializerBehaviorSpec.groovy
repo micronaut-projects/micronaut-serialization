@@ -9,12 +9,10 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 
 class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
-    void 'test primitive boolean missing constructor properties and nullable values match runtime deserializer'() {
+    void 'test generated record deserializer source handles primitive booleans and missing constructor properties'() {
         given:
         def context = ApplicationContext.run()
-        jsonMapper = context.getBean(JsonMapper)
         Class<?> generatedType = SourceGenGeneratedConstructorDefaults
-        Class<?> runtimeType = SourceGenRuntimeConstructorDefaults
         def introspections = context.getBean(SerdeIntrospections)
         def generatedMetadata = introspections.getDeserializableIntrospection(Argument.of(generatedType)).annotationMetadata
         String deserializerClassName = generatedMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
@@ -27,40 +25,173 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         !deserializerSource.contains('component0')
         deserializerSource.indexOf('if (!seenProperty') > -1
         deserializerSource.indexOf('if (!seenProperty') < deserializerSource.indexOf('return new io.micronaut.serde.jackson.compiletime.SourceGenGeneratedConstructorDefaults')
-
-        when:
-        def generatedMissingName = jsonMapper.readValue('{"active":true}', Argument.of(generatedType))
-        def runtimeMissingName = jsonMapper.readValue('{"active":true}', Argument.of(runtimeType))
-        def generatedMissingPrimitiveValues = jsonMapper.readValue('{"name":"Ada"}', Argument.of(generatedType))
-        def runtimeMissingPrimitiveValues = jsonMapper.readValue('{"name":"Ada"}', Argument.of(runtimeType))
-        def generatedMissingNullableValues = jsonMapper.readValue('{"name":"Ada","active":true,"count":1}', Argument.of(generatedType))
-        def runtimeMissingNullableValues = jsonMapper.readValue('{"name":"Ada","active":true,"count":1}', Argument.of(runtimeType))
-        def generatedNullValues = jsonMapper.readValue('{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}', Argument.of(generatedType))
-        def runtimeNullValues = jsonMapper.readValue('{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}', Argument.of(runtimeType))
-        def generatedMissingAll = jsonMapper.readValue('{}', Argument.of(generatedType))
-        def runtimeMissingAll = jsonMapper.readValue('{}', Argument.of(runtimeType))
-
-        then:
-        assertPropertiesEqual(generatedMissingName, runtimeMissingName)
-        assertPropertiesEqual(generatedMissingPrimitiveValues, runtimeMissingPrimitiveValues)
-        assertPropertiesEqual(generatedMissingNullableValues, runtimeMissingNullableValues)
-        assertPropertiesEqual(generatedNullValues, runtimeNullValues)
-        assertPropertiesEqual(generatedMissingAll, runtimeMissingAll)
+        !deserializerSource.contains('duplicateProperty')
 
         cleanup:
         context.close()
     }
 
-    private static void assertPropertiesEqual(Object generated, Object runtime) {
-        assert invokeDeclared(generated, 'name') == invokeDeclared(runtime, 'name')
-        assert invokeDeclared(generated, 'active') == invokeDeclared(runtime, 'active')
-        assert invokeDeclared(generated, 'count') == invokeDeclared(runtime, 'count')
-        assert invokeDeclared(generated, 'nullableName') == invokeDeclared(runtime, 'nullableName')
-        assert invokeDeclared(generated, 'nullableActive') == invokeDeclared(runtime, 'nullableActive')
+    void 'test generated bean deserializer source handles primitive booleans without nullable decode'() {
+        given:
+        def context = ApplicationContext.run()
+        Class<?> generatedType = SourceGenGeneratedPropertyDefaults
+        def introspections = context.getBean(SerdeIntrospections)
+        def generatedMetadata = introspections.getDeserializableIntrospection(Argument.of(generatedType)).annotationMetadata
+        String deserializerClassName = generatedMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        String deserializerSource = generatedTestSource(deserializerClassName)
+
+        expect:
+        deserializerSource.contains('boolean value1 = false;')
+        deserializerSource.contains('value1 = objectDecoder.decodeBoolean();')
+        !deserializerSource.contains('value1 = objectDecoder.decodeBooleanNullable();')
+        !deserializerSource.contains('duplicateProperty')
+
+        cleanup:
+        context.close()
     }
 
-    private static Object invokeDeclared(Object target, String methodName) {
-        def method = target.getClass().getDeclaredMethod(methodName)
+    void 'test generated record deserializer matches runtime for primitive nullable and missing properties'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadMatches(jsonMapper, SourceGenGeneratedConstructorDefaults, SourceGenRuntimeConstructorDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                    | json
+        'full input'                | '{"name":"Ada","active":true,"count":42,"nullableName":"Grace","nullableActive":false}'
+        'missing reference'         | '{"active":true,"count":42,"nullableName":"Grace","nullableActive":false}'
+        'missing primitives'        | '{"name":"Ada","nullableName":"Grace","nullableActive":false}'
+        'missing nullable values'   | '{"name":"Ada","active":true,"count":42}'
+        'explicit null values'      | '{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}'
+        'missing all values'        | '{}'
+    }
+
+    void 'test generated bean deserializer matches runtime for primitive nullable and missing properties'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadMatches(jsonMapper, SourceGenGeneratedPropertyDefaults, SourceGenRuntimePropertyDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                    | json
+        'full input'                | '{"name":"Ada","active":false,"count":42,"nullableName":"Grace","nullableActive":false}'
+        'missing reference'         | '{"active":false,"count":42,"nullableName":"Grace","nullableActive":false}'
+        'missing primitives'        | '{"name":"Ada","nullableName":"Grace","nullableActive":false}'
+        'missing nullable values'   | '{"name":"Ada","active":false,"count":42}'
+        'explicit null values'      | '{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}'
+        'missing all values'        | '{}'
+    }
+
+    void 'test generated record duplicate property handling matches runtime deserializer'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadMatches(jsonMapper, SourceGenGeneratedConstructorDefaults, SourceGenRuntimeConstructorDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                       | json
+        'duplicate reference'          | '{"name":"Ada","name":"Grace","active":true,"count":1}'
+        'reference null first'         | '{"name":null,"name":"Grace","active":true,"count":1}'
+        'duplicate primitive boolean'  | '{"name":"Ada","active":true,"active":false,"count":1}'
+        'primitive boolean null first' | '{"name":"Ada","active":null,"active":true,"count":1}'
+        'duplicate primitive int'      | '{"name":"Ada","active":true,"count":1,"count":2}'
+        'primitive int null first'     | '{"name":"Ada","active":true,"count":null,"count":1}'
+        'primitive boolean null last'  | '{"name":"Ada","active":true,"active":null,"count":1}'
+        'primitive int null last'      | '{"name":"Ada","active":true,"count":1,"count":null}'
+        'duplicate nullable reference' | '{"name":"Ada","active":true,"count":1,"nullableName":"Grace","nullableName":"Lovelace"}'
+        'nullable reference null first' | '{"name":"Ada","active":true,"count":1,"nullableName":null,"nullableName":"Grace"}'
+        'nullable reference null last' | '{"name":"Ada","active":true,"count":1,"nullableName":"Grace","nullableName":null}'
+        'duplicate nullable boolean'   | '{"name":"Ada","active":true,"count":1,"nullableActive":true,"nullableActive":false}'
+        'nullable boolean null first'  | '{"name":"Ada","active":true,"count":1,"nullableActive":null,"nullableActive":true}'
+        'nullable boolean null last'   | '{"name":"Ada","active":true,"count":1,"nullableActive":true,"nullableActive":null}'
+    }
+
+    void 'test generated bean duplicate property handling matches runtime deserializer'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadMatches(jsonMapper, SourceGenGeneratedPropertyDefaults, SourceGenRuntimePropertyDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                       | json
+        'duplicate reference'          | '{"name":"Ada","name":"Grace","active":true,"count":1}'
+        'reference null first'         | '{"name":null,"name":"Grace","active":true,"count":1}'
+        'duplicate primitive boolean'  | '{"name":"Ada","active":true,"active":false,"count":1}'
+        'primitive boolean null first' | '{"name":"Ada","active":null,"active":true,"count":1}'
+        'duplicate primitive int'      | '{"name":"Ada","active":true,"count":1,"count":2}'
+        'primitive int null first'     | '{"name":"Ada","active":true,"count":null,"count":1}'
+        'primitive boolean null last'  | '{"name":"Ada","active":true,"active":null,"count":1}'
+        'primitive int null last'      | '{"name":"Ada","active":true,"count":1,"count":null}'
+        'duplicate nullable reference' | '{"name":"Ada","active":true,"count":1,"nullableName":"Grace","nullableName":"Lovelace"}'
+        'nullable reference null first' | '{"name":"Ada","active":true,"count":1,"nullableName":null,"nullableName":"Grace"}'
+        'nullable reference null last' | '{"name":"Ada","active":true,"count":1,"nullableName":"Grace","nullableName":null}'
+        'duplicate nullable boolean'   | '{"name":"Ada","active":true,"count":1,"nullableActive":true,"nullableActive":false}'
+        'nullable boolean null first'  | '{"name":"Ada","active":true,"count":1,"nullableActive":null,"nullableActive":true}'
+        'nullable boolean null last'   | '{"name":"Ada","active":true,"count":1,"nullableActive":true,"nullableActive":null}'
+    }
+
+    private static void assertPropertiesEqual(Object generated, Object runtime) {
+        assert propertyValue(generated, 'name') == propertyValue(runtime, 'name')
+        assert propertyValue(generated, 'active') == propertyValue(runtime, 'active')
+        assert propertyValue(generated, 'count') == propertyValue(runtime, 'count')
+        assert propertyValue(generated, 'nullableName') == propertyValue(runtime, 'nullableName')
+        assert propertyValue(generated, 'nullableActive') == propertyValue(runtime, 'nullableActive')
+    }
+
+    private static void assertReadMatches(JsonMapper jsonMapper,
+                                          Class<?> generatedType,
+                                          Class<?> runtimeType,
+                                          String json) {
+        def generated = jsonMapper.readValue(json, Argument.of(generatedType))
+        def runtime = jsonMapper.readValue(json, Argument.of(runtimeType))
+        assertPropertiesEqual(generated, runtime)
+    }
+
+    private static Object propertyValue(Object target, String propertyName) {
+        def recordMethod = findDeclaredMethod(target, propertyName)
+        if (recordMethod != null) {
+            return invoke(recordMethod, target)
+        }
+        def getter = findDeclaredMethod(target, 'get' + propertyName.capitalize())
+        if (getter != null) {
+            return invoke(getter, target)
+        }
+        def booleanGetter = findDeclaredMethod(target, 'is' + propertyName.capitalize())
+        if (booleanGetter != null) {
+            return invoke(booleanGetter, target)
+        }
+        throw new IllegalArgumentException("No readable property '${propertyName}' on ${target.class.name}")
+    }
+
+    private static def findDeclaredMethod(Object target, String methodName) {
+        try {
+            return target.getClass().getDeclaredMethod(methodName)
+        } catch (NoSuchMethodException ignored) {
+            return null
+        }
+    }
+
+    private static Object invoke(def method, Object target) {
         method.setAccessible(true)
         method.invoke(target)
     }

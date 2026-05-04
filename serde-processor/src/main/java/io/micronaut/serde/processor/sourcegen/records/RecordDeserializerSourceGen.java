@@ -76,6 +76,7 @@ public final class RecordDeserializerSourceGen {
     );
     private static final Method DECODE_OBJECT_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeObject", Argument.class);
     private static final Method DECODE_KEY_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeKey");
+    private static final Method SKIP_VALUE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "skipValue");
     private static final Method DECODE_STRING_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeStringNullable");
     private static final Method DECODE_BOOLEAN_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBoolean");
     private static final Method DECODE_BOOLEAN_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBooleanNullable");
@@ -97,12 +98,6 @@ public final class RecordDeserializerSourceGen {
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
     private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
-    private static final Method DUPLICATE_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
-        GeneratedSerdeExceptionUtil.class,
-        "duplicateProperty",
-        String.class,
-        Argument.class
-    );
     private static final Method HANDLE_UNKNOWN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
         "handleUnknownProperty",
@@ -378,7 +373,7 @@ public final class RecordDeserializerSourceGen {
                 handledPropertyDef,
                 keyVariable.asStatementSwitch(
                     STRING_TYPE,
-                    buildSwitchCases(deserializerClassTypeDef, components, keyFieldNames, seenPropertyVariables, componentDeserializers, handledPropertyVariable, type),
+                    buildSwitchCases(objectDecoder, components, seenPropertyVariables, componentDeserializers, handledPropertyVariable),
                     handledPropertyVariable.ifFalse(unknownPropertyStatement)
                 )
             );
@@ -387,13 +382,10 @@ public final class RecordDeserializerSourceGen {
         for (int i = components.size() - 1; i >= 0; i--) {
             RecordSerdeShape.RecordComponent component = components.get(i);
             ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
-            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
-                .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             switchStatement = keyVariable.invoke(STRING_EQUALS_METHOD, componentNameExpression).ifTrue(
                 seenPropertyVariable.ifTrue(
-                    duplicatePropertyStatement,
+                    objectDecoder.invoke(SKIP_VALUE_METHOD),
                     StatementDef.multi(
                         seenPropertyVariable.assign(ExpressionDef.trueValue()),
                         componentDeserializers.get(i)
@@ -405,29 +397,25 @@ public final class RecordDeserializerSourceGen {
         return switchStatement;
     }
 
-    private Map<ExpressionDef.Constant, StatementDef> buildSwitchCases(ClassTypeDef deserializerClassTypeDef,
+    private Map<ExpressionDef.Constant, StatementDef> buildSwitchCases(VariableDef objectDecoder,
                                                                        List<RecordSerdeShape.RecordComponent> components,
-                                                                       Map<String, String> keyFieldNames,
                                                                        List<VariableDef.Local> seenPropertyVariables,
                                                                        List<StatementDef> componentDeserializers,
-                                                                       VariableDef.Local handledPropertyVariable,
-                                                                       VariableDef.MethodParameter type) {
+                                                                       VariableDef.Local handledPropertyVariable) {
         Map<ExpressionDef.Constant, StatementDef> switchCases = new LinkedHashMap<>();
         for (int i = 0; i < components.size(); i++) {
             RecordSerdeShape.RecordComponent component = components.get(i);
-            ExpressionDef componentNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
-            StatementDef duplicatePropertyStatement = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                .invokeStatic(DUPLICATE_PROPERTY_METHOD, componentNameExpression, type)
-                .doThrow();
             VariableDef.Local seenPropertyVariable = seenPropertyVariables.get(i);
             switchCases.put(ExpressionDef.constant(component.name()),
                 handledPropertyVariable.ifFalse(
-                    seenPropertyVariable.ifTrue(
-                        duplicatePropertyStatement,
-                        StatementDef.multi(
-                            handledPropertyVariable.assign(ExpressionDef.trueValue()),
-                            seenPropertyVariable.assign(ExpressionDef.trueValue()),
-                            componentDeserializers.get(i)
+                    StatementDef.multi(
+                        handledPropertyVariable.assign(ExpressionDef.trueValue()),
+                        seenPropertyVariable.ifTrue(
+                            objectDecoder.invoke(SKIP_VALUE_METHOD),
+                            StatementDef.multi(
+                                seenPropertyVariable.assign(ExpressionDef.trueValue()),
+                                componentDeserializers.get(i)
+                            )
                         )
                     )
                 )
@@ -454,7 +442,8 @@ public final class RecordDeserializerSourceGen {
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
             if (component.type().isPrimitive() && !component.type().isArray()) {
-                deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
+                deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifTrue(
+                    valueVariable.assign(RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), component.propertyElement().isNonNull())),
                     valueVariable.assign(objectDecoder.invoke(scalarDecodeMethod))
                 );
             } else {
