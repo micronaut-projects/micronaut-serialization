@@ -13,7 +13,7 @@ jmh = "1.37"
 lombok = "1.18.46"
 errorprone-gradle-plugin = "5.1.0"
 nullaway = "0.13.4"
-error_prone_core = "2.48.0"
+error_prone_core = "2.49.0"
 
 micronaut-platform = "5.0.0-M2"
 micronaut = "5.0.0-M26"
