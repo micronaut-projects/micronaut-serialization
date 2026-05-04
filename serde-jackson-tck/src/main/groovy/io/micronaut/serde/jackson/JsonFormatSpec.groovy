@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit
 import io.micronaut.serde.jackson.shape.EnumObjectShapeBean
-import spock.lang.PendingFeatureIf
 import spock.lang.Unroll
 
 import java.sql.Timestamp
@@ -798,9 +797,6 @@ class Test {
         context.close()
     }
 
-    @PendingFeatureIf(
-            value = { instance.class.name == 'io.micronaut.serde.tck.jackson.databind.DatabindJsonFormatSpec' },
-            reason = "Jackson Databind currently does not apply @JsonFormat(with = ACCEPT_CASE_INSENSITIVE_VALUES) to enum values")
     void "test json format accept case insensitive values for enum"() {
         given:
         def context = buildContext('test.Test', """
@@ -987,9 +983,6 @@ record FormatRecord(
         context.close()
     }
 
-    @PendingFeatureIf(
-            value = { instance.class.name == 'io.micronaut.serde.tck.jackson.databind.DatabindJsonFormatSpec' },
-            reason = "Jackson Databind does not propagate class-level @JsonFormat feature overrides to bean properties")
     void "test json format class features propagate to all properties for simple bean and record"() {
         given:
         def context = buildContext('test.ClassFormatBean', """
@@ -1096,9 +1089,6 @@ record ClassFormatRecord(
         context.close()
     }
 
-    @PendingFeatureIf(
-            value = { instance.class.name == 'io.micronaut.serde.tck.jackson.databind.DatabindJsonFormatSpec' },
-            reason = "Jackson Databind does not propagate class-level @JsonFormat shape overrides to bean properties")
     void "test json format class shape propagates to all numeric properties for simple bean and record"() {
         given:
         def context = buildContext('test.ClassShapeBean', """
@@ -1160,9 +1150,6 @@ record ClassShapeRecord(Integer number, Long otherNumber) {
         context.close()
     }
 
-    @PendingFeatureIf(
-            value = { instance.class.name == 'io.micronaut.serde.tck.jackson.databind.DatabindJsonFormatSpec' },
-            reason = "Jackson Databind does not propagate class-level @JsonFormat pattern overrides to bean properties")
     void "test json format class pattern propagates to all date properties for simple bean and record"() {
         given:
         def context = buildContext('test.ClassPatternBean', """
@@ -1227,9 +1214,6 @@ record ClassPatternRecord(Date firstDate, Date secondDate) {
         context.close()
     }
 
-    @PendingFeatureIf(
-            value = { instance.class.name == 'io.micronaut.serde.tck.jackson.databind.DatabindJsonFormatSpec' },
-            reason = "Jackson Databind currently does not apply @JsonFormat(with = ACCEPT_CASE_INSENSITIVE_VALUES) to enum values")
     void "test json format enum feature selects runtime serdes for simple enum"() {
         given:
         def context = buildContext('test.EnumHolder', """
