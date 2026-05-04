@@ -136,10 +136,13 @@ public final class GeneratedSerdeExceptionUtil {
                                                               Argument<?> beanType,
                                                               String propertyName,
                                                               Argument<?> propertyArgument) throws SerdeException {
+        if (value != null) {
+            return;
+        }
         boolean strictNullable = context.getDeserializationConfiguration()
             .map(DeserializationConfiguration::isStrictNullable)
             .orElse(false);
-        if (strictNullable && value == null) {
+        if (strictNullable) {
             SerdeException serdeException = new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
                 "]. Non-null constructor parameter [" + propertyArgument + "] is not present or is null in the supplied data");
             serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument.withName(propertyName)));

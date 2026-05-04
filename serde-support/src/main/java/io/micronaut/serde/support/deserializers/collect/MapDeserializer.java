@@ -57,8 +57,8 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
         final Decoder objectDecoder = decoder.decodeObject(mapType);
         String key = objectDecoder.decodeKey();
         ConversionService conversionService = decoderContext.getConversionService();
-        while (key != null) {
-            try {
+        try {
+            while (key != null) {
                 K k;
                 if (keyArgument.isInstance(key)) {
                     k = (K) key;
@@ -74,11 +74,11 @@ abstract class MapDeserializer<K, V, M extends Map<K, V>> implements Deserialize
                 } else {
                     map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueArgument));
                 }
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofMap(map.getClass(), mapType, key));
-                throw e;
+                key = objectDecoder.decodeKey();
             }
-            key = objectDecoder.decodeKey();
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofMap(map.getClass(), mapType, key));
+            throw e;
         }
         objectDecoder.finishStructure();
     }

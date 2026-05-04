@@ -556,10 +556,17 @@ final class DeserBean<T> {
     private void initProperty(DerProperty<T, Object> property, Deserializer.DecoderContext decoderContext) throws SerdeException {
         if (!property.ignored) {
             Deserializer.DecoderContext propertyContext = decoderContext.withFeatures(property.featuresWith, property.featuresWithout);
-            property.deserializer = property.format == null
+            property.deserializer = unwrapErrorCatching(property.format == null
                 ? findDeserializerWithoutFormat(propertyContext, property.argument)
-                : findDeserializer(propertyContext, property.argument, property.format);
+                : findDeserializer(propertyContext, property.argument, property.format));
         }
+    }
+
+    private static <T> Deserializer<T> unwrapErrorCatching(Deserializer<T> deserializer) {
+        if (deserializer instanceof ErrorCatchingDeserializer<T> errorCatchingDeserializer) {
+            return errorCatchingDeserializer.getDeserializer();
+        }
+        return deserializer;
     }
 
     @Nullable
@@ -868,6 +875,7 @@ final class DeserBean<T> {
         public final FormatConfiguration format;
         public final Set<DeserializationConfiguration.Feature> featuresWith;
         public final Set<DeserializationConfiguration.Feature> featuresWithout;
+        public final boolean hasFeatureOverrides;
 
         // Null when DeserBean not initialized
         @Nullable
@@ -936,6 +944,7 @@ final class DeserBean<T> {
             this.format = propertyFormat;
             this.featuresWith = SerdeFeatures.deserializationFeaturesWith(annotationMetadata);
             this.featuresWithout = SerdeFeatures.deserializationFeaturesWithout(annotationMetadata);
+            this.hasFeatureOverrides = !featuresWith.isEmpty() || !featuresWithout.isEmpty();
             Class<?> type = this.argument.getType();
             this.nonNull = this.argument.isNonNull();
             this.nullable = this.argument.isNullable();
@@ -982,7 +991,7 @@ final class DeserBean<T> {
         }
 
         public void setDefaultPropertyValue(Deserializer.DecoderContext decoderContext, B bean) throws SerdeException {
-            decoderContext = decoderContext.withFeatures(featuresWith, featuresWithout);
+            decoderContext = resolveFeatures(decoderContext);
             if (explicitlyRequired) {
                 throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required property [" + argument +
                     "] is not present in supplied data");
@@ -994,7 +1003,7 @@ final class DeserBean<T> {
         }
 
         public void setDefaultConstructorValue(Deserializer.DecoderContext decoderContext, Object[] params) throws SerdeException {
-            decoderContext = decoderContext.withFeatures(featuresWith, featuresWithout);
+            decoderContext = resolveFeatures(decoderContext);
             params[index] = provideDefaultConstructorValue(decoderContext);
         }
 
@@ -1028,7 +1037,7 @@ final class DeserBean<T> {
                                                    Deserializer.DecoderContext decoderContext,
                                                    B beanInstance) throws IOException {
             try {
-                P value = deserializeValue(deserializer(), objectDecoder, decoderContext);
+                P value = deserializeValue(deserializer, objectDecoder, decoderContext);
                 if (value != null || nullable) {
                     beanProperty().setUnsafe(beanInstance, value);
                 }
@@ -1052,7 +1061,7 @@ final class DeserBean<T> {
         @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
         @Nullable
         P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
-            decoderContext = decoderContext.withFeatures(featuresWith, featuresWithout);
+            decoderContext = resolveFeatures(decoderContext);
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
                 if (value != null || nullable) {
@@ -1070,7 +1079,7 @@ final class DeserBean<T> {
 
         @Nullable
         P deserializeConstructorValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
-            decoderContext = decoderContext.withFeatures(featuresWith, featuresWithout);
+            decoderContext = resolveFeatures(decoderContext);
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
                 if (value != null || nullable) {
@@ -1102,6 +1111,10 @@ final class DeserBean<T> {
 
         private Deserializer<P> deserializer() {
             return Objects.requireNonNull(deserializer);
+        }
+
+        private Deserializer.DecoderContext resolveFeatures(Deserializer.DecoderContext decoderContext) {
+            return hasFeatureOverrides ? decoderContext.withFeatures(featuresWith, featuresWithout) : decoderContext;
         }
 
         private SerdeException convertException(Exception e, boolean catchOnlyUnknown) {

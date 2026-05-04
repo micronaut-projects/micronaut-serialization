@@ -16,7 +16,9 @@
 package io.micronaut.serde.processor.sourcegen.beans;
 
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
  * Shape model for bean-based source generation.
  *
  * @param defaultConstructor The selected default constructor.
- * @param properties Bean properties included in generated serialization.
+ * @param properties         Bean properties included in generated serialization.
  */
 public record BeanSerdeShape(
     MethodElement defaultConstructor,
@@ -33,20 +35,24 @@ public record BeanSerdeShape(
     /**
      * Bean property metadata used by source generation.
      *
-     * @param name Property name.
-     * @param serializationType Property type used for serialization.
+     * @param name                Property name.
+     * @param serializationType   Property type used for serialization.
      * @param deserializationType Property type used for deserialization.
-     * @param nullable Whether the property is nullable.
-     * @param readMethod Bean getter method.
-     * @param writeMethod Bean setter method.
+     * @param nullable            Whether the property is nullable.
+     * @param readMethod          Bean getter method.
+     * @param writeMethod         Bean setter method.
+     * @param readField           Bean field used for reading.
+     * @param writeField          Bean field used for writing.
      */
     public record BeanProperty(
         String name,
         ClassElement serializationType,
         ClassElement deserializationType,
         boolean nullable,
-        MethodElement readMethod,
-        MethodElement writeMethod
+        @Nullable MethodElement readMethod,
+        @Nullable MethodElement writeMethod,
+        @Nullable FieldElement readField,
+        @Nullable FieldElement writeField
     ) {
     }
 }

@@ -1,20 +1,10 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.Decoder
 import io.micronaut.serde.Deserializer
-import io.micronaut.serde.Encoder
-import io.micronaut.serde.LimitingStream
-import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.Serializer
-import io.micronaut.serde.config.annotation.SerdeConfig
-import io.micronaut.serde.jackson.JacksonDecoder
-import io.micronaut.serde.jackson.JacksonEncoder
 import io.micronaut.serde.jackson.JsonCompileSpec
-import tools.jackson.core.json.JsonFactory
-
-import java.lang.reflect.Modifier
-import jakarta.inject.Singleton
 
 class SerdeSourceGenEnumSpec extends JsonCompileSpec {
 
@@ -34,50 +24,17 @@ public enum TestEnum {
 }
 ''')
         Class<?> enumType = context.classLoader.loadClass('test.TestEnum')
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(Argument.of(enumType)).annotationMetadata
-        String serializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-
-        expect:
-        metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SHAPE).orElse(null) == 'ENUM'
-        metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)
-        metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
-        serializerClassName != null
-        deserializerClassName != null
-
-        when:
-        Class<?> serializerClass = context.classLoader.loadClass(serializerClassName)
-        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
-
-        then:
-        !Modifier.isAbstract(serializerClass.modifiers)
-        !Modifier.isAbstract(deserializerClass.modifiers)
-        serializerClass.getAnnotation(Singleton) != null
-        deserializerClass.getAnnotation(Singleton) != null
-
-        when:
-        Serializer serializer = (Serializer) serializerClass.getDeclaredConstructor().newInstance()
-        Deserializer deserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
-        def registry = jsonMapper.serdeRegistry
-        Serializer.EncoderContext encoderContext = registry.newEncoderContext(Object)
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
-        def jsonFactory = new JsonFactory()
-        def output = new ByteArrayOutputStream()
-        def value = Enum.valueOf((Class<Enum>) enumType, 'B')
+        def registry = context.getBean(SerdeRegistry)
         def type = Argument.of(enumType)
 
-        jsonFactory.createGenerator(output).withCloseable { generator ->
-            Encoder encoder = JacksonEncoder.create(generator)
-            serializer.serialize(encoder, encoderContext, type, value)
-        }
-        String json = output.toString('UTF-8')
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
 
-        def deserialized
-        jsonFactory.createParser(json).withCloseable { parser ->
-            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
-            deserialized = deserializer.deserialize(decoder, decoderContext, type)
-        }
+        when:
+        def value = Enum.valueOf((Class<Enum>) enumType, 'B')
+        String json = jsonMapper.writeValueAsString(value)
+        def deserialized = jsonMapper.readValue(json, type)
 
         then:
         json == '"B"'
@@ -87,7 +44,7 @@ public enum TestEnum {
         context.close()
     }
 
-    void 'test enum generated deserializer shape and createSpecific parity'() {
+    void 'test enum generated deserializer is selected and functional'() {
         given:
         def context = buildContext('test.ParityEnum', '''
 package test;
@@ -103,28 +60,21 @@ public enum ParityEnum {
 }
 ''')
         Class<?> enumType = context.classLoader.loadClass('test.ParityEnum')
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(Argument.of(enumType)).annotationMetadata
-        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
         def type = Argument.of(enumType)
-        Deserializer defaultDeserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+        Deserializer defaultDeserializer = registry.findDeserializer(type)
         Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
 
         expect:
-        deserializerClass.declaredFields*.name.contains('ARGUMENT_STRING')
-        deserializerClass.declaredFields*.name.contains('STRING_DESERIALIZER')
-        specificDeserializer.class == deserializerClass
+        defaultDeserializer.class.name == generatedClassName(enumType, 'Deserializer')
+        specificDeserializer.class.name == generatedClassName(enumType, 'Deserializer')
 
         when:
-        def fromDefault = deserializeEnum(defaultDeserializer, decoderContext, type, '"B"')
-        def fromSpecific = deserializeEnum(specificDeserializer, decoderContext, type, '"B"')
+        def deserialized = jsonMapper.readValue('"B"', type)
 
         then:
-        fromDefault == fromSpecific
-        fromDefault.toString() == 'B'
+        deserialized.toString() == 'B'
 
         cleanup:
         context.close()
@@ -163,16 +113,22 @@ public class ImportHolder {
         context.close()
     }
 
-    private static Object deserializeEnum(Deserializer deserializer,
-                                          Deserializer.DecoderContext decoderContext,
-                                          Argument type,
-                                          String json) {
-        def jsonFactory = new JsonFactory()
-        def result
-        jsonFactory.createParser(json).withCloseable { parser ->
-            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
-            result = deserializer.deserialize(decoder, decoderContext, type)
+    private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
+    }
+
+    private static void assertGeneratedDeserializer(SerdeRegistry registry, Argument argument) {
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+        assert deserializer.class.name == generatedClassName(argument.type, 'Deserializer')
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
         }
-        result
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 }

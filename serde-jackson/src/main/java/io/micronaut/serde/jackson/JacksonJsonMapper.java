@@ -59,6 +59,7 @@ import tools.jackson.core.json.JsonFactory;
 import tools.jackson.core.json.JsonFactoryBuilder;
 import tools.jackson.core.json.JsonReadFeature;
 import tools.jackson.core.json.JsonWriteFeature;
+import tools.jackson.core.util.BufferRecycler;
 import tools.jackson.core.util.ByteArrayBuilder;
 import tools.jackson.core.util.DefaultPrettyPrinter;
 import tools.jackson.core.util.JacksonFeature;
@@ -330,32 +331,36 @@ public final class JacksonJsonMapper implements JacksonObjectMapper {
 
     @Override
     public byte[] writeValueAsBytes(@Nullable Object object) throws IOException {
-        ByteArrayBuilder bb = new ByteArrayBuilder(jsonFactory._getBufferRecycler());
-        try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), bb)) {
-            if (object == null) {
-                generator.writeNull();
-            } else {
-                writeValue0(generator, object);
+        BufferRecycler bufferRecycler = jsonFactory._getBufferRecycler();
+        try (ByteArrayBuilder bb = new ByteArrayBuilder(bufferRecycler)) {
+            try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), bb)) {
+                if (object == null) {
+                    generator.writeNull();
+                } else {
+                    writeValue0(generator, object);
+                }
             }
+            return bb.getClearAndRelease();
+        } finally {
+            bufferRecycler.releaseToPool();
         }
-        byte[] bytes = bb.toByteArray();
-        bb.release();
-        return bytes;
     }
 
     @Override
     public <T> byte[] writeValueAsBytes(Argument<T> type, @Nullable T object) throws IOException {
-        ByteArrayBuilder bb = new ByteArrayBuilder(jsonFactory._getBufferRecycler());
-        try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), bb)) {
-            if (object == null) {
-                generator.writeNull();
-            } else {
-                writeValue(generator, object, type);
+        BufferRecycler bufferRecycler = jsonFactory._getBufferRecycler();
+        try (ByteArrayBuilder bb = new ByteArrayBuilder(bufferRecycler)) {
+            try (JsonGenerator generator = jsonFactory.createGenerator(new WriteContextImpl(), bb)) {
+                if (object == null) {
+                    generator.writeNull();
+                } else {
+                    writeValue(generator, object, type);
+                }
             }
+            return bb.getClearAndRelease();
+        } finally {
+            bufferRecycler.releaseToPool();
         }
-        byte[] bytes = bb.toByteArray();
-        bb.release();
-        return bytes;
     }
 
     @Override

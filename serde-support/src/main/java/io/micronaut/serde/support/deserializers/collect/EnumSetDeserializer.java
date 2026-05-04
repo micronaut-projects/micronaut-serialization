@@ -48,16 +48,16 @@ final class EnumSetDeserializer<E extends Enum<E>> implements DeserializerRegist
         EnumSet<E> enumSet = EnumSet.noneOf(enumType);
         Deserializer<? extends E> enumDeser = context.findDeserializer(enumType).createSpecific(context, generic);
         int index = 0;
-        while (arrayDecoder.hasNextArrayValue()) {
-            try {
+        try {
+            while (arrayDecoder.hasNextArrayValue()) {
                 enumSet.add(
                     enumDeser.deserialize(arrayDecoder, context, generic)
                 );
                 index++;
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofCollection(enumSet.getClass(), type, index));
-                throw e;
             }
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(enumSet.getClass(), type, index));
+            throw e;
         }
         arrayDecoder.finishStructure();
         return enumSet;

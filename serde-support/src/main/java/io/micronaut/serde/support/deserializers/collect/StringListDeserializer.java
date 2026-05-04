@@ -38,20 +38,21 @@ import java.util.ArrayList;
  */
 @Internal
 final class StringListDeserializer implements FormattedDeserializer<ArrayList<String>>, DeserializerRegistrar<ArrayList<String>> {
+    private static final int INITIAL_CAPACITY = 16;
 
     @Override
     public ArrayList<String> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<String>> type) throws IOException {
         final Decoder arrayDecoder = decoder.decodeArray();
-        ArrayList<String> collection = new ArrayList<>();
+        ArrayList<String> collection = new ArrayList<>(INITIAL_CAPACITY);
         int index = 0;
-        while (arrayDecoder.hasNextArrayValue()) {
-            try {
+        try {
+            while (arrayDecoder.hasNextArrayValue()) {
                 collection.add(arrayDecoder.decodeStringNullable());
                 index++;
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofCollection(collection.getClass(), type, index));
-                throw e;
             }
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(collection.getClass(), type, index));
+            throw e;
         }
         arrayDecoder.finishStructure();
         return collection;

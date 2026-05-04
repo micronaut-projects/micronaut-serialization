@@ -21,11 +21,9 @@ import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import org.jspecify.annotations.Nullable;
 
 import java.net.InetAddress;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -135,54 +133,6 @@ public interface SerdeConfiguration {
      */
     default boolean isJsonViewEnabled() {
         return false;
-    }
-
-    /**
-     * Resolve the active serialization format features for the given configuration.
-     *
-     * @param configuration The serialization configuration
-     * @return The active serialization format features
-     * @since 3.0
-     */
-    static Set<Feature> serializationFeatures(@Nullable SerializationConfiguration configuration) {
-        EnumSet<Feature> features = EnumSet.noneOf(Feature.class);
-        if (configuration == null || configuration.writeDateTimestampsAsNanoseconds()) {
-            features.add(Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
-        }
-        if (configuration == null || configuration.writeDatesWithZoneId()) {
-            features.add(Feature.WRITE_DATES_WITH_ZONE_ID);
-        }
-        if (configuration != null && configuration.writeSingleElemArraysUnwrapped()) {
-            features.add(Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED);
-        }
-        if (configuration != null && configuration.writeSortedMapEntries()) {
-            features.add(Feature.WRITE_SORTED_MAP_ENTRIES);
-        }
-        return Set.copyOf(features);
-    }
-
-    /**
-     * Serialization format features.
-     *
-     * @since 3.0
-     */
-    enum Feature {
-        /**
-         * Write numeric date/time timestamps using nanosecond precision when timestamps are enabled.
-         */
-        WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS,
-        /**
-         * Include the zone id when serializing date/time values that support zone information.
-         */
-        WRITE_DATES_WITH_ZONE_ID,
-        /**
-         * Serialize single-element arrays and iterable values as the contained value instead of an array.
-         */
-        WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED,
-        /**
-         * Serialize map entries ordered by key.
-         */
-        WRITE_SORTED_MAP_ENTRIES
     }
 
     /**

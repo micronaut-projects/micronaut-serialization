@@ -22,6 +22,8 @@ import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
+import java.util.Set;
+
 /**
  * Default implementation of {@link SerializationConfiguration}.
  *
@@ -38,6 +40,8 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     private final boolean writeDatesWithZoneId;
     private final boolean writeSingleElemArraysUnwrapped;
     private final boolean writeSortedMapEntries;
+    private final boolean disableGeneratedSerializer;
+    private final Set<SerializationConfiguration.Feature> features;
 
     @ConfigurationInject
     DefaultSerializationConfiguration(@Bindable(defaultValue = "NON_EMPTY") SerdeConfig.SerInclude inclusion,
@@ -46,7 +50,8 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
                                       @Bindable(defaultValue = StringUtils.TRUE) boolean writeDateTimestampsAsNanoseconds,
                                       @Bindable(defaultValue = StringUtils.TRUE) boolean writeDatesWithZoneId,
                                       @Bindable(defaultValue = StringUtils.FALSE) boolean writeSingleElemArraysUnwrapped,
-                                      @Bindable(defaultValue = StringUtils.FALSE) boolean writeSortedMapEntries) {
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean writeSortedMapEntries,
+                                      @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedSerializer) {
         this.inclusion = inclusion;
         this.alwaysSerializeErrorsAsList = alwaysSerializeErrorsAsList;
         this.sortPropertiesAlphabetically = sortPropertiesAlphabetically;
@@ -54,6 +59,8 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
         this.writeDatesWithZoneId = writeDatesWithZoneId;
         this.writeSingleElemArraysUnwrapped = writeSingleElemArraysUnwrapped;
         this.writeSortedMapEntries = writeSortedMapEntries;
+        this.disableGeneratedSerializer = disableGeneratedSerializer;
+        this.features = SerializationConfiguration.super.features();
     }
 
     @Override
@@ -89,6 +96,16 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     @Override
     public boolean writeSortedMapEntries() {
         return writeSortedMapEntries;
+    }
+
+    @Override
+    public boolean disableGeneratedSerializer() {
+        return disableGeneratedSerializer;
+    }
+
+    @Override
+    public Set<SerializationConfiguration.Feature> features() {
+        return features;
     }
 
 }

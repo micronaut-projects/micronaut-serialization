@@ -22,6 +22,7 @@ dependencies {
     implementation(projects.micronautSerdeJackson)
     implementation(projects.micronautSerdeSupport)
     implementation(mn.micronaut.jackson.databind)
+    implementation(libs.jackson.module.blackbird)
 
     jmh(libs.jmh.core)
     runtimeOnly(mnLogging.logback.classic)
@@ -29,7 +30,7 @@ dependencies {
 
 jmh {
     includes = [
-        ".*(StartupBenchmark|SourceGenRoutingBenchmark).*"
+        ".*(StartupBenchmark|SourceGenRoutingBenchmark|UserBeanSerdeBenchmark).*"
     ]
     fork = 10
     iterations = 1

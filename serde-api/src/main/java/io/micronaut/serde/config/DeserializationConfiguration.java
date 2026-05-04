@@ -28,6 +28,7 @@ import java.util.Set;
  */
 public interface DeserializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".deserialization";
+    Set<Feature> DEFAULT_FEATURES = DeserializationConfiguration.features(null);
 
     /**
      * Whether to ignore unknown values during deserialization.
@@ -147,9 +148,23 @@ public interface DeserializationConfiguration {
     }
 
     /**
+     * Determines whether generated deserializers should fall back to the runtime deserializer.
+     *
+     * @return {@code true} if generated deserializers should be disabled
+     * @since 3.0
+     */
+    @Bindable(defaultValue = StringUtils.FALSE)
+    default boolean disableGeneratedDeserializer() {
+        return false;
+    }
+
+    /**
+     * Returns the active format features for deserialization.
+     *
      * @return The active format features for deserialization.
      * @since 3.0
      */
+    @SuppressWarnings("AmbiguousMethodReference")
     default Set<Feature> features() {
         return features(this);
     }
@@ -161,6 +176,7 @@ public interface DeserializationConfiguration {
      * @return The active format features
      * @since 3.0
      */
+    @SuppressWarnings("AmbiguousMethodReference")
     static Set<Feature> features(@Nullable DeserializationConfiguration configuration) {
         EnumSet<Feature> features = EnumSet.noneOf(Feature.class);
         if (configuration != null && configuration.acceptSingleValueAsArray()) {
@@ -183,6 +199,9 @@ public interface DeserializationConfiguration {
         }
         if (configuration != null && configuration.adjustDatesToContextTimeZone()) {
             features.add(Feature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        }
+        if (configuration != null && configuration.disableGeneratedDeserializer()) {
+            features.add(Feature.DISABLE_GENERATED_DESERIALIZER);
         }
         return Set.copyOf(features);
     }
@@ -220,6 +239,10 @@ public interface DeserializationConfiguration {
         /**
          * Adjust date/time values to the configured context time zone during deserialization.
          */
-        ADJUST_DATES_TO_CONTEXT_TIME_ZONE
+        ADJUST_DATES_TO_CONTEXT_TIME_ZONE,
+        /**
+         * Disable generated deserializers and use the runtime deserializer.
+         */
+        DISABLE_GENERATED_DESERIALIZER
     }
 }

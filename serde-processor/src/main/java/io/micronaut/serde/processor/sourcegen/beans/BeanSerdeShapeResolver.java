@@ -16,6 +16,7 @@
 package io.micronaut.serde.processor.sourcegen.beans;
 
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.FieldElement;
 import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.inject.ast.PropertyElement;
 
@@ -49,13 +50,33 @@ public final class BeanSerdeShapeResolver {
         }
         List<BeanSerdeShape.BeanProperty> properties = new ArrayList<>(beanProperties.size());
         for (PropertyElement property : beanProperties) {
-            MethodElement readMethod = property.getReadMethod().orElse(null);
-            MethodElement writeMethod = property.getWriteMethod().orElse(null);
-            if (readMethod == null || writeMethod == null) {
+            MethodElement readMethod = null;
+            MethodElement writeMethod = null;
+            FieldElement readField = null;
+            FieldElement writeField = null;
+            if (property.getReadAccessKind() == PropertyElement.AccessKind.FIELD) {
+                readField = property.getField()
+                    .filter(field -> field.isAccessible(element, false))
+                    .orElse(null);
+            } else {
+                readMethod = property.getReadMethod().orElse(null);
+            }
+            if (property.getWriteAccessKind() == PropertyElement.AccessKind.FIELD) {
+                writeField = property.getField()
+                    .filter(field -> !field.isFinal())
+                    .filter(field -> field.isAccessible(element, false))
+                    .orElse(null);
+            } else {
+                writeMethod = property.getWriteMethod().orElse(null);
+            }
+            if ((readMethod == null && readField == null) || (writeMethod == null && writeField == null)) {
                 return Optional.empty();
             }
-            ClassElement serializationType = readMethod.getReturnType();
-            ClassElement deserializationType = writeMethod.getParameters()[0].getType();
+            ClassElement serializationType = property.getReadType().orElse(null);
+            ClassElement deserializationType = property.getWriteType().orElse(null);
+            if (serializationType == null || deserializationType == null) {
+                return Optional.empty();
+            }
             if (serializationType.isTypeVariable() || deserializationType.isTypeVariable()) {
                 return Optional.empty();
             }
@@ -65,7 +86,9 @@ public final class BeanSerdeShapeResolver {
                 deserializationType,
                 property.isNullable(),
                 readMethod,
-                writeMethod
+                writeMethod,
+                readField,
+                writeField
             ));
         }
         return Optional.of(new BeanSerdeShape(defaultConstructor, List.copyOf(properties)));

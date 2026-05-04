@@ -19,6 +19,7 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
 import org.jspecify.annotations.Nullable;
 
@@ -143,8 +144,8 @@ public final class ZonedDateTimeSerde
 
     @Override
     protected DateTimeFormatter defaultStringFormatter(FormatConfiguration format,
-                                                       Set<SerdeConfiguration.Feature> features) {
-        if (!features.contains(SerdeConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID)) {
+                                                       Set<SerializationConfiguration.Feature> features) {
+        if (!features.contains(SerializationConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID)) {
             return DateTimeFormatter.ISO_OFFSET_DATE_TIME;
         }
         return DateTimeFormatter.ISO_ZONED_DATE_TIME;

@@ -21,7 +21,6 @@ import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.EnumBeanIntrospection;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.serde.Deserializer;
-import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
 
@@ -44,45 +43,20 @@ public final class GeneratedSerdeEnumUtil {
     }
 
     /**
-     * Returns the serialized name for an enum constant.
-     *
-     * @param enumValue The enum constant.
-     * @param <E> The enum type.
-     * @return The serialized name.
-     */
-    public static <E extends Enum<E>> String enumSerializedName(E enumValue) {
-        @SuppressWarnings("unchecked") Class<E> enumType = (Class<E>) enumValue.getDeclaringClass();
-        return enumLookup(enumType).serializedName(enumValue);
-    }
-
-    /**
      * Resolves an enum constant from serialized input.
      *
-     * @param enumType The enum type.
+     * @param enumType        The enum type.
      * @param serializedValue The serialized value.
-     * @param context The decoder context.
-     * @param <E> The enum type.
+     * @param context         The decoder context.
+     * @param <E>             The enum type.
      * @return The matching enum constant.
      */
     public static <E extends Enum<E>> E enumValueOf(Class<E> enumType, String serializedValue, Deserializer.DecoderContext context) {
-        boolean caseInsensitive = acceptCaseInsensitiveEnums(context);
-        E resolved = enumLookup(enumType).resolve(serializedValue, caseInsensitive);
+        E resolved = enumLookup(enumType).resolve(serializedValue);
         if (resolved != null) {
             return resolved;
         }
         return Enum.valueOf(enumType, serializedValue);
-    }
-
-    /**
-     * Resolves whether case-insensitive enum deserialization is enabled for the given context.
-     *
-     * @param context The decoder context.
-     * @return {@code true} if case-insensitive enum matching is enabled.
-     */
-    public static boolean acceptCaseInsensitiveEnums(Deserializer.DecoderContext context) {
-        return context.getDeserializationConfiguration()
-            .map(DeserializationConfiguration::acceptCaseInsensitiveEnums)
-            .orElse(false);
     }
 
     @SuppressWarnings("unchecked")
@@ -120,32 +94,12 @@ public final class GeneratedSerdeEnumUtil {
         return new EnumLookup<>(Map.copyOf(serializedNames), Map.copyOf(bySerialized), Map.copyOf(bySerializedLowerCase));
     }
 
-    private static final class EnumLookup<E extends Enum<E>> {
-        private final Map<E, String> serializedNames;
-        private final Map<String, E> bySerialized;
-        private final Map<String, E> bySerializedLowerCase;
+    private record EnumLookup<E extends Enum<E>>(Map<E, String> serializedNames,
+                                                 Map<String, E> bySerialized,
+                                                 Map<String, E> bySerializedLowerCase) {
 
-        private EnumLookup(Map<E, String> serializedNames,
-                           Map<String, E> bySerialized,
-                           Map<String, E> bySerializedLowerCase) {
-            this.serializedNames = serializedNames;
-            this.bySerialized = bySerialized;
-            this.bySerializedLowerCase = bySerializedLowerCase;
-        }
-
-        private String serializedName(E enumValue) {
-            return serializedNames.getOrDefault(enumValue, enumValue.name());
-        }
-
-        private @Nullable E resolve(String serializedValue, boolean caseInsensitive) {
-            E resolved = bySerialized.get(serializedValue);
-            if (resolved != null) {
-                return resolved;
-            }
-            if (caseInsensitive && serializedValue != null) {
-                return bySerializedLowerCase.get(serializedValue.toLowerCase(Locale.ROOT));
-            }
-            return null;
+        private @Nullable E resolve(String serializedValue) {
+            return bySerialized.get(serializedValue);
         }
     }
 }

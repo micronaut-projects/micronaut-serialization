@@ -3,5 +3,13 @@ repositories {
 }
 
 configurations.configureEach {
-    resolutionStrategy.preferProjectModules()
+    resolutionStrategy {
+        preferProjectModules()
+        eachDependency {
+            if (requested.group == "io.micronaut.sourcegen") {
+                useVersion(libs.versions.micronaut.sourcegen.get())
+                because("Micronaut Serialization requires a newer SourceGen version than the imported Micronaut Core BOM")
+            }
+        }
+    }
 }

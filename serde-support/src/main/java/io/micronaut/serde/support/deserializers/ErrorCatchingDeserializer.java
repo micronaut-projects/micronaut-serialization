@@ -32,7 +32,7 @@ import java.io.IOException;
  * @author Denis Stepanov
  */
 @Internal
-class ErrorCatchingDeserializer<T> implements Deserializer<T> {
+public class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     @Nullable
     private static final Class<?> JACKSON_EXCEPTION_CLASS;
 
@@ -99,9 +99,11 @@ class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     }
 
     /**
+     * Returns the wrapped deserializer, exposed for testing.
+     *
      * @return The wrapped deserializer, exposed for testing
      */
-    Deserializer<T> getDeserializer() {
+    public final Deserializer<T> getDeserializer() {
         return deserializer;
     }
 }

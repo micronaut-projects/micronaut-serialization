@@ -23,6 +23,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -43,7 +44,7 @@ final class TemporalArrayShapeSupport {
     }
 
     static boolean writeDateTimestampsAsNanos(Serializer.EncoderContext context) {
-        return context.getFeatures().contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
+        return context.getFeatures().contains(SerializationConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS);
     }
 
     static boolean readDateTimestampsAsNanos(Deserializer.DecoderContext context) {

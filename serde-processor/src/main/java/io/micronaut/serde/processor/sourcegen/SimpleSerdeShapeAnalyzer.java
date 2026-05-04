@@ -32,19 +32,16 @@ import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 
 import java.lang.annotation.Annotation;
-import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Analyzes candidate types and decides source-generation eligibility and fallback reasons.
  */
 public final class SimpleSerdeShapeAnalyzer {
-    private static final String JACKSON_JSON_INCLUDE = "com.fasterxml.jackson.annotation.JsonInclude";
-    private static final String JACKSON_JSON_VALUE = "com.fasterxml.jackson.annotation.JsonValue";
-    private static final String JACKSON_JSON_ENUM_DEFAULT_VALUE = "com.fasterxml.jackson.annotation.JsonEnumDefaultValue";
-    private static final String JACKSON_JSON_PROPERTY_ORDER = "com.fasterxml.jackson.annotation.JsonPropertyOrder";
     private static final String SERDEABLE_SERIALIZABLE = Serdeable.Serializable.class.getName();
     private static final String SERDEABLE_DESERIALIZABLE = Serdeable.Deserializable.class.getName();
     private static final String JACKSON_ANNOTATION_PREFIX = "com.fasterxml.jackson.annotation.";
@@ -53,8 +50,8 @@ public final class SimpleSerdeShapeAnalyzer {
 
     @SuppressWarnings("java:S3776")
     public SimpleSerdeShapeDecision analyze(ClassElement element) {
-        EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
-        EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons = EnumSet.noneOf(SimpleSerdeShapeDecision.FallbackReason.class);
+        LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons = new LinkedHashMap<>();
+        LinkedHashMap<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons = new LinkedHashMap<>();
         SimpleSerdeShapeDecision.ShapeKind shapeKind = resolveShapeKind(element);
         boolean generated = element.hasAnnotation(SerdeableGenerated.class);
         if (isSerializerSkipped(element)) {
@@ -67,6 +64,19 @@ public final class SimpleSerdeShapeAnalyzer {
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.UNSUPPORTED) {
             failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE);
             return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+
+        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM) {
+            var unsupportedAnnotations = unsupportedJacksonAnnotationsOnEnum(element);
+            if (!unsupportedAnnotations.isEmpty()
+                && failBoth(
+                    serializerReasons,
+                    deserializerReasons,
+                    SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_ANNOTATIONS,
+                    unsupportedAnnotationsMessage(unsupportedAnnotations)
+                )) {
+                return decision(shapeKind, serializerReasons, deserializerReasons);
+            }
         }
 
         if (element.hasDeclaredAnnotation(SerdeConfig.SerSubtyped.class)
@@ -96,8 +106,24 @@ public final class SimpleSerdeShapeAnalyzer {
             }
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasJsonInclude(element)
+            && hasIncludeConfig(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.INCLUDE)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        if (!isBothFailed(serializerReasons, deserializerReasons)
+            && hasPropertyOrderConfig(element)
+            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.PROPERTY_ORDER)) {
+            return decision(shapeKind, serializerReasons, deserializerReasons);
+        }
+        var unsupportedAnnotations = unsupportedJacksonAnnotations(element);
+        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
+            && !unsupportedAnnotations.isEmpty()
+            && failBoth(
+                serializerReasons,
+                deserializerReasons,
+                SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_ANNOTATIONS,
+                unsupportedAnnotationsMessage(unsupportedAnnotations)
+            )) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
         if (!isBothFailed(serializerReasons, deserializerReasons)
@@ -117,15 +143,10 @@ public final class SimpleSerdeShapeAnalyzer {
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (!hasJsonInclude(element)
+        if (!hasIncludeConfig(element)
             && (element.hasAnnotation(SerdeConfig.SerIncluded.class)
             || hasAnnotation(element, SerdeConfig.SerIncluded.class)
             || element.hasDeclaredAnnotation(SerdeConfig.SerIncluded.class))
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        if (!isBothFailed(serializerReasons, deserializerReasons)
-            && hasPropertyOrderConfig(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -143,13 +164,7 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (!element.isEnum()
             && !isBothFailed(serializerReasons, deserializerReasons)
-            && hasAnnotation(element, JACKSON_JSON_VALUE)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        if (!element.isEnum()
-            && !isBothFailed(serializerReasons, deserializerReasons)
-            && hasJsonValueInPropertyTypes(element)
+            && hasSerValueInPropertyTypes(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
@@ -228,28 +243,16 @@ public final class SimpleSerdeShapeAnalyzer {
         }
         if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
             && !isBothFailed(serializerReasons, deserializerReasons)
-            && hasJsonEnumDefaultValue(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-        if (shapeKind == SimpleSerdeShapeDecision.ShapeKind.ENUM
-            && !isBothFailed(serializerReasons, deserializerReasons)
             && hasEnumPropertyOverrides(element)
             && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.COMPLEX_ENUM)) {
             return decision(shapeKind, serializerReasons, deserializerReasons);
         }
-        if (serializerReasons.isEmpty() && deserializerReasons.isEmpty()
-            && hasUnsupportedJacksonAnnotation(element)
-            && failBoth(serializerReasons, deserializerReasons, SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_SHAPE)) {
-            return decision(shapeKind, serializerReasons, deserializerReasons);
-        }
-
         return decision(shapeKind, serializerReasons, deserializerReasons);
     }
 
     private SimpleSerdeShapeDecision decision(SimpleSerdeShapeDecision.ShapeKind shapeKind,
-                                              EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
-                                              EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons) {
+                                              Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
+                                              Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons) {
         return new SimpleSerdeShapeDecision(
             shapeKind,
             serializerReasons.isEmpty(),
@@ -259,30 +262,49 @@ public final class SimpleSerdeShapeAnalyzer {
         );
     }
 
-    private boolean isBothFailed(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
-                                 EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons) {
+    private boolean isBothFailed(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
+                                 Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons) {
         return !serializerReasons.isEmpty() && !deserializerReasons.isEmpty();
     }
 
-    private boolean failBoth(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
-                             EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons,
+    private boolean failBoth(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
+                             Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
                              SimpleSerdeShapeDecision.FallbackReason reason) {
-        failSerializer(serializerReasons, reason);
-        failDeserializer(deserializerReasons, reason);
+        return failBoth(serializerReasons, deserializerReasons, reason, reason.message());
+    }
+
+    private boolean failBoth(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
+                             Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
+                             SimpleSerdeShapeDecision.FallbackReason reason,
+                             String message) {
+        failSerializer(serializerReasons, reason, message);
+        failDeserializer(deserializerReasons, reason, message);
         return isBothFailed(serializerReasons, deserializerReasons);
     }
 
-    private void failSerializer(EnumSet<SimpleSerdeShapeDecision.FallbackReason> serializerReasons,
+    private void failSerializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
                                 SimpleSerdeShapeDecision.FallbackReason reason) {
+        failSerializer(serializerReasons, reason, reason.message());
+    }
+
+    private void failSerializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> serializerReasons,
+                                SimpleSerdeShapeDecision.FallbackReason reason,
+                                String message) {
         if (serializerReasons.isEmpty()) {
-            serializerReasons.add(reason);
+            serializerReasons.put(reason, message);
         }
     }
 
-    private void failDeserializer(EnumSet<SimpleSerdeShapeDecision.FallbackReason> deserializerReasons,
+    private void failDeserializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
                                   SimpleSerdeShapeDecision.FallbackReason reason) {
+        failDeserializer(deserializerReasons, reason, reason.message());
+    }
+
+    private void failDeserializer(Map<SimpleSerdeShapeDecision.FallbackReason, String> deserializerReasons,
+                                  SimpleSerdeShapeDecision.FallbackReason reason,
+                                  String message) {
         if (deserializerReasons.isEmpty()) {
-            deserializerReasons.add(reason);
+            deserializerReasons.put(reason, message);
         }
     }
 
@@ -290,86 +312,147 @@ public final class SimpleSerdeShapeAnalyzer {
         if (element.getPrimaryConstructor().map(c -> hasAnnotation(c, annotation)).orElse(false)) {
             return true;
         }
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(annotation))) {
+        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(annotation) || p.hasDeclaredAnnotation(annotation))) {
             return true;
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().annotated(a -> a.hasAnnotation(annotation))).isEmpty()) {
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasAnnotation(annotation) || a.hasDeclaredAnnotation(annotation))).isEmpty()) {
             return true;
         }
-        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared().annotated(a -> a.hasAnnotation(annotation))).isEmpty();
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasAnnotation(annotation) || a.hasDeclaredAnnotation(annotation))).isEmpty();
     }
 
     private boolean hasAnnotation(ClassElement element, String annotationName) {
         if (element.getPrimaryConstructor().map(c -> hasAnnotation(c, annotationName)).orElse(false)) {
             return true;
         }
-        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(annotationName))) {
+        if (element.getBeanProperties().stream().anyMatch(p -> p.hasAnnotation(annotationName) || p.hasDeclaredAnnotation(annotationName))) {
             return true;
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared().annotated(a -> a.hasAnnotation(annotationName))).isEmpty()) {
+        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasAnnotation(annotationName) || a.hasDeclaredAnnotation(annotationName))).isEmpty()) {
             return true;
         }
-        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared().annotated(a -> a.hasAnnotation(annotationName))).isEmpty();
+        return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
+            .annotated(a -> a.hasAnnotation(annotationName) || a.hasDeclaredAnnotation(annotationName))).isEmpty();
     }
 
-    private boolean hasJsonInclude(ClassElement element) {
-        if (element.hasDeclaredAnnotation(JACKSON_JSON_INCLUDE) || hasAnnotation(element, JACKSON_JSON_INCLUDE)) {
+    private boolean hasAnnotationMetadata(ClassElement element, Predicate<AnnotationMetadata> predicate) {
+        if (predicate.test(element.getAnnotationMetadata())) {
             return true;
         }
-        return element.getEnclosingType().map(this::hasJsonInclude).orElse(false);
-    }
-
-    private boolean hasUnsupportedJacksonAnnotation(ClassElement element) {
-        if (hasJacksonAnnotationInTypeHierarchy(element, new HashSet<>())) {
+        if (element.getPrimaryConstructor().map(c -> hasAnnotationMetadata(c, predicate)).orElse(false)) {
             return true;
         }
         for (PropertyElement property : element.getBeanProperties()) {
+            if (predicate.test(property.getAnnotationMetadata())
+                || property.getReadMethod().map(method -> hasAnnotationMetadata(method, predicate)).orElse(false)
+                || property.getWriteMethod().map(method -> hasAnnotationMetadata(method, predicate)).orElse(false)) {
+                return true;
+            }
+        }
+        for (Element field : element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared())) {
+            if (predicate.test(field.getAnnotationMetadata())) {
+                return true;
+            }
+        }
+        for (MethodElement method : element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared())) {
+            if (hasAnnotationMetadata(method, predicate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasAnnotationMetadata(MethodElement methodElement, Predicate<AnnotationMetadata> predicate) {
+        if (predicate.test(methodElement.getAnnotationMetadata())) {
+            return true;
+        }
+        for (ParameterElement parameter : methodElement.getParameters()) {
+            if (predicate.test(parameter.getAnnotationMetadata())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasIncludeConfig(ClassElement element) {
+        if (hasAnnotationMetadata(element, this::hasIncludeConfig)) {
+            return true;
+        }
+        return element.getEnclosingType().map(this::hasIncludeConfig).orElse(false);
+    }
+
+    private boolean hasIncludeConfig(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class).isPresent()
+            || annotationMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE_CONTENT, SerdeConfig.SerInclude.class).isPresent();
+    }
+
+    private Map<String, Boolean> unsupportedJacksonAnnotations(ClassElement element) {
+        var annotations = new LinkedHashMap<String, Boolean>();
+        collectJacksonAnnotationsInTypeHierarchy(element, annotations, new LinkedHashMap<>());
+        for (PropertyElement property : element.getBeanProperties()) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
-            if (hasJacksonAnnotationInTypeHierarchy(serializationType, new HashSet<>())) {
-                return true;
-            }
+            collectJacksonAnnotationsInTypeHierarchy(serializationType, annotations, new LinkedHashMap<>());
             ClassElement deserializationType = property.getWriteMethod().map(m -> m.getParameters()[0].getType()).orElse(property.getType());
-            if (hasJacksonAnnotationInTypeHierarchy(deserializationType, new HashSet<>())) {
-                return true;
-            }
-            if (hasJacksonAnnotationNames(property.getAnnotationNames())) {
-                return true;
-            }
-            if (property.getReadMethod().map(MethodElement::getAnnotationNames).map(this::hasJacksonAnnotationNames).orElse(false)) {
-                return true;
-            }
-            if (property.getWriteMethod().map(MethodElement::getAnnotationNames).map(this::hasJacksonAnnotationNames).orElse(false)) {
-                return true;
-            }
+            collectJacksonAnnotationsInTypeHierarchy(deserializationType, annotations, new LinkedHashMap<>());
+            collectJacksonAnnotationNames(property.getAnnotationNames(), annotations);
+            property.getReadMethod().ifPresent(method -> collectJacksonAnnotationNames(method.getAnnotationNames(), annotations));
+            property.getWriteMethod().ifPresent(method -> collectJacksonAnnotationNames(method.getAnnotationNames(), annotations));
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
-            .annotated(a -> hasJacksonAnnotationNames(a.getAnnotationNames()))).isEmpty()) {
-            return true;
+        for (Element field : element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared())) {
+            collectJacksonAnnotationNames(field.getAnnotationNames(), annotations);
         }
-        if (!element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
-            .annotated(a -> hasJacksonAnnotationNames(a.getAnnotationNames()))).isEmpty()) {
-            return true;
+        for (MethodElement method : element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared())) {
+            collectJacksonAnnotationNames(method.getAnnotationNames(), annotations);
         }
-        return element.getEnclosingType().map(this::hasUnsupportedJacksonAnnotation).orElse(false);
+        element.getEnclosingType().ifPresent(enclosing -> collectUnsupportedJacksonAnnotations(enclosing, annotations));
+        return annotations;
     }
 
-    private boolean hasJacksonAnnotationNames(Set<String> annotationNames) {
-        return annotationNames.stream().anyMatch(name -> name.startsWith(JACKSON_ANNOTATION_PREFIX) || name.startsWith(JACKSON_DATAFORMAT));
+    private void collectUnsupportedJacksonAnnotations(ClassElement element,
+                                                       Map<String, Boolean> annotations) {
+        annotations.putAll(unsupportedJacksonAnnotations(element));
     }
 
-    private boolean hasJacksonAnnotationInTypeHierarchy(ClassElement classElement, Set<String> visited) {
-        if (!visited.add(classElement.getName())) {
-            return false;
+    private void collectJacksonAnnotationNames(Set<String> annotationNames,
+                                               Map<String, Boolean> annotations) {
+        for (String annotationName : annotationNames) {
+            if (isJacksonAnnotationName(annotationName)) {
+                annotations.putIfAbsent(displayAnnotationName(annotationName), Boolean.TRUE);
+            }
         }
-        if (hasJacksonAnnotationNames(classElement.getAnnotationNames())) {
-            return true;
+    }
+
+    private boolean isJacksonAnnotationName(String name) {
+        return name.startsWith(JACKSON_ANNOTATION_PREFIX) || name.startsWith(JACKSON_DATAFORMAT);
+    }
+
+    private String displayAnnotationName(String annotationName) {
+        int index = annotationName.lastIndexOf('.');
+        String simpleName = index == -1 ? annotationName : annotationName.substring(index + 1);
+        return "@" + simpleName;
+    }
+
+    private String unsupportedAnnotationsMessage(Map<String, Boolean> annotations) {
+        return SimpleSerdeShapeDecision.FallbackReason.UNSUPPORTED_ANNOTATIONS.message() + ": " + String.join(", ", annotations.keySet());
+    }
+
+    private void collectJacksonAnnotationsInTypeHierarchy(ClassElement classElement,
+                                                          Map<String, Boolean> annotations,
+                                                          Map<String, Boolean> visited) {
+        if (visited.putIfAbsent(classElement.getName(), Boolean.TRUE) != null) {
+            return;
+        }
+        collectJacksonAnnotationNames(classElement.getAnnotationNames(), annotations);
+        if (classElement.isEnum()) {
+            annotations.putAll(unsupportedJacksonAnnotationsOnEnum(classElement));
         }
         for (ClassElement interfaceElement : classElement.getInterfaces()) {
-            if (hasJacksonAnnotationInTypeHierarchy(interfaceElement, visited)) {
-                return true;
-            }
+            collectJacksonAnnotationsInTypeHierarchy(interfaceElement, annotations, visited);
         }
-        return classElement.getSuperType().map(superType -> hasJacksonAnnotationInTypeHierarchy(superType, visited)).orElse(false);
+        classElement.getSuperType().ifPresent(superType -> collectJacksonAnnotationsInTypeHierarchy(superType, annotations, visited));
     }
 
     private SimpleSerdeShapeDecision.ShapeKind resolveShapeKind(ClassElement element) {
@@ -398,11 +481,59 @@ public final class SimpleSerdeShapeAnalyzer {
             return false;
         }
         for (PropertyElement property : beanProperties) {
-            if (property.getReadMethod().isEmpty() || property.getWriteMethod().isEmpty()) {
+            if (!isSupportedBeanProperty(element, property)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private boolean isSupportedBeanProperty(ClassElement element,
+                                            PropertyElement property) {
+        ClassElement readType = property.getReadType().orElse(null);
+        ClassElement writeType = property.getWriteType().orElse(null);
+        return readType != null
+            && writeType != null
+            && !hasTypeVariable(readType)
+            && !hasTypeVariable(writeType)
+            && isSupportedReadAccess(element, property)
+            && isSupportedWriteAccess(element, property);
+    }
+
+    private boolean hasTypeVariable(ClassElement type) {
+        if (type.isTypeVariable()) {
+            return true;
+        }
+        for (ClassElement typeArgument : type.getBoundGenericTypes()) {
+            if (hasTypeVariable(typeArgument)) {
+                return true;
+            }
+        }
+        for (ClassElement typeArgument : type.getTypeArguments().values()) {
+            if (hasTypeVariable(typeArgument)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isSupportedReadAccess(ClassElement element, PropertyElement property) {
+        if (property.getReadAccessKind() == PropertyElement.AccessKind.FIELD) {
+            return property.getField()
+                .filter(field -> field.isAccessible(element, false))
+                .isPresent();
+        }
+        return property.getReadMethod().isPresent();
+    }
+
+    private boolean isSupportedWriteAccess(ClassElement element, PropertyElement property) {
+        if (property.getWriteAccessKind() == PropertyElement.AccessKind.FIELD) {
+            return property.getField()
+                .filter(field -> !field.isFinal())
+                .filter(field -> field.isAccessible(element, false))
+                .isPresent();
+        }
+        return property.getWriteMethod().isPresent();
     }
 
     private boolean isSerializerSkipped(ClassElement element) {
@@ -443,6 +574,24 @@ public final class SimpleSerdeShapeAnalyzer {
         return !element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyDeclared().annotated(a -> a.hasDeclaredAnnotation(Creator.class))).isEmpty();
     }
 
+    private Map<String, Boolean> unsupportedJacksonAnnotationsOnEnum(ClassElement element) {
+        var annotations = new LinkedHashMap<String, Boolean>();
+        if (!element.isEnum()) {
+            return annotations;
+        }
+        collectJacksonAnnotationNames(element.getAnnotationNames(), annotations);
+        for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
+            collectJacksonAnnotationNames(enumConstant.getAnnotationNames(), annotations);
+        }
+        for (Element field : element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyDeclared())) {
+            collectJacksonAnnotationNames(field.getAnnotationNames(), annotations);
+        }
+        for (MethodElement method : element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyDeclared())) {
+            collectJacksonAnnotationNames(method.getAnnotationNames(), annotations);
+        }
+        return annotations;
+    }
+
     private boolean hasEnumPropertyOverrides(ClassElement element) {
         if (!element.isEnum()) {
             return false;
@@ -451,18 +600,6 @@ public final class SimpleSerdeShapeAnalyzer {
             String configured = annotationMetadata.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).orElse(null);
             return configured != null && !configured.isBlank();
         })).isEmpty();
-    }
-
-    private boolean hasJsonEnumDefaultValue(ClassElement element) {
-        if (!element.isEnum()) {
-            return false;
-        }
-        for (EnumConstantElement enumConstant : ((EnumElement) element).elements()) {
-            if (enumConstant.hasAnnotation(JACKSON_JSON_ENUM_DEFAULT_VALUE)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean hasSubtypedPropertyTypes(ClassElement element) {
@@ -516,43 +653,22 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasPropertyOrderConfig(ClassElement element) {
-        if (hasAnnotation(element, JACKSON_JSON_PROPERTY_ORDER)) {
-            return true;
-        }
-        if (element.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)) {
-            return true;
-        }
-        for (PropertyElement property : element.getBeanProperties()) {
-            if (property.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-                || property.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0
-                || property.getReadMethod().map(m -> m.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)).orElse(false)
-                || property.getReadMethod().map(m -> m.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0).orElse(false)
-                || property.getWriteMethod().map(m -> m.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)).orElse(false)) {
-                return true;
-            }
-        }
-        if (!element.getEnclosedElements(ElementQuery.ALL_FIELDS.onlyInstance().onlyDeclared()
-            .annotated(a -> a.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-                || a.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0)).isEmpty()) {
-            return true;
-        }
-        if (!element.getEnclosedElements(ElementQuery.ALL_METHODS.onlyInstance().onlyDeclared()
-            .annotated(a -> a.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-                || a.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0)).isEmpty()) {
-            return true;
-        }
-        return element.getPrimaryConstructor().map(c -> c.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
-            || c.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0).orElse(false);
+        return hasAnnotationMetadata(element, this::hasPropertyOrderConfig);
     }
 
-    private boolean hasJsonValueInPropertyTypes(ClassElement element) {
+    private boolean hasPropertyOrderConfig(AnnotationMetadata annotationMetadata) {
+        return annotationMetadata.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)
+            || annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER).length > 0;
+    }
+
+    private boolean hasSerValueInPropertyTypes(ClassElement element) {
         for (PropertyElement property : element.getBeanProperties()) {
             ClassElement serializationType = property.getReadMethod().map(MethodElement::getReturnType).orElse(property.getType());
-            if (hasAnnotation(serializationType, JACKSON_JSON_VALUE)) {
+            if (hasAnnotation(serializationType, SerdeConfig.SerValue.class)) {
                 return true;
             }
             ClassElement deserializationType = property.getWriteMethod().map(m -> m.getParameters()[0].getType()).orElse(property.getType());
-            if (hasAnnotation(deserializationType, JACKSON_JSON_VALUE)) {
+            if (hasAnnotation(deserializationType, SerdeConfig.SerValue.class)) {
                 return true;
             }
         }
@@ -743,11 +859,11 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasAnnotation(MethodElement methodElement, Class<? extends Annotation> annotation) {
-        if (methodElement.hasAnnotation(annotation)) {
+        if (methodElement.hasAnnotation(annotation) || methodElement.hasDeclaredAnnotation(annotation)) {
             return true;
         }
         for (ParameterElement parameter : methodElement.getParameters()) {
-            if (parameter.hasAnnotation(annotation)) {
+            if (parameter.hasAnnotation(annotation) || parameter.hasDeclaredAnnotation(annotation)) {
                 return true;
             }
         }
@@ -755,11 +871,11 @@ public final class SimpleSerdeShapeAnalyzer {
     }
 
     private boolean hasAnnotation(MethodElement methodElement, String annotationName) {
-        if (methodElement.hasAnnotation(annotationName)) {
+        if (methodElement.hasAnnotation(annotationName) || methodElement.hasDeclaredAnnotation(annotationName)) {
             return true;
         }
         for (ParameterElement parameter : methodElement.getParameters()) {
-            if (parameter.hasAnnotation(annotationName)) {
+            if (parameter.hasAnnotation(annotationName) || parameter.hasDeclaredAnnotation(annotationName)) {
                 return true;
             }
         }

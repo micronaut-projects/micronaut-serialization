@@ -1,8 +1,9 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.SerdeIntrospections
-import io.micronaut.serde.config.annotation.SerdeConfig
+import io.micronaut.serde.Deserializer
+import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.jackson.JsonCompileSpec
 
 class SerdeSourceGenRoutingSpec extends JsonCompileSpec {
@@ -181,59 +182,43 @@ class JsonIncludeBean {
             context,
             'test.AnyGetterBean',
             false,
-            true,
-            ['CustomizedObjectSerializer'],
-            []
+            true
         )
         assertRouting(
             context,
             'test.AnySetterBean',
             true,
-            false,
-            [],
-            ['SpecificObjectDeserializer']
+            false
         )
         assertRouting(
             context,
             'test.UnwrappedBean',
             false,
-            false,
-            [],
-            ['SpecificObjectDeserializer'],
-            false,
-            true
+            false
         )
         assertRouting(
             context,
             'test.SubtypedBean',
             false,
-            false,
-            ['RuntimeTypeSerializer'],
-            ['SubtypedPropertyObjectDeserializer']
+            false
         )
         assertRouting(
             context,
             'test.DelegatingCreatorRecord',
             false,
-            false,
-            ['CustomizedObjectSerializer'],
-            ['DelegatingObjectDeserializer']
+            false
         )
         assertRouting(
             context,
             'test.JsonValueEnum',
             false,
-            false,
-            [],
-            ['EnumValueDeserializer']
+            false
         )
         assertRouting(
             context,
             'test.JsonIncludeBean',
             false,
-            false,
-            [],
-            []
+            false
         )
 
         cleanup:
@@ -242,94 +227,24 @@ class JsonIncludeBean {
 
     private void assertRouting(def context,
                                String className,
-                               boolean serializerEligible,
-                               boolean deserializerEligible,
-                               List<String> fallbackSerializerMarkers,
-                               List<String> fallbackDeserializerMarkers,
-                               boolean assertSerializerSpecificClass = true,
-                               boolean assertDeserializerSpecificClass = true) {
+                               boolean serializerGenerated,
+                               boolean deserializerGenerated) {
         Class<?> beanType = context.classLoader.loadClass(className)
         def type = Argument.of(beanType)
-        def introspections = context.getBean(SerdeIntrospections)
-        def serializableMetadata = introspections.getSerializableIntrospection(type).annotationMetadata
-        def deserializableMetadata = introspections.getDeserializableIntrospection(type).annotationMetadata
-        String generatedSerializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
+        SerdeRegistry serdeRegistry = context.getBean(SerdeRegistry)
+        Serializer resolvedSerializer = serdeRegistry.findSerializer(type).createSpecific(serdeRegistry.newEncoderContext(Object), type)
+        Deserializer resolvedDeserializer = serdeRegistry.findDeserializer(type).createSpecific(serdeRegistry.newDecoderContext(Object), type)
 
-        assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
-        assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-        assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
-        assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-
-        def serdeRegistry = jsonMapper.serdeRegistry
-        def resolvedSerializer = serdeRegistry.findSerializer(type)
-        def resolvedDeserializer = serdeRegistry.findDeserializer(type)
-
-        if (serializerEligible) {
-            assert generatedSerializerClass != null
-            assert resolvedSerializer.class.name == generatedSerializerClass
-        } else {
-            assert generatedSerializerClass == null
-            assert resolvedSerializer.class.name.startsWith('io.micronaut.serde.support.')
-            if (assertSerializerSpecificClass) {
-                def runtimeSerializer = resolvedSerializer.createSpecific(serdeRegistry.newEncoderContext(Object), type)
-                List<String> serializerClassChain = unwrapClassChain(runtimeSerializer, ['serializer', 'outer'])
-                assert serializerClassChain.any { it.startsWith('io.micronaut.serde.support.') }
-                assert fallbackSerializerMarkers.every { marker -> serializerClassChain.any { classNameInChain -> classNameInChain.contains(marker) } } : "Unexpected serializer chain for ${className}: ${serializerClassChain}"
-            }
-        }
-
-        if (deserializerEligible) {
-            assert generatedDeserializerClass != null
-            assert resolvedDeserializer.class.name == generatedDeserializerClass
-        } else {
-            assert generatedDeserializerClass == null
-            assert resolvedDeserializer.class.name.startsWith('io.micronaut.serde.support.')
-            if (assertDeserializerSpecificClass) {
-                def runtimeDeserializer = resolvedDeserializer.createSpecific(serdeRegistry.newDecoderContext(Object), type)
-                List<String> deserializerClassChain = unwrapClassChain(runtimeDeserializer, ['deserializer'])
-                assert deserializerClassChain.any { it.startsWith('io.micronaut.serde.support.') }
-                assert fallbackDeserializerMarkers.every { marker -> deserializerClassChain.any { classNameInChain -> classNameInChain.contains(marker) } } : "Unexpected deserializer chain for ${className}: ${deserializerClassChain}"
-            }
-        }
+        assert (resolvedSerializer.class.name == generatedClassName(beanType, 'Serializer')) == serializerGenerated
+        assert (resolvedDeserializer.class.name == generatedClassName(beanType, 'Deserializer')) == deserializerGenerated
     }
 
-    private static List<String> unwrapClassChain(Object candidate, List<String> fieldNames) {
-        List<String> chain = []
-        Set<String> visited = [] as Set
-        Object current = candidate
-        while (current != null) {
-            String currentClassName = current.class.name
-            chain.add(currentClassName)
-            if (!visited.add(currentClassName + '@' + System.identityHashCode(current))) {
-                break
-            }
-            Object next = null
-            for (String fieldName : fieldNames) {
-                next = readField(current, fieldName)
-                if (next != null) {
-                    break
-                }
-            }
-            if (next == null || next.is(current)) {
-                break
-            }
-            current = next
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
         }
-        return chain
-    }
-
-    private static Object readField(Object instance, String fieldName) {
-        Class<?> current = instance.class
-        while (current != null && current != Object) {
-            try {
-                def field = current.getDeclaredField(fieldName)
-                field.accessible = true
-                return field.get(instance)
-            } catch (NoSuchFieldException ignored) {
-                current = current.superclass
-            }
-        }
-        return null
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 }

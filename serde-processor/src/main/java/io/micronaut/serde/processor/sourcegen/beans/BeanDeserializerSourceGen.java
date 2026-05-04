@@ -17,7 +17,10 @@ package io.micronaut.serde.processor.sourcegen.beans;
 
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.FieldElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
@@ -59,6 +62,7 @@ public final class BeanDeserializerSourceGen {
     private static final int STRING_SWITCH_PROPERTY_THRESHOLD = 5;
     private static final String CONTEXT_PARAMETER = "context";
     private static final String VALUE_LOCAL_PREFIX = "value";
+    private static final String BEAN_LOCAL = "bean";
     private static final String GENERATED_VALUE_MEMBER = "value";
 
     private static final Method STRING_EQUALS_METHOD = ReflectionUtils.getRequiredMethod(String.class, "equals", Object.class);
@@ -151,6 +155,7 @@ public final class BeanDeserializerSourceGen {
         Map<String, String> argumentFieldNames = new LinkedHashMap<>();
         Map<String, String> deserializerFieldNames = new LinkedHashMap<>();
         List<FieldDef> fields = new ArrayList<>();
+        boolean fieldAccessProperties = false;
 
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
@@ -176,6 +181,9 @@ public final class BeanDeserializerSourceGen {
                     .addAnnotation(Nullable.class)
                     .build());
             }
+            if (property.writeField() != null) {
+                fieldAccessProperties = true;
+            }
             index++;
         }
 
@@ -191,10 +199,20 @@ public final class BeanDeserializerSourceGen {
             .addMethod(generateCreateSpecificMethod(beanTypeDef, deserializerClassTypeDef, argumentFieldNames, deserializerFieldNames))
             .addMethod(generateDeserializeMethod(element, beanTypeDef, deserializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, deserializerFieldNames));
 
+        List<Object> suppressWarnings = new ArrayList<>();
+        if (fieldAccessProperties) {
+            suppressWarnings.add("UnnecessaryParentheses");
+        }
         if (beanSerdeShape.properties().size() > STRING_SWITCH_PROPERTY_THRESHOLD) {
+            suppressWarnings.add("FallThrough");
+        }
+        if (!suppressWarnings.isEmpty()) {
             classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
-                .addMember(GENERATED_VALUE_MEMBER, "FallThrough")
+                .addMember(GENERATED_VALUE_MEMBER, suppressWarnings)
                 .build());
+        }
+        if (fieldAccessProperties) {
+            classDefBuilder.addAnnotation(Secondary.class);
         }
         if (!deserializerFieldNames.isEmpty()) {
             classDefBuilder.addMethod(generateSpecializedConstructor(deserializerFieldNames));
@@ -304,7 +322,7 @@ public final class BeanDeserializerSourceGen {
                 statements.add(objectDecoderDef);
                 VariableDef objectDecoder = objectDecoderDef.variable();
 
-                StatementDef.DefineAndAssign beanDef = ClassTypeDef.of(element).instantiate().newLocal("bean");
+                StatementDef.DefineAndAssign beanDef = ClassTypeDef.of(element).instantiate().newLocal(BEAN_LOCAL);
                 statements.add(beanDef);
                 VariableDef beanVariable = beanDef.variable();
 
@@ -321,7 +339,7 @@ public final class BeanDeserializerSourceGen {
                     if (!property.deserializationType().isOptional()) {
                         continue;
                     }
-                    statements.add(beanVariable.invoke(property.writeMethod(), BeanSerdeSourceGenUtils.optionalDefaultValueExpression(property.deserializationType())));
+                    statements.add(assignProperty(beanVariable, property, BeanSerdeSourceGenUtils.optionalDefaultValueExpression(property.deserializationType())));
                     index++;
                 }
 
@@ -461,7 +479,7 @@ public final class BeanDeserializerSourceGen {
         boolean primitiveScalar = scalarDecodeMethod != null && property.deserializationType().isPrimitive() && !property.deserializationType().isArray();
         if (scalarDecodeMethod != null && primitiveScalar) {
             StatementDef deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
-                beanVariable.invoke(property.writeMethod(), objectDecoder.invoke(scalarDecodeMethod))
+                assignProperty(beanVariable, property, objectDecoder.invoke(scalarDecodeMethod))
             );
             return StatementDef.doTry(deserializeAndAssign)
                 .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
@@ -507,17 +525,17 @@ public final class BeanDeserializerSourceGen {
         }
         StatementDef propertyAssignment;
         if (property.deserializationType().isPrimitive() || property.nullable()) {
-            StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
+            StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
             if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
                 propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
-                    beanVariable.invoke(property.writeMethod(), BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType())),
+                    assignProperty(beanVariable, property, BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType())),
                     assignStatement
                 );
             } else {
                 propertyAssignment = assignStatement;
             }
         } else {
-            StatementDef assignStatement = beanVariable.invoke(property.writeMethod(), deserializedValueDef.variable());
+            StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
             propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
                 StatementDef.multi(),
                 assignStatement
@@ -539,6 +557,19 @@ public final class BeanDeserializerSourceGen {
                     )
                     .doThrow()
             );
+    }
+
+    private StatementDef assignProperty(VariableDef beanVariable, BeanSerdeShape.BeanProperty property, ExpressionDef value) {
+        FieldElement writeField = property.writeField();
+        if (writeField != null) {
+            return directFieldAccess(BEAN_LOCAL, writeField).assign(value);
+        }
+        MethodElement writeMethod = Objects.requireNonNull(property.writeMethod());
+        return beanVariable.invoke(writeMethod, value);
+    }
+
+    private VariableDef.Local directFieldAccess(String instanceName, FieldElement field) {
+        return new VariableDef.Local(instanceName + "." + field.getName(), TypeDef.of(field.getType()));
     }
 
     private String indexedName(String prefix, int index) {

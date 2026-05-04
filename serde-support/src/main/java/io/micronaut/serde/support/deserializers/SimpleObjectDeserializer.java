@@ -91,8 +91,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
         if (properties != null) {
             propertiesConsumer = properties.newConsumer();
 
-            boolean allConsumed = false;
-            while (!allConsumed) {
+            while (true) {
                 final String propertyName = objectDecoder.decodeKey();
                 if (propertyName == null) {
                     completed = true;
@@ -101,7 +100,6 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
                 final DeserBean.DerProperty<Object, Object> consumedProperty = propertiesConsumer.consume(propertyName);
                 if (consumedProperty != null) {
                     consumedProperty.deserializeAndSetPropertyValue(objectDecoder, decoderContext, beanInstance);
-                    allConsumed = propertiesConsumer.isAllConsumed();
 
                 } else if (ignoreUnknown) {
                     objectDecoder.skipValue();
@@ -110,7 +108,7 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
                 }
             }
 
-            if (!allConsumed) {
+            if (!propertiesConsumer.isAllConsumed()) {
                 for (DeserBean.DerProperty<Object, Object> dp : propertiesConsumer.getNotConsumed()) {
                     dp.setDefaultPropertyValue(decoderContext, beanInstance);
                 }

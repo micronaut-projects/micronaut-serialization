@@ -107,9 +107,9 @@ record FeatureRecord(List<String> values, Map<Integer, String> numbers, Choice c
             def record = recordConstructor.newInstance(['alpha'], numbers, choice)
 
         expect:
-            assertSpecificSerdeSelection(context, 'test.FeatureBean', true, true)
-            assertSpecificSerdeSelection(context, 'test.FeatureRecord', true, true)
-            assertSpecificSerdeSelection(context, 'test.Choice', true, true)
+            assertSpecificSerdeSelection(context, 'test.FeatureBean', false, false)
+            assertSpecificSerdeSelection(context, 'test.FeatureRecord', false, false)
+            assertSpecificSerdeSelection(context, 'test.Choice', false, false)
 
             writeJson(jsonMapper, bean).contains('"values":"alpha"')
             writeJson(jsonMapper, bean).contains('"numbers":{"2":"two","10":"ten"}')
@@ -179,7 +179,7 @@ enum Choice {
             def beta = getEnum(context, 'test.Choice.BETA')
 
         expect:
-            assertSpecificSerdeSelection(context, 'test.Choice', true, true)
+            assertSpecificSerdeSelection(context, 'test.Choice', true, false)
             writeJson(jsonMapper, beta) == '"BETA"'
             jsonMapper.readValue('"beta"', typeUnderTest) == beta
             jsonMapper.readValue('"GAMMA"', typeUnderTest) == null

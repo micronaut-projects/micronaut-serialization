@@ -161,8 +161,8 @@ public interface Serializer<T> {
          * @return The active serialization format features
          * @since 3.0
          */
-        default Set<SerdeConfiguration.Feature> getFeatures() {
-            return SerdeConfiguration.serializationFeatures(getSerializationConfiguration().orElse(null));
+        default Set<SerializationConfiguration.Feature> getFeatures() {
+            return SerializationConfiguration.features(getSerializationConfiguration().orElse(null));
         }
 
         /**
@@ -173,18 +173,18 @@ public interface Serializer<T> {
          * @return The derived context
          * @since 3.0
          */
-        default EncoderContext withFeatures(Set<SerdeConfiguration.Feature> includedFeatures,
-                                            Set<SerdeConfiguration.Feature> excludedFeatures) {
+        default EncoderContext withFeatures(Set<SerializationConfiguration.Feature> includedFeatures,
+                                            Set<SerializationConfiguration.Feature> excludedFeatures) {
             if (includedFeatures.isEmpty() && excludedFeatures.isEmpty()) {
                 return this;
             }
             return new FeatureEncoderContext(this, overrideFeatures(getFeatures(), includedFeatures, excludedFeatures));
         }
 
-        private static Set<SerdeConfiguration.Feature> overrideFeatures(Set<SerdeConfiguration.Feature> base,
-                                                                        Set<SerdeConfiguration.Feature> includedFeatures,
-                                                                        Set<SerdeConfiguration.Feature> excludedFeatures) {
-            EnumSet<SerdeConfiguration.Feature> features = EnumSet.noneOf(SerdeConfiguration.Feature.class);
+        private static Set<SerializationConfiguration.Feature> overrideFeatures(Set<SerializationConfiguration.Feature> base,
+                                                                                Set<SerializationConfiguration.Feature> includedFeatures,
+                                                                                Set<SerializationConfiguration.Feature> excludedFeatures) {
+            EnumSet<SerializationConfiguration.Feature> features = EnumSet.noneOf(SerializationConfiguration.Feature.class);
             features.addAll(base);
             features.addAll(includedFeatures);
             features.removeAll(excludedFeatures);

@@ -2,8 +2,7 @@ package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.SerdeIntrospections
-import io.micronaut.serde.config.annotation.SerdeConfig
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.jackson.GlobalFeaturesSpec
 
 class SerdeGlobalFeaturesSpec extends GlobalFeaturesSpec {
@@ -14,27 +13,21 @@ class SerdeGlobalFeaturesSpec extends GlobalFeaturesSpec {
                                                 boolean deserializerGenerated) {
         Class<?> beanType = context.classLoader.loadClass(className)
         def type = Argument.of(beanType)
-        def introspections = context.getBean(SerdeIntrospections)
-        def serializableMetadata = introspections.getSerializableIntrospection(type).annotationMetadata
-        def deserializableMetadata = introspections.getDeserializableIntrospection(type).annotationMetadata
-        String generatedSerializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = deserializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         def specificSerializer = registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type)
         def specificDeserializer = registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type)
 
-        if (serializerGenerated) {
-            assert generatedSerializerClass != null
-            assert specificSerializer.class.name == generatedSerializerClass
-        } else {
-            assert generatedSerializerClass == null || specificSerializer.class.name != generatedSerializerClass
+        assert (specificSerializer.class.name == generatedClassName(beanType, 'Serializer')) == serializerGenerated
+        assert (specificDeserializer.class.name == generatedClassName(beanType, 'Deserializer')) == deserializerGenerated
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
         }
-        if (deserializerGenerated) {
-            assert generatedDeserializerClass != null
-            assert specificDeserializer.class.name == generatedDeserializerClass
-        } else {
-            assert generatedDeserializerClass == null || specificDeserializer.class.name != generatedDeserializerClass
-        }
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 
     @Override

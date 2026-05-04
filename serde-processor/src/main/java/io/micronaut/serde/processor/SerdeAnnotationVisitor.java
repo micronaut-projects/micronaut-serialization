@@ -805,12 +805,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE, decision.serializerEligible());
             builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE, decision.deserializerEligible());
             if (!decision.serializerFallbackReasons().isEmpty()) {
-                builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS, decision.serializerFallbackReasons().stream()
+                builder.member(SerdeConfig.SOURCEGEN_SERIALIZER_FALLBACK_REASONS, decision.serializerFallbackReasons().keySet().stream()
                     .map(Enum::name)
                     .toArray(String[]::new));
             }
             if (!decision.deserializerFallbackReasons().isEmpty()) {
-                builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS, decision.deserializerFallbackReasons().stream()
+                builder.member(SerdeConfig.SOURCEGEN_DESERIALIZER_FALLBACK_REASONS, decision.deserializerFallbackReasons().keySet().stream()
                     .map(Enum::name)
                     .toArray(String[]::new));
             }
@@ -831,11 +831,11 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
         if (!element.booleanValue(SerdeableGenerated.class, "skipSerializer").orElse(false) && !decision.serializerEligible()) {
             throw new ProcessingException(element, "Source-generated serializer required for " + element.getName()
-                + " but generation is not supported. Fallback reasons: " + decision.serializerFallbackReasons());
+                + " but generation is not supported. Fallback reasons: " + String.join("; ", decision.serializerFallbackReasons().values()));
         }
         if (!element.booleanValue(SerdeableGenerated.class, "skipDeserializer").orElse(false) && !decision.deserializerEligible()) {
             throw new ProcessingException(element, "Source-generated deserializer required for " + element.getName()
-                + " but generation is not supported. Fallback reasons: " + decision.deserializerFallbackReasons());
+                + " but generation is not supported. Fallback reasons: " + String.join("; ", decision.deserializerFallbackReasons().values()));
         }
     }
 

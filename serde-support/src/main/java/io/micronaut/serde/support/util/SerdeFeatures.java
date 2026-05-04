@@ -20,7 +20,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
-import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 import java.util.EnumSet;
@@ -42,16 +42,16 @@ public final class SerdeFeatures {
      * @param annotationMetadata The annotation metadata
      * @return Serialization features to enable
      */
-    public static Set<SerdeConfiguration.Feature> serializationFeaturesWith(AnnotationMetadata annotationMetadata) {
-        return features(annotationMetadata, SerdeConfig.FEATURES_WITH, SerdeConfiguration.Feature.class);
+    public static Set<SerializationConfiguration.Feature> serializationFeaturesWith(AnnotationMetadata annotationMetadata) {
+        return features(annotationMetadata, SerdeConfig.FEATURES_WITH, SerializationConfiguration.Feature.class);
     }
 
     /**
      * @param annotationMetadata The annotation metadata
      * @return Serialization features to disable
      */
-    public static Set<SerdeConfiguration.Feature> serializationFeaturesWithout(AnnotationMetadata annotationMetadata) {
-        return features(annotationMetadata, SerdeConfig.FEATURES_WITHOUT, SerdeConfiguration.Feature.class);
+    public static Set<SerializationConfiguration.Feature> serializationFeaturesWithout(AnnotationMetadata annotationMetadata) {
+        return features(annotationMetadata, SerdeConfig.FEATURES_WITHOUT, SerializationConfiguration.Feature.class);
     }
 
     /**

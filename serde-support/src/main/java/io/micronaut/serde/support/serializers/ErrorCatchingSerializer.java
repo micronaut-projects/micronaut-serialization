@@ -32,7 +32,7 @@ import java.io.IOException;
  * @author Denis Stepanov
  */
 @Internal
-class ErrorCatchingSerializer<T> implements Serializer<T> {
+public class ErrorCatchingSerializer<T> implements Serializer<T> {
 
     private final Serializer<T> serializer;
 
@@ -71,6 +71,8 @@ class ErrorCatchingSerializer<T> implements Serializer<T> {
     }
 
     /**
+     * Returns the wrapped serializer.
+     *
      * @return The wrapped serializer
      */
     public final Serializer<T> getSerializer() {

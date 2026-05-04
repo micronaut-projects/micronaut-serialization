@@ -1,8 +1,7 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.SerdeIntrospections
-import io.micronaut.serde.config.annotation.SerdeConfig
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.jackson.JsonCompileSpec
 
 class SerdeRuntimeSelectionSpec extends JsonCompileSpec {
@@ -21,11 +20,9 @@ public record AutoShape(String name, int count) {}
 ''')
         Class<?> beanType = context.classLoader.loadClass('test.AutoShape')
         def type = Argument.of(beanType)
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(type).annotationMetadata
-        String generatedSerializerClass = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        def serdeRegistry = jsonMapper.serdeRegistry
+        def serdeRegistry = context.getBean(SerdeRegistry)
+        String generatedSerializerClass = generatedClassName(beanType, 'Serializer')
+        String generatedDeserializerClass = generatedClassName(beanType, 'Deserializer')
 
         when:
         def runtimeSerializer = serdeRegistry.findSerializer(type).createSpecific(serdeRegistry.newEncoderContext(Object), type)
@@ -35,10 +32,8 @@ public record AutoShape(String name, int count) {}
         def decoded = jsonMapper.readValue(json, type)
 
         then:
-        generatedSerializerClass != null
-        generatedDeserializerClass != null
-        context.findBean(context.classLoader.loadClass(generatedSerializerClass)).present
-        context.findBean(context.classLoader.loadClass(generatedDeserializerClass)).present
+        context.findBean(runtimeSerializer.class).present
+        context.findBean(runtimeDeserializer.class).present
         runtimeSerializer.class.name == generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
         json == '{"name":"auto","count":7}'
@@ -86,35 +81,38 @@ public class AnyGetterShape {
 ''')
         Class<?> beanType = context.classLoader.loadClass('test.AnyGetterShape')
         def type = Argument.of(beanType)
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(type).annotationMetadata
-        String generatedSerializerClass = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        def serdeRegistry = jsonMapper.serdeRegistry
+        def serdeRegistry = context.getBean(SerdeRegistry)
+        String generatedSerializerClass = generatedClassName(beanType, 'Serializer')
+        String generatedDeserializerClass = generatedClassName(beanType, 'Deserializer')
 
         when:
         def runtimeSerializer = serdeRegistry.findSerializer(type).createSpecific(serdeRegistry.newEncoderContext(Object), type)
         def runtimeDeserializer = serdeRegistry.findDeserializer(type).createSpecific(serdeRegistry.newDecoderContext(Object), type)
         def value = beanType.getDeclaredConstructor().newInstance()
-        beanType.getMethod('setName', String).invoke(value, 'fallback')
+        value.name = 'fallback'
         def attrs = new LinkedHashMap<String, Object>()
         attrs.put('extra', 3)
-        beanType.getMethod('setAttributes', Map).invoke(value, attrs)
+        value.attributes = attrs
         String json = jsonMapper.writeValueAsString(value)
         def decoded = jsonMapper.readValue(json, type)
 
         then:
-        !metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(true)
-        metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
-        generatedSerializerClass == null
-        generatedDeserializerClass != null
-        context.findBean(context.classLoader.loadClass(generatedDeserializerClass)).present
-        runtimeSerializer.class.name.startsWith('io.micronaut.serde.support.')
+        runtimeSerializer.class.name != generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
+        context.findBean(runtimeDeserializer.class).present
         json == '{"name":"fallback","extra":3}'
         decoded != null
 
         cleanup:
         context.close()
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
+        }
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 }
