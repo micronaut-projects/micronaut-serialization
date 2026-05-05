@@ -20,6 +20,9 @@ import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Primary;
 import io.micronaut.core.annotation.Internal;
 
+/**
+ * Factory for XML-specific serde beans.
+ */
 @Factory
 @Internal
 public final class FactoryXmlSerde {

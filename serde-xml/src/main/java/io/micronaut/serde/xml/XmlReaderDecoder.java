@@ -42,11 +42,13 @@ import java.util.Map;
 /**
  *
  */
-public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder, CoercedNullAwareDecoder
-        permits XmlReaderDecoder.DocumentDecoder,
-                XmlReaderDecoder.ObjectDecoder,
-                XmlReaderDecoder.ArrayDecoder,
-                XmlReaderDecoder.SyntheticRootDecoder {
+    public abstract sealed class XmlReaderDecoder extends LimitingStream implements Decoder, CoercedNullAwareDecoder
+            permits XmlReaderDecoder.DocumentDecoder,
+                    XmlReaderDecoder.ObjectDecoder,
+                    XmlReaderDecoder.ArrayDecoder,
+                    XmlReaderDecoder.SyntheticRootDecoder {
+
+    private static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
 
     final Cursor cursor;
 
@@ -262,10 +264,8 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * Captured XML attribute name + value pair, surfaced to deserializers as object keys.
      * @param name
      * @param value
-     * */
+     */
     record XmlAttr(@NonNull String name, @NonNull String value) { }
-
-    static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
 
     static final class Cursor {
         private final XMLStreamReader reader;
@@ -350,6 +350,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
     }
 
+    /**
+     * Decoder for a complete XML document rooted at the current stream element.
+     */
     public static final class DocumentDecoder extends XmlReaderDecoder {
 
         private boolean rootConsumed;
@@ -422,6 +425,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         }
     }
 
+    /**
+     * Decoder for XML elements represented as object properties.
+     */
     public static final class ObjectDecoder extends XmlReaderDecoder {
 
         private final String ownerElement;

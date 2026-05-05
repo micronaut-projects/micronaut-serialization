@@ -25,6 +25,9 @@ import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
+/**
+ * XML serde registrar for byte arrays.
+ */
 @Internal
 public final class XmlByteArraySerde implements SerdeRegistrar<byte[]> {
     private static final Argument<byte[]> TYPE = Argument.of(byte[].class);

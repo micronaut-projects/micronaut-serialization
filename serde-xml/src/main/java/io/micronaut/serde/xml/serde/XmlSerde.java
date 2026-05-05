@@ -25,6 +25,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
+/**
+ * Base XML serde implementation that delegates serialization to an {@link XmlGenerator}.
+ *
+ * @param <T> The serialized type
+ */
 public abstract class XmlSerde<T> implements Serde<T> {
 
     protected abstract void doSerialize(XmlGenerator generator, EncoderContext context, T value, Argument<?> type) throws IOException;

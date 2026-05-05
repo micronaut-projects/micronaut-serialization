@@ -36,6 +36,11 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+/**
+ * XML serde for iterable values that may use a wrapping element.
+ *
+ * @param <T> The iterable element type
+ */
 public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
     IterableWrapperConfigurableSerializer<Iterable<T>>,
     IterableWrapperConfigurableDeserializer<Iterable<T>> {

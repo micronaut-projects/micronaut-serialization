@@ -25,6 +25,11 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
+/**
+ * XML serde for scalar properties that may be serialized as attributes.
+ *
+ * @param <T> The property type
+ */
 public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementConfigurableSerializer<T> {
 
     private final @Nullable String namespace;
