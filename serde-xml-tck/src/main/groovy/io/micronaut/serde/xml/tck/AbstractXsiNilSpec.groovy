@@ -33,6 +33,22 @@ abstract class AbstractXsiNilSpec extends Specification implements XmlSpec {
         Double b
     }
 
+    @Serdeable
+    static class Parent366 {
+        Level1 level1
+    }
+
+    @Serdeable
+    static class Level1 {
+        Level2 level2
+    }
+
+    @Serdeable
+    static class Level2 {
+        Integer ignored
+        String field
+    }
+
     def "xsi:nil='true' empty self-closing element decodes to null"() {
         given:
         def xml = "<DoubleWrapper " + XSI_NS_DECL + "><d xsi:nil=\"true\"/></DoubleWrapper>"
@@ -83,6 +99,28 @@ abstract class AbstractXsiNilSpec extends Specification implements XmlSpec {
         bean != null
         bean.a == null
         bean.b == 0.25d
+    }
+
+    def "xsi:nil on a nested-grandchild leaf does not affect later siblings"() {
+        given:
+        def xml = "<Parent366 " + XSI_NS_DECL + ">" +
+                " <level1>" +
+                "  <level2>" +
+                "    <ignored xsi:nil=\"true\"/>" +
+                "    <field>test-value</field>" +
+                "  </level2>" +
+                " </level1>" +
+                "</Parent366>"
+
+        when:
+        def bean = readXml(xml, Parent366)
+
+        then:
+        bean != null
+        bean.level1 != null
+        bean.level1.level2 != null
+        bean.level1.level2.ignored == null
+        bean.level1.level2.field == "test-value"
     }
 
     def "xsi:nil mixed siblings - first value, second nil"() {
