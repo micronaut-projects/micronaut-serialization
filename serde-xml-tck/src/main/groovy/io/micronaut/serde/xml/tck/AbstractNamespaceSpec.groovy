@@ -112,6 +112,30 @@ abstract class AbstractNamespaceSpec extends Specification {
         }
     }
 
+    def "reserved xml: namespace prefix is not bound and surfaces literally on serialization"() {
+        given:
+        def bean = new Issue395Bean()
+
+        when:
+        String xml = xmlMapper.writeValueAsString(bean)
+
+        then:
+        // The XML namespace at http://www.w3.org/XML/1998/namespace is reserved and bound to
+        // the literal "xml:" prefix; no xmlns:xml declaration should be emitted.
+        xml.trim() == '<Issue395Bean xml:lang="en-US"></Issue395Bean>'
+    }
+
+    @Serdeable
+    static class Issue395Bean {
+        @JacksonXmlProperty(isAttribute = true,
+                namespace = "http://www.w3.org/XML/1998/namespace",
+                localName = "lang")
+        String lang = "en-US"
+
+        String getLang() { return lang }
+        void setLang(String lang) { this.lang = lang }
+    }
+
     @Serdeable
     static class NamespacedChildBean {
         @JacksonXmlProperty(namespace = "uri:child", localName = "ChildXML")
