@@ -101,6 +101,41 @@ abstract class JavaCollectionsTestSpec extends Specification implements XmlSpec 
         read.values == input.values
     }
 
+    @Serdeable
+    static class SampleResource {
+        Long id
+        String name
+        String description
+
+        SampleResource() { }
+        SampleResource(Long id, String name, String description) {
+            this.id = id
+            this.name = name
+            this.description = description
+        }
+    }
+
+    def "Test root List<POJO> round trip"() {
+        given:
+        def r1 = new SampleResource(123L, "Albert", "desc")
+        def r2 = new SampleResource(123L, "William", "desc2")
+        def input = [r1, r2]
+
+        when:
+        String xml = writeXml(Argument.listOf(SampleResource), input)
+        List<SampleResource> read = readXml(xml, Argument.listOf(SampleResource))
+
+        then:
+        // child item element name (independent of root name choice across implementations)
+        xml.contains("<item>")
+        read.size() == 2
+        read.every { it.getClass() == SampleResource }
+        read[0].name == "Albert"
+        read[0].id == 123L
+        read[1].name == "William"
+        read[1].description == "desc2"
+    }
+
     def "Test integer list encoding"() {
         given:
         def intListWrapper = new IntListWrapper(values: [4, 5, 6])
