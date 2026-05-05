@@ -34,6 +34,12 @@ abstract class AbstractXsiNilSpec extends Specification implements XmlSpec {
     }
 
     @Serdeable
+    static class StringPair {
+        String first
+        String second
+    }
+
+    @Serdeable
     static class Parent366 {
         Level1 level1
     }
@@ -99,6 +105,36 @@ abstract class AbstractXsiNilSpec extends Specification implements XmlSpec {
         bean != null
         bean.a == null
         bean.b == 0.25d
+    }
+
+    def "xsi:nil on String field after a non-null sibling decodes to null"() {
+        given:
+        def xml = "<StringPair " + XSI_NS_DECL + ">" +
+                "<first>not null</first><second xsi:nil=\"true\"/>" +
+                "</StringPair>"
+
+        when:
+        def bean = readXml(xml, StringPair)
+
+        then:
+        bean != null
+        bean.first == "not null"
+        bean.second == null
+    }
+
+    def "xsi:nil on String field before a non-null sibling decodes to null"() {
+        given:
+        def xml = "<StringPair " + XSI_NS_DECL + ">" +
+                "<first xsi:nil=\"true\"/><second>not null</second>" +
+                "</StringPair>"
+
+        when:
+        def bean = readXml(xml, StringPair)
+
+        then:
+        bean != null
+        bean.first == null
+        bean.second == "not null"
     }
 
     def "xsi:nil on a nested-grandchild leaf does not affect later siblings"() {
