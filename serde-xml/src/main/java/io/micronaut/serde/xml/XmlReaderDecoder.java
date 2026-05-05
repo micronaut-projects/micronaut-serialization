@@ -265,8 +265,11 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
      * */
     record XmlAttr(@NonNull String name, @NonNull String value) { }
 
+    static final String XSI_NS = "http://www.w3.org/2001/XMLSchema-instance";
+
     static final class Cursor {
         private final XMLStreamReader reader;
+        private boolean lastCaptureXsiNilTrue;
 
         Cursor(XMLStreamReader reader) {
             this.reader = reader;
@@ -288,17 +291,41 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
          * Snapshot the attributes of the current {@code START_ELEMENT}. Must be called BEFORE
          * advancing past the element start, since {@link XMLStreamReader#getAttributeCount()}
          * is only valid at {@code START_ELEMENT}.
+         *
+         * <p>Attributes from the XML namespace ({@link #XSI_NS}) — {@code xsi:nil}
+         * are filtered out of the returned list. {@code xsi:nil="true"} is
+         * exposed via {@link #lastCaptureXsiNilTrue()} so the calling decoder can treat the
+         * element body as an explicit null per the XML schema convention.
          */
         @NonNull List<XmlAttr> captureAttributes() {
+            lastCaptureXsiNilTrue = false;
             int n = reader.getAttributeCount();
             if (n == 0) {
                 return Collections.emptyList();
             }
-            List<XmlAttr> out = new ArrayList<>(n);
+            List<XmlAttr> out = null;
             for (int i = 0; i < n; i++) {
-                out.add(new XmlAttr(reader.getAttributeLocalName(i), reader.getAttributeValue(i)));
+                String ns = reader.getAttributeNamespace(i);
+                String localName = reader.getAttributeLocalName(i);
+                String value = reader.getAttributeValue(i);
+                if (XSI_NS.equals(ns)) {
+                    if ("nil".equals(localName) && "true".equalsIgnoreCase(value.trim())) {
+                        lastCaptureXsiNilTrue = true;
+                    }
+                    // xsi:* attributes are XML schema metadata, not bean properties
+                    continue;
+                }
+                if (out == null) {
+                    out = new ArrayList<>();
+                }
+                out.add(new XmlAttr(localName, value));
             }
-            return out;
+            return out == null ? Collections.emptyList() : out;
+        }
+
+        /** Whether the most recent {@link #captureAttributes()} saw {@code xsi:nil="true"}. */
+        boolean lastCaptureXsiNilTrue() {
+            return lastCaptureXsiNilTrue;
         }
 
         /** Advance to the next significant event and return its type. */
@@ -408,6 +435,9 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
         private @Nullable String currentKey;
         /** Attributes of the just-consumed child element; passed to a nested {@link ObjectDecoder} when the deserializer calls {@link #decodeObject}. */
         private List<XmlAttr> pendingChildAttrs = Collections.emptyList();
+        /** True when the just-consumed child element carries {@code xsi:nil="true"} — its body is
+         *  treated as an explicit null regardless of any text/children inside. */
+        private boolean pendingChildXsiNil;
         /** True after {@link #finishStructure} consumed the owner's {@code END_ELEMENT}. */
         private boolean finished;
 
@@ -440,6 +470,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
                     case XMLStreamConstants.START_ELEMENT:
                         currentKey = cursor.localName();
                         pendingChildAttrs = cursor.captureAttributes();
+                        pendingChildXsiNil = cursor.lastCaptureXsiNilTrue();
                         cursor.advance(); // consume child START_ELEMENT, cursor now inside child element
                         return currentKey;
                     case XMLStreamConstants.END_ELEMENT:
@@ -497,6 +528,13 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (currentAttrValue != null) {
                 return false;
             }
+            // xsi:nil="true" — explicit schema-instance null. Drain whatever the element body
+            // contains (text and/or nested elements) and consume the matching END_ELEMENT.
+            if (pendingChildXsiNil) {
+                drainCurrentElementBody();
+                clearKeyState();
+                return true;
+            }
             // Empty-element coercion: <x/> or <x></x> reads as null.
             int e = cursor.current();
             if (e == XMLStreamConstants.END_ELEMENT) {
@@ -513,9 +551,33 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             if (currentAttrValue != null) {
                 return false;
             }
+            // xsi:nil="true" is an explicit schema-instance null marker, not a coerced null.
+            if (pendingChildXsiNil) {
+                return false;
+            }
             // We're positioned just inside the just-consumed child START_ELEMENT;
             // an immediate END_ELEMENT means "<x/>" / "<x></x>" empty-element coercion.
             return cursor.current() == XMLStreamConstants.END_ELEMENT;
+        }
+
+        /** Skip every event up to and including the END_ELEMENT that closes the currently-open child. */
+        private void drainCurrentElementBody() throws IOException {
+            int depth = 1;
+            while (depth > 0) {
+                int e = cursor.current();
+                if (e == XMLStreamConstants.START_ELEMENT) {
+                    depth++;
+                } else if (e == XMLStreamConstants.END_ELEMENT) {
+                    depth--;
+                    if (depth == 0) {
+                        cursor.advance();
+                        return;
+                    }
+                } else if (e == XMLStreamConstants.END_DOCUMENT) {
+                    throw new EOFException("Unexpected end of XML document while draining xsi:nil element <" + currentKey + ">");
+                }
+                cursor.advance();
+            }
         }
 
         @Override
@@ -631,6 +693,7 @@ public abstract sealed class XmlReaderDecoder extends LimitingStream implements 
             currentKey = null;
             currentAttrValue = null;
             pendingChildAttrs = Collections.emptyList();
+            pendingChildXsiNil = false;
         }
     }
 
