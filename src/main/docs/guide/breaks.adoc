@@ -2,6 +2,19 @@ This section documents breaking changes between Micronaut Serialization versions
 
 === Micronaut Serialization 3.0.0
 
+==== Deserialization
+
+Micronaut Serialization 3.0 aligns these deserialization defaults with the most commonly used Jackson Databind behavior to make migrations between Jackson Databind and Micronaut Serialization more predictable.
+
+- The default value of `micronaut.serde.deserialization.subtypes-require-default-impl` changed from `false` to `true`.
+When a polymorphic deserialization target cannot be resolved to a subtype, Micronaut Serialization now requires a configured default implementation instead of falling back to the supertype by default.
+
+- Explicit `null` values in input are no longer skipped for bean properties that are not annotated as nullable.
+For reference properties this means an explicit `null` is applied to the property; missing properties continue to use the existing default-value handling.
+
+- Explicit `null` values for primitive properties or explicitly non-null properties now fail deserialization by default.
+For primitive properties, this matches Jackson Databind's `FAIL_ON_NULL_FOR_PRIMITIVES` default. Set `micronaut.serde.deserialization.fail-on-null-for-primitives=false` to deserialize explicit `null` primitive values as the Java primitive default value instead.
+
 ==== Deprecations
 
 - The following constructors of `io.micronaut.serde.bson.BsonJsonMapper` deprecated previously have been removed.
@@ -16,7 +29,7 @@ Use the default or override `deserializeNullable(Decoder, DecoderContext, Argume
 
 - The method `io.micronaut.serde.util.CustomizableDeserializer.allowNull()` was removed. This method was deprecated and removed in the super interface `Deserializer`. It previously raised an `IllegalStateException` if invoked.
 
-- All the static fields of `io.micronaut.serde.support.DefaultSerdeRegistry` deprecated prviously were removed. These were aliases for constants defined in the internal class `io.micronaut.serde.support.serdes.Serdes` and shouldn't be exposed otherwise.
+- All the static fields of `io.micronaut.serde.support.DefaultSerdeRegistry` deprecated previously were removed. These were aliases for constants defined in the internal class `io.micronaut.serde.support.serdes.Serdes` and shouldn't be exposed otherwise.
 
 - The following Singleton constructors of `DefaultSerdeRegistry` deprecated previously were removed.
 The remaining constructor `DefaultSerdeRegistry(BeanContext, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)` is used instead.
@@ -29,25 +42,20 @@ The remaining constructor `JsonStreamMapper(SerdeRegistry, SerdeConfiguration)` 
 ** `JsonStreamMapper(SerdeRegistry, Class<?>)`
 
 - The internal class constructor `io.micronaut.serde.support.deserializers.ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeDeserializationPreInstantiateCallback)` deprecated previously has been removed.
-`ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, `SerdeDeserializationPreInstantiateCallback)` is used instead.
+`ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)` is used instead.
 
 - The internal class constructor `io.micronaut.serde.support.serializers.ObjectSerializer(SerdeIntrospections, BeanContext)` deprecated previously has been removed.
 `ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)` is used instead.
 
 - The following constructors of `io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper` deprecated previously have been removed.
-The internal constructor `OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration` is used instead.
+The internal constructor `OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration)` is used instead.
 ** `OracleJdbcJsonBinaryObjectMapper(SerdeRegistry)`
 ** `OracleJdbcJsonBinaryObjectMapper(SerdeRegistry, Class<?>)`
 
 - The following constructors of `io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper` deprecated previously have been removed.
-The internal constructor `OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration` is used instead.
+The internal constructor `OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration)` is used instead.
 ** `OracleJdbcJsonTextObjectMapper(SerdeRegistry)`
 ** `OracleJdbcJsonTextObjectMapper(SerdeRegistry, Class<?>)`
 
 - The Singleton constructor `io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde()` deprecated previously have been removed.
 `OracleJsonBinarySerde(Serde<byte[]>)` is used instead.
-
-
-
-
-

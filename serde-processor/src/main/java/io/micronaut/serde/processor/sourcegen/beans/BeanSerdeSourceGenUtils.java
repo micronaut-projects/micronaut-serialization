@@ -46,6 +46,7 @@ final class BeanSerdeSourceGenUtils {
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
+    private static final Method ARGUMENT_WITH_NAME_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "withName", String.class);
     private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, EMPTY_METHOD);
     private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, EMPTY_METHOD);
     private static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, EMPTY_METHOD);
@@ -75,6 +76,11 @@ final class BeanSerdeSourceGenUtils {
         }
         return ClassTypeDef.of(Argument.class)
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
+    }
+
+    static ExpressionDef argumentExpression(ClassElement classElement, String name) {
+        return argumentExpression(classElement)
+            .invoke(ARGUMENT_WITH_NAME_METHOD, ExpressionDef.constant(name));
     }
 
     private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
@@ -125,17 +131,14 @@ final class BeanSerdeSourceGenUtils {
     }
 
     static ExpressionDef primitiveDefaultValueExpression(ClassElement classElement) {
-        if (!classElement.isPrimitive() || classElement.isArray()) {
-            return ExpressionDef.nullValue().cast(TypeDef.erasure(classElement));
-        }
-        return switch (classElement.getName()) {
+        String name = classElement.getName();
+        return switch (name) {
             case BOOLEAN_TYPE -> ExpressionDef.falseValue();
             case "long" -> ExpressionDef.constant(0L);
             case FLOAT_TYPE -> ExpressionDef.constant(0f);
             case DOUBLE_TYPE -> ExpressionDef.constant(0d);
             case "char" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
-            case "byte", SHORT_TYPE, "int" ->
-                ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
+            case "byte", SHORT_TYPE, "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
             default -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
         };
     }

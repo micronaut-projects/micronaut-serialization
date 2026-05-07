@@ -136,7 +136,7 @@ public final class BeanSerializerSourceGen {
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(BeanSerdeSourceGenUtils.argumentExpression(property.serializationType()))
+                .initializer(BeanSerdeSourceGenUtils.argumentExpression(property.serializationType(), property.name()))
                 .build());
             if (scalarEncoderMethod(property.serializationType()) == null) {
                 String serializerFieldName = indexedName("SERIALIZER", index);

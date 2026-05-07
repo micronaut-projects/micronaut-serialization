@@ -38,6 +38,7 @@ public record BeanSerdeShape(
      * @param name                Property name.
      * @param serializationType   Property type used for serialization.
      * @param deserializationType Property type used for deserialization.
+     * @param nonNull             Whether the property is non-null.
      * @param nullable            Whether the property is nullable.
      * @param readMethod          Bean getter method.
      * @param writeMethod         Bean setter method.
@@ -48,6 +49,7 @@ public record BeanSerdeShape(
         String name,
         ClassElement serializationType,
         ClassElement deserializationType,
+        boolean nonNull,
         boolean nullable,
         @Nullable MethodElement readMethod,
         @Nullable MethodElement writeMethod,

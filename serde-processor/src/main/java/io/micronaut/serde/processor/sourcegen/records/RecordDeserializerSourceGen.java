@@ -96,7 +96,6 @@ public final class RecordDeserializerSourceGen {
     private static final Method DECODE_DOUBLE_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDoubleNullable");
     private static final Method DECODE_BIG_INTEGER_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigIntegerNullable");
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
-    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
     private static final Method HANDLE_UNKNOWN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
@@ -105,6 +104,17 @@ public final class RecordDeserializerSourceGen {
         Deserializer.DecoderContext.class,
         String.class,
         Argument.class
+    );
+    private static final Method NULL_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "nullValue",
+        Argument.class,
+        Argument.class
+    );
+    private static final Method FAIL_ON_NULL_FOR_PRIMITIVES_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "failOnNullForPrimitives",
+        Deserializer.DecoderContext.class
     );
     private static final Method CHECK_STRICT_NULLABLE_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
@@ -153,7 +163,7 @@ public final class RecordDeserializerSourceGen {
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(RecordSerdeSourceGenUtils.argumentExpression(lookupType))
+                .initializer(RecordSerdeSourceGenUtils.argumentExpression(lookupType, component.name()))
                 .build());
             if (scalarDecoderMethod(component.type()) == null) {
                 String deserializerFieldName = indexedName("DESERIALIZER", index);
@@ -457,16 +467,28 @@ public final class RecordDeserializerSourceGen {
         Method scalarDecodeMethod = scalarDecoderMethod(component.type());
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
+            ExpressionDef decodedValue = objectDecoder.invoke(scalarDecodeMethod);
             if (component.type().isPrimitive() && !component.type().isArray()) {
-                deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifTrue(
-                    valueVariable.assign(RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), component.propertyElement().isNonNull())),
-                    valueVariable.assign(objectDecoder.invoke(scalarDecodeMethod))
+                StatementDef.DefineAndAssign decodedValueDef = decodedValue
+                    .cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()))
+                    .newLocal(RecordSerdeSourceGenUtils.localName("decodedValue", index));
+                StatementDef failOnNull = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                    .invokeStatic(FAIL_ON_NULL_FOR_PRIMITIVES_METHOD, context)
+                    .ifTrue(
+                        ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                            .invokeStatic(NULL_VALUE_METHOD, type, argumentExpression)
+                            .doThrow(),
+                        valueVariable.assign(RecordSerdeSourceGenUtils.defaultValueExpression(component.type(), false))
+                    );
+                deserializeAndAssign = StatementDef.multi(
+                    decodedValueDef,
+                    decodedValueDef.variable().isNull().ifTrue(
+                        failOnNull,
+                        valueVariable.assign(decodedValueDef.variable())
+                    )
                 );
             } else {
-                ExpressionDef decodedValue = objectDecoder.invoke(scalarDecodeMethod);
-                if (!component.type().isPrimitive() || component.type().isArray()) {
-                    decodedValue = decodedValue.cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()));
-                }
+                decodedValue = decodedValue.cast(RecordSerdeSourceGenUtils.deserializedCastType(component.type()));
                 deserializeAndAssign = valueVariable.assign(decodedValue);
             }
         } else {
@@ -489,6 +511,18 @@ public final class RecordDeserializerSourceGen {
                 deserializerDef,
                 initializeDeserializerStatement,
                 valueVariable.assign(deserializedValueExpression)
+            );
+        }
+        if ((!component.type().isPrimitive() || component.type().isArray())
+            && component.propertyElement().isNonNull()
+            && !component.propertyElement().isNullable()) {
+            deserializeAndAssign = StatementDef.multi(
+                deserializeAndAssign,
+                valueVariable.isNull().ifTrue(
+                    ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                        .invokeStatic(NULL_VALUE_METHOD, type, argumentExpression)
+                        .doThrow()
+                )
             );
         }
         return StatementDef.doTry(deserializeAndAssign)
@@ -540,21 +574,21 @@ public final class RecordDeserializerSourceGen {
             return null;
         }
         return switch (type.getName()) {
-            case "boolean" -> DECODE_BOOLEAN_METHOD;
+            case "boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
             case "java.lang.Boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
-            case "byte" -> DECODE_BYTE_METHOD;
+            case "byte" -> DECODE_BYTE_NULLABLE_METHOD;
             case "java.lang.Byte" -> DECODE_BYTE_NULLABLE_METHOD;
-            case "short" -> DECODE_SHORT_METHOD;
+            case "short" -> DECODE_SHORT_NULLABLE_METHOD;
             case "java.lang.Short" -> DECODE_SHORT_NULLABLE_METHOD;
-            case "char" -> DECODE_CHAR_METHOD;
+            case "char" -> DECODE_CHAR_NULLABLE_METHOD;
             case "java.lang.Character" -> DECODE_CHAR_NULLABLE_METHOD;
-            case "int" -> DECODE_INT_METHOD;
+            case "int" -> DECODE_INT_NULLABLE_METHOD;
             case "java.lang.Integer" -> DECODE_INT_NULLABLE_METHOD;
-            case "long" -> DECODE_LONG_METHOD;
+            case "long" -> DECODE_LONG_NULLABLE_METHOD;
             case "java.lang.Long" -> DECODE_LONG_NULLABLE_METHOD;
-            case "float" -> DECODE_FLOAT_METHOD;
+            case "float" -> DECODE_FLOAT_NULLABLE_METHOD;
             case "java.lang.Float" -> DECODE_FLOAT_NULLABLE_METHOD;
-            case "double" -> DECODE_DOUBLE_METHOD;
+            case "double" -> DECODE_DOUBLE_NULLABLE_METHOD;
             case "java.lang.Double" -> DECODE_DOUBLE_NULLABLE_METHOD;
             case "java.lang.String" -> DECODE_STRING_NULLABLE_METHOD;
             case "java.math.BigInteger" -> DECODE_BIG_INTEGER_NULLABLE_METHOD;

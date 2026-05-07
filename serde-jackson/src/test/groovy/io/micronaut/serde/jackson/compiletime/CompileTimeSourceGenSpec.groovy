@@ -393,16 +393,17 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
     private static void assertLargeBeanDispatchSource(String deserializerSource) {
         assertLargeDispatchSource(deserializerSource)
         assert !deserializerSource.contains('boolean value2 = false;')
-        assert !deserializerSource.contains('value2 = objectDecoder.decodeBoolean();')
-        assert deserializerSource.contains('bean.setC(objectDecoder.decodeBoolean());')
-        assert !deserializerSource.contains('decodeBooleanNullable')
+        assert deserializerSource.contains('Boolean value2 =')
+        assert deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        assert deserializerSource.contains('bean.setC(value2);')
+        assert deserializerSource.contains('failOnNullForPrimitives(context)')
     }
 
     private static void assertLargeRecordDispatchSource(String deserializerSource) {
         assertLargeDispatchSource(deserializerSource)
         assert deserializerSource.contains('boolean propertyValue2 = false;')
-        assert deserializerSource.contains('propertyValue2 = objectDecoder.decodeBoolean();')
-        assert !deserializerSource.contains('decodeBooleanNullable')
+        assert deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        assert deserializerSource.contains('failOnNullForPrimitives(context)')
         assert !deserializerSource.contains('if (!seenProperty')
     }
 

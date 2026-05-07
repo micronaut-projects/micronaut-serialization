@@ -89,6 +89,7 @@ public final class BeanSerdeShapeResolver {
             property.getName(),
             serializationType,
             deserializationType,
+            property.isNonNull(),
             property.isNullable(),
             propertyAccess.readMethod(),
             propertyAccess.writeMethod(),

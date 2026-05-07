@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.AnnotatedElement;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Creator;
 import io.micronaut.core.annotation.Internal;
-import io.micronaut.core.annotation.NextMajorVersion;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.beans.BeanMethod;
 import io.micronaut.core.beans.BeanProperty;
@@ -50,6 +49,7 @@ import io.micronaut.serde.support.util.SerdeAnnotationUtil;
 import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SerdeFeatures;
 import io.micronaut.serde.support.util.SubtypeInfo;
+import io.micronaut.serde.util.GeneratedSerdeExceptionUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -849,8 +849,11 @@ final class DeserBean<T> {
         public final boolean mustSetFieldForConstructor;
         public final boolean explicitlyRequired;
         public final boolean explicitlyRequiredForConstructor;
+        public final boolean failOnNullForPrimitives;
         public final boolean nonNull;
         public final boolean nullable;
+        public final boolean primitive;
+        public final boolean rejectsNullValue;
         public final boolean isAnySetter;
         @Nullable
         public final Class<?> @Nullable [] views;
@@ -931,6 +934,7 @@ final class DeserBean<T> {
             this.unresolvedTypeVariableName = unresolvedTypeVariableName;
             AnnotationMetadata annotationMetadata = resolveArgumentMetadata(introspection, argument, argumentMetadata);
             this.argument = annotationMetadata.isEmpty() ? argument : argument.withAnnotationMetadata(annotationMetadata);
+            this.failOnNullForPrimitives = failOnNullForPrimitives;
             FormatConfiguration propertyFormat = FormatConfiguration.from(annotationMetadata);
             if (propertyFormat == null) {
                 FormatConfiguration beanFormat = FormatConfiguration.from(introspection.getAnnotationMetadata());
@@ -948,12 +952,14 @@ final class DeserBean<T> {
             Class<?> type = this.argument.getType();
             this.nonNull = this.argument.isNonNull();
             this.nullable = this.argument.isNullable();
+            this.primitive = this.argument.isPrimitive();
+            this.rejectsNullValue = (primitive && failOnNullForPrimitives) || (nonNull && !nullable);
             boolean optional = type.equals(Optional.class)
                 || type.equals(OptionalLong.class)
                 || type.equals(OptionalDouble.class)
                 || type.equals(OptionalInt.class);
             this.mustSetField = (nonNull && !nullable) || optional;
-            this.mustSetFieldForConstructor = mustSetField || this.argument.isPrimitive() && !nullable; // Kotlin primitives with defaults can be nullable
+            this.mustSetFieldForConstructor = mustSetField || (primitive && !nullable); // Kotlin primitives with defaults can be nullable
 
             if (beanProperty != null) {
                 this.beanProperty = (UnsafeBeanWriteProperty<B, P>) beanProperty;
@@ -987,7 +993,7 @@ final class DeserBean<T> {
                 .orElse(null);
             this.explicitlyRequired = annotationMetadata.booleanValue(SerdeConfig.class, SerdeConfig.REQUIRED)
                 .orElse(false);
-            this.explicitlyRequiredForConstructor = explicitlyRequired || this.argument.isPrimitive() && failOnNullForPrimitives;
+            this.explicitlyRequiredForConstructor = explicitlyRequired;
         }
 
         public void setDefaultPropertyValue(Deserializer.DecoderContext decoderContext, B bean) throws SerdeException {
@@ -1031,47 +1037,46 @@ final class DeserBean<T> {
             deserializeAndSetPropertyValue(deserializer(), objectDecoder, decoderContext, beanInstance);
         }
 
-        @NextMajorVersion("Receiving a null should not be skipped for a not nullable")
         public void deserializeAndSetPropertyValue(Deserializer<P> deserializer,
                                                    Decoder objectDecoder,
                                                    Deserializer.DecoderContext decoderContext,
                                                    B beanInstance) throws IOException {
             try {
                 P value = deserializeValue(deserializer, objectDecoder, decoderContext);
-                if (value != null || nullable) {
-                    beanProperty().setUnsafe(beanInstance, value);
-                }
+                beanProperty().setUnsafe(beanInstance, value);
             } catch (Exception e) {
                 throw convertException(e, true); // Only convert exceptions from `setUnsafe`
             }
         }
 
-        @NextMajorVersion("Receiving a null should not be skipped for a not nullable")
         public void deserializeAndCallBuilder(Decoder objectDecoder, Deserializer.DecoderContext decoderContext, BeanIntrospection.Builder<B> builder) throws IOException {
             try {
                 P value = deserializeValue(deserializer(), objectDecoder, decoderContext);
-                if (value != null || nullable) {
-                    builder.with(index, argument, value);
-                }
+                builder.with(index, argument, value);
             } catch (Exception e) {
                 throw convertException(e, true); // Only convert exceptions from `with`
             }
         }
 
-        @NextMajorVersion("Receiving a null value for a primitive or a non-null should produce an exception")
         @Nullable
         P deserializeValue(Deserializer<P> deserializer, Decoder objectDecoder, Deserializer.DecoderContext decoderContext) throws IOException {
             decoderContext = resolveFeatures(decoderContext);
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-                if (value != null || nullable) {
+                if (value != null) {
                     return value;
                 }
                 if (explicitlyRequired) {
                     throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required property [" + argument +
-                        "] is not present in supplied data");
+                        "] is not present or is null in the supplied data");
                 }
-                return provideDefaultValue(decoderContext);
+                if (primitive && !failOnNullForPrimitives) {
+                    return deserializer.getDefaultValue(decoderContext, argument);
+                }
+                if (rejectsNullValue) {
+                    throw GeneratedSerdeExceptionUtil.nullValue(Argument.of(introspection.getBeanType()), argument);
+                }
+                return null;
             } catch (Exception e) {
                 throw convertException(e, false);
             }
@@ -1082,8 +1087,17 @@ final class DeserBean<T> {
             decoderContext = resolveFeatures(decoderContext);
             try {
                 P value = deserializer.deserializeNullable(objectDecoder, decoderContext, argument);
-                if (value != null || nullable) {
+                if (value != null) {
                     return value;
+                }
+                if (explicitlyRequiredForConstructor) {
+                    throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Required constructor parameter [" + argument + "] at index [" + index + "] is not present or is null in the supplied data");
+                }
+                if (primitive && !failOnNullForPrimitives) {
+                    return provideDefaultConstructorValue(decoderContext);
+                }
+                if (rejectsNullValue) {
+                    throw new SerdeException("Unable to deserialize type [" + introspection.getBeanType().getName() + "]. Non-null constructor parameter [" + argument + "] at index [" + index + "] is null in the supplied data");
                 }
                 return provideDefaultConstructorValue(decoderContext);
             } catch (Exception e) {
