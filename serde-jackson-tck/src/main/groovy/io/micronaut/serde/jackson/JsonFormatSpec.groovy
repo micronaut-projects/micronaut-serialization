@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.config.SerdeConfiguration.NumericTimeUnit
 import io.micronaut.serde.jackson.shape.EnumObjectShapeBean
-import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 import java.sql.Timestamp
@@ -48,10 +47,6 @@ abstract class JsonFormatSpec extends JsonCompileSpec {
         [shape: 'NATURAL', field: 'naturalValue'],
         [shape: 'POJO', field: 'pojoValue']
     ].asImmutable()
-
-    protected boolean supportsClassLevelJsonFormatPropagation() {
-        true
-    }
 
     void "test json format string shape for number"() {
         given:
@@ -988,10 +983,6 @@ record FormatRecord(
         context.close()
     }
 
-    @IgnoreIf(
-        reason = "The runtime mapper does not propagate class-level @JsonFormat to properties",
-        value = { !instance.supportsClassLevelJsonFormatPropagation() }
-    )
     void "test json format class features propagate to all properties for simple bean and record"() {
         given:
         def context = buildContext('test.ClassFormatBean', """
@@ -1098,10 +1089,6 @@ record ClassFormatRecord(
         context.close()
     }
 
-    @IgnoreIf(
-        reason = "The runtime mapper does not propagate class-level @JsonFormat to properties",
-        value = { !instance.supportsClassLevelJsonFormatPropagation() }
-    )
     void "test json format class shape propagates to all numeric properties for simple bean and record"() {
         given:
         def context = buildContext('test.ClassShapeBean', """
@@ -1163,10 +1150,6 @@ record ClassShapeRecord(Integer number, Long otherNumber) {
         context.close()
     }
 
-    @IgnoreIf(
-        reason = "The runtime mapper does not propagate class-level @JsonFormat to properties",
-        value = { !instance.supportsClassLevelJsonFormatPropagation() }
-    )
     void "test json format class pattern propagates to all date properties for simple bean and record"() {
         given:
         def context = buildContext('test.ClassPatternBean', """
