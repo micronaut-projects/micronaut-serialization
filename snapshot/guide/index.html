@@ -181,6 +181,61 @@
 </div>
 </div>
 <div class="sect3">
+<h4 id="_runtime_performance">Runtime Performance</h4>
+<div class="paragraph">
+<p>The <code>UserBeanSerdeBenchmark</code> JMH benchmark compares Jackson Databind, Jackson Databind with Blackbird, Micronaut Serialization using generated serializers/deserializers, and Micronaut Serialization with generated serializers/deserializers disabled. A local run on JDK 25 used 3 forks, 5 warmup iterations, and 10 measurement iterations with 1-second iterations.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Operation</th>
+<th class="tableblock halign-left valign-top">Jackson Databind</th>
+<th class="tableblock halign-left valign-top">Jackson Databind Blackbird</th>
+<th class="tableblock halign-left valign-top">Micronaut Serialization generated</th>
+<th class="tableblock halign-left valign-top">Micronaut Serialization runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Serialize throughput</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">389,166 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">389,564 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">510,335 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">414,885 ops/s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deserialize average time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,294 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,320 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,060 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,559 ns/op</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Round-trip average time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,546 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,528 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5,113 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,096 ns/op</p></td>
+</tr>
+</tbody>
+</table>
+<div class="imageblock">
+<div class="content">
+<img src="../img/user-bean-benchmark-results.svg" alt="UserBeanSerdeBenchmark local results">
+</div>
+</div>
+<div class="paragraph">
+<p>In this run, generated Micronaut Serialization had the highest serialization throughput, about 31.1% faster than Jackson Databind and about 23.0% faster than the runtime fallback. It was also the fastest deserialization path, about 7.1% faster than Jackson Databind, and the fastest combined serialize-and-deserialize round trip, about 21.9% faster than Jackson Databind. The runtime fallback remained slower than generated Micronaut Serialization across all measured operations, which is expected because it uses runtime serializer/deserializer selection instead of generated classes.</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_security">Security</h4>
 <div class="paragraph">
 <p>Unlike Jackson, you cannot serialize or deserialize arbitrary objects to JSON. Allowing arbitrary serialization is often a source of security issues in modern applications. Instead with Micronaut Serialization to allow a type to be serialized or deserialized you must do one of the following:</p>

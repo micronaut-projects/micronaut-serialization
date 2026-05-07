@@ -58,7 +58,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind,boolean,boolean,java.util.EnumSet,java.util.EnumSet)" tabindex="0">SimpleSerdeShapeDecision(SimpleSerdeShapeDecision.ShapeKind, boolean, boolean, EnumSet, EnumSet)</a></li>
+<li><a href="#%3Cinit%3E(io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind,boolean,boolean,java.util.Map,java.util.Map)" tabindex="0">SimpleSerdeShapeDecision(SimpleSerdeShapeDecision.ShapeKind, boolean, boolean, Map, Map)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -96,7 +96,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">SimpleSerdeShapeDecision</span>(<a href="SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a>&nbsp;shapeKind, boolean&nbsp;serializerEligible, boolean&nbsp;deserializerEligible, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;&nbsp;serializerFallbackReasons, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;&nbsp;deserializerFallbackReasons)
+<div class="type-signature"><span class="modifiers">public record </span><span class="element-name type-name-label">SimpleSerdeShapeDecision</span>(<a href="SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a>&nbsp;shapeKind, boolean&nbsp;serializerEligible, boolean&nbsp;deserializerEligible, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;serializerFallbackReasons, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;deserializerFallbackReasons)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 <div class="block">Source-generation eligibility outcome for a candidate type.</div>
 </div>
@@ -133,11 +133,11 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind,boolean,boolean,java.util.EnumSet,java.util.EnumSet)" class="member-name-link">SimpleSerdeShapeDecision</a><wbr>(<a href="SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a>&nbsp;shapeKind,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind,boolean,boolean,java.util.Map,java.util.Map)" class="member-name-link">SimpleSerdeShapeDecision</a><wbr>(<a href="SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a>&nbsp;shapeKind,
  boolean&nbsp;serializerEligible,
  boolean&nbsp;deserializerEligible,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;&nbsp;serializerFallbackReasons,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;&nbsp;deserializerFallbackReasons)</code></div>
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;serializerFallbackReasons,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;deserializerFallbackReasons)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Creates an instance of a <code>SimpleSerdeShapeDecision</code> record class.</div>
 </div>
@@ -160,7 +160,7 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-deserializerEligible"><code>deserializerEligible</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a><wbr>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#deserializerFallbackReasons()" class="member-name-link">deserializerFallbackReasons</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-deserializerFallbackReasons"><code>deserializerFallbackReasons</code></a> record component.</div>
@@ -180,7 +180,7 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-serializerEligible"><code>serializerEligible</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a><wbr>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a><wbr>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serializerFallbackReasons()" class="member-name-link">serializerFallbackReasons</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-serializerFallbackReasons"><code>serializerFallbackReasons</code></a> record component.</div>
@@ -213,14 +213,14 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind,boolean,boolean,java.util.EnumSet,java.util.EnumSet)">
+<section class="detail" id="&lt;init&gt;(io.micronaut.serde.processor.sourcegen.SimpleSerdeShapeDecision.ShapeKind,boolean,boolean,java.util.Map,java.util.Map)">
 <h3>SimpleSerdeShapeDecision</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">SimpleSerdeShapeDecision</span><wbr><span class="parameters">(<a href="SimpleSerdeShapeDecision.ShapeKind.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.ShapeKind</a>&nbsp;shapeKind,
  boolean&nbsp;serializerEligible,
  boolean&nbsp;deserializerEligible,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;&nbsp;serializerFallbackReasons,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;&nbsp;deserializerFallbackReasons)</span></div>
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;serializerFallbackReasons,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;&nbsp;deserializerFallbackReasons)</span></div>
 <div class="block">Creates an instance of a <code>SimpleSerdeShapeDecision</code> record class.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -331,7 +331,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="serializerFallbackReasons()">
 <h3>serializerFallbackReasons</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;</span>&nbsp;<span class="element-name">serializerFallbackReasons</span>()</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">serializerFallbackReasons</span>()</div>
 <div class="block">Returns the value of the <a href="#param-serializerFallbackReasons"><code>serializerFallbackReasons</code></a> record component.</div>
 <dl class="notes">
 <dt>Returns:</dt>
@@ -344,7 +344,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="deserializerFallbackReasons()">
 <h3>deserializerFallbackReasons</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/EnumSet.html" title="class or interface in java.util" class="external-link">EnumSet</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>&gt;</span>&nbsp;<span class="element-name">deserializerFallbackReasons</span>()</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a>, <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</span>&nbsp;<span class="element-name">deserializerFallbackReasons</span>()</div>
 <div class="block">Returns the value of the <a href="#param-deserializerFallbackReasons"><code>deserializerFallbackReasons</code></a> record component.</div>
 <dl class="notes">
 <dt>Returns:</dt>

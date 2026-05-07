@@ -53,11 +53,13 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#nested-class-summary" tabindex="0">Nested Class Summary</a></li>
 <li><a href="#field-summary" tabindex="0">Field Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#field-detail" tabindex="0">Field Details</a>
 <ol class="toc-list">
 <li><a href="#PREFIX" tabindex="0">PREFIX</a></li>
+<li><a href="#DEFAULT_FEATURES" tabindex="0">DEFAULT_FEATURES</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -69,6 +71,9 @@ loadScripts(document, 'script');</script>
 <li><a href="#writeDatesWithZoneId()" tabindex="0">writeDatesWithZoneId()</a></li>
 <li><a href="#writeSingleElemArraysUnwrapped()" tabindex="0">writeSingleElemArraysUnwrapped()</a></li>
 <li><a href="#writeSortedMapEntries()" tabindex="0">writeSortedMapEntries()</a></li>
+<li><a href="#disableGeneratedSerializer()" tabindex="0">disableGeneratedSerializer()</a></li>
+<li><a href="#features()" tabindex="0">features()</a></li>
+<li><a href="#features(io.micronaut.serde.config.SerializationConfiguration)" tabindex="0">features(SerializationConfiguration)</a></li>
 </ol>
 </li>
 </ol>
@@ -88,6 +93,23 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Interface</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SerializationConfiguration.Feature.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Serialization format features.</div>
+</div>
+</div>
+</section>
+</li>
 <!-- =========== FIELD SUMMARY =========== -->
 <li>
 <section class="field-summary" id="field-summary">
@@ -97,9 +119,12 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#PREFIX" class="member-name-link">PREFIX</a></code></div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second even-row-color"><code><a href="#DEFAULT_FEATURES" class="member-name-link">DEFAULT_FEATURES</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#PREFIX" class="member-name-link">PREFIX</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -108,41 +133,56 @@ loadScripts(document, 'script');</script>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getInclusion()" class="member-name-link">getInclusion</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isAlwaysSerializeErrorsAsList()" class="member-name-link">isAlwaysSerializeErrorsAsList</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#sortPropertiesAlphabetically()" class="member-name-link">sortPropertiesAlphabetically</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#disableGeneratedSerializer()" class="member-name-link">disableGeneratedSerializer</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Determines whether generated serializers should fall back to the runtime serializer.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#features()" class="member-name-link">features</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Returns the active format features for serialization.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#features(io.micronaut.serde.config.SerializationConfiguration)" class="member-name-link">features</a><wbr>(@Nullable <a href="SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;configuration)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1">
+<div class="block">Resolve the active serialization format features for the given configuration.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="annotation/SerdeConfig.SerInclude.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerInclude</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getInclusion()" class="member-name-link">getInclusion</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isAlwaysSerializeErrorsAsList()" class="member-name-link">isAlwaysSerializeErrorsAsList</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#sortPropertiesAlphabetically()" class="member-name-link">sortPropertiesAlphabetically</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether properties should be serialized in alphabetical order.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeDatesWithZoneId()" class="member-name-link">writeDatesWithZoneId</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeDatesWithZoneId()" class="member-name-link">writeDatesWithZoneId</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether zone ids are included when serializing zoned date/time values.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeDateTimestampsAsNanoseconds()" class="member-name-link">writeDateTimestampsAsNanoseconds</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeDateTimestampsAsNanoseconds()" class="member-name-link">writeDateTimestampsAsNanoseconds</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether timestamps are written with nanosecond precision.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeSingleElemArraysUnwrapped()" class="member-name-link">writeSingleElemArraysUnwrapped</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeSingleElemArraysUnwrapped()" class="member-name-link">writeSingleElemArraysUnwrapped</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether single-element arrays should be written as unwrapped scalar values.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeSortedMapEntries()" class="member-name-link">writeSortedMapEntries</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#writeSortedMapEntries()" class="member-name-link">writeSortedMapEntries</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether map entries should be written sorted by key.</div>
 </div>
 </div>
@@ -172,6 +212,14 @@ loadScripts(document, 'script');</script>
 </ul>
 </dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="DEFAULT_FEATURES">
+<h3>DEFAULT_FEATURES</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">DEFAULT_FEATURES</span></div>
 </div>
 </section>
 </li>
@@ -289,6 +337,54 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>true if map entries should be sorted</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="disableGeneratedSerializer()">
+<h3>disableGeneratedSerializer</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">disableGeneratedSerializer</span>()</div>
+<div class="block">Determines whether generated serializers should fall back to the runtime serializer.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>true if generated serializers should be disabled</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="features()">
+<h3>features</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">features</span>()</div>
+<div class="block">Returns the active format features for serialization.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>The active format features for serialization.</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="features(io.micronaut.serde.config.SerializationConfiguration)">
+<h3>features</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">features</span><wbr><span class="parameters">(@Nullable <a href="SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;configuration)</span></div>
+<div class="block">Resolve the active serialization format features for the given configuration.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>configuration</code> - The serialization configuration</dd>
+<dt>Returns:</dt>
+<dd>The active serialization format features</dd>
 <dt>Since:</dt>
 <dd>3.0</dd>
 </dl>

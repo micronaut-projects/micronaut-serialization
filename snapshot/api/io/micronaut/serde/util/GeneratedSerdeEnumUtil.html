@@ -56,9 +56,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#enumSerializedName(E)" tabindex="0">enumSerializedName(E)</a></li>
 <li><a href="#enumValueOf(java.lang.Class,java.lang.String,io.micronaut.serde.Deserializer.DecoderContext)" tabindex="0">enumValueOf(Class, String, Deserializer.DecoderContext)</a></li>
-<li><a href="#acceptCaseInsensitiveEnums(io.micronaut.serde.Deserializer.DecoderContext)" tabindex="0">acceptCaseInsensitiveEnums(Deserializer.DecoderContext)</a></li>
 </ol>
 </li>
 </ol>
@@ -93,16 +91,6 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#acceptCaseInsensitiveEnums(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">acceptCaseInsensitiveEnums</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Resolves whether case-insensitive enum deserialization is enabled for the given context.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;E extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Enum.html" title="class or interface in java.lang" class="external-link">Enum</a>&lt;E&gt;&gt;<br><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#enumSerializedName(E)" class="member-name-link">enumSerializedName</a><wbr>(E&nbsp;enumValue)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Returns the serialized name for an enum constant.</div>
-</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;E extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Enum.html" title="class or interface in java.lang" class="external-link">Enum</a>&lt;E&gt;&gt;<br>E</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#enumValueOf(java.lang.Class,java.lang.String,io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">enumValueOf</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Class.html" title="class or interface in java.lang" class="external-link">Class</a>&lt;E&gt;&nbsp;enumType,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;serializedValue,
@@ -128,23 +116,6 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="enumSerializedName(E)">
-<h3 id="enumSerializedName(java.lang.Enum)">enumSerializedName</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;E extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Enum.html" title="class or interface in java.lang" class="external-link">Enum</a>&lt;E&gt;&gt;</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">enumSerializedName</span><wbr><span class="parameters">(E&nbsp;enumValue)</span></div>
-<div class="block">Returns the serialized name for an enum constant.</div>
-<dl class="notes">
-<dt>Type Parameters:</dt>
-<dd><span id="enumSerializedName(E)-type-param-E"><code>E</code> - The enum type.</span></dd>
-<dt>Parameters:</dt>
-<dd><code>enumValue</code> - The enum constant.</dd>
-<dt>Returns:</dt>
-<dd>The serialized name.</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
 <section class="detail" id="enumValueOf(java.lang.Class,java.lang.String,io.micronaut.serde.Deserializer.DecoderContext)">
 <h3>enumValueOf</h3>
 <div class="horizontal-scroll">
@@ -161,21 +132,6 @@ loadScripts(document, 'script');</script>
 <dd><code>context</code> - The decoder context.</dd>
 <dt>Returns:</dt>
 <dd>The matching enum constant.</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="acceptCaseInsensitiveEnums(io.micronaut.serde.Deserializer.DecoderContext)">
-<h3>acceptCaseInsensitiveEnums</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">acceptCaseInsensitiveEnums</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</span></div>
-<div class="block">Resolves whether case-insensitive enum deserialization is enabled for the given context.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>context</code> - The decoder context.</dd>
-<dt>Returns:</dt>
-<dd><code>true</code> if case-insensitive enum matching is enabled.</dd>
 </dl>
 </div>
 </section>

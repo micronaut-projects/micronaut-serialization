@@ -59,6 +59,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#field-detail" tabindex="0">Field Details</a>
 <ol class="toc-list">
 <li><a href="#PREFIX" tabindex="0">PREFIX</a></li>
+<li><a href="#DEFAULT_FEATURES" tabindex="0">DEFAULT_FEATURES</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -75,6 +76,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#readUnknownEnumValuesUsingDefaultValue()" tabindex="0">readUnknownEnumValuesUsingDefaultValue()</a></li>
 <li><a href="#readDateTimestampsAsNanoseconds()" tabindex="0">readDateTimestampsAsNanoseconds()</a></li>
 <li><a href="#adjustDatesToContextTimeZone()" tabindex="0">adjustDatesToContextTimeZone()</a></li>
+<li><a href="#disableGeneratedDeserializer()" tabindex="0">disableGeneratedDeserializer()</a></li>
 <li><a href="#features()" tabindex="0">features()</a></li>
 <li><a href="#features(io.micronaut.serde.config.DeserializationConfiguration)" tabindex="0">features(DeserializationConfiguration)</a></li>
 </ol>
@@ -121,9 +123,12 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color"><code><a href="#PREFIX" class="member-name-link">PREFIX</a></code></div>
+<div class="col-first even-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second even-row-color"><code><a href="#DEFAULT_FEATURES" class="member-name-link">DEFAULT_FEATURES</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#PREFIX" class="member-name-link">PREFIX</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -158,50 +163,57 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether temporal values are adjusted to the configured context time zone.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#features()" class="member-name-link">features</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1"><code><a href="#features(io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">features</a><wbr>(@Nullable <a href="DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;configuration)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#disableGeneratedDeserializer()" class="member-name-link">disableGeneratedDeserializer</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Determines whether generated deserializers should fall back to the runtime deserializer.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#features()" class="member-name-link">features</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="block">Returns the active format features for deserialization.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#features(io.micronaut.serde.config.DeserializationConfiguration)" class="member-name-link">features</a><wbr>(@Nullable <a href="DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a>&nbsp;configuration)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1">
 <div class="block">Resolve the active format features for the given deserialization configuration.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getArraySizeThreshold()" class="member-name-link">getArraySizeThreshold</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isFailOnNullForPrimitives()" class="member-name-link">isFailOnNullForPrimitives</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getArraySizeThreshold()" class="member-name-link">getArraySizeThreshold</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isFailOnNullForPrimitives()" class="member-name-link">isFailOnNullForPrimitives</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Whether a null field or a missing value for a primitive should fail the deserialization.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isIgnoreUnknown()" class="member-name-link">isIgnoreUnknown</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isIgnoreUnknown()" class="member-name-link">isIgnoreUnknown</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Whether to ignore unknown values during deserialization.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isStrictNullable()" class="member-name-link">isStrictNullable</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isStrictNullable()" class="member-name-link">isStrictNullable</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Whether null field should be annotated with a nullable annotations.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isSubtypesRequireDefaultImpl()" class="member-name-link">isSubtypesRequireDefaultImpl</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readDateTimestampsAsNanoseconds()" class="member-name-link">readDateTimestampsAsNanoseconds</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readDateTimestampsAsNanoseconds()" class="member-name-link">readDateTimestampsAsNanoseconds</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether numeric timestamps are read with nanosecond precision.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readUnknownEnumValuesAsNull()" class="member-name-link">readUnknownEnumValuesAsNull</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readUnknownEnumValuesAsNull()" class="member-name-link">readUnknownEnumValuesAsNull</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether unknown enum values should deserialize as <code>null</code>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readUnknownEnumValuesUsingDefaultValue()" class="member-name-link">readUnknownEnumValuesUsingDefaultValue</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#readUnknownEnumValuesUsingDefaultValue()" class="member-name-link">readUnknownEnumValuesUsingDefaultValue</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Determines whether unknown enum values should use the configured default enum value.</div>
 </div>
 </div>
@@ -231,6 +243,14 @@ loadScripts(document, 'script');</script>
 </ul>
 </dd>
 </dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="DEFAULT_FEATURES">
+<h3>DEFAULT_FEATURES</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">DEFAULT_FEATURES</span></div>
 </div>
 </section>
 </li>
@@ -426,10 +446,27 @@ By default, case-insensitive enums are not accepted.</div>
 </section>
 </li>
 <li>
+<section class="detail" id="disableGeneratedDeserializer()">
+<h3>disableGeneratedDeserializer</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+</span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">disableGeneratedDeserializer</span>()</div>
+<div class="block">Determines whether generated deserializers should fall back to the runtime deserializer.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd><code>true</code> if generated deserializers should be disabled</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
 <section class="detail" id="features()">
 <h3>features</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="DeserializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">DeserializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">features</span>()</div>
+<div class="block">Returns the active format features for deserialization.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>The active format features for deserialization.</dd>

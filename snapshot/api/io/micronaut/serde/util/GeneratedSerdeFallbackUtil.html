@@ -57,13 +57,11 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
 <li><a href="#withRuntimeObjectFallback(io.micronaut.serde.Deserializer,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">withRuntimeObjectFallback(Deserializer, Deserializer.DecoderContext, Argument)</a></li>
-<li><a href="#runtimeFormattedEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">runtimeFormattedEnumDeserializer(Deserializer.DecoderContext, Argument, FormatConfiguration)</a></li>
-<li><a href="#runtimeEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">runtimeEnumDeserializer(Deserializer.DecoderContext, Argument)</a></li>
-<li><a href="#withRuntimeEnumFallback(io.micronaut.serde.Deserializer,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">withRuntimeEnumFallback(Deserializer, Deserializer.DecoderContext, Argument)</a></li>
 <li><a href="#withRuntimeObjectFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">withRuntimeObjectFallback(Serializer, Serializer.EncoderContext, Argument)</a></li>
-<li><a href="#runtimeFormattedEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">runtimeFormattedEnumSerializer(Serializer.EncoderContext, Argument, FormatConfiguration)</a></li>
-<li><a href="#runtimeEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">runtimeEnumSerializer(Serializer.EncoderContext, Argument)</a></li>
 <li><a href="#withRuntimeEnumFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" tabindex="0">withRuntimeEnumFallback(Serializer, Serializer.EncoderContext, Argument)</a></li>
+<li><a href="#withRuntimeEnumFallback(io.micronaut.serde.Deserializer,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" tabindex="0">withRuntimeEnumFallback(Deserializer, Deserializer.DecoderContext, Argument)</a></li>
+<li><a href="#runtimeFormattedEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">runtimeFormattedEnumSerializer(Serializer.EncoderContext, Argument, FormatConfiguration)</a></li>
+<li><a href="#runtimeFormattedEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" tabindex="0">runtimeFormattedEnumDeserializer(Deserializer.DecoderContext, Argument, FormatConfiguration)</a></li>
 </ol>
 </li>
 </ol>
@@ -102,18 +100,6 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;?&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#runtimeEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">runtimeEnumDeserializer</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Returns a runtime deserializer for generated enum deserializers.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a><wbr>&lt;?&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#runtimeEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)" class="member-name-link">runtimeEnumSerializer</a><wbr>(<a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Returns a runtime serializer for generated enum serializers.</div>
-</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a><wbr>&lt;?&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#runtimeFormattedEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)" class="member-name-link">runtimeFormattedEnumDeserializer</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
@@ -198,23 +184,23 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="runtimeFormattedEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
-<h3>runtimeFormattedEnumDeserializer</h3>
+<section class="detail" id="withRuntimeObjectFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
+<h3>withRuntimeObjectFallback</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">runtimeFormattedEnumDeserializer</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
- <a href="../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
-                                                        throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
-<div class="block">Returns a runtime formatted deserializer for generated enum deserializers.</div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">withRuntimeObjectFallback</span><wbr><span class="parameters">(<a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;&nbsp;generatedSerializer,
+ <a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
+                                               throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block">Returns the generated serializer unless the active features require the runtime object serializer.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>context</code> - The decoder context</dd>
+<dd><code>generatedSerializer</code> - The generated serializer</dd>
+<dd><code>context</code> - The encoder context</dd>
 <dd><code>type</code> - The target type</dd>
-<dd><code>format</code> - The format configuration</dd>
 <dt>Returns:</dt>
-<dd>A runtime formatted enum deserializer</dd>
+<dd>The generated serializer or a runtime object serializer</dd>
 <dt>Throws:</dt>
-<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no deserializer can be resolved</dd>
+<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no serializer can be resolved</dd>
 <dt>Since:</dt>
 <dd>3.0</dd>
 </dl>
@@ -222,21 +208,23 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="runtimeEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)">
-<h3>runtimeEnumDeserializer</h3>
+<section class="detail" id="withRuntimeEnumFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
+<h3>withRuntimeEnumFallback</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">runtimeEnumDeserializer</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">withRuntimeEnumFallback</span><wbr><span class="parameters">(<a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;&nbsp;generatedSerializer,
+ <a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                                               throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
-<div class="block">Returns a runtime deserializer for generated enum deserializers.</div>
+                                             throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block">Returns the generated enum serializer unless feature override metadata requires the runtime enum serializer.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>context</code> - The decoder context</dd>
+<dd><code>generatedSerializer</code> - The generated enum serializer</dd>
+<dd><code>context</code> - The encoder context</dd>
 <dd><code>type</code> - The target type</dd>
 <dt>Returns:</dt>
-<dd>A runtime enum deserializer</dd>
+<dd>The generated serializer or a runtime enum serializer</dd>
 <dt>Throws:</dt>
-<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no deserializer can be resolved</dd>
+<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no serializer can be resolved</dd>
 <dt>Since:</dt>
 <dd>3.0</dd>
 </dl>
@@ -268,30 +256,6 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="withRuntimeObjectFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
-<h3>withRuntimeObjectFallback</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">withRuntimeObjectFallback</span><wbr><span class="parameters">(<a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;&nbsp;generatedSerializer,
- <a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                                               throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
-<div class="block">Returns the generated serializer unless the active features require the runtime object serializer.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>generatedSerializer</code> - The generated serializer</dd>
-<dd><code>context</code> - The encoder context</dd>
-<dd><code>type</code> - The target type</dd>
-<dt>Returns:</dt>
-<dd>The generated serializer or a runtime object serializer</dd>
-<dt>Throws:</dt>
-<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no serializer can be resolved</dd>
-<dt>Since:</dt>
-<dd>3.0</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
 <section class="detail" id="runtimeFormattedEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
 <h3>runtimeFormattedEnumSerializer</h3>
 <div class="horizontal-scroll">
@@ -316,45 +280,23 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="runtimeEnumSerializer(io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
-<h3>runtimeEnumSerializer</h3>
+<section class="detail" id="runtimeFormattedEnumDeserializer(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,io.micronaut.serde.FormatConfiguration)">
+<h3>runtimeFormattedEnumDeserializer</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">runtimeEnumSerializer</span><wbr><span class="parameters">(<a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                                           throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
-<div class="block">Returns a runtime serializer for generated enum serializers.</div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Deserializer.html" title="interface in io.micronaut.serde">Deserializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">runtimeFormattedEnumDeserializer</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type,
+ <a href="../FormatConfiguration.html" title="class in io.micronaut.serde">FormatConfiguration</a>&nbsp;format)</span>
+                                                        throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
+<div class="block">Returns a runtime formatted deserializer for generated enum deserializers.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>context</code> - The encoder context</dd>
+<dd><code>context</code> - The decoder context</dd>
 <dd><code>type</code> - The target type</dd>
+<dd><code>format</code> - The format configuration</dd>
 <dt>Returns:</dt>
-<dd>A runtime enum serializer</dd>
+<dd>A runtime formatted enum deserializer</dd>
 <dt>Throws:</dt>
-<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no serializer can be resolved</dd>
-<dt>Since:</dt>
-<dd>3.0</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="withRuntimeEnumFallback(io.micronaut.serde.Serializer,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument)">
-<h3>withRuntimeEnumFallback</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;</span>&nbsp;<span class="element-name">withRuntimeEnumFallback</span><wbr><span class="parameters">(<a href="../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;?&gt;&nbsp;generatedSerializer,
- <a href="../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;type)</span>
-                                             throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
-<div class="block">Returns the generated enum serializer unless feature override metadata requires the runtime enum serializer.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>generatedSerializer</code> - The generated enum serializer</dd>
-<dd><code>context</code> - The encoder context</dd>
-<dd><code>type</code> - The target type</dd>
-<dt>Returns:</dt>
-<dd>The generated serializer or a runtime enum serializer</dd>
-<dt>Throws:</dt>
-<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no serializer can be resolved</dd>
+<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If no deserializer can be resolved</dd>
 <dt>Since:</dt>
 <dd>3.0</dd>
 </dl>

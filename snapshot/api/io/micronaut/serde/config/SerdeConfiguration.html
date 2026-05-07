@@ -76,7 +76,6 @@ loadScripts(document, 'script');</script>
 <li><a href="#getPropertyNamingStrategyName()" tabindex="0">getPropertyNamingStrategyName()</a></li>
 <li><a href="#getPropertyNamingStrategy()" tabindex="0">getPropertyNamingStrategy()</a></li>
 <li><a href="#isJsonViewEnabled()" tabindex="0">isJsonViewEnabled()</a></li>
-<li><a href="#serializationFeatures(io.micronaut.serde.config.SerializationConfiguration)" tabindex="0">serializationFeatures(SerializationConfiguration)</a></li>
 </ol>
 </li>
 </ol>
@@ -108,19 +107,14 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Interface</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfiguration.Feature.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a></code></div>
+<div class="col-second even-row-color"><code><a href="SerdeConfiguration.NumericTimeUnit.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></code></div>
 <div class="col-last even-row-color">
-<div class="block">Serialization format features.</div>
-</div>
-<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SerdeConfiguration.NumericTimeUnit.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.NumericTimeUnit</a></code></div>
-<div class="col-last odd-row-color">
 <div class="block">Time unit to use when deserializing a numeric value, or when serializing to a numeric value
 as configured by <a href="#getTimeWriteShape()"><code>getTimeWriteShape()</code></a>.</div>
 </div>
-<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SerdeConfiguration.TimeShape.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SerdeConfiguration.TimeShape.html" class="type-name-link" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Shape to use for time serialization.</div>
 </div>
 </div>
@@ -149,7 +143,7 @@ as configured by <a href="#getTimeWriteShape()"><code>getTimeWriteShape()</code>
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel" aria-labelledby="method-summary-table-tab0">
 <div class="summary-table three-column-summary">
 <div class="table-header col-first">Modifier and Type</div>
@@ -206,11 +200,6 @@ read/write methods.</div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isWriteBinaryAsArray()" class="member-name-link">isWriteBinaryAsArray</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Control whether to use legacy behavior for writing byte arrays.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#serializationFeatures(io.micronaut.serde.config.SerializationConfiguration)" class="member-name-link">serializationFeatures</a><wbr>(@Nullable <a href="SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;configuration)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1">
-<div class="block">Resolve the active serialization format features for the given configuration.</div>
 </div>
 </div>
 </div>
@@ -432,23 +421,6 @@ read/write methods.</div>
 <dd>Whether to respect view annotations</dd>
 <dt>Since:</dt>
 <dd>2.12</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
-<section class="detail" id="serializationFeatures(io.micronaut.serde.config.SerializationConfiguration)">
-<h3>serializationFeatures</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">serializationFeatures</span><wbr><span class="parameters">(@Nullable <a href="SerializationConfiguration.html" title="interface in io.micronaut.serde.config">SerializationConfiguration</a>&nbsp;configuration)</span></div>
-<div class="block">Resolve the active serialization format features for the given configuration.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>configuration</code> - The serialization configuration</dd>
-<dt>Returns:</dt>
-<dd>The active serialization format features</dd>
-<dt>Since:</dt>
-<dd>3.0</dd>
 </dl>
 </div>
 </section>

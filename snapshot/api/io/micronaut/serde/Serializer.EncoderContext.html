@@ -110,7 +110,7 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default io.micronaut.core.convert.ConversionService</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getConversionService()" class="member-name-link">getConversionService</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getFeatures()" class="member-name-link">getFeatures</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Get the active serialization format features for this context.</div>
@@ -134,8 +134,8 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 <div class="block">Resolve a reference for the given type and value.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#withFeatures(java.util.Set,java.util.Set)" class="member-name-link">withFeatures</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a context with serialization format features overridden by annotation metadata.</div>
 </div>
@@ -241,7 +241,7 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 <section class="detail" id="getFeatures()">
 <h3>getFeatures</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">getFeatures</span>()</div>
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;</span>&nbsp;<span class="element-name">getFeatures</span>()</div>
 <div class="block">Get the active serialization format features for this context.</div>
 <dl class="notes">
 <dt>Returns:</dt>
@@ -256,8 +256,8 @@ extends <a href="SerializerLocator.html" title="interface in io.micronaut.serde"
 <section class="detail" id="withFeatures(java.util.Set,java.util.Set)">
 <h3>withFeatures</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></span>&nbsp;<span class="element-name">withFeatures</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerdeConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</span></div>
+<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type"><a href="Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a></span>&nbsp;<span class="element-name">withFeatures</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;&nbsp;includedFeatures,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;<a href="config/SerializationConfiguration.Feature.html" title="enum class in io.micronaut.serde.config">SerializationConfiguration.Feature</a>&gt;&nbsp;excludedFeatures)</span></div>
 <div class="block">Create a context with serialization format features overridden by annotation metadata.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
