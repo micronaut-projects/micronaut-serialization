@@ -30,6 +30,8 @@ import java.util.Set;
 @NullMarked
 public interface SerializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".serialization";
+
+    @SuppressWarnings({"java:S1214", "java:S2386"})
     Set<SerializationConfiguration.Feature> DEFAULT_FEATURES = SerializationConfiguration.features(null);
 
     /**

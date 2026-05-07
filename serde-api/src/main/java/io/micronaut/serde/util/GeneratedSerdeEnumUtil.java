@@ -51,6 +51,7 @@ public final class GeneratedSerdeEnumUtil {
      * @param <E>             The enum type.
      * @return The matching enum constant.
      */
+    @SuppressWarnings("java:S1172")
     public static <E extends Enum<E>> E enumValueOf(Class<E> enumType, String serializedValue, Deserializer.DecoderContext context) {
         E resolved = enumLookup(enumType).resolve(serializedValue);
         if (resolved != null) {

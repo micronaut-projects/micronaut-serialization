@@ -44,6 +44,7 @@ final class DefaultSerializationConfiguration implements SerializationConfigurat
     private final Set<SerializationConfiguration.Feature> features;
 
     @ConfigurationInject
+    @SuppressWarnings({"checkstyle:ParameterNumber", "java:S107"})
     DefaultSerializationConfiguration(@Bindable(defaultValue = "NON_EMPTY") SerdeConfig.SerInclude inclusion,
                                       @Bindable(defaultValue = StringUtils.TRUE) boolean alwaysSerializeErrorsAsList,
                                       @Bindable(defaultValue = StringUtils.FALSE) boolean sortPropertiesAlphabetically,

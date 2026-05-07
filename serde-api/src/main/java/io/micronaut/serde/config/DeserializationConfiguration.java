@@ -28,6 +28,8 @@ import java.util.Set;
  */
 public interface DeserializationConfiguration {
     String PREFIX = SerdeConfiguration.PREFIX + ".deserialization";
+
+    @SuppressWarnings({"java:S1214", "java:S2386"})
     Set<Feature> DEFAULT_FEATURES = DeserializationConfiguration.features(null);
 
     /**
@@ -176,7 +178,7 @@ public interface DeserializationConfiguration {
      * @return The active format features
      * @since 3.0
      */
-    @SuppressWarnings("AmbiguousMethodReference")
+    @SuppressWarnings({"AmbiguousMethodReference", "java:S3776"})
     static Set<Feature> features(@Nullable DeserializationConfiguration configuration) {
         EnumSet<Feature> features = EnumSet.noneOf(Feature.class);
         if (configuration != null && configuration.acceptSingleValueAsArray()) {
