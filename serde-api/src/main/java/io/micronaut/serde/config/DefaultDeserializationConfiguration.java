@@ -47,6 +47,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final Set<DeserializationConfiguration.Feature> features;
 
     @ConfigurationInject
+    @SuppressWarnings("checkstyle:ParameterNumber")
     DefaultDeserializationConfiguration(@Bindable(defaultValue = StringUtils.TRUE) boolean ignoreUnknown,
                                         @Bindable(defaultValue = "100") int arraySizeThreshold,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable,
