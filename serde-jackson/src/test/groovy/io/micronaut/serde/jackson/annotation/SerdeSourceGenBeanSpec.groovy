@@ -1,21 +1,11 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.Decoder
 import io.micronaut.serde.Deserializer
-import io.micronaut.serde.Encoder
-import io.micronaut.serde.LimitingStream
-import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.Serializer
-import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.exceptions.SerdeException
-import io.micronaut.serde.jackson.JacksonDecoder
-import io.micronaut.serde.jackson.JacksonEncoder
 import io.micronaut.serde.jackson.JsonCompileSpec
-import tools.jackson.core.json.JsonFactory
-
-import java.lang.reflect.Modifier
-import jakarta.inject.Singleton
 
 class SerdeSourceGenBeanSpec extends JsonCompileSpec {
 
@@ -54,63 +44,30 @@ public class TestBean {
 }
 ''')
         Class<?> beanType = context.classLoader.loadClass('test.TestBean')
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(Argument.of(beanType)).annotationMetadata
-        String serializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-
-        expect:
-        metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SHAPE).orElse(null) == 'DEFAULT_CONSTRUCTOR_BEAN'
-        metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false)
-        metadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false)
-        serializerClassName != null
-        deserializerClassName != null
-
-        when:
-        Class<?> serializerClass = context.classLoader.loadClass(serializerClassName)
-        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
-
-        then:
-        !Modifier.isAbstract(serializerClass.modifiers)
-        !Modifier.isAbstract(deserializerClass.modifiers)
-        serializerClass.getAnnotation(Singleton) != null
-        deserializerClass.getAnnotation(Singleton) != null
-
-        when:
-        Serializer serializer = (Serializer) serializerClass.getDeclaredConstructor().newInstance()
-        Deserializer deserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
-        def registry = jsonMapper.serdeRegistry
-        Serializer.EncoderContext encoderContext = registry.newEncoderContext(Object)
-        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
-        def jsonFactory = new JsonFactory()
-        def output = new ByteArrayOutputStream()
-        def bean = beanType.getDeclaredConstructor().newInstance()
-        beanType.getMethod('setValue', String).invoke(bean, 'hello')
-        beanType.getMethod('setCount', int).invoke(bean, 7)
+        def registry = context.getBean(SerdeRegistry)
         def type = Argument.of(beanType)
 
-        jsonFactory.createGenerator(output).withCloseable { generator ->
-            Encoder encoder = JacksonEncoder.create(generator)
-            serializer.serialize(encoder, encoderContext, type, bean)
-        }
-        String json = output.toString('UTF-8')
+        expect:
+        assertGeneratedSerializer(registry, type)
+        assertGeneratedDeserializer(registry, type)
 
-        def deserialized
-        jsonFactory.createParser(json).withCloseable { parser ->
-            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
-            deserialized = deserializer.deserialize(decoder, decoderContext, type)
-        }
+        when:
+        def bean = beanType.getDeclaredConstructor().newInstance()
+        bean.value = 'hello'
+        bean.count = 7
+        String json = jsonMapper.writeValueAsString(bean)
+        def deserialized = jsonMapper.readValue(json, type)
 
         then:
         json == '{"value":"hello","count":7}'
-        beanType.getMethod('getValue').invoke(deserialized) == 'hello'
-        beanType.getMethod('getCount').invoke(deserialized) == 7
+        deserialized.value == 'hello'
+        deserialized.count == 7
 
         cleanup:
         context.close()
     }
 
-    void 'test bean generated deserializer shape plus createSpecific parity for duplicate unknown null defaults and property path failures'() {
+    void 'test bean generated deserializer handles duplicate unknown null defaults and property path failures'() {
         given:
         def context = buildContext('test.ParityBean', '''
 package test;
@@ -151,74 +108,50 @@ public class ParityBean {
 }
 ''')
         Class<?> beanType = context.classLoader.loadClass('test.ParityBean')
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(Argument.of(beanType)).annotationMetadata
-        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)
         def type = Argument.of(beanType)
-        Deserializer defaultDeserializer = (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+        Deserializer defaultDeserializer = registry.findDeserializer(type)
         Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
 
         expect:
-        deserializerClass.declaredFields*.name.any { it.startsWith('KEY_') }
-        deserializerClass.declaredFields*.name.any { it.startsWith('ARGUMENT_') }
-        deserializerClass.declaredFields*.name.any { it.startsWith('DESERIALIZER_') }
-        specificDeserializer.class == deserializerClass
+        defaultDeserializer.class.name == generatedClassName(beanType, 'Deserializer')
+        specificDeserializer.class.name == generatedClassName(beanType, 'Deserializer')
 
         when:
-        def fromDefaultNull = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":null,"tags":["a","b"]}')
-        def fromSpecificNull = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":null,"tags":["a","b"]}')
+        def fromNull = jsonMapper.readValue('{"value":"hello","count":null,"tags":["a","b"]}', type)
 
         then:
-        beanType.getMethod('getValue').invoke(fromDefaultNull) == 'hello'
-        beanType.getMethod('getValue').invoke(fromSpecificNull) == 'hello'
-        beanType.getMethod('getCount').invoke(fromDefaultNull) == 0
-        beanType.getMethod('getCount').invoke(fromSpecificNull) == 0
-        beanType.getMethod('getTags').invoke(fromDefaultNull).toString() == '[a, b]'
-        beanType.getMethod('getTags').invoke(fromSpecificNull).toString() == '[a, b]'
+        fromNull.value == 'hello'
+        fromNull.count == 0
+        fromNull.tags.toString() == '[a, b]'
 
         when:
-        def duplicateDefault = deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
-        def duplicateSpecific = deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","value":"b","count":1}')
+        def duplicate = jsonMapper.readValue('{"value":"a","value":"b","count":1}', type)
 
         then:
-        beanType.getMethod('getValue').invoke(duplicateDefault) == 'a'
-        beanType.getMethod('getValue').invoke(duplicateSpecific) == 'a'
-        beanType.getMethod('getCount').invoke(duplicateDefault) == 1
-        beanType.getMethod('getCount').invoke(duplicateSpecific) == 1
+        duplicate.value == 'a'
+        duplicate.count == 1
 
         when:
-        def unknownDefaultFailure = captureFailure {
-            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"a","count":1,"extra":2}')
-        }
-        def unknownSpecificFailure = captureFailure {
-            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"a","count":1,"extra":2}')
+        def unknownFailure = captureFailure {
+            jsonMapper.readValue('{"value":"a","count":1,"extra":2}', type)
         }
 
         then:
-        (unknownDefaultFailure == null) == (unknownSpecificFailure == null)
-        if (unknownDefaultFailure != null) {
-            assert unknownDefaultFailure.message?.contains('extra')
-            assert unknownSpecificFailure.message?.contains('extra')
+        if (unknownFailure != null) {
+            assert unknownFailure.message?.contains('extra')
         }
 
         when:
-        def scalarPathDefaultFailure = captureFailure {
-            deserializeValue(defaultDeserializer, decoderContext, type, '{"value":"hello","count":"oops","tags":["x"]}')
-        }
-        def scalarPathSpecificFailure = captureFailure {
-            deserializeValue(specificDeserializer, decoderContext, type, '{"value":"hello","count":"oops","tags":["x"]}')
+        def scalarPathFailure = captureFailure {
+            jsonMapper.readValue('{"value":"hello","count":"oops","tags":["x"]}', type)
         }
 
         then:
-        scalarPathDefaultFailure != null
-        scalarPathSpecificFailure != null
-        scalarPathDefaultFailure instanceof SerdeException
-        scalarPathSpecificFailure instanceof SerdeException
-        ((SerdeException) scalarPathDefaultFailure).pathAsString?.contains('count')
-        ((SerdeException) scalarPathSpecificFailure).pathAsString?.contains('count')
+        scalarPathFailure != null
+        scalarPathFailure instanceof SerdeException
+        ((SerdeException) scalarPathFailure).pathAsString?.contains('count')
 
         cleanup:
         context.close()
@@ -227,116 +160,108 @@ public class ParityBean {
     @SuppressWarnings('JsonDuplicatePropertyKeys')
     void 'test bean generated deserializer dispatch paths for small and large property sets'() {
         given:
-        def context = buildContext('test.SmallDispatchBean', '''
+        def context = buildContext('test.DispatchBeanTypes', '''
 package test;
 
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.core.annotation.Introspected;
 
-@Serdeable
-@Introspected
-class SmallDispatchBean {
-    private String a;
-    private int b;
-    private boolean c;
+public final class DispatchBeanTypes {
+    @Serdeable
+    @Introspected
+    public static class SmallDispatchBean {
+        private String a;
+        private int b;
+        private boolean c;
 
-    public String getA() { return a; }
-    public void setA(String a) { this.a = a; }
-    public int getB() { return b; }
-    public void setB(int b) { this.b = b; }
-    public boolean isC() { return c; }
-    public void setC(boolean c) { this.c = c; }
-}
+        public String getA() { return a; }
+        public void setA(String a) { this.a = a; }
+        public int getB() { return b; }
+        public void setB(int b) { this.b = b; }
+        public boolean isC() { return c; }
+        public void setC(boolean c) { this.c = c; }
+    }
 
-@Serdeable
-@Introspected
-class LargeDispatchBean {
-    private String a;
-    private int b;
-    private boolean c;
-    private long d;
-    private double e;
+    @Serdeable
+    @Introspected
+    public static class LargeDispatchBean {
+        private String a;
+        private int b;
+        private boolean c;
+        private long d;
+        private double e;
 
-    public String getA() { return a; }
-    public void setA(String a) { this.a = a; }
-    public int getB() { return b; }
-    public void setB(int b) { this.b = b; }
-    public boolean isC() { return c; }
-    public void setC(boolean c) { this.c = c; }
-    public long getD() { return d; }
-    public void setD(long d) { this.d = d; }
-    public double getE() { return e; }
-    public void setE(double e) { this.e = e; }
+        public String getA() { return a; }
+        public void setA(String a) { this.a = a; }
+        public int getB() { return b; }
+        public void setB(int b) { this.b = b; }
+        public boolean isC() { return c; }
+        public void setC(boolean c) { this.c = c; }
+        public long getD() { return d; }
+        public void setD(long d) { this.d = d; }
+        public double getE() { return e; }
+        public void setE(double e) { this.e = e; }
+    }
 }
 ''')
-        def registry = jsonMapper.serdeRegistry
-        def decoderContext = registry.newDecoderContext(Object)
+        def registry = context.getBean(SerdeRegistry)
 
-        Class<?> smallType = context.classLoader.loadClass('test.SmallDispatchBean')
-        Class<?> largeType = context.classLoader.loadClass('test.LargeDispatchBean')
+        Class<?> smallType = context.classLoader.loadClass('test.DispatchBeanTypes$SmallDispatchBean')
+        Class<?> largeType = context.classLoader.loadClass('test.DispatchBeanTypes$LargeDispatchBean')
         Argument smallArgument = Argument.of(smallType)
         Argument largeArgument = Argument.of(largeType)
 
-        def smallDeserializer = buildDeserializer(context, smallType)
-        def largeDeserializer = buildDeserializer(context, largeType)
-
         when:
-        def small = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","b":7,"c":true}')
-        def large = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5}')
+        def small = jsonMapper.readValue('{"a":"x","b":7,"c":true}', smallArgument)
+        def large = jsonMapper.readValue('{"a":"x","b":7,"c":true,"d":9,"e":3.5}', largeArgument)
 
         then:
-        invokeDeclared(small, 'getA') == 'x'
-        invokeDeclared(small, 'getB') == 7
-        invokeDeclared(small, 'isC')
-        invokeDeclared(large, 'getA') == 'x'
-        invokeDeclared(large, 'getB') == 7
-        invokeDeclared(large, 'isC')
-        invokeDeclared(large, 'getD') == 9L
-        invokeDeclared(large, 'getE') == 3.5d
+        assertGeneratedDeserializer(registry, smallArgument)
+        assertGeneratedDeserializer(registry, largeArgument)
+        small.a == 'x'
+        small.b == 7
+        small.c
+        large.a == 'x'
+        large.b == 7
+        large.c
+        large.d == 9L
+        large.e == 3.5d
 
         when:
-        def smallDuplicate = deserializeValue(smallDeserializer, decoderContext, smallArgument, '{"a":"x","a":"y","b":7,"c":true}')
-        def largeDuplicate = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}')
+        def smallDuplicate = jsonMapper.readValue('{"a":"x","a":"y","b":7,"c":true}', smallArgument)
+        def largeDuplicate = jsonMapper.readValue('{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}', largeArgument)
 
         then:
-        invokeDeclared(smallDuplicate, 'getA') == 'x'
-        invokeDeclared(smallDuplicate, 'getB') == 7
-        invokeDeclared(smallDuplicate, 'isC')
-        invokeDeclared(largeDuplicate, 'getA') == 'x'
-        invokeDeclared(largeDuplicate, 'getB') == 7
-        invokeDeclared(largeDuplicate, 'isC')
-        invokeDeclared(largeDuplicate, 'getD') == 9L
-        invokeDeclared(largeDuplicate, 'getE') == 3.5d
+        smallDuplicate.a == 'x'
+        smallDuplicate.b == 7
+        smallDuplicate.c
+        largeDuplicate.a == 'x'
+        largeDuplicate.b == 7
+        largeDuplicate.c
+        largeDuplicate.d == 9L
+        largeDuplicate.e == 3.5d
 
         cleanup:
         context.close()
     }
 
-    private Object buildDeserializer(def context, Class<?> beanType) {
-        def introspections = context.getBean(SerdeIntrospections)
-        def metadata = introspections.getSerializableIntrospection(Argument.of(beanType)).annotationMetadata
-        String deserializerClassName = metadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        Class<?> deserializerClass = context.classLoader.loadClass(deserializerClassName)
-        (Deserializer) deserializerClass.getDeclaredConstructor().newInstance()
+    private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
     }
 
-    private static Object invokeDeclared(Object target, String methodName) {
-        def method = target.getClass().getDeclaredMethod(methodName)
-        method.setAccessible(true)
-        method.invoke(target)
+    private static void assertGeneratedDeserializer(SerdeRegistry registry, Argument argument) {
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+        assert deserializer.class.name == generatedClassName(argument.type, 'Deserializer')
     }
 
-    private static Object deserializeValue(Deserializer deserializer,
-                                           Deserializer.DecoderContext decoderContext,
-                                           Argument type,
-                                           String json) {
-        def jsonFactory = new JsonFactory()
-        def result
-        jsonFactory.createParser(json).withCloseable { parser ->
-            Decoder decoder = JacksonDecoder.create(parser, LimitingStream.DEFAULT_LIMITS)
-            result = deserializer.deserialize(decoder, decoderContext, type)
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
         }
-        result
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 
     private static Exception captureFailure(Closure<?> action) {

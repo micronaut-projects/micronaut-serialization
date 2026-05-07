@@ -15,7 +15,9 @@
  */
 package io.micronaut.serde.processor.sourcegen;
 
-import java.util.EnumSet;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Source-generation eligibility outcome for a candidate type.
@@ -30,9 +32,14 @@ public record SimpleSerdeShapeDecision(
     ShapeKind shapeKind,
     boolean serializerEligible,
     boolean deserializerEligible,
-    EnumSet<FallbackReason> serializerFallbackReasons,
-    EnumSet<FallbackReason> deserializerFallbackReasons
+    Map<FallbackReason, String> serializerFallbackReasons,
+    Map<FallbackReason, String> deserializerFallbackReasons
 ) {
+    public SimpleSerdeShapeDecision {
+        serializerFallbackReasons = Collections.unmodifiableMap(new LinkedHashMap<>(serializerFallbackReasons));
+        deserializerFallbackReasons = Collections.unmodifiableMap(new LinkedHashMap<>(deserializerFallbackReasons));
+    }
+
     /**
      * Supported simple shapes for source-generated serdes.
      */
@@ -47,17 +54,29 @@ public record SimpleSerdeShapeDecision(
      * Reasons a type falls back to introspection-backed serde handling.
      */
     public enum FallbackReason {
-        UNWRAPPED,
-        ANY_GETTER,
-        ANY_SETTER,
+        UNWRAPPED("Unwrapped properties not supported"),
+        ANY_GETTER("Any getter not supported"),
+        ANY_SETTER("Any setter not supported"),
         /**
          * Shapes using {@code @JsonInclude} require introspection-backed handling of inclusion semantics.
          */
-        INCLUDE,
-        COMPLEX_CREATOR,
-        COMPLEX_ENUM,
-        SUBTYPED,
-        SOURCEGEN_SKIPPED,
-        UNSUPPORTED_SHAPE
+        INCLUDE("Include not supported"),
+        PROPERTY_ORDER("Property order not supported"),
+        UNSUPPORTED_ANNOTATIONS("Annotations not supported"),
+        COMPLEX_CREATOR("Complex creator not supported"),
+        COMPLEX_ENUM("Complex enum not supported"),
+        SUBTYPED("Subtyped serialization not supported"),
+        SOURCEGEN_SKIPPED("Source generation skipped"),
+        UNSUPPORTED_SHAPE("Unsupported shape");
+
+        private final String message;
+
+        FallbackReason(String message) {
+            this.message = message;
+        }
+
+        public String message() {
+            return message;
+        }
     }
 }

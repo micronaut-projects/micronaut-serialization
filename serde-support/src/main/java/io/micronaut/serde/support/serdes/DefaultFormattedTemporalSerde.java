@@ -23,6 +23,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.SerdeFeatures;
 
@@ -77,11 +78,11 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
     }
 
     private static SerdeConfiguration.NumericTimeUnit serializationNumericUnit(FormatConfiguration format,
-                                                                               Set<SerdeConfiguration.Feature> features) {
+                                                                               Set<SerializationConfiguration.Feature> features) {
         if (format.shape() == FormatConfiguration.Shape.NUMBER_INT) {
             return MILLISECONDS;
         }
-        if (features.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+        if (features.contains(SerializationConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
             return SECONDS;
         }
         return MILLISECONDS;
@@ -105,21 +106,21 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
     }
 
     private static SerdeConfiguration.NumericTimeUnit serializationNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                               Set<SerdeConfiguration.Feature> features) {
-        if (features.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+                                                                               Set<SerializationConfiguration.Feature> features) {
+        if (features.contains(SerializationConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
             return numericUnit;
         }
         return MILLISECONDS;
     }
 
     private static SerdeConfiguration.NumericTimeUnit serializationNumericUnit(SerdeConfiguration.NumericTimeUnit numericUnit,
-                                                                               Set<SerdeConfiguration.Feature> features,
-                                                                               Set<SerdeConfiguration.Feature> featuresWith,
-                                                                               Set<SerdeConfiguration.Feature> featuresWithout) {
-        if (featuresWith.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+                                                                               Set<SerializationConfiguration.Feature> features,
+                                                                               Set<SerializationConfiguration.Feature> featuresWith,
+                                                                               Set<SerializationConfiguration.Feature> featuresWithout) {
+        if (featuresWith.contains(SerializationConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
             return SECONDS;
         }
-        if (featuresWithout.contains(SerdeConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
+        if (featuresWithout.contains(SerializationConfiguration.Feature.WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS)) {
             return MILLISECONDS;
         }
         return serializationNumericUnit(numericUnit, features);
@@ -148,8 +149,8 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
 
     @Override
     public Serializer<T> createSpecific(EncoderContext context, Argument<? extends T> type) {
-        Set<SerdeConfiguration.Feature> featuresWith = SerdeFeatures.serializationFeaturesWith(type.getAnnotationMetadata());
-        Set<SerdeConfiguration.Feature> featuresWithout = SerdeFeatures.serializationFeaturesWithout(type.getAnnotationMetadata());
+        Set<SerializationConfiguration.Feature> featuresWith = SerdeFeatures.serializationFeaturesWith(type.getAnnotationMetadata());
+        Set<SerializationConfiguration.Feature> featuresWithout = SerdeFeatures.serializationFeaturesWithout(type.getAnnotationMetadata());
         context = context.withFeatures(featuresWith, featuresWithout);
         FormatConfiguration format = FormatConfiguration.from(type.getAnnotationMetadata());
         return format == null ? createSpecificForConfiguration(context, featuresWith, featuresWithout) : createSpecificForFormat(context, type, format);
@@ -215,8 +216,8 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
     }
 
     private DefaultFormattedTemporalSerde<T> createSpecificForConfiguration(EncoderContext encoderContext,
-                                                                            Set<SerdeConfiguration.Feature> featuresWith,
-                                                                            Set<SerdeConfiguration.Feature> featuresWithout) {
+                                                                            Set<SerializationConfiguration.Feature> featuresWith,
+                                                                            Set<SerializationConfiguration.Feature> featuresWithout) {
         return encoderContext.getSerdeConfiguration()
             .map(configuration -> createSpecificForSerialization(
                 stringFormatter(configuration, FormatConfiguration.EMPTY, encoderContext.getFeatures()),
@@ -300,7 +301,7 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
                                                                               SerdeConfiguration.TimeShape timeWriteShape,
                                                                               SerdeConfiguration.NumericTimeUnit numericUnit,
                                                                               FormatConfiguration format,
-                                                                              Set<SerdeConfiguration.Feature> features) {
+                                                                              Set<SerializationConfiguration.Feature> features) {
         return createSpecific(stringFormatter, timeWriteShape, numericUnit, format);
     }
 
@@ -392,7 +393,7 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
 
     private DateTimeFormatter stringFormatter(SerdeConfiguration configuration,
                                               FormatConfiguration format,
-                                              Set<SerdeConfiguration.Feature> features) {
+                                              Set<SerializationConfiguration.Feature> features) {
         return createFormatter(configuration).orElse(defaultStringFormatter(format, features));
     }
 
@@ -417,7 +418,7 @@ public abstract sealed class DefaultFormattedTemporalSerde<T extends TemporalAcc
      * @return The default formatter to use for this format when configuration doesn't define one.
      */
     protected DateTimeFormatter defaultStringFormatter(FormatConfiguration format,
-                                                       Set<SerdeConfiguration.Feature> features) {
+                                                       Set<SerializationConfiguration.Feature> features) {
         return defaultStringFormatter(format);
     }
 }

@@ -24,7 +24,7 @@ import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
-import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
@@ -45,7 +45,7 @@ public final class SingleElementArraySerde {
     }
 
     /**
-     * Apply {@link SerdeConfiguration.Feature#WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED} if enabled.
+     * Apply {@link SerializationConfiguration.Feature#WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED} if enabled.
      *
      * @param serializer The serializer
      * @param context The encoder context
@@ -54,7 +54,7 @@ public final class SingleElementArraySerde {
      */
     public static <T> Serializer<T> writeSingleElementArraysUnwrapped(Serializer<T> serializer,
                                                                       Serializer.EncoderContext context) throws SerdeException {
-        if (context.getFeatures().contains(SerdeConfiguration.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)) {
+        if (context.getFeatures().contains(SerializationConfiguration.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED)) {
             return new SingleElementArrayUnwrappingSerializer<>(serializer, context);
         }
         return serializer;

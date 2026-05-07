@@ -669,8 +669,8 @@ final class SerBean<T> {
         public AnnotationMetadata annotationMetadata;
         @Nullable
         public final FormatConfiguration format;
-        public final Set<SerdeConfiguration.Feature> featuresWith;
-        public final Set<SerdeConfiguration.Feature> featuresWithout;
+        public final Set<SerializationConfiguration.Feature> featuresWith;
+        public final Set<SerializationConfiguration.Feature> featuresWithout;
         // CHECKSTYLE:ON
 
         public SerProperty(

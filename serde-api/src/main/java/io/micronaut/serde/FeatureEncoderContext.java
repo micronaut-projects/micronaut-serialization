@@ -37,9 +37,9 @@ import java.util.Set;
 @Internal
 final class FeatureEncoderContext implements Serializer.EncoderContext {
     private final Serializer.EncoderContext delegate;
-    private final Set<SerdeConfiguration.Feature> features;
+    private final Set<SerializationConfiguration.Feature> features;
 
-    FeatureEncoderContext(Serializer.EncoderContext delegate, Set<SerdeConfiguration.Feature> features) {
+    FeatureEncoderContext(Serializer.EncoderContext delegate, Set<SerializationConfiguration.Feature> features) {
         this.delegate = delegate;
         this.features = features;
     }
@@ -71,7 +71,7 @@ final class FeatureEncoderContext implements Serializer.EncoderContext {
     }
 
     @Override
-    public Set<SerdeConfiguration.Feature> getFeatures() {
+    public Set<SerializationConfiguration.Feature> getFeatures() {
         return features;
     }
 

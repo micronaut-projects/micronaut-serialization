@@ -49,18 +49,18 @@ final class CustomizedIterableSerializer<T> extends AbstractIterableSerializer<T
         throws IOException {
         int index = 0;
         try (Encoder array = encoder.encodeArray(type)) {
-            for (T t : value) {
-                try {
+            try {
+                for (T t : value) {
                     if (t == null) {
                         array.encodeNull();
                     } else {
                         componentSerializer.serialize(array, context, generic, t);
                     }
                     index++;
-                } catch (SerdeException e) {
-                    e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
-                    throw e;
                 }
+            } catch (SerdeException e) {
+                e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
+                throw e;
             }
         }
     }

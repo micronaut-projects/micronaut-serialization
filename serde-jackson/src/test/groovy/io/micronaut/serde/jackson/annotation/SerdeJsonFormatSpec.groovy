@@ -6,11 +6,9 @@ import io.micronaut.core.type.Argument
 import io.micronaut.serde.FormatConfiguration
 import io.micronaut.serde.FormattedDeserializer
 import io.micronaut.serde.FormattedSerializer
-import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.config.DeserializationConfiguration
-import io.micronaut.serde.config.SerdeConfiguration
 import io.micronaut.serde.config.SerializationConfiguration
-import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JsonFormatSpec
 import spock.lang.Unroll
 
@@ -25,27 +23,12 @@ class SerdeJsonFormatSpec extends JsonFormatSpec {
                                                 boolean deserializerGenerated) {
         Class<?> beanType = context.classLoader.loadClass(className)
         def type = Argument.of(beanType)
-        def introspections = context.getBean(SerdeIntrospections)
-        def serializableMetadata = introspections.getSerializableIntrospection(type).annotationMetadata
-        def deserializableMetadata = introspections.getDeserializableIntrospection(type).annotationMetadata
-        String generatedSerializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = deserializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         def specificSerializer = registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type)
         def specificDeserializer = registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type)
 
-        if (serializerGenerated) {
-            assert generatedSerializerClass != null
-            assert specificSerializer.class.name == generatedSerializerClass
-        } else {
-            assert generatedSerializerClass == null || specificSerializer.class.name != generatedSerializerClass
-        }
-        if (deserializerGenerated) {
-            assert generatedDeserializerClass != null
-            assert specificDeserializer.class.name == generatedDeserializerClass
-        } else {
-            assert generatedDeserializerClass == null || specificDeserializer.class.name != generatedDeserializerClass
-        }
+        assert (specificSerializer.class.name == generatedClassName(beanType, 'Serializer')) == serializerGenerated
+        assert (specificDeserializer.class.name == generatedClassName(beanType, 'Deserializer')) == deserializerGenerated
     }
 
     void "test generated enum serdes are format aware and fallback for format"() {
@@ -63,21 +46,16 @@ enum Choice {
 """, true, [:])
         Class<?> enumType = context.classLoader.loadClass('test.Choice')
         def type = Argument.of(enumType)
-        def introspections = context.getBean(SerdeIntrospections)
-        def serializableMetadata = introspections.getSerializableIntrospection(type).annotationMetadata
-        def deserializableMetadata = introspections.getDeserializableIntrospection(type).annotationMetadata
-        String generatedSerializerClass = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-        String generatedDeserializerClass = deserializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         def serializer = registry.findSerializer(type)
         def deserializer = registry.findDeserializer(type)
         def format = new FormatConfiguration(null, FormatConfiguration.Shape.NUMBER, null, null, null, FormatConfiguration.DEFAULT_RADIX)
+        String generatedSerializerClass = generatedClassName(enumType, 'Serializer')
+        String generatedDeserializerClass = generatedClassName(enumType, 'Deserializer')
 
         expect:
-        generatedSerializerClass != null
-        generatedDeserializerClass != null
-        FormattedSerializer.isAssignableFrom(context.classLoader.loadClass(generatedSerializerClass))
-        FormattedDeserializer.isAssignableFrom(context.classLoader.loadClass(generatedDeserializerClass))
+        serializer instanceof FormattedSerializer
+        deserializer instanceof FormattedDeserializer
         serializer.createSpecific(registry.newEncoderContext(Object), type).class.name == generatedSerializerClass
         deserializer.createSpecific(registry.newDecoderContext(Object), type).class.name == generatedDeserializerClass
         ((FormattedSerializer) serializer).createSpecific(registry.newEncoderContext(Object), type, format).class.name != generatedSerializerClass
@@ -85,6 +63,15 @@ enum Choice {
 
         cleanup:
         context.close()
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
+        }
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 
     void "test generated serde fallback util with custom object serde"() {
@@ -314,7 +301,7 @@ import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
-import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
@@ -425,8 +412,8 @@ class FormatAwareValueSerde implements FormattedSerializer<FormatAwareValue>, Fo
 
     private void validateSerializationFeatures() throws IOException {
         if (!features.equals(Set.of(
-            SerdeConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID,
-            SerdeConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES
+            SerializationConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID,
+            SerializationConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES
         ))) {
             throw new IOException("Unexpected serialization features: " + features);
         }
@@ -465,7 +452,7 @@ import io.micronaut.serde.FormattedSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.config.DeserializationConfiguration;
-import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import jakarta.inject.Singleton;
 import java.io.IOException;
@@ -544,7 +531,7 @@ class FeatureOnlyValueSerde implements FormattedSerializer<FeatureOnlyValue>, Fo
                           EncoderContext context,
                           Argument<? extends FeatureOnlyValue> type,
                           FeatureOnlyValue value) throws IOException {
-        if (!features.contains(SerdeConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID)) {
+        if (!features.contains(SerializationConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID)) {
             throw new IOException("Unexpected serialization features: " + features);
         }
         encoder.encodeString(value.value());
@@ -596,14 +583,14 @@ class Test {
         ])
 
         when:
-        def serializationFeatures = SerdeConfiguration.serializationFeatures(context.getBean(SerializationConfiguration))
+        def serializationFeatures = SerializationConfiguration.features(context.getBean(SerializationConfiguration))
         def deserializationFeatures = context.getBean(DeserializationConfiguration).features()
 
         then:
         serializationFeatures == Set.of(
-            SerdeConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID,
-            SerdeConfiguration.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED,
-            SerdeConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES
+            SerializationConfiguration.Feature.WRITE_DATES_WITH_ZONE_ID,
+            SerializationConfiguration.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED,
+            SerializationConfiguration.Feature.WRITE_SORTED_MAP_ENTRIES
         )
         deserializationFeatures == Set.of(
             DeserializationConfiguration.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY,

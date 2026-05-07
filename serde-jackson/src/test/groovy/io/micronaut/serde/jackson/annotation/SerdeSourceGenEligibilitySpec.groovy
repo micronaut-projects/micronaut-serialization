@@ -1,8 +1,9 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
-import io.micronaut.serde.SerdeIntrospections
-import io.micronaut.serde.config.annotation.SerdeConfig
+import io.micronaut.serde.Deserializer
+import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.jackson.JsonCompileSpec
 
 class SerdeSourceGenEligibilitySpec extends JsonCompileSpec {
@@ -45,9 +46,9 @@ enum TestEnum {
 ''')
 
         expect:
-        assertEligibility(context, 'test.TestRecord', 'RECORD', true, true)
-        assertEligibility(context, 'test.TestBean', 'DEFAULT_CONSTRUCTOR_BEAN', true, true)
-        assertEligibility(context, 'test.TestEnum', 'ENUM', true, true)
+        assertRegistrySelection(context, 'test.TestRecord', true, true)
+        assertRegistrySelection(context, 'test.TestBean', true, true)
+        assertRegistrySelection(context, 'test.TestEnum', true, true)
 
         cleanup:
         context.close()
@@ -116,8 +117,8 @@ class AnySetterBean {
 ''')
 
         expect:
-        assertEligibility(context, 'test.AnyGetterBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, true)
-        assertEligibility(context, 'test.AnySetterBean', 'DEFAULT_CONSTRUCTOR_BEAN', true, false)
+        assertRegistrySelection(context, 'test.AnyGetterBean', false, true)
+        assertRegistrySelection(context, 'test.AnySetterBean', true, false)
 
         cleanup:
         context.close()
@@ -204,9 +205,9 @@ record DelegatingCreatorRecord(String value) {
 ''')
 
         expect:
-        assertEligibility(context, 'test.UnwrappedBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.SubtypedBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.DelegatingCreatorRecord', 'RECORD', false, false)
+        assertRegistrySelection(context, 'test.UnwrappedBean', false, false)
+        assertRegistrySelection(context, 'test.SubtypedBean', false, false)
+        assertRegistrySelection(context, 'test.DelegatingCreatorRecord', false, false)
 
         cleanup:
         context.close()
@@ -235,7 +236,7 @@ enum JsonValueEnum {
 ''')
 
         expect:
-        assertEligibility(context, 'test.JsonValueEnum', 'ENUM', false, false)
+        assertRegistrySelection(context, 'test.JsonValueEnum', false, false)
 
         cleanup:
         context.close()
@@ -320,11 +321,11 @@ class JsonFormatPropertyHolder {
 ''')
 
         expect:
-        assertEligibility(context, 'test.JsonFormatBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.JsonFormatRecord', 'RECORD', false, false)
-        assertEligibility(context, 'test.JsonFormatEnum', 'ENUM', false, false)
-        assertEligibility(context, 'test.PlainEnum', 'ENUM', true, true)
-        assertEligibility(context, 'test.JsonFormatPropertyHolder', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertRegistrySelection(context, 'test.JsonFormatBean', false, false)
+        assertRegistrySelection(context, 'test.JsonFormatRecord', false, false)
+        assertRegistrySelection(context, 'test.JsonFormatEnum', false, false)
+        assertRegistrySelection(context, 'test.PlainEnum', true, true)
+        assertRegistrySelection(context, 'test.JsonFormatPropertyHolder', false, false)
 
         cleanup:
         context.close()
@@ -379,8 +380,8 @@ class JsonIncludePropertyBean {
 ''')
 
         expect:
-        assertEligibility(context, 'test.JsonIncludeTypeBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.JsonIncludePropertyBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertRegistrySelection(context, 'test.JsonIncludeTypeBean', false, false)
+        assertRegistrySelection(context, 'test.JsonIncludePropertyBean', false, false)
 
         cleanup:
         context.close()
@@ -453,50 +454,35 @@ class XmlTextBean {
 ''')
 
         expect:
-        assertEligibility(context, 'test.XmlWrapperBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.XmlPropertyBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.XmlRootBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
-        assertEligibility(context, 'test.XmlTextBean', 'DEFAULT_CONSTRUCTOR_BEAN', false, false)
+        assertRegistrySelection(context, 'test.XmlWrapperBean', false, false)
+        assertRegistrySelection(context, 'test.XmlPropertyBean', false, false)
+        assertRegistrySelection(context, 'test.XmlRootBean', false, false)
+        assertRegistrySelection(context, 'test.XmlTextBean', false, false)
 
         cleanup:
         context.close()
     }
 
-    private void assertEligibility(def context,
-                                   String className,
-                                   String shape,
-                                   boolean serializerEligible,
-                                   boolean deserializerEligible) {
+    private static void assertRegistrySelection(def context,
+                                                String className,
+                                                boolean serializerGenerated,
+                                                boolean deserializerGenerated) {
         Class<?> beanType = context.classLoader.loadClass(className)
-        def serdeIntrospections = context.getBean(SerdeIntrospections)
-        def serializableMetadata = serdeIntrospections
-            .getSerializableIntrospection(Argument.of(beanType))
-            .annotationMetadata
-        def deserializableMetadata = serdeIntrospections
-            .getDeserializableIntrospection(Argument.of(beanType))
-            .annotationMetadata
+        Argument argument = Argument.of(beanType)
+        SerdeRegistry registry = context.getBean(SerdeRegistry)
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
 
-        assert serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SHAPE).orElse(null) == shape
-        assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
-        assert serializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
-        assert deserializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SHAPE).orElse(null) == shape
-        assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_ELIGIBLE).orElse(false) == serializerEligible
-        assert deserializableMetadata.booleanValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_ELIGIBLE).orElse(false) == deserializerEligible
+        assert (serializer.class.name == generatedClassName(beanType, 'Serializer')) == serializerGenerated
+        assert (deserializer.class.name == generatedClassName(beanType, 'Deserializer')) == deserializerGenerated
+    }
 
-        if (serializerEligible) {
-            String serializerClassName = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).orElse(null)
-            assert serializerClassName != null
-            assert context.classLoader.loadClass(serializerClassName) != null
-        } else {
-            assert !serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS).present
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
         }
-
-        if (deserializerEligible) {
-            String deserializerClassName = serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).orElse(null)
-            assert deserializerClassName != null
-            assert context.classLoader.loadClass(deserializerClassName) != null
-        } else {
-            assert !serializableMetadata.stringValue(SerdeConfig, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS).present
-        }
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
     }
 }

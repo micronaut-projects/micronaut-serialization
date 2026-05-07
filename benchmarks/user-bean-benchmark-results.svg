@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="660" viewBox="0 0 980 660" role="img" aria-labelledby="title desc">
+  <title id="title">UserBeanSerdeBenchmark local results</title>
+  <desc id="desc">Local JMH benchmark results comparing Jackson Databind, Jackson Databind Blackbird, Micronaut Serialization generated serdes, and Micronaut Serialization runtime serdes.</desc>
+  <style>
+    .background { fill: #ffffff; }
+    .title { fill: #111827; font: 700 24px Arial, Helvetica, sans-serif; }
+    .subtitle { fill: #4b5563; font: 400 13px Arial, Helvetica, sans-serif; }
+    .panel-title { fill: #111827; font: 700 16px Arial, Helvetica, sans-serif; }
+    .row-label { fill: #374151; font: 400 13px Arial, Helvetica, sans-serif; }
+    .value { fill: #111827; font: 700 13px Arial, Helvetica, sans-serif; }
+    .axis { fill: #6b7280; font: 400 11px Arial, Helvetica, sans-serif; }
+    .grid { stroke: #e5e7eb; stroke-width: 1; }
+    .baseline { stroke: #9ca3af; stroke-width: 1; }
+    .jackson { fill: #4e79a7; }
+    .blackbird { fill: #f28e2b; }
+    .serde-generated { fill: #59a14f; }
+    .serde-runtime { fill: #e15759; }
+  </style>
+
+  <rect class="background" width="980" height="660"/>
+  <text class="title" x="40" y="36">UserBeanSerdeBenchmark local results</text>
+  <text class="subtitle" x="40" y="60">JDK 25, 3 forks, 5 warmup iterations, 10 measurement iterations, 1-second iterations</text>
+
+  <g transform="translate(0 104)">
+    <text class="panel-title" x="40" y="0">Serialization throughput (ops/s, higher is better)</text>
+    <line class="grid" x1="290" y1="20" x2="290" y2="132"/>
+    <line class="grid" x1="570" y1="20" x2="570" y2="132"/>
+    <line class="grid" x1="850" y1="20" x2="850" y2="132"/>
+    <line class="baseline" x1="290" y1="132" x2="850" y2="132"/>
+
+    <text class="row-label" x="40" y="38">Jackson Databind</text>
+    <rect class="jackson" x="290" y="24" width="396.6" height="18" rx="3"/>
+    <text class="value" x="696.6" y="38">389,166</text>
+
+    <text class="row-label" x="40" y="66">Jackson Databind Blackbird</text>
+    <rect class="blackbird" x="290" y="52" width="396.7" height="18" rx="3"/>
+    <text class="value" x="696.7" y="66">389,564</text>
+
+    <text class="row-label" x="40" y="94">Serde Jackson generated</text>
+    <rect class="serde-generated" x="290" y="80" width="519.6" height="18" rx="3"/>
+    <text class="value" x="819.6" y="94">510,335</text>
+
+    <text class="row-label" x="40" y="122">Serde Jackson runtime</text>
+    <rect class="serde-runtime" x="290" y="108" width="422.4" height="18" rx="3"/>
+    <text class="value" x="722.4" y="122">414,885</text>
+
+    <text class="axis" x="290" y="152" text-anchor="middle">0</text>
+    <text class="axis" x="570" y="152" text-anchor="middle">275k</text>
+    <text class="axis" x="850" y="152" text-anchor="middle">550k</text>
+  </g>
+
+  <g transform="translate(0 282)">
+    <text class="panel-title" x="40" y="0">Deserialize average time (ns/op, lower is better)</text>
+    <line class="grid" x1="290" y1="20" x2="290" y2="132"/>
+    <line class="grid" x1="570" y1="20" x2="570" y2="132"/>
+    <line class="grid" x1="850" y1="20" x2="850" y2="132"/>
+    <line class="baseline" x1="290" y1="132" x2="850" y2="132"/>
+
+    <text class="row-label" x="40" y="38">Jackson Databind</text>
+    <rect class="jackson" x="290" y="24" width="512.4" height="18" rx="3"/>
+    <text class="value" x="812.4" y="38">3,294</text>
+
+    <text class="row-label" x="40" y="66">Jackson Databind Blackbird</text>
+    <rect class="blackbird" x="290" y="52" width="516.5" height="18" rx="3"/>
+    <text class="value" x="826.5" y="66">3,320</text>
+
+    <text class="row-label" x="40" y="94">Serde Jackson generated</text>
+    <rect class="serde-generated" x="290" y="80" width="476.0" height="18" rx="3"/>
+    <text class="value" x="776.0" y="94">3,060</text>
+
+    <text class="row-label" x="40" y="122">Serde Jackson runtime</text>
+    <rect class="serde-runtime" x="290" y="108" width="553.6" height="18" rx="3"/>
+    <text class="value" x="853.6" y="122">3,559</text>
+
+    <text class="axis" x="290" y="152" text-anchor="middle">0</text>
+    <text class="axis" x="570" y="152" text-anchor="middle">1,800</text>
+    <text class="axis" x="850" y="152" text-anchor="middle">3,600</text>
+  </g>
+
+  <g transform="translate(0 460)">
+    <text class="panel-title" x="40" y="0">Round-trip average time (ns/op, lower is better)</text>
+    <line class="grid" x1="290" y1="20" x2="290" y2="132"/>
+    <line class="grid" x1="570" y1="20" x2="570" y2="132"/>
+    <line class="grid" x1="850" y1="20" x2="850" y2="132"/>
+    <line class="baseline" x1="290" y1="132" x2="850" y2="132"/>
+
+    <text class="row-label" x="40" y="38">Jackson Databind</text>
+    <rect class="jackson" x="290" y="24" width="509.1" height="18" rx="3"/>
+    <text class="value" x="809.1" y="38">6,546</text>
+
+    <text class="row-label" x="40" y="66">Jackson Databind Blackbird</text>
+    <rect class="blackbird" x="290" y="52" width="507.7" height="18" rx="3"/>
+    <text class="value" x="807.7" y="66">6,528</text>
+
+    <text class="row-label" x="40" y="94">Serde Jackson generated</text>
+    <rect class="serde-generated" x="290" y="80" width="397.7" height="18" rx="3"/>
+    <text class="value" x="697.7" y="94">5,113</text>
+
+    <text class="row-label" x="40" y="122">Serde Jackson runtime</text>
+    <rect class="serde-runtime" x="290" y="108" width="474.1" height="18" rx="3"/>
+    <text class="value" x="774.1" y="122">6,096</text>
+
+    <text class="axis" x="290" y="152" text-anchor="middle">0</text>
+    <text class="axis" x="570" y="152" text-anchor="middle">3,600</text>
+    <text class="axis" x="850" y="152" text-anchor="middle">7,200</text>
+  </g>
+
+  <text class="subtitle" x="40" y="632">Throughput uses ops/s; average-time results use ns/op. Longer bars are faster only in the throughput chart.</text>
+</svg>

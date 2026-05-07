@@ -56,6 +56,7 @@ junit-platform-engine = { module = "org.junit.platform:junit-platform-suite-engi
 
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator-annprocess = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
+jackson-module-blackbird = { module = "tools.jackson.module:jackson-module-blackbird" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
 error-prone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "error_prone_core" }
 

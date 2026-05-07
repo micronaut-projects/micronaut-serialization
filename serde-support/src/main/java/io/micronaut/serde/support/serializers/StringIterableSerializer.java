@@ -39,18 +39,18 @@ final class StringIterableSerializer extends AbstractIterableSerializer<String> 
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Iterable<String>> type, Iterable<String> values) throws IOException {
         final Encoder childEncoder = encoder.encodeArray(type);
         int index = 0;
-        for (String value : values) {
-            try {
+        try {
+            for (String value : values) {
                 if (value == null) {
                     childEncoder.encodeNull();
                     continue;
                 }
                 childEncoder.encodeString(value);
                 index++;
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofCollection(values.getClass(), type, index));
-                throw e;
             }
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(values.getClass(), type, index));
+            throw e;
         }
         childEncoder.finishStructure();
     }

@@ -3,7 +3,9 @@ package io.micronaut.serde.jackson.compiletime
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JsonCompileSpec
 
@@ -30,6 +32,18 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test generated record deserializer is selected for constructor defaults'() {
+        given:
+        def context = ApplicationContext.run()
+        def registry = context.getBean(SerdeRegistry)
+
+        expect:
+        assertGeneratedDeserializer(registry, SourceGenGeneratedConstructorDefaults.class)
+
+        cleanup:
+        context.close()
+    }
+
     void 'test generated bean deserializer source handles primitive booleans without nullable decode'() {
         given:
         def context = ApplicationContext.run()
@@ -45,6 +59,18 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         deserializerSource.contains('bean.setActive(objectDecoder.decodeBoolean());')
         !deserializerSource.contains('value1 = objectDecoder.decodeBooleanNullable();')
         !deserializerSource.contains('duplicateProperty')
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated bean deserializer is selected for property defaults'() {
+        given:
+        def context = ApplicationContext.run()
+        def registry = context.getBean(SerdeRegistry)
+
+        expect:
+        assertGeneratedDeserializer(registry, SourceGenGeneratedPropertyDefaults.class)
 
         cleanup:
         context.close()
@@ -165,6 +191,16 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         def generated = jsonMapper.readValue(json, Argument.of(generatedType))
         def runtime = jsonMapper.readValue(json, Argument.of(runtimeType))
         assertPropertiesEqual(generated, runtime)
+    }
+
+    private static void assertGeneratedDeserializer(SerdeRegistry registry, Class<?> type) {
+        Argument argument = Argument.of(type)
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+        assert deserializer.class.name == generatedClassName(type, 'Deserializer')
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        "${type.package.name}.Serde${type.simpleName}${suffix}"
     }
 
     private static Object propertyValue(Object target, String propertyName) {

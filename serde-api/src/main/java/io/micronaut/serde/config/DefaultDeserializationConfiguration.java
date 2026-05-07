@@ -43,9 +43,11 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     private final boolean readUnknownEnumValuesUsingDefaultValue;
     private final boolean readDateTimestampsAsNanoseconds;
     private final boolean adjustDatesToContextTimeZone;
+    private final boolean disableGeneratedDeserializer;
     private final Set<DeserializationConfiguration.Feature> features;
 
     @ConfigurationInject
+    @SuppressWarnings("checkstyle:ParameterNumber")
     DefaultDeserializationConfiguration(@Bindable(defaultValue = StringUtils.TRUE) boolean ignoreUnknown,
                                         @Bindable(defaultValue = "100") int arraySizeThreshold,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean strictNullable,
@@ -57,7 +59,8 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean readUnknownEnumValuesAsNull,
                                         @Bindable(defaultValue = StringUtils.FALSE) boolean readUnknownEnumValuesUsingDefaultValue,
                                         @Bindable(defaultValue = StringUtils.TRUE) boolean readDateTimestampsAsNanoseconds,
-                                        @Bindable(defaultValue = StringUtils.FALSE) boolean adjustDatesToContextTimeZone) {
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean adjustDatesToContextTimeZone,
+                                        @Bindable(defaultValue = StringUtils.FALSE) boolean disableGeneratedDeserializer) {
         this.ignoreUnknown = ignoreUnknown;
         this.arraySizeThreshold = arraySizeThreshold;
         this.strictNullable = strictNullable;
@@ -70,6 +73,7 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
         this.readUnknownEnumValuesUsingDefaultValue = readUnknownEnumValuesUsingDefaultValue;
         this.readDateTimestampsAsNanoseconds = readDateTimestampsAsNanoseconds;
         this.adjustDatesToContextTimeZone = adjustDatesToContextTimeZone;
+        this.disableGeneratedDeserializer = disableGeneratedDeserializer;
         this.features = DeserializationConfiguration.super.features();
     }
 
@@ -131,6 +135,11 @@ final class DefaultDeserializationConfiguration implements DeserializationConfig
     @Override
     public boolean adjustDatesToContextTimeZone() {
         return adjustDatesToContextTimeZone;
+    }
+
+    @Override
+    public boolean disableGeneratedDeserializer() {
+        return disableGeneratedDeserializer;
     }
 
     @Override

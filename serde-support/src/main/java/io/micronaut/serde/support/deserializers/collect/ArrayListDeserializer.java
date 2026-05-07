@@ -32,6 +32,7 @@ import java.util.ArrayList;
  */
 @Internal
 final class ArrayListDeserializer<E> extends CollectionDeserializer<E, ArrayList<E>> {
+    private static final int INITIAL_CAPACITY = 16;
 
     ArrayListDeserializer(Deserializer<? extends E> valueDeser, Argument<E> collectionItemArgument) {
         super(valueDeser, collectionItemArgument);
@@ -39,7 +40,7 @@ final class ArrayListDeserializer<E> extends CollectionDeserializer<E, ArrayList
 
     @Override
     public ArrayList<E> deserialize(Decoder decoder, DecoderContext context, Argument<? super ArrayList<E>> type) throws IOException {
-        ArrayList<E> collection = new ArrayList<>();
+        ArrayList<E> collection = new ArrayList<>(INITIAL_CAPACITY);
         doDeserialize(decoder, context, collection, type);
         return collection;
     }

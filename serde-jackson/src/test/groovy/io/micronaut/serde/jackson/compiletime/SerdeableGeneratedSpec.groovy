@@ -2,7 +2,10 @@ package io.micronaut.serde.jackson.compiletime
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JsonCompileSpec
 
@@ -64,6 +67,172 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test serdeable generated required reports unsupported include annotation'() {
+        when:
+        buildContext('test.GeneratedJsonIncludeBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+@SerdeableGenerated
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class GeneratedJsonIncludeBean {
+    private String name;
+
+    public GeneratedJsonIncludeBean() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        assertRequiredGenerationFailure(e, 'test.GeneratedJsonIncludeBean', 'Include not supported')
+    }
+
+    void 'test serdeable generated required reports unsupported unwrapped annotation'() {
+        when:
+        buildContext('test.GeneratedJsonUnwrappedBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+@SerdeableGenerated
+public class GeneratedJsonUnwrappedBean {
+    private Nested nested;
+
+    public GeneratedJsonUnwrappedBean() {
+    }
+
+    @JsonUnwrapped
+    public Nested getNested() {
+        return nested;
+    }
+
+    public void setNested(Nested nested) {
+        this.nested = nested;
+    }
+
+    @Serdeable
+    static class Nested {
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        assertRequiredGenerationFailure(e, 'test.GeneratedJsonUnwrappedBean', 'Unwrapped properties not supported')
+    }
+
+    void 'test serdeable generated required reports unsupported property order annotation'() {
+        when:
+        buildContext('test.GeneratedJsonPropertyOrderBean', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+@SerdeableGenerated
+@JsonPropertyOrder({"second", "first"})
+public class GeneratedJsonPropertyOrderBean {
+    private String first;
+    private String second;
+
+    public GeneratedJsonPropertyOrderBean() {
+    }
+
+    public String getFirst() {
+        return first;
+    }
+
+    public void setFirst(String first) {
+        this.first = first;
+    }
+
+    public String getSecond() {
+        return second;
+    }
+
+    public void setSecond(String second) {
+        this.second = second;
+    }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        assertRequiredGenerationFailure(e, 'test.GeneratedJsonPropertyOrderBean', 'Property order not supported')
+    }
+
+    void 'test serdeable generated required reports unsupported enum jackson annotations'() {
+        when:
+        buildContext('test.GeneratedJsonValueEnum', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+@SerdeableGenerated
+public enum GeneratedJsonValueEnum {
+    A,
+    B;
+
+    @JsonValue
+    public String value() {
+        return name().toLowerCase();
+    }
+}
+''')
+
+        then:
+        def e = thrown(RuntimeException)
+        assertRequiredGenerationFailure(e, 'test.GeneratedJsonValueEnum', 'Annotations not supported: @JsonValue')
+
+        when:
+        buildContext('test.GeneratedJsonAnnotatedFieldEnum', '''
+package test;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+@SerdeableGenerated
+public enum GeneratedJsonAnnotatedFieldEnum {
+    A("a"),
+    B("b");
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private final String label;
+
+    GeneratedJsonAnnotatedFieldEnum(String label) {
+        this.label = label;
+    }
+}
+''')
+
+        then:
+        def e2 = thrown(RuntimeException)
+        assertRequiredGenerationFailure(e2, 'test.GeneratedJsonAnnotatedFieldEnum', 'Annotations not supported: @JsonFormat')
+    }
+
     private void assertEligibility(ApplicationContext context,
                                    Class<?> beanType,
                                    boolean serializerEligible,
@@ -78,6 +247,11 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
 
         assertGeneratedClassState(context, metadata, beanType, SerdeConfig.SOURCEGEN_SERIALIZER_CLASS, 'Serializer', serializerEligible)
         assertGeneratedClassState(context, metadata, beanType, SerdeConfig.SOURCEGEN_DESERIALIZER_CLASS, 'Deserializer', deserializerEligible)
+
+        def registry = context.getBean(SerdeRegistry)
+        Argument argument = Argument.of(beanType)
+        assertRegistrySelection(registry, argument, 'Serializer', serializerEligible)
+        assertRegistrySelection(registry, argument, 'Deserializer', deserializerEligible)
     }
 
     private void assertGeneratedClassState(ApplicationContext context,
@@ -104,7 +278,43 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
         }
     }
 
+    private void assertRegistrySelection(SerdeRegistry registry,
+                                         Argument argument,
+                                         String suffix,
+                                         boolean expectedGenerated) {
+        String expectedClassName = generatedClassName(argument.type, suffix)
+        String actualClassName
+        if (suffix == 'Serializer') {
+            Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+            actualClassName = serializer.class.name
+        } else {
+            Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+            actualClassName = deserializer.class.name
+        }
+
+        assert (actualClassName == expectedClassName) == expectedGenerated
+    }
+
     private static String generatedClassName(Class<?> type, String suffix) {
         "${type.package.name}.Serde${type.simpleName}${suffix}"
+    }
+
+    private static void assertRequiredGenerationFailure(Throwable failure,
+                                                        String className,
+                                                        String fallbackReason) {
+        String message = fullMessage(failure)
+        assert message.contains("Source-generated serializer required for ${className}")
+        assert message.contains('but generation is not supported')
+        assert message.contains("Fallback reasons: ${fallbackReason}")
+    }
+
+    private static String fullMessage(Throwable failure) {
+        List<String> messages = []
+        Throwable current = failure
+        while (current != null) {
+            messages.add(current.message ?: current.toString())
+            current = current.cause
+        }
+        messages.join('\n')
     }
 }

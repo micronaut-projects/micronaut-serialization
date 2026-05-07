@@ -56,8 +56,8 @@ final class EnumMapDeserializer<E extends Enum<E>, V> implements CustomizableDes
             final RemainingLimits remainingLimits = decoderContext.getSerdeConfiguration().map(LimitingStream::limitsFromConfiguration).orElse(LimitingStream.DEFAULT_LIMITS);
             try (Decoder objectDecoder = decoder.decodeObject(mapType)) {
                 String key = objectDecoder.decodeKey();
-                while (key != null) {
-                    try {
+                try {
+                    while (key != null) {
                         JsonNodeDecoder keyDecoder = JsonNodeDecoder.create(JsonNode.createStringNode(key), remainingLimits);
                         E k = enumDeser.deserialize(keyDecoder, decoderContext, enumType);
                         if (valueDeser == null) {
@@ -66,10 +66,10 @@ final class EnumMapDeserializer<E extends Enum<E>, V> implements CustomizableDes
                             map.put(k, valueDeser.deserializeNullable(objectDecoder, decoderContext, valueType));
                         }
                         key = objectDecoder.decodeKey();
-                    } catch (SerdeException e) {
-                        e.getPath().add(ReferencePath.ofMap(map.getClass(), mapType, key));
-                        throw e;
                     }
+                } catch (SerdeException e) {
+                    e.getPath().add(ReferencePath.ofMap(map.getClass(), mapType, key));
+                    throw e;
                 }
             }
             return map;

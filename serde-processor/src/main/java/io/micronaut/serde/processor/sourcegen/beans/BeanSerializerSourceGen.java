@@ -17,7 +17,10 @@ package io.micronaut.serde.processor.sourcegen.beans;
 
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.context.annotation.Secondary;
 import io.micronaut.inject.ast.ClassElement;
+import io.micronaut.inject.ast.FieldElement;
+import io.micronaut.inject.ast.MethodElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
@@ -118,6 +121,7 @@ public final class BeanSerializerSourceGen {
         Map<String, String> argumentFieldNames = new LinkedHashMap<>();
         Map<String, String> serializerFieldNames = new LinkedHashMap<>();
         List<FieldDef> fields = new ArrayList<>();
+        boolean fieldAccessProperties = false;
 
         int index = 0;
         for (BeanSerdeShape.BeanProperty property : beanSerdeShape.properties()) {
@@ -142,6 +146,9 @@ public final class BeanSerializerSourceGen {
                     .addAnnotation(Nullable.class)
                     .build());
             }
+            if (property.readField() != null) {
+                fieldAccessProperties = true;
+            }
             index++;
         }
 
@@ -159,6 +166,12 @@ public final class BeanSerializerSourceGen {
             .addMethod(generateSerializeMethod(beanTypeDef))
             .addMethod(generateSerializeIntoMethod(beanTypeDef, serializerClassTypeDef, beanSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
 
+        if (fieldAccessProperties) {
+            classDefBuilder.addAnnotation(AnnotationDef.builder(SuppressWarnings.class)
+                .addMember(GENERATED_VALUE_MEMBER, "UnnecessaryParentheses")
+                .build());
+            classDefBuilder.addAnnotation(Secondary.class);
+        }
         if (!serializerFieldNames.isEmpty()) {
             classDefBuilder.addMethod(generateSpecializedConstructor(serializerFieldNames));
         }
@@ -325,7 +338,7 @@ public final class BeanSerializerSourceGen {
         ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
         ExpressionDef propertyNameExpression = serializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
         Method scalarMethod = scalarEncoderMethod(property.serializationType());
-        ExpressionDef propertyValue = value.invoke(property.readMethod());
+        ExpressionDef propertyValue = readPropertyValue(value, property);
         if (scalarMethod != null) {
             StatementDef scalarStatement;
             if (property.serializationType().isPrimitive() && !property.serializationType().isArray()) {
@@ -384,6 +397,19 @@ public final class BeanSerializerSourceGen {
                 )
             )
         ), type, propertyNameExpression, argumentExpression);
+    }
+
+    private ExpressionDef readPropertyValue(VariableDef.MethodParameter value, BeanSerdeShape.BeanProperty property) {
+        FieldElement readField = property.readField();
+        if (readField != null) {
+            return directFieldAccess(VALUE_PARAMETER, readField);
+        }
+        MethodElement readMethod = Objects.requireNonNull(property.readMethod());
+        return value.invoke(readMethod);
+    }
+
+    private ExpressionDef directFieldAccess(String instanceName, FieldElement field) {
+        return new VariableDef.Local(instanceName + "." + field.getName(), TypeDef.of(field.getType()));
     }
 
     private String indexedName(String prefix, int index) {

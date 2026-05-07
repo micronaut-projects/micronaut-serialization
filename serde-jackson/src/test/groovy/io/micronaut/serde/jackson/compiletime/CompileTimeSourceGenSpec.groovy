@@ -1,12 +1,15 @@
 package io.micronaut.serde.jackson.compiletime
 
 import io.micronaut.context.ApplicationContext
+import io.micronaut.core.beans.BeanIntrospector
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.Decoder
 import io.micronaut.serde.Deserializer
 import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.SerdeIntrospections
+import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.config.annotation.SerdeConfig
 import io.micronaut.serde.jackson.JacksonDecoder
 import io.micronaut.serde.jackson.JsonCompileSpec
@@ -58,12 +61,154 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         context.close()
     }
 
+    void 'test generated serializers and deserializers are selected for bean and record shapes'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Class<?> beanType = SourceGenIndexedShapeBean.class
+        Class<?> recordType = SourceGenIndexedShapeRecord.class
+        Argument beanArgument = Argument.of(beanType)
+        Argument recordArgument = Argument.of(recordType)
+
+        when:
+        def bean = new SourceGenIndexedShapeBean()
+        bean.value = 'hello'
+        bean.tags = ['a', 'b']
+        def record = new SourceGenIndexedShapeRecord('hi', ['x', 'y'])
+        String beanJson = serializeToString(jsonMapper, bean)
+        String recordJson = serializeToString(jsonMapper, record)
+        def beanDeserialized = jsonMapper.readValue(beanJson, beanArgument)
+        def recordDeserialized = jsonMapper.readValue(recordJson, recordArgument)
+
+        then:
+        assertGeneratedSerializer(registry, beanArgument)
+        assertGeneratedDeserializer(registry, beanArgument)
+        assertGeneratedSerializer(registry, recordArgument)
+        assertGeneratedDeserializer(registry, recordArgument)
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hello","tags":["a","b"]}', beanJson)
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hi","tags":["x","y"]}', recordJson)
+        beanDeserialized.value == 'hello'
+        beanDeserialized.tags == ['a', 'b']
+        recordDeserialized.value() == 'hi'
+        recordDeserialized.tags() == ['x', 'y']
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated property serdes fall back for customised property metadata'() {
+        given:
+        def context = ApplicationContext.run()
+        def registry = context.getBean(SerdeRegistry)
+        Argument payloadArgument = Argument.of(SourceGenPropertyAnnotationPayload)
+
+        expect:
+        assertGeneratedSerializer(registry, payloadArgument)
+        assertGeneratedDeserializer(registry, payloadArgument)
+        assertPropertyArgumentFallsBackToObjectSerde(registry, 'formatted')
+        assertPropertyArgumentFallsBackToObjectSerde(registry, 'unwrapped')
+        assertPropertyArgumentFallsBackToObjectSerde(registry, 'included')
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated bean shape supports field properties'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Class<?> beanType = SourceGenFieldShapeBean.class
+        Argument beanArgument = Argument.of(beanType)
+
+        when:
+        def bean = new SourceGenFieldShapeBean()
+        bean.value = 'hello'
+        bean.count = 7
+        bean.tags = ['a', 'b']
+        String json = serializeToString(jsonMapper, bean)
+        def deserialized = jsonMapper.readValue(json, beanArgument)
+
+        then:
+        assertGeneratedSerializer(registry, beanArgument)
+        assertGeneratedDeserializer(registry, beanArgument)
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hello","count":7,"tags":["a","b"]}', json)
+        deserialized.value == 'hello'
+        deserialized.count == 7
+        deserialized.tags == ['a', 'b']
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated serializers can be disabled with serialization feature'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.serialization.disable-generated-serializer': true
+        ])
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument recordArgument = Argument.of(SourceGenIndexedShapeRecord)
+        Argument enumArgument = Argument.of(SourceGenFeatureEnum)
+
+        when:
+        def record = new SourceGenIndexedShapeRecord('hi', ['x', 'y'])
+        String recordJson = serializeToString(jsonMapper, record)
+        String enumJson = serializeToString(jsonMapper, SourceGenFeatureEnum.BETA)
+        def decodedRecord = jsonMapper.readValue(recordJson, recordArgument)
+        def decodedEnum = jsonMapper.readValue(enumJson, enumArgument)
+
+        then:
+        assertRuntimeSerializer(registry, recordArgument)
+        assertGeneratedDeserializer(registry, recordArgument)
+        assertRuntimeSerializer(registry, enumArgument)
+        assertGeneratedDeserializer(registry, enumArgument)
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hi","tags":["x","y"]}', recordJson)
+        enumJson == '"BETA"'
+        decodedRecord == record
+        decodedEnum == SourceGenFeatureEnum.BETA
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test generated deserializers can be disabled with deserialization feature'() {
+        given:
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.disable-generated-deserializer': true
+        ])
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument recordArgument = Argument.of(SourceGenIndexedShapeRecord)
+        Argument enumArgument = Argument.of(SourceGenFeatureEnum)
+
+        when:
+        def record = new SourceGenIndexedShapeRecord('hi', ['x', 'y'])
+        String recordJson = serializeToString(jsonMapper, record)
+        String enumJson = serializeToString(jsonMapper, SourceGenFeatureEnum.BETA)
+        def decodedRecord = jsonMapper.readValue(recordJson, recordArgument)
+        def decodedEnum = jsonMapper.readValue(enumJson, enumArgument)
+
+        then:
+        assertGeneratedSerializer(registry, recordArgument)
+        assertRuntimeDeserializer(registry, recordArgument)
+        assertGeneratedSerializer(registry, enumArgument)
+        assertRuntimeDeserializer(registry, enumArgument)
+        validateJsonWithoutOrder(jsonMapper, '{"value":"hi","tags":["x","y"]}', recordJson)
+        enumJson == '"BETA"'
+        decodedRecord == record
+        decodedEnum == SourceGenFeatureEnum.BETA
+
+        cleanup:
+        context.close()
+    }
+
     @SuppressWarnings('JsonDuplicatePropertyKeys')
     void 'test generated bean deserializer dispatch source for small boundary and large property sets'() {
         given:
         def context = ApplicationContext.run()
-        jsonMapper = context.getBean(JsonMapper)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         def decoderContext = registry.newDecoderContext(Object)
 
         Class<?> smallType = SourceGenSmallDispatchBean.class
@@ -86,6 +231,9 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         def large = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":"z"}')
 
         then:
+        assertGeneratedDeserializer(registry, smallArgument)
+        assertGeneratedDeserializer(registry, boundaryArgument)
+        assertGeneratedDeserializer(registry, largeArgument)
         assertSmallDispatchSource(smallDeserializerSource)
         assertSmallDispatchSource(boundaryDeserializerSource)
         assertLargeBeanDispatchSource(largeDeserializerSource)
@@ -133,8 +281,7 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
     void 'test generated record deserializer dispatch source for small boundary and large property sets'() {
         given:
         def context = ApplicationContext.run()
-        jsonMapper = context.getBean(JsonMapper)
-        def registry = jsonMapper.serdeRegistry
+        def registry = context.getBean(SerdeRegistry)
         def decoderContext = registry.newDecoderContext(Object)
 
         Class<?> smallType = SourceGenSmallDispatchRecord.class
@@ -157,6 +304,9 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         def large = deserializeValue(largeDeserializer, decoderContext, largeArgument, '{"a":"x","b":7,"c":true,"d":9,"e":3.5,"f":"z"}')
 
         then:
+        assertGeneratedDeserializer(registry, smallArgument)
+        assertGeneratedDeserializer(registry, boundaryArgument)
+        assertGeneratedDeserializer(registry, largeArgument)
         assertSmallDispatchSource(smallDeserializerSource)
         assertSmallDispatchSource(boundaryDeserializerSource)
         assertLargeRecordDispatchSource(largeDeserializerSource)
@@ -290,6 +440,45 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         result
     }
 
+    private static void assertGeneratedSerializer(SerdeRegistry registry, Argument argument) {
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        assert serializer.class.name == generatedClassName(argument.type, 'Serializer')
+    }
+
+    private static void assertGeneratedDeserializer(SerdeRegistry registry, Argument argument) {
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+        assert deserializer.class.name == generatedClassName(argument.type, 'Deserializer')
+    }
+
+    private static void assertRuntimeSerializer(SerdeRegistry registry, Argument argument) {
+        Serializer serializer = registry.findSerializer(argument).createSpecific(registry.newEncoderContext(Object), argument)
+        assert serializer.class.name != generatedClassName(argument.type, 'Serializer')
+    }
+
+    private static void assertRuntimeDeserializer(SerdeRegistry registry, Argument argument) {
+        Deserializer deserializer = registry.findDeserializer(argument).createSpecific(registry.newDecoderContext(Object), argument)
+        assert deserializer.class.name != generatedClassName(argument.type, 'Deserializer')
+    }
+
+    private static void assertPropertyArgumentFallsBackToObjectSerde(SerdeRegistry registry, String propertyName) {
+        def property = BeanIntrospector.SHARED
+            .getIntrospection(SourceGenPropertyAnnotationHolder)
+            .getRequiredProperty(propertyName, SourceGenPropertyAnnotationPayload)
+        Argument propertyArgument = property.asArgument()
+        def encoderContext = registry.newEncoderContext(Object)
+        def decoderContext = registry.newDecoderContext(Object)
+
+        Serializer serializer = registry.findSerializer(propertyArgument).createSpecific(encoderContext, propertyArgument)
+        Serializer objectSerializer = encoderContext.findSerializer(Argument.OBJECT_ARGUMENT).createSpecific(encoderContext, propertyArgument)
+        Deserializer deserializer = registry.findDeserializer(propertyArgument).createSpecific(decoderContext, propertyArgument)
+        Deserializer objectDeserializer = decoderContext.findDeserializer(Argument.OBJECT_ARGUMENT).createSpecific(decoderContext, propertyArgument)
+
+        assert serializer.class == objectSerializer.class
+        assert deserializer.class == objectDeserializer.class
+        assert serializer.class.name != generatedClassName(propertyArgument.type, 'Serializer')
+        assert deserializer.class.name != generatedClassName(propertyArgument.type, 'Deserializer')
+    }
+
     private static void assertReadFailureMatches(JsonMapper jsonMapper,
                                                  Class<?> generatedType,
                                                  Class<?> runtimeType,
@@ -311,5 +500,9 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     private static String simpleName(String className) {
         className.substring(className.lastIndexOf('.') + 1)
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        "${type.package.name}.Serde${type.simpleName}${suffix}"
     }
 }

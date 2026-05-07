@@ -25,7 +25,7 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
-import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import org.jspecify.annotations.Nullable;
 
@@ -56,8 +56,8 @@ public final class SerdeArgumentConf {
     private final SubtypeInfo subtypeInfo;
     @Nullable
     private final FormatConfiguration format;
-    private final Set<SerdeConfiguration.Feature> serializationFeaturesWith;
-    private final Set<SerdeConfiguration.Feature> serializationFeaturesWithout;
+    private final Set<SerializationConfiguration.Feature> serializationFeaturesWith;
+    private final Set<SerializationConfiguration.Feature> serializationFeaturesWithout;
     private final Set<DeserializationConfiguration.Feature> deserializationFeaturesWith;
     private final Set<DeserializationConfiguration.Feature> deserializationFeaturesWithout;
 

@@ -49,18 +49,18 @@ final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>>, Se
                 Encoder arrayEncoder = encoder.encodeArray(type);
                 Iterator<T> itr = value.iterator();
                 int index = 0;
-                while (itr.hasNext()) {
-                    try {
+                try {
+                    while (itr.hasNext()) {
                         componentSerializer
                             .serialize(
                                 arrayEncoder,
                                 context, generic, itr.next()
                             );
                         index++;
-                    } catch (SerdeException e) {
-                        e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
-                        throw e;
                     }
+                } catch (SerdeException e) {
+                    e.getPath().add(ReferencePath.ofCollection(value.getClass(), type, index));
+                    throw e;
                 }
                 arrayEncoder.finishStructure();
             }

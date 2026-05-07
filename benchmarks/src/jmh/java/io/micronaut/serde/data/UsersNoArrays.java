@@ -1,7 +1,7 @@
 package io.micronaut.serde.data;
 
 import io.micronaut.core.annotation.Introspected;
-import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
 
 import java.util.List;
 
@@ -9,13 +9,13 @@ import java.util.List;
  * Created by frenaud on 7/3/16.
  * https://github.com/fabienrenaud/java-json-benchmark/blob/master/src/main/java/com/github/fabienrenaud/jjb/model/Users.java
  */
-@Serdeable
+@SerdeableGenerated
 @Introspected(accessKind = Introspected.AccessKind.FIELD)
 public class UsersNoArrays {
 
     public List<User> users;
 
-    @Serdeable
+    @SerdeableGenerated
     @Introspected(accessKind = Introspected.AccessKind.FIELD)
     public static final class User {
 
