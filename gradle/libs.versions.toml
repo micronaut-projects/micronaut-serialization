@@ -20,9 +20,9 @@ micronaut = "5.0.0-RC2"
 micronaut-discovery = "5.0.0-M1"
 micronaut-oracle-cloud = "6.0.0-M2"
 micronaut-reactor = "4.0.0-RC1"
-micronaut-validation = "5.0.0-RC1"
+micronaut-validation = "5.0.0-RC2"
 micronaut-gradle-plugin = "5.0.0-M1"
-micronaut-sourcegen = "2.0.0-RC1"
+micronaut-sourcegen = "2.0.0-RC2"
 jsonassert = "1.5.3"
 
 [libraries]
