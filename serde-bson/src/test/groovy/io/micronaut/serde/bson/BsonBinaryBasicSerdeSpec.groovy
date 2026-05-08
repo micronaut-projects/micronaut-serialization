@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.json.tree.JsonNode
@@ -8,6 +9,7 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 import org.bson.BsonDocument
 
+@Property(name = "micronaut.serde.deserialization.fail-on-null-for-primitives", value = "false")
 @MicronautTest
 class BsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec implements BsonBinarySpec {
 

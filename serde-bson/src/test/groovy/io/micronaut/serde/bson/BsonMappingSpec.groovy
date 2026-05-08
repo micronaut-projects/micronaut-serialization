@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.type.Argument
 import io.micronaut.serde.Deserializer
 import io.micronaut.serde.LimitingStream
@@ -30,6 +31,7 @@ import spock.lang.Specification
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+@Property(name = "micronaut.serde.deserialization.subtypes-require-default-impl", value = "false")
 @MicronautTest
 class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinarySpec {
 
@@ -201,12 +203,13 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         given:
             def sale = new Sale1()
             sale.quantity = Quantity.valueOf(123)
+            sale.nullQuantity = Quantity.valueOf(456)
         when:
             def bytes = bsonBinaryMapper.writeValueAsBytes(sale)
             def newSale = bsonBinaryMapper.readValue(bytes, Argument.of(Sale1))
         then:
             newSale.quantity.amount == 123
-            newSale.nullQuantity.amount == 123456
+            newSale.nullQuantity.amount == 456
         when:
             def jsonBytes = bsonJsonMapper.writeValueAsBytes(sale)
             def str = new String(jsonBytes)
@@ -214,8 +217,18 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
             def newSaleBson = bsonJsonMapper.readValue(str, Argument.of(BsonDocument))
         then:
             readSale.quantity.amount == 123
-            readSale.nullQuantity.amount == 123456
+            readSale.nullQuantity.amount == 456
             newSaleBson.get('quantity').isInt32()
+        when:
+            readSale = bsonJsonMapper.readValue("""{"quantity": 123}""", Argument.of(Sale1))
+        then:
+            readSale.quantity.amount == 123
+            readSale.nullQuantity.amount == 123456
+        when:
+            bsonJsonMapper.readValue("""{"quantity": 123, "nullQuantity": null}""", Argument.of(Sale1))
+        then:
+            def e = thrown(SerdeException)
+            e.message.contains("Non-null property [Quantity nullQuantity] is null in the supplied data")
     }
 
     def "validate convertor for constructor attribute"() {
@@ -535,39 +548,26 @@ class BsonMappingSpec extends Specification implements BsonJsonSpec, BsonBinaryS
         when:
             def valueNullables2 = bsonJsonMapper.readValue(nullValues, DefaultNullableCollectionsObj)
         then:
-            valueNullables.collection == null
-            valueNullables.list == null
-            valueNullables.set == null
-            valueNullables.arrayList == null
-            valueNullables.linkedList == null
-            valueNullables.hashSet == null
-            valueNullables.linkedHashSet == null
-            valueNullables.treeSet == null
-            valueNullables.hashMap == null
-            valueNullables.linkedHashSet == null
-            valueNullables.treeSet == null
-            valueNullables.hashMap == null
-            valueNullables.linkedHashMap == null
-            valueNullables.treeMap == null
-            !valueNullables.optional.isPresent()
+            valueNullables2.collection == null
+            valueNullables2.list == null
+            valueNullables2.set == null
+            valueNullables2.arrayList == null
+            valueNullables2.linkedList == null
+            valueNullables2.hashSet == null
+            valueNullables2.linkedHashSet == null
+            valueNullables2.treeSet == null
+            valueNullables2.hashMap == null
+            valueNullables2.linkedHashSet == null
+            valueNullables2.treeSet == null
+            valueNullables2.hashMap == null
+            valueNullables2.linkedHashMap == null
+            valueNullables2.treeMap == null
+            !valueNullables2.optional.isPresent()
         when:
-            def valueNonNulls2 = bsonJsonMapper.readValue(nullValues, DefaultNonNullCollectionsObj)
+            bsonJsonMapper.readValue(nullValues, DefaultNonNullCollectionsObj)
         then:
-            valueNonNulls.collection.isEmpty()
-            valueNonNulls.list.isEmpty()
-            valueNonNulls.set.isEmpty()
-            valueNonNulls.arrayList.isEmpty()
-            valueNonNulls.linkedList.isEmpty()
-            valueNonNulls.hashSet.isEmpty()
-            valueNonNulls.linkedHashSet.isEmpty()
-            valueNonNulls.treeSet.isEmpty()
-            valueNonNulls.hashMap.isEmpty()
-            valueNonNulls.linkedHashSet.isEmpty()
-            valueNonNulls.treeSet.isEmpty()
-            valueNonNulls.hashMap.isEmpty()
-            valueNonNulls.linkedHashMap.isEmpty()
-            valueNonNulls.treeMap.isEmpty()
-            !valueNonNulls.optional.isPresent()
+            def e = thrown(SerdeException)
+            e.message.contains("Non-null constructor parameter [Collection<String E> collection] at index [0] is null in the supplied data")
     }
 
     @Serdeable

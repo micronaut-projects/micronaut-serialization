@@ -1,8 +1,9 @@
 package io.micronaut.serde.bson;
 
-import org.jspecify.annotations.NonNull;
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 @Serdeable
 public class Sale1 {
@@ -12,14 +13,15 @@ public class Sale1 {
     @Serdeable.Deserializable(using = QuantityAttributeConverter.class, as = Integer.class)
     private Quantity quantity;
 
-    @NonNull
     @MyAnn1
     @MyAnn2
     @Serdeable.Serializable(using = QuantityAttributeConverter.class, as = Integer.class)
     @Serdeable.Deserializable(using = QuantityAttributeConverter.class, as = Integer.class)
+    @NonNull
     private Quantity nullQuantity;
 
     @BsonId
+    @Nullable
     private String id;
 
     public void setQuantity(Quantity quantity) {
@@ -38,11 +40,11 @@ public class Sale1 {
         this.nullQuantity = nullQuantity;
     }
 
-    public String getId() {
+    public @Nullable String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@Nullable String id) {
         this.id = id;
     }
 }

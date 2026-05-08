@@ -9,6 +9,7 @@ import org.bson.BsonType;
 import org.bson.codecs.pojo.annotations.BsonRepresentation;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -17,80 +18,87 @@ import java.util.UUID;
 @Serdeable
 public class CustomTypes {
 
+    @Nullable
     private Decimal128 decimal128;
+    @Nullable
     private ObjectId objectId;
+    @Nullable
     private BsonRegularExpression regularExpression;
+    @Nullable
     private BsonBinary binary;
     @BsonRepresentation(BsonType.BINARY)
-    private byte[] bytes;
+    private byte @Nullable [] bytes;
     @BsonRepresentation(BsonType.BINARY)
+    @Nullable
     private UUID uuid;
+    @Nullable
     private BsonDbPointer dbPointer;
+    @Nullable
     private BsonTimestamp bsonTimestamp;
     @BsonRepresentation(BsonType.DATE_TIME)
     private long dateTime;
 
-    public Decimal128 getDecimal128() {
+    public @Nullable Decimal128 getDecimal128() {
         return decimal128;
     }
 
-    public void setDecimal128(Decimal128 decimal128) {
+    public void setDecimal128(@Nullable Decimal128 decimal128) {
         this.decimal128 = decimal128;
     }
 
-    public ObjectId getObjectId() {
+    public @Nullable ObjectId getObjectId() {
         return objectId;
     }
 
-    public void setObjectId(ObjectId objectId) {
+    public void setObjectId(@Nullable ObjectId objectId) {
         this.objectId = objectId;
     }
 
-    public BsonRegularExpression getRegularExpression() {
+    public @Nullable BsonRegularExpression getRegularExpression() {
         return regularExpression;
     }
 
-    public void setRegularExpression(BsonRegularExpression regularExpression) {
+    public void setRegularExpression(@Nullable BsonRegularExpression regularExpression) {
         this.regularExpression = regularExpression;
     }
 
-    public BsonBinary getBinary() {
+    public @Nullable BsonBinary getBinary() {
         return binary;
     }
 
-    public void setBinary(BsonBinary binary) {
+    public void setBinary(@Nullable BsonBinary binary) {
         this.binary = binary;
     }
 
-    public byte[] getBytes() {
+    public byte @Nullable [] getBytes() {
         return bytes;
     }
 
-    public void setBytes(byte[] bytes) {
+    public void setBytes(byte @Nullable [] bytes) {
         this.bytes = bytes;
     }
 
-    public UUID getUuid() {
+    public @Nullable UUID getUuid() {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
+    public void setUuid(@Nullable UUID uuid) {
         this.uuid = uuid;
     }
 
-    public BsonDbPointer getDbPointer() {
+    public @Nullable BsonDbPointer getDbPointer() {
         return dbPointer;
     }
 
-    public void setDbPointer(BsonDbPointer dbPointer) {
+    public void setDbPointer(@Nullable BsonDbPointer dbPointer) {
         this.dbPointer = dbPointer;
     }
 
-    public BsonTimestamp getBsonTimestamp() {
+    public @Nullable BsonTimestamp getBsonTimestamp() {
         return bsonTimestamp;
     }
 
-    public void setBsonTimestamp(BsonTimestamp bsonTimestamp) {
+    public void setBsonTimestamp(@Nullable BsonTimestamp bsonTimestamp) {
         this.bsonTimestamp = bsonTimestamp;
     }
 

@@ -7,7 +7,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
-@Property(name = "micronaut.serde.deserialization.failOnNullForPrimitives", value = "true")
+@Property(name = "micronaut.serde.deserialization.fail-on-null-for-primitives", value = "true")
 @MicronautTest
 class SerdeNullableFailOnMissingTest {
 
@@ -20,13 +20,8 @@ class SerdeNullableFailOnMissingTest {
 
     @Test
     fun testNonNullValue(objectMapper: JsonMapper) {
-        val e = Assertions.assertThrows(SerdeException::class.java) {
-            objectMapper.readValue("{}", NonNullDto::class.java)
-        }
-        Assertions.assertEquals(
-            "Unable to deserialize type [example.NonNullDto]. Required constructor parameter [long longField] at index [0] is not present or is null in the supplied data",
-            e.message
-        )
+        val bean = objectMapper.readValue("{}", NonNullDto::class.java)
+        Assertions.assertEquals(0, bean!!.longField)
     }
 
     @Test
@@ -34,9 +29,8 @@ class SerdeNullableFailOnMissingTest {
         val e = Assertions.assertThrows(SerdeException::class.java) {
             objectMapper.readValue("{\"longField\": null}", NonNullDto::class.java)
         }
-        e.printStackTrace();
         Assertions.assertEquals(
-            "Unable to deserialize type [example.NonNullDto]. Required constructor parameter [long longField] at index [0] is not present or is null in the supplied data",
+            "Unable to deserialize type [example.NonNullDto]. Non-null constructor parameter [long longField] at index [0] is null in the supplied data",
             e.message
         )
     }

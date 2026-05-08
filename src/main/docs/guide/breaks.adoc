@@ -45,7 +45,7 @@ The remaining constructor `JsonStreamMapper(SerdeRegistry, SerdeConfiguration)` 
 `ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)` is used instead.
 
 - The internal class constructor `io.micronaut.serde.support.serializers.ObjectSerializer(SerdeIntrospections, BeanContext)` deprecated previously has been removed.
-`ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)` is used instead.
+`ObjectSerializer(SerdeIntrospections, SerdeConfiguration, SerializationConfiguration, BeanContext)` is used instead.
 
 - The following constructors of `io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper` deprecated previously have been removed.
 The internal constructor `OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration)` is used instead.
