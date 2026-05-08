@@ -300,7 +300,7 @@ independent of value of the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanDeserializerSourceGen.html#%3Cinit%3E()" class="member-name-link">BeanDeserializerSourceGen()</a> - Constructor for class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanDeserializerSourceGen.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanDeserializerSourceGen</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty(String, ClassElement, ClassElement, boolean, MethodElement, MethodElement, FieldElement, FieldElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, MethodElement, MethodElement, FieldElement, FieldElement)</a> - Constructor for record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Creates an instance of a <code>BeanProperty</code> record class.</div>
 </dd>
@@ -2074,6 +2074,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 </dl>
 <h2 class="title" id="I:F">F</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#failOnNullForPrimitives(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">failOnNullForPrimitives(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Whether primitive values should reject explicit null input.</div>
+</dd>
 <dt><a href="io/micronaut/serde/data/Users1.User.html#favoriteFruit" class="member-name-link">favoriteFruit</a> - Variable in class io.micronaut.serde.data.<a href="io/micronaut/serde/data/Users1.User.html" title="class in io.micronaut.serde.data">Users1.User</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#features()" class="member-name-link">features()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
@@ -3389,7 +3393,7 @@ about the property that was incorrect.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isFailOnNullForPrimitives()" class="member-name-link">isFailOnNullForPrimitives()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
-<div class="block">Whether a null field or a missing value for a primitive should fail the deserialization.</div>
+<div class="block">Whether a null field for a primitive should fail the deserialization.</div>
 </dd>
 <dt><a href="io/micronaut/serde/config/DeserializationConfiguration.html#isIgnoreUnknown()" class="member-name-link">isIgnoreUnknown()</a> - Method in interface io.micronaut.serde.config.<a href="io/micronaut/serde/config/DeserializationConfiguration.html" title="interface in io.micronaut.serde.config">DeserializationConfiguration</a></dt>
 <dd>
@@ -4115,6 +4119,10 @@ or what is considered empty, are not to be included.</div>
 <div class="block">Value that indicates that only properties with non-null
 values are to be included.</div>
 </dd>
+<dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#nonNull()" class="member-name-link">nonNull()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
+<dd>
+<div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-nonNull"><code>nonNull</code></a> record component.</div>
+</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html#NULL" class="member-name-link">NULL</a> - Enum constant in enum class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.TokenType.html" title="enum class in io.micronaut.serde.support">AbstractStreamDecoder.TokenType</a></dt>
 <dd>
 <div class="block">A <code>null</code> value.</div>
@@ -4131,6 +4139,10 @@ values are to be included.</div>
 <dt><a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
 <div class="block">Specialization of <a href="io/micronaut/serde/Serde.html" title="interface in io.micronaut.serde"><code>Serde</code></a> for types that allow a value of <code>null</code>.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#nullValue(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">nullValue(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Creates an exception for a null value assigned to a property that cannot accept null.</div>
 </dd>
 <dt><a href="io/micronaut/serde/FormatConfiguration.Shape.html#NUMBER" class="member-name-link">NUMBER</a> - Enum constant in enum class io.micronaut.serde.<a href="io/micronaut/serde/FormatConfiguration.Shape.html" title="enum class in io.micronaut.serde">FormatConfiguration.Shape</a></dt>
 <dd>

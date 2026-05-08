@@ -3098,6 +3098,28 @@ class Feature {
 <div class="sect2">
 <h3 id="_micronaut_serialization_3_0_0">Micronaut Serialization 3.0.0</h3>
 <div class="sect3">
+<h4 id="_deserialization">Deserialization</h4>
+<div class="paragraph">
+<p>Micronaut Serialization 3.0 aligns these deserialization defaults with the most commonly used Jackson Databind behavior to make migrations between Jackson Databind and Micronaut Serialization more predictable.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The default value of <code>micronaut.serde.deserialization.subtypes-require-default-impl</code> changed from <code>false</code> to <code>true</code>.
+When a polymorphic deserialization target cannot be resolved to a subtype, Micronaut Serialization now requires a configured default implementation instead of falling back to the supertype by default.</p>
+</li>
+<li>
+<p>Explicit <code>null</code> values in input are no longer skipped for bean properties that are not annotated as nullable.
+For reference properties this means an explicit <code>null</code> is applied to the property; missing properties continue to use the existing default-value handling.</p>
+</li>
+<li>
+<p>Explicit <code>null</code> values for primitive properties or explicitly non-null properties now fail deserialization by default.
+For primitive properties, this matches Jackson Databind&#8217;s <code>FAIL_ON_NULL_FOR_PRIMITIVES</code> default. Set <code>micronaut.serde.deserialization.fail-on-null-for-primitives=false</code> to deserialize explicit <code>null</code> primitive values as the Java primitive default value instead.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_deprecations">Deprecations</h4>
 <div class="ulist">
 <ul>
@@ -3126,7 +3148,7 @@ Use the default or override <code>deserializeNullable(Decoder, DecoderContext, A
 <p>The method <code>io.micronaut.serde.util.CustomizableDeserializer.allowNull()</code> was removed. This method was deprecated and removed in the super interface <code>Deserializer</code>. It previously raised an <code>IllegalStateException</code> if invoked.</p>
 </li>
 <li>
-<p>All the static fields of <code>io.micronaut.serde.support.DefaultSerdeRegistry</code> deprecated prviously were removed. These were aliases for constants defined in the internal class <code>io.micronaut.serde.support.serdes.Serdes</code> and shouldn&#8217;t be exposed otherwise.</p>
+<p>All the static fields of <code>io.micronaut.serde.support.DefaultSerdeRegistry</code> deprecated previously were removed. These were aliases for constants defined in the internal class <code>io.micronaut.serde.support.serdes.Serdes</code> and shouldn&#8217;t be exposed otherwise.</p>
 </li>
 <li>
 <p>The following Singleton constructors of <code>DefaultSerdeRegistry</code> deprecated previously were removed.
@@ -3158,15 +3180,15 @@ The remaining constructor <code>JsonStreamMapper(SerdeRegistry, SerdeConfigurati
 </li>
 <li>
 <p>The internal class constructor <code>io.micronaut.serde.support.deserializers.ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeDeserializationPreInstantiateCallback)</code> deprecated previously has been removed.
-<code>ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, `SerdeDeserializationPreInstantiateCallback)</code> is used instead.</p>
-</li>
-<li>
-<p>The internal class constructor <code>io.micronaut.serde.support.serializers.ObjectSerializer(SerdeIntrospections, BeanContext)</code> deprecated previously has been removed.
 <code>ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)</code> is used instead.</p>
 </li>
 <li>
+<p>The internal class constructor <code>io.micronaut.serde.support.serializers.ObjectSerializer(SerdeIntrospections, BeanContext)</code> deprecated previously has been removed.
+<code>ObjectSerializer(SerdeIntrospections, SerdeConfiguration, SerializationConfiguration, BeanContext)</code> is used instead.</p>
+</li>
+<li>
 <p>The following constructors of <code>io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper</code> deprecated previously have been removed.
-The internal constructor <code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration</code> is used instead.</p>
+The internal constructor <code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration)</code> is used instead.</p>
 <div class="ulist">
 <ul>
 <li>
@@ -3180,7 +3202,7 @@ The internal constructor <code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry re
 </li>
 <li>
 <p>The following constructors of <code>io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper</code> deprecated previously have been removed.
-The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration</code> is used instead.</p>
+The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration)</code> is used instead.</p>
 <div class="ulist">
 <ul>
 <li>

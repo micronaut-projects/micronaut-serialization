@@ -184,7 +184,7 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isFailOnNullForPrimitives()" class="member-name-link">isFailOnNullForPrimitives</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Whether a null field or a missing value for a primitive should fail the deserialization.</div>
+<div class="block">Whether a null field for a primitive should fail the deserialization.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isIgnoreUnknown()" class="member-name-link">isIgnoreUnknown</a>()</code></div>
@@ -307,12 +307,12 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="isFailOnNullForPrimitives()">
 <h3>isFailOnNullForPrimitives</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="annotations">@Bindable(defaultValue="false")
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
 </span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isFailOnNullForPrimitives</span>()</div>
-<div class="block">Whether a null field or a missing value for a primitive should fail the deserialization. Defaults to <code>false</code></div>
+<div class="block">Whether a null field for a primitive should fail the deserialization. Defaults to <code>true</code></div>
 <dl class="notes">
 <dt>Returns:</dt>
-<dd>True if a null field or a missing value for a primitive should fail the deserialization</dd>
+<dd>True if a null field for a primitive should fail the deserialization</dd>
 </dl>
 </div>
 </section>
@@ -321,8 +321,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="isSubtypesRequireDefaultImpl()">
 <h3>isSubtypesRequireDefaultImpl</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="annotations">@NextMajorVersion("Inline to true to have the behaviour the same as for Jackson")
-@Bindable(defaultValue="false")
+<div class="member-signature"><span class="annotations">@Bindable(defaultValue="true")
 </span><span class="modifiers">default</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isSubtypesRequireDefaultImpl</span>()</div>
 <div class="block">Whether the supertype is used by default when no supertype is resolved.</div>
 <dl class="notes">

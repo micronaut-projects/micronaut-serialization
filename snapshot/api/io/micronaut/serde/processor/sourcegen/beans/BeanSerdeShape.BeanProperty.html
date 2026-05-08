@@ -58,7 +58,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#constructor-detail" tabindex="0">Constructor Details</a>
 <ol class="toc-list">
-<li><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" tabindex="0">BeanProperty(String, ClassElement, ClassElement, boolean, MethodElement, MethodElement, FieldElement, FieldElement)</a></li>
+<li><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" tabindex="0">BeanProperty(String, ClassElement, ClassElement, boolean, boolean, MethodElement, MethodElement, FieldElement, FieldElement)</a></li>
 </ol>
 </li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
@@ -69,6 +69,7 @@ loadScripts(document, 'script');</script>
 <li><a href="#name()" tabindex="0">name()</a></li>
 <li><a href="#serializationType()" tabindex="0">serializationType()</a></li>
 <li><a href="#deserializationType()" tabindex="0">deserializationType()</a></li>
+<li><a href="#nonNull()" tabindex="0">nonNull()</a></li>
 <li><a href="#nullable()" tabindex="0">nullable()</a></li>
 <li><a href="#readMethod()" tabindex="0">readMethod()</a></li>
 <li><a href="#writeMethod()" tabindex="0">writeMethod()</a></li>
@@ -94,6 +95,7 @@ loadScripts(document, 'script');</script>
 <dd><code><span id="param-name">name</span></code> - Property name.</dd>
 <dd><code><span id="param-serializationType">serializationType</span></code> - Property type used for serialization.</dd>
 <dd><code><span id="param-deserializationType">deserializationType</span></code> - Property type used for deserialization.</dd>
+<dd><code><span id="param-nonNull">nonNull</span></code> - Whether the property is non-null.</dd>
 <dd><code><span id="param-nullable">nullable</span></code> - Whether the property is nullable.</dd>
 <dd><code><span id="param-readMethod">readMethod</span></code> - Bean getter method.</dd>
 <dd><code><span id="param-writeMethod">writeMethod</span></code> - Bean setter method.</dd>
@@ -106,7 +108,7 @@ loadScripts(document, 'script');</script>
 </dl>
 <hr>
 <div class="horizontal-scroll">
-<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">BeanSerdeShape.BeanProperty</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name, io.micronaut.inject.ast.ClassElement&nbsp;serializationType, io.micronaut.inject.ast.ClassElement&nbsp;deserializationType, boolean&nbsp;nullable, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;readField, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;writeField)
+<div class="type-signature"><span class="modifiers">public static record </span><span class="element-name type-name-label">BeanSerdeShape.BeanProperty</span>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name, io.micronaut.inject.ast.ClassElement&nbsp;serializationType, io.micronaut.inject.ast.ClassElement&nbsp;deserializationType, boolean&nbsp;nonNull, boolean&nbsp;nullable, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod, @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;readField, @Nullable io.micronaut.inject.ast.FieldElement&nbsp;writeField)
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html" title="class or interface in java.lang" class="external-link">Record</a></span></div>
 <div class="block">Bean property metadata used by source generation.</div>
 </div>
@@ -121,9 +123,10 @@ loadScripts(document, 'script');</script>
 <div class="summary-table two-column-summary">
 <div class="table-header col-first">Constructor</div>
 <div class="table-header col-last">Description</div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)" class="member-name-link">BeanProperty</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
  io.micronaut.inject.ast.ClassElement&nbsp;serializationType,
  io.micronaut.inject.ast.ClassElement&nbsp;deserializationType,
+ boolean&nbsp;nonNull,
  boolean&nbsp;nullable,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod,
@@ -167,38 +170,43 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the value of the <a href="#param-name"><code>name</code></a> record component.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nullable()" class="member-name-link">nullable</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nonNull()" class="member-name-link">nonNull</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Returns the value of the <a href="#param-nonNull"><code>nonNull</code></a> record component.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#nullable()" class="member-name-link">nullable</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-nullable"><code>nullable</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.FieldElement</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readField()" class="member-name-link">readField</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.FieldElement</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readField()" class="member-name-link">readField</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-readField"><code>readField</code></a> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.MethodElement</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readMethod()" class="member-name-link">readMethod</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.MethodElement</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#readMethod()" class="member-name-link">readMethod</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-readMethod"><code>readMethod</code></a> record component.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.inject.ast.ClassElement</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serializationType()" class="member-name-link">serializationType</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>io.micronaut.inject.ast.ClassElement</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serializationType()" class="member-name-link">serializationType</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-serializationType"><code>serializationType</code></a> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>final <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#toString()" class="member-name-link">toString</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns a string representation of this record class.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.FieldElement</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeField()" class="member-name-link">writeField</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.FieldElement</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeField()" class="member-name-link">writeField</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-writeField"><code>writeField</code></a> record component.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.MethodElement</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeMethod()" class="member-name-link">writeMethod</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>@Nullable io.micronaut.inject.ast.MethodElement</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#writeMethod()" class="member-name-link">writeMethod</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the value of the <a href="#param-writeMethod"><code>writeMethod</code></a> record component.</div>
 </div>
 </div>
@@ -219,12 +227,13 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)">
+<section class="detail" id="&lt;init&gt;(java.lang.String,io.micronaut.inject.ast.ClassElement,io.micronaut.inject.ast.ClassElement,boolean,boolean,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.MethodElement,io.micronaut.inject.ast.FieldElement,io.micronaut.inject.ast.FieldElement)">
 <h3>BeanProperty</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="element-name">BeanProperty</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;name,
  io.micronaut.inject.ast.ClassElement&nbsp;serializationType,
  io.micronaut.inject.ast.ClassElement&nbsp;deserializationType,
+ boolean&nbsp;nonNull,
  boolean&nbsp;nullable,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;readMethod,
  @Nullable io.micronaut.inject.ast.MethodElement&nbsp;writeMethod,
@@ -236,6 +245,7 @@ loadScripts(document, 'script');</script>
 <dd><code>name</code> - the value for the <a href="#param-name"><code>name</code></a> record component</dd>
 <dd><code>serializationType</code> - the value for the <a href="#param-serializationType"><code>serializationType</code></a> record component</dd>
 <dd><code>deserializationType</code> - the value for the <a href="#param-deserializationType"><code>deserializationType</code></a> record component</dd>
+<dd><code>nonNull</code> - the value for the <a href="#param-nonNull"><code>nonNull</code></a> record component</dd>
 <dd><code>nullable</code> - the value for the <a href="#param-nullable"><code>nullable</code></a> record component</dd>
 <dd><code>readMethod</code> - the value for the <a href="#param-readMethod"><code>readMethod</code></a> record component</dd>
 <dd><code>writeMethod</code> - the value for the <a href="#param-writeMethod"><code>writeMethod</code></a> record component</dd>
@@ -335,6 +345,19 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the value of the <a href="#param-deserializationType"><code>deserializationType</code></a> record component</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="nonNull()">
+<h3>nonNull</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">nonNull</span>()</div>
+<div class="block">Returns the value of the <a href="#param-nonNull"><code>nonNull</code></a> record component.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the value of the <a href="#param-nonNull"><code>nonNull</code></a> record component</dd>
 </dl>
 </div>
 </section>
