@@ -3,7 +3,7 @@ package io.micronaut.serde.jackson.compiletime;
 import io.micronaut.core.annotation.Nullable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
 
-@SerdeableGenerated(skipDeserializer = true)
+@SerdeableGenerated
 public record SourceGenRuntimeConstructorDefaults(
     String name,
     boolean active,

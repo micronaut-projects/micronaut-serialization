@@ -31,7 +31,7 @@ import java.io.IOException;
  * @author graemerocher
  * @since 1.0.0
  */
-public final class CustomizedObjectArraySerializer implements Serializer<Object[]> {
+public final class CustomizedObjectArraySerializer implements Serializer<@Nullable Object[]> {
 
     private final Argument<Object> componentType;
     private final Serializer<Object> componentSerializer;
@@ -42,22 +42,26 @@ public final class CustomizedObjectArraySerializer implements Serializer<Object[
     }
 
     @Override
-    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object[]> type, Object[] value)
-            throws IOException {
+    public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Object[]> type, @Nullable Object[] value)
+        throws IOException {
         final Encoder arrayEncoder = encoder.encodeArray(type);
         int index = 0;
-        for (Object v : value) {
-            try {
-                componentSerializer.serialize(
-                    arrayEncoder,
-                    context,
-                    componentType, v
-                );
+        try {
+            for (Object v : value) {
+                if (v == null) {
+                    arrayEncoder.encodeNull();
+                } else {
+                    componentSerializer.serialize(
+                        arrayEncoder,
+                        context,
+                        componentType, v
+                    );
+                }
                 index++;
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofCollection(type.getType().componentType(), type, index));
-                throw e;
             }
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(type.getType().componentType(), type, index));
+            throw e;
         }
         arrayEncoder.finishStructure();
     }

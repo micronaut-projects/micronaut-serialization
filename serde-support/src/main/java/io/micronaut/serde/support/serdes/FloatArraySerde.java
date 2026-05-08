@@ -47,14 +47,6 @@ final class FloatArraySerde extends AbstractArraySerde<float[]> {
     }
 
     @Override
-    public float @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super float[]> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends float[]> type, float[] value) throws IOException {

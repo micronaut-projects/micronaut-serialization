@@ -48,7 +48,6 @@ final class HealthResultDeserializer implements CustomizableDeserializer<HealthR
     private record Impl(
         Deserializer<? extends HealthResultDto> delegate
     ) implements Deserializer<HealthResult> {
-        @Nullable
         @Override
         public HealthResult deserialize(Decoder decoder, DecoderContext context, Argument<? super HealthResult> type) throws IOException {
             HealthResultDto dto = Objects.requireNonNull(delegate.deserialize(decoder, context, DELEGATE_ARGUMENT));

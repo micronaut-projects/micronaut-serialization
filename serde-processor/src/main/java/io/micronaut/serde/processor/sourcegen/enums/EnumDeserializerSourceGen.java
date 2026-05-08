@@ -17,6 +17,8 @@ package io.micronaut.serde.processor.sourcegen.enums;
 
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.context.annotation.Parameter;
+import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -33,6 +35,7 @@ import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.FieldDef;
 import io.micronaut.sourcegen.model.MethodDef;
+import io.micronaut.sourcegen.model.ParameterDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
@@ -43,7 +46,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.inject.Singleton;
 
 /**
  * Generates source deserializers for enum types.
@@ -55,7 +57,7 @@ public final class EnumDeserializerSourceGen {
     private static final String CONTEXT_PARAMETER = "context";
     private static final String GENERATED_VALUE_MEMBER = "value";
     private static final String ARGUMENT_STRING_FIELD = "ARGUMENT_STRING";
-    private static final String STRING_DESERIALIZER_FIELD = "STRING_DESERIALIZER";
+    private static final String STRING_DESERIALIZER_FIELD = "stringDeserializer";
     private static final String STRING_DESERIALIZER_LOCAL = "stringDeserializer";
 
     private static final Method FIND_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(Deserializer.DecoderContext.class, "findDeserializer", Argument.class);
@@ -106,7 +108,7 @@ public final class EnumDeserializerSourceGen {
         ClassTypeDef deserializerClassTypeDef = ClassTypeDef.of(SerdeSourceGenClassNaming.generatedDeserializerClassName(element));
         return ClassDef.builder(SerdeSourceGenClassNaming.generatedDeserializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(Singleton.class)
+            .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
@@ -118,34 +120,31 @@ public final class EnumDeserializerSourceGen {
             .addField(FieldDef.builder(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .build())
-            .addMethod(generateNoArgsConstructor())
-            .addMethod(generateSpecializedConstructor())
-            .addMethod(generateCreateSpecificMethod(enumTypeDef, deserializerClassTypeDef))
+            .addMethod(generateConstructor(enumTypeDef, deserializerClassTypeDef))
+            .addMethod(generateCreateSpecificMethod(enumTypeDef))
             .addMethod(generateCreateSpecificWithFormatMethod(enumTypeDef))
             .addMethod(generateDeserializeMethod(element, enumTypeDef, enumSerdeShape, deserializerClassTypeDef))
             .build();
     }
 
-    private MethodDef generateNoArgsConstructor() {
+    private MethodDef generateConstructor(TypeDef enumTypeDef,
+                                          ClassTypeDef deserializerClassTypeDef) {
         return MethodDef.constructor()
             .addModifiers(Modifier.PUBLIC)
-            .build((aThis, methodParameters) ->
-                aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
-                    .put(ExpressionDef.nullValue().cast(DESERIALIZER_TYPE))
-            );
+            .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Deserializer.DecoderContext.class)))
+            .addParameter(parameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSupertypeOf(enumTypeDef))))
+            .addThrows(TypeDef.of(SerdeException.class))
+            .build((aThis, methodParameters) -> {
+                VariableDef.MethodParameter context = methodParameters.get(0);
+                ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
+                return aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE).put(
+                    context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
+                        .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
+                );
+            });
     }
 
-    private MethodDef generateSpecializedConstructor() {
-        return MethodDef.constructor()
-            .addModifiers(Modifier.PRIVATE)
-            .addParameter(STRING_DESERIALIZER_LOCAL, DESERIALIZER_TYPE)
-            .build((aThis, methodParameters) ->
-                aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE).put(methodParameters.get(0))
-            );
-    }
-
-    private MethodDef generateCreateSpecificMethod(TypeDef enumTypeDef,
-                                                   ClassTypeDef deserializerClassTypeDef) {
+    private MethodDef generateCreateSpecificMethod(TypeDef enumTypeDef) {
         return MethodDef.builder("createSpecific")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
@@ -156,22 +155,15 @@ public final class EnumDeserializerSourceGen {
             .build((aThis, methodParameters) -> {
                 VariableDef.MethodParameter context = methodParameters.get(0);
                 VariableDef.MethodParameter type = methodParameters.get(1);
-                ExpressionDef stringArgument = deserializerClassTypeDef.getStaticField(ARGUMENT_STRING_FIELD, ARGUMENT_TYPE);
-                StatementDef.DefineAndAssign deserializerDef = context.invoke(FIND_DESERIALIZER_METHOD, stringArgument)
-                    .invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument)
-                    .newLocal(STRING_DESERIALIZER_LOCAL);
-                return StatementDef.multi(
-                    deserializerDef,
-                    ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(
-                            RUNTIME_FALLBACK_DESERIALIZER_METHOD,
-                            deserializerClassTypeDef.instantiate(List.of(DESERIALIZER_TYPE), List.of(deserializerDef.variable())),
-                            context,
-                            type
-                        )
-                        .cast(TypeDef.parameterized(Deserializer.class, enumTypeDef))
-                        .returning()
-                );
+                return ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                    .invokeStatic(
+                        RUNTIME_FALLBACK_DESERIALIZER_METHOD,
+                        aThis,
+                        context,
+                        type
+                    )
+                    .cast(TypeDef.parameterized(Deserializer.class, enumTypeDef))
+                    .returning();
             });
     }
 
@@ -216,11 +208,7 @@ public final class EnumDeserializerSourceGen {
 
                 StatementDef.DefineAndAssign deserializerDef = aThis.field(STRING_DESERIALIZER_FIELD, DESERIALIZER_TYPE)
                     .newLocal(STRING_DESERIALIZER_LOCAL);
-                StatementDef initializeDeserializerStatement = deserializerDef.variable().isNull().ifTrue(
-                    deserializerDef.variable().assign(context.invoke(FIND_DESERIALIZER_METHOD, stringArgument).invoke(CREATE_SPECIFIC_DESERIALIZER_METHOD, context, stringArgument))
-                );
                 statements.add(deserializerDef);
-                statements.add(initializeDeserializerStatement);
                 VariableDef deserializerVariable = deserializerDef.variable();
 
                 StatementDef.DefineAndAssign decodedValueDef = deserializerVariable.invoke(
@@ -268,5 +256,11 @@ public final class EnumDeserializerSourceGen {
                     ));
                 return StatementDef.multi(statements);
             });
+    }
+
+    private ParameterDef parameter(String name, TypeDef type) {
+        return ParameterDef.builder(name, type)
+            .addAnnotation(Parameter.class)
+            .build();
     }
 }

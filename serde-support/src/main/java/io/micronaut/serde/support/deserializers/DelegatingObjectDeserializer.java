@@ -47,7 +47,7 @@ final class DelegatingObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
 
         if (deserBean.creatorParams != null) {
@@ -72,14 +72,6 @@ final class DelegatingObjectDeserializer implements Deserializer<Object> {
         } else {
             throw new IllegalStateException("At least one creator parameter expected");
         }
-    }
-
-    @Override
-    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
 }

@@ -16,13 +16,13 @@
 package io.micronaut.serde.support.serializers;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.beans.exceptions.IntrospectionException;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Map;
@@ -64,19 +64,15 @@ final class RuntimeTypeSerializer implements ObjectSerializer<Object> {
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<?> type, Object value)
         throws IOException {
-        if (value == null) {
-            encoder.encodeNull();
+        Class<?> t = value.getClass();
+        Serializer<Object> serializer;
+        if (outer != null && t == type.getType()) {
+            serializer = outer;
         } else {
-            Class<?> t = value.getClass();
-            Serializer<Object> serializer;
-            if (outer != null && t == type.getType()) {
-                serializer = outer;
-            } else {
-                type = Argument.of(t);
-                serializer = getSerializer(context, value);
-            }
-            serializer.serialize(encoder, context, type, value);
+            type = Argument.of(t);
+            serializer = getSerializer(context, value);
         }
+        serializer.serialize(encoder, context, type, value);
     }
 
     @Override

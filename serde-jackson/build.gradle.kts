@@ -1,6 +1,18 @@
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
     id("io.micronaut.build.internal.serde-module")
 }
+
+val jacocoClassExcludes = listOf(
+    "**/*\$Definition*",
+    "**/*\$Reference*",
+    "**/*\$Introspection*",
+    "**/*Spec.class",
+    "**/*Spec\$*.class"
+)
 
 dependencies {
     annotationProcessor(mn.micronaut.inject.java)
@@ -36,4 +48,39 @@ dependencies {
     testImplementation(mn.micronaut.http.client)
     testImplementation(mn.micronaut.http.server.netty)
     testImplementation(mn.jackson.dataformat.xml)
+}
+
+tasks.withType<Test>().configureEach {
+    extensions.configure<JacocoTaskExtension> {
+        isEnabled = true
+    }
+}
+
+tasks.named<JacocoReport>("jacocoTestReport") {
+    dependsOn(tasks.named("test"))
+
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory.dir("classes")) {
+            include("**/*.class")
+            exclude(jacocoClassExcludes)
+        }
+    )
+    sourceDirectories.setFrom(
+        files(
+            "src/main/java",
+            "src/main/groovy",
+            "src/test/java",
+            "src/test/groovy",
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"),
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/java/test"),
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/groovy/main"),
+            layout.buildDirectory.dir("generated/sources/annotationProcessor/groovy/test")
+        )
+    )
+
+    reports {
+        xml.required = true
+        csv.required = true
+        html.required = true
+    }
 }

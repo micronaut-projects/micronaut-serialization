@@ -126,7 +126,7 @@ final class OptionalSerde<T> implements CustomizableSerializer<Optional<T>>, Cus
             }
 
             @Override
-            public @Nullable Optional<T> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Optional<T>> type) throws IOException {
+            public Optional<T> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Optional<T>> type) throws IOException {
                 return deserialize(decoder, context, type);
             }
 

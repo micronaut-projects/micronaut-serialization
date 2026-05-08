@@ -78,9 +78,9 @@ final class RecordSerdeSourceGenUtils {
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
     }
 
-    static ExpressionDef argumentExpression(ClassElement classElement, String name) {
+    static ExpressionDef argumentExpression(ClassElement classElement, ExpressionDef name) {
         return argumentExpression(classElement)
-            .invoke(ARGUMENT_WITH_NAME_METHOD, ExpressionDef.constant(name));
+            .invoke(ARGUMENT_WITH_NAME_METHOD, name);
     }
 
     private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {

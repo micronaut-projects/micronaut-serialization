@@ -21,7 +21,6 @@ import java.time.ZoneId;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 
@@ -40,14 +39,6 @@ final class ZoneIdSerde implements SerdeRegistrar<ZoneId> {
     @Override
     public ZoneId deserialize(Decoder decoder, DecoderContext context, Argument<? super ZoneId> type) throws IOException {
         return ZoneId.of(decoder.decodeString());
-    }
-
-    @Override
-    public @Nullable ZoneId deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super ZoneId> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override

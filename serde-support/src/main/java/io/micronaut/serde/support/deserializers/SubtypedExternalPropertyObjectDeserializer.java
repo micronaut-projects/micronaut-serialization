@@ -57,7 +57,7 @@ final class SubtypedExternalPropertyObjectDeserializer implements Deserializer<O
     }
 
     @Override
-    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
+    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
         String discriminator = subtypeInfo.parent().info().discriminatorName();
         PropertyReference<Object, String> externalPropertyReference = createExternalPropertyReference(decoderContext, discriminator, null);
         PropertyReference<Object, String> ref = decoderContext.resolveReference(externalPropertyReference);

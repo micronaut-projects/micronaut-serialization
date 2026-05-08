@@ -45,14 +45,6 @@ final class LongArraySerde extends AbstractArraySerde<long[]> {
     }
 
     @Override
-    public long @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super long[]> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends long[]> type, long[] value) throws IOException {

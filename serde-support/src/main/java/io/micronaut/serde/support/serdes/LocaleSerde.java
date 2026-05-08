@@ -19,9 +19,10 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.Decoder;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Locale;
@@ -41,9 +42,13 @@ final class LocaleSerde implements SerdeRegistrar<Locale> {
     }
 
     @Override
-    public @Nullable Locale deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Locale> type)
+    public Locale deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Locale> type)
         throws IOException {
-        return StringUtils.parseLocale(decoder.decodeString());
+        Locale locale = StringUtils.parseLocale(decoder.decodeString());
+        if (locale == null) {
+            throw new SerdeException("Error decoding locale of type " + type);
+        }
+        return locale;
     }
 
     @Override
@@ -51,6 +56,6 @@ final class LocaleSerde implements SerdeRegistrar<Locale> {
         if (decoder.decodeNull()) {
             return null;
         }
-        return deserialize(decoder, context, type);
+        return StringUtils.parseLocale(decoder.decodeString());
     }
 }

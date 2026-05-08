@@ -17,6 +17,8 @@ package io.micronaut.serde.processor.sourcegen.records;
 
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.context.annotation.Parameter;
+import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.ObjectSerializer;
@@ -31,10 +33,10 @@ import io.micronaut.sourcegen.model.ClassTypeDef;
 import io.micronaut.sourcegen.model.ExpressionDef;
 import io.micronaut.sourcegen.model.FieldDef;
 import io.micronaut.sourcegen.model.MethodDef;
+import io.micronaut.sourcegen.model.ParameterDef;
 import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
-import jakarta.inject.Singleton;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.processing.Generated;
@@ -102,7 +104,6 @@ public final class RecordSerializerSourceGen {
         "withPropertyPath",
         Throwable.class,
         Argument.class,
-        String.class,
         Argument.class
     );
 
@@ -127,14 +128,16 @@ public final class RecordSerializerSourceGen {
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(RecordSerdeSourceGenUtils.argumentExpression(component.type(), component.name()))
+                .initializer(RecordSerdeSourceGenUtils.argumentExpression(
+                    component.type(),
+                    serializerClassTypeDef.getStaticField(keyFieldName, STRING_TYPE)
+                ))
                 .build());
             if (scalarEncoderMethod(component.type()) == null) {
-                String serializerFieldName = indexedName("SERIALIZER", index);
+                String serializerFieldName = RecordSerdeSourceGenUtils.localName("serializer", index);
                 serializerFieldNames.put(component.name(), serializerFieldName);
                 fields.add(FieldDef.builder(serializerFieldName, SERIALIZER_TYPE)
                     .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                    .addAnnotation(Nullable.class)
                     .build());
             }
             index++;
@@ -142,57 +145,52 @@ public final class RecordSerializerSourceGen {
 
         ClassDef.ClassDefBuilder classDefBuilder = ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(Singleton.class)
+            .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
                 .build())
             .addSuperinterface(TypeDef.parameterized(Serializer.class, recordTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, recordTypeDef))
             .addFields(fields)
-            .addMethod(generateNoArgsConstructor(serializerFieldNames))
-            .addMethod(generateCreateSpecificMethod(recordTypeDef, serializerClassTypeDef, argumentFieldNames, serializerFieldNames))
+            .addMethod(generateCreateSpecificMethod(recordTypeDef))
             .addMethod(generateSerializeMethod(recordTypeDef))
             .addMethod(generateSerializeIntoMethod(recordTypeDef, serializerClassTypeDef, recordSerdeShape, keyFieldNames, argumentFieldNames, serializerFieldNames));
-
         if (!serializerFieldNames.isEmpty()) {
-            classDefBuilder.addMethod(generateSpecializedConstructor(serializerFieldNames));
+            classDefBuilder.addMethod(generateConstructor(recordTypeDef, serializerClassTypeDef, argumentFieldNames, serializerFieldNames));
         }
 
         return classDefBuilder.build();
     }
 
-    private MethodDef generateNoArgsConstructor(Map<String, String> serializerFieldNames) {
-        return MethodDef.constructor()
-            .addModifiers(Modifier.PUBLIC)
-            .build((aThis, methodParameters) -> {
-                List<StatementDef> statements = new ArrayList<>();
-                for (String serializerFieldName : serializerFieldNames.values()) {
-                    statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(ExpressionDef.nullValue().cast(SERIALIZER_TYPE)));
-                }
-                return StatementDef.multi(statements);
-            });
-    }
-
-    private MethodDef generateSpecializedConstructor(Map<String, String> serializerFieldNames) {
+    private MethodDef generateConstructor(TypeDef recordTypeDef,
+                                          ClassTypeDef serializerClassTypeDef,
+                                          Map<String, String> argumentFieldNames,
+                                          Map<String, String> serializerFieldNames) {
         MethodDef.MethodDefBuilder constructorBuilder = MethodDef.constructor()
-            .addModifiers(Modifier.PRIVATE);
-        for (String serializerFieldName : serializerFieldNames.values()) {
-            constructorBuilder.addParameter(serializerFieldName, SERIALIZER_TYPE);
+            .addModifiers(Modifier.PUBLIC)
+            .addParameter(parameter(CONTEXT_PARAMETER, TypeDef.of(Serializer.EncoderContext.class)))
+            .addParameter(parameter("type", TypeDef.parameterized(Argument.class, TypeDef.wildcardSubtypeOf(recordTypeDef))))
+            .addThrows(TypeDef.of(SerdeException.class));
+        if (serializerFieldNames.isEmpty()) {
+            return constructorBuilder.build();
         }
         return constructorBuilder.build((aThis, methodParameters) -> {
             List<StatementDef> statements = new ArrayList<>();
-            int index = 0;
-            for (String serializerFieldName : serializerFieldNames.values()) {
-                statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(methodParameters.get(index++)));
+            VariableDef.MethodParameter context = methodParameters.get(0);
+            for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
+                String componentName = serializerFieldEntry.getKey();
+                String serializerFieldName = serializerFieldEntry.getValue();
+                ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, componentName), ARGUMENT_TYPE);
+                statements.add(aThis.field(serializerFieldName, SERIALIZER_TYPE).put(
+                    context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
+                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
+                ));
             }
             return StatementDef.multi(statements);
         });
     }
 
-    private MethodDef generateCreateSpecificMethod(TypeDef recordTypeDef,
-                                                   ClassTypeDef serializerClassTypeDef,
-                                                   Map<String, String> argumentFieldNames,
-                                                   Map<String, String> serializerFieldNames) {
+    private MethodDef generateCreateSpecificMethod(TypeDef recordTypeDef) {
         return MethodDef.builder("createSpecific")
             .addModifiers(Modifier.PUBLIC)
             .overrides()
@@ -203,38 +201,15 @@ public final class RecordSerializerSourceGen {
             .build((aThis, methodParameters) -> {
                 VariableDef.MethodParameter context = methodParameters.get(0);
                 VariableDef.MethodParameter type = methodParameters.get(1);
-                if (serializerFieldNames.isEmpty()) {
-                    return ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
-                        .invokeStatic(WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD, aThis, context, type)
-                        .cast(TypeDef.parameterized(Serializer.class, recordTypeDef))
-                        .returning();
-                }
-                List<StatementDef> statements = new ArrayList<>();
-                List<ExpressionDef> serializerValues = new ArrayList<>();
-                List<TypeDef> constructorParameterTypes = new ArrayList<>();
-                int index = 0;
-                for (Map.Entry<String, String> serializerFieldEntry : serializerFieldNames.entrySet()) {
-                    String componentName = serializerFieldEntry.getKey();
-                    String argumentFieldName = required(argumentFieldNames, componentName);
-                    ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(argumentFieldName, ARGUMENT_TYPE);
-                    StatementDef.DefineAndAssign serializerDef = context.invoke(FIND_SERIALIZER_METHOD, argumentExpression)
-                        .invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression)
-                        .newLocal(RecordSerdeSourceGenUtils.localName("serializer", index));
-                    statements.add(serializerDef);
-                    serializerValues.add(serializerDef.variable());
-                    constructorParameterTypes.add(SERIALIZER_TYPE);
-                    index++;
-                }
-                statements.add(ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
+                return ClassTypeDef.of(GeneratedSerdeFallbackUtil.class)
                     .invokeStatic(
                         WITH_RUNTIME_FALLBACK_SERIALIZER_METHOD,
-                        serializerClassTypeDef.instantiate(constructorParameterTypes, serializerValues),
+                        aThis,
                         context,
                         type
                     )
                     .cast(TypeDef.parameterized(Serializer.class, recordTypeDef))
-                    .returning());
-                return StatementDef.multi(statements);
+                    .returning();
             });
     }
 
@@ -259,10 +234,7 @@ public final class RecordSerializerSourceGen {
                 objectStatements.add(aThis.invoke("serializeInto", TypeDef.VOID, objectEncoderDef.variable(), context, type, value));
                 objectStatements.add(objectEncoderDef.variable().invoke(FINISH_STRUCTURE_METHOD));
 
-                return value.isNull().ifTrue(
-                    encoder.invoke(ENCODE_NULL_METHOD),
-                    StatementDef.multi(objectStatements)
-                );
+                return StatementDef.multi(objectStatements);
             });
     }
 
@@ -300,7 +272,7 @@ public final class RecordSerializerSourceGen {
         int index = 0;
         for (RecordSerdeShape.RecordComponent component : recordSerdeShape.components()) {
             statements.add(encoder.invoke(ENCODE_KEY_METHOD, serializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE)));
-            statements.add(serializeComponent(aThis, serializerClassTypeDef, encoder, context, type, value, component, index++, keyFieldNames, argumentFieldNames, serializerFieldNames));
+            statements.add(serializeComponent(aThis, serializerClassTypeDef, encoder, context, type, value, component, index++, argumentFieldNames, serializerFieldNames));
         }
         return statements;
     }
@@ -314,11 +286,9 @@ public final class RecordSerializerSourceGen {
                                             VariableDef.MethodParameter value,
                                             RecordSerdeShape.RecordComponent component,
                                             int index,
-                                            Map<String, String> keyFieldNames,
                                             Map<String, String> argumentFieldNames,
                                             Map<String, String> serializerFieldNames) {
         ExpressionDef argumentExpression = serializerClassTypeDef.getStaticField(required(argumentFieldNames, component.name()), ARGUMENT_TYPE);
-        ExpressionDef propertyNameExpression = serializerClassTypeDef.getStaticField(required(keyFieldNames, component.name()), STRING_TYPE);
         Method scalarMethod = scalarEncoderMethod(component.type());
         ExpressionDef propertyValue = value.getPropertyValue(component.propertyElement());
         if (scalarMethod != null) {
@@ -335,29 +305,20 @@ public final class RecordSerializerSourceGen {
                     )
                 );
             }
-            return wrapWithPropertyPath(scalarStatement, type, propertyNameExpression, argumentExpression);
+            return wrapWithPropertyPath(scalarStatement, type, argumentExpression);
         }
         String serializerFieldName = required(serializerFieldNames, component.name());
-        StatementDef.DefineAndAssign serializerDef = aThis.field(serializerFieldName, SERIALIZER_TYPE)
-            .newLocal(RecordSerdeSourceGenUtils.localName("serializer", index));
-        StatementDef initializeSerializerStatement = serializerDef.variable().isNull().ifTrue(
-            serializerDef.variable().assign(context.invoke(FIND_SERIALIZER_METHOD, argumentExpression).invoke(CREATE_SPECIFIC_SERIALIZER_METHOD, context, argumentExpression))
-        );
-        VariableDef serializer = serializerDef.variable();
+        ExpressionDef serializer = aThis.field(serializerFieldName, SERIALIZER_TYPE);
 
-        StatementDef serializeStatement = StatementDef.multi(
-            serializerDef,
-            initializeSerializerStatement,
-            serializer.invoke(
-                SERIALIZE_METHOD,
-                objectEncoder,
-                context,
-                argumentExpression,
-                propertyValue.cast(TypeDef.OBJECT)
-            )
+        StatementDef serializeStatement = serializer.invoke(
+            SERIALIZE_METHOD,
+            objectEncoder,
+            context,
+            argumentExpression,
+            propertyValue.cast(TypeDef.OBJECT)
         );
         if (component.type().isPrimitive() && !component.type().isArray()) {
-            return wrapWithPropertyPath(serializeStatement, type, propertyNameExpression, argumentExpression);
+            return wrapWithPropertyPath(serializeStatement, type, argumentExpression);
         }
         StatementDef.DefineAndAssign propertyValueDef = propertyValue.newLocal(RecordSerdeSourceGenUtils.localName(VALUE_LOCAL_PREFIX, index));
         return wrapWithPropertyPath(StatementDef.multi(
@@ -365,8 +326,6 @@ public final class RecordSerializerSourceGen {
             propertyValueDef.variable().isNull().ifTrue(
                 objectEncoder.invoke(ENCODE_NULL_METHOD),
                 StatementDef.multi(
-                    serializerDef,
-                    initializeSerializerStatement,
                     serializer.invoke(
                         SERIALIZE_METHOD,
                         objectEncoder,
@@ -376,7 +335,7 @@ public final class RecordSerializerSourceGen {
                     )
                 )
             )
-        ), type, propertyNameExpression, argumentExpression);
+        ), type, argumentExpression);
     }
 
     private String indexedName(String prefix, int index) {
@@ -406,7 +365,6 @@ public final class RecordSerializerSourceGen {
 
     private StatementDef wrapWithPropertyPath(StatementDef statement,
                                               VariableDef.MethodParameter type,
-                                              ExpressionDef propertyNameExpression,
                                               ExpressionDef argumentExpression) {
         return StatementDef.doTry(statement)
             .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
@@ -415,10 +373,15 @@ public final class RecordSerializerSourceGen {
                         WITH_PROPERTY_PATH_THROWABLE_METHOD,
                         exceptionVariable,
                         type,
-                        propertyNameExpression,
                         argumentExpression
                     )
                     .doThrow()
             );
+    }
+
+    private ParameterDef parameter(String name, TypeDef type) {
+        return ParameterDef.builder(name, type)
+            .addAnnotation(Parameter.class)
+            .build();
     }
 }

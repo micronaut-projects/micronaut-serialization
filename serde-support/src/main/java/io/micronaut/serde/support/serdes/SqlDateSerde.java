@@ -17,7 +17,6 @@ package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
@@ -26,6 +25,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -78,16 +78,26 @@ final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
             format
         );
         if (specific != localDateSerde) {
-            return (decoder, subContext, type) -> {
-                final LocalDate ld = specific.deserialize(
-                    decoder,
-                    subContext,
-                    argument
-                );
-                if (ld != null) {
-                    return Date.valueOf(ld);
+            return new Deserializer<>() {
+                @Override
+                public Date deserialize(Decoder decoder, DecoderContext subContext, Argument<? super Date> type) throws IOException {
+                    final LocalDate localDate = specific.deserialize(
+                        decoder,
+                        subContext,
+                        argument
+                    );
+                    return Date.valueOf(localDate);
                 }
-                return null;
+
+                @Override
+                public @Nullable Date deserializeNullable(Decoder decoder, DecoderContext subContext, Argument<? super Date> type) throws IOException {
+                    final LocalDate localDate = specific.deserializeNullable(
+                        decoder,
+                        subContext,
+                        argument
+                    );
+                    return localDate == null ? null : Date.valueOf(localDate);
+                }
             };
         }
         return this;
@@ -158,16 +168,26 @@ final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
 
     private static Deserializer<Date> createInstantDeserializer(Argument<Instant> argument,
                                                                 Deserializer<Instant> specific) {
-        return (decoder, subContext, type) -> {
-            final Instant instant = specific.deserialize(
-                decoder,
-                subContext,
-                argument
-            );
-            if (instant != null) {
+        return new Deserializer<>() {
+            @Override
+            public Date deserialize(Decoder decoder, DecoderContext subContext, Argument<? super Date> type) throws IOException {
+                final Instant instant = specific.deserialize(
+                    decoder,
+                    subContext,
+                    argument
+                );
                 return new Date(instant.toEpochMilli());
             }
-            return null;
+
+            @Override
+            public @Nullable Date deserializeNullable(Decoder decoder, DecoderContext subContext, Argument<? super Date> type) throws IOException {
+                final Instant instant = specific.deserializeNullable(
+                    decoder,
+                    subContext,
+                    argument
+                );
+                return instant == null ? null : new Date(instant.toEpochMilli());
+            }
         };
     }
 
@@ -195,22 +215,30 @@ final class SqlDateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         instantSerde.serialize(
             encoder,
             context,
-            Argument.of(Instant.class), Instant.ofEpochMilli(value.getTime())
+            INSTANT_ARGUMENT, Instant.ofEpochMilli(value.getTime())
         );
     }
 
     @Override
-    public @Nullable Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
+    public Date deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
         throws IOException {
         final Instant instant = instantSerde.deserialize(
             decoder,
             decoderContext,
-            Argument.of(Instant.class)
+            INSTANT_ARGUMENT
         );
-        if (instant != null) {
-            return new Date(instant.toEpochMilli());
-        }
-        return null;
+        return new Date(instant.toEpochMilli());
+    }
+
+    @Override
+    public @Nullable Date deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
+        throws IOException {
+        final Instant instant = instantSerde.deserializeNullable(
+            decoder,
+            decoderContext,
+            INSTANT_ARGUMENT
+        );
+        return instant == null ? null : new Date(instant.toEpochMilli());
     }
 
     @Override

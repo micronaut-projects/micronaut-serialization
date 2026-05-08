@@ -1042,6 +1042,9 @@ final class DeserBean<T> {
                                                    Deserializer.DecoderContext decoderContext,
                                                    B beanInstance) throws IOException {
             try {
+                if (primitive && !failOnNullForPrimitives && objectDecoder.decodeNull()) {
+                    return;
+                }
                 P value = deserializeValue(deserializer, objectDecoder, decoderContext);
                 beanProperty().setUnsafe(beanInstance, value);
             } catch (Exception e) {

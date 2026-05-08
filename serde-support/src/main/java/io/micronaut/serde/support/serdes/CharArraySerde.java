@@ -46,14 +46,6 @@ final class CharArraySerde extends AbstractArraySerde<char[]> {
     }
 
     @Override
-    public char @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super char[]> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends char[]> type, char[] value) throws IOException {

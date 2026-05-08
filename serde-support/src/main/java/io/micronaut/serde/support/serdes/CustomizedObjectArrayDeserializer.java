@@ -20,6 +20,7 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -31,7 +32,7 @@ import java.util.Arrays;
  * @author graemerocher
  * @since 1.0.0
  */
-public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]> {
+public class CustomizedObjectArrayDeserializer implements Deserializer<@Nullable Object[]> {
 
     private final Argument<Object> componentType;
     private final Deserializer<?> componentDeserializer;
@@ -48,8 +49,8 @@ public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]>
         // safe to assume only object[] handled
         Object[] buffer = (Object[]) Array.newInstance(componentType.getType(), 50);
         int index = 0;
-        while (arrayDecoder.hasNextArrayValue()) {
-            try {
+        try {
+            while (arrayDecoder.hasNextArrayValue()) {
                 final int l = buffer.length;
                 if (l == index) {
                     buffer = Arrays.copyOf(buffer, l * 2);
@@ -59,11 +60,11 @@ public class CustomizedObjectArrayDeserializer implements Deserializer<Object[]>
                     decoderContext,
                     componentType
                 );
-            } catch (SerdeException e) {
-                e.getPath().add(ReferencePath.ofCollection(buffer.getClass(), type, index));
-                throw e;
+                index++;
             }
-            index++;
+        } catch (SerdeException e) {
+            e.getPath().add(ReferencePath.ofCollection(buffer.getClass(), type, index));
+            throw e;
         }
         arrayDecoder.finishStructure();
         return Arrays.copyOf(buffer, index);

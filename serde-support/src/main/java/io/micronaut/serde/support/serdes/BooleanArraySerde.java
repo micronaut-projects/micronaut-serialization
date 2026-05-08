@@ -46,14 +46,6 @@ final class BooleanArraySerde extends AbstractArraySerde<boolean[]> {
     }
 
     @Override
-    public boolean @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super boolean[]> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends boolean[]> type, boolean[] value) throws IOException {

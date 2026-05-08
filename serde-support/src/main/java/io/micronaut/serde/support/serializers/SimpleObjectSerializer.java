@@ -43,26 +43,22 @@ final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        if (value == null) {
-            encoder.encodeNull();
-        } else {
-            Encoder childEncoder = encoder.encodeObject(type);
-            for (SerBean.SerProperty<T, Object> property : writeProperties) {
-                try {
-                    childEncoder.encodeKey(property.name);
-                    Object v = property.get(value);
-                    if (v == null) {
-                        childEncoder.encodeNull();
-                    } else {
-                        Objects.requireNonNull(property.serializer).serialize(childEncoder, context, property.argument, v);
-                    }
-                } catch (SerdeException e) {
-                    e.getPath().add(property.getReferencePath());
-                    throw e;
+        Encoder childEncoder = encoder.encodeObject(type);
+        for (SerBean.SerProperty<T, Object> property : writeProperties) {
+            try {
+                childEncoder.encodeKey(property.name);
+                Object v = property.get(value);
+                if (v == null) {
+                    childEncoder.encodeNull();
+                } else {
+                    Objects.requireNonNull(property.serializer).serialize(childEncoder, context, property.argument, v);
                 }
+            } catch (SerdeException e) {
+                e.getPath().add(property.getReferencePath());
+                throw e;
             }
-            childEncoder.finishStructure();
         }
+        childEncoder.finishStructure();
     }
 
     @Override

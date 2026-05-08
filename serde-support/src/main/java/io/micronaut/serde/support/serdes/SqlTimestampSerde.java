@@ -25,6 +25,7 @@ import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -127,16 +128,26 @@ final class SqlTimestampSerde implements FormattedSerde<Timestamp>, SerdeRegistr
     private Deserializer<Timestamp> createSpecificDeserializer(Argument<Instant> argument,
                                                                Deserializer<Instant> specific) {
         if (specific != instantSerde) {
-            return (decoder, subContext, type) -> {
-                final Instant i = specific.deserialize(
-                    decoder,
-                    subContext,
-                    argument
-                );
-                if (i != null) {
-                    return Timestamp.from(i);
+            return new Deserializer<>() {
+                @Override
+                public Timestamp deserialize(Decoder decoder, DecoderContext subContext, Argument<? super Timestamp> type) throws IOException {
+                    final Instant instant = specific.deserialize(
+                        decoder,
+                        subContext,
+                        argument
+                    );
+                    return Timestamp.from(instant);
                 }
-                return null;
+
+                @Override
+                public @Nullable Timestamp deserializeNullable(Decoder decoder, DecoderContext subContext, Argument<? super Timestamp> type) throws IOException {
+                    final Instant instant = specific.deserializeNullable(
+                        decoder,
+                        subContext,
+                        argument
+                    );
+                    return instant == null ? null : Timestamp.from(instant);
+                }
             };
         }
         return this;
@@ -154,6 +165,16 @@ final class SqlTimestampSerde implements FormattedSerde<Timestamp>, SerdeRegistr
                 decoderContext,
                 INSTANT_ARGUMENT
         ));
+    }
+
+    @Override
+    public @Nullable Timestamp deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super Timestamp> type) throws IOException {
+        Instant instant = instantSerde.deserializeNullable(
+            decoder,
+            decoderContext,
+            INSTANT_ARGUMENT
+        );
+        return instant == null ? null : Timestamp.from(instant);
     }
 
     @Override

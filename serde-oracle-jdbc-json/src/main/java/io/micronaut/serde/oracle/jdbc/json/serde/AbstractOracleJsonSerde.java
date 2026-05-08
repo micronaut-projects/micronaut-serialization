@@ -35,7 +35,7 @@ import java.io.IOException;
 public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
 
     @Override
-    public final @Nullable T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+    public final T deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
         if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
             return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
         } else {
@@ -44,13 +44,21 @@ public abstract class AbstractOracleJsonSerde<T> implements Serde<T> {
     }
 
     @Override
+    public final @Nullable T deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super T> type) throws IOException {
+        if (decoder instanceof OracleJdbcJsonParserDecoder oracleJdbcJsonParserDecoder) {
+            if (decoder.decodeNull()) {
+                return null;
+            }
+            return doDeserializeNonNull(oracleJdbcJsonParserDecoder, decoderContext, type);
+        } else {
+            return getDefault().deserializeNullable(decoder, decoderContext, type);
+        }
+    }
+
+    @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
         if (encoder instanceof OracleJdbcJsonGeneratorEncoder oracleEncoder) {
-            if (value == null) {
-                encoder.encodeNull();
-            } else {
-                doSerializeNonNull(oracleEncoder, context, type, value);
-            }
+            doSerializeNonNull(oracleEncoder, context, type, value);
         } else {
             getDefault().serialize(encoder, context, type, value);
         }

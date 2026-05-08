@@ -12,12 +12,24 @@ public class SourceGenGeneratedPropertyDefaults {
     private String nullableName = "default-nullable-name";
     @Nullable
     private Boolean nullableActive = Boolean.TRUE;
+    public transient int nameSetCalls;
+    public transient String nameSetValue;
+    public transient int activeSetCalls;
+    public transient boolean activeSetValue;
+    public transient int countSetCalls;
+    public transient int countSetValue;
+    public transient int nullableNameSetCalls;
+    public transient String nullableNameSetValue;
+    public transient int nullableActiveSetCalls;
+    public transient Boolean nullableActiveSetValue;
 
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
+        nameSetCalls++;
+        nameSetValue = name;
         this.name = name;
     }
 
@@ -26,6 +38,8 @@ public class SourceGenGeneratedPropertyDefaults {
     }
 
     public void setActive(boolean active) {
+        activeSetCalls++;
+        activeSetValue = active;
         this.active = active;
     }
 
@@ -34,6 +48,8 @@ public class SourceGenGeneratedPropertyDefaults {
     }
 
     public void setCount(int count) {
+        countSetCalls++;
+        countSetValue = count;
         this.count = count;
     }
 
@@ -43,6 +59,8 @@ public class SourceGenGeneratedPropertyDefaults {
     }
 
     public void setNullableName(@Nullable String nullableName) {
+        nullableNameSetCalls++;
+        nullableNameSetValue = nullableName;
         this.nullableName = nullableName;
     }
 
@@ -52,6 +70,8 @@ public class SourceGenGeneratedPropertyDefaults {
     }
 
     public void setNullableActive(@Nullable Boolean nullableActive) {
+        nullableActiveSetCalls++;
+        nullableActiveSetValue = nullableActive;
         this.nullableActive = nullableActive;
     }
 }

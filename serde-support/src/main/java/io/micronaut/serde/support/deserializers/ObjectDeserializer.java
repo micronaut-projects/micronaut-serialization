@@ -34,6 +34,7 @@ import io.micronaut.serde.support.util.SerdeArgumentConf;
 import io.micronaut.serde.support.util.SubtypeInfo;
 import io.micronaut.serde.util.CustomizableDeserializer;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,7 +72,21 @@ public class ObjectDeserializer implements CustomizableDeserializer<Object>, Des
     public Deserializer<Object> createSpecific(DecoderContext context, Argument<? super Object> type) throws SerdeException {
         if (type.equalsType(Argument.OBJECT_ARGUMENT)) {
             // fallback to dynamic resolution
-            return (Decoder decoder, DecoderContext ignore1, Argument<? super Object> ignore2) -> decoder.decodeArbitrary();
+            return new Deserializer<>() {
+                @Override
+                public Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
+                    Object value = decoder.decodeArbitrary();
+                    if (value == null) {
+                        throw new SerdeException("Null value encountered during deserialization of type: " + type);
+                    }
+                    return value;
+                }
+
+                @Override
+                public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
+                    return decoder.decodeArbitrary();
+                }
+            };
         }
         DeserializationConfiguration deserializationConfiguration = context.getDeserializationConfiguration().orElse(this.deserializationConfiguration);
         DeserBean<? super Object> deserBean = getDeserializableBean(type, null, context);

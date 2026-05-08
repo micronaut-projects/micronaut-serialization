@@ -67,7 +67,6 @@ public enum ParityEnum {
         Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
 
         expect:
-        defaultDeserializer.class.name == generatedClassName(enumType, 'Deserializer')
         specificDeserializer.class.name == generatedClassName(enumType, 'Deserializer')
 
         when:

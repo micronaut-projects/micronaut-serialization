@@ -50,7 +50,7 @@ final class OptionalLongSerde implements SerdeRegistrar<OptionalLong> {
     }
 
     @Override
-    public @Nullable OptionalLong deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalLong> type) throws IOException {
+    public OptionalLong deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalLong> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 

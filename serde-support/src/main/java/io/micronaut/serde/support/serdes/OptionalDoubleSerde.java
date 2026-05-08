@@ -51,7 +51,7 @@ final class OptionalDoubleSerde implements SerdeRegistrar<OptionalDouble> {
     }
 
     @Override
-    public @Nullable OptionalDouble deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalDouble> type) throws IOException {
+    public OptionalDouble deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalDouble> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 

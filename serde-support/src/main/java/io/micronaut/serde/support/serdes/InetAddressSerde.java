@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.support.serdes;
 
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
@@ -52,7 +51,7 @@ public class InetAddressSerde implements SerdeRegistrar<InetAddress> {
     }
 
     @Override
-    public @Nullable InetAddress deserialize(Decoder decoder, DecoderContext context, Argument<? super InetAddress> type) throws IOException {
+    public InetAddress deserialize(Decoder decoder, DecoderContext context, Argument<? super InetAddress> type) throws IOException {
         return InetAddress.getByName(decoder.decodeString());
     }
 

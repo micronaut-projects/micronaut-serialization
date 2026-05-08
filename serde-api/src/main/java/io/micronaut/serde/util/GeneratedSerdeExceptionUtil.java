@@ -18,14 +18,11 @@ package io.micronaut.serde.util;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.UsedByGeneratedCode;
 import io.micronaut.core.type.Argument;
-import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import org.jspecify.annotations.Nullable;
-
-import java.io.IOException;
 
 /**
  * Exception helpers used by generated serdes.
@@ -38,28 +35,56 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
+     * Result of a generated deserializer property dispatch.
+     *
+     * @since 3.0
+     */
+    public enum PropertyDispatchResult {
+        /**
+         * The property was handled successfully.
+         */
+        HANDLED,
+        /**
+         * No property matched the incoming name.
+         */
+        UNKNOWN,
+        /**
+         * The property was already handled.
+         */
+        DUPLICATE,
+        /**
+         * The property rejected a null value.
+         */
+        NULL
+    }
+
+    /**
      * Creates a {@link SerdeException} for an unknown property and enriches it with the property path.
      *
-     * @param propertyName The unknown property name.
-     * @param beanType The declaring bean argument.
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The property argument.
      * @return The configured exception.
      */
-    public static SerdeException unknownProperty(String propertyName, Argument<?> beanType) {
+    public static SerdeException unknownProperty(Argument<?> beanType,
+                                                 Argument<?> propertyArgument) {
+        String propertyName = propertyArgument.getName();
         SerdeException serdeException = new SerdeException("Unknown property [" + propertyName + "] encountered during deserialization of type: " + beanType);
-        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
         return serdeException;
     }
 
     /**
      * Creates a {@link SerdeException} for a duplicate property and enriches it with the property path.
      *
-     * @param propertyName The duplicate property name.
-     * @param beanType The declaring bean argument.
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The property argument.
      * @return The configured exception.
      */
-    public static SerdeException duplicateProperty(String propertyName, Argument<?> beanType) {
+    public static SerdeException duplicateProperty(Argument<?> beanType,
+                                                   Argument<?> propertyArgument) {
+        String propertyName = propertyArgument.getName();
         SerdeException serdeException = new SerdeException("Duplicate property [" + propertyName + "] encountered during deserialization of type: " + beanType);
-        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), Argument.OBJECT_ARGUMENT.withName(propertyName)));
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
         return serdeException;
     }
 
@@ -67,7 +92,7 @@ public final class GeneratedSerdeExceptionUtil {
      * Creates a {@link SerdeException} for an unknown enum value.
      *
      * @param enumType The enum argument being deserialized.
-     * @param value The incoming value that could not be resolved.
+     * @param value    The incoming value that could not be resolved.
      * @return The configured exception.
      */
     public static SerdeException unknownEnumValue(Argument<?> enumType, String value) {
@@ -79,10 +104,10 @@ public final class GeneratedSerdeExceptionUtil {
     /**
      * Handles an unknown enum value according to deserialization configuration.
      *
-     * @param context The decoder context.
+     * @param context  The decoder context.
      * @param enumType The enum argument being deserialized.
-     * @param value The incoming value that could not be resolved.
-     * @param <E> The enum type.
+     * @param value    The incoming value that could not be resolved.
+     * @param <E>      The enum type.
      * @return {@code null} when unknown enum values are configured to deserialize as null.
      * @throws SerdeException If the value should fail deserialization.
      * @since 3.0
@@ -98,32 +123,9 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
-     * Handles an unknown property according to deserialization configuration.
-     *
-     * @param decoder The decoder currently positioned on the unknown value.
-     * @param context The decoder context.
-     * @param propertyName The unknown property name.
-     * @param beanType The declaring bean argument.
-     * @throws IOException If skipping the value fails.
-     */
-    public static void handleUnknownProperty(Decoder decoder,
-                                             Deserializer.DecoderContext context,
-                                             String propertyName,
-                                             Argument<?> beanType) throws IOException {
-        boolean ignoreUnknown = context.getDeserializationConfiguration()
-            .map(DeserializationConfiguration::isIgnoreUnknown)
-            .orElse(true);
-        if (ignoreUnknown) {
-            decoder.skipValue();
-        } else {
-            throw unknownProperty(propertyName, beanType);
-        }
-    }
-
-    /**
      * Creates an exception for a null value assigned to a property that cannot accept null.
      *
-     * @param beanType The declaring bean argument.
+     * @param beanType         The declaring bean argument.
      * @param propertyArgument The property argument.
      * @return The configured exception.
      * @since 3.0
@@ -148,69 +150,62 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
-     * Checks a constructor argument value against strict nullable deserialization.
+     * Whether unknown properties should be skipped.
      *
      * @param context The decoder context.
-     * @param value The constructor argument value.
-     * @param beanType The declaring bean argument.
-     * @param propertyName The property name.
-     * @param propertyArgument The property argument.
-     * @throws SerdeException If strict nullable deserialization rejects the value.
+     * @return {@code true} if unknown properties should be ignored
      * @since 3.0
      */
-    public static void checkStrictNullableConstructorParameter(Deserializer.DecoderContext context,
-                                                              @Nullable Object value,
-                                                              Argument<?> beanType,
-                                                              String propertyName,
-                                                              Argument<?> propertyArgument) throws SerdeException {
-        if (value != null) {
-            return;
-        }
-        boolean strictNullable = context.getDeserializationConfiguration()
-            .map(DeserializationConfiguration::isStrictNullable)
-            .orElse(false);
-        if (strictNullable) {
-            SerdeException serdeException = new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
-                "]. Non-null constructor parameter [" + propertyArgument + "] is not present or is null in the supplied data");
-            serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument.withName(propertyName)));
-            throw serdeException;
-        }
+    public static boolean ignoreUnknown(Deserializer.DecoderContext context) {
+        return context.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::isIgnoreUnknown)
+            .orElse(true);
     }
 
     /**
-     * Appends a property path segment to an existing {@link SerdeException}.
+     * Whether constructor arguments should reject missing or explicit null values.
      *
-     * @param exception The exception to enrich.
-     * @param beanType The declaring bean argument.
-     * @param propertyName The property name.
-     * @param propertyArgument The property argument.
-     * @return The same exception instance.
+     * @param context The decoder context.
+     * @return {@code true} if strict nullable deserialization is enabled
+     * @since 3.0
      */
-    public static SerdeException withPropertyPath(SerdeException exception,
-                                                  Argument<?> beanType,
-                                                  String propertyName,
-                                                  Argument<?> propertyArgument) {
-        exception.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument.withName(propertyName)));
-        return exception;
+    public static boolean strictNullable(Deserializer.DecoderContext context) {
+        return context.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::isStrictNullable)
+            .orElse(false);
+    }
+
+    /**
+     * Creates an exception for a constructor parameter rejected by strict nullable deserialization.
+     *
+     * @param beanType         The declaring bean argument.
+     * @param propertyArgument The property argument.
+     * @return The configured exception.
+     * @since 3.0
+     */
+    public static SerdeException strictNullableConstructorParameter(Argument<?> beanType,
+                                                                    Argument<?> propertyArgument) {
+        SerdeException serdeException = new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+            "]. Non-null constructor parameter [" + propertyArgument + "] is not present or is null in the supplied data");
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
+        return serdeException;
     }
 
     /**
      * Converts any {@link Throwable} into a {@link SerdeException} and appends a property path segment.
      *
-     * @param exception The original exception.
-     * @param beanType The declaring bean argument.
-     * @param propertyName The property name.
+     * @param exception        The original exception.
+     * @param beanType         The declaring bean argument.
      * @param propertyArgument The property argument.
      * @return A serde exception enriched with property path information.
      */
     public static SerdeException withPropertyPath(Throwable exception,
                                                   Argument<?> beanType,
-                                                  String propertyName,
                                                   Argument<?> propertyArgument) {
         SerdeException serdeException = exception instanceof SerdeException existing
             ? existing
-            : new SerdeException("Error processing property [" + propertyName + "] of type [" + beanType + "]: " + exception.getMessage(), exception);
-        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument.withName(propertyName)));
+            : new SerdeException("Error processing property [" + propertyArgument.getName() + "] of type [" + beanType + "]: " + exception.getMessage(), exception);
+        serdeException.getPath().add(ReferencePath.ofProperty(beanType.getType(), propertyArgument));
         return serdeException;
     }
 }

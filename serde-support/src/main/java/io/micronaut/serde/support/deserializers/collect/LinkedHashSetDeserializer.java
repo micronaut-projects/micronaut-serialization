@@ -19,7 +19,6 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -42,14 +41,6 @@ final class LinkedHashSetDeserializer<E> extends CollectionDeserializer<E, Linke
         LinkedHashSet<E> collection = new LinkedHashSet<>();
         doDeserialize(decoder, context, collection, type);
         return collection;
-    }
-
-    @Override
-    public @Nullable LinkedHashSet<E> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super LinkedHashSet<E>> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override

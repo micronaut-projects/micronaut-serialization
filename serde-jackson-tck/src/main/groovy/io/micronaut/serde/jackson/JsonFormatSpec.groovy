@@ -2212,6 +2212,69 @@ class Test {
         context.close()
     }
 
+    void "test json format nullable delegating temporal properties"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    private java.util.Date utilDateArray;
+    private java.sql.Date sqlDateDefault;
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "UTC")
+    private java.sql.Date sqlDatePattern;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private java.sql.Timestamp sqlTimestampPattern;
+
+    public java.util.Date getUtilDateArray() {
+        return utilDateArray;
+    }
+
+    public void setUtilDateArray(java.util.Date utilDateArray) {
+        this.utilDateArray = utilDateArray;
+    }
+
+    public java.sql.Date getSqlDateDefault() {
+        return sqlDateDefault;
+    }
+
+    public void setSqlDateDefault(java.sql.Date sqlDateDefault) {
+        this.sqlDateDefault = sqlDateDefault;
+    }
+
+    public java.sql.Date getSqlDatePattern() {
+        return sqlDatePattern;
+    }
+
+    public void setSqlDatePattern(java.sql.Date sqlDatePattern) {
+        this.sqlDatePattern = sqlDatePattern;
+    }
+
+    public java.sql.Timestamp getSqlTimestampPattern() {
+        return sqlTimestampPattern;
+    }
+
+    public void setSqlTimestampPattern(java.sql.Timestamp sqlTimestampPattern) {
+        this.sqlTimestampPattern = sqlTimestampPattern;
+    }
+}
+""")
+
+        expect:
+        def value = jsonMapper.readValue('{"utilDateArray":null,"sqlDateDefault":null,"sqlDatePattern":null,"sqlTimestampPattern":null}', argumentOf(context, 'test.Test'))
+        value.utilDateArray == null
+        value.sqlDateDefault == null
+        value.sqlDatePattern == null
+        value.sqlTimestampPattern == null
+
+        cleanup:
+        context.close()
+    }
+
     @Unroll
     void "test json format pattern without explicit shape for temporal #typeName"() {
         given:

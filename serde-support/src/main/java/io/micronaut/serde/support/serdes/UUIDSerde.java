@@ -18,7 +18,6 @@ package io.micronaut.serde.support.serdes;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
 
@@ -45,11 +44,4 @@ final class UUIDSerde implements SerdeRegistrar<UUID> {
         return UUID.fromString(decoder.decodeString());
     }
 
-    @Override
-    public @Nullable UUID deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super UUID> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
 }

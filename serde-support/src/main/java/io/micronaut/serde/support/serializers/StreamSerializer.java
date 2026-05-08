@@ -43,19 +43,21 @@ final class StreamSerializer<T> implements CustomizableSerializer<Stream<T>>, Se
         return new Serializer<Stream<T>>() {
             @Override
             public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Stream<T>> type, Stream<T> value) throws IOException {
-                if (value == null) {
-                    throw new SerdeException("Stream is required");
-                }
                 Encoder arrayEncoder = encoder.encodeArray(type);
                 Iterator<T> itr = value.iterator();
                 int index = 0;
                 try {
                     while (itr.hasNext()) {
-                        componentSerializer
-                            .serialize(
-                                arrayEncoder,
-                                context, generic, itr.next()
-                            );
+                        T element = itr.next();
+                        if (element == null) {
+                            arrayEncoder.encodeNull();
+                        } else {
+                            componentSerializer
+                                .serialize(
+                                    arrayEncoder,
+                                    context, generic, element
+                                );
+                        }
                         index++;
                     }
                 } catch (SerdeException e) {
