@@ -138,6 +138,7 @@ public final class XmlObjectMapper implements ObjectMapper {
     }
 
     @Override
+    @SuppressWarnings("NullAway")
     public <T> T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext,
@@ -148,6 +149,10 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Override
     public @NonNull JsonNode writeValueToTree(@Nullable Object value) throws IOException {
         JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
+        if (value == null) {
+            encoder.encodeNull();
+            return encoder.getCompletedValue();
+        }
         serialize(encoder, value, Argument.of(value.getClass()));
         return encoder.getCompletedValue();
     }
@@ -227,8 +232,8 @@ public final class XmlObjectMapper implements ObjectMapper {
             : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
-    @SuppressWarnings("unchecked")
-    private void serialize(Encoder encoder, Object object, Argument type) throws IOException {
+    @SuppressWarnings({"unchecked", "NullAway"})
+    private void serialize(Encoder encoder, @Nullable Object object, Argument type) throws IOException {
         Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
         Serializer<Object> serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
         serializer.serialize(encoder, encoderContext, type, object);

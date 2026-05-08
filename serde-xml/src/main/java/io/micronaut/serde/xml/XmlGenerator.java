@@ -429,7 +429,7 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
      * @param namespaceUri the namespace URI (may be null/empty for the default namespace)
      * @param value the textual value
      */
-    public void writeNamespacedScalarForCurrentKey(String localName, String namespaceUri, String value) throws IOException {
+    public void writeNamespacedScalarForCurrentKey(String localName, @Nullable String namespaceUri, String value) throws IOException {
         try {
             ensurePendingObjectElementStarted();
             ContextProperties last = propertyStack.peekLast();
@@ -465,20 +465,20 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     }
 
     sealed interface ContextProperties permits ObjectFrame, KeyFrame, ArrayFrame {
-        String key();
+        @Nullable String key();
     }
 
-    private record ObjectFrame(String key, @Nullable Boolean rootName) implements ContextProperties {
+    private record ObjectFrame(@Nullable String key, @Nullable Boolean rootName) implements ContextProperties {
     }
 
     private record KeyFrame(
-        String key,
+        @Nullable String key,
         boolean consumed,
         @Nullable String arrayWrappingKey,
         @Nullable Boolean objectWrappingKey
     ) implements ContextProperties {
     }
 
-    private record ArrayFrame(String key, @Nullable String iterableKey) implements ContextProperties {
+    private record ArrayFrame(@Nullable String key, @Nullable String iterableKey) implements ContextProperties {
     }
 }

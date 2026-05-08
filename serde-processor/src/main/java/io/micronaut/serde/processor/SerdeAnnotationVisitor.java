@@ -1134,6 +1134,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     }
 
     private List<String> prioritizeXmlAttributeProperties(List<PropertyElement> beanProperties, List<String> baseOrder) {
+        boolean hasXmlAttributes = beanProperties.stream().anyMatch(this::isXmlAttributeProperty);
+        if (!hasXmlAttributes) {
+            return new ArrayList<>(baseOrder);
+        }
         List<String> prioritizedOrder = new ArrayList<>(baseOrder.size() + beanProperties.size());
         List<String> prioritizedAttributes = new ArrayList<>(baseOrder.size());
         List<String> prioritizedNonAttributes = new ArrayList<>(baseOrder.size());
