@@ -374,6 +374,15 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
             (obj.nested as Map).get('key') == 'hello'
     }
 
+    def "ObjectOnlyBean - empty Object field decodes as null"() {
+        given:
+            def xml = '<ObjectOnlyBean><object></object></ObjectOnlyBean>'
+        when:
+            def obj = readXml(xml, ObjectOnlyBean)
+        then:
+            obj.object == null
+    }
+
     def "ItemsOnlyBean - List<Object> is the sole field"() {
         given:
             def xml = '<ItemsOnlyBean><items><items>alpha</items><items>beta</items></items></ItemsOnlyBean>'
