@@ -127,7 +127,7 @@ public final class RecordSerializerSourceGen {
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(RecordSerdeSourceGenUtils.argumentExpression(component.type()))
+                .initializer(RecordSerdeSourceGenUtils.argumentExpression(component.type(), component.name()))
                 .build());
             if (scalarEncoderMethod(component.type()) == null) {
                 String serializerFieldName = indexedName("SERIALIZER", index);

@@ -2,6 +2,7 @@ package io.micronaut.serde.bson;
 
 import io.micronaut.serde.annotation.Serdeable;
 import org.bson.codecs.pojo.annotations.BsonId;
+import org.jspecify.annotations.Nullable;
 
 @Serdeable
 public class Sale2 {
@@ -12,6 +13,7 @@ public class Sale2 {
     private final Quantity quantity;
 
     @BsonId
+    @Nullable
     private String id;
 
     public Sale2(Quantity quantity) {
@@ -22,11 +24,11 @@ public class Sale2 {
         return quantity;
     }
 
-    public String getId() {
+    public @Nullable String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@Nullable String id) {
         this.id = id;
     }
 }

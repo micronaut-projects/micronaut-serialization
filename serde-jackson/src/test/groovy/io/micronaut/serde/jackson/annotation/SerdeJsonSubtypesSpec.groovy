@@ -44,7 +44,7 @@ class B extends Base {
         compiled.close()
     }
 
-    // Jackson will fail on unknown type - Serde will deserialize the base type
+    // The subtype fallback behavior is still available when explicitly configured.
 
     void 'test json sub types using name deserialization with unknown type'() {
         given:
@@ -85,7 +85,9 @@ class Sub extends Base {
         return integer;
     }
 }
-""")
+""", true, [
+            'micronaut.serde.deserialization.subtypes-require-default-impl': false
+        ])
         when:
         def baseArg = argumentOf(context, "test.Base")
         def result = jsonMapper.readValue('{"type":"sub-class","string":"a","integer":1}', baseArg)
@@ -149,7 +151,9 @@ class Sub extends Base {
         return integer;
     }
 }
-""")
+""", true, [
+            'micronaut.serde.deserialization.subtypes-require-default-impl': false
+        ])
         when:
         def baseArg = argumentOf(context, "test.Base")
         def result = jsonMapper.readValue('{"type":"sub-class","string":"a","integer":1}', baseArg)

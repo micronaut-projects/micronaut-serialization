@@ -6,7 +6,7 @@ import spock.lang.PendingFeature
 
 class SerdeJsonPropertySpec extends JsonPropertySpec {
 
-    def "test default null handling - field (Serde doesn't update non-nullable on null)"() {
+    def "test explicit null handling - field"() {
         given:
             def compiled = buildContext('''
 package enumtest;
@@ -44,14 +44,14 @@ enum Foo {
         when:
             def bean = jsonMapper.readValue('{"data":null, "val":null}', argument)
         then:
-            bean.data
-            bean.val
+            bean.data == null
+            bean.val == null
 
         cleanup:
             compiled.close()
     }
 
-    def "test default null handling - property  (Serde doesn't update non-nullable on null)"() {
+    def "test explicit null handling - property"() {
         given:
             def compiled = buildContext('''
 package enumtest;
@@ -104,8 +104,89 @@ enum Foo {
         when:
             def bean = jsonMapper.readValue('{"data":null, "val":null}', argument)
         then:
-            bean.data
-            bean.val
+            bean.data == null
+            bean.val == null
+
+        cleanup:
+            compiled.close()
+    }
+
+    def "test explicit null for non-null field fails"() {
+        given:
+            def compiled = buildContext('''
+package enumtest;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.core.annotation.NonNull;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    @NonNull
+    public String val = "sss";
+}
+''')
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            jsonMapper.readValue('{"val":null}', argument)
+        then:
+            def e = thrown(Exception)
+            e.message.contains("Non-null property [String val] is null in the supplied data")
+
+        cleanup:
+            compiled.close()
+    }
+
+    def "test explicit null for primitive field fails by default"() {
+        given:
+            def compiled = buildContext('''
+package enumtest;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    public int val = 10;
+}
+''')
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            jsonMapper.readValue('{"val":null}', argument)
+        then:
+            def e = thrown(Exception)
+            e.message.contains("is null in the supplied data")
+
+        cleanup:
+            compiled.close()
+    }
+
+    def "test explicit null for primitive field uses primitive default when configured"() {
+        given:
+            def compiled = buildContext('enumtest.Test', '''
+package enumtest;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+
+@Serdeable
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Test {
+    public int val = 10;
+}
+''', true, [
+                "micronaut.serde.deserialization.fail-on-null-for-primitives": false
+            ])
+            def argument = argumentOf(compiled, 'enumtest.Test')
+
+        when:
+            def bean = jsonMapper.readValue('{"val":null}', argument)
+        then:
+            bean.val == 0
 
         cleanup:
             compiled.close()

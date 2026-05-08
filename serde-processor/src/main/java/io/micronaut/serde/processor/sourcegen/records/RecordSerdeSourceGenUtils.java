@@ -46,6 +46,7 @@ final class RecordSerdeSourceGenUtils {
 
     private static final Method ARGUMENT_OF_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class);
     private static final Method ARGUMENT_OF_WITH_TYPE_PARAMETERS_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "of", Class.class, Argument[].class);
+    private static final Method ARGUMENT_WITH_NAME_METHOD = ReflectionUtils.getRequiredMethod(Argument.class, "withName", String.class);
     private static final Method OPTIONAL_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(Optional.class, EMPTY_METHOD);
     private static final Method OPTIONAL_INT_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalInt.class, EMPTY_METHOD);
     private static final Method OPTIONAL_DOUBLE_EMPTY_METHOD = ReflectionUtils.getRequiredMethod(OptionalDouble.class, EMPTY_METHOD);
@@ -75,6 +76,11 @@ final class RecordSerdeSourceGenUtils {
         }
         return ClassTypeDef.of(Argument.class)
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
+    }
+
+    static ExpressionDef argumentExpression(ClassElement classElement, String name) {
+        return argumentExpression(classElement)
+            .invoke(ARGUMENT_WITH_NAME_METHOD, ExpressionDef.constant(name));
     }
 
     private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {

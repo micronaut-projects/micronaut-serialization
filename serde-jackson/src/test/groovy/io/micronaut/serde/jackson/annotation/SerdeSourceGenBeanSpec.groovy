@@ -106,7 +106,9 @@ public class ParityBean {
         this.tags = tags;
     }
 }
-''')
+''', true, [
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         Class<?> beanType = context.classLoader.loadClass('test.ParityBean')
         def registry = context.getBean(SerdeRegistry)
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(Object)

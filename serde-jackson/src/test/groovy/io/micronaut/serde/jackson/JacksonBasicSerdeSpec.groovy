@@ -1,12 +1,15 @@
 package io.micronaut.serde.jackson
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
 import io.micronaut.serde.ObjectWithArrayRecordNotNull
+import io.micronaut.serde.exceptions.SerdeException
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
 
+@Property(name = "micronaut.serde.deserialization.fail-on-null-for-primitives", value = "false")
 @MicronautTest
 class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
 
@@ -51,10 +54,16 @@ class JacksonBasicSerdeSpec extends AbstractBasicSerdeSpec {
         when:
         obj = new MyBeanWithNestedObjectNonNull("id2", new MyBeanWithNestedObjectNonNull.MyNestedBean(null, null))
         json = jsonMapper.writeValueAsString(obj)
-        result = jsonMapper.readValue(json, MyBeanWithNestedObjectNonNull)
+
         then:
-        obj == result
         json == """{"id":"id2","key":null,"name":null}"""
+
+        when:
+        jsonMapper.readValue(json, MyBeanWithNestedObjectNonNull)
+
+        then:
+        def e = thrown(SerdeException)
+        e.message.contains('Non-null constructor parameter [Key key] at index [0] is null in the supplied data')
     }
 
     def "test object with non null map and JsonInclude.ALWAYS"() {

@@ -11,9 +11,11 @@ import io.micronaut.serde.jackson.JsonCompileSpec
 
 class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
-    void 'test generated record deserializer source handles primitive booleans and missing constructor properties'() {
+    void 'test generated record deserializer source handles nullable primitive booleans and missing constructor properties'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         Class<?> generatedType = SourceGenGeneratedConstructorDefaults
         def introspections = context.getBean(SerdeIntrospections)
         def generatedMetadata = introspections.getDeserializableIntrospection(Argument.of(generatedType)).annotationMetadata
@@ -22,8 +24,8 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
         expect:
         deserializerSource.contains('boolean propertyValue1 = false;')
-        deserializerSource.contains('propertyValue1 = objectDecoder.decodeBoolean();')
-        !deserializerSource.contains('propertyValue1 = objectDecoder.decodeBooleanNullable();')
+        deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        deserializerSource.contains('failOnNullForPrimitives(context)')
         !deserializerSource.contains('component0')
         !deserializerSource.contains('if (!seenProperty')
         !deserializerSource.contains('duplicateProperty')
@@ -34,7 +36,9 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
     void 'test generated record deserializer is selected for constructor defaults'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         def registry = context.getBean(SerdeRegistry)
 
         expect:
@@ -44,7 +48,7 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         context.close()
     }
 
-    void 'test generated bean deserializer source handles primitive booleans without nullable decode'() {
+    void 'test generated bean deserializer source handles nullable primitive booleans'() {
         given:
         def context = ApplicationContext.run()
         Class<?> generatedType = SourceGenGeneratedPropertyDefaults
@@ -55,9 +59,11 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
         expect:
         !deserializerSource.contains('boolean value1 = false;')
-        !deserializerSource.contains('value1 = objectDecoder.decodeBoolean();')
-        deserializerSource.contains('bean.setActive(objectDecoder.decodeBoolean());')
-        !deserializerSource.contains('value1 = objectDecoder.decodeBooleanNullable();')
+        deserializerSource.contains('Boolean value1 =')
+        deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        deserializerSource.contains('failOnNullForPrimitives(context)')
+        deserializerSource.contains('bean.setActive(false);')
+        deserializerSource.contains('bean.setActive(value1);')
         !deserializerSource.contains('duplicateProperty')
 
         cleanup:
@@ -78,7 +84,9 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
     void 'test generated record deserializer matches runtime for primitive nullable and missing properties'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         jsonMapper = context.getBean(JsonMapper)
 
         expect:
@@ -93,13 +101,17 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         'missing reference'         | '{"active":true,"count":42,"nullableName":"Grace","nullableActive":false}'
         'missing primitives'        | '{"name":"Ada","nullableName":"Grace","nullableActive":false}'
         'missing nullable values'   | '{"name":"Ada","active":true,"count":42}'
-        'explicit null values'      | '{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}'
+        'explicit reference null values' | '{"name":null,"active":true,"count":42,"nullableName":null,"nullableActive":null}'
+        'explicit primitive boolean null' | '{"name":"Ada","active":null,"count":42}'
+        'explicit primitive int null' | '{"name":"Ada","active":true,"count":null}'
         'missing all values'        | '{}'
     }
 
     void 'test generated bean deserializer matches runtime for primitive nullable and missing properties'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         jsonMapper = context.getBean(JsonMapper)
 
         expect:
@@ -114,13 +126,51 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         'missing reference'         | '{"active":false,"count":42,"nullableName":"Grace","nullableActive":false}'
         'missing primitives'        | '{"name":"Ada","nullableName":"Grace","nullableActive":false}'
         'missing nullable values'   | '{"name":"Ada","active":false,"count":42}'
-        'explicit null values'      | '{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}'
+        'explicit reference null values' | '{"name":null,"active":false,"count":42,"nullableName":null,"nullableActive":null}'
+        'explicit primitive boolean null' | '{"name":"Ada","active":null,"count":42}'
+        'explicit primitive int null' | '{"name":"Ada","active":false,"count":null}'
         'missing all values'        | '{}'
+    }
+
+    void 'test generated record deserializer failures match runtime for primitive null properties'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadFailureMatches(jsonMapper, SourceGenGeneratedConstructorDefaults, SourceGenRuntimeConstructorDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                 | json
+        'primitive boolean null' | '{"name":"Ada","active":null,"count":42}'
+        'primitive int null'     | '{"name":"Ada","active":true,"count":null}'
+    }
+
+    void 'test generated bean deserializer failures match runtime for primitive null properties'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadFailureMatches(jsonMapper, SourceGenGeneratedPropertyDefaults, SourceGenRuntimePropertyDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                 | json
+        'primitive boolean null' | '{"name":"Ada","active":null,"count":42}'
+        'primitive int null'     | '{"name":"Ada","active":true,"count":null}'
     }
 
     void 'test generated record duplicate property handling matches runtime deserializer'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         jsonMapper = context.getBean(JsonMapper)
 
         expect:
@@ -149,7 +199,9 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
 
     void 'test generated bean duplicate property handling matches runtime deserializer'() {
         given:
-        def context = ApplicationContext.run()
+        def context = ApplicationContext.run([
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
         jsonMapper = context.getBean(JsonMapper)
 
         expect:
@@ -176,6 +228,40 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         'nullable boolean null last'   | '{"name":"Ada","active":true,"count":1,"nullableActive":true,"nullableActive":null}'
     }
 
+    void 'test generated record duplicate property failures match runtime deserializer'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadFailureMatches(jsonMapper, SourceGenGeneratedConstructorDefaults, SourceGenRuntimeConstructorDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                       | json
+        'primitive boolean null first' | '{"name":"Ada","active":null,"active":true,"count":1}'
+        'primitive int null first'     | '{"name":"Ada","active":true,"count":null,"count":1}'
+    }
+
+    void 'test generated bean duplicate property failures match runtime deserializer'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+
+        expect:
+        assertReadFailureMatches(jsonMapper, SourceGenGeneratedPropertyDefaults, SourceGenRuntimePropertyDefaults, json)
+
+        cleanup:
+        context.close()
+
+        where:
+        scenario                       | json
+        'primitive boolean null first' | '{"name":"Ada","active":null,"active":true,"count":1}'
+        'primitive int null first'     | '{"name":"Ada","active":true,"count":null,"count":1}'
+    }
+
     private static void assertPropertiesEqual(Object generated, Object runtime) {
         assert propertyValue(generated, 'name') == propertyValue(runtime, 'name')
         assert propertyValue(generated, 'active') == propertyValue(runtime, 'active')
@@ -191,6 +277,25 @@ class CompileTimeDeserializerBehaviorSpec extends JsonCompileSpec {
         def generated = jsonMapper.readValue(json, Argument.of(generatedType))
         def runtime = jsonMapper.readValue(json, Argument.of(runtimeType))
         assertPropertiesEqual(generated, runtime)
+    }
+
+    private static void assertReadFailureMatches(JsonMapper jsonMapper,
+                                                 Class<?> generatedType,
+                                                 Class<?> runtimeType,
+                                                 String json) {
+        def generatedFailure = readFailure(jsonMapper, generatedType, json)
+        def runtimeFailure = readFailure(jsonMapper, runtimeType, json)
+        assert generatedFailure != null
+        assert runtimeFailure != null
+    }
+
+    private static Throwable readFailure(JsonMapper jsonMapper, Class<?> type, String json) {
+        try {
+            jsonMapper.readValue(json, Argument.of(type))
+            return null
+        } catch (Throwable e) {
+            return e
+        }
     }
 
     private static void assertGeneratedDeserializer(SerdeRegistry registry, Class<?> type) {

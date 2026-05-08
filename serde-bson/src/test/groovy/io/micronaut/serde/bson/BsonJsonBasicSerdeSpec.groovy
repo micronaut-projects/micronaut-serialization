@@ -1,5 +1,6 @@
 package io.micronaut.serde.bson
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.serde.AbstractBasicSerdeSpec
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import jakarta.inject.Inject
@@ -7,6 +8,7 @@ import org.bson.BsonDocument
 
 import java.nio.charset.StandardCharsets
 
+@Property(name = "micronaut.serde.deserialization.fail-on-null-for-primitives", value = "false")
 @MicronautTest
 class BsonJsonBasicSerdeSpec extends AbstractBasicSerdeSpec implements BsonJsonSpec {
 

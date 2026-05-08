@@ -102,7 +102,6 @@ public final class BeanDeserializerSourceGen {
     private static final Method DECODE_DOUBLE_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeDoubleNullable");
     private static final Method DECODE_BIG_INTEGER_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigIntegerNullable");
     private static final Method DECODE_BIG_DECIMAL_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeBigDecimalNullable");
-    private static final Method DECODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "decodeNull");
     private static final Method FINISH_STRUCTURE_METHOD = ReflectionUtils.getRequiredMethod(Decoder.class, "finishStructure");
     private static final Method HANDLE_UNKNOWN_PROPERTY_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
@@ -111,6 +110,17 @@ public final class BeanDeserializerSourceGen {
         Deserializer.DecoderContext.class,
         String.class,
         Argument.class
+    );
+    private static final Method NULL_VALUE_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "nullValue",
+        Argument.class,
+        Argument.class
+    );
+    private static final Method FAIL_ON_NULL_FOR_PRIMITIVES_METHOD = ReflectionUtils.getRequiredMethod(
+        GeneratedSerdeExceptionUtil.class,
+        "failOnNullForPrimitives",
+        Deserializer.DecoderContext.class
     );
     private static final Method WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
@@ -171,7 +181,7 @@ public final class BeanDeserializerSourceGen {
                 .build());
             fields.add(FieldDef.builder(argumentFieldName, ARGUMENT_TYPE)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer(BeanSerdeSourceGenUtils.argumentExpression(lookupType))
+                .initializer(BeanSerdeSourceGenUtils.argumentExpression(lookupType, property.name()))
                 .build());
             if (scalarDecoderMethod(property.deserializationType()) == null) {
                 String deserializerFieldName = indexedName("DESERIALIZER", index);
@@ -476,24 +486,6 @@ public final class BeanDeserializerSourceGen {
         ExpressionDef argumentExpression = deserializerClassTypeDef.getStaticField(required(argumentFieldNames, property.name()), ARGUMENT_TYPE);
         ExpressionDef propertyNameExpression = deserializerClassTypeDef.getStaticField(required(keyFieldNames, property.name()), STRING_TYPE);
         Method scalarDecodeMethod = scalarDecoderMethod(property.deserializationType());
-        boolean primitiveScalar = scalarDecodeMethod != null && property.deserializationType().isPrimitive() && !property.deserializationType().isArray();
-        if (scalarDecodeMethod != null && primitiveScalar) {
-            StatementDef deserializeAndAssign = objectDecoder.invoke(DECODE_NULL_METHOD).ifFalse(
-                assignProperty(beanVariable, property, objectDecoder.invoke(scalarDecodeMethod))
-            );
-            return StatementDef.doTry(deserializeAndAssign)
-                .doCatch(ClassTypeDef.of(Throwable.class), exceptionVariable ->
-                    ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
-                        .invokeStatic(
-                            WITH_PROPERTY_PATH_THROWABLE_METHOD,
-                            exceptionVariable,
-                            type,
-                            propertyNameExpression,
-                            argumentExpression
-                        )
-                        .doThrow()
-                );
-        }
         StatementDef.DefineAndAssign deserializedValueDef;
         StatementDef deserializeAndAssign;
         if (scalarDecodeMethod != null) {
@@ -523,23 +515,30 @@ public final class BeanDeserializerSourceGen {
                 deserializedValueDef
             );
         }
+        StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
         StatementDef propertyAssignment;
-        if (property.deserializationType().isPrimitive() || property.nullable()) {
-            StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
-            if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
-                propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
-                    assignProperty(beanVariable, property, BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType())),
-                    assignStatement
+        if (property.deserializationType().isPrimitive() && !property.deserializationType().isArray()) {
+            StatementDef failOnNull = ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                .invokeStatic(FAIL_ON_NULL_FOR_PRIMITIVES_METHOD, context)
+                .ifTrue(
+                    ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                        .invokeStatic(NULL_VALUE_METHOD, type, argumentExpression)
+                        .doThrow(),
+                    assignProperty(beanVariable, property, BeanSerdeSourceGenUtils.primitiveDefaultValueExpression(property.deserializationType()))
                 );
-            } else {
-                propertyAssignment = assignStatement;
-            }
-        } else {
-            StatementDef assignStatement = assignProperty(beanVariable, property, deserializedValueDef.variable());
             propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
-                StatementDef.multi(),
+                failOnNull,
                 assignStatement
             );
+        } else if (property.nonNull() && !property.nullable()) {
+            propertyAssignment = deserializedValueDef.variable().isNull().ifTrue(
+                ClassTypeDef.of(GeneratedSerdeExceptionUtil.class)
+                    .invokeStatic(NULL_VALUE_METHOD, type, argumentExpression)
+                    .doThrow(),
+                assignStatement
+            );
+        } else {
+            propertyAssignment = assignStatement;
         }
         deserializeAndAssign = StatementDef.multi(
             deserializeAndAssign,
@@ -581,21 +580,21 @@ public final class BeanDeserializerSourceGen {
             return null;
         }
         return switch (type.getName()) {
-            case "boolean" -> DECODE_BOOLEAN_METHOD;
+            case "boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
             case "java.lang.Boolean" -> DECODE_BOOLEAN_NULLABLE_METHOD;
-            case "byte" -> DECODE_BYTE_METHOD;
+            case "byte" -> DECODE_BYTE_NULLABLE_METHOD;
             case "java.lang.Byte" -> DECODE_BYTE_NULLABLE_METHOD;
-            case "short" -> DECODE_SHORT_METHOD;
+            case "short" -> DECODE_SHORT_NULLABLE_METHOD;
             case "java.lang.Short" -> DECODE_SHORT_NULLABLE_METHOD;
-            case "char" -> DECODE_CHAR_METHOD;
+            case "char" -> DECODE_CHAR_NULLABLE_METHOD;
             case "java.lang.Character" -> DECODE_CHAR_NULLABLE_METHOD;
-            case "int" -> DECODE_INT_METHOD;
+            case "int" -> DECODE_INT_NULLABLE_METHOD;
             case "java.lang.Integer" -> DECODE_INT_NULLABLE_METHOD;
-            case "long" -> DECODE_LONG_METHOD;
+            case "long" -> DECODE_LONG_NULLABLE_METHOD;
             case "java.lang.Long" -> DECODE_LONG_NULLABLE_METHOD;
-            case "float" -> DECODE_FLOAT_METHOD;
+            case "float" -> DECODE_FLOAT_NULLABLE_METHOD;
             case "java.lang.Float" -> DECODE_FLOAT_NULLABLE_METHOD;
-            case "double" -> DECODE_DOUBLE_METHOD;
+            case "double" -> DECODE_DOUBLE_NULLABLE_METHOD;
             case "java.lang.Double" -> DECODE_DOUBLE_NULLABLE_METHOD;
             case "java.lang.String" -> DECODE_STRING_NULLABLE_METHOD;
             case "java.math.BigInteger" -> DECODE_BIG_INTEGER_NULLABLE_METHOD;

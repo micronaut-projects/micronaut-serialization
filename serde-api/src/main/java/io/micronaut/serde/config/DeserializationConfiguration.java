@@ -15,7 +15,6 @@
  */
 package io.micronaut.serde.config;
 
-import io.micronaut.core.annotation.NextMajorVersion;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 import org.jspecify.annotations.Nullable;
@@ -53,22 +52,21 @@ public interface DeserializationConfiguration {
     boolean isStrictNullable();
 
     /**
-     * Whether a null field or a missing value for a primitive should fail the deserialization. Defaults to {@code false}
-     * @return True if a null field or a missing value for a primitive should fail the deserialization
+     * Whether a null field for a primitive should fail the deserialization. Defaults to {@code true}
+     * @return True if a null field for a primitive should fail the deserialization
      */
-    @Bindable(defaultValue = StringUtils.FALSE)
+    @Bindable(defaultValue = StringUtils.TRUE)
     default boolean isFailOnNullForPrimitives() {
-        return false;
+        return true;
     }
 
     /**
      * Whether the supertype is used by default when no supertype is resolved.
      * @return True to avoid the supertype and use `defaultImpl` property
      */
-    @NextMajorVersion("Inline to true to have the behaviour the same as for Jackson")
-    @Bindable(defaultValue = StringUtils.FALSE)
+    @Bindable(defaultValue = StringUtils.TRUE)
     default boolean isSubtypesRequireDefaultImpl() {
-        return false;
+        return true;
     }
 
     /**

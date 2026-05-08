@@ -617,7 +617,9 @@ class Sub extends Base {
         return integer;
     }
 }
-""")
+""", true, [
+                'micronaut.serde.deserialization.subtypes-require-default-impl': false
+            ])
         when:
             def base = newInstance(context, 'test.Sub', "a", 1)
             def wrapper = newInstance(context, 'test.Wrapper', "bar", base)

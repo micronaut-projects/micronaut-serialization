@@ -11,8 +11,7 @@ class SerdeJsonTypeInfoSpec extends JsonTypeInfoSpec {
     protected void configureContext(ApplicationContextBuilder contextBuilder) {
         super.configureContext(contextBuilder.properties(
                 Map.of(
-                        "micronaut.serde.deserialization.ignore-unknown", "false",
-                        "micronaut.serde.deserialization.subtypes-require-default-impl", "true"
+                        "micronaut.serde.deserialization.ignore-unknown", "false"
                 ),
         ))
     }

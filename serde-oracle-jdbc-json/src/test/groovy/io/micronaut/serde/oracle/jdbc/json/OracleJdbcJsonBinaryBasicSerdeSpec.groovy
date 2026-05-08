@@ -1,5 +1,6 @@
 package io.micronaut.serde.oracle.jdbc.json
 
+import io.micronaut.context.annotation.Property
 import io.micronaut.core.type.Argument
 import io.micronaut.json.JsonMapper
 import io.micronaut.serde.AbstractBasicSerdeSpec
@@ -26,6 +27,7 @@ import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.Period
 
+@Property(name = "micronaut.serde.deserialization.fail-on-null-for-primitives", value = "false")
 @MicronautTest
 class OracleJdbcJsonBinaryBasicSerdeSpec extends AbstractBasicSerdeSpec {
 

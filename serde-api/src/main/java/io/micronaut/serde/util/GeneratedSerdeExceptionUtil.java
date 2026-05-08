@@ -121,6 +121,33 @@ public final class GeneratedSerdeExceptionUtil {
     }
 
     /**
+     * Creates an exception for a null value assigned to a property that cannot accept null.
+     *
+     * @param beanType The declaring bean argument.
+     * @param propertyArgument The property argument.
+     * @return The configured exception.
+     * @since 3.0
+     */
+    public static SerdeException nullValue(Argument<?> beanType,
+                                           Argument<?> propertyArgument) {
+        return new SerdeException("Unable to deserialize type [" + beanType.getType().getName() +
+            "]. Non-null property [" + propertyArgument + "] is null in the supplied data");
+    }
+
+    /**
+     * Whether primitive values should reject explicit null input.
+     *
+     * @param context The decoder context.
+     * @return {@code true} if explicit null primitive values should fail deserialization
+     * @since 3.0
+     */
+    public static boolean failOnNullForPrimitives(Deserializer.DecoderContext context) {
+        return context.getDeserializationConfiguration()
+            .map(DeserializationConfiguration::isFailOnNullForPrimitives)
+            .orElse(true);
+    }
+
+    /**
      * Checks a constructor argument value against strict nullable deserialization.
      *
      * @param context The decoder context.

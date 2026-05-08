@@ -1,7 +1,10 @@
 package io.micronaut.serde.tck.jackson.databind
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.context.ApplicationContextBuilder
+import io.micronaut.core.type.Argument
 import io.micronaut.core.util.StringUtils
+import io.micronaut.jackson.databind.JacksonDatabindMapper
 import io.micronaut.serde.jackson.JsonPropertySpec
 import spock.lang.PendingFeature
 
@@ -138,6 +141,39 @@ class Test {
         ctx.close()
     }
 
+    void "test primitive field null fails by default"() {
+        given:
+        def context = ApplicationContext.run()
+        def mapper = context.getBean(JacksonDatabindMapper)
+
+        when:
+        mapper.readValue('{"value":null}', Argument.of(PrimitiveField))
+
+        then:
+        def e = thrown(Exception)
+        e.message.contains("FAIL_ON_NULL_FOR_PRIMITIVES")
+
+        cleanup:
+        context.close()
+    }
+
+    void "test primitive field null uses primitive default when configured"() {
+        given:
+        def context = ApplicationContext.run([
+                'jackson.deserialization-features.fail-on-null-for-primitives': false
+        ])
+        def mapper = context.getBean(JacksonDatabindMapper)
+
+        when:
+        def bean = mapper.readValue('{"value":null}', Argument.of(PrimitiveField))
+
+        then:
+        bean.value == 0
+
+        cleanup:
+        context.close()
+    }
+
     @PendingFeature(reason = "Jackson is using 'defaultValue' only for documentation")
     void "test @JsonProperty on field"() {
         given:
@@ -194,4 +230,8 @@ class Test {
 
     }
 
+}
+
+class PrimitiveField {
+    public int value = 10
 }
