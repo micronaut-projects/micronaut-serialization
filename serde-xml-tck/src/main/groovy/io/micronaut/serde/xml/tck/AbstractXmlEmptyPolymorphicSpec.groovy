@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName
 import io.micronaut.serde.annotation.Serdeable
 import spock.lang.Specification
 
-abstract class EmptyPolymorphicTest extends Specification implements XmlSpec {
+abstract class AbstractXmlEmptyPolymorphicSpec extends Specification implements XmlSpec {
 
 
     def "Empty Polymorphic tes"(){
@@ -43,11 +43,6 @@ abstract class EmptyPolymorphicTest extends Specification implements XmlSpec {
         then:
         thrown(Exception)
     }
-
-
-
-
-    // ============================
 
     @Serdeable
     @JsonTypeName(value = "lala")

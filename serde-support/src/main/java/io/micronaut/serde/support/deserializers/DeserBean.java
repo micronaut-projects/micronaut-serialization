@@ -33,12 +33,11 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.type.GenericPlaceholder;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
-import io.micronaut.serde.CoercedNullAwareDecoder;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedDeserializer;
-import io.micronaut.serde.IterableWrapperConfigurableDeserializer;
+import io.micronaut.serde.IterableWrapperSerde;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.UpdatingDeserializer;
 import io.micronaut.serde.config.DeserializationConfiguration;
@@ -602,8 +601,8 @@ final class DeserBean<T> {
         Deserializer<Object> deserializer = property.format == null
             ? findDeserializerWithoutFormat(propertyContext, property.argument)
             : findDeserializer(propertyContext, property.argument, property.format);
-        if (deserializer instanceof IterableWrapperConfigurableDeserializer<?> configurableDeserializer) {
-            deserializer = (Deserializer<Object>) configurableDeserializer.withIterableWrapper(property.xmlUseWrapping, property.xmlWrapperName);
+        if (deserializer instanceof IterableWrapperSerde<?> configurableSerde) {
+            deserializer = (Deserializer<Object>) configurableSerde.withIterableWrapper(property.xmlUseWrapping, property.xmlWrapperName);
         }
         property.deserializer = unwrapErrorCatching(deserializer);
         if (property.format == null && !property.hasFeatureOverrides && property.deserializer instanceof DecoderValueKind.Provider decoderValueKind) {
@@ -1602,12 +1601,6 @@ final class DeserBean<T> {
             }
         }
 
-        private boolean isCoercedNullForAbstractType(Decoder objectDecoder) {
-            Class<?> propertyType = argument.getType();
-            return !propertyType.isPrimitive()
-                && objectDecoder instanceof CoercedNullAwareDecoder coercedNullAwareDecoder
-                && coercedNullAwareDecoder.isCoercedNullValue();
-        }
 
         @Nullable
         private P provideDefaultValue(Deserializer.DecoderContext decoderContext) {

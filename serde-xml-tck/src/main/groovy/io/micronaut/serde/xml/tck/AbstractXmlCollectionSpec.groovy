@@ -22,7 +22,7 @@ import spock.lang.Specification
 import java.nio.charset.StandardCharsets
 import java.util.stream.Stream
 
-abstract class JavaCollectionsTestSpec extends Specification implements XmlSpec {
+abstract class AbstractXmlCollectionSpec extends Specification implements XmlSpec {
 
     @Serdeable
     static class ByteArrayWrapper {

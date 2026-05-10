@@ -44,7 +44,6 @@ class MockSerdeIntrospections extends DefaultSerdeIntrospections {
     MockSerdeIntrospections(ApplicationContext context) {
         this.classLoader = context.getClassLoader()
         if (!isInvalidClassLoader()) {
-            // horrible hack this
             def f = ReflectionUtils.getRequiredField(classLoader.getClass(), "files")
             f.setAccessible(true)
             def files = f.get(classLoader)
@@ -101,7 +100,6 @@ class MockSerdeIntrospections extends DefaultSerdeIntrospections {
 
     @Override
     def <T> Collection<BeanIntrospection<? extends T>> findSubtypeDeserializables(@NonNull Class<T> type) {
-        // horrible hack this
         if (isInvalidClassLoader()) {
             return super.findSubtypeDeserializables(type)
         }

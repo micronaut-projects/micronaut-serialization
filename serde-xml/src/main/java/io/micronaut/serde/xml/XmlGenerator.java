@@ -18,7 +18,7 @@ package io.micronaut.serde.xml;
 import io.micronaut.core.naming.NameUtils;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.XmlRootNamespaceWriter;
+import io.micronaut.serde.XmlNamespace;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -32,9 +32,9 @@ import java.util.Base64;
 import java.util.Deque;
 
 /**
- *
+ * An {@link Encoder} that serializes objects to XML using a StAX {@link XMLStreamWriter}.
  */
-public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
+public final class XmlGenerator implements Encoder, XmlNamespace {
 
     private final XMLStreamWriter xmlWriter;
     private final Deque<ContextProperties> propertyStack = new ArrayDeque<>();
@@ -64,29 +64,24 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
 
     @Override
     public @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
-        // [O(),K ]
         try {
             if (!propertyStack.isEmpty()) {
                 ContextProperties lastPropertyKey = propertyStack.peekLast();
                 String lastProperty = lastPropertyKey.key();
-                //@jackson wrapping
                 if (lastPropertyKey instanceof KeyFrame kf && kf.arrayWrappingKey() != null) {
                     lastProperty = kf.arrayWrappingKey();
                     xmlWriter.writeStartElement(lastProperty);
                     propertyStack.addLast(new ArrayFrame(kf.key(), null));
                     return this;
                 }
-                //wrapping
                 xmlWriter.writeStartElement(lastProperty);
-                propertyStack.addLast(new ArrayFrame(lastProperty, null)); // [O(key), K2(nameKey_1, false), A(nameKey_1), ]
+                propertyStack.addLast(new ArrayFrame(lastProperty, null));
                 return this;
             } else  {
-                // IterableValueSerializer
                 String collectionName = NameUtils.camelCase(type.getName(), false);
                 ArrayFrame arrayFrame = new ArrayFrame(collectionName, "item");
-                propertyStack.addLast(arrayFrame);  // [A(name), ..., ]
+                propertyStack.addLast(arrayFrame);
 
-                // <ArrayList>  ... </ArrayList>
                 xmlWriter.writeStartElement(collectionName);
             }
         } catch (XMLStreamException e) {
@@ -97,12 +92,10 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
 
     @Override
     public @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
-
         String name = type.getSimpleName();
-        // for the root name with @JsonRootName only
         if (type.equals(Argument.OBJECT_ARGUMENT)) {
             Boolean rootMapper = true;
-            return new XmlGenerator(xmlWriter, rootMapper) ; // []
+            return new XmlGenerator(xmlWriter, rootMapper);
         }
         try {
             if (rootMapper) {
@@ -113,9 +106,7 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
             ContextProperties last = propertyStack.peekLast();
             if (last instanceof KeyFrame || last instanceof ArrayFrame) {
                 Deque<ContextProperties> innerPropertyStack = new ArrayDeque<>(8);
-                //[O, K, A, O]
-                if (last instanceof KeyFrame kf) { // [O, K, ] ==> inner = [K] ==> inner =[K, O]
-                    // Replace-on-update: set objectWrappingKey = FALSE
+                if (last instanceof KeyFrame kf) {
                     KeyFrame updated = new KeyFrame(kf.key(), kf.consumed(), kf.arrayWrappingKey(), Boolean.FALSE);
                     propertyStack.removeLast();
                     propertyStack.addLast(updated);
@@ -136,8 +127,8 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
                 return new XmlGenerator(xmlWriter, innerPropertyStack);
             }
 
-            propertyStack.addLast(new ObjectFrame(name, null));   // << [ObjectFrame(name)]
-            xmlWriter.writeStartElement(name);  // <CustomBean>
+            propertyStack.addLast(new ObjectFrame(name, null));
+            xmlWriter.writeStartElement(name);
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -148,13 +139,11 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     @Override
     public void finishStructure() throws IOException {
         try {
-
             ContextProperties lastProperty = propertyStack.peekLast();
             switch (lastProperty) {
                 case KeyFrame kf -> {
-                    xmlWriter.writeEndElement();   // [ObjectFrame(name), KeyFrame3(name, false)] && <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3</c3>
+                    xmlWriter.writeEndElement();
                     propertyStack.clear();
-
                 }
                 case ObjectFrame of -> {
                     if (of.key() != null) {
@@ -168,10 +157,6 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
                                 xmlWriter.writeEmptyElement(kf.key());
                             }
                         }
-                        // Replace-on-update: mark consumed = true on the first KeyFrame
-                        // (single-element stack mutation: peekFirst == peekLast in this branch
-                        //  since after writing end element this is the lone leftover frame).
-                        // We clear() right after, so no need to actually rewrite the frame.
                     }
                     propertyStack.clear();
                 }
@@ -180,19 +165,18 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
                         propertyStack.removeLast();
                         return;
                     }
-                    if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame) { // [A(ArrayList)]
+                    if (propertyStack.size() == 1 && propertyStack.peekLast() instanceof ArrayFrame) {
                         xmlWriter.writeEndElement();
                         return;
                     }
-                    propertyStack.removeLast();  // // [o, k(name2, false), A(name2)]
-                    xmlWriter.writeEndElement();  // [o, k(name2, false)]
+                    propertyStack.removeLast();
+                    xmlWriter.writeEndElement();
                     assert propertyStack.peekLast() instanceof KeyFrame : "Expected KeyFrame, got: " + propertyStack.peekLast();
                     KeyFrame last = (KeyFrame) propertyStack.removeLast();
-                    propertyStack.addLast(new KeyFrame(last.key(), true, last.arrayWrappingKey(), last.objectWrappingKey()));   //[O, K(,,false), ##K]
+                    propertyStack.addLast(new KeyFrame(last.key(), true, last.arrayWrappingKey(), last.objectWrappingKey()));
 
                 } case null -> {
                     assert  propertyStack.isEmpty() : "Root name mapping";
-
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + lastProperty);
             }
@@ -205,10 +189,9 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     @Override
     public void encodeKey(@NonNull String key) throws IOException {
         try {
-            if (rootMapper) { // [O(name, true), ]
-                propertyStack.addLast(new ObjectFrame(key, Boolean.TRUE));  // @JsonRoot("dsq") [ObjectFrame("dsq")]
+            if (rootMapper) {
+                propertyStack.addLast(new ObjectFrame(key, Boolean.TRUE));
                 if (pendingRootNamespace != null) {
-                    // empty prefix → default namespace declaration: <key xmlns="uri">
                     xmlWriter.writeStartElement("", key, pendingRootNamespace);
                     pendingRootNamespace = null;
                 } else {
@@ -219,18 +202,16 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
 
             ensurePendingObjectElementStarted();
 
-            //simpleObjectSerializer  --- iteration on the loop
             ContextProperties last = propertyStack.peekLast();
             if (last instanceof KeyFrame of && of.consumed()) {
-                propertyStack.removeLast(); // [ObjectFrame(name)]
-            } else if (last instanceof KeyFrame of && !of.consumed()) { // [O, K(name, false, null)] && add wrapping tag, come from the xmlWrapperSerde
-                // Replace-on-update: set arrayWrappingKey = key
+                propertyStack.removeLast();
+            } else if (last instanceof KeyFrame of && !of.consumed()) {
                 propertyStack.removeLast();
                 propertyStack.addLast(new KeyFrame(of.key(), of.consumed(), key, of.objectWrappingKey()));
                 return;
             }
 
-            propertyStack.addLast(new KeyFrame(key, false, null, null));  // [ObjectFrame(name), KeyFrame2(name, false)]
+            propertyStack.addLast(new KeyFrame(key, false, null, null));
 
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -244,7 +225,6 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
             && objectFrame.key() == null
             && !Boolean.TRUE.equals(keyFrame.objectWrappingKey())) {
             xmlWriter.writeStartElement(keyFrame.key());
-            // Replace-on-update: set objectWrappingKey = TRUE on the first frame
             propertyStack.removeFirst();
             propertyStack.addFirst(new KeyFrame(keyFrame.key(), keyFrame.consumed(), keyFrame.arrayWrappingKey(), Boolean.TRUE));
         }
@@ -252,13 +232,12 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
 
     private void writeScalar(String data) {
         try {
-            ContextProperties lastProperty = propertyStack.getLast();  // [ObjectFrame(name), K1(name1, false)] || [ObjectFrame(name), K2(name2, false), A(name2)] || [A(ArrayList)]
+            ContextProperties lastProperty = propertyStack.getLast();
             switch (lastProperty) {
                 case KeyFrame kf -> {
-                    xmlWriter.writeStartElement(kf.key());     // <CustomBean><A1>a1</A1>
-                    xmlWriter.writeCharacters(data);    //. <CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1><C1><C3>c3
+                    xmlWriter.writeStartElement(kf.key());
+                    xmlWriter.writeCharacters(data);
                     xmlWriter.writeEndElement();
-                    // Replace-on-update: mark consumed = true
                     propertyStack.removeLast();
                     propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey()));
                 }
@@ -268,7 +247,6 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
                     xmlWriter.writeStartElement(itemName);
                     xmlWriter.writeCharacters(data);
                     xmlWriter.writeEndElement();
-                    // ====<CustomBean><A1>a1</A1><C1><C1>c1</c1><C1>c2</c1>
                 }
                 default -> throw new IllegalStateException("Unexpected value in writeScalar(): " + lastProperty + "\t " + lastProperty.getClass().getName());
             }
@@ -278,9 +256,12 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     }
 
     /**
-     * Array Object inline to the XML generator.
-     * @param type
-     * @return Encoder
+     * Encodes an array inline, reusing the pending key as the element name and writing
+     * no wrapper element around the items.
+     *
+     * @param type the array type
+     * @return this encoder
+     * @throws IOException if encoding fails
      */
     public @NonNull Encoder encodeInlineArray(@NonNull Argument<?> type) throws IOException {
         ContextProperties lastProperty = propertyStack.peekLast();
@@ -288,8 +269,8 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
             throw new IllegalStateException("Expected a pending key before starting an inline array, but found: " + lastProperty);
         }
 
-        propertyStack.removeLast(); // remove the property key, so no wrapper element is written
-        propertyStack.addLast(new ArrayFrame("", keyFrame.key())); // sentinel for inline/no-wrapper array
+        propertyStack.removeLast();
+        propertyStack.addLast(new ArrayFrame("", keyFrame.key()));
         return this;
     }
 
@@ -360,7 +341,6 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
             switch (lastProperty) {
                 case KeyFrame kf -> {
                     xmlWriter.writeEmptyElement(kf.key());
-                    // Replace-on-update: mark consumed = true
                     propertyStack.removeLast();
                     propertyStack.addLast(new KeyFrame(kf.key(), true, kf.arrayWrappingKey(), kf.objectWrappingKey()));
                 }
@@ -370,7 +350,6 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     /**
@@ -383,8 +362,10 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     }
 
     /**
-     * Write an XML attribute for the current pending property key.
-     * @param value
+     * Writes an XML attribute using the current pending property key as the attribute name.
+     *
+     * @param value the attribute value
+     * @throws IOException if writing fails
      */
     public void writeAttributeForCurrentKey(String value) throws IOException {
         ContextProperties lastProperty = propertyStack.peekLast();
@@ -392,8 +373,7 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
             throw new IllegalStateException("Expected a pending XML key before writing an attribute, but found: " + lastProperty);
         }
         try {
-            xmlWriter.writeAttribute(keyFrame.key(), value);  // [O, K1(name, false)]
-            // Replace-on-update: mark consumed = true
+            xmlWriter.writeAttribute(keyFrame.key(), value);
             propertyStack.removeLast();
             propertyStack.addLast(new KeyFrame(keyFrame.key(), true, keyFrame.arrayWrappingKey(), keyFrame.objectWrappingKey()));
         } catch (XMLStreamException e) {
@@ -451,17 +431,16 @@ public final class XmlGenerator implements Encoder, XmlRootNamespaceWriter {
     }
 
     /**
-     * Writes an XML start element for the XmlWrapper custom serializer.
+     * Writes the start element for the current pending key. Closing the element is the
+     * responsibility of the custom wrapper serializer.
      */
     public void wrapElement() {
-        // must be [O, K(name, false)]
         ContextProperties lastKey = propertyStack.peekLast();
         try {
             xmlWriter.writeStartElement(lastKey.key());
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
-        // closing the tag is the custom wrapper serializer responsibility
     }
 
     sealed interface ContextProperties permits ObjectFrame, KeyFrame, ArrayFrame {

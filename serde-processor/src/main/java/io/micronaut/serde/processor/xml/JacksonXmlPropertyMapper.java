@@ -26,7 +26,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlProperty}.
  *
+ * @since 3.0.0
  */
 public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
 
@@ -38,6 +40,14 @@ public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
         return "tools.jackson.dataformat.xml.annotation.JacksonXmlProperty";
     }
 
+    /**
+     * Maps {@code @JacksonXmlProperty} to {@link SerdeConfig}, handling attribute and element
+     * representation, a custom {@code localName} and an optional XML {@code namespace}.
+     *
+     * @param annotation     The {@code @JacksonXmlProperty} annotation values
+     * @param visitorContext The context that is being visited
+     * @return A singleton list containing the resulting {@link SerdeConfig} annotation
+     */
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);

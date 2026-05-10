@@ -35,14 +35,14 @@ import io.micronaut.inject.annotation.AnnotationMetadataHierarchy;
 import io.micronaut.inject.annotation.MutableAnnotationMetadata;
 import io.micronaut.inject.qualifiers.Qualifiers;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.IterableWrapperSerde;
 import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.FormattedSerializer;
-import io.micronaut.serde.IterableWrapperConfigurableSerializer;
 import io.micronaut.serde.Keys;
 import io.micronaut.serde.PropertyFilter;
 import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.XmlElementConfigurableSerializer;
+import io.micronaut.serde.XmlElementSerde;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
@@ -816,10 +816,10 @@ final class SerBean<T> {
         Serializer<Z> specificSerializer = prop.format == null
             ? serializer.createSpecific(propertyContext, argument)
             : createSpecific(prop.format, serializer, propertyContext, argument);
-        if (specificSerializer instanceof IterableWrapperConfigurableSerializer<?> configurableSerializer) {
-            specificSerializer = (Serializer<Z>) configurableSerializer.withIterableWrapper(prop.xmlUseWrapping, prop.xmlWrapperName);
+        if (specificSerializer instanceof IterableWrapperSerde<?> configurableSerde) {
+            specificSerializer = (Serializer<Z>) configurableSerde.withIterableWrapper(prop.xmlUseWrapping, prop.xmlWrapperName);
         }
-        if (specificSerializer instanceof XmlElementConfigurableSerializer<?> configurableSerializer) {
+        if (specificSerializer instanceof XmlElementSerde<?> configurableSerializer) {
             specificSerializer = (Serializer<Z>) configurableSerializer.withXmlElement(prop.name, prop.xmlNamespace);
         }
         prop.serializer = specificSerializer;

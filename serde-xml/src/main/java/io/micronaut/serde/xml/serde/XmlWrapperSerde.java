@@ -19,10 +19,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.IterableWrapperConfigurableDeserializer;
-import io.micronaut.serde.IterableWrapperConfigurableSerializer;
+import io.micronaut.serde.IterableWrapperSerde;
 import io.micronaut.serde.ObjectSerializer;
-import io.micronaut.serde.Serde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
@@ -38,12 +36,13 @@ import java.util.Set;
 
 /**
  * XML serde for iterable values that may use a wrapping element.
+ * @see io.micronaut.serde.support.serializers.CustomizedIterableSerializer
  *
  * @param <T> The iterable element type
+ * @since 3.0.0
  */
-public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
-    IterableWrapperConfigurableSerializer<Iterable<T>>,
-    IterableWrapperConfigurableDeserializer<Iterable<T>> {
+public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
+    IterableWrapperSerde<Iterable<T>> {
 
     @Nullable
     private final Argument<T> generic;
@@ -117,10 +116,10 @@ public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
     }
 
     @Override
-    public void serialize(@NonNull Encoder encoder,
-                          @NonNull EncoderContext context,
-                          @NonNull Argument<? extends Iterable<T>> type,
-                          @NonNull Iterable<T> value) throws IOException {
+    protected void doSerialize(XmlGenerator generator,
+                               EncoderContext context,
+                               Iterable<T> value,
+                               Argument<?> type) throws IOException {
         if (!type.isContainerType()) {
             throw new SerdeException("Only wrapping container types, not: " + type.getTypeName());
         }
@@ -129,13 +128,13 @@ public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
         }
 
         boolean inlineObjectItems = !(useWrapping && wrapperName != null) && componentSerializer instanceof ObjectSerializer<?>;
-        Encoder valuesEncoder = encoder;
+        Encoder valuesEncoder = generator;
 
         if (useWrapping && wrapperName != null) {
-            encoder.encodeKey(wrapperName);
-            encoder.encodeArray(type);
+            generator.encodeKey(wrapperName);
+            generator.encodeArray(type);
         } else if (inlineObjectItems) {
-            valuesEncoder = ((XmlGenerator) encoder).encodeInlineArray(type);
+            valuesEncoder = generator.encodeInlineArray(type);
         }
 
         serializeValues(valuesEncoder, context, type, value, generic, componentSerializer);
@@ -143,7 +142,6 @@ public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
         if ((useWrapping && wrapperName != null) || inlineObjectItems) {
             valuesEncoder.finishStructure();
         }
-
     }
 
     @Override
@@ -171,7 +169,7 @@ public final class XmlWrapperSerde<T> implements Serde<Iterable<T>>,
 
     private static <T> void serializeValues(Encoder encoder,
                                             EncoderContext context,
-                                            Argument<? extends Iterable<T>> type,
+                                            Argument<?> type,
                                             Iterable<T> value,
                                             Argument<T> generic,
                                             Serializer<? super T> componentSerializer) throws IOException {

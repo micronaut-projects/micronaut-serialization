@@ -27,7 +27,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * Maps Jackson XML's {@code tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper}.
  *
+ * @since 3.0.0
  */
 public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
 
@@ -40,6 +42,14 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
         return "tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper";
     }
 
+    /**
+     * Maps {@code @JacksonXmlElementWrapper} to {@link SerdeConfig}, enabling collection wrapping {@code useWrapping}
+     * and applying any custom wrapper {@code localName}.
+     *
+     * @param annotation     The {@code @JacksonXmlElementWrapper} annotation values
+     * @param visitorContext The context that is being visited
+     * @return A singleton list containing the resulting {@link SerdeConfig} annotation
+     */
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
@@ -69,6 +79,12 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
         return Collections.singletonList(builder.build());
     }
 
+    /**
+     * Registers {@code XmlWrapperSerde} as both the serializer and deserializer so the wrapper
+     * element is written and read.
+     *
+     * @param builder The {@link SerdeConfig} builder to configure
+     */
     private static void configureWrapperSerde(AnnotationValueBuilder<SerdeConfig> builder) {
         builder.member(SerdeConfig.SERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE);
         builder.member(SerdeConfig.DESERIALIZER_CLASS, XML_WRAPPER_PROPERTY_SERDE_CLASS_VALUE);

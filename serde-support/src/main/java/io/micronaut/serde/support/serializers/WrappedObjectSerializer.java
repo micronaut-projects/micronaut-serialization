@@ -22,7 +22,7 @@ import io.micronaut.serde.Keys;
 import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.XmlRootNamespaceWriter;
+import io.micronaut.serde.XmlNamespace;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
@@ -69,7 +69,7 @@ final class WrappedObjectSerializer<T> implements ObjectSerializer<T> {
     }
 
     private void attachNamespace(Encoder target) {
-        if (wrapperNamespace != null && target instanceof XmlRootNamespaceWriter writer) {
+        if (wrapperNamespace != null && target instanceof XmlNamespace writer) {
             writer.setPendingRootNamespace(wrapperNamespace);
         }
     }

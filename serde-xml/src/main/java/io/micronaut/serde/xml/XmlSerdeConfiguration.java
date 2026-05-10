@@ -20,7 +20,9 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.Nullable;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Configuration Properties for XML serialization/deserialization.
@@ -33,10 +35,17 @@ public final class XmlSerdeConfiguration {
 
     @Nullable
     private String defaultRootName;
-
     private boolean repairingNamespaces = true;
     private boolean automaticEmptyElements;
-    private Map<String, Boolean> xmlReadFeatures = Collections.emptyMap();
+    /**
+     * Typed feature map.
+     *
+     * <p>Configuration keys land here as {@code Map<XmlReadFeature, Boolean>}
+     * <pre>{@code
+     * micronaut.serde.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL: true
+     * }</pre>     *
+     */
+    private Map<XmlReadFeature, Boolean> xmlReadFeatures = Collections.emptyMap();
     private Map<String, Boolean> xmlWriteFeatures = Collections.emptyMap();
 
     @Nullable
@@ -64,12 +73,12 @@ public final class XmlSerdeConfiguration {
         this.automaticEmptyElements = automaticEmptyElements;
     }
 
-    public Map<String, Boolean> getXmlReadFeatures() {
+    public Map<XmlReadFeature, Boolean> getXmlReadFeatures() {
         return xmlReadFeatures;
     }
 
-    public void setXmlReadFeatures(Map<String, Boolean> xmlReadFeatures) {
-        this.xmlReadFeatures = xmlReadFeatures;
+    public void setXmlReadFeatures(Map<XmlReadFeature, Boolean> xmlReadFeatures) {
+        this.xmlReadFeatures = xmlReadFeatures == null ? Collections.emptyMap() : xmlReadFeatures;
     }
 
     public Map<String, Boolean> getXmlWriteFeatures() {
@@ -77,7 +86,28 @@ public final class XmlSerdeConfiguration {
     }
 
     public void setXmlWriteFeatures(Map<String, Boolean> xmlWriteFeatures) {
-        this.xmlWriteFeatures = xmlWriteFeatures;
+        this.xmlWriteFeatures = xmlWriteFeatures == null ? Collections.emptyMap() : xmlWriteFeatures;
+    }
+
+    /**
+     * Resolves the {@link #getXmlReadFeatures() xml-read-features} map into the
+     * subset of {@link XmlReadFeature}s that are explicitly enabled
+     * (value {@code true}).
+     *
+     * @return the set of enabled read features (never {@code null}); empty when
+     *         no feature has been opted in.
+     */
+    public Set<XmlReadFeature> getEnabledReadFeatures() {
+        if (xmlReadFeatures.isEmpty()) {
+            return Collections.emptySet();
+        }
+        EnumSet<XmlReadFeature> result = EnumSet.noneOf(XmlReadFeature.class);
+        for (Map.Entry<XmlReadFeature, Boolean> entry : xmlReadFeatures.entrySet()) {
+            if (entry.getKey() != null && Boolean.TRUE.equals(entry.getValue())) {
+                result.add(entry.getKey());
+            }
+        }
+        return result;
     }
 
 }

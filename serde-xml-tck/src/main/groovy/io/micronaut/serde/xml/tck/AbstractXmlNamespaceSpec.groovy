@@ -22,17 +22,20 @@ import spock.lang.Specification
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty
 
 /**
+ * Shared TCK spec for XML namespace handling.
+ *
+ * <p>Reads and writes go through the {@link XmlSpec} trait so each runner
+ * supplies its own mapper without this class knowing anything about the
+ * underlying serializer/deserializer implementation.</p>
  */
-abstract class AbstractNamespaceSpec extends Specification {
-
-    abstract Object getXmlMapper()
+abstract class AbstractXmlNamespaceSpec extends Specification implements XmlSpec {
 
     def "namespaced child element - localName + namespace on a property"() {
         given:
         def bean = new NamespacedChildBean()
 
         when:
-        String xml = xmlMapper.writeValueAsString(bean)
+        String xml = writeXml(bean)
 
         then:
         xml == '<NamespacedChildBean><wstxns1:ChildXML xmlns:wstxns1="uri:child">v</wstxns1:ChildXML></NamespacedChildBean>'
@@ -43,9 +46,9 @@ abstract class AbstractNamespaceSpec extends Specification {
         def bean = new NamespacedAttrBean()
 
         when:
-        String xml = xmlMapper.writeValueAsString(bean)
+        String xml = writeXml(bean)
 
-        then:
+        then: "the attribute is emitted with a namespaced prefix on the owning element"
         xml == '<NamespacedAttrBean xmlns:wstxns1="http://foo" wstxns1:other="3"></NamespacedAttrBean>'
     }
 
@@ -54,7 +57,7 @@ abstract class AbstractNamespaceSpec extends Specification {
         def bean = new NamespacedRootBean()
 
         when:
-        String xml = xmlMapper.writeValueAsString(bean)
+        String xml = writeXml(bean)
 
         then:
         xml == '<nsRoot xmlns="http://foo"></nsRoot>'
@@ -70,15 +73,15 @@ abstract class AbstractNamespaceSpec extends Specification {
         def bean = new MergedNsAttrBean()
 
         when:
-        String xml = xmlMapper.writeValueAsString(bean)
+        String xml = writeXml(bean)
 
-        then:
+        then: "the namespace from JsonProperty is honoured on the attribute"
         xml == '<MergedNsAttrBean xmlns:wstxns1="uri:ns1" wstxns1:value="3"></MergedNsAttrBean>'
     }
 
     def "namespaced child element deserializes by local name"() {
         when:
-        def bean = xmlMapper.readValue(
+        def bean = readXml(
                 '<NamespacedChildBean><ns:ChildXML xmlns:ns="uri:other">v</ns:ChildXML></NamespacedChildBean>',
                 NamespacedChildBean
         )
@@ -117,11 +120,9 @@ abstract class AbstractNamespaceSpec extends Specification {
         def bean = new Issue395Bean()
 
         when:
-        String xml = xmlMapper.writeValueAsString(bean)
+        String xml = writeXml(bean)
 
-        then:
-        // The XML namespace at http://www.w3.org/XML/1998/namespace is reserved and bound to
-        // the literal "xml:" prefix; no xmlns:xml declaration should be emitted.
+        then: "the reserved http://www.w3.org/XML/1998/namespace URI surfaces literally as the 'xml:' prefix with no xmlns:xml declaration"
         xml.trim() == '<Issue395Bean xml:lang="en-US"></Issue395Bean>'
     }
 

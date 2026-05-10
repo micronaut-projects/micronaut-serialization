@@ -20,7 +20,7 @@ import spock.lang.Specification
 import io.micronaut.serde.annotation.Serdeable
 import tools.jackson.dataformat.xml.annotation.*;
 
-abstract class SerializationAttrSpec extends Specification implements XmlSpec {
+abstract class AbstractXmlSerializationAttrSpec extends Specification implements XmlSpec {
 
     def "NsAttrBean - attribute"() {
         given:
@@ -34,7 +34,6 @@ abstract class SerializationAttrSpec extends Specification implements XmlSpec {
         xml == '<NsAttrBean other="3"></NsAttrBean>'
         xml.contains('other="3"')
         read.attr == "3"
-        //xml.contains('xmlns:ns0="http://foo"')
     }
 
     def "Issue19Bean - mixed attributes, and root name"() {
@@ -179,8 +178,6 @@ abstract class SerializationAttrSpec extends Specification implements XmlSpec {
         read.type == "list"
         read.values*.v == ["a", "b"]
     }
-
-    // ==================== Test Beans ====================
 
     @Serdeable
     static class NsAttrBean {

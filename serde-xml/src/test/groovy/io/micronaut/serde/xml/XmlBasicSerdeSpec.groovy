@@ -7,7 +7,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Named
 
 @MicronautTest
-class XmlTck extends AbstractBasicSerdeSpec implements MicronautXmlSpec {
+class XmlBasicSerdeSpec extends AbstractBasicSerdeSpec implements MicronautXmlSpec {
 
     @Inject
     @Named("xml")

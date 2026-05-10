@@ -273,6 +273,7 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
             noExceptionThrown()
     }
 
+
     def "shouldn't decode null on values"() {
         given:
             def xml = "<AllTypesBean><someBool/><someInt></someInt><bigDecimal></bigDecimal></AllTypesBean>"
@@ -395,8 +396,5 @@ abstract class AbstractBasicSerdeSpec extends Specification implements TestPrope
 
     @Override
     Map<String, String> getProperties() {
-//        [
-//            "micronaut.serde.xml.xml-write-features.WRITE_NULLS_AS_XSI_NIL": "false"
-//        ]
     }
 }

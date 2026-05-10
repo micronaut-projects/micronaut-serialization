@@ -1,10 +1,8 @@
 package io.micronaut.serde.xml.bean;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
 import io.micronaut.serde.annotation.Serdeable;
 
 @Serdeable
-//@JsonRootName(value = "dsqdaed")
 public class SimpleBean {
 
     String name;
@@ -34,4 +32,3 @@ public class SimpleBean {
         this.name = name;
     }
 }
-

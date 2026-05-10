@@ -29,6 +29,15 @@ trait XmlSpec {
 
     abstract <T> T readXml(InputStream xml, Argument<T> type)
 
+    /**
+     * Read XML using a mapper configured with the given Micronaut-style properties.
+     *
+     * <p>Keys are canonical Micronaut configuration keys (e.g.
+     * {@code micronaut.serde.xml.xml-read-features.EMPTY_ELEMENT_AS_NULL}). Each
+     * concrete runner adapts these to its native configuration model.</p>
+     */
+    abstract <T> T readXmlWithProperties(Map<String, Object> properties, String xml, Class<T> type)
+
     abstract String writeXml(Object bean)
 
     abstract String writeXml(Argument<?> argument, Object bean)

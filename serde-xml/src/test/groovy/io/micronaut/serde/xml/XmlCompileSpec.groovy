@@ -43,7 +43,6 @@ class XmlCompileSpec extends AbstractTypeElementSpec implements MicronautXmlSpec
         ApplicationContext context = buildContext("test.Source" + System.currentTimeMillis(), source, true)
 
         setupSerdeRegistry(context)
-        // Get the specific XML Mapper
         xmlMapper = context.getBean(ObjectMapper)
 
         def t = context.classLoader.loadClass(className)

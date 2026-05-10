@@ -21,9 +21,11 @@ import org.jspecify.annotations.NonNull;
 /**
  * Internal contract for XML encoders that can attach a namespace URI to the
  * next root element about to be written.
+ *
+ * @since 3.0.0
  */
 @Internal
-public interface XmlRootNamespaceWriter {
+public interface XmlNamespace {
 
     /**
      * Set the namespace URI for the upcoming root element.

@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micronaut.serde;
+package io.micronaut.serde.xml.tck
 
-import io.micronaut.core.annotation.Internal;
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.annotation.Serdeable
+import spock.lang.Specification
 
-/**
- * Internal contract for decoders that can distinguish explicit null tokens
- * from format-specific empty-value coercions (e.g. an empty XML element).
- */
-@Internal
-public interface CoercedNullAwareDecoder {
+abstract class AbstractXmlDeserErrorSpec extends Specification implements XmlSpec {
 
-    /**
-     * Returns whether the current value would decode as {@code null} because of
-     * a format-specific coercion rather than an explicit null token.
-     *
-     * @return {@code true} if the next decode would yield {@code null} via coercion
-     */
-    boolean isCoercedNullValue();
+    void "malformed XML fails while reading"() {
+        when:
+        def read = readXml("<Employee><name>monica&</name></Employee>", Argument.of(Employee))
+
+        then:
+        thrown(Exception)
+    }
+
+    @Serdeable
+    static class Employee {
+        String name
+    }
 }

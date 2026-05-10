@@ -25,7 +25,6 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
-import io.micronaut.serde.SerdeIntrospections;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerdeConfiguration;
@@ -33,10 +32,6 @@ import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import tools.jackson.dataformat.xml.XmlFactory;
-import tools.jackson.dataformat.xml.deser.FromXmlParser;
-import tools.jackson.dataformat.xml.ser.ToXmlGenerator;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -48,14 +43,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * The XmlObjectMapper class provides a concrete implementation of the
- * {@link ObjectMapper} interface,
- * utilizing XML serialization and deserialization.
+ * {@link ObjectMapper} interface, utilizing XML serialization and deserialization.
  *
  * @author Mousrij Hamza
- *
  */
 @Singleton
 @Named("xml")
@@ -63,43 +58,33 @@ import java.nio.charset.StandardCharsets;
 public final class XmlObjectMapper implements ObjectMapper {
 
     private final SerdeRegistry registry;
-    private final SerdeIntrospections introspections;
-    private final XmlFactory xmlFactory;
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
-    @Nullable
-    private final String defaultRootName;
+    @NonNull
+    private final Set<XmlReadFeature> enabledReadFeatures;
     @NonNull
     private final XMLInputFactory xmlInputFactory;
     @NonNull
     private final XMLOutputFactory xmlOutputFactory;
-    @Nullable
-    private final XmlSerdeConfiguration xmlConfiguration;
 
     public XmlObjectMapper(SerdeRegistry registry,
-                           SerdeIntrospections introspections,
                            @Nullable SerdeConfiguration serdeConfiguration,
                            @Nullable XmlSerdeConfiguration xmlConfiguration) {
         this.registry = registry;
-        this.introspections = introspections;
         this.serdeConfiguration = serdeConfiguration;
-        this.xmlConfiguration = xmlConfiguration;
-        this.xmlFactory = XmlFactory.builder().build();
-        this.defaultRootName = xmlConfiguration != null ? xmlConfiguration.getDefaultRootName() : null;
+        this.enabledReadFeatures = xmlConfiguration == null
+            ? Collections.emptySet()
+            : xmlConfiguration.getEnabledReadFeatures();
+        boolean repairingNamespaces = xmlConfiguration == null || xmlConfiguration.isRepairingNamespaces();
+        boolean automaticEmptyElements = xmlConfiguration != null && xmlConfiguration.isAutomaticEmptyElements();
+        this.xmlInputFactory = XMLInputFactory.newInstance();
         this.xmlOutputFactory = XMLOutputFactory.newInstance();
-        this.xmlOutputFactory.setProperty(
-            XMLOutputFactory.IS_REPAIRING_NAMESPACES,
-            xmlConfiguration == null || xmlConfiguration.isRepairingNamespaces()
-        );
+        this.xmlOutputFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, repairingNamespaces);
         try {
-            this.xmlOutputFactory.setProperty(
-                "org.codehaus.stax2.automaticEmptyElements",
-                xmlConfiguration != null && xmlConfiguration.isAutomaticEmptyElements()
-            );
+            this.xmlOutputFactory.setProperty("org.codehaus.stax2.automaticEmptyElements", automaticEmptyElements);
         } catch (IllegalArgumentException ignored) {
             // Factory doesn't recognize the property — its default behavior already matches.
         }
-        this.xmlInputFactory = XMLInputFactory.newInstance();
     }
 
     @Override
@@ -112,7 +97,8 @@ public final class XmlObjectMapper implements ObjectMapper {
         XMLStreamReader xmlReader = null;
         try {
             xmlReader = xmlInputFactory.createXMLStreamReader(inputStream);
-            XmlReaderDecoder decoder = new XmlReaderDecoder.DocumentDecoder(limits(), xmlReader);
+            XmlReaderDecoder decoder = new XmlReaderDecoder.DocumentDecoder(
+                limits(), xmlReader, isEmptyElementAsNull());
             return deserializer.deserialize(decoder, decoderContext, type);
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
@@ -167,10 +153,7 @@ public final class XmlObjectMapper implements ObjectMapper {
     @Override
     public void writeValue(@NonNull OutputStream outputStream, @Nullable Object object) throws IOException {
         if (object == null) {
-            try (ToXmlGenerator generator = createGenerator(outputStream)) {
-                generator.writeNull();
-                generator.flush();
-            }
+            writeNullDocument(outputStream);
             return;
         }
         Argument<?> type = Argument.of(object.getClass());
@@ -225,6 +208,10 @@ public final class XmlObjectMapper implements ObjectMapper {
         return JsonStreamConfig.DEFAULT;
     }
 
+    private boolean isEmptyElementAsNull() {
+        return enabledReadFeatures.contains(XmlReadFeature.EMPTY_ELEMENT_AS_NULL);
+    }
+
     @NonNull
     private LimitingStream.RemainingLimits limits() {
         return serdeConfiguration == null
@@ -239,16 +226,24 @@ public final class XmlObjectMapper implements ObjectMapper {
         serializer.serialize(encoder, encoderContext, type, object);
     }
 
-    private FromXmlParser createParser(byte[] byteArray) {
-        return (FromXmlParser) xmlFactory.createParser(
-            tools.jackson.core.ObjectReadContext.empty(),
-            byteArray);
+    private void writeNullDocument(@NonNull OutputStream outputStream) throws IOException {
+        XMLStreamWriter xmlWriter = null;
+        try {
+            xmlWriter = xmlOutputFactory.createXMLStreamWriter(outputStream);
+            xmlWriter.writeStartDocument();
+            xmlWriter.writeEmptyElement("null");
+            xmlWriter.writeEndDocument();
+            xmlWriter.flush();
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (xmlWriter != null) {
+                try {
+                    xmlWriter.close();
+                } catch (XMLStreamException ignored) {
+                    // ignore close failures
+                }
+            }
+        }
     }
-
-    private ToXmlGenerator createGenerator(OutputStream outputStream) {
-        return (ToXmlGenerator) xmlFactory.createGenerator(
-            tools.jackson.core.ObjectWriteContext.empty(),
-            outputStream);
-    }
-
 }
