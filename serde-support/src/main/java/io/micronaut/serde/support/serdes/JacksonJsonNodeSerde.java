@@ -19,7 +19,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.JsonNodeFactory;
 import tools.jackson.databind.node.ObjectNode;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
@@ -46,12 +45,12 @@ final class JacksonJsonNodeSerde implements SerdeRegistrar<JsonNode> {
     }
 
     @Override
-    public @Nullable JsonNode deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super JsonNode> type) throws IOException {
+    public JsonNode deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super JsonNode> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 
     @Override
-    public @Nullable JsonNode deserialize(Decoder decoder, DecoderContext context, Argument<? super JsonNode> type) throws IOException {
+    public JsonNode deserialize(Decoder decoder, DecoderContext context, Argument<? super JsonNode> type) throws IOException {
         return toJacksonNode(JsonNodeFactory.instance, decoder.decodeNode());
     }
 

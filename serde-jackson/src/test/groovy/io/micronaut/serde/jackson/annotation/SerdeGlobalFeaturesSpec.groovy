@@ -16,6 +16,12 @@ class SerdeGlobalFeaturesSpec extends GlobalFeaturesSpec {
         def registry = context.getBean(SerdeRegistry)
         def specificSerializer = registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type)
         def specificDeserializer = registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type)
+        if (specificSerializer.respondsTo('getSerializer')) {
+            specificSerializer = specificSerializer.getSerializer()
+        }
+        if (specificDeserializer.respondsTo('getDeserializer')) {
+            specificDeserializer = specificDeserializer.getDeserializer()
+        }
 
         assert (specificSerializer.class.name == generatedClassName(beanType, 'Serializer')) == serializerGenerated
         assert (specificDeserializer.class.name == generatedClassName(beanType, 'Deserializer')) == deserializerGenerated

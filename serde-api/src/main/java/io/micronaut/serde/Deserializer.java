@@ -58,10 +58,10 @@ public interface Deserializer<T> {
      * @param decoder The decoder, never {@code null}
      * @param context The decoder context, never {@code null}
      * @param type The generic type to be deserialized
-     * @return The deserialized object or {@code null}
+     * @return The deserialized object, never {@code null}. Use {@link #deserializeNullable(Decoder, DecoderContext, Argument)}
+     * when the decoder value can be {@code null}.
      * @throws IOException If an error occurs during deserialization of the object
      */
-    @Nullable
     T deserialize(
             Decoder decoder,
             DecoderContext context,

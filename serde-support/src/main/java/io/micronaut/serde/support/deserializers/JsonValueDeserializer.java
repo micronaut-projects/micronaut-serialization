@@ -21,8 +21,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.exceptions.SerdeException;
-import org.jspecify.annotations.Nullable;
-
 import java.io.IOException;
 import java.util.Objects;
 
@@ -58,11 +56,4 @@ final class JsonValueDeserializer implements Deserializer<Object> {
         }
     }
 
-    @Override
-    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
 }

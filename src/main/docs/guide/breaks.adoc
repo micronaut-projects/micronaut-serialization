@@ -15,6 +15,9 @@ For reference properties this means an explicit `null` is applied to the propert
 - Explicit `null` values for primitive properties or explicitly non-null properties now fail deserialization by default.
 For primitive properties, this matches Jackson Databind's `FAIL_ON_NULL_FOR_PRIMITIVES` default. Set `micronaut.serde.deserialization.fail-on-null-for-primitives=false` to deserialize explicit `null` primitive values as the Java primitive default value instead.
 
+- The `io.micronaut.serde.Deserializer.deserialize(Decoder, DecoderContext, Argument<? super T>)` method now returns a non-null value.
+Callers that accept nullable input values should call `deserializeNullable(Decoder, DecoderContext, Argument<? super T>)` instead, and deserializers that support nullable values should override `deserializeNullable` or implement `io.micronaut.serde.util.NullableDeserializer`.
+
 ==== Deprecations
 
 - The following constructors of `io.micronaut.serde.bson.BsonJsonMapper` deprecated previously have been removed.

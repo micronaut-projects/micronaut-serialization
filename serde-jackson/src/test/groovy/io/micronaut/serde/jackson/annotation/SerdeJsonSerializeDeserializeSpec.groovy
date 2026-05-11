@@ -168,4 +168,96 @@ class ListSomethingDeserializer implements Deserializer<List<Something>> {
         cleanup:
             context.close()
     }
+
+    void 'test #scopeAnnotation serializer and deserializer bean constructors receive context and argument'() {
+        given:
+            def context = buildContext('test.ContextualValue', """
+package test;
+
+import io.micronaut.context.annotation.Primary;
+import io.micronaut.context.annotation.Parameter;
+import io.micronaut.context.annotation.Prototype;
+import io.micronaut.core.type.Argument;
+import io.micronaut.serde.Decoder;
+import io.micronaut.serde.Deserializer;
+import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Serializer;
+import io.micronaut.serde.annotation.Serdeable;
+import jakarta.inject.Singleton;
+import java.io.IOException;
+
+@Serdeable
+public record ContextualValue(String value) {
+}
+
+@Primary
+@${scopeAnnotation}
+final class ContextualValueSerializer implements Serializer<ContextualValue> {
+    private final Serializer.EncoderContext constructorContext;
+    private final Argument<? extends ContextualValue> constructorType;
+
+    ContextualValueSerializer(@Parameter Serializer.EncoderContext constructorContext,
+                              @Parameter Argument<? extends ContextualValue> constructorType) {
+        this.constructorContext = constructorContext;
+        this.constructorType = constructorType;
+    }
+
+    @Override
+    public void serialize(Encoder encoder,
+                          Serializer.EncoderContext context,
+                          Argument<? extends ContextualValue> type,
+                          ContextualValue value) throws IOException {
+        if (constructorContext != context) {
+            throw new IOException("EncoderContext was not passed to the serializer constructor");
+        }
+        if (constructorType != type) {
+            throw new IOException("Argument was not passed to the serializer constructor");
+        }
+        encoder.encodeString(type.getType().getSimpleName() + ":" + value.value());
+    }
+}
+
+@Primary
+@${scopeAnnotation}
+final class ContextualValueDeserializer implements Deserializer<ContextualValue> {
+    private final Deserializer.DecoderContext constructorContext;
+    private final Argument<? super ContextualValue> constructorType;
+
+    ContextualValueDeserializer(@Parameter Deserializer.DecoderContext constructorContext,
+                                @Parameter Argument<? super ContextualValue> constructorType) {
+        this.constructorContext = constructorContext;
+        this.constructorType = constructorType;
+    }
+
+    @Override
+    public ContextualValue deserialize(Decoder decoder,
+                                       Deserializer.DecoderContext context,
+                                       Argument<? super ContextualValue> type) throws IOException {
+        if (constructorContext != context) {
+            throw new IOException("DecoderContext was not passed to the deserializer constructor");
+        }
+        if (constructorType != type) {
+            throw new IOException("Argument was not passed to the deserializer constructor");
+        }
+        return new ContextualValue(type.getType().getSimpleName() + ":" + decoder.decodeString());
+    }
+}
+""")
+            def value = newInstance(context, 'test.ContextualValue', ['encoded'] as Object[])
+
+        expect:
+            writeJson(jsonMapper, value) == '"ContextualValue:encoded"'
+
+        when:
+            def decoded = jsonMapper.readValue('"decoded"', typeUnderTest)
+
+        then:
+            decoded.value() == 'ContextualValue:decoded'
+
+        cleanup:
+            context?.close()
+
+        where:
+            scopeAnnotation << ['Prototype', 'Singleton']
+    }
 }

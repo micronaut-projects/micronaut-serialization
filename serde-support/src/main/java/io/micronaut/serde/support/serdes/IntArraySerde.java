@@ -47,14 +47,6 @@ final class IntArraySerde extends AbstractArraySerde<int[]> {
     }
 
     @Override
-    public int @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super int[]> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends int[]> type, int[] value) throws IOException {

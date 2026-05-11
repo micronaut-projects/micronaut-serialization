@@ -129,16 +129,6 @@ final class TemporalArrayShapeSupport {
 
         abstract T deserializeArray(Decoder arrayDecoder) throws IOException;
 
-        @Override
-        public @Nullable final T deserializeNullable(Decoder decoder,
-                                           DecoderContext context,
-                                           Argument<? super T> type) throws IOException {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return deserialize(decoder, context, type);
-        }
-
         @Nullable
         @Override
         public final T getDefaultValue(DecoderContext context, Argument<? super T> type) {

@@ -58,7 +58,7 @@ public class ErrorCatchingDeserializer<T> implements Deserializer<T> {
     }
 
     @Override
-    public @Nullable T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+    public T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
         try {
             return deserializer.deserialize(decoder, context, type);
         } catch (StackOverflowError e) {

@@ -15,37 +15,37 @@
  */
 package io.micronaut.serde.util;
 
-import java.io.IOException;
-
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
+
 /**
- * Sub-interface of {@link io.micronaut.serde.Deserializer} for deserializers that allow
- * {@code null}. Deals with the decoding of {@code null} and delegates to {@link #deserializeNonNull(io.micronaut.serde.Decoder, io.micronaut.serde.Deserializer.DecoderContext, io.micronaut.core.type.Argument)}.
+ * Sub-interface of {@link Deserializer} for deserializers that allow {@code null}
+ * through {@link #deserializeNullable(Decoder, DecoderContext, Argument)}.
  *
  * @param <T> The type to deserialize
  */
 @FunctionalInterface
 public interface NullableDeserializer<T> extends Deserializer<T> {
     @Override
-    default @Nullable T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        } else {
-            return deserializeNonNull(decoder, context, type);
-        }
+    default T deserialize(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
+        return deserializeNonNull(decoder, context, type);
     }
 
     @Override
     default @Nullable T deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super T> type) throws IOException {
-        return deserialize(decoder, context, type);
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        return deserializeNonNull(decoder, context, type);
     }
 
     /**
      * A method that is invoked when the value is known not to be null.
+     *
      * @param decoder The decoder
      * @param decoderContext The decoder context
      * @param type The type

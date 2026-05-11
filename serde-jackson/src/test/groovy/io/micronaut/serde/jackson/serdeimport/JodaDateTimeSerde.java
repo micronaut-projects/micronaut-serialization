@@ -17,19 +17,19 @@ package io.micronaut.serde.jackson.serdeimport;
 
 import com.amazonaws.services.lambda.runtime.serialization.util.SerializeUtil;
 import io.micronaut.context.annotation.Requires;
-import org.jspecify.annotations.NonNull;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
-import io.micronaut.serde.util.NullableSerde;
+import io.micronaut.serde.Serde;
 import jakarta.inject.Singleton;
 import org.joda.time.DateTime;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
 @Singleton
 @Requires(classes = DateTime.class)
-public class JodaDateTimeSerde implements NullableSerde<DateTime> {
+public class JodaDateTimeSerde implements Serde<DateTime> {
 
     @Override
     public void serialize(@NonNull Encoder encoder,
@@ -41,7 +41,8 @@ public class JodaDateTimeSerde implements NullableSerde<DateTime> {
 
     @Override
     @NonNull
-    public DateTime deserializeNonNull(Decoder decoder, DecoderContext decoderContext, Argument<? super DateTime> type) throws IOException {
+    public DateTime deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super DateTime> type) throws IOException {
         return SerializeUtil.deserializeDateTime(DateTime.class, decoder.decodeString());
     }
+
 }

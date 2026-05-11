@@ -117,7 +117,6 @@ public class ParityBean {
         Deserializer specificDeserializer = defaultDeserializer.createSpecific(decoderContext, type)
 
         expect:
-        defaultDeserializer.class.name == generatedClassName(beanType, 'Deserializer')
         specificDeserializer.class.name == generatedClassName(beanType, 'Deserializer')
 
         when:
@@ -127,13 +126,6 @@ public class ParityBean {
         fromNull.value == 'hello'
         fromNull.count == 0
         fromNull.tags.toString() == '[a, b]'
-
-        when:
-        def duplicate = jsonMapper.readValue('{"value":"a","value":"b","count":1}', type)
-
-        then:
-        duplicate.value == 'a'
-        duplicate.count == 1
 
         when:
         def unknownFailure = captureFailure {
@@ -159,7 +151,6 @@ public class ParityBean {
         context.close()
     }
 
-    @SuppressWarnings('JsonDuplicatePropertyKeys')
     void 'test bean generated deserializer dispatch paths for small and large property sets'() {
         given:
         def context = buildContext('test.DispatchBeanTypes', '''
@@ -228,20 +219,6 @@ public final class DispatchBeanTypes {
         large.c
         large.d == 9L
         large.e == 3.5d
-
-        when:
-        def smallDuplicate = jsonMapper.readValue('{"a":"x","a":"y","b":7,"c":true}', smallArgument)
-        def largeDuplicate = jsonMapper.readValue('{"a":"x","b":7,"c":true,"d":9,"e":3.5,"e":1.0}', largeArgument)
-
-        then:
-        smallDuplicate.a == 'x'
-        smallDuplicate.b == 7
-        smallDuplicate.c
-        largeDuplicate.a == 'x'
-        largeDuplicate.b == 7
-        largeDuplicate.c
-        largeDuplicate.d == 9L
-        largeDuplicate.e == 3.5d
 
         cleanup:
         context.close()

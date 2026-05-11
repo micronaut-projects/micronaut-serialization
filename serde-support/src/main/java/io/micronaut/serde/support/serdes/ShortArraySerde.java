@@ -46,14 +46,6 @@ final class ShortArraySerde extends AbstractArraySerde<short[]> {
     }
 
     @Override
-    public short @Nullable [] deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super short[]> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void serialize(Encoder encoder,
                           EncoderContext context,
                           Argument<? extends short[]> type, short[] value) throws IOException {

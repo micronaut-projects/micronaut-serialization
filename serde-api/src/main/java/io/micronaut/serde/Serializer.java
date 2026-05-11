@@ -59,7 +59,7 @@ public interface Serializer<T> {
      * @param encoder The encoder to use
      * @param context The encoder context, never {@code null}
      * @param type Models the generic type of the value
-     * @param value The value, can be {@code null}
+     * @param value The value to serialize, never {@code null}. Callers should encode null values directly.
      * @throws IOException If an error occurs during serialization
      */
     void serialize(Encoder encoder,

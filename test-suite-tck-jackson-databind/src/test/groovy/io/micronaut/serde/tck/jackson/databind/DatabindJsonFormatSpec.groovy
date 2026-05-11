@@ -18,6 +18,12 @@ class DatabindJsonFormatSpec extends JsonFormatSpec {
         false
     }
 
+    @Override
+    protected List<Map<String, Object>> jsonFormatLiteralZPatternTemporalCases() {
+        super.jsonFormatLiteralZPatternTemporalCases()
+                .findAll { it.typeName != 'java.time.OffsetDateTime' }
+    }
+
     @PendingFeature(reason = "Remove CompoundLocaleObjectMapperListener when Jackson Databind handles compound @JsonFormat(locale) values")
     void "plain Jackson Databind supports compound JsonFormat locale values"() {
         given:

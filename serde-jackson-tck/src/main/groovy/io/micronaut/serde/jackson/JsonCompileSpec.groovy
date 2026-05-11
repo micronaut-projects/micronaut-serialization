@@ -131,4 +131,8 @@ abstract class JsonCompileSpec extends AbstractTypeElementSpec implements JsonSp
         // Implemented by Micronaut Serialization tests. Jackson Databind only validates behavior here.
     }
 
+    protected boolean validatesGeneratedSerdeSelection() {
+        false
+    }
+
 }

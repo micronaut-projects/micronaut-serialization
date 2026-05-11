@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.config.annotation.SerdeConfig;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -45,7 +44,7 @@ final class SubtypedPropertyObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
+    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type)
         throws IOException {
         try (DemuxingObjectDecoder.PrimedDecoder primed = DemuxingObjectDecoder.prime(decoder)) {
             Decoder typeFinder;

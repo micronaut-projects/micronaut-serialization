@@ -1,7 +1,9 @@
 package io.micronaut.serde.jackson.annotation
 
 import io.micronaut.core.type.Argument
+import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeRegistry
+import io.micronaut.serde.Serializer
 import io.micronaut.serde.jackson.JsonCompileSpec
 
 class SerdeRuntimeSelectionSpec extends JsonCompileSpec {
@@ -32,8 +34,8 @@ public record AutoShape(String name, int count) {}
         def decoded = jsonMapper.readValue(json, type)
 
         then:
-        context.findBean(runtimeSerializer.class).present
-        context.findBean(runtimeDeserializer.class).present
+        context.getBeanDefinitions(Serializer).any { it.beanType.name == generatedSerializerClass }
+        context.getBeanDefinitions(Deserializer).any { it.beanType.name == generatedDeserializerClass }
         runtimeSerializer.class.name == generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
         json == '{"name":"auto","count":7}'
@@ -99,7 +101,7 @@ public class AnyGetterShape {
         then:
         runtimeSerializer.class.name != generatedSerializerClass
         runtimeDeserializer.class.name == generatedDeserializerClass
-        context.findBean(runtimeDeserializer.class).present
+        context.getBeanDefinitions(Deserializer).any { it.beanType.name == generatedDeserializerClass }
         json == '{"name":"fallback","extra":3}'
         decoded != null
 

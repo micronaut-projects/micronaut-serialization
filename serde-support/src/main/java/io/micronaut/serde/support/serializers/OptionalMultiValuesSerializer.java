@@ -20,7 +20,6 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.value.OptionalMultiValues;
 import io.micronaut.serde.Encoder;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.serde.ObjectSerializer;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.config.SerializationConfiguration;
@@ -28,10 +27,10 @@ import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.exceptions.path.ReferencePath;
 import io.micronaut.serde.support.SerializerRegistrar;
 import io.micronaut.serde.util.CustomizableSerializer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -68,10 +67,10 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
             public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
                 for (CharSequence key : value) {
                     try {
+                        String keyName = key.toString();
                         Optional<? extends List<V>> opt = value.get(key);
                         if (opt.isPresent()) {
-                            String fieldName = key.toString();
-                            encoder.encodeKey(fieldName);
+                            encoder.encodeKey(keyName);
                             List<V> list = opt.get();
                             if (alwaysSerializeErrorsAsList) {
                                 listSerializer.serialize(
@@ -81,11 +80,16 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
                                 );
                             } else {
                                 if (list.size() == 1) {
-                                    valueSerializer.serialize(
-                                        encoder,
-                                        context,
-                                        generic, list.get(0)
-                                    );
+                                    V element = list.get(0);
+                                    if (element == null) {
+                                        encoder.encodeNull();
+                                    } else {
+                                        valueSerializer.serialize(
+                                            encoder,
+                                            context,
+                                            generic, element
+                                        );
+                                    }
                                 } else {
                                     listSerializer.serialize(
                                         encoder,
@@ -104,10 +108,8 @@ final class OptionalMultiValuesSerializer<V> implements CustomizableSerializer<O
 
             @Override
             public void serialize(Encoder encoder, EncoderContext context, Argument<? extends OptionalMultiValues<V>> type, OptionalMultiValues<V> value) throws IOException {
-                Objects.requireNonNull(value, "Values can't be null");
-
                 Encoder objectEncoder = encoder.encodeObject(type);
-                serializeInto(encoder, context, type, value);
+                serializeInto(objectEncoder, context, type, value);
                 objectEncoder.finishStructure();
             }
 

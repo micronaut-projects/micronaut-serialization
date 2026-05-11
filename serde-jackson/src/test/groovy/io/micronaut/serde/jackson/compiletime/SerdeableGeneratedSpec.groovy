@@ -2,6 +2,7 @@ package io.micronaut.serde.jackson.compiletime
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.type.Argument
+import io.micronaut.json.JsonMapper
 import io.micronaut.serde.Deserializer
 import io.micronaut.serde.SerdeIntrospections
 import io.micronaut.serde.SerdeRegistry
@@ -17,6 +18,30 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
 
         expect:
         assertEligibility(context, SourceGenGeneratedShape, true, true)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test serdeable generated serializer and deserializer are functional'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument argument = Argument.of(SourceGenGeneratedShape)
+
+        when:
+        String json = serializeToString(jsonMapper, new SourceGenGeneratedShape('Ada', 42))
+        String nullJson = serializeToString(jsonMapper, new SourceGenGeneratedShape(null, 7))
+        SourceGenGeneratedShape decoded = jsonMapper.readValue('{"name":"Ada","count":42}', argument)
+
+        then:
+        assertRegistrySelection(registry, argument, 'Serializer', true)
+        assertRegistrySelection(registry, argument, 'Deserializer', true)
+        json == '{"name":"Ada","count":42}'
+        nullJson == '{"name":null,"count":7}'
+        decoded.name() == 'Ada'
+        decoded.count() == 42
 
         cleanup:
         context.close()
@@ -51,6 +76,36 @@ class SerdeableGeneratedSpec extends JsonCompileSpec {
         expect:
         assertEligibility(context, SourceGenSkipSerializerShape, false, true)
         assertEligibility(context, SourceGenSkipDeserializerShape, true, false)
+
+        cleanup:
+        context.close()
+    }
+
+    void 'test serdeable generated directional skip generated sides are functional'() {
+        given:
+        def context = ApplicationContext.run()
+        jsonMapper = context.getBean(JsonMapper)
+        def registry = context.getBean(SerdeRegistry)
+        Argument skipSerializerArgument = Argument.of(SourceGenSkipSerializerShape)
+        Argument skipDeserializerArgument = Argument.of(SourceGenSkipDeserializerShape)
+        Argument anyGetterSkipSerializerArgument = Argument.of(SourceGenAnyGetterSkipSerializerShape)
+
+        when:
+        SourceGenSkipSerializerShape decodedSkipSerializer = jsonMapper.readValue('{"name":"Ada"}', skipSerializerArgument)
+        String skipDeserializerJson = serializeToString(jsonMapper, new SourceGenSkipDeserializerShape('Ada'))
+        SourceGenAnyGetterSkipSerializerShape decodedAnyGetterSkipSerializer = jsonMapper.readValue(
+            '{"name":"Ada","attributes":{"extra":"value"}}',
+            anyGetterSkipSerializerArgument
+        )
+
+        then:
+        assertRegistrySelection(registry, skipSerializerArgument, 'Deserializer', true)
+        assertRegistrySelection(registry, skipDeserializerArgument, 'Serializer', true)
+        assertRegistrySelection(registry, anyGetterSkipSerializerArgument, 'Deserializer', true)
+        decodedSkipSerializer.name() == 'Ada'
+        skipDeserializerJson == '{"name":"Ada"}'
+        decodedAnyGetterSkipSerializer.name == 'Ada'
+        decodedAnyGetterSkipSerializer.attributes == [extra: 'value']
 
         cleanup:
         context.close()

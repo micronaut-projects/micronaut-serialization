@@ -20,7 +20,6 @@ import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.Serde;
 import io.micronaut.serde.support.SerdeRegistrar;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -32,9 +31,9 @@ import java.nio.ByteBuffer;
 public class ByteBufferSerde implements SerdeRegistrar<ByteBuffer> {
 
     @Override
-    public @Nullable ByteBuffer deserialize(Decoder decoder,
-                                            DecoderContext context,
-                                            Argument<? super ByteBuffer> type) throws IOException {
+    public ByteBuffer deserialize(Decoder decoder,
+                                  DecoderContext context,
+                                  Argument<? super ByteBuffer> type) throws IOException {
         byte[] b = decoder.decodeBinary();
         return ByteBuffer.wrap(b);
     }

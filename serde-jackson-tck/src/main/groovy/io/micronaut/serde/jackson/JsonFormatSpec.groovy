@@ -34,6 +34,8 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 abstract class JsonFormatSpec extends JsonCompileSpec {
+    private static final String LITERAL_Z_TIMESTAMP = '2026-05-07T08:22:23Z'
+    private static final String LITERAL_Z_TIMESTAMP_JSON = '{"creationTimestamp":"' + LITERAL_Z_TIMESTAMP + '"}'
     private static final List<Map<String, String>> SHAPE_PROPERTIES = [
         [shape: 'BINARY', field: 'binaryValue'],
         [shape: 'BOOLEAN', field: 'booleanValue'],
@@ -51,6 +53,36 @@ abstract class JsonFormatSpec extends JsonCompileSpec {
 
     protected boolean supportsClassLevelJsonFormatPropagation() {
         true
+    }
+
+    protected List<Map<String, Object>> jsonFormatLiteralZPatternTemporalCases() {
+        [
+                [
+                        typeName: 'java.util.Date',
+                        expectedValue: Date.from(Instant.parse(LITERAL_Z_TIMESTAMP)),
+                        resolver: { Date d -> d.time }
+                ],
+                [
+                        typeName: 'java.sql.Timestamp',
+                        expectedValue: Timestamp.from(Instant.parse(LITERAL_Z_TIMESTAMP)),
+                        resolver: { Timestamp t -> t.toInstant() }
+                ],
+                [
+                        typeName: 'java.time.Instant',
+                        expectedValue: Instant.parse(LITERAL_Z_TIMESTAMP),
+                        resolver: { Instant i -> i }
+                ],
+                [
+                        typeName: 'java.time.OffsetDateTime',
+                        expectedValue: OffsetDateTime.parse(LITERAL_Z_TIMESTAMP),
+                        resolver: { OffsetDateTime t -> t }
+                ],
+                [
+                        typeName: 'java.time.ZonedDateTime',
+                        expectedValue: ZonedDateTime.parse(LITERAL_Z_TIMESTAMP),
+                        resolver: { ZonedDateTime t -> t.toInstant() }
+                ]
+        ]
     }
 
     void "test json format string shape for number"() {
@@ -2207,6 +2239,107 @@ class Test {
         expect:
         writeJson(jsonMapper, beanUnderTest) == '{"value":"08/09/2024"}'
         jsonMapper.readValue('{"value":"09/09/2024"}', typeUnderTest).value == LocalDate.of(2024, 9, 9)
+
+        cleanup:
+        context.close()
+    }
+
+    @Unroll
+    void "test json format literal z pattern for temporal #typeName"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    private $typeName creationTimestamp;
+    public void setCreationTimestamp($typeName creationTimestamp) {
+        this.creationTimestamp = creationTimestamp;
+    }
+    public $typeName getCreationTimestamp() {
+        return creationTimestamp;
+    }
+}
+""")
+
+        expect:
+        resolver(jsonMapper.readValue(
+            LITERAL_Z_TIMESTAMP_JSON,
+            typeUnderTest
+        ).creationTimestamp) == resolver(expectedValue)
+
+        cleanup:
+        context.close()
+
+        where:
+        variation << jsonFormatLiteralZPatternTemporalCases()
+        typeName = variation.typeName
+        expectedValue = variation.expectedValue
+        resolver = variation.resolver
+    }
+
+    void "test json format nullable delegating temporal properties"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+    private java.util.Date utilDateArray;
+    private java.sql.Date sqlDateDefault;
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "UTC")
+    private java.sql.Date sqlDatePattern;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSX", timezone = "UTC")
+    private java.sql.Timestamp sqlTimestampPattern;
+
+    public java.util.Date getUtilDateArray() {
+        return utilDateArray;
+    }
+
+    public void setUtilDateArray(java.util.Date utilDateArray) {
+        this.utilDateArray = utilDateArray;
+    }
+
+    public java.sql.Date getSqlDateDefault() {
+        return sqlDateDefault;
+    }
+
+    public void setSqlDateDefault(java.sql.Date sqlDateDefault) {
+        this.sqlDateDefault = sqlDateDefault;
+    }
+
+    public java.sql.Date getSqlDatePattern() {
+        return sqlDatePattern;
+    }
+
+    public void setSqlDatePattern(java.sql.Date sqlDatePattern) {
+        this.sqlDatePattern = sqlDatePattern;
+    }
+
+    public java.sql.Timestamp getSqlTimestampPattern() {
+        return sqlTimestampPattern;
+    }
+
+    public void setSqlTimestampPattern(java.sql.Timestamp sqlTimestampPattern) {
+        this.sqlTimestampPattern = sqlTimestampPattern;
+    }
+}
+""")
+
+        expect:
+        def value = jsonMapper.readValue('{"utilDateArray":null,"sqlDateDefault":null,"sqlDatePattern":null,"sqlTimestampPattern":null}', argumentOf(context, 'test.Test'))
+        value.utilDateArray == null
+        value.sqlDateDefault == null
+        value.sqlDatePattern == null
+        value.sqlTimestampPattern == null
 
         cleanup:
         context.close()

@@ -78,9 +78,9 @@ final class BeanSerdeSourceGenUtils {
             .invokeStatic(ARGUMENT_OF_METHOD, ExpressionDef.constant(TypeDef.erasure(argumentType)));
     }
 
-    static ExpressionDef argumentExpression(ClassElement classElement, String name) {
+    static ExpressionDef argumentExpression(ClassElement classElement, ExpressionDef name) {
         return argumentExpression(classElement)
-            .invoke(ARGUMENT_WITH_NAME_METHOD, ExpressionDef.constant(name));
+            .invoke(ARGUMENT_WITH_NAME_METHOD, name);
     }
 
     private static @Nullable ExpressionDef simpleArgumentConstantExpression(ClassElement argumentType) {
@@ -127,19 +127,6 @@ final class BeanSerdeSourceGenUtils {
             case "java.util.OptionalLong" ->
                 ClassTypeDef.of(OptionalLong.class).invokeStatic(OPTIONAL_LONG_EMPTY_METHOD);
             default -> ExpressionDef.nullValue();
-        };
-    }
-
-    static ExpressionDef primitiveDefaultValueExpression(ClassElement classElement) {
-        String name = classElement.getName();
-        return switch (name) {
-            case BOOLEAN_TYPE -> ExpressionDef.falseValue();
-            case "long" -> ExpressionDef.constant(0L);
-            case FLOAT_TYPE -> ExpressionDef.constant(0f);
-            case DOUBLE_TYPE -> ExpressionDef.constant(0d);
-            case "char" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
-            case "byte", SHORT_TYPE, "int" -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
-            default -> ExpressionDef.constant(0).cast(TypeDef.erasure(classElement));
         };
     }
 

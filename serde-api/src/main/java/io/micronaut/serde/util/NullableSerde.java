@@ -18,8 +18,9 @@ package io.micronaut.serde.util;
 import io.micronaut.serde.Serde;
 
 /**
- * Specialization of {@link io.micronaut.serde.Serde} for types that allow a value of {@code null}.
- * @param <T> Tge generic type
+ * Specialization of {@link Serde} for types that allow a value of {@code null}.
+ *
+ * @param <T> The generic type
  */
 public interface NullableSerde<T> extends Serde<T>, NullableDeserializer<T> {
 }

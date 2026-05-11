@@ -800,6 +800,178 @@ class Test {
         ctx.close()
     }
 
+    void "test setters are invoked only for assigned null properties"() {
+        if (!validatesGeneratedSerdeSelection()) {
+            return
+        }
+
+        given:
+        def ctx = buildContext('test.MethodInvocationBean', """
+package test;
+
+import io.micronaut.serde.annotation.SerdeableGenerated;
+import org.jspecify.annotations.Nullable;
+
+@SerdeableGenerated
+class MethodInvocationBean {
+    private String name = "default-name";
+    private boolean active = true;
+    private int count = 7;
+    @Nullable
+    private String nullableName = "default-nullable-name";
+    @Nullable
+    private Boolean nullableActive = Boolean.TRUE;
+    public int nameSetCalls;
+    public int activeSetCalls;
+    public int countSetCalls;
+    public int nullableNameSetCalls;
+    public int nullableActiveSetCalls;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        nameSetCalls++;
+        this.name = name;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        activeSetCalls++;
+        this.active = active;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        countSetCalls++;
+        this.count = count;
+    }
+
+    @Nullable
+    public String getNullableName() {
+        return nullableName;
+    }
+
+    public void setNullableName(@Nullable String nullableName) {
+        nullableNameSetCalls++;
+        this.nullableName = nullableName;
+    }
+
+    @Nullable
+    public Boolean getNullableActive() {
+        return nullableActive;
+    }
+
+    public void setNullableActive(@Nullable Boolean nullableActive) {
+        nullableActiveSetCalls++;
+        this.nullableActive = nullableActive;
+    }
+}
+""", true, [
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
+
+        when:
+        def missing = jsonMapper.readValue('{}', argumentOf(ctx, 'test.MethodInvocationBean'))
+
+        then:
+        assertSpecificSerdeSelection(ctx, 'test.MethodInvocationBean', true, true)
+        missing.name == 'default-name'
+        missing.active
+        missing.count == 7
+        missing.nullableName == 'default-nullable-name'
+        missing.nullableActive == Boolean.TRUE
+        missing.nameSetCalls == 0
+        missing.activeSetCalls == 0
+        missing.countSetCalls == 0
+        missing.nullableNameSetCalls == 0
+        missing.nullableActiveSetCalls == 0
+
+        when:
+        def explicitNull = jsonMapper.readValue(
+            '{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}',
+            argumentOf(ctx, 'test.MethodInvocationBean')
+        )
+
+        then:
+        explicitNull.name == null
+        explicitNull.active
+        explicitNull.count == 7
+        explicitNull.nullableName == null
+        explicitNull.nullableActive == null
+        explicitNull.nameSetCalls == 1
+        explicitNull.activeSetCalls == 0
+        explicitNull.countSetCalls == 0
+        explicitNull.nullableNameSetCalls == 1
+        explicitNull.nullableActiveSetCalls == 1
+
+        cleanup:
+        ctx?.close()
+    }
+
+    void "test field assignment preserves initialized primitive values for explicit null"() {
+        if (!validatesGeneratedSerdeSelection()) {
+            return
+        }
+
+        given:
+        def ctx = buildContext('test.FieldInvocationBean', """
+package test;
+
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+import org.jspecify.annotations.Nullable;
+
+@SerdeableGenerated
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class FieldInvocationBean {
+    String name = "default-name";
+    boolean active = true;
+    int count = 7;
+    @Nullable
+    String nullableName = "default-nullable-name";
+    @Nullable
+    Boolean nullableActive = Boolean.TRUE;
+}
+""", true, [
+            'micronaut.serde.deserialization.fail-on-null-for-primitives': false
+        ])
+
+        when:
+        def missing = jsonMapper.readValue('{}', argumentOf(ctx, 'test.FieldInvocationBean'))
+
+        then:
+        assertSpecificSerdeSelection(ctx, 'test.FieldInvocationBean', true, true)
+        missing.name == 'default-name'
+        missing.active
+        missing.count == 7
+        missing.nullableName == 'default-nullable-name'
+        missing.nullableActive == Boolean.TRUE
+
+        when:
+        def explicitNull = jsonMapper.readValue(
+            '{"name":null,"active":null,"count":null,"nullableName":null,"nullableActive":null}',
+            argumentOf(ctx, 'test.FieldInvocationBean')
+        )
+
+        then:
+        explicitNull.name == null
+        explicitNull.active
+        explicitNull.count == 7
+        explicitNull.nullableName == null
+        explicitNull.nullableActive == null
+
+        cleanup:
+        ctx?.close()
+    }
+
     void "test optional by default primitive field in constructor"() {
 
         given:

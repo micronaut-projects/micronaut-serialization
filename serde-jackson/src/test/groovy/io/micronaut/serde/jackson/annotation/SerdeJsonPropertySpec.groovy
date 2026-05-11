@@ -1,10 +1,46 @@
 package io.micronaut.serde.jackson.annotation
 
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.beans.exceptions.IntrospectionException
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.SerdeRegistry
 import io.micronaut.serde.jackson.JsonPropertySpec
 import spock.lang.PendingFeature
 
 class SerdeJsonPropertySpec extends JsonPropertySpec {
+
+    protected void assertSpecificSerdeSelection(ApplicationContext context,
+                                                String className,
+                                                boolean serializerGenerated,
+                                                boolean deserializerGenerated) {
+        Class<?> beanType = context.classLoader.loadClass(className)
+        def type = Argument.of(beanType)
+        def registry = context.getBean(SerdeRegistry)
+        def specificSerializer = registry.findSerializer(type).createSpecific(registry.newEncoderContext(Object), type)
+        def specificDeserializer = registry.findDeserializer(type).createSpecific(registry.newDecoderContext(Object), type)
+        if (specificSerializer.respondsTo('getSerializer')) {
+            specificSerializer = specificSerializer.getSerializer()
+        }
+        if (specificDeserializer.respondsTo('getDeserializer')) {
+            specificDeserializer = specificDeserializer.getDeserializer()
+        }
+
+        assert (specificSerializer.class.name == generatedClassName(beanType, 'Serializer')) == serializerGenerated
+        assert (specificDeserializer.class.name == generatedClassName(beanType, 'Deserializer')) == deserializerGenerated
+    }
+
+    protected boolean validatesGeneratedSerdeSelection() {
+        true
+    }
+
+    private static String generatedClassName(Class<?> type, String suffix) {
+        String packageName = type.package.name
+        String localName = type.name
+        if (packageName) {
+            localName = localName.substring(packageName.length() + 1)
+        }
+        "${packageName ? packageName + '.' : ''}Serde${localName.replace('.', '_').replace('$', '_')}${suffix}"
+    }
 
     def "test explicit null handling - field"() {
         given:
@@ -165,7 +201,7 @@ class Test {
             compiled.close()
     }
 
-    def "test explicit null for primitive field uses primitive default when configured"() {
+    def "test explicit null for primitive field keeps initialized value when configured"() {
         given:
             def compiled = buildContext('enumtest.Test', '''
 package enumtest;
@@ -186,7 +222,7 @@ class Test {
         when:
             def bean = jsonMapper.readValue('{"val":null}', argument)
         then:
-            bean.val == 0
+            bean.val == 10
 
         cleanup:
             compiled.close()

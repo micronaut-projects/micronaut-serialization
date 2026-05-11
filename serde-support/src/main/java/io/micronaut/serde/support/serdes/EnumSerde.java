@@ -459,8 +459,13 @@ final class EnumValueDeserializer<E extends Enum<E>> implements FormattedDeseria
     }
 
     @Override
-    public @Nullable E deserialize(Decoder decoder, DecoderContext context, Argument<? super E> type) throws IOException {
-        return transform(decoder, valueDeserializer.deserialize(decoder, context, valueType));
+    public E deserialize(Decoder decoder, DecoderContext context, Argument<? super E> type) throws IOException {
+        Object v = valueDeserializer.deserialize(decoder, context, valueType);
+        E enumValue = transform(decoder, v);
+        if (enumValue == null) {
+            throw EnumSerde.failedToDeserialize(decoder, cache, v);
+        }
+        return enumValue;
     }
 
     @Override
@@ -615,11 +620,46 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements FormattedDese
     }
 
     @Override
-    public @Nullable E deserialize(Decoder decoder, DecoderContext context, Argument<? super E> type) throws IOException {
+    public E deserialize(Decoder decoder, DecoderContext context, Argument<? super E> type) throws IOException {
         if (ordinal) {
             return deserializeOrdinal(decoder);
         }
         String value = decoder.decodeString();
+        return deserializeString(decoder, value);
+    }
+
+    @Override
+    public @Nullable E deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super E> type) throws IOException {
+        if (decoder.decodeNull()) {
+            return null;
+        }
+        if (ordinal) {
+            return deserializeOrdinalNullable(decoder);
+        }
+        String value = decoder.decodeString();
+        return deserializeStringNullable(decoder, value);
+    }
+
+    private E deserializeString(Decoder decoder, String value) throws IOException {
+        E result = cache.get(value);
+        if (result != null) {
+            return result;
+        }
+        if (acceptCaseInsensitive) {
+            for (Map.Entry<String, E> e : cache.entrySet()) {
+                if (e.getKey().equalsIgnoreCase(value)) {
+                    return e.getValue();
+                }
+            }
+        }
+        E unknown = handleUnknown();
+        if (unknown != null) {
+            return unknown;
+        }
+        throw EnumSerde.failedToDeserialize(decoder, cache, value);
+    }
+
+    private @Nullable E deserializeStringNullable(Decoder decoder, String value) throws IOException {
         E result = cache.get(value);
         if (result != null) {
             return result;
@@ -638,8 +678,28 @@ final class EnumPropertyDeserializer<E extends Enum<E>> implements FormattedDese
         throw EnumSerde.failedToDeserialize(decoder, cache, value);
     }
 
-    @Nullable
     private E deserializeOrdinal(Decoder decoder) throws IOException {
+        int ordinal = decoder.decodeInt();
+        if (ordinal >= 0 && ordinal < constants.length) {
+            return (E) constants[ordinal];
+        }
+        E unknown = handleUnknown();
+        if (unknown != null || unknownAsNull) {
+            if (unknown != null) {
+                return unknown;
+            }
+            throw EnumSerde.failedToDeserialize(decoder, cache, null);
+        }
+        throw decoder.createDeserializationException(
+            "Cannot deserialize value of type `%s` due to: ordinal index outside legal index range [0..%s]".formatted(
+                enumType,
+                constants.length - 1
+            ),
+            ordinal
+        );
+    }
+
+    private @Nullable E deserializeOrdinalNullable(Decoder decoder) throws IOException {
         int ordinal = decoder.decodeInt();
         if (ordinal >= 0 && ordinal < constants.length) {
             return (E) constants[ordinal];

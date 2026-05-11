@@ -145,24 +145,14 @@ public final class SingleElementArraySerde {
         }
 
         @Override
-        public @Nullable T deserialize(Decoder decoder,
-                                       DecoderContext context,
-                                       Argument<? super T> type) throws IOException {
+        public T deserialize(Decoder decoder,
+                             DecoderContext context,
+                             Argument<? super T> type) throws IOException {
             JsonNode node = decoder.decodeNode();
             if (!node.isArray()) {
                 node = JsonNode.createArrayNode(List.of(node));
             }
             return delegate.deserialize(JsonNodeDecoder.create(node, remainingLimits), context, type);
-        }
-
-        @Override
-        public @Nullable T deserializeNullable(Decoder decoder,
-                                               DecoderContext context,
-                                               Argument<? super T> type) throws IOException {
-            if (decoder.decodeNull()) {
-                return null;
-            }
-            return deserialize(decoder, context, type);
         }
 
         @Override

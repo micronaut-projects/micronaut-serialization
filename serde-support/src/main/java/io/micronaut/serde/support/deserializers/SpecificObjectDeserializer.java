@@ -67,22 +67,14 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
     }
 
     @Override
-    public @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
+    public Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type) throws IOException {
         BeanDeserializer deserializer = newBeanDeserializer(null, deserBean, conf, false);
         deserializer.init(decoderContext);
         if (deserBean.externalProperties == null) {
-            return deserialize(decoder, decoderContext, type, deserializer);
+            return requireNonNull(deserialize(decoder, decoderContext, type, deserializer), type);
         } else {
-            return deserializeAwaitForExternalProperties(decoder, decoderContext, type, deserializer);
+            return requireNonNull(deserializeAwaitForExternalProperties(decoder, decoderContext, type, deserializer), type);
         }
-    }
-
-    @Override
-    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
     }
 
     @Override
@@ -94,6 +86,13 @@ final class SpecificObjectDeserializer implements UpdatingDeserializer<Object> {
         } else {
             deserializeAwaitForExternalProperties(decoder, decoderContext, type, deserializer);
         }
+    }
+
+    private static Object requireNonNull(@Nullable Object value, Argument<? super Object> type) throws SerdeException {
+        if (value == null) {
+            throw new SerdeException("Null value encountered during deserialization of type: " + type);
+        }
+        return value;
     }
 
     private @Nullable Object deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> type, BeanDeserializer beanDeserializer) throws IOException {

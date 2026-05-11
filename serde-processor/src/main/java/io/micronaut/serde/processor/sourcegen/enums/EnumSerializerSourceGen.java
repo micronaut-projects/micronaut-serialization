@@ -17,6 +17,7 @@ package io.micronaut.serde.processor.sourcegen.enums;
 
 import io.micronaut.core.reflect.ReflectionUtils;
 import io.micronaut.core.type.Argument;
+import io.micronaut.context.annotation.Prototype;
 import io.micronaut.inject.ast.ClassElement;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.FormatConfiguration;
@@ -35,13 +36,12 @@ import io.micronaut.sourcegen.model.StatementDef;
 import io.micronaut.sourcegen.model.TypeDef;
 import io.micronaut.sourcegen.model.VariableDef;
 
-import javax.lang.model.element.Modifier;
 import javax.annotation.processing.Generated;
+import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.inject.Singleton;
 
 /**
  * Generates source serializers for enum types.
@@ -52,7 +52,6 @@ public final class EnumSerializerSourceGen {
     private static final String GENERATED_VALUE_MEMBER = "value";
 
     private static final Method ENCODE_STRING_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeString", String.class);
-    private static final Method ENCODE_NULL_METHOD = ReflectionUtils.getRequiredMethod(Encoder.class, "encodeNull");
     private static final Method ENUM_NAME_METHOD = ReflectionUtils.getRequiredMethod(Enum.class, "name");
     private static final Method RUNTIME_FALLBACK_FORMATTED_SERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeFallbackUtil.class,
@@ -73,10 +72,10 @@ public final class EnumSerializerSourceGen {
         TypeDef enumTypeDef = TypeDef.of(element);
         return ClassDef.builder(SerdeSourceGenClassNaming.generatedSerializerClassName(element))
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-            .addAnnotation(Singleton.class)
+            .addAnnotation(Prototype.class)
             .addAnnotation(AnnotationDef.builder(Generated.class)
                 .addMember(GENERATED_VALUE_MEMBER, "Micronaut")
-                .build())
+            .build())
             .addSuperinterface(TypeDef.parameterized(FormattedSerializer.class, enumTypeDef))
             .addSuperinterface(TypeDef.parameterized(ObjectSerializer.class, enumTypeDef))
             .addMethod(generateCreateSpecificMethod(enumTypeDef))
@@ -133,15 +132,9 @@ public final class EnumSerializerSourceGen {
             .addParameter("type", TypeDef.of(Argument.class))
             .addParameter(VALUE_PARAMETER, enumTypeDef)
             .addThrows(TypeDef.of(IOException.class))
-            .build((aThis, methodParameters) -> {
-                VariableDef.MethodParameter encoder = methodParameters.get(0);
-                VariableDef.MethodParameter value = methodParameters.get(3);
-
-                return value.isNull().ifTrue(
-                    encoder.invoke(ENCODE_NULL_METHOD),
-                    StatementDef.multi(serializeStatements(encoder, value, enumSerdeShape))
-                );
-            });
+            .build((aThis, methodParameters) -> StatementDef.multi(
+                serializeStatements(methodParameters.get(0), methodParameters.get(3), enumSerdeShape)
+            ));
     }
 
     private MethodDef generateSerializeIntoMethod(TypeDef enumTypeDef, EnumSerdeShape enumSerdeShape) {

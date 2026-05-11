@@ -23,6 +23,7 @@ import io.micronaut.serde.exceptions.SerdeException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * A wrapped object deserializer.
@@ -46,8 +47,8 @@ final class WrappedObjectDeserializer implements Deserializer<Object> {
     }
 
     @Override
-    public @Nullable Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-        return deserialize(decoder, context, type, false);
+    public Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
+        return Objects.requireNonNull(deserialize(decoder, context, type, false));
     }
 
     @Override

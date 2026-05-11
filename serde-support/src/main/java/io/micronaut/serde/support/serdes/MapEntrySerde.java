@@ -84,9 +84,9 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
     }
 
     @Override
-    public Map.@Nullable Entry<?, ?> deserialize(Decoder decoder,
-                                                 DecoderContext context,
-                                                 Argument<? super Map.Entry<?, ?>> type) throws IOException {
+    public Map.Entry<?, ?> deserialize(Decoder decoder,
+                                       DecoderContext context,
+                                       Argument<? super Map.Entry<?, ?>> type) throws IOException {
         return createSpecific(context, type).deserialize(decoder, context, type);
     }
 
@@ -241,9 +241,9 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public @Nullable T deserialize(Decoder decoder,
-                                       DecoderContext context,
-                                       Argument<? super T> type) throws IOException {
+        public T deserialize(Decoder decoder,
+                             DecoderContext context,
+                             Argument<? super T> type) throws IOException {
             Object key = null;
             Object value = null;
             try (Decoder objectDecoder = decoder.decodeObject(type)) {
@@ -270,14 +270,14 @@ final class MapEntrySerde implements FormattedSerde<Map.Entry<?, ?>>, SerdeRegis
         }
 
         @Override
-        public @Nullable T deserialize(Decoder decoder,
-                                       DecoderContext context,
-                                       Argument<? super T> type) throws IOException {
+        public T deserialize(Decoder decoder,
+                             DecoderContext context,
+                             Argument<? super T> type) throws IOException {
             Decoder objectDecoder = decoder.decodeObject(type);
             String key = objectDecoder.decodeKey();
             if (key == null) {
                 objectDecoder.finishStructure();
-                return null;
+                throw new SerdeException("Missing map entry key");
             }
             Object convertedKey;
             try {

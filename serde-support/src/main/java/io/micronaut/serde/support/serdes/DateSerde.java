@@ -27,6 +27,7 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
 import io.micronaut.serde.support.util.SerdeFeatures;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -151,16 +152,26 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
     private Deserializer<Date> createSpecificDeserializer(Argument<Instant> argument,
                                                           Deserializer<Instant> specific) {
         if (specific != instantSerde) {
-            return (decoder, subContext, type) -> {
-                final Instant i = specific.deserialize(
-                    decoder,
-                    subContext,
-                    argument
-                );
-                if (i != null) {
-                    return Date.from(i);
+            return new Deserializer<>() {
+                @Override
+                public Date deserialize(Decoder decoder, DecoderContext subContext, Argument<? super Date> type) throws IOException {
+                    final Instant instant = specific.deserialize(
+                        decoder,
+                        subContext,
+                        argument
+                    );
+                    return Date.from(instant);
                 }
-                return null;
+
+                @Override
+                public @Nullable Date deserializeNullable(Decoder decoder, DecoderContext subContext, Argument<? super Date> type) throws IOException {
+                    final Instant instant = specific.deserializeNullable(
+                        decoder,
+                        subContext,
+                        argument
+                    );
+                    return instant == null ? null : Date.from(instant);
+                }
             };
         }
         return this;
@@ -179,6 +190,17 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
             decoderContext,
             INSTANT_ARGUMENT
         ));
+    }
+
+    @Override
+    public @Nullable Date deserializeNullable(Decoder decoder, DecoderContext decoderContext, Argument<? super Date> type)
+        throws IOException {
+        Instant instant = instantSerde.deserializeNullable(
+            decoder,
+            decoderContext,
+            INSTANT_ARGUMENT
+        );
+        return instant == null ? null : Date.from(instant);
     }
 
     @Override

@@ -52,7 +52,7 @@ final class OptionalIntSerde implements SerdeRegistrar<OptionalInt> {
     }
 
     @Override
-    public @Nullable OptionalInt deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalInt> type) throws IOException {
+    public OptionalInt deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super OptionalInt> type) throws IOException {
         return deserialize(decoder, context, type);
     }
 

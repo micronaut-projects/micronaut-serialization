@@ -74,14 +74,6 @@ final class SimpleObjectDeserializer implements Deserializer<Object>, UpdatingDe
     }
 
     @Override
-    public @Nullable Object deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-        if (decoder.decodeNull()) {
-            return null;
-        }
-        return deserialize(decoder, context, type);
-    }
-
-    @Override
     public void deserializeInto(Decoder decoder, DecoderContext decoderContext, Argument<? super Object> beanType, Object beanInstance)
             throws IOException {
         Decoder objectDecoder = decoder.decodeObject(beanType);
