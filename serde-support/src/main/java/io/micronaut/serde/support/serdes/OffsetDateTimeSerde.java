@@ -22,10 +22,12 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
 import org.jspecify.annotations.Nullable;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
 import java.util.Set;
 
@@ -33,6 +35,22 @@ import java.util.Set;
  * Serde for OffsetDateTime.
  */
 public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<OffsetDateTime> implements SerdeRegistrar<OffsetDateTime> {
+    private static final TemporalQuery<OffsetDateTime> QUERY = temporal -> {
+        try {
+            return OffsetDateTime.from(temporal);
+        } catch (DateTimeException e) {
+            ZoneId zone = temporal.query(TemporalQueries.zone());
+            if (zone != null) {
+                try {
+                    return OffsetDateTime.ofInstant(Instant.from(temporal), zone);
+                } catch (DateTimeException fallbackException) {
+                    e.addSuppressed(fallbackException);
+                }
+            }
+            throw e;
+        }
+    };
+
     @Nullable
     private final ZoneId adjustTimeZone;
 
@@ -65,7 +83,7 @@ public final class OffsetDateTimeSerde extends NumericSupportTemporalSerde<Offse
 
     @Override
     public TemporalQuery<OffsetDateTime> query() {
-        return OffsetDateTime::from;
+        return QUERY;
     }
 
     @Override

@@ -2212,6 +2212,46 @@ class Test {
         context.close()
     }
 
+    @Unroll
+    void "test json format literal z pattern for temporal #typeName"() {
+        given:
+        def context = buildContext('test.Test', """
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+@Serdeable
+class Test {
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
+    private $typeName creationTimestamp;
+    public void setCreationTimestamp($typeName creationTimestamp) {
+        this.creationTimestamp = creationTimestamp;
+    }
+    public $typeName getCreationTimestamp() {
+        return creationTimestamp;
+    }
+}
+""")
+
+        expect:
+        resolver(jsonMapper.readValue(
+            '{"creationTimestamp":"2026-05-07T08:22:23Z"}',
+            typeUnderTest
+        ).creationTimestamp) == resolver(expectedValue)
+
+        cleanup:
+        context.close()
+
+        where:
+        typeName                   | expectedValue                                                          | resolver
+        'java.util.Date'           | Date.from(Instant.parse('2026-05-07T08:22:23Z'))                       | { Date d -> d.time }
+        'java.sql.Timestamp'       | Timestamp.from(Instant.parse('2026-05-07T08:22:23Z'))                  | { Timestamp t -> t.toInstant() }
+        'java.time.Instant'        | Instant.parse('2026-05-07T08:22:23Z')                                  | { Instant i -> i }
+        'java.time.OffsetDateTime' | OffsetDateTime.parse('2026-05-07T08:22:23Z')                           | { OffsetDateTime t -> t }
+        'java.time.ZonedDateTime'  | ZonedDateTime.parse('2026-05-07T08:22:23Z')                            | { ZonedDateTime t -> t.toInstant() }
+    }
+
     void "test json format nullable delegating temporal properties"() {
         given:
         def context = buildContext('test.Test', """

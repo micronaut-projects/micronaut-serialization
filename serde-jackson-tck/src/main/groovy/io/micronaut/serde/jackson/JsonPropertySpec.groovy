@@ -913,7 +913,7 @@ class MethodInvocationBean {
         explicitNull.nullableActiveSetCalls == 1
 
         cleanup:
-        ctx.close()
+        ctx?.close()
     }
 
     void "test field assignment preserves initialized primitive values for explicit null"() {
@@ -969,7 +969,7 @@ class FieldInvocationBean {
         explicitNull.nullableActive == null
 
         cleanup:
-        ctx.close()
+        ctx?.close()
     }
 
     void "test optional by default primitive field in constructor"() {

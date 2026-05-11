@@ -23,10 +23,12 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
 import org.jspecify.annotations.Nullable;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
 import java.util.Set;
 
@@ -38,6 +40,22 @@ import java.util.Set;
 public final class ZonedDateTimeSerde
     extends NumericSupportTemporalSerde<ZonedDateTime>
         implements TemporalSerde<ZonedDateTime>, SerdeRegistrar<ZonedDateTime> {
+    private static final TemporalQuery<ZonedDateTime> QUERY = temporal -> {
+        try {
+            return ZonedDateTime.from(temporal);
+        } catch (DateTimeException e) {
+            ZoneId zone = temporal.query(TemporalQueries.zone());
+            if (zone != null) {
+                try {
+                    return ZonedDateTime.ofInstant(Instant.from(temporal), zone);
+                } catch (DateTimeException fallbackException) {
+                    e.addSuppressed(fallbackException);
+                }
+            }
+            throw e;
+        }
+    };
+
     @Nullable
     private final ZoneId adjustTimeZone;
 
@@ -65,7 +83,7 @@ public final class ZonedDateTimeSerde
 
     @Override
     public TemporalQuery<ZonedDateTime> query() {
-        return ZonedDateTime::from;
+        return QUERY;
     }
 
     @Override
