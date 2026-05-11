@@ -80,13 +80,13 @@ loadScripts(document, 'script');</script>
 <section class="class-description" id="class-description">
 <dl class="notes">
 <dt>All Implemented Interfaces:</dt>
-<dd><code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
+<dd><code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
 </dl>
 <hr>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public final class </span><span class="element-name type-name-label">CustomizedObjectArraySerializer</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>
-implements <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</span></div>
+implements <a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</span></div>
 <div class="block">Deserializer for object arrays.</div>
 <dl class="notes">
 <dt>Since:</dt>
@@ -142,7 +142,7 @@ implements <a href="../../Serializer.html" title="interface in io.micronaut.serd
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,java.lang.Object%5B%5D)" class="member-name-link">serialize</a><wbr>(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
  <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&nbsp;value)</code></div>
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&nbsp;value)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Serializes the given value using the passed <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 </div>
@@ -190,18 +190,18 @@ implements <a href="../../Serializer.html" title="interface in io.micronaut.serd
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">serialize</span><wbr><span class="parameters">(<a href="../../Encoder.html" title="interface in io.micronaut.serde">Encoder</a>&nbsp;encoder,
  <a href="../../Serializer.EncoderContext.html" title="interface in io.micronaut.serde">Serializer.EncoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;? extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;&nbsp;type,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&nbsp;value)</span>
+ @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&nbsp;value)</span>
                throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
 <div class="block"><span class="description-from-type-label">Description copied from interface:&nbsp;<code><a href="../../Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">Serializer</a></code></span></div>
 <div class="block">Serializes the given value using the passed <a href="../../Encoder.html" title="interface in io.micronaut.serde"><code>Encoder</code></a>.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../../Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
+<dd><code><a href="../../Serializer.html#serialize(io.micronaut.serde.Encoder,io.micronaut.serde.Serializer.EncoderContext,io.micronaut.core.type.Argument,T)">serialize</a></code>&nbsp;in interface&nbsp;<code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
 <dt>Parameters:</dt>
 <dd><code>encoder</code> - The encoder to use</dd>
 <dd><code>context</code> - The encoder context, never <code>null</code></dd>
 <dd><code>type</code> - Models the generic type of the value</dd>
-<dd><code>value</code> - The value, can be <code>null</code></dd>
+<dd><code>value</code> - The value to serialize, never <code>null</code>. Callers should encode null values directly.</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during serialization</dd>
 </dl>
@@ -218,7 +218,7 @@ implements <a href="../../Serializer.html" title="interface in io.micronaut.serd
 <div class="block">Used for <code>JsonInclude.Include#NON_EMPTY</code> checking.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="../../Serializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)">isEmpty</a></code>&nbsp;in interface&nbsp;<code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
+<dd><code><a href="../../Serializer.html#isEmpty(io.micronaut.serde.Serializer.EncoderContext,T)">isEmpty</a></code>&nbsp;in interface&nbsp;<code><a href="../../Serializer.html" title="interface in io.micronaut.serde">Serializer</a>&lt;@Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>[]&gt;</code></dd>
 <dt>Parameters:</dt>
 <dd><code>context</code> - The encoder context</dd>
 <dd><code>value</code> - The check to check</dd>

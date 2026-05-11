@@ -53,19 +53,20 @@ loadScripts(document, 'script');</script>
 <div class="toc-header">Contents&nbsp;<input type="text" class="filter-input" disabled placeholder="Filter contents (type .)" aria-label="Filter table of contents" autocomplete="off" spellcheck="false"><input type="reset" class="reset-filter" disabled tabindex="-1" value="Reset"></div>
 <ol class="toc-list" tabindex="-1">
 <li><a href="#" tabindex="0">Description</a></li>
+<li><a href="#nested-class-summary" tabindex="0">Nested Class Summary</a></li>
 <li><a href="#method-summary" tabindex="0">Method Summary</a></li>
 <li><a href="#method-detail" tabindex="0">Method Details</a>
 <ol class="toc-list">
-<li><a href="#unknownProperty(java.lang.String,io.micronaut.core.type.Argument)" tabindex="0">unknownProperty(String, Argument)</a></li>
-<li><a href="#duplicateProperty(java.lang.String,io.micronaut.core.type.Argument)" tabindex="0">duplicateProperty(String, Argument)</a></li>
+<li><a href="#unknownProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" tabindex="0">unknownProperty(Argument, Argument)</a></li>
+<li><a href="#duplicateProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" tabindex="0">duplicateProperty(Argument, Argument)</a></li>
 <li><a href="#unknownEnumValue(io.micronaut.core.type.Argument,java.lang.String)" tabindex="0">unknownEnumValue(Argument, String)</a></li>
 <li><a href="#handleUnknownEnumValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.String)" tabindex="0">handleUnknownEnumValue(Deserializer.DecoderContext, Argument, String)</a></li>
-<li><a href="#handleUnknownProperty(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,java.lang.String,io.micronaut.core.type.Argument)" tabindex="0">handleUnknownProperty(Decoder, Deserializer.DecoderContext, String, Argument)</a></li>
 <li><a href="#nullValue(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" tabindex="0">nullValue(Argument, Argument)</a></li>
 <li><a href="#failOnNullForPrimitives(io.micronaut.serde.Deserializer.DecoderContext)" tabindex="0">failOnNullForPrimitives(Deserializer.DecoderContext)</a></li>
-<li><a href="#checkStrictNullableConstructorParameter(io.micronaut.serde.Deserializer.DecoderContext,java.lang.Object,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" tabindex="0">checkStrictNullableConstructorParameter(Deserializer.DecoderContext, Object, Argument, String, Argument)</a></li>
-<li><a href="#withPropertyPath(io.micronaut.serde.exceptions.SerdeException,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" tabindex="0">withPropertyPath(SerdeException, Argument, String, Argument)</a></li>
-<li><a href="#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" tabindex="0">withPropertyPath(Throwable, Argument, String, Argument)</a></li>
+<li><a href="#ignoreUnknown(io.micronaut.serde.Deserializer.DecoderContext)" tabindex="0">ignoreUnknown(Deserializer.DecoderContext)</a></li>
+<li><a href="#strictNullable(io.micronaut.serde.Deserializer.DecoderContext)" tabindex="0">strictNullable(Deserializer.DecoderContext)</a></li>
+<li><a href="#strictNullableConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" tabindex="0">strictNullableConstructorParameter(Argument, Argument)</a></li>
+<li><a href="#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" tabindex="0">withPropertyPath(Throwable, Argument, Argument)</a></li>
 </ol>
 </li>
 </ol>
@@ -89,6 +90,23 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Class</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" class="type-name-link" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Result of a generated deserializer property dispatch.</div>
+</div>
+</div>
+</section>
+</li>
 <!-- ========== METHOD SUMMARY =========== -->
 <li>
 <section class="method-summary" id="method-summary">
@@ -100,71 +118,61 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#checkStrictNullableConstructorParameter(io.micronaut.serde.Deserializer.DecoderContext,java.lang.Object,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">checkStrictNullableConstructorParameter</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#duplicateProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">duplicateProperty</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Checks a constructor argument value against strict nullable deserialization.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#duplicateProperty(java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">duplicateProperty</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for a duplicate property and enriches it with the property path.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#failOnNullForPrimitives(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">failOnNullForPrimitives</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#failOnNullForPrimitives(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">failOnNullForPrimitives</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Whether primitive values should reject explicit null input.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;E extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Enum.html" title="class or interface in java.lang" class="external-link">Enum</a>&lt;E&gt;&gt;<br>@Nullable E</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#handleUnknownEnumValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">handleUnknownEnumValue</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;E extends <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Enum.html" title="class or interface in java.lang" class="external-link">Enum</a>&lt;E&gt;&gt;<br>@Nullable E</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#handleUnknownEnumValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">handleUnknownEnumValue</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
  io.micronaut.core.type.Argument&lt;E&gt;&nbsp;enumType,
  <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Handles an unknown enum value according to deserialization configuration.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#handleUnknownProperty(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">handleUnknownProperty</a><wbr>(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
- <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Handles an unknown property according to deserialization configuration.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#nullValue(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">nullValue</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#ignoreUnknown(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">ignoreUnknown</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Whether unknown properties should be skipped.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#nullValue(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">nullValue</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Creates an exception for a null value assigned to a property that cannot accept null.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unknownEnumValue(io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">unknownEnumValue</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;enumType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown enum value.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unknownProperty(java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">unknownProperty</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType)</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#strictNullable(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">strictNullable</a><wbr>(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown property and enriches it with the property path.</div>
+<div class="block">Whether constructor arguments should reject missing or explicit null values.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#withPropertyPath(io.micronaut.serde.exceptions.SerdeException,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath</a><wbr>(<a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a>&nbsp;exception,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#strictNullableConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">strictNullableConstructorParameter</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Appends a property path segment to an existing <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a>.</div>
+<div class="block">Creates an exception for a constructor parameter rejected by strict nullable deserialization.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link">Throwable</a>&nbsp;exception,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unknownEnumValue(io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">unknownEnumValue</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;enumType,
+ <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;value)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown enum value.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unknownProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">unknownProperty</a><wbr>(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown property and enriches it with the property path.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link">Throwable</a>&nbsp;exception,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Converts any <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link"><code>Throwable</code></a> into a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> and appends a property path segment.</div>
@@ -187,16 +195,16 @@ loadScripts(document, 'script');</script>
 <h2>Method Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="unknownProperty(java.lang.String,io.micronaut.core.type.Argument)">
+<section class="detail" id="unknownProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)">
 <h3>unknownProperty</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">unknownProperty</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">unknownProperty</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</span></div>
 <div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown property and enriches it with the property path.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>propertyName</code> - The unknown property name.</dd>
 <dd><code>beanType</code> - The declaring bean argument.</dd>
+<dd><code>propertyArgument</code> - The property argument.</dd>
 <dt>Returns:</dt>
 <dd>The configured exception.</dd>
 </dl>
@@ -204,16 +212,16 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="duplicateProperty(java.lang.String,io.micronaut.core.type.Argument)">
+<section class="detail" id="duplicateProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)">
 <h3>duplicateProperty</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">duplicateProperty</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">duplicateProperty</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</span></div>
 <div class="block">Creates a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for a duplicate property and enriches it with the property path.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>propertyName</code> - The duplicate property name.</dd>
 <dd><code>beanType</code> - The declaring bean argument.</dd>
+<dd><code>propertyArgument</code> - The property argument.</dd>
 <dt>Returns:</dt>
 <dd>The configured exception.</dd>
 </dl>
@@ -264,28 +272,6 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="handleUnknownProperty(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,java.lang.String,io.micronaut.core.type.Argument)">
-<h3>handleUnknownProperty</h3>
-<div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">handleUnknownProperty</span><wbr><span class="parameters">(<a href="../Decoder.html" title="interface in io.micronaut.serde">Decoder</a>&nbsp;decoder,
- <a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType)</span>
-                                  throws <span class="exceptions"><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></span></div>
-<div class="block">Handles an unknown property according to deserialization configuration.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>decoder</code> - The decoder currently positioned on the unknown value.</dd>
-<dd><code>context</code> - The decoder context.</dd>
-<dd><code>propertyName</code> - The unknown property name.</dd>
-<dd><code>beanType</code> - The declaring bean argument.</dd>
-<dt>Throws:</dt>
-<dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If skipping the value fails.</dd>
-</dl>
-</div>
-</section>
-</li>
-<li>
 <section class="detail" id="nullValue(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)">
 <h3>nullValue</h3>
 <div class="horizontal-scroll">
@@ -322,25 +308,16 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="checkStrictNullableConstructorParameter(io.micronaut.serde.Deserializer.DecoderContext,java.lang.Object,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)">
-<h3>checkStrictNullableConstructorParameter</h3>
+<section class="detail" id="ignoreUnknown(io.micronaut.serde.Deserializer.DecoderContext)">
+<h3>ignoreUnknown</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">checkStrictNullableConstructorParameter</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context,
- @Nullable <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&nbsp;value,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</span>
-                                                    throws <span class="exceptions"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span></div>
-<div class="block">Checks a constructor argument value against strict nullable deserialization.</div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">ignoreUnknown</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</span></div>
+<div class="block">Whether unknown properties should be skipped.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>context</code> - The decoder context.</dd>
-<dd><code>value</code> - The constructor argument value.</dd>
-<dd><code>beanType</code> - The declaring bean argument.</dd>
-<dd><code>propertyName</code> - The property name.</dd>
-<dd><code>propertyArgument</code> - The property argument.</dd>
-<dt>Throws:</dt>
-<dd><code><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></code> - If strict nullable deserialization rejects the value.</dd>
+<dt>Returns:</dt>
+<dd><code>true</code> if unknown properties should be ignored</dd>
 <dt>Since:</dt>
 <dd>3.0</dd>
 </dl>
@@ -348,40 +325,53 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="withPropertyPath(io.micronaut.serde.exceptions.SerdeException,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)">
-<h3>withPropertyPath</h3>
+<section class="detail" id="strictNullable(io.micronaut.serde.Deserializer.DecoderContext)">
+<h3>strictNullable</h3>
 <div class="horizontal-scroll">
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">withPropertyPath</span><wbr><span class="parameters">(<a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a>&nbsp;exception,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
- io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</span></div>
-<div class="block">Appends a property path segment to an existing <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a>.</div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">strictNullable</span><wbr><span class="parameters">(<a href="../Deserializer.DecoderContext.html" title="interface in io.micronaut.serde">Deserializer.DecoderContext</a>&nbsp;context)</span></div>
+<div class="block">Whether constructor arguments should reject missing or explicit null values.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>exception</code> - The exception to enrich.</dd>
-<dd><code>beanType</code> - The declaring bean argument.</dd>
-<dd><code>propertyName</code> - The property name.</dd>
-<dd><code>propertyArgument</code> - The property argument.</dd>
+<dd><code>context</code> - The decoder context.</dd>
 <dt>Returns:</dt>
-<dd>The same exception instance.</dd>
+<dd><code>true</code> if strict nullable deserialization is enabled</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
 </dl>
 </div>
 </section>
 </li>
 <li>
-<section class="detail" id="withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)">
+<section class="detail" id="strictNullableConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)">
+<h3>strictNullableConstructorParameter</h3>
+<div class="horizontal-scroll">
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">strictNullableConstructorParameter</span><wbr><span class="parameters">(io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
+ io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</span></div>
+<div class="block">Creates an exception for a constructor parameter rejected by strict nullable deserialization.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>beanType</code> - The declaring bean argument.</dd>
+<dd><code>propertyArgument</code> - The property argument.</dd>
+<dt>Returns:</dt>
+<dd>The configured exception.</dd>
+<dt>Since:</dt>
+<dd>3.0</dd>
+</dl>
+</div>
+</section>
+</li>
+<li>
+<section class="detail" id="withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)">
 <h3>withPropertyPath</h3>
 <div class="horizontal-scroll">
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions">SerdeException</a></span>&nbsp;<span class="element-name">withPropertyPath</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link">Throwable</a>&nbsp;exception,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;beanType,
- <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;propertyName,
  io.micronaut.core.type.Argument&lt;?&gt;&nbsp;propertyArgument)</span></div>
 <div class="block">Converts any <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link"><code>Throwable</code></a> into a <a href="../exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> and appends a property path segment.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>exception</code> - The original exception.</dd>
 <dd><code>beanType</code> - The declaring bean argument.</dd>
-<dd><code>propertyName</code> - The property name.</dd>
 <dd><code>propertyArgument</code> - The property argument.</dd>
 <dt>Returns:</dt>
 <dd>A serde exception enriched with property path information.</dd>

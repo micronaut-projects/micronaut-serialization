@@ -170,7 +170,8 @@ extends <a href="../Deserializer.html" title="interface in io.micronaut.serde">D
 <dd><code>context</code> - The decoder context, never <code>null</code></dd>
 <dd><code>type</code> - The generic type to be deserialized</dd>
 <dt>Returns:</dt>
-<dd>The deserialized object or <code>null</code></dd>
+<dd>The deserialized object, never <code>null</code>. Use <a href="../Deserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)"><code>Deserializer.deserializeNullable(Decoder, DecoderContext, Argument)</code></a>
+when the decoder value can be <code>null</code>.</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during deserialization of the object</dd>
 </dl>

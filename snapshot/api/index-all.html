@@ -525,10 +525,6 @@ independent of value of the property.</div>
 </dd>
 <dt><a href="io/micronaut/serde/support/serdes/Serdes.html#CHARSET_SERDE" class="member-name-link">CHARSET_SERDE</a> - Static variable in class io.micronaut.serde.support.serdes.<a href="io/micronaut/serde/support/serdes/Serdes.html" title="class in io.micronaut.serde.support.serdes">Serdes</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#checkStrictNullableConstructorParameter(io.micronaut.serde.Deserializer.DecoderContext,java.lang.Object,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">checkStrictNullableConstructorParameter(Deserializer.DecoderContext, Object, Argument, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
-<dd>
-<div class="block">Checks a constructor argument value against strict nullable deserialization.</div>
-</dd>
 <dt><a href="io/micronaut/serde/LimitingStream.html#childLimits()" class="member-name-link">childLimits()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/LimitingStream.html" title="class in io.micronaut.serde">LimitingStream</a></dt>
 <dd>
 <div class="block">Get the limits of a new child encoder.</div>
@@ -1510,6 +1506,8 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Deserializes from the current state of the <a href="io/micronaut/serde/Decoder.html" title="interface in io.micronaut.serde"><code>Decoder</code></a> an object of type <a href="io/micronaut/serde/Deserializer.html#type-param-T" title="type parameter in Deserializer"><code>T</code></a>.</div>
 </dd>
+<dt><a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable(Decoder, Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.oracle.jdbc.json.serde.<a href="io/micronaut/serde/oracle/jdbc/json/serde/AbstractOracleJsonSerde.html" title="class in io.micronaut.serde.oracle.jdbc.json.serde">AbstractOracleJsonSerde</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/deserializers/ErrorCatchingDeserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable(Decoder, Deserializer.DecoderContext, Argument)</a> - Method in class io.micronaut.serde.support.deserializers.<a href="io/micronaut/serde/support/deserializers/ErrorCatchingDeserializer.html" title="class in io.micronaut.serde.support.deserializers">ErrorCatchingDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/util/CustomizableDeserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)" class="member-name-link">deserializeNullable(Decoder, Deserializer.DecoderContext, Argument)</a> - Method in interface io.micronaut.serde.util.<a href="io/micronaut/serde/util/CustomizableDeserializer.html" title="interface in io.micronaut.serde.util">CustomizableDeserializer</a></dt>
@@ -1646,7 +1644,11 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Creates an instance of a <code>Dummy</code> record class.</div>
 </dd>
-<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#duplicateProperty(java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">duplicateProperty(String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html#DUPLICATE" class="member-name-link">DUPLICATE</a> - Enum constant in enum class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></dt>
+<dd>
+<div class="block">The property was already handled.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#duplicateProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">duplicateProperty(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Creates a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for a duplicate property and enriches it with the property path.</div>
 </dd>
@@ -2307,6 +2309,10 @@ which looks up instrospections from <code>BeanIntrospector.SHARED</code>.</div>
 <dd>
 <div class="block">Exception helpers used by generated serdes.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" class="type-name-link" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a> - Enum Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
+<dd>
+<div class="block">Result of a generated deserializer property dispatch.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeFallbackUtil.html" class="type-name-link" title="class in io.micronaut.serde.util">GeneratedSerdeFallbackUtil</a> - Class in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
 <div class="block">Fallback helpers used by generated serdes when a runtime object serde is required.</div>
@@ -2929,13 +2935,13 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 </dl>
 <h2 class="title" id="I:H">H</h2>
 <dl class="index">
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html#HANDLED" class="member-name-link">HANDLED</a> - Enum constant in enum class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></dt>
+<dd>
+<div class="block">The property was handled successfully.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#handleUnknownEnumValue(io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">handleUnknownEnumValue(Deserializer.DecoderContext, Argument, String)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Handles an unknown enum value according to deserialization configuration.</div>
-</dd>
-<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#handleUnknownProperty(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">handleUnknownProperty(Decoder, Deserializer.DecoderContext, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
-<dd>
-<div class="block">Handles an unknown property according to deserialization configuration.</div>
 </dd>
 <dt><a href="io/micronaut/serde/AllTypesBean.html#hashCode()" class="member-name-link">hashCode()</a> - Method in class io.micronaut.serde.<a href="io/micronaut/serde/AllTypesBean.html" title="class in io.micronaut.serde">AllTypesBean</a></dt>
 <dd>&nbsp;</dd>
@@ -3099,6 +3105,10 @@ as serializable by default without the need to add the <a href="io/micronaut/ser
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.html#IGNORED_SERIALIZATION" class="member-name-link">IGNORED_SERIALIZATION</a> - Static variable in annotation interface io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.html" title="annotation interface in io.micronaut.serde.config.annotation">SerdeConfig</a></dt>
 <dd>
 <div class="block">Is it ignored for serialization.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#ignoreUnknown(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">ignoreUnknown(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Whether unknown properties should be skipped.</div>
 </dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html#INCLUDE" class="member-name-link">INCLUDE</a> - Enum constant in enum class io.micronaut.serde.processor.sourcegen.<a href="io/micronaut/serde/processor/sourcegen/SimpleSerdeShapeDecision.FallbackReason.html" title="enum class in io.micronaut.serde.processor.sourcegen">SimpleSerdeShapeDecision.FallbackReason</a></dt>
 <dd>
@@ -4127,14 +4137,18 @@ values are to be included.</div>
 <dd>
 <div class="block">A <code>null</code> value.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html#NULL" class="member-name-link">NULL</a> - Enum constant in enum class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></dt>
+<dd>
+<div class="block">The property rejected a null value.</div>
+</dd>
 <dt><a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#nullable()" class="member-name-link">nullable()</a> - Method in record class io.micronaut.serde.processor.sourcegen.beans.<a href="io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html" title="class in io.micronaut.serde.processor.sourcegen.beans">BeanSerdeShape.BeanProperty</a></dt>
 <dd>
 <div class="block">Returns the value of the <a href="./io/micronaut/serde/processor/sourcegen/beans/BeanSerdeShape.BeanProperty.html#param-nullable"><code>nullable</code></a> record component.</div>
 </dd>
 <dt><a href="io/micronaut/serde/util/NullableDeserializer.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableDeserializer&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
-<div class="block">Sub-interface of <a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a> for deserializers that allow
-<code>null</code>.</div>
+<div class="block">Sub-interface of <a href="io/micronaut/serde/Deserializer.html" title="interface in io.micronaut.serde"><code>Deserializer</code></a> for deserializers that allow <code>null</code>
+through <a href="io/micronaut/serde/util/NullableDeserializer.html#deserializeNullable(io.micronaut.serde.Decoder,io.micronaut.serde.Deserializer.DecoderContext,io.micronaut.core.type.Argument)"><code>NullableDeserializer.deserializeNullable(Decoder, DecoderContext, Argument)</code></a>.</div>
 </dd>
 <dt><a href="io/micronaut/serde/util/NullableSerde.html" class="type-name-link" title="interface in io.micronaut.serde.util">NullableSerde&lt;T&gt;</a> - Interface in <a href="io/micronaut/serde/util/package-summary.html">io.micronaut.serde.util</a></dt>
 <dd>
@@ -5281,6 +5295,14 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/jackson/builder/introspected/Address.Builder.html#street(java.lang.String)" class="member-name-link">street(String)</a> - Method in class io.micronaut.serde.jackson.builder.introspected.<a href="io/micronaut/serde/jackson/builder/introspected/Address.Builder.html" title="class in io.micronaut.serde.jackson.builder.introspected">Address.Builder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#strictNullable(io.micronaut.serde.Deserializer.DecoderContext)" class="member-name-link">strictNullable(Deserializer.DecoderContext)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Whether constructor arguments should reject missing or explicit null values.</div>
+</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#strictNullableConstructorParameter(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">strictNullableConstructorParameter(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dd>
+<div class="block">Creates an exception for a constructor parameter rejected by strict nullable deserialization.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html#STRING" class="member-name-link">STRING</a> - Enum constant in enum class io.micronaut.serde.config.<a href="io/micronaut/serde/config/SerdeConfiguration.TimeShape.html" title="enum class in io.micronaut.serde.config">SerdeConfiguration.TimeShape</a></dt>
 <dd>
 <div class="block">Serialize as a string, either using <a href="io/micronaut/serde/config/SerdeConfiguration.html#getDateFormat()"><code>SerdeConfiguration.getDateFormat()</code></a> or as an ISO timestamp.</div>
@@ -5573,11 +5595,15 @@ for the serialization project.</div>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/support/AbstractStreamDecoder.html#unexpectedToken(io.micronaut.serde.support.AbstractStreamDecoder.TokenType)" class="member-name-link">unexpectedToken(AbstractStreamDecoder.TokenType)</a> - Method in class io.micronaut.serde.support.<a href="io/micronaut/serde/support/AbstractStreamDecoder.html" title="class in io.micronaut.serde.support">AbstractStreamDecoder</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html#UNKNOWN" class="member-name-link">UNKNOWN</a> - Enum constant in enum class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></dt>
+<dd>
+<div class="block">No property matched the incoming name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#unknownEnumValue(io.micronaut.core.type.Argument,java.lang.String)" class="member-name-link">unknownEnumValue(Argument, String)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Creates a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown enum value.</div>
 </dd>
-<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#unknownProperty(java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">unknownProperty(String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#unknownProperty(io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">unknownProperty(Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Creates a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> for an unknown property and enriches it with the property path.</div>
 </dd>
@@ -5768,6 +5794,10 @@ for the serialization project.</div>
 <dd>
 <div class="block">Returns the enum constant of this class with the specified name.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html#valueOf(java.lang.String)" class="member-name-link">valueOf(String)</a> - Static method in enum class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this class with the specified name.</div>
+</dd>
 <dt><a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.config.annotation.<a href="io/micronaut/serde/config/annotation/SerdeConfig.SerCreatorMode.html" title="enum class in io.micronaut.serde.config.annotation">SerdeConfig.SerCreatorMode</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum class, in
@@ -5843,6 +5873,11 @@ the order they are declared.</div>
 <div class="block">Returns an array containing the constants of this enum class, in
 the order they are declared.</div>
 </dd>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html#values()" class="member-name-link">values()</a> - Static method in enum class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.PropertyDispatchResult.html" title="enum class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil.PropertyDispatchResult</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum class, in
+the order they are declared.</div>
+</dd>
 <dt><a href="io/micronaut/serde/bson/AbstractBsonMapper.html#view" class="member-name-link">view</a> - Variable in class io.micronaut.serde.bson.<a href="io/micronaut/serde/bson/AbstractBsonMapper.html" title="class in io.micronaut.serde.bson">AbstractBsonMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html#view" class="member-name-link">view</a> - Variable in class io.micronaut.serde.oracle.jdbc.json.<a href="io/micronaut/serde/oracle/jdbc/json/OracleJdbcJsonBinaryObjectMapper.html" title="class in io.micronaut.serde.oracle.jdbc.json">OracleJdbcJsonBinaryObjectMapper</a></dt>
@@ -5886,11 +5921,7 @@ the order they are declared.</div>
 <dd>
 <div class="block">Create a context with serialization format features overridden by annotation metadata.</div>
 </dd>
-<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#withPropertyPath(io.micronaut.serde.exceptions.SerdeException,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath(SerdeException, Argument, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
-<dd>
-<div class="block">Appends a property path segment to an existing <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a>.</div>
-</dd>
-<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,java.lang.String,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath(Throwable, Argument, String, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
+<dt><a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html#withPropertyPath(java.lang.Throwable,io.micronaut.core.type.Argument,io.micronaut.core.type.Argument)" class="member-name-link">withPropertyPath(Throwable, Argument, Argument)</a> - Static method in class io.micronaut.serde.util.<a href="io/micronaut/serde/util/GeneratedSerdeExceptionUtil.html" title="class in io.micronaut.serde.util">GeneratedSerdeExceptionUtil</a></dt>
 <dd>
 <div class="block">Converts any <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html" title="class or interface in java.lang" class="external-link"><code>Throwable</code></a> into a <a href="io/micronaut/serde/exceptions/SerdeException.html" title="class in io.micronaut.serde.exceptions"><code>SerdeException</code></a> and appends a property path segment.</div>
 </dd>

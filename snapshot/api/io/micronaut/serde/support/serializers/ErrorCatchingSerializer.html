@@ -187,7 +187,7 @@ implements <a href="../../Serializer.html" title="interface in io.micronaut.serd
 <dd><code>encoder</code> - The encoder to use</dd>
 <dd><code>context</code> - The encoder context, never <code>null</code></dd>
 <dd><code>type</code> - Models the generic type of the value</dd>
-<dd><code>values</code> - The value, can be <code>null</code></dd>
+<dd><code>values</code> - The value to serialize, never <code>null</code>. Callers should encode null values directly.</dd>
 <dt>Throws:</dt>
 <dd><code><a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/io/IOException.html" title="class or interface in java.io" class="external-link">IOException</a></code> - If an error occurs during serialization</dd>
 </dl>

@@ -3116,6 +3116,10 @@ For reference properties this means an explicit <code>null</code> is applied to 
 <p>Explicit <code>null</code> values for primitive properties or explicitly non-null properties now fail deserialization by default.
 For primitive properties, this matches Jackson Databind&#8217;s <code>FAIL_ON_NULL_FOR_PRIMITIVES</code> default. Set <code>micronaut.serde.deserialization.fail-on-null-for-primitives=false</code> to deserialize explicit <code>null</code> primitive values as the Java primitive default value instead.</p>
 </li>
+<li>
+<p>The <code>io.micronaut.serde.Deserializer.deserialize(Decoder, DecoderContext, Argument&lt;? super T&gt;)</code> method now returns a non-null value.
+Callers that accept nullable input values should call <code>deserializeNullable(Decoder, DecoderContext, Argument&lt;? super T&gt;)</code> instead, and deserializers that support nullable values should override <code>deserializeNullable</code> or implement <code>io.micronaut.serde.util.NullableDeserializer</code>.</p>
+</li>
 </ul>
 </div>
 </div>
