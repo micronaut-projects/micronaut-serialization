@@ -53,6 +53,36 @@ abstract class JsonFormatSpec extends JsonCompileSpec {
         true
     }
 
+    protected List<Map<String, Object>> jsonFormatLiteralZPatternTemporalCases() {
+        [
+                [
+                        typeName: 'java.util.Date',
+                        expectedValue: Date.from(Instant.parse('2026-05-07T08:22:23Z')),
+                        resolver: { Date d -> d.time }
+                ],
+                [
+                        typeName: 'java.sql.Timestamp',
+                        expectedValue: Timestamp.from(Instant.parse('2026-05-07T08:22:23Z')),
+                        resolver: { Timestamp t -> t.toInstant() }
+                ],
+                [
+                        typeName: 'java.time.Instant',
+                        expectedValue: Instant.parse('2026-05-07T08:22:23Z'),
+                        resolver: { Instant i -> i }
+                ],
+                [
+                        typeName: 'java.time.OffsetDateTime',
+                        expectedValue: OffsetDateTime.parse('2026-05-07T08:22:23Z'),
+                        resolver: { OffsetDateTime t -> t }
+                ],
+                [
+                        typeName: 'java.time.ZonedDateTime',
+                        expectedValue: ZonedDateTime.parse('2026-05-07T08:22:23Z'),
+                        resolver: { ZonedDateTime t -> t.toInstant() }
+                ]
+        ]
+    }
+
     void "test json format string shape for number"() {
         given:
         def context = buildContext('test.Test', """
@@ -2244,12 +2274,10 @@ class Test {
         context.close()
 
         where:
-        typeName                   | expectedValue                                                          | resolver
-        'java.util.Date'           | Date.from(Instant.parse('2026-05-07T08:22:23Z'))                       | { Date d -> d.time }
-        'java.sql.Timestamp'       | Timestamp.from(Instant.parse('2026-05-07T08:22:23Z'))                  | { Timestamp t -> t.toInstant() }
-        'java.time.Instant'        | Instant.parse('2026-05-07T08:22:23Z')                                  | { Instant i -> i }
-        'java.time.OffsetDateTime' | OffsetDateTime.parse('2026-05-07T08:22:23Z')                           | { OffsetDateTime t -> t }
-        'java.time.ZonedDateTime'  | ZonedDateTime.parse('2026-05-07T08:22:23Z')                            | { ZonedDateTime t -> t.toInstant() }
+        variation << jsonFormatLiteralZPatternTemporalCases()
+        typeName = variation.typeName
+        expectedValue = variation.expectedValue
+        resolver = variation.resolver
     }
 
     void "test json format nullable delegating temporal properties"() {
