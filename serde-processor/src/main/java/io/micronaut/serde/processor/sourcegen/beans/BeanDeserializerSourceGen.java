@@ -141,7 +141,7 @@ public final class BeanDeserializerSourceGen {
     );
     private static final Method IGNORE_UNKNOWN_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "ignoreUnknown",
+        IGNORE_UNKNOWN_FIELD,
         Deserializer.DecoderContext.class
     );
     private static final Method WITH_RUNTIME_FALLBACK_DESERIALIZER_METHOD = ReflectionUtils.getRequiredMethod(

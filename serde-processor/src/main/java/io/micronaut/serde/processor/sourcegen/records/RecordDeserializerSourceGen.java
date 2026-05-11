@@ -137,12 +137,12 @@ public final class RecordDeserializerSourceGen {
     );
     private static final Method IGNORE_UNKNOWN_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "ignoreUnknown",
+        IGNORE_UNKNOWN_FIELD,
         Deserializer.DecoderContext.class
     );
     private static final Method STRICT_NULLABLE_METHOD = ReflectionUtils.getRequiredMethod(
         GeneratedSerdeExceptionUtil.class,
-        "strictNullable",
+        STRICT_NULLABLE_FIELD,
         Deserializer.DecoderContext.class
     );
     private static final Method STRICT_NULLABLE_CONSTRUCTOR_PARAMETER_METHOD = ReflectionUtils.getRequiredMethod(

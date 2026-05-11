@@ -34,6 +34,8 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 abstract class JsonFormatSpec extends JsonCompileSpec {
+    private static final String LITERAL_Z_TIMESTAMP = '2026-05-07T08:22:23Z'
+    private static final String LITERAL_Z_TIMESTAMP_JSON = '{"creationTimestamp":"' + LITERAL_Z_TIMESTAMP + '"}'
     private static final List<Map<String, String>> SHAPE_PROPERTIES = [
         [shape: 'BINARY', field: 'binaryValue'],
         [shape: 'BOOLEAN', field: 'booleanValue'],
@@ -57,27 +59,27 @@ abstract class JsonFormatSpec extends JsonCompileSpec {
         [
                 [
                         typeName: 'java.util.Date',
-                        expectedValue: Date.from(Instant.parse('2026-05-07T08:22:23Z')),
+                        expectedValue: Date.from(Instant.parse(LITERAL_Z_TIMESTAMP)),
                         resolver: { Date d -> d.time }
                 ],
                 [
                         typeName: 'java.sql.Timestamp',
-                        expectedValue: Timestamp.from(Instant.parse('2026-05-07T08:22:23Z')),
+                        expectedValue: Timestamp.from(Instant.parse(LITERAL_Z_TIMESTAMP)),
                         resolver: { Timestamp t -> t.toInstant() }
                 ],
                 [
                         typeName: 'java.time.Instant',
-                        expectedValue: Instant.parse('2026-05-07T08:22:23Z'),
+                        expectedValue: Instant.parse(LITERAL_Z_TIMESTAMP),
                         resolver: { Instant i -> i }
                 ],
                 [
                         typeName: 'java.time.OffsetDateTime',
-                        expectedValue: OffsetDateTime.parse('2026-05-07T08:22:23Z'),
+                        expectedValue: OffsetDateTime.parse(LITERAL_Z_TIMESTAMP),
                         resolver: { OffsetDateTime t -> t }
                 ],
                 [
                         typeName: 'java.time.ZonedDateTime',
-                        expectedValue: ZonedDateTime.parse('2026-05-07T08:22:23Z'),
+                        expectedValue: ZonedDateTime.parse(LITERAL_Z_TIMESTAMP),
                         resolver: { ZonedDateTime t -> t.toInstant() }
                 ]
         ]
@@ -2266,7 +2268,7 @@ class Test {
 
         expect:
         resolver(jsonMapper.readValue(
-            '{"creationTimestamp":"2026-05-07T08:22:23Z"}',
+            LITERAL_Z_TIMESTAMP_JSON,
             typeUnderTest
         ).creationTimestamp) == resolver(expectedValue)
 
