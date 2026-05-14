@@ -8,12 +8,14 @@ io.micronaut.serde.config.naming
 io.micronaut.serde.data
 io.micronaut.serde.exceptions
 io.micronaut.serde.exceptions.path
+io.micronaut.serde.info
 io.micronaut.serde.jackson
 io.micronaut.serde.jackson.builder
 io.micronaut.serde.jackson.builder.introspected
 io.micronaut.serde.jackson.jsonvalue
 io.micronaut.serde.jackson.maps
 io.micronaut.serde.jackson.outerinterface
+io.micronaut.serde.jackson.shape
 io.micronaut.serde.jackson.tst
 io.micronaut.serde.json.stream
 io.micronaut.serde.json.stream.graalvm
@@ -25,6 +27,10 @@ io.micronaut.serde.processor.jackson
 io.micronaut.serde.processor.jackson.databind
 io.micronaut.serde.processor.jsonb
 io.micronaut.serde.processor.serde
+io.micronaut.serde.processor.sourcegen
+io.micronaut.serde.processor.sourcegen.beans
+io.micronaut.serde.processor.sourcegen.enums
+io.micronaut.serde.processor.sourcegen.records
 io.micronaut.serde.reference
 io.micronaut.serde.support
 io.micronaut.serde.support.bind

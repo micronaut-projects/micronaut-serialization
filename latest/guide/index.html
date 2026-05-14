@@ -15,7 +15,7 @@
     <script>hljs.initHighlightingOnLoad();</script>
     <link rel="stylesheet" href="../css/multi-language-sample.css"/>
     <script src="../js/docs.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.13/clipboard.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
     <script type="text/javascript">
         function addJsClass(el) {
             var classes = document.body.className.split(" ");
@@ -23,7 +23,9 @@
             document.body.className = classes.join(" ");
         }
     </script>
-
+    <style type="text/css">
+        .lang-java { display: block }; .lang-python { display: block }; .lang-kotlin { display: block }; .lang-groovy { display: block }; 
+    </style>
 </head>
 
 <body class="body" id="docs" onload="addJsClass();" onhashchange="highlightMenu()">
@@ -62,7 +64,9 @@
                                 
                                 <div class="toc-item" style="margin-left:0"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
                                 
-                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
+                                <div class="toc-item" style="margin-left:0"><a href="#breaks"><strong>10</strong><span>Breaking Changes</span></a></div>
+                                
+                                <div class="toc-item" style="margin-left:0"><a href="#repository"><strong>11</strong><span>Repository</span></a></div>
                                 
                             </div>
                         </div>
@@ -121,7 +125,9 @@
         
         <div class="toc-item" style="margin-left:0px" id="toc-item-keys"><a href="#keys"><strong>9</strong><span>Custom Key Converters</span></a></div>
         
-        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>10</strong><span>Repository</span></a></div>
+        <div class="toc-item" style="margin-left:0px" id="toc-item-breaks"><a href="#breaks"><strong>10</strong><span>Breaking Changes</span></a></div>
+        
+        <div class="toc-item" style="margin-left:0px" id="toc-item-repository"><a href="#repository"><strong>11</strong><span>Repository</span></a></div>
         
         </div>
     </div>
@@ -131,13 +137,13 @@
         <h1>Micronaut Serialization</h1>
         <p></p>
         <p>Enables serialization/deserialization in Micronaut applications using build time information</p>
-        <p><strong>Version:</strong> 2.15.5 </p>
+        <p><strong>Version:</strong> 3.0.0 </p>
     </div>
     
 <h1 id="introduction"><a class="anchor" href="#introduction"></a>1 Introduction</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/introduction.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/introduction.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -156,7 +162,7 @@
 <h2 id="why"><a class="anchor" href="#why"></a>1.1 Why Micronaut Serialization?</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/introduction/why.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/introduction/why.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -172,6 +178,61 @@
 </div>
 <div class="paragraph">
 <p>The elimination of reflection and smaller footprint also results in reduced runtime memory consumption.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_runtime_performance">Runtime Performance</h4>
+<div class="paragraph">
+<p>The <code>UserBeanSerdeBenchmark</code> JMH benchmark compares Jackson Databind, Jackson Databind with Blackbird, Micronaut Serialization using generated serializers/deserializers, and Micronaut Serialization with generated serializers/deserializers disabled. A local run on JDK 25 used 3 forks, 5 warmup iterations, and 10 measurement iterations with 1-second iterations.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Operation</th>
+<th class="tableblock halign-left valign-top">Jackson Databind</th>
+<th class="tableblock halign-left valign-top">Jackson Databind Blackbird</th>
+<th class="tableblock halign-left valign-top">Micronaut Serialization generated</th>
+<th class="tableblock halign-left valign-top">Micronaut Serialization runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Serialize throughput</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">389,166 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">389,564 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">510,335 ops/s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">414,885 ops/s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deserialize average time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,294 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,320 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,060 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3,559 ns/op</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Round-trip average time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,546 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,528 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5,113 ns/op</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6,096 ns/op</p></td>
+</tr>
+</tbody>
+</table>
+<div class="imageblock">
+<div class="content">
+<img src="../img/user-bean-benchmark-results.svg" alt="UserBeanSerdeBenchmark local results">
+</div>
+</div>
+<div class="paragraph">
+<p>In this run, generated Micronaut Serialization had the highest serialization throughput, about 31.1% faster than Jackson Databind and about 23.0% faster than the runtime fallback. It was also the fastest deserialization path, about 7.1% faster than Jackson Databind, and the fastest combined serialize-and-deserialize round trip, about 21.9% faster than Jackson Databind. The runtime fallback remained slower than generated Micronaut Serialization across all measured operations, which is expected because it uses runtime serializer/deserializer selection instead of generated classes.</p>
 </div>
 </div>
 <div class="sect3">
@@ -215,7 +276,7 @@
 <h1 id="releaseHistory"><a class="anchor" href="#releaseHistory"></a>2 Release History</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/releaseHistory.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/releaseHistory.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -231,7 +292,7 @@
 <h1 id="quickStart"><a class="anchor" href="#quickStart"></a>3 Quick Start</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/quickStart.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/quickStart.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -260,7 +321,8 @@
     &lt;/path&gt;
 &lt;/annotationProcessorPaths&gt;</code></pre>
 </div>
-</div></p>
+</div>
+</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -281,7 +343,7 @@ For Kotlin, add the <code>micronaut-serde-processor</code> dependency in <a href
 <h2 id="jacksonQuick"><a class="anchor" href="#jacksonQuick"></a>3.1 Jackson Annotations & Jackson Core</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/quickStart/jacksonQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/quickStart/jacksonQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -307,7 +369,8 @@ For Kotlin, add the <code>micronaut-serde-processor</code> dependency in <a href
     &lt;artifactId&gt;micronaut-serde-jackson&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
-</div></p>
+</div>
+</p>
 </div>
 <div class="paragraph">
 <p>With the correct dependencies in place you can now define an object to be serialized:</p>
@@ -344,6 +407,20 @@ public class Book {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable // <b class="conum">(1)</b>
+data class Book (
+    val title: String, // <b class="conum">(2)</b>
+    @JsonProperty("qty") val quantity: Int
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import com.fasterxml.jackson.annotation.JsonCreator
@@ -362,20 +439,6 @@ class Book {
         this.quantity = quantity
     }
 }</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import com.fasterxml.jackson.annotation.JsonProperty
-import io.micronaut.serde.annotation.Serdeable
-
-@Serdeable // <b class="conum">(1)</b>
-data class Book (
-    val title: String, // <b class="conum">(2)</b>
-    @JsonProperty("qty") val quantity: Int
-)</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -501,6 +564,93 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.Map
+
+@MicronautTest
+class BookTest {
+
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        assertEquals(
+            "The Stand", book!!.title
+        )
+        assertEquals(50, book.quantity)
+    }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun testListOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            listOf(
+                Book("The Stand", 50),
+                Book("Godfather", 10),
+                Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(result, Argument.listOf(Book::class.java))!!
+        assertEquals(3, books.size)
+        val firstBook = books[0]
+        assertEquals(
+            "The Stand", firstBook.title
+        )
+        assertEquals(50, firstBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testMapOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            Map.of&lt;String?, Book?&gt;(
+                "myBook", Book("The Stand", 50),
+                "hisBook", Book("Godfather", 10),
+                "herBook", Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(
+            result,
+            Argument.mapOf(String::class.java, Book::class.java)
+        )!!
+        assertEquals(3, books.size)
+        val herBook: Book = books["herBook"]!!
+        assertEquals("VALIS", herBook.title)
+        assertEquals(100, herBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testBoxOfBook(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
+
+        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
+        val book = box.item!!
+        Assertions.assertNotNull(book)
+        assertEquals("The Stand", book.title)
+        assertEquals(50, book.quantity)
+    }
+
+    @Serdeable
+    data class Box&lt;I&gt;(val item: I?)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 
@@ -581,99 +731,11 @@ class BookTest extends Specification {
 }</code></pre>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.core.type.Argument
-import io.micronaut.serde.ObjectMapper
-import io.micronaut.serde.annotation.Serdeable
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import java.io.IOException
-import java.util.Map
-
-@MicronautTest
-class BookTest {
-
-    @Test
-    fun testWriteReadBook(objectMapper: ObjectMapper) {
-        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
-        val book = objectMapper.readValue(result, Book::class.java)
-        Assertions.assertNotNull(book)
-        assertEquals(
-            "The Stand", book.title
-        )
-        assertEquals(50, book.quantity)
-    }
-
-
-    @Test
-    @Throws(IOException::class)
-    fun testListOfBooks(objectMapper: ObjectMapper) {
-        val result: String = objectMapper.writeValueAsString(
-            listOf(
-                Book("The Stand", 50),
-                Book("Godfather", 10),
-                Book("VALIS", 100)
-            )
-        )
-
-        val books: MutableList&lt;Book&gt; =
-            objectMapper.readValue(result, Argument.listOf(Book::class.java))
-        assertEquals(3, books.size)
-        val firstBook = books[0]
-        assertEquals(
-            "The Stand", firstBook.title
-        )
-        assertEquals(50, firstBook.quantity)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testMapOfBooks(objectMapper: ObjectMapper) {
-        val result: String? = objectMapper.writeValueAsString(
-            Map.of&lt;String?, Book?&gt;(
-                "myBook", Book("The Stand", 50),
-                "hisBook", Book("Godfather", 10),
-                "herBook", Book("VALIS", 100)
-            )
-        )
-
-        val books = objectMapper.readValue(
-            result,
-            Argument.mapOf(String::class.java, Book::class.java)
-        )
-        assertEquals(3, books.size)
-        val herBook: Book = books["herBook"]!!
-        assertEquals("VALIS", herBook.title)
-        assertEquals(100, herBook.quantity)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testBoxOfBook(objectMapper: ObjectMapper) {
-        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
-
-        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
-        val book = box.item!!
-        Assertions.assertNotNull(book)
-        assertEquals("The Stand", book.title)
-        assertEquals(50, book.quantity)
-    }
-
-    @Serdeable
-    data class Box&lt;I&gt;(val item: I?)
-}</code></pre>
-</div>
-</div>
 
 <h2 id="jsonpQuick"><a class="anchor" href="#jsonpQuick"></a>3.2 JSON-B Annotations & JSON-P</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/quickStart/jsonpQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/quickStart/jsonpQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -699,7 +761,8 @@ class BookTest {
     &lt;artifactId&gt;micronaut-serde-jsonp&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
-</div></p>
+</div>
+</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -857,6 +920,93 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.Map
+
+@MicronautTest
+class BookTest {
+
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        assertEquals(
+            "The Stand", book!!.title
+        )
+        assertEquals(50, book.quantity)
+    }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun testListOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            listOf(
+                Book("The Stand", 50),
+                Book("Godfather", 10),
+                Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(result, Argument.listOf(Book::class.java))!!
+        assertEquals(3, books.size)
+        val firstBook = books[0]
+        assertEquals(
+            "The Stand", firstBook.title
+        )
+        assertEquals(50, firstBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testMapOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            Map.of&lt;String?, Book?&gt;(
+                "myBook", Book("The Stand", 50),
+                "hisBook", Book("Godfather", 10),
+                "herBook", Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(
+            result,
+            Argument.mapOf(String::class.java, Book::class.java)
+        )!!
+        assertEquals(3, books.size)
+        val herBook: Book = books["herBook"]!!
+        assertEquals("VALIS", herBook.title)
+        assertEquals(100, herBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testBoxOfBook(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
+
+        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
+        val book = box.item!!
+        Assertions.assertNotNull(book)
+        assertEquals("The Stand", book.title)
+        assertEquals(50, book.quantity)
+    }
+
+    @Serdeable
+    data class Box&lt;I&gt;(val item: I?)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 
@@ -937,99 +1087,11 @@ class BookTest extends Specification {
 }</code></pre>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.core.type.Argument
-import io.micronaut.serde.ObjectMapper
-import io.micronaut.serde.annotation.Serdeable
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import java.io.IOException
-import java.util.Map
-
-@MicronautTest
-class BookTest {
-
-    @Test
-    fun testWriteReadBook(objectMapper: ObjectMapper) {
-        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
-        val book = objectMapper.readValue(result, Book::class.java)
-        Assertions.assertNotNull(book)
-        assertEquals(
-            "The Stand", book.title
-        )
-        assertEquals(50, book.quantity)
-    }
-
-
-    @Test
-    @Throws(IOException::class)
-    fun testListOfBooks(objectMapper: ObjectMapper) {
-        val result: String = objectMapper.writeValueAsString(
-            listOf(
-                Book("The Stand", 50),
-                Book("Godfather", 10),
-                Book("VALIS", 100)
-            )
-        )
-
-        val books: MutableList&lt;Book&gt; =
-            objectMapper.readValue(result, Argument.listOf(Book::class.java))
-        assertEquals(3, books.size)
-        val firstBook = books[0]
-        assertEquals(
-            "The Stand", firstBook.title
-        )
-        assertEquals(50, firstBook.quantity)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testMapOfBooks(objectMapper: ObjectMapper) {
-        val result: String? = objectMapper.writeValueAsString(
-            Map.of&lt;String?, Book?&gt;(
-                "myBook", Book("The Stand", 50),
-                "hisBook", Book("Godfather", 10),
-                "herBook", Book("VALIS", 100)
-            )
-        )
-
-        val books = objectMapper.readValue(
-            result,
-            Argument.mapOf(String::class.java, Book::class.java)
-        )
-        assertEquals(3, books.size)
-        val herBook: Book = books["herBook"]!!
-        assertEquals("VALIS", herBook.title)
-        assertEquals(100, herBook.quantity)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testBoxOfBook(objectMapper: ObjectMapper) {
-        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
-
-        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
-        val book = box.item!!
-        Assertions.assertNotNull(book)
-        assertEquals("The Stand", book.title)
-        assertEquals(50, book.quantity)
-    }
-
-    @Serdeable
-    data class Box&lt;I&gt;(val item: I?)
-}</code></pre>
-</div>
-</div>
 
 <h2 id="bsonQuick"><a class="anchor" href="#bsonQuick"></a>3.3 BSON Annotations and BSON</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/quickStart/bsonQuick.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/quickStart/bsonQuick.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -1055,7 +1117,8 @@ class BookTest {
     &lt;artifactId&gt;micronaut-serde-bson&lt;/artifactId&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
-</div></p>
+</div>
+</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -1213,6 +1276,93 @@ public class BookTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.util.Map
+
+@MicronautTest
+class BookTest {
+
+    @Test
+    fun testWriteReadBook(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
+        val book = objectMapper.readValue(result, Book::class.java)
+        Assertions.assertNotNull(book)
+        assertEquals(
+            "The Stand", book!!.title
+        )
+        assertEquals(50, book.quantity)
+    }
+
+
+    @Test
+    @Throws(IOException::class)
+    fun testListOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            listOf(
+                Book("The Stand", 50),
+                Book("Godfather", 10),
+                Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(result, Argument.listOf(Book::class.java))!!
+        assertEquals(3, books.size)
+        val firstBook = books[0]
+        assertEquals(
+            "The Stand", firstBook.title
+        )
+        assertEquals(50, firstBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testMapOfBooks(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(
+            Map.of&lt;String?, Book?&gt;(
+                "myBook", Book("The Stand", 50),
+                "hisBook", Book("Godfather", 10),
+                "herBook", Book("VALIS", 100)
+            )
+        )
+
+        val books = objectMapper.readValue(
+            result,
+            Argument.mapOf(String::class.java, Book::class.java)
+        )!!
+        assertEquals(3, books.size)
+        val herBook: Book = books["herBook"]!!
+        assertEquals("VALIS", herBook.title)
+        assertEquals(100, herBook.quantity)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testBoxOfBook(objectMapper: ObjectMapper) {
+        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
+
+        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
+        val book = box.item!!
+        Assertions.assertNotNull(book)
+        assertEquals("The Stand", book.title)
+        assertEquals(50, book.quantity)
+    }
+
+    @Serdeable
+    data class Box&lt;I&gt;(val item: I?)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 
@@ -1293,99 +1443,11 @@ class BookTest extends Specification {
 }</code></pre>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.core.type.Argument
-import io.micronaut.serde.ObjectMapper
-import io.micronaut.serde.annotation.Serdeable
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
-import java.io.IOException
-import java.util.Map
-
-@MicronautTest
-class BookTest {
-
-    @Test
-    fun testWriteReadBook(objectMapper: ObjectMapper) {
-        val result = objectMapper.writeValueAsString(Book("The Stand", 50))
-        val book = objectMapper.readValue(result, Book::class.java)
-        Assertions.assertNotNull(book)
-        assertEquals(
-            "The Stand", book.title
-        )
-        assertEquals(50, book.quantity)
-    }
-
-
-    @Test
-    @Throws(IOException::class)
-    fun testListOfBooks(objectMapper: ObjectMapper) {
-        val result: String = objectMapper.writeValueAsString(
-            listOf(
-                Book("The Stand", 50),
-                Book("Godfather", 10),
-                Book("VALIS", 100)
-            )
-        )
-
-        val books: MutableList&lt;Book&gt; =
-            objectMapper.readValue(result, Argument.listOf(Book::class.java))
-        assertEquals(3, books.size)
-        val firstBook = books[0]
-        assertEquals(
-            "The Stand", firstBook.title
-        )
-        assertEquals(50, firstBook.quantity)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testMapOfBooks(objectMapper: ObjectMapper) {
-        val result: String? = objectMapper.writeValueAsString(
-            Map.of&lt;String?, Book?&gt;(
-                "myBook", Book("The Stand", 50),
-                "hisBook", Book("Godfather", 10),
-                "herBook", Book("VALIS", 100)
-            )
-        )
-
-        val books = objectMapper.readValue(
-            result,
-            Argument.mapOf(String::class.java, Book::class.java)
-        )
-        assertEquals(3, books.size)
-        val herBook: Book = books["herBook"]!!
-        assertEquals("VALIS", herBook.title)
-        assertEquals(100, herBook.quantity)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testBoxOfBook(objectMapper: ObjectMapper) {
-        val result: String = objectMapper.writeValueAsString(Box(Book("The Stand", 50)))
-
-        val box: Box&lt;Book&gt; = objectMapper.readValue(result, Argument.of(Box::class.java, Book::class.java)) as Box&lt;Book&gt;
-        val book = box.item!!
-        Assertions.assertNotNull(book)
-        assertEquals("The Stand", book.title)
-        assertEquals(50, book.quantity)
-    }
-
-    @Serdeable
-    data class Box&lt;I&gt;(val item: I?)
-}</code></pre>
-</div>
-</div>
 
 <h1 id="jacksonAnnotations"><a class="anchor" href="#jacksonAnnotations"></a>4 Jackson Annotations</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/jacksonAnnotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/jacksonAnnotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -1480,8 +1542,8 @@ If an unsupported annotation or member is used, a compilation error will result.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonEnumDefaultValue.html">@JsonEnumDefaultValue</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">supported for enum properties using <code>@JsonFormat(with = JsonFormat.Feature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonFilter.html">@JsonFilter</a></p></td>
@@ -1491,7 +1553,7 @@ If an unsupported annotation or member is used, a compilation error will result.
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonFormat.html">@JsonFormat</a></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">unsupported members: <code>shape</code>, <code>with</code> &amp; <code>without</code></p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://fasterxml.github.io/jackson-annotations/javadoc/2.12/com/fasterxml/jackson/annotation/JsonGetter.html">@JsonGetter</a></p></td>
@@ -1673,7 +1735,7 @@ fields to be serialized. <code>micronaut-serialization</code> supports this feat
 <h2 id="jacksonFilter"><a class="anchor" href="#jacksonFilter"></a>4.1 Custom Property Filters</h2>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/jacksonFilter.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/jacksonFilter.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -1715,21 +1777,6 @@ public class Person {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
-
-import com.fasterxml.jackson.annotation.JsonFilter
-import io.micronaut.serde.annotation.Serdeable
-
-@Serdeable
-@JsonFilter("person-filter") // <b class="conum">(1)</b>
-class Person {
-    String name
-    String preferredName
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import com.fasterxml.jackson.annotation.JsonFilter
@@ -1741,6 +1788,21 @@ data class Person(
     val name: String,
     val preferredName: String?
 )</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonFilter
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+@JsonFilter("person-filter") // <b class="conum">(1)</b>
+class Person {
+    String name
+    String preferredName
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1787,36 +1849,6 @@ public class PersonFilter implements PropertyFilter {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
-
-import io.micronaut.serde.PropertyFilter
-import io.micronaut.serde.Serializer
-import jakarta.inject.Named
-import jakarta.inject.Singleton
-
-@Singleton
-@Named("person-filter") // <b class="conum">(1)</b>
-class PersonFilter implements PropertyFilter {
-
-    @Override
-    boolean shouldInclude(
-        Serializer.EncoderContext encoderContext, Serializer&lt;Object&gt; propertySerializer,
-        Object bean, String propertyName, Object propertyValue
-    ) {
-        if (bean instanceof Person) { // <b class="conum">(2)</b>
-            if (propertyName == "name") {
-                return bean.preferredName == null
-            } else if (propertyName == "preferredName") {
-                return bean.preferredName != null
-            }
-        }
-        return true
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import io.micronaut.serde.PropertyFilter
@@ -1836,6 +1868,36 @@ class PersonFilter : PropertyFilter {
             propertyValue: Any?
     ): Boolean {
         if (bean is Person) { // <b class="conum">(2)</b>
+            if (propertyName == "name") {
+                return bean.preferredName == null
+            } else if (propertyName == "preferredName") {
+                return bean.preferredName != null
+            }
+        }
+        return true
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import io.micronaut.serde.PropertyFilter
+import io.micronaut.serde.Serializer
+import jakarta.inject.Named
+import jakarta.inject.Singleton
+
+@Singleton
+@Named("person-filter") // <b class="conum">(1)</b>
+class PersonFilter implements PropertyFilter {
+
+    @Override
+    boolean shouldInclude(
+        Serializer.EncoderContext encoderContext, Serializer&lt;Object&gt; propertySerializer,
+        Object bean, String propertyName, Object propertyValue
+    ) {
+        if (bean instanceof Person) { // <b class="conum">(2)</b>
             if (propertyName == "name") {
                 return bean.preferredName == null
             } else if (propertyName == "preferredName") {
@@ -1893,6 +1955,33 @@ public class PersonFilterTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+import java.io.IOException
+
+@MicronautTest
+class PersonFilterTest {
+
+    @Test
+    fun testWritePersonWithoutPreferredName(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Person("Adam", null))
+        Assertions.assertEquals("{\"name\":\"Adam\"}", result)
+    }
+
+    @Test
+    fun testWritePersonWithPreferredName(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(Person("Adam", "Ad"))
+        Assertions.assertEquals("{\"preferredName\":\"Ad\"}", result)
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.ObjectMapper
@@ -1922,38 +2011,11 @@ class PersonFilterTest extends Specification {
 }</code></pre>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.serde.ObjectMapper
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import java.io.IOException
-
-@MicronautTest
-class PersonFilterTest {
-
-    @Test
-    fun testWritePersonWithoutPreferredName(objectMapper: ObjectMapper) {
-        val result = objectMapper.writeValueAsString(Person("Adam", null))
-        Assertions.assertEquals("{\"name\":\"Adam\"}", result)
-    }
-
-    @Test
-    fun testWritePersonWithPreferredName(objectMapper: ObjectMapper) {
-        val result = objectMapper.writeValueAsString(Person("Adam", "Ad"))
-        Assertions.assertEquals("{\"preferredName\":\"Ad\"}", result)
-    }
-}</code></pre>
-</div>
-</div>
 
 <h1 id="jsonbAnnotations"><a class="anchor" href="#jsonbAnnotations"></a>5 JSON-B Annotations</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/jsonbAnnotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/jsonbAnnotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2059,7 +2121,7 @@ class PersonFilterTest {
 <h1 id="bsonAnnotations"><a class="anchor" href="#bsonAnnotations"></a>6 BSON Annotations</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/bsonAnnotations.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/bsonAnnotations.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2075,7 +2137,7 @@ class PersonFilterTest {
 <h1 id="serdes"><a class="anchor" href="#serdes"></a>7 Custom Serializers & Deserializers</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/serdes.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/serdes.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2111,6 +2173,23 @@ public final class Point {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+class Point private constructor(private val x: Int, private val y: Int) {
+    fun coords(): IntArray {
+        return intArrayOf(x, y)
+    }
+
+    companion object {
+        fun valueOf(x: Int, y: Int): Point {
+            return Point(x, y)
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 final class Point {
@@ -2127,23 +2206,6 @@ final class Point {
 
     static Point valueOf(int x, int y) {
         return new Point(x, y)
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-class Point private constructor(private val x: Int, private val y: Int) {
-    fun coords(): IntArray {
-        return intArrayOf(x, y)
-    }
-
-    companion object {
-        fun valueOf(x: Int, y: Int): Point {
-            return Point(x, y)
-        }
     }
 }</code></pre>
 </div>
@@ -2195,6 +2257,43 @@ public class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)<
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.*
+import jakarta.inject.Singleton
+
+@Singleton // <b class="conum">(1)</b>
+class PointSerde : Serde&lt;Point&gt; { // <b class="conum">(2)</b>
+    override fun deserialize(
+            decoder: Decoder,
+            context: Deserializer.DecoderContext,
+            type: Argument&lt;in Point&gt;
+    ): Point {
+        decoder.decodeArray().use { // <b class="conum">(3)</b>
+            val x = it.decodeInt()
+            val y = it.decodeInt()
+            return Point.valueOf(x, y) // <b class="conum">(4)</b>
+        }
+    }
+
+    override fun serialize(
+            encoder: Encoder,
+            context: Serializer.EncoderContext,
+            type: Argument&lt;out Point&gt;,
+            value: Point
+    ) {
+        val coords = value.coords()
+        encoder.encodeArray(type).use { // <b class="conum">(6)</b>
+            it.encodeInt(coords[0])
+            it.encodeInt(coords[1])
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.core.type.Argument
@@ -2229,43 +2328,6 @@ class PointSerde implements Serde&lt;Point&gt; { // <b class="conum">(2)</b>
         array.encodeInt(coords[0])
         array.encodeInt(coords[1])
         array.finishStructure() // <b class="conum">(8)</b>
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.core.type.Argument
-import io.micronaut.serde.*
-import jakarta.inject.Singleton
-
-@Singleton // <b class="conum">(1)</b>
-class PointSerde : Serde&lt;Point&gt; { // <b class="conum">(2)</b>
-    override fun deserialize(
-            decoder: Decoder,
-            context: Deserializer.DecoderContext,
-            type: Argument&lt;in Point&gt;
-    ): Point {
-        decoder.decodeArray().use { // <b class="conum">(3)</b>
-            val x = it.decodeInt()
-            val y = it.decodeInt()
-            return Point.valueOf(x, y) // <b class="conum">(4)</b>
-        }
-    }
-
-    override fun serialize(
-            encoder: Encoder,
-            context: Serializer.EncoderContext,
-            type: Argument&lt;out Point&gt;,
-            value: Point
-    ) {
-        val coords = value.coords()
-        encoder.encodeArray(type).use { // <b class="conum">(6)</b>
-            it.encodeInt(coords[0])
-            it.encodeInt(coords[1])
-        }
     }
 }</code></pre>
 </div>
@@ -2334,6 +2396,31 @@ public class PointTest {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
+
+@MicronautTest
+class PointTest {
+    @Test
+    fun testWriteReadPoint(objectMapper: ObjectMapper) {
+        val result = objectMapper.writeValueAsString(
+            Point.valueOf(50, 100)
+        )
+        val point = objectMapper.readValue(result, Point::class.java)
+        Assertions.assertNotNull(point)
+        val coords = point!!.coords()
+        Assertions.assertEquals(50, coords[0])
+        Assertions.assertEquals(100, coords[1])
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.ObjectMapper
@@ -2357,31 +2444,6 @@ class PointTest extends Specification {
         int[] coords = point.coords()
         coords[0] == 50
         coords[1] == 100
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.serde.ObjectMapper
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-
-@MicronautTest
-class PointTest {
-    @Test
-    fun testWriteReadPoint(objectMapper: ObjectMapper) {
-        val result = objectMapper.writeValueAsString(
-            Point.valueOf(50, 100)
-        )
-        val point = objectMapper.readValue(result, Point::class.java)
-        Assertions.assertNotNull(point)
-        val coords = point.coords()
-        Assertions.assertEquals(50, coords[0])
-        Assertions.assertEquals(100, coords[1])
     }
 }</code></pre>
 </div>
@@ -2477,6 +2539,47 @@ public class ReversePointSerde implements Serde&lt;Point&gt; {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.context.annotation.Secondary
+import io.micronaut.core.type.Argument
+import io.micronaut.serde.*
+import jakarta.inject.Singleton
+import java.util.*
+
+@Singleton
+@Secondary // <b class="conum">(1)</b>
+class ReversePointSerde : Serde&lt;Point&gt; {
+    override fun deserialize(
+            decoder: Decoder,
+            context: Deserializer.DecoderContext,
+            type: Argument&lt;in Point&gt;
+    ): Point {
+        val array = decoder.decodeArray()
+        val y = array.decodeInt() // <b class="conum">(2)</b>
+        val x = array.decodeInt()
+        array.finishStructure()
+        return Point.valueOf(x, y)
+    }
+
+    override fun serialize(
+            encoder: Encoder,
+            context: Serializer.EncoderContext,
+            type: Argument&lt;out Point&gt;,
+            value: Point
+    ) {
+        Objects.requireNonNull(value, "Point cannot be null")
+        val coords = value.coords()
+        val array = encoder.encodeArray(type)
+        array.encodeInt(coords[1]) // <b class="conum">(3)</b>
+        array.encodeInt(coords[0])
+        array.finishStructure()
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.context.annotation.Secondary
@@ -2510,47 +2613,6 @@ class ReversePointSerde implements Serde&lt;Point&gt; {
         Objects.requireNonNull(value, "Point cannot be null")
         int[] coords = value.coords()
         Encoder array = encoder.encodeArray(type)
-        array.encodeInt(coords[1]) // <b class="conum">(3)</b>
-        array.encodeInt(coords[0])
-        array.finishStructure()
-    }
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.context.annotation.Secondary
-import io.micronaut.core.type.Argument
-import io.micronaut.serde.*
-import jakarta.inject.Singleton
-import java.util.*
-
-@Singleton
-@Secondary // <b class="conum">(1)</b>
-class ReversePointSerde : Serde&lt;Point&gt; {
-    override fun deserialize(
-            decoder: Decoder,
-            context: Deserializer.DecoderContext,
-            type: Argument&lt;in Point&gt;
-    ): Point {
-        val array = decoder.decodeArray()
-        val y = array.decodeInt() // <b class="conum">(2)</b>
-        val x = array.decodeInt()
-        array.finishStructure()
-        return Point.valueOf(x, y)
-    }
-
-    override fun serialize(
-            encoder: Encoder,
-            context: Serializer.EncoderContext,
-            type: Argument&lt;out Point&gt;,
-            value: Point
-    ) {
-        Objects.requireNonNull(value, "Point cannot be null")
-        val coords = value.coords()
-        val array = encoder.encodeArray(type)
         array.encodeInt(coords[1]) // <b class="conum">(3)</b>
         array.encodeInt(coords[0])
         array.finishStructure()
@@ -2613,6 +2675,28 @@ public class Place {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+import io.micronaut.serde.annotation.Serdeable.Deserializable
+import io.micronaut.serde.annotation.Serdeable.Serializable
+
+@Serdeable
+data class Place(
+        @Deserializable(using = ReversePointSerde::class) // <b class="conum">(1)</b>
+        @Serializable(using = ReversePointSerde::class) // <b class="conum">(2)</b>
+        val point: Point,
+
+        @Serdeable.Serializable(using = example.ReversePointSerde::class)
+        val pointCustomSer: Point,
+
+        @Deserializable(using = ReversePointSerde::class)
+        val pointCustomDes: Point
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.annotation.Serdeable
@@ -2637,28 +2721,6 @@ class Place {
 }</code></pre>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.serde.annotation.Serdeable
-import io.micronaut.serde.annotation.Serdeable.Deserializable
-import io.micronaut.serde.annotation.Serdeable.Serializable
-
-@Serdeable
-data class Place(
-        @Deserializable(using = ReversePointSerde::class) // <b class="conum">(1)</b>
-        @Serializable(using = ReversePointSerde::class) // <b class="conum">(2)</b>
-        val point: Point,
-
-        @Serdeable.Serializable(using = example.ReversePointSerde::class)
-        val pointCustomSer: Point,
-
-        @Deserializable(using = ReversePointSerde::class)
-        val pointCustomDes: Point
-)</code></pre>
-</div>
-</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -2676,7 +2738,7 @@ data class Place(
 <h1 id="serdeImport"><a class="anchor" href="#serdeImport"></a>8 Enabling Serialization of External Classes</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/serdeImport.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/serdeImport.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2713,6 +2775,13 @@ public class Product {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+class Product(val name: String, val quantity: Int)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 class Product {
@@ -2724,13 +2793,6 @@ class Product {
         this.quantity = quantity
     }
 }</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-class Product(val name: String, val quantity: Int)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2764,21 +2826,6 @@ public interface ProductMixin {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
-
-import com.fasterxml.jackson.annotation.JsonProperty
-
-interface ProductMixin {
-    @JsonProperty("p_name")
-    String getName()
-
-    @JsonProperty("p_quantity")
-    int getQuantity()
-}</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
 <pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
 
 import com.fasterxml.jackson.annotation.JsonProperty
@@ -2789,6 +2836,21 @@ interface ProductMixin {
 
     @get:JsonProperty("p_quantity")
     val quantity: Int
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
+
+import com.fasterxml.jackson.annotation.JsonProperty
+
+interface ProductMixin {
+    @JsonProperty("p_name")
+    String getName()
+
+    @JsonProperty("p_quantity")
+    int getQuantity()
 }</code></pre>
 </div>
 </div>
@@ -2846,7 +2908,7 @@ class Serdes {}</code></pre>
 <h1 id="keys"><a class="anchor" href="#keys"></a>9 Custom Key Converters</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/keys.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/keys.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
@@ -2881,6 +2943,18 @@ public class Location {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.serde.annotation.Serdeable
+
+@Serdeable
+data class Location(
+    val features: Map&lt;Feature, Point&gt;
+)</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.serde.annotation.Serdeable
@@ -2893,18 +2967,6 @@ class Location {
         this.features = features
     }
 }</code></pre>
-</div>
-</div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.serde.annotation.Serdeable
-
-@Serdeable
-data class Location(
-    val features: Map&lt;Feature, Point&gt;
-)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2948,6 +3010,34 @@ public class Feature {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
+
+import io.micronaut.core.convert.ConversionContext
+import io.micronaut.core.convert.TypeConverter
+import jakarta.inject.Singleton
+import java.util.*
+
+class Feature(private val name: String) {
+    fun name(): String {
+        return name
+    }
+
+    override fun toString(): String { // <b class="conum">(1)</b>
+        return name
+    }
+}
+
+@Singleton
+class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
+    // <b class="conum">(2)</b>
+    override fun convert(value: String, targetType: Class&lt;Feature&gt;, context: ConversionContext): Optional&lt;Feature&gt; {
+        return Optional.of(Feature(value))
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
 <pre class="highlightjs highlight"><code class="language-groovy hljs" data-lang="groovy">package example
 
 import io.micronaut.core.convert.ConversionContext
@@ -2980,34 +3070,6 @@ class Feature {
 }</code></pre>
 </div>
 </div>
-<div class="listingblock multi-language-sample">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">package example
-
-import io.micronaut.core.convert.ConversionContext
-import io.micronaut.core.convert.TypeConverter
-import jakarta.inject.Singleton
-import java.util.*
-
-class Feature(private val name: String) {
-    fun name(): String {
-        return name
-    }
-
-    override fun toString(): String { // <b class="conum">(1)</b>
-        return name
-    }
-}
-
-@Singleton
-class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
-    // <b class="conum">(2)</b>
-    override fun convert(value: String, targetType: Class&lt;Feature&gt;, context: ConversionContext): Optional&lt;Feature&gt; {
-        return Optional.of(Feature(value))
-    }
-}</code></pre>
-</div>
-</div>
 <div class="colist arabic">
 <table>
 <tr>
@@ -3021,10 +3083,154 @@ class FeatureConverter : TypeConverter&lt;String, Feature&gt; {
 </table>
 </div>
 
-<h1 id="repository"><a class="anchor" href="#repository"></a>10 Repository</h1>
+<h1 id="breaks"><a class="anchor" href="#breaks"></a>10 Breaking Changes</h1>
 
 <div class='contribute-btn'>
-    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/2.15.x/src/main/docs/guide/repository.adoc"'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/breaks.adoc"'>
+        <i class='fa fa-pencil-square-o'></i> Improve this doc
+    </button>
+</div>
+
+
+<div class="paragraph">
+<p>This section documents breaking changes between Micronaut Serialization versions:</p>
+</div>
+<div class="sect2">
+<h3 id="_micronaut_serialization_3_0_0">Micronaut Serialization 3.0.0</h3>
+<div class="sect3">
+<h4 id="_deserialization">Deserialization</h4>
+<div class="paragraph">
+<p>Micronaut Serialization 3.0 aligns these deserialization defaults with the most commonly used Jackson Databind behavior to make migrations between Jackson Databind and Micronaut Serialization more predictable.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The default value of <code>micronaut.serde.deserialization.subtypes-require-default-impl</code> changed from <code>false</code> to <code>true</code>.
+When a polymorphic deserialization target cannot be resolved to a subtype, Micronaut Serialization now requires a configured default implementation instead of falling back to the supertype by default.</p>
+</li>
+<li>
+<p>Explicit <code>null</code> values in input are no longer skipped for bean properties that are not annotated as nullable.
+For reference properties this means an explicit <code>null</code> is applied to the property; missing properties continue to use the existing default-value handling.</p>
+</li>
+<li>
+<p>Explicit <code>null</code> values for primitive properties or explicitly non-null properties now fail deserialization by default.
+For primitive properties, this matches Jackson Databind&#8217;s <code>FAIL_ON_NULL_FOR_PRIMITIVES</code> default. Set <code>micronaut.serde.deserialization.fail-on-null-for-primitives=false</code> to deserialize explicit <code>null</code> primitive values as the Java primitive default value instead.</p>
+</li>
+<li>
+<p>The <code>io.micronaut.serde.Deserializer.deserialize(Decoder, DecoderContext, Argument&lt;? super T&gt;)</code> method now returns a non-null value.
+Callers that accept nullable input values should call <code>deserializeNullable(Decoder, DecoderContext, Argument&lt;? super T&gt;)</code> instead, and deserializers that support nullable values should override <code>deserializeNullable</code> or implement <code>io.micronaut.serde.util.NullableDeserializer</code>.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_deprecations">Deprecations</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>The following constructors of <code>io.micronaut.serde.bson.BsonJsonMapper</code> deprecated previously have been removed.
+Use <code>BsonJsonMapper(SerdeRegistry, SerdeConfiguration)</code> instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>BsonJsonMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>BsonJsonMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The class <code>io.micronaut.serde.support.serdes.CoreSerdes</code> has been removed. It wasn&#8217;t deprecated explicitly, but all it&#8217;s members were, and it is no longer used.</p>
+</li>
+<li>
+<p>The interface method <code>io.micronaut.serde.Deserializer.allowNull()</code> deprecated previously was removed.
+Use the default or override <code>deserializeNullable(Decoder, DecoderContext, Argument&lt;? super T&gt;)</code> instead</p>
+</li>
+<li>
+<p>The method <code>io.micronaut.serde.util.CustomizableDeserializer.allowNull()</code> was removed. This method was deprecated and removed in the super interface <code>Deserializer</code>. It previously raised an <code>IllegalStateException</code> if invoked.</p>
+</li>
+<li>
+<p>All the static fields of <code>io.micronaut.serde.support.DefaultSerdeRegistry</code> deprecated previously were removed. These were aliases for constants defined in the internal class <code>io.micronaut.serde.support.serdes.Serdes</code> and shouldn&#8217;t be exposed otherwise.</p>
+</li>
+<li>
+<p>The following Singleton constructors of <code>DefaultSerdeRegistry</code> deprecated previously were removed.
+The remaining constructor <code>DefaultSerdeRegistry(BeanContext, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde&lt;Object[]&gt;, SerdeIntrospections, ConversionService, SerdeConfiguration, SerializationConfiguration, DeserializationConfiguration)</code></p>
+</li>
+<li>
+<p><code>DefaultSerdeRegistry(BeanContext, ObjectSerializer, ObjectDeserializer, Serde&lt;Object[]&gt;, SerdeIntrospections, ConversionService)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The following Singleton constructors of <code>io.micronaut.serde.json.stream.JsonStreamMapper</code> deprecated previously were removed.
+The remaining constructor <code>JsonStreamMapper(SerdeRegistry, SerdeConfiguration)</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>JsonStreamMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>JsonStreamMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The internal class constructor <code>io.micronaut.serde.support.deserializers.ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeDeserializationPreInstantiateCallback)</code> deprecated previously has been removed.
+<code>ObjectDeserializer(SerdeIntrospections, DeserializationConfiguration, SerdeConfiguration, SerdeDeserializationPreInstantiateCallback)</code> is used instead.</p>
+</li>
+<li>
+<p>The internal class constructor <code>io.micronaut.serde.support.serializers.ObjectSerializer(SerdeIntrospections, BeanContext)</code> deprecated previously has been removed.
+<code>ObjectSerializer(SerdeIntrospections, SerdeConfiguration, SerializationConfiguration, BeanContext)</code> is used instead.</p>
+</li>
+<li>
+<p>The following constructors of <code>io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonBinaryObjectMapper</code> deprecated previously have been removed.
+The internal constructor <code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry registry, SerdeConfiguration)</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>OracleJdbcJsonBinaryObjectMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The following constructors of <code>io.micronaut.serde.oracle.jdbc.json.OracleJdbcJsonTextObjectMapper</code> deprecated previously have been removed.
+The internal constructor <code>OracleJdbcJsonTextObjectMapper(SerdeRegistry registry, SerdeConfiguration)</code> is used instead.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>OracleJdbcJsonTextObjectMapper(SerdeRegistry)</code></p>
+</li>
+<li>
+<p><code>OracleJdbcJsonTextObjectMapper(SerdeRegistry, Class&lt;?&gt;)</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>The Singleton constructor <code>io.micronaut.serde.oracle.jdbc.json.serde.OracleJsonBinarySerde()</code> deprecated previously have been removed.
+<code>OracleJsonBinarySerde(Serde&lt;byte[]&gt;)</code> is used instead.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<h1 id="repository"><a class="anchor" href="#repository"></a>11 Repository</h1>
+
+<div class='contribute-btn'>
+    <button type='button' class='btn btn-default' onclick='window.location.href="https://github.com/micronaut-projects/micronaut-serialization/edit/3.0.x/src/main/docs/guide/repository.adoc"'>
         <i class='fa fa-pencil-square-o'></i> Improve this doc
     </button>
 </div>
