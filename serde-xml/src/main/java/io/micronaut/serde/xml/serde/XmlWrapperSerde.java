@@ -109,7 +109,7 @@ public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
 
     @Override
     public @NonNull XmlWrapperSerde<T> withIterableWrapper(boolean useWrapping, @Nullable String wrapperName) {
-        if (generic == null || componentSerializer == null && componentDeserializer == null) {
+        if (generic == null || (componentSerializer == null && componentDeserializer == null)) {
             return this;
         }
         return new XmlWrapperSerde<>(generic, componentSerializer, componentDeserializer, useWrapping, wrapperName);
