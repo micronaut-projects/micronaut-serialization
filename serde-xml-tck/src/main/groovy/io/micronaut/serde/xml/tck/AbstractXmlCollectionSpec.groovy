@@ -44,6 +44,11 @@ abstract class AbstractXmlCollectionSpec extends Specification implements XmlSpe
         List<Double> values
     }
 
+    @Serdeable
+    static class StringMapWrapper {
+        Map<String, String> values
+    }
+
     def "Test Stream Of"(){
         given:
         List<String> input = Stream.of('a', 'b', 'c');
@@ -134,6 +139,19 @@ abstract class AbstractXmlCollectionSpec extends Specification implements XmlSpe
         read[0].id == 123L
         read[1].name == "William"
         read[1].description == "desc2"
+    }
+    /** Covering Already Map with DynaBean in {@link AbstractXmlSerializationAttrSpec} */
+    def "Test string map encoding"() {
+        given:
+        def input = new StringMapWrapper(values: [first: "alpha", second: "beta"])
+
+        when:
+        def xml = writeXml(input)
+        def read = readXml(xml, StringMapWrapper)
+
+        then:
+        xml == '<StringMapWrapper><values><first>alpha</first><second>beta</second></values></StringMapWrapper>'
+        read.values == input.values
     }
 
     def "Test integer list encoding"() {

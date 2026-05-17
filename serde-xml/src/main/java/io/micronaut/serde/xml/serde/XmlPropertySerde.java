@@ -62,24 +62,31 @@ public class XmlPropertySerde<T> extends XmlSerde<T> implements XmlElementSerde<
     }
 
     @Override
-    public @Nullable T deserialize(@NonNull Decoder decoder,
-                                   @NonNull DecoderContext context,
-                                   @NonNull Argument<? super T> type) throws IOException {
+    public @NonNull T deserialize(@NonNull Decoder decoder,
+                                  @NonNull DecoderContext context,
+                                  @NonNull Argument<? super T> type) throws IOException {
         String value = decodeAttributeValue(decoder);
         if (value == null) {
-            return null;
+            throw decoder.createDeserializationException("Missing XML attribute value for: " + type, null);
         }
-        if (type.isInstance(value)) {
-            return (T) value;
-        }
-        return (T) context.getConversionService().convertRequired(value, type);
+        return convert(value, context, type);
     }
 
     @Override
     public @Nullable T deserializeNullable(@NonNull Decoder decoder,
                                            @NonNull DecoderContext context,
                                            @NonNull Argument<? super T> type) throws IOException {
-        return deserialize(decoder, context, type);
+        String value = decodeAttributeValue(decoder);
+        return value == null ? null : convert(value, context, type);
+    }
+
+    private static <T> @NonNull T convert(@NonNull String value,
+                                          @NonNull DecoderContext context,
+                                          @NonNull Argument<? super T> type) {
+        if (type.isInstance(value)) {
+            return (T) value;
+        }
+        return (T) context.getConversionService().convertRequired(value, type);
     }
 
     /**

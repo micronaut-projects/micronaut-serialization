@@ -145,9 +145,9 @@ public final class XmlWrapperSerde<T> extends XmlSerde<Iterable<T>> implements
     }
 
     @Override
-    public @Nullable Iterable<T> deserialize(@NonNull Decoder decoder,
-                                             @NonNull DecoderContext context,
-                                             @NonNull Argument<? super Iterable<T>> type) throws IOException {
+    public @NonNull Iterable<T> deserialize(@NonNull Decoder decoder,
+                                            @NonNull DecoderContext context,
+                                            @NonNull Argument<? super Iterable<T>> type) throws IOException {
         if (componentDeserializer == null || generic == null) {
             throw new SerdeException("XmlWrapperSerde was not specialized for deserialization: " + type);
         }
