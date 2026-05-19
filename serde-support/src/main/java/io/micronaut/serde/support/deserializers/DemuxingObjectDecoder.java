@@ -20,6 +20,8 @@ import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.DelegatingDecoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareDecoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
 import org.jspecify.annotations.Nullable;
@@ -41,7 +43,7 @@ import java.util.List;
  * @since 2.2.7
  */
 @Internal
-final class DemuxingObjectDecoder extends DelegatingDecoder {
+final class DemuxingObjectDecoder extends DelegatingDecoder implements KeysAwareDecoder {
     private final DemuxerState state;
     private final boolean consumeValues;
     private int nextKeyIndex;
@@ -80,6 +82,33 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
 
     @Override
     public @Nullable String decodeKey() throws IOException {
+        DemuxerState.Entry entry = nextKey();
+        return entry == null ? null : entry.key;
+    }
+
+    @Override
+    public int decodeKey(Keys keys) throws IOException {
+        DemuxerState.Entry entry;
+        do {
+            entry = state.getEntry(nextKeyIndex);
+            if (entry == null) {
+                return MATCH_END_OBJECT;
+            }
+            if (entry.consumed) {
+                nextKeyIndex++;
+            }
+        } while (entry.consumed);
+        int index = keys.indexOf(entry.key);
+        if (index == -1) {
+            // MATCH_UNKNOWN_NAME means this entry did not match the supplied Keys.
+            // Do not advance; decodeKey() will return the same unknown name.
+            return MATCH_UNKNOWN_NAME;
+        }
+        nextKeyIndex++;
+        return index;
+    }
+
+    private DemuxerState.@Nullable Entry nextKey() throws IOException {
         DemuxerState.Entry entry;
         do {
             entry = state.getEntry(nextKeyIndex++);
@@ -88,7 +117,7 @@ final class DemuxingObjectDecoder extends DelegatingDecoder {
                 return null;
             }
         } while (entry.consumed);
-        return entry.key;
+        return entry;
     }
 
     private DemuxerState.Entry entryForValue() throws IOException {

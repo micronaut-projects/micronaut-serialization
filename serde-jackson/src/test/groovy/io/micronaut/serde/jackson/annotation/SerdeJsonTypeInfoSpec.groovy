@@ -296,6 +296,66 @@ class Sub extends Base {
             e.message.contains "EXTERNAL_PROPERTY can only be used for properties. Trying to use it for classes will result in inclusion strategy of basic PROPERTY instead."
     }
 
+    void 'test external property reference is scoped to one deserialization'() {
+        given:
+            def context = buildContext('test.ExternalWrapper', """
+package test;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.micronaut.core.annotation.Introspected;
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.annotation.SerdeableGenerated;
+
+@Serdeable
+@SerdeableGenerated(skip = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class ExternalWrapper {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "kind")
+    @JsonSubTypes({
+        @JsonSubTypes.Type(value = MetricEvent.class, name = "metric"),
+        @JsonSubTypes.Type(value = TextEvent.class, name = "text")
+    })
+    public Event event;
+}
+
+@Serdeable
+@SerdeableGenerated(skip = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class Event {
+    public String code;
+}
+
+@Serdeable
+@SerdeableGenerated(skip = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class MetricEvent extends Event {
+    public long id;
+}
+
+@Serdeable
+@SerdeableGenerated(skip = true)
+@Introspected(accessKind = Introspected.AccessKind.FIELD)
+class TextEvent extends Event {
+    public String text;
+}
+""")
+            def argument = argumentOf(context, "test.ExternalWrapper")
+
+        when:
+            def first = jsonMapper.readValue('{"event":{"code":"a","id":1},"kind":"metric"}', argument)
+            def second = jsonMapper.readValue('{"event":{"code":"b","text":"hello"},"kind":"text"}', argument)
+
+        then:
+            first.event.class.name == 'test.MetricEvent'
+            first.event.id == 1L
+            second.event.class.name == 'test.TextEvent'
+            second.event.text == 'hello'
+
+        cleanup:
+            context.close()
+    }
+
     void 'test wrapped subtype in constructor with @JsonTypeInfo(include = JsonTypeInfo.As.#include)'(String include) {
         given:
             def context = buildContext('test.Base', """

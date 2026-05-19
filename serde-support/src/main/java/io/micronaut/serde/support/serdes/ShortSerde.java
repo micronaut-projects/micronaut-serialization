@@ -16,17 +16,18 @@
 package io.micronaut.serde.support.serdes;
 
 import io.micronaut.core.annotation.Internal;
-import org.jspecify.annotations.Nullable;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
 
 @Internal
-final class ShortSerde implements SerdeRegistrar<Short>, NumberSerde<Short> {
+final class ShortSerde implements SerdeRegistrar<Short>, NumberSerde<Short>, DecoderValueKind.Provider {
     @Override
     public Short deserialize(Decoder decoder,
                              DecoderContext decoderContext,
@@ -67,5 +68,10 @@ final class ShortSerde implements SerdeRegistrar<Short>, NumberSerde<Short> {
     @Override
     public Short getDefaultValue(DecoderContext context, Argument<? super Short> type) {
         return type.isPrimitive() ? (short) 0 : null;
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.SHORT;
     }
 }

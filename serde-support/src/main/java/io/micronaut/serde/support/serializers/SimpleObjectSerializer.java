@@ -18,11 +18,16 @@ package io.micronaut.serde.support.serializers;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.Keys;
+import io.micronaut.serde.KeysAwareEncoder;
 import io.micronaut.serde.ObjectSerializer;
+import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.exceptions.path.ReferencePath;
+import io.micronaut.serde.support.util.DecoderValueKind;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -35,42 +40,244 @@ import java.util.Objects;
 @Internal
 final class SimpleObjectSerializer<T> implements ObjectSerializer<T> {
 
-    private final List<SerBean.SerProperty<T, Object>> writeProperties;
+    private final SerBean.SerProperty<T, Object>[] writeProperties;
+    private final @Nullable Serializer<Object>[] serializers;
+    private final Argument<Object>[] arguments;
+    private final ReferencePath[] referencePaths;
+    private final byte[] valueKinds;
+    private final Keys keys;
+    private final boolean serializersResolved;
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     SimpleObjectSerializer(SerBean<T> serBean) {
-        this.writeProperties = serBean.writeProperties;
+        this.writeProperties = serBean.writeProperties.toArray(SerBean.SerProperty[]::new);
+        this.serializers = new Serializer[writeProperties.length];
+        this.arguments = new Argument[writeProperties.length];
+        this.referencePaths = new ReferencePath[writeProperties.length];
+        this.valueKinds = new byte[writeProperties.length];
+        boolean resolved = true;
+        for (int i = 0; i < writeProperties.length; i++) {
+            SerBean.SerProperty<T, Object> property = writeProperties[i];
+            Serializer<Object> serializer = property.serializer;
+            serializers[i] = serializer;
+            arguments[i] = property.argument;
+            referencePaths[i] = property.getReferencePath();
+            byte valueKind = serializer == null ? DecoderValueKind.NONE_CODE : directValueKind(property, serializer);
+            valueKinds[i] = valueKind;
+            resolved &= serializer != null;
+        }
+        this.keys = serBean.propertyKeys;
+        this.serializersResolved = resolved;
     }
 
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        Encoder childEncoder = encoder.encodeObject(type);
-        for (SerBean.SerProperty<T, Object> property : writeProperties) {
-            try {
-                childEncoder.encodeKey(property.name);
-                Object v = property.get(value);
-                if (v == null) {
-                    childEncoder.encodeNull();
-                } else {
-                    Objects.requireNonNull(property.serializer).serialize(childEncoder, context, property.argument, v);
-                }
-            } catch (SerdeException e) {
-                e.getPath().add(property.getReferencePath());
-                throw e;
-            }
+        KeysAwareEncoder childEncoder = KeysAwareEncoder.of(encoder.encodeObject(type));
+        if (serializersResolved) {
+            serializeResolvedProperties(childEncoder, context, value);
+            childEncoder.finishStructure();
+            return;
         }
+        serializeProperties(childEncoder, context, value);
         childEncoder.finishStructure();
+    }
+
+    private void serializeProperties(KeysAwareEncoder childEncoder, EncoderContext context, T value) throws IOException {
+        int i = 0;
+        int left = writeProperties.length;
+        if (left > 3) {
+            do {
+                serializeProperty(childEncoder, context, value, i);
+                serializeProperty(childEncoder, context, value, i + 1);
+                serializeProperty(childEncoder, context, value, i + 2);
+                serializeProperty(childEncoder, context, value, i + 3);
+                i += 4;
+                left -= 4;
+            } while (left > 3);
+        }
+        switch (left) {
+            case 3:
+                serializeProperty(childEncoder, context, value, i++);
+                // fall through
+            case 2:
+                serializeProperty(childEncoder, context, value, i++);
+                // fall through
+            case 1:
+                serializeProperty(childEncoder, context, value, i);
+                // fall through
+            default:
+        }
+    }
+
+    private void serializeResolvedProperties(KeysAwareEncoder childEncoder, EncoderContext context, T value) throws IOException {
+        int i = 0;
+        int left = writeProperties.length;
+        if (left > 3) {
+            do {
+                serializeResolvedProperty(childEncoder, context, value, i);
+                serializeResolvedProperty(childEncoder, context, value, i + 1);
+                serializeResolvedProperty(childEncoder, context, value, i + 2);
+                serializeResolvedProperty(childEncoder, context, value, i + 3);
+                i += 4;
+                left -= 4;
+            } while (left > 3);
+        }
+        switch (left) {
+            case 3:
+                serializeResolvedProperty(childEncoder, context, value, i++);
+                // fall through
+            case 2:
+                serializeResolvedProperty(childEncoder, context, value, i++);
+                // fall through
+            case 1:
+                serializeResolvedProperty(childEncoder, context, value, i);
+                // fall through
+            default:
+        }
     }
 
     @Override
     public void serializeInto(Encoder encoder, EncoderContext context, Argument<? extends T> type, T value) throws IOException {
-        for (SerBean.SerProperty<T, Object> property : writeProperties) {
-            encoder.encodeKey(property.name);
-            Object v = property.get(value);
-            if (v == null) {
-                encoder.encodeNull();
-            } else {
-                Objects.requireNonNull(property.serializer).serialize(encoder, context, property.argument, v);
-            }
+        KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);
+        if (serializersResolved) {
+            serializeResolvedPropertiesInto(keysAwareEncoder, context, value);
+            return;
+        }
+        serializePropertiesInto(keysAwareEncoder, context, value);
+    }
+
+    private void serializePropertiesInto(KeysAwareEncoder keysAwareEncoder, EncoderContext context, T value) throws IOException {
+        int i = 0;
+        int left = writeProperties.length;
+        if (left > 3) {
+            do {
+                serializePropertyInto(keysAwareEncoder, context, value, i);
+                serializePropertyInto(keysAwareEncoder, context, value, i + 1);
+                serializePropertyInto(keysAwareEncoder, context, value, i + 2);
+                serializePropertyInto(keysAwareEncoder, context, value, i + 3);
+                i += 4;
+                left -= 4;
+            } while (left > 3);
+        }
+        switch (left) {
+            case 3:
+                serializePropertyInto(keysAwareEncoder, context, value, i++);
+                // fall through
+            case 2:
+                serializePropertyInto(keysAwareEncoder, context, value, i++);
+                // fall through
+            case 1:
+                serializePropertyInto(keysAwareEncoder, context, value, i);
+                // fall through
+            default:
         }
     }
+
+    private void serializeResolvedPropertiesInto(KeysAwareEncoder keysAwareEncoder, EncoderContext context, T value) throws IOException {
+        int i = 0;
+        int left = writeProperties.length;
+        if (left > 3) {
+            do {
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i);
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i + 1);
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i + 2);
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i + 3);
+                i += 4;
+                left -= 4;
+            } while (left > 3);
+        }
+        switch (left) {
+            case 3:
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i++);
+                // fall through
+            case 2:
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i++);
+                // fall through
+            case 1:
+                serializeResolvedPropertyInto(keysAwareEncoder, context, value, i);
+                // fall through
+            default:
+        }
+    }
+
+    private void serializeProperty(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
+        try {
+            serializePropertyInto(encoder, context, value, index);
+        } catch (SerdeException e) {
+            e.getPath().add(referencePaths[index]);
+            throw e;
+        }
+    }
+
+    private void serializeResolvedProperty(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
+        try {
+            serializeResolvedPropertyInto(encoder, context, value, index);
+        } catch (SerdeException e) {
+            e.getPath().add(referencePaths[index]);
+            throw e;
+        }
+    }
+
+    private void serializePropertyInto(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
+        encoder.encodeKey(keys, index);
+        Object v = writeProperties[index].get(value);
+        if (v == null) {
+            encoder.encodeNull();
+        } else {
+            Serializer<Object> serializer = serializers[index];
+            byte valueKind = valueKinds[index];
+            if (serializer == null) {
+                SerBean.SerProperty<T, Object> property = writeProperties[index];
+                serializer = Objects.requireNonNull(property.serializer);
+                valueKind = directValueKind(property, serializer);
+            }
+            if (valueKind != DecoderValueKind.NONE_CODE) {
+                serializeDirectValue(encoder, v, valueKind);
+                return;
+            }
+            serializer.serialize(encoder, context, arguments[index], v);
+        }
+    }
+
+    @SuppressWarnings("NullAway")
+    private void serializeResolvedPropertyInto(KeysAwareEncoder encoder, EncoderContext context, T value, int index) throws IOException {
+        encoder.encodeKey(keys, index);
+        Object v = writeProperties[index].get(value);
+        if (v == null) {
+            encoder.encodeNull();
+            return;
+        }
+        byte valueKind = valueKinds[index];
+        if (valueKind != DecoderValueKind.NONE_CODE) {
+            serializeDirectValue(encoder, v, valueKind);
+            return;
+        }
+        serializers[index].serialize(encoder, context, arguments[index], v);
+    }
+
+    private static byte directValueKind(SerBean.SerProperty<?, Object> property, Serializer<Object> serializer) {
+        if (property.format == null
+            && property.featuresWith.isEmpty()
+            && property.featuresWithout.isEmpty()
+            && serializer instanceof DecoderValueKind.Provider decoderValueKind) {
+            return decoderValueKind.decoderValueKind().code();
+        }
+        return DecoderValueKind.NONE_CODE;
+    }
+
+    private static void serializeDirectValue(Encoder encoder, Object value, byte valueKind) throws IOException {
+        switch (valueKind) {
+            case DecoderValueKind.STRING_CODE -> encoder.encodeString((String) value);
+            case DecoderValueKind.BOOLEAN_CODE -> encoder.encodeBoolean((Boolean) value);
+            case DecoderValueKind.BYTE_CODE -> encoder.encodeByte((Byte) value);
+            case DecoderValueKind.SHORT_CODE -> encoder.encodeShort((Short) value);
+            case DecoderValueKind.CHAR_CODE -> encoder.encodeChar((Character) value);
+            case DecoderValueKind.INT_CODE -> encoder.encodeInt((Integer) value);
+            case DecoderValueKind.LONG_CODE -> encoder.encodeLong((Long) value);
+            case DecoderValueKind.FLOAT_CODE -> encoder.encodeFloat((Float) value);
+            case DecoderValueKind.DOUBLE_CODE -> encoder.encodeDouble((Double) value);
+            default -> throw new IllegalStateException("Unsupported encoder value kind: " + valueKind);
+        }
+    }
+
 }

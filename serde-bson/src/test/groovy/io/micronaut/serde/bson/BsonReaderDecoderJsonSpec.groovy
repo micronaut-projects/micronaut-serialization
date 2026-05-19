@@ -2,6 +2,8 @@ package io.micronaut.serde.bson
 
 
 import io.micronaut.serde.Decoder
+import io.micronaut.serde.Keys
+import io.micronaut.serde.KeysAwareDecoder
 import io.micronaut.serde.LimitingStream
 import io.micronaut.serde.exceptions.SerdeException
 import org.bson.json.JsonReader
@@ -118,6 +120,38 @@ class BsonReaderDecoderJsonSpec extends Specification {
                 f3: true,
                 f4: [56, [f5: 'bar']]
         ]
+    }
+
+    def 'keys aware decode key matches known unknown and end names'() {
+        given:
+        def keys = Keys.create('foo', 'bar')
+        def object = (KeysAwareDecoder) createDecoder('{"foo": "a", "unknown": "x", "bar": "b"}').decodeObject()
+
+        expect:
+        object.decodeKey(keys) == 0
+        object.decodeString() == 'a'
+
+        object.decodeKey(keys) == KeysAwareDecoder.MATCH_UNKNOWN_NAME
+        object.decodeKey() == 'unknown'
+        object.decodeString() == 'x'
+
+        object.decodeKey(keys) == 1
+        object.decodeString() == 'b'
+
+        object.decodeKey(keys) == KeysAwareDecoder.MATCH_END_OBJECT
+        object.finishStructure()
+    }
+
+    def 'keys aware decode key supports case insensitive keys'() {
+        given:
+        def keys = Keys.create(['foo'] as String[], true)
+        def object = (KeysAwareDecoder) createDecoder('{"FOO": "a"}').decodeObject()
+
+        expect:
+        object.decodeKey(keys) == 0
+        object.decodeString() == 'a'
+        object.decodeKey(keys) == KeysAwareDecoder.MATCH_END_OBJECT
+        object.finishStructure()
     }
 
     def 'skip unknown string'() {

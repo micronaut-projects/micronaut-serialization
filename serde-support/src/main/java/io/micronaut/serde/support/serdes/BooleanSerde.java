@@ -24,12 +24,13 @@ import io.micronaut.serde.FormattedSerde;
 import io.micronaut.serde.Serializer;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.SerdeRegistrar;
+import io.micronaut.serde.support.util.DecoderValueKind;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Arrays;
 
-final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Boolean> {
+final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Boolean>, DecoderValueKind.Provider {
     @Override
     public Boolean deserialize(Decoder decoder,
                                DecoderContext decoderContext,
@@ -40,6 +41,11 @@ final class BooleanSerde implements FormattedSerde<Boolean>, SerdeRegistrar<Bool
     @Override
     public @Nullable Boolean deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super Boolean> type) throws IOException {
         return decoder.decodeBooleanNullable();
+    }
+
+    @Override
+    public DecoderValueKind decoderValueKind() {
+        return DecoderValueKind.BOOLEAN;
     }
 
     @Override

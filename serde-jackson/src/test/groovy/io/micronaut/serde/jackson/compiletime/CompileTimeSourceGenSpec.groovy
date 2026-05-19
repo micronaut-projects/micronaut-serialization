@@ -69,15 +69,21 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
         assertArgumentWithNameUsesKeyConstant(beanDeserializerSource, beanDeserializerClassName)
         assertArgumentWithNameUsesKeyConstant(recordSerializerSource, recordSerializerClassName)
         assertArgumentWithNameUsesKeyConstant(recordDeserializerSource, recordDeserializerClassName)
+        assertKeysAwareSerializerSource(beanSerializerSource)
+        assertKeysAwareSerializerSource(recordSerializerSource)
         assertStringSwitchDispatchSource(beanDeserializerSource)
         assertStringSwitchDispatchSource(recordDeserializerSource)
+        !beanSerializerSource.contains('propertyArgument')
         beanSerializerSource.contains("withPropertyPath(e0, type, ${simpleName(beanSerializerClassName)}.ARGUMENT_0)")
+        beanSerializerSource.contains("withPropertyPath(e0, type, ${simpleName(beanSerializerClassName)}.ARGUMENT_1)")
+        !recordSerializerSource.contains('propertyArgument')
         recordSerializerSource.contains("withPropertyPath(e0, type, ${simpleName(recordSerializerClassName)}.ARGUMENT_0)")
+        recordSerializerSource.contains("withPropertyPath(e0, type, ${simpleName(recordSerializerClassName)}.ARGUMENT_1)")
         recordDeserializerSource.contains('String propertyValue0')
-        beanSerializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'serializer1'])
-        beanDeserializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'deserializer1'])
-        recordSerializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'serializer1'])
-        recordDeserializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'deserializer1'])
+        beanSerializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'KEYS', 'serializer1'])
+        beanDeserializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'KEYS', 'deserializer1'])
+        recordSerializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'KEYS', 'serializer1'])
+        recordDeserializerClass.declaredFields*.name.containsAll(['KEY_0', 'ARGUMENT_0', 'KEY_1', 'ARGUMENT_1', 'KEYS', 'deserializer1'])
         enumDeserializerSource.contains('private final Deserializer stringDeserializer;')
 
         cleanup:
@@ -782,26 +788,23 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
     private static void assertLargeBeanDispatchSource(String deserializerSource) {
         assertLargeDispatchSource(deserializerSource)
         assert deserializerSource.contains('if (this.failOnNullForPrimitives)')
-        assert deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
         assert deserializerSource.contains('objectDecoder.decodeNull()')
         assert deserializerSource.contains('objectDecoder.decodeBoolean()')
-        assert deserializerSource.contains('bean.setC(objectDecoder.decodeBoolean());')
         assert deserializerSource.contains('failOnNullForPrimitives(context)')
-        assert deserializerSource.contains('PropertyDispatchResult.NULL')
-        assert deserializerSource.contains('GeneratedSerdeExceptionUtil.nullValue(type, Argument.OBJECT_ARGUMENT.withName(key))')
+        assert deserializerSource.contains('GeneratedSerdeExceptionUtil.withPropertyPath(e0, type, ')
+        assert !deserializerSource.contains('GeneratedSerdeExceptionUtil.nullValue(type, Argument.OBJECT_ARGUMENT.withName(key))')
     }
 
     private static void assertLargeRecordDispatchSource(String deserializerSource) {
         assertLargeDispatchSource(deserializerSource)
         assert deserializerSource.contains('boolean propertyValue2 = false;')
         assert deserializerSource.contains('if (this.failOnNullForPrimitives)')
-        assert deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
+        assert !deserializerSource.contains('objectDecoder.decodeBooleanNullable()')
         assert deserializerSource.contains('objectDecoder.decodeNull()')
         assert deserializerSource.contains('objectDecoder.decodeBoolean()')
-        assert deserializerSource.contains('propertyValue2 = objectDecoder.decodeBoolean();')
         assert deserializerSource.contains('failOnNullForPrimitives(context)')
-        assert deserializerSource.contains('PropertyDispatchResult.NULL')
-        assert deserializerSource.contains('GeneratedSerdeExceptionUtil.nullValue(type, Argument.OBJECT_ARGUMENT.withName(key))')
+        assert deserializerSource.contains('GeneratedSerdeExceptionUtil.withPropertyPath(e0, type, ')
+        assert !deserializerSource.contains('GeneratedSerdeExceptionUtil.nullValue(type, Argument.OBJECT_ARGUMENT.withName(key))')
     }
 
     private static void assertLargeDispatchSource(String deserializerSource) {
@@ -810,25 +813,47 @@ class CompileTimeSourceGenSpec extends JsonCompileSpec {
 
     private static void assertStringSwitchDispatchSource(String deserializerSource) {
         assert deserializerSource.contains('while (true)')
-        assert deserializerSource.contains('String key = objectDecoder.decodeKey();')
-        assert deserializerSource.contains('GeneratedSerdeExceptionUtil.PropertyDispatchResult propertyDispatchResult = switch (key)')
-        assert deserializerSource.contains('PropertyDispatchResult.HANDLED')
-        assert deserializerSource.contains('PropertyDispatchResult.DUPLICATE')
-        assert deserializerSource.contains('default -> GeneratedSerdeExceptionUtil.PropertyDispatchResult.UNKNOWN;')
-        assert deserializerSource.contains('yield dispatchResult;')
-        assert deserializerSource.contains('switch (propertyDispatchResult)')
-        assert deserializerSource.contains('case GeneratedSerdeExceptionUtil.PropertyDispatchResult.HANDLED ->')
-        assert deserializerSource.contains('case GeneratedSerdeExceptionUtil.PropertyDispatchResult.UNKNOWN ->')
-        assert deserializerSource.contains('case GeneratedSerdeExceptionUtil.PropertyDispatchResult.DUPLICATE ->')
-        assert deserializerSource.contains('case GeneratedSerdeExceptionUtil.PropertyDispatchResult.NULL ->')
+        assert deserializerSource.contains('private static final Keys KEYS = Keys.create(new String[]{')
+        assert deserializerSource.contains('KeysAwareDecoder keysAwareDecoder = KeysAwareDecoder.of(objectDecoder);')
+        assert deserializerSource.contains('switch (keysAwareDecoder.decodeKey(')
+        assert !deserializerSource.contains('int keyIndex = keysAwareDecoder.decodeKey(')
+        assert !deserializerSource.contains('switch (keyIndex)')
+        assert deserializerSource.contains('case -1 ->')
+        assert deserializerSource.contains('case -2 ->')
+        assert !deserializerSource.contains('if (keyIndex == -1)')
+        assert !deserializerSource.contains('if (keyIndex == -2)')
+        assert deserializerSource.contains('case 0 ->')
+        assert deserializerSource.contains('String key = keysAwareDecoder.decodeKey();')
+        if (deserializerSource.contains('long seenProperties = 0l;')) {
+            assert !deserializerSource.contains('long propertyBit = 1l << (long) keyIndex;')
+            assert !deserializerSource.contains('ARGUMENTS[keyIndex]')
+            assert deserializerSource.contains('GeneratedSerdeExceptionUtil.duplicateProperty(type, ')
+            assert !deserializerSource.contains('propertyDispatchStatus')
+        }
+        assert !deserializerSource.contains('if (objectDecoder.decodeNull()) {\n              } else {')
+        assert !deserializerSource.contains('switch (key)')
+        assert !deserializerSource.contains('PropertyDispatchResult')
+        assert !deserializerSource.contains('PropertyDispatchResult propertyDispatchResult')
+        assert !deserializerSource.contains('default -> GeneratedSerdeExceptionUtil.PropertyDispatchResult.UNKNOWN;')
+        assert !deserializerSource.contains('yield dispatchResult;')
+        assert !deserializerSource.contains('switch (propertyDispatchResult)')
         assert !deserializerSource.contains('if (propertyDispatchResult != GeneratedSerdeExceptionUtil.PropertyDispatchResult.HANDLED)')
         assert deserializerSource.contains('GeneratedSerdeExceptionUtil.unknownProperty(type, Argument.OBJECT_ARGUMENT.withName(key))')
-        assert deserializerSource.contains('GeneratedSerdeExceptionUtil.duplicateProperty(type, Argument.OBJECT_ARGUMENT.withName(key))')
-        assert deserializerSource.count('decodeKey()') == 1
+        assert !deserializerSource.contains('GeneratedSerdeExceptionUtil.duplicateProperty(type, Argument.OBJECT_ARGUMENT.withName(key))')
+        int expectedUnknownKeyDecodeCount = deserializerSource.contains('if (this.failOnNullForPrimitives)')
+            && deserializerSource.count('while (true)') > 1 ? 2 : 1
+        assert deserializerSource.count('decodeKey()') == expectedUnknownKeyDecodeCount
         assert !deserializerSource.contains('key.equals(')
         assert !deserializerSource.contains('boolean handledProperty')
         assert !deserializerSource.contains('if (!handledProperty)')
         assert deserializerSource.contains('skipValue')
+    }
+
+    private static void assertKeysAwareSerializerSource(String serializerSource) {
+        assert serializerSource.contains('private static final Keys KEYS = Keys.create(new String[]{')
+        assert serializerSource.contains('KeysAwareEncoder keysAwareEncoder = KeysAwareEncoder.of(encoder);')
+        assert serializerSource.contains('keysAwareEncoder.encodeKey(')
+        assert !serializerSource.contains('encoder.encodeKey(')
     }
 
     private Object buildDeserializer(SerdeRegistry registry,

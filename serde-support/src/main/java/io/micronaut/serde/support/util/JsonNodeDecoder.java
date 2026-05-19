@@ -22,6 +22,7 @@ import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.InvalidFormatException;
+import io.micronaut.serde.exceptions.NullValueSerdeException;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.util.BinaryCodecUtil;
 import org.jspecify.annotations.Nullable;
@@ -48,6 +49,10 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
     }
 
     protected abstract JsonNode peekValue() throws IOException;
+
+    private static NullValueSerdeException unexpectedNullToken(String expected) {
+        return NullValueSerdeException.unexpectedToken(expected, "NULL");
+    }
 
     @Override
     public Decoder decodeArray(Argument<?> type) throws IOException {
@@ -77,6 +82,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isString()) {
             skipValue();
             return peeked.getStringValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("STRING");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.STRING)) {
                 String unwrapped = decoder.decodeString();
@@ -97,6 +104,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isBoolean()) {
             skipValue();
             return peeked.getBooleanValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("BOOLEAN");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.BOOLEAN)) {
                 boolean unwrapped = decoder.decodeBoolean();
@@ -117,6 +126,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return (byte) peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.BYTE)) {
                 byte unwrapped = decoder.decodeByte();
@@ -137,6 +148,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return (short) peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.SHORT)) {
                 short unwrapped = decoder.decodeShort();
@@ -157,6 +170,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return (char) peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.CHAR)) {
                 char unwrapped = decoder.decodeChar();
@@ -177,6 +192,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getIntValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.INT)) {
                 int unwrapped = decoder.decodeInt();
@@ -197,6 +214,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getLongValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.LONG)) {
                 long unwrapped = decoder.decodeLong();
@@ -217,6 +236,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getFloatValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.FLOAT)) {
                 float unwrapped = decoder.decodeFloat();
@@ -237,6 +258,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getDoubleValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray(Argument.DOUBLE)) {
                 double unwrapped = decoder.decodeDouble();
@@ -257,6 +280,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getBigIntegerValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray()) {
                 BigInteger unwrapped = decoder.decodeBigInteger();
@@ -277,6 +302,8 @@ public abstract sealed class JsonNodeDecoder extends LimitingStream implements D
         if (peeked.isNumber()) {
             skipValue();
             return peeked.getBigDecimalValue();
+        } else if (peeked.isNull()) {
+            throw unexpectedNullToken("NUMBER");
         } else if (peeked.isArray()) {
             try (Decoder decoder = decodeArray()) {
                 BigDecimal unwrapped = decoder.decodeBigDecimal();
