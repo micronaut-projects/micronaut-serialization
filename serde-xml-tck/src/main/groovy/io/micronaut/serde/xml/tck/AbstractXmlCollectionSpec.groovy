@@ -51,7 +51,7 @@ abstract class AbstractXmlCollectionSpec extends Specification implements XmlSpe
 
     def "Test Stream Of"(){
         given:
-        List<String> input = Stream.of('a', 'b', 'c');
+        List<String> input = new ArrayList<>(Stream.of('a', 'b', 'c').toList())
 
         when:
         def xml = writeXml(input)

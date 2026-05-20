@@ -53,10 +53,9 @@ public class JacksonXmlElementWrapperMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        annotation.stringValue("useWrapping").ifPresentOrElse(useWrapping -> {
-                boolean flag = Boolean.parseBoolean(useWrapping);
-                builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, flag);
-                configureWrapperSerde(builder);
+        annotation.booleanValue("useWrapping").ifPresentOrElse(useWrapping -> {
+                builder.member(SerdeConfig.META_ANNOTATION_PROPERTY, useWrapping);
+                    configureWrapperSerde(builder);
             },
             () -> {
                 annotation.stringValue("localName")

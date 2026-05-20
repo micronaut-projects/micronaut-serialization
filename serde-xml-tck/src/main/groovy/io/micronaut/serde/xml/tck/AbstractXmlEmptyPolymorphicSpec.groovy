@@ -30,7 +30,7 @@ abstract class AbstractXmlEmptyPolymorphicSpec extends Specification implements 
         def xml = writeXml(bean)
 
         then:
-        xml =="<Data><name>Foobar</name><proxy/></Data>"
+        xml == "<Data><name>Foobar</name><proxy/></Data>"
     }
 
     def "Empty Polymorphic read rejects abstract proxy without type info"() {

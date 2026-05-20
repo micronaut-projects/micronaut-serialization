@@ -110,7 +110,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 "org.bson.codecs.pojo.annotations.*",
                 "io.micronaut.serde.config.annotation.*",
                 "tools.jackson.databind.annotation.*",
-                "tools.jackson.dataformat.annotation.*"
+                "tools.jackson.dataformat.annotation.*",
+                "tools.jackson.dataformat.xml.annotation.*"
         );
     }
 

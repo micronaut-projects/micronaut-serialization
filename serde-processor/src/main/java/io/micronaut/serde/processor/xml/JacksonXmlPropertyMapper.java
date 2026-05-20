@@ -51,8 +51,7 @@ public class JacksonXmlPropertyMapper implements NamedAnnotationMapper {
     @Override
     public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         AnnotationValueBuilder<SerdeConfig> builder = AnnotationValue.builder(SerdeConfig.class);
-        boolean isAttribute = annotation.stringValue("isAttribute")
-            .map(Boolean::valueOf)
+        boolean isAttribute = annotation.booleanValue("isAttribute")
             .orElse(false);
         if (isAttribute) {
             builder.member(SerdeConfig.XML_ATTRIBUTE_PROPERTY, true);
