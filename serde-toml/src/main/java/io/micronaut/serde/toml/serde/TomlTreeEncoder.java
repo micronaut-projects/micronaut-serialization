@@ -142,7 +142,7 @@ public final class TomlTreeEncoder implements Encoder {
     @Override
     public void encodeNull() throws IOException {
         if (failOnNullWrite) {
-            throw new SerdeException("TOML null writing disabled (TomlWriteFeature.FAIL_ON_NULL_WRITE)");
+            throw new SerdeException("TOML null writing disabled (FAIL_ON_NULL_WRITE)");
         }
         delegate.encodeNull();
     }

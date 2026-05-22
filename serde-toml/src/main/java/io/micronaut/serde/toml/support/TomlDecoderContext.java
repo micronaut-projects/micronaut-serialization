@@ -34,7 +34,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 /**
- * TOML-local decoder context overrides.
+ * TOML-local decoder context overrides. we delegate all to the default decoder context only with findDeserializer() we have TomlNullCoercingDeserializer so '' is either null or empty string
+ * for non strings Integer, Object, etc.
  */
 @Internal
 public final class TomlDecoderContext implements Deserializer.DecoderContext {

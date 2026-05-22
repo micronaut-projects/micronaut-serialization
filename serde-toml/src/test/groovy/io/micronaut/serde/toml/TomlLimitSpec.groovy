@@ -6,10 +6,8 @@ import io.micronaut.inject.qualifiers.Qualifiers
 import io.micronaut.json.tree.JsonNode
 import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.toml.fixture.StringWrapper
-import io.micronaut.serde.toml.support.TomlFactoryFactory
 import spock.lang.Specification
-import tools.jackson.core.StreamReadConstraints
-import tools.jackson.core.StreamWriteConstraints
+import spock.lang.Unroll
 
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
@@ -20,23 +18,23 @@ class TomlLimitSpec extends Specification {
     private static final int TYPED_STRING_LIMIT = 256
     private static final int TYPED_STRING_LEN = 512
 
-    void "explicit toml parser string constraints fail cleanly"() {
+    void "explicit toml public mapper string constraints fail cleanly"() {
         given:
-        def factory = TomlFactoryFactory.create(
-            StreamReadConstraints.builder().maxStringLength(256).build(),
-            StreamWriteConstraints.builder().maxNestingDepth(StreamWriteConstraints.DEFAULT_MAX_DEPTH).build()
-        )
+        def ctx = ApplicationContext.run([
+            'micronaut.serde.toml.read-constraints.max-string-length': TYPED_STRING_LIMIT
+        ])
+        def mapper = tomlMapper(ctx)
         def toml = generateStringToml(512)
 
         when:
-        def parser = factory.createParser(toml)
-        while (parser.nextToken() != null) {
-        }
+        mapper.readValue(toml, Argument.of(Map))
 
         then:
         Exception e = thrown()
-        e.message.contains("String value length")
-        e.message.contains("exceeds the maximum allowed")
+        messageContainsAny(e, "String value length", "exceeds the maximum allowed")
+
+        cleanup:
+        ctx.close()
     }
 
     void "default parser rejects oversized number tokens"() {
@@ -50,7 +48,7 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        e.message.contains("Number value length (1200) exceeds the maximum allowed")
+        messageContainsAny(e, "Number value length (1200) exceeds the maximum allowed")
 
         cleanup:
         ctx.close()
@@ -67,8 +65,8 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        e.message.contains("Document nesting depth")
-        e.message.contains("maximum allowed (2")
+        messageContainsAny(e, "Document nesting depth", "Maximum depth exceeded")
+        messageContainsAny(e, "maximum allowed (2", "maximum nesting depth")
 
         cleanup:
         ctx.close()
@@ -104,8 +102,7 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        e.message.contains("String value length")
-        e.message.contains("exceeds the maximum allowed")
+        messageContainsAny(e, "String value length", "exceeds the maximum allowed")
 
         cleanup:
         ctx.close()
@@ -124,8 +121,7 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        e.message.contains("String value length")
-        e.message.contains("exceeds the maximum allowed")
+        messageContainsAny(e, "String value length", "exceeds the maximum allowed")
 
         cleanup:
         ctx.close()
@@ -180,6 +176,29 @@ class TomlLimitSpec extends Specification {
 
         cleanup:
         ctx.close()
+    }
+
+    @Unroll
+    void "parser migration rejects #label through public mapper"() {
+        given:
+        def ctx = ApplicationContext.run()
+        def mapper = tomlMapper(ctx)
+
+        when:
+        mapper.readValue(toml, Argument.of(Map))
+
+        then:
+        Exception e = thrown()
+        messageContainsAny(e, fragments as String[])
+
+        cleanup:
+        ctx.close()
+
+        where:
+        label                 | toml                              | fragments
+        "duplicate keys"      | "name = 'first'\nname = 'second'" | ["Duplicate", "duplicate", "already exists"]
+        "invalid escaping"    | 'name = "\\k"'                    | ["Unknown escape", "Invalid escape", "\\k"]
+        "malformed numeric"   | "number = 01"                     | ["Zero-prefixed", "Invalid number", "01"]
     }
 
     void "truncated malformed numeric token fails cleanly"() {
@@ -245,7 +264,7 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        messageContainsAny(e, "EOF in wrong state", "Premature end of file", "Unexpected end-of-input", "Unexpected EOF")
+        messageContainsAny(e, "EOF in wrong state", "Premature end of file", "Unexpected end-of-input", "Unexpected EOF", "Invalid UTF-8")
 
         cleanup:
         ctx.close()
@@ -279,7 +298,7 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        messageContainsAny(e, "Premature end of file", "Unexpected end-of-input", "Unexpected EOF")
+        messageContainsAny(e, "Premature end of file", "Unexpected end-of-input", "Unexpected EOF", "Invalid UTF-8")
 
         cleanup:
         ctx.close()
@@ -458,7 +477,7 @@ class TomlLimitSpec extends Specification {
 
         then:
         Exception e = thrown()
-        e.message.contains("Number value length (1200) exceeds the maximum allowed")
+        messageContainsAny(e, "Number value length (1200) exceeds the maximum allowed")
 
         cleanup:
         ctx.close()
@@ -625,8 +644,24 @@ baz = "${'a' * bufferLength}"
         stream.getText("UTF-8")
     }
 
-    private static void messageContainsAny(Exception e, String... fragments) {
-        assert e.message != null
-        assert fragments.any { e.message.contains(it) }
+    private static void messageContainsAny(Throwable e, String... fragments) {
+        Throwable current = e
+        while (current != null) {
+            if (current.message != null && fragments.any { current.message.contains(it) }) {
+                return
+            }
+            current = current.cause
+        }
+        assert false: "Expected one of ${fragments as List} in exception chain, but got ${messageChain(e)}"
+    }
+
+    private static String messageChain(Throwable e) {
+        List<String> messages = []
+        Throwable current = e
+        while (current != null) {
+            messages << "${current.class.simpleName}: ${current.message}"
+            current = current.cause
+        }
+        messages.join(" -> ")
     }
 }

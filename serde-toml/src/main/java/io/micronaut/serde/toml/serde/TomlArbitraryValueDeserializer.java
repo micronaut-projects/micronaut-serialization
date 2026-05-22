@@ -23,7 +23,6 @@ import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
-import io.micronaut.serde.toml.TomlParserDecoder;
 import io.micronaut.serde.toml.support.SerdeTomlConfiguration;
 import org.jspecify.annotations.Nullable;
 
@@ -35,25 +34,53 @@ import java.time.OffsetDateTime;
 import java.util.regex.Pattern;
 
 /**
- * TOML wrapper for generic Object value feature toggles.
+ * Deserializer wrapper that materializes TOML temporal strings into Java time objects
+ * when the target type is {@code Object} and {@code parse-java-time} is enabled.
+ *
+ * <p>The micronaut-toml parser produces {@link JsonNode} string values for
+ * <a href="https://toml.io/en/v1.0.0#offset-date-time">TOML date-time types</a>
+ * (Offset Date-Time, Local Date-Time, Local Date, Local Time). The default
+ * micronaut-serde deserializer would leave these as plain strings when deserializing
+ * into {@code Object} or {@code Map<String, Object>}. This wrapper detects temporal
+ * patterns and converts them to the appropriate Java type.</p>
+ *
+ * <p>Conversion rules when {@code parse-java-time: true}:</p>
+ * <ul>
+ *   <li>{@code 2021-03-26} → {@link java.time.LocalDate}</li>
+ *   <li>{@code 18:40:15.123} → {@link java.time.LocalTime}</li>
+ *   <li>{@code 2021-03-26T18:40:15} → {@link java.time.LocalDateTime}</li>
+ *   <li>{@code 2021-03-26T18:40:15+01:00} → {@link java.time.OffsetDateTime}</li>
+ * </ul>
+ *
+ * <p>Example configuration in {@code application.yml}:</p>
+ * <pre>{@code
+ * micronaut:
+ *   serde:
+ *     toml:
+ *       read-features:
+ *         parse-java-time: true
+ * }</pre>
  *
  * @param <T> The deserialized type
  */
 @Internal
 public final class TomlArbitraryValueDeserializer<T> implements Deserializer<T> {
+    /**
+     * Matches the RFC 3339 offset suffix of a TOML Offset Date-Time:
+     * {@code Z}, {@code +HH:MM}, or {@code -HH:MM}.
+     *
+     * @see <a href="https://toml.io/en/v1.0.0#offset-date-time">TOML v1.0.0 Offset Date-Time</a>
+     */
     private static final Pattern OFFSET_SUFFIX = Pattern.compile(".*(?:Z|[+-]\\d{2}:\\d{2})$");
 
     private final Deserializer<? extends T> delegate;
-    private final Argument<? extends T> type;
     private final LimitingStream.RemainingLimits limits;
     private final SerdeTomlConfiguration tomlConfiguration;
 
     private TomlArbitraryValueDeserializer(Deserializer<? extends T> delegate,
-                                           Argument<? extends T> type,
                                            LimitingStream.RemainingLimits limits,
                                            SerdeTomlConfiguration tomlConfiguration) {
         this.delegate = delegate;
-        this.type = type;
         this.limits = limits;
         this.tomlConfiguration = tomlConfiguration;
     }
@@ -66,7 +93,7 @@ public final class TomlArbitraryValueDeserializer<T> implements Deserializer<T> 
             @SuppressWarnings("unchecked") Deserializer<T> cast = (Deserializer<T>) delegate;
             return cast;
         }
-        return new TomlArbitraryValueDeserializer<>(delegate, type, limits, tomlConfiguration);
+        return new TomlArbitraryValueDeserializer<>(delegate, limits, tomlConfiguration);
     }
 
     @Override
@@ -76,17 +103,22 @@ public final class TomlArbitraryValueDeserializer<T> implements Deserializer<T> 
         return wrap(specificDelegate, narrowedType, limits, tomlConfiguration);
     }
 
+    @SuppressWarnings({"unchecked", "NullAway"})
     @Override
-    public @Nullable T deserialize(Decoder decoder, Deserializer.DecoderContext context, Argument<? super T> targetType) throws IOException {
-        return deserializeNullable(decoder, context, targetType);
+    public T deserialize(Decoder decoder, Deserializer.DecoderContext context, Argument<? super T> targetType) throws IOException {
+        JsonNode node = decoder.decodeNode();
+        if (node.isString()) {
+            Object parsedTemporal = tryParseTemporal(node.getStringValue());
+            if (parsedTemporal != null) {
+                return (T) parsedTemporal;
+            }
+        }
+        Deserializer<T> cast = (Deserializer<T>) delegate;
+        return cast.deserialize(JsonNodeDecoder.create(node, limits), context, targetType);
     }
 
     @Override
     public @Nullable T deserializeNullable(Decoder decoder, Deserializer.DecoderContext context, Argument<? super T> targetType) throws IOException {
-        if (decoder instanceof TomlParserDecoder tomlParserDecoder && tomlParserDecoder.hasEmbeddedObjectValue()) {
-            @SuppressWarnings("unchecked") T embedded = (T) tomlParserDecoder.decodeEmbeddedObject();
-            return embedded;
-        }
         JsonNode node = decoder.decodeNode();
         if (node.isString()) {
             Object parsedTemporal = tryParseTemporal(node.getStringValue());

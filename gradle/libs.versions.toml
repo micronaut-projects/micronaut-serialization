@@ -16,6 +16,7 @@ nullaway = "0.13.4"
 error_prone_core = "2.49.0"
 
 micronaut-platform = "5.0.0-RC1"
+micronaut-toml = "3.0.0-M2"
 micronaut = "5.0.0"
 micronaut-discovery = "5.0.0-M1"
 micronaut-oracle-cloud = "6.0.0-RC2"
@@ -33,6 +34,7 @@ micronaut-oracle-cloud = { module = 'io.micronaut.oraclecloud:micronaut-oraclecl
 micronaut-reactor = { module = "io.micronaut.reactor:micronaut-reactor-bom", version.ref = "micronaut-reactor" }
 micronaut-validation = { module = "io.micronaut.validation:micronaut-validation-bom", version.ref = "micronaut-validation" }
 micronaut-discovery = { module = "io.micronaut.discovery:micronaut-discovery-client", version.ref = "micronaut-discovery" }
+micronaut-toml = { module = "io.micronaut.toml:micronaut-toml", version.ref = "micronaut-toml" }
 micronaut-sourcegen-generator-java = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator-java", version.ref = "micronaut-sourcegen" }
 micronaut-sourcegen-generator = { module = "io.micronaut.sourcegen:micronaut-sourcegen-generator", version.ref = "micronaut-sourcegen" }
 micronaut-sourcegen-model = { module = "io.micronaut.sourcegen:micronaut-sourcegen-model", version.ref = "micronaut-sourcegen" }

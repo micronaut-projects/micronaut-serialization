@@ -14,6 +14,7 @@ import io.micronaut.serde.toml.fixture.TemporalValues
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -126,23 +127,23 @@ abstract class AbstractTomlExtendedSerdeSpec extends AbstractTomlBasicSerdeSpec 
         objRepresentationMatches([text: value], toml)
     }
 
-    void "serializes structural values deterministically"() {
+    void "serializes structural values semantically"() {
         expect:
-        writeToml(value) == expected
+        writeToml(value) in expected
 
         where:
         value                                  | expected
-        [abc: 123]                             | "abc = 123\n"
-        [abc: true]                            | "abc = true\n"
-        [abc: 1.23d]                           | "abc = 1.23\n"
-        [abc: [:]]                             | "abc = {}\n"
-        [abc: [foo: 1, bar: 2]]                | "abc.foo = 1\nabc.bar = 2\n"
-        [abc: []]                              | "abc = []\n"
-        [abc: [1, 2, 3]]                       | "abc = [1, 2, 3]\n"
-        [abc: [1, [foo: 1, bar: 2]]]           | "abc = [1, {foo = 1, bar = 2}]\n"
-        ["foo bar": 123]                       | "'foo bar' = 123\n"
-        [abc: "foo\u0001"]                     | "abc = \"foo\\u0001\"\n"
-        [abc: "foo\b"]                         | "abc = \"foo\\b\"\n"
+        [abc: 123]                             | ["abc = 123\n"]
+        [abc: true]                            | ["abc = true\n"]
+        [abc: 1.23d]                           | ["abc = 1.23\n"]
+        [abc: [:]]                             | ["abc = {}\n", "[abc]\n"]
+        [abc: [foo: 1, bar: 2]]                | ["abc.foo = 1\nabc.bar = 2\n", "[abc]\nfoo = 1\nbar = 2\n"]
+        [abc: []]                              | ["abc = []\n"]
+        [abc: [1, 2, 3]]                       | ["abc = [1, 2, 3]\n"]
+        [abc: [1, [foo: 1, bar: 2]]]           | ["abc = [1, {foo = 1, bar = 2}]\n"]
+        ["foo bar": 123]                       | ["'foo bar' = 123\n"]
+        [abc: "foo\u0001"]                     | ["abc = \"foo\\u0001\"\n"]
+        [abc: "foo\b"]                         | ["abc = \"foo\\b\"\n"]
     }
 
     void "serializes temporal values deterministically"() {
@@ -166,11 +167,21 @@ offsetDateTime = '2021-03-27T18:40:15.123456789+01:23'
         def rectangle = new Rectangle(new Point(19, 72), new Point(5, 10))
 
         expect:
-        writeTomlAsBytes(rectangle) == tomlAsBytes("""topLeft.x = 19
+        new String(writeTomlAsBytes(rectangle), StandardCharsets.UTF_8) in [
+            """topLeft.x = 19
 topLeft.y = 72
 bottomRight.x = 5
 bottomRight.y = 10
-""")
+""",
+            """[topLeft]
+x = 19
+y = 72
+
+[bottomRight]
+x = 5
+y = 10
+"""
+        ]
         readToml(writeToml(rectangle), Rectangle) == rectangle
         readToml(writeTomlAsBytes(rectangle), Rectangle) == rectangle
         readToml(new ByteArrayInputStream(writeTomlAsBytes(rectangle)), Rectangle) == rectangle

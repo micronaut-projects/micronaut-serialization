@@ -19,194 +19,317 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
+import io.micronaut.serde.toml.encodestyle.InlineRootEncoder;
+import io.micronaut.serde.toml.encodestyle.TableRootEncoder;
+import io.micronaut.serde.toml.entities.ArrayValue;
+import io.micronaut.serde.toml.entities.BooleanValue;
+import io.micronaut.serde.toml.entities.NullValue;
+import io.micronaut.serde.toml.entities.NumberValue;
+import io.micronaut.serde.toml.entities.ObjectValue;
+import io.micronaut.serde.toml.entities.StringValue;
+import io.micronaut.serde.toml.entities.TomlValue;
+import io.micronaut.serde.toml.support.SerdeTomlConfiguration;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.TokenStreamContext;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
- * TOML encoder backed by Jackson's TOML generator.
+ * Native TOML text encoder backed by Micronaut Serialization encoder events.
  */
 @Internal
 public abstract class TomlGeneratorEncoder extends LimitingStream implements Encoder {
-
-    protected final JsonGenerator generator;
+    private final boolean failOnNullWrite;
+    private final String path;
     @Nullable
     private final TomlGeneratorEncoder parent;
     @Nullable
     private TomlGeneratorEncoder child;
+    private boolean completed;
 
-    private TomlGeneratorEncoder(@NonNull JsonGenerator generator, @NonNull RemainingLimits remainingLimits) {
+    protected TomlGeneratorEncoder(@NonNull RemainingLimits remainingLimits,
+                                   boolean failOnNullWrite,
+                                   @NonNull String path,
+                                   @Nullable TomlGeneratorEncoder parent) {
         super(remainingLimits);
-        this.generator = generator;
-        this.parent = null;
-    }
-
-    private TomlGeneratorEncoder(@NonNull TomlGeneratorEncoder parent, @NonNull RemainingLimits remainingLimits) {
-        super(remainingLimits);
-        this.generator = parent.generator;
+        this.failOnNullWrite = failOnNullWrite;
+        this.path = path;
         this.parent = parent;
     }
 
-    static @NonNull Encoder create(@NonNull JsonGenerator generator, @NonNull RemainingLimits remainingLimits) {
-        return new RootEncoder(generator, remainingLimits);
+    static @NonNull TomlGeneratorEncoder create(@NonNull OutputStream outputStream,
+                                                @NonNull RemainingLimits remainingLimits,
+                                                @NonNull SerdeTomlConfiguration tomlConfiguration) {
+        return switch (tomlConfiguration.getResolvedWriteLayout()) {
+            case DEFAULT, TABLE -> new TableRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
+            case INLINE -> new InlineRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
+        };
     }
 
-    private void checkChild() {
+    /**
+     * Write the completed metadata value. Only {@link io.micronaut.serde.toml.encodestyle.TomlStyleEncoder} encoders override this method.
+     *
+     * @throws IOException If writing the completed value fails
+     */
+    public void writeCompleted() throws IOException {
+        throw new IllegalStateException("Can only write the completed value of the root encoder");
+    }
+
+    private void checkActive() {
+        if (completed || (parent != null && parent.child != this)) {
+            throw new IllegalStateException("This child encoder has already completed");
+        }
+    }
+
+    protected final void checkChild() {
+        checkActive();
         if (child != null) {
-            throw new IllegalStateException("There is still an unfinished child generator");
+            throw new IllegalStateException("There is still an unfinished child encoder");
         }
-        if (parent != null && parent.child != this) {
-            throw new IllegalStateException("This child generator has already completed");
+    }
+
+    private void encodeTomlValue(TomlValue value) throws IOException {
+        checkChild();
+        acceptValue(value);
+    }
+
+    final void completeStructure(TomlValue value) throws IOException {
+        checkChild();
+        completed = true;
+        if (parent == null) {
+            throw new IllegalStateException("Not in structure");
         }
+        parent.child = null;
+        parent.acceptValue(value);
+    }
+
+    /**
+     * Accept a completed TOML value for this encoder context.
+     *
+     * @param value The value to accept
+     * @throws IOException If accepting the value fails
+     */
+    protected abstract void acceptValue(TomlValue value) throws IOException;
+
+    /**
+     * Returns the path to use for the next child encoder.
+     *
+     * @return The path to use for the next child encoder
+     */
+    String childPath() {
+        return path;
     }
 
     @Override
-    public final Encoder encodeArray(Argument<?> type) throws IOException {
+    public final @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
+        Objects.requireNonNull(type, "type");
         checkChild();
-        generator.writeStartArray();
-        TomlGeneratorEncoder arrayEncoder = new ArrayEncoder(this, childLimits());
+        TomlGeneratorEncoder arrayEncoder = new ArrayEncoder(this, childLimits(), childPath());
         child = arrayEncoder;
         return arrayEncoder;
     }
 
     @Override
-    public final Encoder encodeObject(Argument<?> type) throws IOException {
+    public final @NonNull Encoder encodeObject(@NonNull Argument<?> type) throws IOException {
+        Objects.requireNonNull(type, "type");
         checkChild();
-        generator.writeStartObject();
-        TomlGeneratorEncoder objectEncoder = new ObjectEncoder(this, childLimits());
+        TomlGeneratorEncoder objectEncoder = new ObjectEncoder(this, childLimits(), childPath());
         child = objectEncoder;
         return objectEncoder;
     }
 
     @Override
-    public final void finishStructure() throws IOException {
-        checkChild();
-        finishStructureToken();
-        if (parent != null) {
-            parent.child = null;
-        }
-    }
-
-    protected void finishStructureToken() throws IOException {
+    public void finishStructure() throws IOException {
         throw new IllegalStateException("Not in structure");
     }
 
     @Override
-    public final void close() throws IOException {
-        finishStructure();
-    }
-
-    @Override
-    public final void encodeKey(@NonNull String key) throws IOException {
-        Objects.requireNonNull(key, "key");
-        generator.writeName(key);
+    public void encodeKey(@NonNull String key) throws IOException {
+        throw new IllegalStateException("Not an object");
     }
 
     @Override
     public final void encodeString(@NonNull String value) throws IOException {
-        Objects.requireNonNull(value, "value");
-        generator.writeString(value);
+        encodeTomlValue(new StringValue(Objects.requireNonNull(value, "value")));
     }
 
     @Override
     public final void encodeBoolean(boolean value) throws IOException {
-        generator.writeBoolean(value);
+        encodeTomlValue(new BooleanValue(value));
     }
 
     @Override
     public final void encodeByte(byte value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Byte.toString(value)));
     }
 
     @Override
     public final void encodeShort(short value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Short.toString(value)));
     }
 
     @Override
     public final void encodeChar(char value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Integer.toString(value)));
     }
 
     @Override
     public final void encodeInt(int value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Integer.toString(value)));
     }
 
     @Override
     public final void encodeLong(long value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Long.toString(value)));
     }
 
     @Override
     public final void encodeFloat(float value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(renderFloat(value)));
     }
 
     @Override
     public final void encodeDouble(double value) throws IOException {
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(renderDouble(value)));
     }
 
     @Override
     public final void encodeBigInteger(@NonNull BigInteger value) throws IOException {
-        Objects.requireNonNull(value, "value");
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Objects.requireNonNull(value, "value").toString()));
     }
 
     @Override
     public final void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
-        Objects.requireNonNull(value, "value");
-        generator.writeNumber(value);
+        encodeTomlValue(new NumberValue(Objects.requireNonNull(value, "value").toString()));
     }
 
     @Override
     public final void encodeBinary(byte @NonNull [] data) throws IOException {
-        generator.writeBinary(data);
+        encodeTomlValue(new StringValue(Base64.getEncoder().encodeToString(Objects.requireNonNull(data, "data"))));
     }
 
     @Override
     public final void encodeNull() throws IOException {
-        generator.writeNull();
+        if (failOnNullWrite) {
+            throw new SerdeException("TOML null writing disabled (FAIL_ON_NULL_WRITE)");
+        }
+        encodeTomlValue(NullValue.INSTANCE);
     }
 
     @Override
     public @NonNull String currentPath() {
-        TokenStreamContext outputContext = generator.streamWriteContext();
-        return outputContext.pathAsPointer().toString();
+        return path;
+    }
+
+    private static String renderFloat(float value) {
+        if (Float.isNaN(value)) {
+            return "nan";
+        }
+        if (value == Float.POSITIVE_INFINITY) {
+            return "inf";
+        }
+        if (value == Float.NEGATIVE_INFINITY) {
+            return "-inf";
+        }
+        return Float.toString(value);
+    }
+
+    private static String renderDouble(double value) {
+        if (Double.isNaN(value)) {
+            return "nan";
+        }
+        if (value == Double.POSITIVE_INFINITY) {
+            return "inf";
+        }
+        if (value == Double.NEGATIVE_INFINITY) {
+            return "-inf";
+        }
+        return Double.toString(value);
     }
 
     private static final class ArrayEncoder extends TomlGeneratorEncoder {
-        private ArrayEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits) {
-            super(parent, remainingLimits);
+        private final List<TomlValue> values = new ArrayList<>();
+
+        private ArrayEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits, String path) {
+            super(remainingLimits, parent.failOnNullWrite, path, parent);
         }
 
         @Override
-        protected void finishStructureToken() throws IOException {
-            this.generator.writeEndArray();
+        protected void acceptValue(TomlValue value) {
+            values.add(value);
         }
-    }
 
-    private static final class RootEncoder extends TomlGeneratorEncoder {
-        private RootEncoder(JsonGenerator generator, RemainingLimits remainingLimits) {
-            super(generator, remainingLimits);
+        @Override
+        String childPath() {
+            return currentPath() + "/" + values.size();
+        }
+
+        @Override
+        public void finishStructure() throws IOException {
+            completeStructure(new ArrayValue(values));
         }
     }
 
     private static final class ObjectEncoder extends TomlGeneratorEncoder {
-        private ObjectEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits) {
-            super(parent, remainingLimits);
+        private final Map<String, TomlValue> values = new LinkedHashMap<>();
+        @Nullable
+        private String currentKey;
+
+        private ObjectEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits, String path) {
+            super(remainingLimits, parent.failOnNullWrite, path, parent);
         }
 
         @Override
-        protected void finishStructureToken() throws IOException {
-            this.generator.writeEndObject();
+        public void encodeKey(@NonNull String key) {
+            Objects.requireNonNull(key, "key");
+            checkChild();
+            if (currentKey != null) {
+                throw new IllegalStateException("Already have a key");
+            }
+            currentKey = key;
+        }
+
+        @Override
+        protected void acceptValue(TomlValue value) throws IOException {
+            if (currentKey == null) {
+                throw new IllegalStateException("Need a key");
+            }
+            if (values.containsKey(currentKey)) {
+                throw new SerdeException("Duplicate TOML key: " + currentKey);
+            }
+            values.put(currentKey, value);
+            currentKey = null;
+        }
+
+        @Override
+        String childPath() {
+            return currentKey == null ? currentPath() : currentPath() + "/" + currentKey;
+        }
+
+        @Override
+        public @NonNull String currentPath() {
+            if (currentKey == null) {
+                return super.currentPath();
+            }
+            return super.currentPath() + "/" + currentKey;
+        }
+
+        @Override
+        public void finishStructure() throws IOException {
+            if (currentKey != null) {
+                throw new IllegalStateException("Object key has no value");
+            }
+            completeStructure(new ObjectValue(values));
         }
     }
 }

@@ -40,11 +40,11 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
     void "readValueFromTree deserializes a pojo completely"() {
         given:
         JsonNode tree = JsonNode.createObjectNode([
-            title : JsonNode.createStringNode("Micronaut in Action"),
-            pages : JsonNode.createNumberNode(320),
-            author: JsonNode.createObjectNode([
-                name: JsonNode.createStringNode("Ada")
-            ])
+                title : JsonNode.createStringNode("Micronaut in Action"),
+                pages : JsonNode.createNumberNode(320),
+                author: JsonNode.createObjectNode([
+                        name: JsonNode.createStringNode("Ada")
+                ])
         ])
 
         when:
@@ -114,7 +114,7 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
     void "writeValue OutputStream preserves nested dotted output exactly like writeValueAsString"() {
         given:
         def wrapper = new PointWrapper(new Point(19, 72))
-        def expected = "point.x = 19\npoint.y = 72\n"
+        def expected = "[point]\nx = 19\ny = 72\n"
         def output = new ByteArrayOutputStream()
 
         when:
@@ -137,7 +137,7 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
         [abc: 123]                   | "abc = 123\n"
         [abc: true]                  | "abc = true\n"
         [abc: 1.23d]                 | "abc = 1.23\n"
-        [abc: [:]]                   | "abc = {}\n"
+        [abc: [:]]                   | "[abc]\n"
         [abc: []]                    | "abc = []\n"
         [abc: [1, [foo: 1, bar: 2]]] | "abc = [1, {foo = 1, bar = 2}]\n"
         ["foo bar": 123]             | "'foo bar' = 123\n"
@@ -183,21 +183,21 @@ userImage = 'AQIDBA=='
         def tomlTextTree = tomlMapper.readValueFromTree(tomlMapper.writeValueToTree(user), Argument.of(Map))
         JsonNode tomlTree = tomlMapper.writeValueToTree(user)
         JsonNode expectedTree = JsonNode.createObjectNode([
-            firstName: JsonNode.createStringNode(jacksonTree.get("firstName").textValue()),
-            lastName : JsonNode.createStringNode(jacksonTree.get("lastName").textValue()),
-            gender   : JsonNode.createStringNode(jacksonTree.get("gender").textValue()),
-            verified : JsonNode.createBooleanNode(jacksonTree.get("verified").booleanValue()),
-            userImage: JsonNode.createStringNode(jacksonTree.get("userImage").textValue())
+                firstName: JsonNode.createStringNode(jacksonTree.get("firstName").textValue()),
+                lastName : JsonNode.createStringNode(jacksonTree.get("lastName").textValue()),
+                gender   : JsonNode.createStringNode(jacksonTree.get("gender").textValue()),
+                verified : JsonNode.createBooleanNode(jacksonTree.get("verified").booleanValue()),
+                userImage: JsonNode.createStringNode(jacksonTree.get("userImage").textValue())
         ])
 
         then:
         tomlTree == expectedTree
         tomlTextTree == [
-            firstName: jacksonTree.get("firstName").textValue(),
-            lastName : jacksonTree.get("lastName").textValue(),
-            gender   : jacksonTree.get("gender").textValue(),
-            verified : jacksonTree.get("verified").booleanValue(),
-            userImage: jacksonTree.get("userImage").textValue()
+                firstName: jacksonTree.get("firstName").textValue(),
+                lastName : jacksonTree.get("lastName").textValue(),
+                gender   : jacksonTree.get("gender").textValue(),
+                verified : jacksonTree.get("verified").booleanValue(),
+                userImage: jacksonTree.get("userImage").textValue()
         ]
         tomlTree.get("firstName").stringValue == jacksonTree.get("firstName").textValue()
         tomlTree.get("lastName").stringValue == jacksonTree.get("lastName").textValue()

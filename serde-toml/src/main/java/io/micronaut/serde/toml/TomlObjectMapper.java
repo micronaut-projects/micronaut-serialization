@@ -25,25 +25,21 @@ import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
 import io.micronaut.serde.SerdeRegistry;
 import io.micronaut.serde.Serializer;
-import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
-import io.micronaut.serde.toml.serde.TomlTreeEncoder;
-import io.micronaut.serde.toml.support.*;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
+import io.micronaut.serde.toml.serde.TomlTreeEncoder;
+import io.micronaut.serde.toml.support.MicronautTomlParserAdapter;
+import io.micronaut.serde.toml.support.SerdeTomlConfiguration;
+import io.micronaut.serde.toml.support.TomlDecoderContext;
+import io.micronaut.serde.toml.support.TomlEncoderContext;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.JsonParser;
-import tools.jackson.dataformat.toml.TomlFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 /**
  * A TOML-backed {@link ObjectMapper}.
@@ -59,22 +55,28 @@ public final class TomlObjectMapper implements ObjectMapper {
     @Nullable
     private final SerdeConfiguration serdeConfiguration;
     private final SerdeTomlConfiguration tomlConfiguration;
-    private final TomlFactory tomlFactory;
+    private final MicronautTomlParserAdapter parserAdapter;
 
     public TomlObjectMapper(SerdeRegistry registry,
                             @Nullable SerdeConfiguration serdeConfiguration,
                             SerdeTomlConfiguration tomlConfiguration) {
-        this(registry, serdeConfiguration, tomlConfiguration, TomlFactoryFactory.create(serdeConfiguration, tomlConfiguration));
+        this(
+            registry,
+            serdeConfiguration,
+            tomlConfiguration,
+            new MicronautTomlParserAdapter(serdeConfiguration, tomlConfiguration)
+        );
     }
 
     private TomlObjectMapper(SerdeRegistry registry,
                              @Nullable SerdeConfiguration serdeConfiguration,
                              SerdeTomlConfiguration tomlConfiguration,
-                             TomlFactory tomlFactory) {
+                             MicronautTomlParserAdapter parserAdapter) {
         this.registry = registry;
         this.serdeConfiguration = serdeConfiguration;
         this.tomlConfiguration = tomlConfiguration;
-        this.tomlFactory = tomlFactory;
+        this.parserAdapter = parserAdapter;
+        //tomlConfiguration.getResolvedWriteLayout();
     }
 
     @Override
@@ -83,22 +85,20 @@ public final class TomlObjectMapper implements ObjectMapper {
     }
 
     @Override
-    public <T> T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
-        try (JsonParser parser = tomlFactory.createParser(inputStream)) {
-            Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits(), tomlConfiguration);
-            Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
-            TomlParserDecoder decoder = new TomlParserDecoder(parser, limits());
-            return deserializer.deserializeNullable(decoder, decoderContext, type);
-        }
+    public <T> @Nullable T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
+        JsonNode tree = parserAdapter.parse(inputStream);
+        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits(), tomlConfiguration);
+        Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
+        return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
 
     @Override
-    public <T> T readValue(byte @NonNull [] byteArray, @NonNull Argument<T> type) throws IOException {
+    public <T> @Nullable T readValue(byte @NonNull [] byteArray, @NonNull Argument<T> type) throws IOException {
         return readValue(new ByteArrayInputStream(byteArray), type);
     }
 
     @Override
-    public <T> T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
+    public <T> @Nullable T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
         Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits(), tomlConfiguration);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
@@ -126,24 +126,24 @@ public final class TomlObjectMapper implements ObjectMapper {
 
     @Override
     public void writeValue(@NonNull OutputStream outputStream, @Nullable Object object) throws IOException {
-        try (JsonGenerator generator = tomlFactory.createGenerator(outputStream)) {
-            if (object == null) {
-                generator.writeNull();
-            } else {
-                serialize(TomlGeneratorEncoder.create(generator, limits()), object);
-            }
+        TomlGeneratorEncoder encoder = TomlGeneratorEncoder.create(outputStream, limits(), tomlConfiguration);
+        if (object == null) {
+            encoder.encodeNull();
+        } else {
+            serialize(encoder, object);
         }
+        encoder.writeCompleted();
     }
 
     @Override
     public <T> void writeValue(@NonNull OutputStream outputStream, @NonNull Argument<T> type, @Nullable T object) throws IOException {
-        try (JsonGenerator generator = tomlFactory.createGenerator(outputStream)) {
-            if (object == null) {
-                generator.writeNull();
-            } else {
-                serialize(TomlGeneratorEncoder.create(generator, limits()), object, type);
-            }
+        TomlGeneratorEncoder encoder = TomlGeneratorEncoder.create(outputStream, limits(), tomlConfiguration);
+        if (object == null) {
+            encoder.encodeNull();
+        } else {
+            serialize(encoder, object, type);
         }
+        encoder.writeCompleted();
     }
 
     @Override
@@ -175,7 +175,7 @@ public final class TomlObjectMapper implements ObjectMapper {
             actualRegistry,
             actualConfiguration,
             tomlConfiguration,
-            TomlFactoryFactory.create(actualConfiguration, tomlConfiguration)
+            new MicronautTomlParserAdapter(actualConfiguration, tomlConfiguration)
         );
     }
 
@@ -184,12 +184,12 @@ public final class TomlObjectMapper implements ObjectMapper {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private void serialize(@NonNull Encoder encoder, @Nullable Object value) throws IOException {
+    private void serialize(@NonNull Encoder encoder, @NonNull Object value) throws IOException {
         serialize(encoder, value, (Argument) Argument.of(value.getClass()));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private <T> void serialize(@NonNull Encoder encoder, @Nullable T value, @NonNull Argument<T> type) throws IOException {
+    private <T> void serialize(@NonNull Encoder encoder, @NonNull T value, @NonNull Argument<T> type) throws IOException {
         Serializer.EncoderContext encoderContext = new TomlEncoderContext(registry, null);
         Serializer serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
         serializer.serialize(encoder, encoderContext, type, value);

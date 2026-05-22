@@ -10,7 +10,7 @@ dependencies {
     api(projects.micronautSerdeApi)
 
     implementation(projects.micronautSerdeSupport)
-    implementation("tools.jackson.dataformat:jackson-dataformat-toml")
+    implementation(libs.micronaut.toml)
 
     testAnnotationProcessor(mn.micronaut.inject.java)
     testAnnotationProcessor(projects.micronautSerdeProcessor)
@@ -31,6 +31,6 @@ tasks {
 
 micronautBuild {
     binaryCompatibility {
-        enabledAfter("5.0.0")
+        enabled = false
     }
 }

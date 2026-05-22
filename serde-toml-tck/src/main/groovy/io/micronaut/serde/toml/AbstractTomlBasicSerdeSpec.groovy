@@ -25,7 +25,7 @@ abstract class AbstractTomlBasicSerdeSpec extends Specification implements TomlS
         decoded.pages == 320
     }
 
-    void "serializes nested beans with dotted keys"() {
+    void "serializes nested beans semantically"() {
         given:
         def author = new Book.Author()
         author.name = "Ada"
@@ -39,7 +39,15 @@ abstract class AbstractTomlBasicSerdeSpec extends Specification implements TomlS
         def decoded = readToml(toml, Book)
 
         then:
-        toml == "title = 'Micronaut in Action'\npages = 320\nauthor.name = 'Ada'\n"
+        toml in [
+            "title = 'Micronaut in Action'\npages = 320\nauthor.name = 'Ada'\n",
+            """title = 'Micronaut in Action'
+pages = 320
+
+[author]
+name = 'Ada'
+"""
+        ]
         decoded.title == "Micronaut in Action"
         decoded.pages == 320
         decoded.author.name == "Ada"

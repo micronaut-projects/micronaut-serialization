@@ -31,7 +31,23 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 /**
- * TOML-local encoder context overrides.
+ * Decorator over the default {@link Serializer.EncoderContext} that adapts serialization
+ * behavior for TOML format constraints.
+ *
+ * <p>TOML differs from JSON in two key areas that require overriding the default context:</p>
+ * <ul>
+ *   <li><b>Binary encoding:</b> TOML has no binary type, so {@code byte[]} must be written as
+ *       base64 text ({@code 'AQIDBA=='}) rather than a JSON-style integer array ({@code [1, 2, 3, 4]}).
+ *       Achieved via {@link TomlSerdeConfiguration#isWriteBinaryAsArray()} returning {@code false}.</li>
+ *   <li><b>Null inclusion:</b> TOML has no null type
+ *       (<a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0</a>), so the global
+ *       {@code NON_NULL} inclusion strategy must not suppress fields — null handling is
+ *       delegated to the encoder ({@code ''} or fail-on-null-write).
+ *       Achieved via {@link TomlSerializationConfiguration#getInclusion()} returning {@code ALWAYS}.</li>
+ * </ul>
+ *
+ * <p>All other context operations (serializer lookup, naming strategy, managed references)
+ * are delegated unchanged to the underlying context.</p>
  */
 @Internal
 public final class TomlEncoderContext implements Serializer.EncoderContext {

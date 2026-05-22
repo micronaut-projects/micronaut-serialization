@@ -17,11 +17,15 @@ package io.micronaut.serde.toml.support;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
+import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.config.SerdeConfiguration;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Locale;
+import java.util.Objects;
 
 /**
  * TOML-specific configuration.
@@ -35,6 +39,7 @@ public final class SerdeTomlConfiguration {
     private ReadFeatures readFeatures = new ReadFeatures();
     private ReadConstraints readConstraints = new ReadConstraints();
     private WriteFeatures writeFeatures = new WriteFeatures();
+    private String writeLayout = "default";
 
     public ReadFeatures getReadFeatures() {
         return readFeatures;
@@ -60,6 +65,25 @@ public final class SerdeTomlConfiguration {
         this.writeFeatures = writeFeatures;
     }
 
+    @Bindable(defaultValue = "default")
+    public String getWriteLayout() {
+        return writeLayout;
+    }
+
+    public void setWriteLayout(String writeLayout) {
+        this.writeLayout = Objects.requireNonNull(writeLayout, "writeLayout");
+    }
+
+    public WriteLayout getResolvedWriteLayout() {
+        WriteLayout layout;
+        try {
+            layout = WriteLayout.valueOf(writeLayout.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new ConfigurationException("Invalid micronaut.serde.toml.write-layout value: " + writeLayout, e);
+        }
+        return layout == WriteLayout.DEFAULT ? WriteLayout.TABLE : layout;
+    }
+
     public boolean isParseJavaTime() {
         return readFeatures.isParseJavaTime();
     }
@@ -74,6 +98,15 @@ public final class SerdeTomlConfiguration {
 
     public boolean isFailOnNullWrite() {
         return writeFeatures.isFailOnNullWrite();
+    }
+
+    /**
+     * TOML writer layout.
+     */
+    public enum WriteLayout {
+        DEFAULT,
+        TABLE,
+        INLINE
     }
 
     /**
@@ -121,7 +154,33 @@ public final class SerdeTomlConfiguration {
     }
 
     /**
-     * TOML write features.
+     * Controls TOML serialization behavior.
+     *
+     * <p>The <a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0 specification</a> defines no
+     * null type — values must be one of: String, Integer, Float, Boolean, Date-Time, Array, or
+     * Inline Table. By default, null Java fields are written as empty strings ({@code ''}) to
+     * produce valid TOML, but this can mask the distinction between absent and empty values.</p>
+     *
+     * <p>Example configuration in {@code application.yml}:</p>
+     * <pre>{@code
+     * micronaut:
+     *   serde:
+     *     toml:
+     *       write-features:
+     *         fail-on-null-write: true
+     * }</pre>
+     *
+     * <p>With {@code fail-on-null-write: false} (default):</p>
+     * <pre>{@code
+     * // bean.name == null
+     * mapper.writeValueAsString(bean); // → "name = ''"
+     * }</pre>
+     *
+     * <p>With {@code fail-on-null-write: true}:</p>
+     * <pre>{@code
+     * // bean.name == null
+     * mapper.writeValueAsString(bean); // → throws SerdeException
+     * }</pre>
      */
     @ConfigurationProperties("write-features")
     public static final class WriteFeatures {

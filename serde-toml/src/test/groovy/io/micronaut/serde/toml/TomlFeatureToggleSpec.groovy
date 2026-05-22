@@ -8,7 +8,6 @@ import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.toml.fixture.ComplexField
 import io.micronaut.serde.toml.fixture.ObjectField
 import io.micronaut.serde.toml.support.SerdeTomlConfiguration
-import io.micronaut.serde.toml.support.TomlFactoryFactory
 import spock.lang.Specification
 import tools.jackson.dataformat.toml.TomlReadFeature
 import tools.jackson.dataformat.toml.TomlWriteFeature
@@ -25,9 +24,8 @@ class TomlFeatureToggleSpec extends Specification {
         def ctx = ApplicationContext.run()
         def mapper = tomlMapper(ctx)
         def bean = new ComplexField()
-        def factory = TomlFactoryFactory.create(null, new SerdeTomlConfiguration())
         def tree = JsonNode.createObjectNode([
-            foo: JsonNode.createStringNode('2021-03-26')
+                foo: JsonNode.createStringNode('2021-03-26')
         ])
 
         expect:
@@ -35,8 +33,6 @@ class TomlFeatureToggleSpec extends Specification {
         mapper.readValue('foo = 2021-03-26\n'.bytes, Argument.of(ObjectField)).foo == '2021-03-26'
         mapper.readValueFromTree(tree, Argument.of(ObjectField)).foo == '2021-03-26'
         mapper.writeValueAsString(bean) == "foo = ''\n"
-        !factory.isEnabled(TomlReadFeature.PARSE_JAVA_TIME)
-        !factory.isEnabled(TomlWriteFeature.FAIL_ON_NULL_WRITE)
 
         cleanup:
         ctx.close()
@@ -45,12 +41,12 @@ class TomlFeatureToggleSpec extends Specification {
     void "parse java time false keeps temporal object fields string-like across text bytes and tree paths"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.read-features.parse-java-time': false
+                'micronaut.serde.toml.read-features.parse-java-time': false
         ])
         def mapper = tomlMapper(ctx)
         def toml = "foo = ${literal}\n"
         def tree = JsonNode.createObjectNode([
-            foo: JsonNode.createStringNode(treeValue)
+                foo: JsonNode.createStringNode(treeValue)
         ])
         def factory = ctx.getBean(SerdeTomlConfiguration)
 
@@ -74,7 +70,7 @@ class TomlFeatureToggleSpec extends Specification {
         given:
 //      null field => foo = ''. toggle config to true
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-features.fail-on-null-write': true
+                'micronaut.serde.toml.write-features.fail-on-null-write': true
         ])
         def mapper = tomlMapper(ctx)
         def bean = new ComplexField()
@@ -107,12 +103,12 @@ class TomlFeatureToggleSpec extends Specification {
     void "parse java time feature materializes temporal object fields from text bytes and tree paths"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.read-features.parse-java-time': true
+                'micronaut.serde.toml.read-features.parse-java-time': true
         ])
         def mapper = tomlMapper(ctx)
         def toml = "foo = ${literal}\n"
         def tree = JsonNode.createObjectNode([
-            foo: JsonNode.createStringNode(treeValue)
+                foo: JsonNode.createStringNode(treeValue)
         ])
 
         expect:

@@ -29,21 +29,36 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * TOML deserializer wrapper for null sentinel coercion.
+ * Deserializer wrapper that coerces TOML empty-string null sentinels back to {@code null}.
+ *
+ * <p>Since <a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0</a> has no null type,
+ * the encoder writes null fields as empty strings ({@code ''}). On the read path, this
+ * wrapper intercepts empty strings and returns {@code null} for types where an empty string
+ * is not a meaningful value.</p>
+ *
+ * <p>Coercion is <b>skipped</b> for types where empty string is valid input:
+ * {@code String}, {@code CharSequence}, primitives, {@code Number}, {@code Boolean},
+ * {@code Enum}, arrays, {@code Map}, {@code Iterable}, and {@code Object}.</p>
+ *
+ * <p>Example round-trip:</p>
+ * <pre>{@code
+ * // Write path: bean.author == null
+ * encoder → "author = ''"
+ *
+ * // Read path: this wrapper intercepts
+ * "author = ''" → deserialize → detects empty string → returns null
+ * }</pre>
  *
  * @param <T> The deserialized type
  */
 @Internal
 public final class TomlNullCoercingDeserializer<T> implements Deserializer<T> {
     private final Deserializer<? extends T> delegate;
-    private final Argument<? extends T> type;
     private final LimitingStream.RemainingLimits limits;
 
     private TomlNullCoercingDeserializer(Deserializer<? extends T> delegate,
-                                         Argument<? extends T> type,
                                          LimitingStream.RemainingLimits limits) {
         this.delegate = delegate;
-        this.type = type;
         this.limits = limits;
     }
 
@@ -54,7 +69,7 @@ public final class TomlNullCoercingDeserializer<T> implements Deserializer<T> {
             @SuppressWarnings("unchecked") Deserializer<T> cast = (Deserializer<T>) delegate;
             return cast;
         }
-        return new TomlNullCoercingDeserializer<>(delegate, type, limits);
+        return new TomlNullCoercingDeserializer<>(delegate, limits);
     }
 
     @Override
@@ -64,9 +79,16 @@ public final class TomlNullCoercingDeserializer<T> implements Deserializer<T> {
         return wrap(specificDelegate, narrowedType, limits);
     }
 
+    @SuppressWarnings({"unchecked", "NullAway"})
     @Override
-    public @Nullable T deserialize(Decoder decoder, Deserializer.DecoderContext context, Argument<? super T> targetType) throws IOException {
-        return deserializeNullable(decoder, context, targetType);
+    public T deserialize(Decoder decoder, Deserializer.DecoderContext context, Argument<? super T> targetType) throws IOException {
+        JsonNode node = decoder.decodeNode();
+        if (node.isString() && node.coerceStringValue().isEmpty()) {
+            Deserializer<T> cast = (Deserializer<T>) delegate;
+            return cast.deserialize(JsonNodeDecoder.create(node, limits), context, targetType);
+        }
+        Deserializer<T> cast = (Deserializer<T>) delegate;
+        return cast.deserialize(JsonNodeDecoder.create(node, limits), context, targetType);
     }
 
     @Override
