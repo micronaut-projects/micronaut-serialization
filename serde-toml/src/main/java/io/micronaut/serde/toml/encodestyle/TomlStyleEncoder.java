@@ -30,7 +30,8 @@ import java.nio.charset.StandardCharsets;
  * Base root encoder for a specific TOML output style.
  */
 @Internal
-public abstract class TomlStyleEncoder extends TomlGeneratorEncoder {
+public abstract sealed class TomlStyleEncoder extends TomlGeneratorEncoder
+    permits TableRootEncoder, InlineRootEncoder {
     private final OutputStream outputStream;
     @Nullable
     private TomlValue value;

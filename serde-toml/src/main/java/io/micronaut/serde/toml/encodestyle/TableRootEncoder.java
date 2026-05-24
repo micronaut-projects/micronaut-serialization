@@ -67,6 +67,7 @@ public final class TableRootEncoder extends TomlStyleEncoder {
         appendTable(builder, List.of(), objectValue);
     }
 
+    // used in appendTableDocument
     private static void appendTable(StringBuilder builder, List<String> path, ObjectValue objectValue) {
         if (!path.isEmpty()) {
             appendSectionBreak(builder);
@@ -109,6 +110,7 @@ public final class TableRootEncoder extends TomlStyleEncoder {
         }
     }
 
+    // used in appendTable and recursively
     private static void appendArrayOfTables(StringBuilder builder, List<String> path, ArrayValue arrayValue) {
         for (TomlValue value : arrayValue.values()) {
             ObjectValue objectValue = (ObjectValue) value;

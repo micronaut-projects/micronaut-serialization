@@ -116,6 +116,7 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
     /**
      * Accept a completed TOML value for this encoder context.
      *
+     * @see TomlValue Abstract Representations, with entities implementations
      * @param value The value to accept
      * @throws IOException If accepting the value fails
      */
@@ -231,6 +232,9 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         return path;
     }
 
+    /**
+     * Renders a float value see <a href="https://toml.io/en/v1.0.0#float">TOML v1.0.0 Float specification</a>.
+     */
     private static String renderFloat(float value) {
         if (Float.isNaN(value)) {
             return "nan";
@@ -244,6 +248,9 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         return Float.toString(value);
     }
 
+    /**
+     * Renders a float value per the <a href="https://toml.io/en/v1.0.0#float">TOML v1.0.0 Float specification</a>.
+     */
     private static String renderDouble(double value) {
         if (Double.isNaN(value)) {
             return "nan";

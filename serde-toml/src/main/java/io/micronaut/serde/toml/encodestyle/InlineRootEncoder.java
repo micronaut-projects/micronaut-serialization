@@ -77,6 +77,7 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
     /**
      * Render a TOML value using inline syntax.
      * <a href="https://toml.io/en/v1.0.0#inline-table">TOML inline Table Spec</a>
+     * used also by the Table Style function only with (stringValue, NumberValue, booleanValue and NullValue)
      *
      * @param value The value to render
      * @return The TOML inline representation

@@ -19,7 +19,10 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
- * Shared TOML text rendering helpers for output styles.
+ * Shared TOML text rendering helpers used by both table and inline output styles.
+ *
+ * @see <a href="https://toml.io/en/v1.0.0#keys">TOML v1.0.0 Keys</a>
+ * @see <a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0 String</a>
  */
 final class TomlStyleRenderer {
     /**
@@ -47,6 +50,15 @@ final class TomlStyleRenderer {
         return "\"" + escapeBasicString(value) + "\"";
     }
 
+    /**
+     * Escapes a value for use inside a TOML basic string (double-quoted).
+     * Handles the seven mandatory escape sequences ({@code \b \t \n \f \r \" \\})
+     * and encodes remaining control characters as {@code &#92;uXXXX}.
+     *
+     * @see <a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0 String — Basic String</a>
+     * @param value
+     * @return boolean
+     */
     private static boolean canUseLiteralString(String value) {
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
@@ -57,6 +69,14 @@ final class TomlStyleRenderer {
         return true;
     }
 
+    /**
+     * Produces a TOML unicode escape: {@code &#92;uXXXX} for BMP code points,
+     * {@code &#92;UXXXXXXXX} for supplementary code points.
+     *
+     * @see <a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0 String — Basic String</a>
+     * @param value
+     * @return String
+     */
     private static String escapeBasicString(String value) {
         StringBuilder builder = new StringBuilder(value.length());
         for (int i = 0; i < value.length();) {
@@ -82,6 +102,11 @@ final class TomlStyleRenderer {
         return builder.toString();
     }
 
+    /**
+     * Produces a TOML unicode escape for control characters and supplementary code points.
+     *
+     * @see <a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0 String — Basic String</a>
+     */
     private static String unicodeEscape(int codePoint) {
         if (codePoint <= 0xffff) {
             return "\\u" + leftPad(Integer.toHexString(codePoint).toUpperCase(Locale.ROOT), 4);
@@ -89,6 +114,9 @@ final class TomlStyleRenderer {
         return "\\U" + leftPad(Integer.toHexString(codePoint).toUpperCase(Locale.ROOT), 8);
     }
 
+    /**
+     * Left-pads a string with zeros to the specified length.
+     */
     private static String leftPad(String value, int length) {
         if (value.length() >= length) {
             return value;
