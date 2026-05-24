@@ -45,6 +45,14 @@ abstract class AbstractJacksonDatabindTomlSpec extends AbstractTomlExtendedSerde
         databindTomlMapper.writerFor(toJavaType(argument)).writeValueAsBytes(bean)
     }
 
+    /*
+     * Converts a Micronaut {@link Argument} into the equivalent Jackson
+     * {@link JavaType} so the Jackson TOML parity suite can preserve generic type
+     * information when reading or writing values.
+     *
+     * @param argument The Micronaut type argument
+     * @return The equivalent Jackson Java type
+     */
     private JavaType toJavaType(Argument<?> argument) {
         if (!argument.typeParameters) {
             return databindTomlMapper.typeFactory.constructType(argument.type)

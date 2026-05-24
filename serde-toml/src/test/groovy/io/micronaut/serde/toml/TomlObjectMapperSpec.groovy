@@ -2,7 +2,6 @@ package io.micronaut.serde.toml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.tree.JsonNode
-import io.micronaut.serde.ObjectMapper
 import io.micronaut.serde.toml.fixture.Book
 import io.micronaut.serde.toml.fixture.BookList
 import io.micronaut.serde.toml.fixture.ComplexField
@@ -12,7 +11,6 @@ import io.micronaut.serde.toml.fixture.PointWrapper
 import jakarta.inject.Inject
 import jakarta.inject.Named
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
-import tools.jackson.databind.json.JsonMapper
 
 import java.nio.charset.StandardCharsets
 
@@ -21,7 +19,7 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
 
     @Inject
     @Named("toml")
-    ObjectMapper tomlMapper
+    TomlObjectMapper tomlMapper
 
     void "writeValueToTree serializes a pojo completely"() {
         given:
@@ -176,34 +174,23 @@ userImage = 'AQIDBA=='
     void "FiveMinuteUser toml trees stay aligned with json trees field-for-field"() {
         given:
         def user = new FiveMinuteUser("Bob", "Palmer", FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
-        def jsonMapper = new JsonMapper()
-        def jacksonTree = jsonMapper.readTree(jsonMapper.writeValueAsString(user))
+        def expectedImage = Base64.encoder.encodeToString(user.userImage)   // java.util.Base64
 
         when:
-        def tomlTextTree = tomlMapper.readValueFromTree(tomlMapper.writeValueToTree(user), Argument.of(Map))
         JsonNode tomlTree = tomlMapper.writeValueToTree(user)
+        def tomlTextTree  = tomlMapper.readValueFromTree(tomlTree, Argument.of(Map))
         JsonNode expectedTree = JsonNode.createObjectNode([
-                firstName: JsonNode.createStringNode(jacksonTree.get("firstName").textValue()),
-                lastName : JsonNode.createStringNode(jacksonTree.get("lastName").textValue()),
-                gender   : JsonNode.createStringNode(jacksonTree.get("gender").textValue()),
-                verified : JsonNode.createBooleanNode(jacksonTree.get("verified").booleanValue()),
-                userImage: JsonNode.createStringNode(jacksonTree.get("userImage").textValue())
+                firstName: JsonNode.createStringNode(user.firstName),
+                lastName : JsonNode.createStringNode(user.lastName),
+                gender   : JsonNode.createStringNode(user.gender.name()),
+                verified : JsonNode.createBooleanNode(user.verified),
+                userImage: JsonNode.createStringNode(expectedImage)
         ])
 
         then:
         tomlTree == expectedTree
-        tomlTextTree == [
-                firstName: jacksonTree.get("firstName").textValue(),
-                lastName : jacksonTree.get("lastName").textValue(),
-                gender   : jacksonTree.get("gender").textValue(),
-                verified : jacksonTree.get("verified").booleanValue(),
-                userImage: jacksonTree.get("userImage").textValue()
-        ]
-        tomlTree.get("firstName").stringValue == jacksonTree.get("firstName").textValue()
-        tomlTree.get("lastName").stringValue == jacksonTree.get("lastName").textValue()
-        tomlTree.get("gender").stringValue == jacksonTree.get("gender").textValue()
-        tomlTree.get("verified").booleanValue == jacksonTree.get("verified").booleanValue()
-        tomlTree.get("userImage").stringValue == jacksonTree.get("userImage").textValue()
+        tomlTextTree == [firstName: user.firstName, lastName: user.lastName,
+                         gender: user.gender.name(), verified: user.verified, userImage: expectedImage]
     }
 
     void "writeValueToTree returns null nodes for null inputs"() {

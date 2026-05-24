@@ -9,8 +9,6 @@ import io.micronaut.serde.toml.fixture.ComplexField
 import io.micronaut.serde.toml.fixture.ObjectField
 import io.micronaut.serde.toml.support.SerdeTomlConfiguration
 import spock.lang.Specification
-import tools.jackson.dataformat.toml.TomlReadFeature
-import tools.jackson.dataformat.toml.TomlWriteFeature
 
 import java.time.LocalDate
 import java.time.LocalDateTime

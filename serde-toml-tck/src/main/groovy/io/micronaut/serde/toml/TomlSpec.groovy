@@ -1,14 +1,9 @@
 package io.micronaut.serde.toml
 
 import io.micronaut.core.type.Argument
-import tools.jackson.dataformat.toml.TomlMapper
-
-import java.io.InputStream
 import java.nio.charset.StandardCharsets
-import java.util.Map
 
 trait TomlSpec {
-    private static final TomlMapper TREE_MAPPER = new TomlMapper()
 
     abstract <T> T readToml(String toml, Argument<T> type)
 
@@ -53,7 +48,7 @@ trait TomlSpec {
     }
 
     boolean tomlMatches(String result, String expected) {
-        TREE_MAPPER.readTree(result) == TREE_MAPPER.readTree(expected)
+        readTomlObject(result) == readTomlObject(expected)
     }
 
     boolean objRepresentationMatches(Object obj, String toml) {
