@@ -191,15 +191,14 @@ name = 'root'
 
         then:
         def e = thrown(Exception)
-        e.message != null
-        messageMatchers.isEmpty() || messageMatchers.any { matcher -> e.message.contains(matcher) }
+        e.message.contains(expectedMessage)
 
         where:
-        toml                                                   | messageMatchers
-        "key =\n"                                              | []
-        "first = \"Tom\" last = \"Preston-Werner\"\n"          | ["More data after value has already ended", "Unknown token", "Unexpected character", "last"]
-        "= \"no key name\"\n"                                  | ["Unexpected", "Unknown token", "Invalid key", "no key"]
-        "foo = \"abc"                                          | []
+        toml                                          | expectedMessage
+        "key =\n"                                     | "Newline not permitted here"
+        "first = \"Tom\" last = \"Preston-Werner\"\n" | "More data after value has already ended"
+        "= \"no key name\"\n"                         | "Unexpected token: Got KEY_VAL_SEP, expected key or table"
+        "foo = \"abc"                                 | "Premature end of file"
     }
 
     void "rejects duplicate keys"() {
