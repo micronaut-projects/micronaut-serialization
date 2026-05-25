@@ -26,7 +26,6 @@ import io.micronaut.serde.support.util.JsonNodeDecoder;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Deserializer wrapper that coerces TOML empty-string null sentinels back to {@code null}.
@@ -37,8 +36,7 @@ import java.util.Map;
  * is not a meaningful value.</p>
  *
  * <p>Coercion is <b>skipped</b> for types where empty string is valid input:
- * {@code String}, {@code CharSequence}, primitives, {@code Number}, {@code Boolean},
- * {@code Enum}, arrays, {@code Map}, {@code Iterable}, and {@code Object}.</p>
+ * {@code String}, {@code CharSequence}.
  *
  * <p>Example round-trip:</p>
  * <pre>{@code
@@ -65,11 +63,11 @@ public final class TomlNullCoercingDeserializer<T> implements Deserializer<T> {
     public static <T> Deserializer<T> wrap(Deserializer<? extends T> delegate,
                                            Argument<? extends T> type,
                                            LimitingStream.RemainingLimits limits) {
-        if (!supportsEmptyStringNullCoercion(type)) {
-            @SuppressWarnings("unchecked") Deserializer<T> cast = (Deserializer<T>) delegate;
-            return cast;
+        if (supportsEmptyStringNullCoercion(type)) {
+            return new TomlNullCoercingDeserializer<>(delegate, limits);
         }
-        return new TomlNullCoercingDeserializer<>(delegate, limits);
+        @SuppressWarnings("unchecked") Deserializer<T> cast = (Deserializer<T>) delegate;
+        return cast;
     }
 
     @Override
@@ -83,10 +81,6 @@ public final class TomlNullCoercingDeserializer<T> implements Deserializer<T> {
     @Override
     public T deserialize(Decoder decoder, Deserializer.DecoderContext context, Argument<? super T> targetType) throws IOException {
         JsonNode node = decoder.decodeNode();
-        if (node.isString() && node.coerceStringValue().isEmpty()) {
-            Deserializer<T> cast = (Deserializer<T>) delegate;
-            return cast.deserialize(JsonNodeDecoder.create(node, limits), context, targetType);
-        }
         Deserializer<T> cast = (Deserializer<T>) delegate;
         return cast.deserialize(JsonNodeDecoder.create(node, limits), context, targetType);
     }
@@ -109,16 +103,7 @@ public final class TomlNullCoercingDeserializer<T> implements Deserializer<T> {
 
     private static boolean supportsEmptyStringNullCoercion(Argument<?> type) {
         Class<?> rawType = type.getType();
-        return !rawType.isPrimitive()
-            && rawType != Object.class
-            && !rawType.isEnum()
-            && !rawType.isArray()
-            && rawType != byte[].class
-            && !CharSequence.class.isAssignableFrom(rawType)
-            && !Number.class.isAssignableFrom(rawType)
-            && rawType != Boolean.class
-            && rawType != Character.class
-            && !Map.class.isAssignableFrom(rawType)
-            && !Iterable.class.isAssignableFrom(rawType);
+        // '' is the null sentinel for every type, except String where it is the empty string.
+        return !CharSequence.class.isAssignableFrom(rawType);
     }
 }

@@ -2,6 +2,7 @@ package io.micronaut.serde.toml
 
 import io.micronaut.core.type.Argument
 import io.micronaut.json.tree.JsonNode
+import io.micronaut.serde.annotation.Serdeable
 import io.micronaut.serde.toml.fixture.Book
 import io.micronaut.serde.toml.fixture.BookList
 import io.micronaut.serde.toml.fixture.ComplexField
@@ -191,6 +192,85 @@ userImage = 'AQIDBA=='
         tomlTree == expectedTree
         tomlTextTree == [firstName: user.firstName, lastName: user.lastName,
                          gender: user.gender.name(), verified: user.verified, userImage: expectedImage]
+    }
+
+    void "null boxed scalar and enum fields round trip back to null via the empty string sentinel"() {
+        given:
+        def bean = new ScalarBean()
+
+        when:
+        def toml = tomlMapper.writeValueAsString(bean)
+        def decoded = tomlMapper.readValue(toml, Argument.of(ScalarBean))
+
+        then:
+        toml == "a = 0\ncount = ''\nflag = ''\nday = ''\n"
+        decoded.a == 0
+        decoded.count == null
+        decoded.flag == null
+        decoded.day == null
+    }
+
+    @Serdeable
+    static class ScalarBean {
+        int a
+        Integer count
+        Boolean flag
+        java.time.DayOfWeek day
+    }
+
+    void "empty string fields are not coerced to null"() {
+        given:
+        def bean = new ExcludedBean()
+        bean.text = ""
+
+        when:
+        def toml = tomlMapper.writeValueAsString(bean)
+        def decoded = tomlMapper.readValue(toml, Argument.of(ExcludedBean))
+
+        then:
+        toml == "text = ''\n"
+        decoded.text == ""
+    }
+
+    void "non-empty byte arrays round trip through base64"() {
+        given:
+        def bean = new ByteBean(data: [1, 2, 3, 4] as byte[])
+
+        when:
+        def toml = tomlMapper.writeValueAsString(bean)
+        def decoded = tomlMapper.readValue(toml, Argument.of(ByteBean))
+
+        then:
+        toml == "data = 'AQIDBA=='\n"
+        decoded.data == [1, 2, 3, 4] as byte[]
+    }
+
+    void "empty byte arrays write the empty string sentinel and read back as null"() {
+        given:
+        def bean = new ByteBean(data: new byte[0])
+
+        when:
+        def toml = tomlMapper.writeValueAsString(bean)
+        def decoded = tomlMapper.readValue(toml, Argument.of(ByteBean))
+
+        then:
+        toml == "data = ''\n"
+        decoded.data == null
+    }
+
+    @Serdeable
+    static class ExcludedBean {
+        String text
+    }
+
+    @Serdeable
+    static class ByteBean {
+        byte[] data
+    }
+
+    void "raw map empty string values stay empty strings rather than null"() {
+        expect:
+        tomlMapper.readValue("foo = ''\n", Argument.mapOf(String, Object)).foo == ""
     }
 
     void "writeValueToTree returns null nodes for null inputs"() {
