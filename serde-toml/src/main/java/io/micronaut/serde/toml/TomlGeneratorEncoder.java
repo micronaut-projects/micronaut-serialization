@@ -70,8 +70,8 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
     static @NonNull TomlGeneratorEncoder create(@NonNull OutputStream outputStream,
                                                 @NonNull RemainingLimits remainingLimits,
                                                 @NonNull SerdeTomlConfiguration tomlConfiguration) {
-        return switch (tomlConfiguration.getResolvedWriteLayout()) {
-            case DEFAULT, TABLE -> new TableRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
+        return switch (tomlConfiguration.getWriteLayout()) {
+            case TABLE -> new TableRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
             case INLINE -> new InlineRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
         };
     }

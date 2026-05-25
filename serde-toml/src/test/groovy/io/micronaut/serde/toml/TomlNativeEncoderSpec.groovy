@@ -121,7 +121,7 @@ sku = 738592
     void "inline layout writes nested objects as inline tables"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = ctx.getBean(ObjectMapper, Qualifiers.byName("toml"))
         def value = [
@@ -147,7 +147,7 @@ database = {server = '192.168.1.1', ports = [8000, 8001, 8002]}
     void "inline layout writes arrays of objects as arrays of inline tables"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = ctx.getBean(ObjectMapper, Qualifiers.byName("toml"))
         def value = [
@@ -173,7 +173,7 @@ products = [{name = 'Hammer', sku = 738592}, {name = 'Nail', sku = 284758}]
     void "inline layout writer paths produce identical output"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = ctx.getBean(ObjectMapper, Qualifiers.byName("toml"))
         def value = [
@@ -206,7 +206,7 @@ products = [{name = 'Hammer', sku = 738592}]
     void "inline layout fails cleanly for non document root values"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = ctx.getBean(ObjectMapper, Qualifiers.byName("toml"))
 

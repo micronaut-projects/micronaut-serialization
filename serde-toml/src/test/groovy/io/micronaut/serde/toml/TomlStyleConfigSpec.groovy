@@ -39,7 +39,7 @@ name = "Ada"
     void "inline layout writes nested objects as inline tables"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = tomlMapper(ctx)
         def book = new Book("Micronaut in Action", 320, new Book.Author("Ada"))
@@ -119,7 +119,7 @@ color = 'gray'
     void "inline layout writes array of tables as inline"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = tomlMapper(ctx)
         def catalog = productCatalog()
@@ -191,7 +191,7 @@ color = 'blue'
     void "inline layout writes nested tables and array of tables as inline"() {
         given:
         def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-layout': 'inline'
+            'micronaut.serde.toml.write-features.write-layout': 'inline'
         ])
         def mapper = tomlMapper(ctx)
         def catalog = new ProductCatalog([

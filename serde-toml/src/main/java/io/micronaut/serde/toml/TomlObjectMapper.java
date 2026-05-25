@@ -80,7 +80,6 @@ public final class TomlObjectMapper implements ObjectMapper {
         this.serdeConfiguration = serdeConfiguration;
         this.tomlConfiguration = tomlConfiguration;
         this.parserAdapter = parserAdapter;
-        //tomlConfiguration.getResolvedWriteLayout();
     }
 
     @Override

@@ -17,14 +17,12 @@ package io.micronaut.serde.toml.support;
 
 import io.micronaut.context.annotation.BootstrapContextCompatible;
 import io.micronaut.context.annotation.ConfigurationProperties;
-import io.micronaut.context.exceptions.ConfigurationException;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.bind.annotation.Bindable;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.serde.config.SerdeConfiguration;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -39,7 +37,6 @@ public final class SerdeTomlConfiguration {
     private ReadFeatures readFeatures = new ReadFeatures();
     private ReadConstraints readConstraints = new ReadConstraints();
     private WriteFeatures writeFeatures = new WriteFeatures();
-    private String writeLayout = "default";
 
     public ReadFeatures getReadFeatures() {
         return readFeatures;
@@ -65,23 +62,8 @@ public final class SerdeTomlConfiguration {
         this.writeFeatures = writeFeatures;
     }
 
-    @Bindable(defaultValue = "default")
-    public String getWriteLayout() {
-        return writeLayout;
-    }
-
-    public void setWriteLayout(String writeLayout) {
-        this.writeLayout = Objects.requireNonNull(writeLayout, "writeLayout");
-    }
-
-    public WriteLayout getResolvedWriteLayout() {
-        WriteLayout layout;
-        try {
-            layout = WriteLayout.valueOf(writeLayout.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new ConfigurationException("Invalid micronaut.serde.toml.write-layout value: " + writeLayout, e);
-        }
-        return layout == WriteLayout.DEFAULT ? WriteLayout.TABLE : layout;
+    public WriteLayout getWriteLayout() {
+        return writeFeatures.getWriteLayout();
     }
 
     public boolean isParseJavaTime() {
@@ -104,7 +86,6 @@ public final class SerdeTomlConfiguration {
      * TOML writer layout.
      */
     public enum WriteLayout {
-        DEFAULT,
         TABLE,
         INLINE
     }
@@ -185,6 +166,7 @@ public final class SerdeTomlConfiguration {
     @ConfigurationProperties("write-features")
     public static final class WriteFeatures {
         private boolean failOnNullWrite;
+        private WriteLayout writeLayout = WriteLayout.TABLE;
 
         @Bindable(defaultValue = StringUtils.FALSE)
         public boolean isFailOnNullWrite() {
@@ -193,6 +175,14 @@ public final class SerdeTomlConfiguration {
 
         public void setFailOnNullWrite(boolean failOnNullWrite) {
             this.failOnNullWrite = failOnNullWrite;
+        }
+
+        public WriteLayout getWriteLayout() {
+            return writeLayout;
+        }
+
+        public void setWriteLayout(WriteLayout writeLayout) {
+            this.writeLayout = Objects.requireNonNull(writeLayout, "writeLayout");
         }
     }
 }
