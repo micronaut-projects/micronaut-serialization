@@ -23,6 +23,10 @@ dependencies {
     testImplementation(mnTest.micronaut.test.spock)
 }
 
+configurations.configureEach {
+    exclude(group = "com.fasterxml.jackson.core", module = "jackson-databind")
+}
+
 tasks {
     test {
         useJUnitPlatform()
