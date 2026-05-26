@@ -25,7 +25,7 @@ class TomlFeatureToggleSpec extends Specification {
         mapper.readValue('foo = "2021-03-26"\n', Argument.of(ObjectField)).foo == '2021-03-26'
         mapper.readValue('foo = 2021-03-26\n'.bytes, Argument.of(ObjectField)).foo == '2021-03-26'
         mapper.readValueFromTree(tree, Argument.of(ObjectField)).foo == '2021-03-26'
-        mapper.writeValueAsString(bean) == "foo = ''\n"
+        mapper.writeValueAsString(bean) == ""
 
         cleanup:
         ctx.close()
@@ -33,6 +33,7 @@ class TomlFeatureToggleSpec extends Specification {
 
     void "generic temporal strings are not coerced"() {
         given:
+        def ctx = ApplicationContext.run()
         def mapper = tomlMapper(ctx)
         def toml = "foo = ${literal}\n"
         def tree = JsonNode.createObjectNode([
@@ -55,52 +56,7 @@ class TomlFeatureToggleSpec extends Specification {
         '2021-03-26T18:40:15.123456789+01:00'   | '2021-03-26T18:40:15.123456789+01:00' | '2021-03-26T18:40:15.123456789+01:00'
     }
 
-    void "null write failure feature throws for text byte and tree writes"() {
-        given:
-//      null field => foo = ''. toggle config to true
-        def ctx = ApplicationContext.run([
-                'micronaut.serde.toml.write-features.fail-on-null-write': true
-        ])
-        def mapper = tomlMapper(ctx)
-        def bean = new ComplexField()
-
-        when:
-        mapper.writeValueAsString(bean)
-
-        then:
-        Exception stringException = thrown()
-        hasMessageFragment(stringException, "null writing disabled", "FAIL_ON_NULL_WRITE")
-
-        when:
-        mapper.writeValueAsBytes(bean)
-
-        then:
-        Exception bytesException = thrown()
-        hasMessageFragment(bytesException, "null writing disabled", "FAIL_ON_NULL_WRITE")
-
-        when:
-        mapper.writeValueToTree(bean)
-
-        then:
-        Exception treeException = thrown()
-        hasMessageFragment(treeException, "null writing disabled", "FAIL_ON_NULL_WRITE")
-
-        cleanup:
-        ctx.close()
-    }
-
     private static ObjectMapper tomlMapper(ApplicationContext ctx) {
         ctx.getBean(ObjectMapper, Qualifiers.byName("toml"))
-    }
-
-    private static boolean hasMessageFragment(Throwable throwable, String... fragments) {
-        Throwable current = throwable
-        while (current != null) {
-            if (current.message != null && fragments.any { current.message.contains(it) }) {
-                return true
-            }
-            current = current.cause
-        }
-        return false
     }
 }

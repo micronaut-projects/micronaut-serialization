@@ -39,12 +39,10 @@ public abstract sealed class TomlStyleEncoder extends TomlGeneratorEncoder
     /**
      * @param outputStream The target output stream
      * @param remainingLimits The remaining encoder limits
-     * @param failOnNullWrite Whether null writing should fail
      */
     protected TomlStyleEncoder(OutputStream outputStream,
-                               LimitingStream.RemainingLimits remainingLimits,
-                               boolean failOnNullWrite) {
-        super(remainingLimits, failOnNullWrite, "", null);
+                               LimitingStream.RemainingLimits remainingLimits) {
+        super(remainingLimits, "", null);
         this.outputStream = outputStream;
     }
 

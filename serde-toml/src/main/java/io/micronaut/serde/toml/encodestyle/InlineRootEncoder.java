@@ -42,12 +42,10 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
     /**
      * @param outputStream The target output stream
      * @param remainingLimits The remaining encoder limits
-     * @param failOnNullWrite Whether null writing should fail
      */
     public InlineRootEncoder(OutputStream outputStream,
-                             LimitingStream.RemainingLimits remainingLimits,
-                             boolean failOnNullWrite) {
-        super(outputStream, remainingLimits, failOnNullWrite);
+                             LimitingStream.RemainingLimits remainingLimits) {
+        super(outputStream, remainingLimits);
     }
 
     @Override
@@ -77,7 +75,7 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
     /**
      * Render a TOML value using inline syntax.
      * <a href="https://toml.io/en/v1.0.0#inline-table">TOML inline Table Spec</a>
-     * used also by the Table Style function only with (stringValue, NumberValue, booleanValue and NullValue)
+     * used also by the Table Style function only with scalar values.
      *
      * @param value The value to render
      * @return The TOML inline representation

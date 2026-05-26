@@ -448,18 +448,22 @@ userImage = 'AQIDBA=='
         objRepresentationMatches(actual, expected)
     }
 
-    void "serializes null reference fields with jackson compatible empty string sentinel"() {
+    void "serializes null reference fields as readable absent values"() {
         given:
         def bean = new ComplexField()
 
-        expect:
-        writeToml(bean) == "foo = ''\n"
-        writeTomlAsBytes(bean) == tomlAsBytes("foo = ''\n")
+        when:
+        def toml = writeToml(bean)
+        def bytes = writeTomlAsBytes(bean)
+
+        then:
+        readToml(toml, ComplexField).foo == null
+        readToml(bytes, ComplexField).foo == null
     }
 
-    void "deserializes empty string sentinel into null reference fields"() {
+    void "deserializes absent reference fields as null"() {
         given:
-        def toml = "foo = ''\n"
+        def toml = ""
 
         when:
         def bean = readToml(toml, ComplexField)
@@ -468,7 +472,7 @@ userImage = 'AQIDBA=='
         bean.foo == null
     }
 
-    void "preserves empty string sentinel in semantic toml object representations"() {
+    void "preserves empty strings in semantic toml object representations"() {
         expect:
         readTomlObject("foo = ''\n").foo == ""
     }

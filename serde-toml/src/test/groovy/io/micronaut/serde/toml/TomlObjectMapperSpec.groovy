@@ -88,10 +88,10 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
         fromTree == user
     }
 
-    void "null reference fields round trip consistently across string bytes and tree paths"() {
+    void "null reference fields are omitted from toml text and remain readable as absent values"() {
         given:
         def bean = new ComplexField()
-        def expected = "foo = ''\n"
+        def expected = ""
 
         when:
         def stringResult = tomlMapper.writeValueAsString(bean)
@@ -194,7 +194,7 @@ userImage = 'AQIDBA=='
                          gender: user.gender.name(), verified: user.verified, userImage: expectedImage]
     }
 
-    void "null boxed scalar and enum fields round trip back to null via the empty string sentinel"() {
+    void "null boxed scalar and enum fields are omitted and read back as absent values"() {
         given:
         def bean = new ScalarBean()
 
@@ -203,7 +203,7 @@ userImage = 'AQIDBA=='
         def decoded = tomlMapper.readValue(toml, Argument.of(ScalarBean))
 
         then:
-        toml == "a = 0\ncount = ''\nflag = ''\nday = ''\n"
+        toml == "a = 0\n"
         decoded.a == 0
         decoded.count == null
         decoded.flag == null
@@ -245,7 +245,7 @@ userImage = 'AQIDBA=='
         decoded.data == [1, 2, 3, 4] as byte[]
     }
 
-    void "empty byte arrays write the empty string sentinel and read back as null"() {
+    void "empty byte arrays write base64 empty strings and read back as empty arrays"() {
         given:
         def bean = new ByteBean(data: new byte[0])
 
@@ -255,7 +255,7 @@ userImage = 'AQIDBA=='
 
         then:
         toml == "data = ''\n"
-        decoded.data == null
+        decoded.data == new byte[0]
     }
 
     @Serdeable

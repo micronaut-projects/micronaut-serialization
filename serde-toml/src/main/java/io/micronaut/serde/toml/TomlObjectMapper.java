@@ -29,10 +29,9 @@ import io.micronaut.serde.config.DeserializationConfiguration;
 import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.SerializationConfiguration;
 import io.micronaut.serde.support.util.JsonNodeDecoder;
-import io.micronaut.serde.toml.serde.TomlTreeEncoder;
+import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.toml.support.MicronautTomlParserAdapter;
 import io.micronaut.serde.toml.support.SerdeTomlConfiguration;
-import io.micronaut.serde.toml.support.TomlDecoderContext;
 import io.micronaut.serde.toml.support.TomlEncoderContext;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -90,7 +89,7 @@ public final class TomlObjectMapper implements ObjectMapper {
     @Override
     public <T> @Nullable T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
         JsonNode tree = parserAdapter.parse(inputStream);
-        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits());
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
@@ -102,7 +101,7 @@ public final class TomlObjectMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
-        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits());
+        Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
@@ -112,7 +111,7 @@ public final class TomlObjectMapper implements ObjectMapper {
         if (value == null) {
             return JsonNode.nullNode();
         }
-        TomlTreeEncoder encoder = TomlTreeEncoder.create(limits(), tomlConfiguration);
+        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value);
         return encoder.getCompletedValue();
     }
@@ -122,7 +121,7 @@ public final class TomlObjectMapper implements ObjectMapper {
         if (value == null) {
             return JsonNode.nullNode();
         }
-        TomlTreeEncoder encoder = TomlTreeEncoder.create(limits(), tomlConfiguration);
+        JsonNodeEncoder encoder = JsonNodeEncoder.create(limits());
         serialize(encoder, value, type);
         return encoder.getCompletedValue();
     }

@@ -40,12 +40,10 @@ public final class TableRootEncoder extends TomlStyleEncoder {
     /**
      * @param outputStream The target output stream
      * @param remainingLimits The remaining encoder limits
-     * @param failOnNullWrite Whether null writing should fail
      */
     public TableRootEncoder(OutputStream outputStream,
-                            LimitingStream.RemainingLimits remainingLimits,
-                            boolean failOnNullWrite) {
-        super(outputStream, remainingLimits, failOnNullWrite);
+                            LimitingStream.RemainingLimits remainingLimits) {
+        super(outputStream, remainingLimits);
     }
 
     @Override

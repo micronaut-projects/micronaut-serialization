@@ -307,33 +307,15 @@ products = [{name = 'Hammer', sku = 738592}]
         "line\nnext" | "abc = \"line\\nnext\"\n"
     }
 
-    void "native encoder preserves binary base64 text and null sentinel writes"() {
+    void "native encoder preserves binary base64 text and omits null fields"() {
         given:
         def user = new FiveMinuteUser("Bob", "Palmer", FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
         def bean = new ComplexField()
 
         expect:
         tomlMapper.writeValueAsString(user).contains("userImage = 'AQIDBA=='\n")
-        tomlMapper.writeValueAsString(bean) == "foo = ''\n"
+        tomlMapper.writeValueAsString(bean) == ""
         tomlMapper.readValue(tomlMapper.writeValueAsString(bean), Argument.of(ComplexField)).foo == null
-    }
-
-    void "native encoder honors fail on null write"() {
-        given:
-        def ctx = ApplicationContext.run([
-            'micronaut.serde.toml.write-features.fail-on-null-write': true
-        ])
-        def mapper = ctx.getBean(ObjectMapper, Qualifiers.byName("toml"))
-
-        when:
-        mapper.writeValueAsString(new ComplexField())
-
-        then:
-        Exception e = thrown()
-        hasMessageFragment(e, "null writing disabled", "FAIL_ON_NULL_WRITE")
-
-        cleanup:
-        ctx.close()
     }
 
     private static boolean hasMessageFragment(Throwable throwable, String... fragments) {

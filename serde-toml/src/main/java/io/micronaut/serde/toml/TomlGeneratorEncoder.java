@@ -49,7 +49,6 @@ import java.util.Objects;
  */
 @Internal
 public abstract class TomlGeneratorEncoder extends LimitingStream implements Encoder {
-    private final boolean failOnNullWrite;
     private final String path;
     @Nullable
     private final TomlGeneratorEncoder parent;
@@ -58,11 +57,9 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
     private boolean completed;
 
     protected TomlGeneratorEncoder(@NonNull RemainingLimits remainingLimits,
-                                   boolean failOnNullWrite,
                                    @NonNull String path,
                                    @Nullable TomlGeneratorEncoder parent) {
         super(remainingLimits);
-        this.failOnNullWrite = failOnNullWrite;
         this.path = path;
         this.parent = parent;
     }
@@ -71,8 +68,8 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
                                                 @NonNull RemainingLimits remainingLimits,
                                                 @NonNull SerdeTomlConfiguration tomlConfiguration) {
         return switch (tomlConfiguration.getWriteLayout()) {
-            case TABLE -> new TableRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
-            case INLINE -> new InlineRootEncoder(outputStream, remainingLimits, tomlConfiguration.isFailOnNullWrite());
+            case TABLE -> new TableRootEncoder(outputStream, remainingLimits);
+            case INLINE -> new InlineRootEncoder(outputStream, remainingLimits);
         };
     }
 
@@ -221,9 +218,6 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
 
     @Override
     public final void encodeNull() throws IOException {
-        if (failOnNullWrite) {
-            throw new SerdeException("TOML null writing disabled (FAIL_ON_NULL_WRITE)");
-        }
         encodeTomlValue(NullValue.INSTANCE);
     }
 
@@ -268,7 +262,7 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         private final List<TomlValue> values = new ArrayList<>();
 
         private ArrayEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits, String path) {
-            super(remainingLimits, parent.failOnNullWrite, path, parent);
+            super(remainingLimits, path, parent);
         }
 
         @Override
@@ -293,7 +287,7 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         private String currentKey;
 
         private ObjectEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits, String path) {
-            super(remainingLimits, parent.failOnNullWrite, path, parent);
+            super(remainingLimits, path, parent);
         }
 
         @Override
@@ -310,6 +304,10 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         protected void acceptValue(TomlValue value) throws IOException {
             if (currentKey == null) {
                 throw new IllegalStateException("Need a key");
+            }
+            if (value instanceof NullValue) {
+                currentKey = null;
+                return;
             }
             if (values.containsKey(currentKey)) {
                 throw new SerdeException("Duplicate TOML key: " + currentKey);

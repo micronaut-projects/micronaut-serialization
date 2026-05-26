@@ -41,8 +41,8 @@ import java.util.Optional;
  *       Achieved via {@link TomlSerdeConfiguration#isWriteBinaryAsArray()} returning {@code false}.</li>
  *   <li><b>Null inclusion:</b> TOML has no null type
  *       (<a href="https://toml.io/en/v1.0.0#string">TOML v1.0.0</a>), so the global
- *       {@code NON_NULL} inclusion strategy must not suppress fields — null handling is
- *       delegated to the encoder ({@code ''} or fail-on-null-write).
+ *       {@code NON_NULL} inclusion strategy must not suppress fields before the TOML encoder
+ *       can omit object keys.
  *       Achieved via {@link TomlSerializationConfiguration#getInclusion()} returning {@code ALWAYS}.</li>
  * </ul>
  *

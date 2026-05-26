@@ -14,7 +14,7 @@ class TomlManualEncoderDecoderSpec extends Specification {
     void "manual table encoder produces flat scalar object"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def object = encoder.encodeObject(Argument.of(Map))
@@ -38,7 +38,7 @@ active = true
     void "manual inline encoder produces flat scalar object"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new InlineRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new InlineRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def object = encoder.encodeObject(Argument.of(Map))
@@ -59,7 +59,7 @@ age = 42
     void "manual table encoder produces nested object as table header"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -88,7 +88,7 @@ name = 'Ada'
     void "manual inline encoder produces nested object as inline table"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new InlineRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new InlineRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -112,7 +112,7 @@ author = {name = 'Ada'}
     void "manual table encoder produces array of tables"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -149,7 +149,7 @@ sku = 284758
     void "manual inline encoder produces array of inline tables"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new InlineRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new InlineRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -176,7 +176,7 @@ sku = 284758
     void "manual encoder handles all scalar types"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -209,10 +209,10 @@ binary = 'AQID'
 """
     }
 
-    void "manual encoder encodes null as empty string sentinel"() {
+    void "manual encoder omits null object fields"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -222,27 +222,13 @@ binary = 'AQID'
         encoder.writeCompleted()
 
         then:
-        output.toString(StandardCharsets.UTF_8) == "value = ''\n"
-    }
-
-    void "manual encoder rejects null when fail-on-null-write is enabled"() {
-        given:
-        def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, true)
-
-        when:
-        def root = encoder.encodeObject(Argument.of(Map))
-        root.encodeKey('value')
-        root.encodeNull()
-
-        then:
-        thrown(Exception)
+        output.toString(StandardCharsets.UTF_8) == ""
     }
 
     void "manual encoder produces scalar array"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -262,7 +248,7 @@ binary = 'AQID'
     void "manual encoder produces deeply nested table with sub-array"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -311,7 +297,7 @@ color = 'blue'
     void "manual encoder rejects duplicate keys"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         def root = encoder.encodeObject(Argument.of(Map))
@@ -327,7 +313,7 @@ color = 'blue'
     void "manual encoder rejects non-object root"() {
         given:
         def output = new ByteArrayOutputStream()
-        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS, false)
+        def encoder = new TableRootEncoder(output, LimitingStream.DEFAULT_LIMITS)
 
         when:
         encoder.encodeString('bare string')
