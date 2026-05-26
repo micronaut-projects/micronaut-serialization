@@ -1405,6 +1405,30 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
+            boolean hasPerPropertyDirectionalNaming = false;
+            if (propertyNamingStrategy == namingStrategy) {
+                boolean hasPropSerNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_NAMING).isPresent();
+                boolean hasPropDeserNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_NAMING).isPresent();
+                if (hasPropSerNaming || hasPropDeserNaming) {
+                    hasPerPropertyDirectionalNaming = true;
+                    if (hasPropSerNaming) {
+                        PropertyNamingStrategy resolved = getPropertyNamingStrategy(
+                            beanProperty, null, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.RUNTIME_NAMING);
+                        if (resolved != null) {
+                            propertyNamingStrategy = resolved;
+                        }
+                    }
+                    if (propertyNamingStrategy == namingStrategy && hasPropDeserNaming) {
+                        PropertyNamingStrategy resolved = getPropertyNamingStrategy(
+                            beanProperty, null, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.RUNTIME_NAMING);
+                        if (resolved != null) {
+                            propertyNamingStrategy = resolved;
+                        }
+                    }
+                }
+            }
+            final PropertyNamingStrategy resolvedPropertyNaming = propertyNamingStrategy;
+
             if (beanProperty instanceof PropertyElement pm) {
                 pm.getReadMethod().ifPresent(readMethods::add);
                 pm.getWriteMethod().ifPresent(writeMethods::add);
@@ -1420,7 +1444,13 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 continue;
             }
             boolean hasExplicitProperty = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
-            if (hasDirectionalNaming && !hasExplicitProperty) {
+            if (hasPerPropertyDirectionalNaming && !hasExplicitProperty) {
+                if (resolvedPropertyNaming != null && resolvedPropertyNaming != namingStrategy) {
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.PROPERTY, resolvedPropertyNaming.translate(beanProperty))
+                    );
+                }
+            } else if (hasDirectionalNaming && !hasExplicitProperty) {
                 if (serializeNamingStrategy != null) {
                     String serName = serializeNamingStrategy.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
@@ -1433,9 +1463,9 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                         builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
                     );
                 }
-            } else if (!hasExplicitProperty && propertyNamingStrategy != null) {
+            } else if (!hasExplicitProperty && resolvedPropertyNaming != null) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
-                    builder.member(SerdeConfig.PROPERTY, propertyNamingStrategy.translate(beanProperty))
+                    builder.member(SerdeConfig.PROPERTY, resolvedPropertyNaming.translate(beanProperty))
                 );
             }
             if (CollectionUtils.isNotEmpty(order)) {
