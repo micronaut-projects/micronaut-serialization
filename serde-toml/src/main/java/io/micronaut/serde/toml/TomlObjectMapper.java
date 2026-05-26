@@ -32,7 +32,6 @@ import io.micronaut.serde.support.util.JsonNodeDecoder;
 import io.micronaut.serde.support.util.JsonNodeEncoder;
 import io.micronaut.serde.toml.support.MicronautTomlParserAdapter;
 import io.micronaut.serde.toml.support.SerdeTomlConfiguration;
-import io.micronaut.serde.toml.support.TomlEncoderContext;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import org.jspecify.annotations.NonNull;
@@ -52,6 +51,7 @@ import java.io.OutputStream;
 @Singleton
 @Named("toml")
 @Internal
+@SuppressWarnings({"rawtypes", "unchecked"})
 public final class TomlObjectMapper implements ObjectMapper {
 
     private final SerdeRegistry registry;
@@ -61,7 +61,7 @@ public final class TomlObjectMapper implements ObjectMapper {
     private final MicronautTomlParserAdapter parserAdapter;
 
     public TomlObjectMapper(SerdeRegistry registry,
-                            @Nullable SerdeConfiguration serdeConfiguration,
+                            SerdeConfiguration serdeConfiguration,
                             SerdeTomlConfiguration tomlConfiguration) {
         this(
             registry,
@@ -185,14 +185,13 @@ public final class TomlObjectMapper implements ObjectMapper {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+
     private void serialize(@NonNull Encoder encoder, @NonNull Object value) throws IOException {
         serialize(encoder, value, (Argument) Argument.of(value.getClass()));
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private <T> void serialize(@NonNull Encoder encoder, @NonNull T value, @NonNull Argument<T> type) throws IOException {
-        Serializer.EncoderContext encoderContext = new TomlEncoderContext(registry, null);
+        Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
         Serializer serializer = encoderContext.findSerializer(type).createSpecific(encoderContext, type);
         serializer.serialize(encoder, encoderContext, type, value);
     }

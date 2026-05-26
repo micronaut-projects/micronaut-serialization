@@ -35,6 +35,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -132,7 +133,9 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
     public final @NonNull Encoder encodeArray(@NonNull Argument<?> type) throws IOException {
         Objects.requireNonNull(type, "type");
         checkChild();
-        TomlGeneratorEncoder arrayEncoder = new ArrayEncoder(this, childLimits(), childPath());
+        TomlGeneratorEncoder arrayEncoder = type.getType() == byte[].class
+            ? new BinaryArrayEncoder(this, childLimits(), childPath())
+            : new ArrayEncoder(this, childLimits(), childPath());
         child = arrayEncoder;
         return arrayEncoder;
     }
@@ -278,6 +281,33 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         @Override
         public void finishStructure() throws IOException {
             completeStructure(new ArrayValue(values));
+        }
+    }
+
+    private static final class BinaryArrayEncoder extends TomlGeneratorEncoder {
+        private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
+        private BinaryArrayEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits, String path) {
+            super(remainingLimits, path, parent);
+        }
+
+        @Override
+        protected void acceptValue(TomlValue value) throws IOException {
+            if (value instanceof NumberValue numberValue) {
+                bytes.write(Byte.parseByte(numberValue.value()));
+                return;
+            }
+            throw new SerdeException("Only byte values can be written to a TOML binary array");
+        }
+
+        @Override
+        String childPath() {
+            return currentPath() + "/" + bytes.size();
+        }
+
+        @Override
+        public void finishStructure() throws IOException {
+            completeStructure(new StringValue(Base64.getEncoder().encodeToString(bytes.toByteArray())));
         }
     }
 

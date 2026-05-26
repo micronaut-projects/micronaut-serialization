@@ -74,7 +74,7 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
         fromTree.books*.author*.name == fromToml.books*.author*.name
     }
 
-    void "writeValueToTree uses base64 strings for byte arrays like the toml text path"() {
+    void "writeValueToTree uses serde tree for byte arrays"() {
         given:
         def user = new FiveMinuteUser("Bob", "Palmer",
                 FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
@@ -84,7 +84,7 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
         FiveMinuteUser fromTree = tomlMapper.readValueFromTree(tree, Argument.of(FiveMinuteUser))
 
         then:
-        tree.get("userImage").stringValue == "AQIDBA=="
+        tree.get("userImage").values()*.intValue == [1, 2, 3, 4]
         fromTree == user
     }
 
@@ -104,7 +104,7 @@ class TomlObjectMapperSpec extends AbstractMicronautTomlSerdeSpec {
         then:
         stringResult == expected
         bytesResult == expected.bytes
-        tree.get("foo").isNull()
+        tree.get("foo") == null
         fromString.foo == null
         fromBytes.foo == null
         fromTree.foo == null
@@ -172,10 +172,9 @@ userImage = 'AQIDBA=='
         tomlMapper.writeValueAsBytes(user) == expected.getBytes(StandardCharsets.UTF_8)
     }
 
-    void "FiveMinuteUser toml trees stay aligned with json trees field-for-field"() {
+    void "FiveMinuteUser toml trees use serde tree"() {
         given:
         def user = new FiveMinuteUser("Bob", "Palmer", FiveMinuteUser.Gender.MALE, true, [1, 2, 3, 4] as byte[])
-        def expectedImage = Base64.encoder.encodeToString(user.userImage)   // java.util.Base64
 
         when:
         JsonNode tomlTree = tomlMapper.writeValueToTree(user)
@@ -185,13 +184,18 @@ userImage = 'AQIDBA=='
                 lastName : JsonNode.createStringNode(user.lastName),
                 gender   : JsonNode.createStringNode(user.gender.name()),
                 verified : JsonNode.createBooleanNode(user.verified),
-                userImage: JsonNode.createStringNode(expectedImage)
+                userImage: JsonNode.createArrayNode([
+                        JsonNode.createNumberNode(1),
+                        JsonNode.createNumberNode(2),
+                        JsonNode.createNumberNode(3),
+                        JsonNode.createNumberNode(4)
+                ])
         ])
 
         then:
         tomlTree == expectedTree
         tomlTextTree == [firstName: user.firstName, lastName: user.lastName,
-                         gender: user.gender.name(), verified: user.verified, userImage: expectedImage]
+                         gender: user.gender.name(), verified: user.verified, userImage: [1, 2, 3, 4]]
     }
 
     void "null boxed scalar and enum fields are omitted and read back as absent values"() {
@@ -218,7 +222,7 @@ userImage = 'AQIDBA=='
         java.time.DayOfWeek day
     }
 
-    void "empty string fields are not coerced to null"() {
+    void "empty string fields follow serde non-empty inclusion defaults"() {
         given:
         def bean = new ExcludedBean()
         bean.text = ""
@@ -228,8 +232,9 @@ userImage = 'AQIDBA=='
         def decoded = tomlMapper.readValue(toml, Argument.of(ExcludedBean))
 
         then:
-        toml == "text = ''\n"
-        decoded.text == ""
+        // no ; micronaut.serde.serialization.inclusion
+        toml == ""
+        decoded.text == null
     }
 
     void "non-empty byte arrays round trip through base64"() {
@@ -245,7 +250,7 @@ userImage = 'AQIDBA=='
         decoded.data == [1, 2, 3, 4] as byte[]
     }
 
-    void "empty byte arrays write base64 empty strings and read back as empty arrays"() {
+    void "empty byte arrays follow serde non-empty inclusion defaults"() {
         given:
         def bean = new ByteBean(data: new byte[0])
 
@@ -254,8 +259,8 @@ userImage = 'AQIDBA=='
         def decoded = tomlMapper.readValue(toml, Argument.of(ByteBean))
 
         then:
-        toml == "data = ''\n"
-        decoded.data == new byte[0]
+        toml == ""
+        decoded.data == null
     }
 
     @Serdeable
