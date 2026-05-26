@@ -17,25 +17,19 @@ package io.micronaut.serde.toml;
 
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Encoder;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.toml.encodestyle.InlineRootEncoder;
 import io.micronaut.serde.toml.encodestyle.TableRootEncoder;
-import io.micronaut.serde.toml.entities.ArrayValue;
-import io.micronaut.serde.toml.entities.BooleanValue;
-import io.micronaut.serde.toml.entities.NullValue;
-import io.micronaut.serde.toml.entities.NumberValue;
-import io.micronaut.serde.toml.entities.ObjectValue;
-import io.micronaut.serde.toml.entities.StringValue;
-import io.micronaut.serde.toml.entities.TomlValue;
 import io.micronaut.serde.toml.support.SerdeTomlConfiguration;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -96,12 +90,12 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         }
     }
 
-    private void encodeTomlValue(TomlValue value) throws IOException {
+    private void encodeTomlValue(JsonNode value) throws IOException {
         checkChild();
         acceptValue(value);
     }
 
-    final void completeStructure(TomlValue value) throws IOException {
+    final void completeStructure(JsonNode value) throws IOException {
         checkChild();
         completed = true;
         if (parent == null) {
@@ -114,11 +108,10 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
     /**
      * Accept a completed TOML value for this encoder context.
      *
-     * @see TomlValue Abstract Representations, with entities implementations
      * @param value The value to accept
      * @throws IOException If accepting the value fails
      */
-    protected abstract void acceptValue(TomlValue value) throws IOException;
+    protected abstract void acceptValue(JsonNode value) throws IOException;
 
     /**
      * Returns the path to use for the next child encoder.
@@ -161,67 +154,68 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
 
     @Override
     public final void encodeString(@NonNull String value) throws IOException {
-        encodeTomlValue(new StringValue(Objects.requireNonNull(value, "value")));
+        encodeTomlValue(JsonNode.createStringNode(Objects.requireNonNull(value, "value")));
     }
 
     @Override
     public final void encodeBoolean(boolean value) throws IOException {
-        encodeTomlValue(new BooleanValue(value));
+        encodeTomlValue(JsonNode.createBooleanNode(value));
     }
 
     @Override
     public final void encodeByte(byte value) throws IOException {
-        encodeTomlValue(new NumberValue(Byte.toString(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeShort(short value) throws IOException {
-        encodeTomlValue(new NumberValue(Short.toString(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeChar(char value) throws IOException {
-        encodeTomlValue(new NumberValue(Integer.toString(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeInt(int value) throws IOException {
-        encodeTomlValue(new NumberValue(Integer.toString(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeLong(long value) throws IOException {
-        encodeTomlValue(new NumberValue(Long.toString(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeFloat(float value) throws IOException {
-        encodeTomlValue(new NumberValue(renderFloat(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeDouble(double value) throws IOException {
-        encodeTomlValue(new NumberValue(renderDouble(value)));
+        encodeTomlValue(JsonNode.createNumberNode(value));
     }
 
     @Override
     public final void encodeBigInteger(@NonNull BigInteger value) throws IOException {
-        encodeTomlValue(new NumberValue(Objects.requireNonNull(value, "value").toString()));
+        encodeTomlValue(JsonNode.createNumberNode(Objects.requireNonNull(value, "value")));
     }
 
     @Override
     public final void encodeBigDecimal(@NonNull BigDecimal value) throws IOException {
-        encodeTomlValue(new NumberValue(Objects.requireNonNull(value, "value").toString()));
+        encodeTomlValue(JsonNode.createNumberNode(Objects.requireNonNull(value, "value")));
     }
 
     @Override
     public final void encodeBinary(byte @NonNull [] data) throws IOException {
-        encodeTomlValue(new StringValue(Base64.getEncoder().encodeToString(Objects.requireNonNull(data, "data"))));
+        String value = Base64.getEncoder().encodeToString(Objects.requireNonNull(data, "data"));
+        encodeTomlValue(JsonNode.createStringNode(value));
     }
 
     @Override
     public final void encodeNull() throws IOException {
-        encodeTomlValue(NullValue.INSTANCE);
+        encodeTomlValue(JsonNode.nullNode());
     }
 
     @Override
@@ -229,47 +223,15 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         return path;
     }
 
-    /**
-     * Renders a float value see <a href="https://toml.io/en/v1.0.0#float">TOML v1.0.0 Float specification</a>.
-     */
-    private static String renderFloat(float value) {
-        if (Float.isNaN(value)) {
-            return "nan";
-        }
-        if (value == Float.POSITIVE_INFINITY) {
-            return "inf";
-        }
-        if (value == Float.NEGATIVE_INFINITY) {
-            return "-inf";
-        }
-        return Float.toString(value);
-    }
-
-    /**
-     * Renders a float value per the <a href="https://toml.io/en/v1.0.0#float">TOML v1.0.0 Float specification</a>.
-     */
-    private static String renderDouble(double value) {
-        if (Double.isNaN(value)) {
-            return "nan";
-        }
-        if (value == Double.POSITIVE_INFINITY) {
-            return "inf";
-        }
-        if (value == Double.NEGATIVE_INFINITY) {
-            return "-inf";
-        }
-        return Double.toString(value);
-    }
-
     private static final class ArrayEncoder extends TomlGeneratorEncoder {
-        private final List<TomlValue> values = new ArrayList<>();
+        private final List<JsonNode> values = new ArrayList<>();
 
         private ArrayEncoder(TomlGeneratorEncoder parent, RemainingLimits remainingLimits, String path) {
             super(remainingLimits, path, parent);
         }
 
         @Override
-        protected void acceptValue(TomlValue value) {
+        protected void acceptValue(JsonNode value) {
             values.add(value);
         }
 
@@ -280,7 +242,7 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
 
         @Override
         public void finishStructure() throws IOException {
-            completeStructure(new ArrayValue(values));
+            completeStructure(JsonNode.createArrayNode(values));
         }
     }
 
@@ -292,9 +254,9 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         }
 
         @Override
-        protected void acceptValue(TomlValue value) throws IOException {
-            if (value instanceof NumberValue numberValue) {
-                bytes.write(Byte.parseByte(numberValue.value()));
+        protected void acceptValue(JsonNode value) throws IOException {
+            if (value.isNumber()) {
+                bytes.write(Byte.parseByte(value.getNumberValue().toString()));
                 return;
             }
             throw new SerdeException("Only byte values can be written to a TOML binary array");
@@ -307,12 +269,12 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
 
         @Override
         public void finishStructure() throws IOException {
-            completeStructure(new StringValue(Base64.getEncoder().encodeToString(bytes.toByteArray())));
+            completeStructure(JsonNode.createStringNode(Base64.getEncoder().encodeToString(bytes.toByteArray())));
         }
     }
 
     private static final class ObjectEncoder extends TomlGeneratorEncoder {
-        private final Map<String, TomlValue> values = new LinkedHashMap<>();
+        private final Map<String, JsonNode> values = new LinkedHashMap<>();
         @Nullable
         private String currentKey;
 
@@ -331,11 +293,11 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
         }
 
         @Override
-        protected void acceptValue(TomlValue value) throws IOException {
+        protected void acceptValue(JsonNode value) throws IOException {
             if (currentKey == null) {
                 throw new IllegalStateException("Need a key");
             }
-            if (value instanceof NullValue) {
+            if (value.isNull()) {
                 currentKey = null;
                 return;
             }
@@ -364,7 +326,7 @@ public abstract class TomlGeneratorEncoder extends LimitingStream implements Enc
             if (currentKey != null) {
                 throw new IllegalStateException("Object key has no value");
             }
-            completeStructure(new ObjectValue(values));
+            completeStructure(JsonNode.createObjectNode(values));
         }
     }
 }

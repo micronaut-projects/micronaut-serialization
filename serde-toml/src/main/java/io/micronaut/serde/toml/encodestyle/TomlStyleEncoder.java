@@ -16,9 +16,9 @@
 package io.micronaut.serde.toml.encodestyle;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.toml.TomlGeneratorEncoder;
-import io.micronaut.serde.toml.entities.TomlValue;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -34,7 +34,7 @@ public abstract sealed class TomlStyleEncoder extends TomlGeneratorEncoder
     permits TableRootEncoder, InlineRootEncoder {
     private final OutputStream outputStream;
     @Nullable
-    private TomlValue value;
+    private JsonNode value;
 
     /**
      * @param outputStream The target output stream
@@ -47,7 +47,7 @@ public abstract sealed class TomlStyleEncoder extends TomlGeneratorEncoder
     }
 
     @Override
-    protected void acceptValue(TomlValue value) {
+    protected void acceptValue(JsonNode value) {
         if (this.value != null) {
             throw new IllegalStateException("Root TOML value already completed");
         }
@@ -78,5 +78,5 @@ public abstract sealed class TomlStyleEncoder extends TomlGeneratorEncoder
      * @param value The root TOML value tree to render
      * @throws IOException If the value cannot be rendered as a valid TOML document
      */
-    protected abstract void appendCompletedDocument(StringBuilder builder, TomlValue value) throws IOException;
+    protected abstract void appendCompletedDocument(StringBuilder builder, JsonNode value) throws IOException;
 }

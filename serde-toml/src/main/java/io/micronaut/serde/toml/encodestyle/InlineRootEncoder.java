@@ -16,15 +16,9 @@
 package io.micronaut.serde.toml.encodestyle;
 
 import io.micronaut.core.annotation.Internal;
+import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.exceptions.SerdeException;
-import io.micronaut.serde.toml.entities.ArrayValue;
-import io.micronaut.serde.toml.entities.BooleanValue;
-import io.micronaut.serde.toml.entities.NullValue;
-import io.micronaut.serde.toml.entities.NumberValue;
-import io.micronaut.serde.toml.entities.ObjectValue;
-import io.micronaut.serde.toml.entities.StringValue;
-import io.micronaut.serde.toml.entities.TomlValue;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,7 +43,7 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
     }
 
     @Override
-    protected void appendCompletedDocument(StringBuilder builder, TomlValue value) throws IOException {
+    protected void appendCompletedDocument(StringBuilder builder, JsonNode value) throws IOException {
         appendInlineDocument(builder, value);
     }
 
@@ -60,11 +54,11 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
      * @param value The root TOML value
      * @throws IOException If the root value cannot be rendered
      */
-    public static void appendInlineDocument(StringBuilder builder, TomlValue value) throws IOException {
-        if (!(value instanceof ObjectValue objectValue)) {
+    public static void appendInlineDocument(StringBuilder builder, JsonNode value) throws IOException {
+        if (!value.isObject()) {
             throw new SerdeException("TOML root value must be an object");
         }
-        for (Map.Entry<String, TomlValue> entry : objectValue.values().entrySet()) {
+        for (Map.Entry<String, JsonNode> entry : value.entries()) {
             builder.append(renderKeySegment(entry.getKey()))
                 .append(" = ")
                 .append(renderInlineValue(entry.getValue()))
@@ -80,33 +74,34 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
      * @param value The value to render
      * @return The TOML inline representation
      */
-    public static String renderInlineValue(TomlValue value) {
-        if (value instanceof StringValue stringValue) {
-            return renderString(stringValue.value());
+    public static String renderInlineValue(JsonNode value) {
+        if (value.isString()) {
+            return renderString(value.getStringValue());
         }
-        if (value instanceof NumberValue numberValue) {
-            return numberValue.value();
+        if (value.isNumber()) {
+            return renderNumber(value.getNumberValue());
         }
-        if (value instanceof BooleanValue booleanValue) {
-            return Boolean.toString(booleanValue.value());
+        if (value.isBoolean()) {
+            return Boolean.toString(value.getBooleanValue());
         }
-        if (value instanceof NullValue) {
+        if (value.isNull()) {
             return renderString("");
         }
-        if (value instanceof ArrayValue arrayValue) {
+        if (value.isArray()) {
             StringBuilder builder = new StringBuilder("[");
-            for (int i = 0; i < arrayValue.values().size(); i++) {
-                if (i > 0) {
+            int index = 0;
+            for (JsonNode entry : value.values()) {
+                if (index++ > 0) {
                     builder.append(", ");
                 }
-                builder.append(renderInlineValue(arrayValue.values().get(i)));
+                builder.append(renderInlineValue(entry));
             }
             return builder.append(']').toString();
         }
-        if (value instanceof ObjectValue objectValue) {
+        if (value.isObject()) {
             StringBuilder builder = new StringBuilder("{");
             int index = 0;
-            for (Map.Entry<String, TomlValue> entry : objectValue.values().entrySet()) {
+            for (Map.Entry<String, JsonNode> entry : value.entries()) {
                 if (index++ > 0) {
                     builder.append(", ");
                 }
@@ -117,5 +112,44 @@ public final class InlineRootEncoder extends TomlStyleEncoder {
             return builder.append('}').toString();
         }
         throw new IllegalStateException("Unknown TOML value: " + value);
+    }
+
+    /**
+     * Renders numeric values per the TOML v1.0.0 Float specification.
+     */
+    private static String renderNumber(Number value) {
+        if (value instanceof Float floatValue) {
+            return renderFloat(floatValue);
+        }
+        if (value instanceof Double doubleValue) {
+            return renderDouble(doubleValue);
+        }
+        return value.toString();
+    }
+
+    private static String renderFloat(float value) {
+        if (Float.isNaN(value)) {
+            return "nan";
+        }
+        if (value == Float.POSITIVE_INFINITY) {
+            return "inf";
+        }
+        if (value == Float.NEGATIVE_INFINITY) {
+            return "-inf";
+        }
+        return Float.toString(value);
+    }
+
+    private static String renderDouble(double value) {
+        if (Double.isNaN(value)) {
+            return "nan";
+        }
+        if (value == Double.POSITIVE_INFINITY) {
+            return "inf";
+        }
+        if (value == Double.NEGATIVE_INFINITY) {
+            return "-inf";
+        }
+        return Double.toString(value);
     }
 }

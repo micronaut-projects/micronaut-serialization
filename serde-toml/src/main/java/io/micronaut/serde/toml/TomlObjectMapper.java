@@ -185,7 +185,6 @@ public final class TomlObjectMapper implements ObjectMapper {
         return serdeConfiguration == null ? LimitingStream.DEFAULT_LIMITS : LimitingStream.limitsFromConfiguration(serdeConfiguration);
     }
 
-
     private void serialize(@NonNull Encoder encoder, @NonNull Object value) throws IOException {
         serialize(encoder, value, (Argument) Argument.of(value.getClass()));
     }
