@@ -25,7 +25,6 @@ import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.reference.PropertyReference;
-import io.micronaut.serde.toml.serde.TomlArbitraryValueDeserializer;
 import io.micronaut.serde.toml.serde.TomlNullCoercingDeserializer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -41,22 +40,17 @@ import java.util.Optional;
 public final class TomlDecoderContext implements Deserializer.DecoderContext {
     private final Deserializer.DecoderContext delegate;
     private final LimitingStream.RemainingLimits limits;
-    @Nullable
-    private final SerdeTomlConfiguration tomlConfiguration;
 
     public TomlDecoderContext(SerdeRegistry registry,
                               @Nullable Class<?> view,
-                              LimitingStream.RemainingLimits limits,
-                              @Nullable SerdeTomlConfiguration tomlConfiguration) {
-        this(registry.newDecoderContext(view), limits, tomlConfiguration);
+                              LimitingStream.RemainingLimits limits) {
+        this(registry.newDecoderContext(view), limits);
     }
 
     public TomlDecoderContext(Deserializer.DecoderContext delegate,
-                              LimitingStream.RemainingLimits limits,
-                              @Nullable SerdeTomlConfiguration tomlConfiguration) {
+                              LimitingStream.RemainingLimits limits) {
         this.delegate = delegate;
         this.limits = limits;
-        this.tomlConfiguration = tomlConfiguration;
     }
 
     @Override
@@ -67,8 +61,7 @@ public final class TomlDecoderContext implements Deserializer.DecoderContext {
     @Override
     public @NonNull <T> Deserializer<? extends T> findDeserializer(@NonNull Argument<? extends T> type) throws SerdeException {
         Deserializer<? extends T> deserializer = delegate.findDeserializer(type);
-        deserializer = TomlNullCoercingDeserializer.wrap(deserializer, type, limits);
-        return TomlArbitraryValueDeserializer.wrap(deserializer, type, limits, tomlConfiguration);
+        return TomlNullCoercingDeserializer.wrap(deserializer, type, limits);
     }
 
     @Override

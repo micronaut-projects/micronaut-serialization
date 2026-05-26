@@ -90,7 +90,7 @@ public final class TomlObjectMapper implements ObjectMapper {
     @Override
     public <T> @Nullable T readValue(@NonNull InputStream inputStream, @NonNull Argument<T> type) throws IOException {
         JsonNode tree = parserAdapter.parse(inputStream);
-        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits(), tomlConfiguration);
+        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits());
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }
@@ -102,7 +102,7 @@ public final class TomlObjectMapper implements ObjectMapper {
 
     @Override
     public <T> @Nullable T readValueFromTree(@NonNull JsonNode tree, @NonNull Argument<T> type) throws IOException {
-        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits(), tomlConfiguration);
+        Deserializer.DecoderContext decoderContext = new TomlDecoderContext(registry, null, limits());
         Deserializer<? extends T> deserializer = decoderContext.findDeserializer(type).createSpecific(decoderContext, type);
         return deserializer.deserializeNullable(JsonNodeDecoder.create(tree, limits()), decoderContext, type);
     }

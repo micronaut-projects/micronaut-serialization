@@ -34,17 +34,8 @@ import java.util.Objects;
 public final class SerdeTomlConfiguration {
     static final String PREFIX = SerdeConfiguration.PREFIX + ".toml";
 
-    private ReadFeatures readFeatures = new ReadFeatures();
     private ReadConstraints readConstraints = new ReadConstraints();
     private WriteFeatures writeFeatures = new WriteFeatures();
-
-    public ReadFeatures getReadFeatures() {
-        return readFeatures;
-    }
-
-    public void setReadFeatures(ReadFeatures readFeatures) {
-        this.readFeatures = readFeatures;
-    }
 
     public ReadConstraints getReadConstraints() {
         return readConstraints;
@@ -66,10 +57,6 @@ public final class SerdeTomlConfiguration {
         return writeFeatures.getWriteLayout();
     }
 
-    public boolean isParseJavaTime() {
-        return readFeatures.isParseJavaTime();
-    }
-
     public @Nullable Integer getMaxNumberLength() {
         return readConstraints.getMaxNumberLength();
     }
@@ -88,23 +75,6 @@ public final class SerdeTomlConfiguration {
     public enum WriteLayout {
         TABLE,
         INLINE
-    }
-
-    /**
-     * TOML read features.
-     */
-    @ConfigurationProperties("read-features")
-    public static final class ReadFeatures {
-        private boolean parseJavaTime;
-
-        @Bindable(defaultValue = StringUtils.FALSE)
-        public boolean isParseJavaTime() {
-            return parseJavaTime;
-        }
-
-        public void setParseJavaTime(boolean parseJavaTime) {
-            this.parseJavaTime = parseJavaTime;
-        }
     }
 
     /**

@@ -534,7 +534,7 @@ decimal1 = ${decimal.toPlainString()}
         values.decimal1 == decimal
     }
 
-    void "deserializes temporal values into string-like generic object fields by default"() {
+    void "deserializes date values into string"() {
         given:
         def toml = "foo = 2021-03-26\n"
 
