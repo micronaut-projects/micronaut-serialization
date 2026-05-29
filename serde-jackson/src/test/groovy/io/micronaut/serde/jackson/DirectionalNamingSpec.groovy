@@ -555,4 +555,40 @@ class User {
         cleanup:
         context.close()
     }
+
+    void "BUG: per-property both Serializable+Deserializable with different strategies"() {
+        given:
+        def context = buildContext('test.UserDto', '''
+package test;
+
+import io.micronaut.serde.annotation.Serdeable;
+import io.micronaut.serde.config.naming.SnakeCaseStrategy;
+import io.micronaut.serde.config.naming.UpperCamelCaseStrategy;
+
+@Serdeable
+class UserDto {
+    @Serdeable.Serializable(naming = SnakeCaseStrategy.class)
+    @Serdeable.Deserializable(naming = UpperCamelCaseStrategy.class)
+    private String firstName;
+
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+}
+''', [firstName: 'John'])
+
+        when: "serialization uses the Serializable strategy (snake_case)"
+        def result = writeJson(jsonMapper, beanUnderTest)
+
+        then:
+        result == '{"first_name":"John"}'
+
+        when: "deserialization SHOULD use the Deserializable strategy (UpperCamel)"
+        def bean = jsonMapper.readValue('{"FirstName":"Jane"}', typeUnderTest)
+
+        then: "today this fails: deser only listens to 'first_name'"
+        bean.firstName == 'Jane'
+
+        cleanup:
+        context.close()
+    }
 }
