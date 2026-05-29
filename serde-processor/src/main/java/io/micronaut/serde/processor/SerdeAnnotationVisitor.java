@@ -1406,28 +1406,30 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
             boolean hasPerPropertyDirectionalNaming = false;
+            boolean hasPropSerNaming = false;
+            boolean hasPropDeserNaming = false;
+            PropertyNamingStrategy perPropSerNamingStrategy = null;
+            PropertyNamingStrategy perPropDeserNamingStrategy = null;
             if (propertyNamingStrategy == namingStrategy) {
-                boolean hasPropSerNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_NAMING).isPresent();
-                boolean hasPropDeserNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_NAMING).isPresent();
+                hasPropSerNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_NAMING).isPresent();
+                hasPropDeserNaming = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.DESERIALIZE_NAMING).isPresent();
                 if (hasPropSerNaming || hasPropDeserNaming) {
                     hasPerPropertyDirectionalNaming = true;
                     if (hasPropSerNaming) {
-                        PropertyNamingStrategy resolved = getPropertyNamingStrategy(
-                            beanProperty, null, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.RUNTIME_NAMING);
-                        if (resolved != null) {
-                            propertyNamingStrategy = resolved;
-                        }
+                        perPropSerNamingStrategy = getPropertyNamingStrategy(
+                            beanProperty, null, SerdeConfig.SERIALIZE_NAMING, SerdeConfig.SERIALIZE_RUNTIME_NAMING);
                     }
-                    if (propertyNamingStrategy == namingStrategy && hasPropDeserNaming) {
-                        PropertyNamingStrategy resolved = getPropertyNamingStrategy(
-                            beanProperty, null, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.RUNTIME_NAMING);
-                        if (resolved != null) {
-                            propertyNamingStrategy = resolved;
-                        }
+                    if (hasPropDeserNaming) {
+                        perPropDeserNamingStrategy = getPropertyNamingStrategy(
+                            beanProperty, null, SerdeConfig.DESERIALIZE_NAMING, SerdeConfig.DESERIALIZE_RUNTIME_NAMING);
                     }
                 }
             }
             final PropertyNamingStrategy resolvedPropertyNaming = propertyNamingStrategy;
+            final boolean resolvedHasPropSerNaming = hasPropSerNaming;
+            final boolean resolvedHasPropDeserNaming = hasPropDeserNaming;
+            final PropertyNamingStrategy resolvedPerPropSerNaming = perPropSerNamingStrategy;
+            final PropertyNamingStrategy resolvedPerPropDeserNaming = perPropDeserNamingStrategy;
 
             if (beanProperty instanceof PropertyElement pm) {
                 pm.getReadMethod().ifPresent(readMethods::add);
@@ -1445,9 +1447,38 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
             boolean hasExplicitProperty = beanProperty.stringValue(SerdeConfig.class, SerdeConfig.PROPERTY).isPresent();
             if (hasPerPropertyDirectionalNaming && !hasExplicitProperty) {
-                if (resolvedPropertyNaming != null && resolvedPropertyNaming != namingStrategy) {
+                if (resolvedPerPropSerNaming != null) {
+                    String serName = resolvedPerPropSerNaming.translate(beanProperty);
                     beanProperty.annotate(SerdeConfig.class, (builder) ->
-                        builder.member(SerdeConfig.PROPERTY, resolvedPropertyNaming.translate(beanProperty))
+                        builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
+                    );
+                    if (!resolvedHasPropDeserNaming) {
+                        beanProperty.annotate(SerdeConfig.class, (builder) -> builder.member(SerdeConfig.ALIASES,
+                            ArrayUtils.concat(beanProperty.stringValues(SerdeConfig.class, SerdeConfig.ALIASES), serName)));
+                    }
+                } else if (resolvedHasPropSerNaming && !resolvedHasPropDeserNaming) {
+                    beanProperty.stringValue(SerdeConfig.class, SerdeConfig.SERIALIZE_RUNTIME_NAMING).ifPresent(runtimeNaming -> {
+                        beanProperty.annotate(SerdeConfig.class, (builder) ->
+                            builder.member(SerdeConfig.DESERIALIZE_RUNTIME_NAMING, runtimeNaming)
+                        );
+                        beanProperty.annotate(SerdeConfig.class, (builder) -> builder.member(SerdeConfig.ALIASES,
+                            ArrayUtils.concat(beanProperty.stringValues(SerdeConfig.class, SerdeConfig.ALIASES), propertyName)));
+                    });
+                } else if (!resolvedHasPropSerNaming && serializeNamingStrategy != null) {
+                    String serName = serializeNamingStrategy.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.SERIALIZE_PROPERTY_NAME, serName)
+                    );
+                }
+                if (resolvedPerPropDeserNaming != null) {
+                    String deserName = resolvedPerPropDeserNaming.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
+                    );
+                } else if (!resolvedHasPropDeserNaming && deserializeNamingStrategy != null) {
+                    String deserName = deserializeNamingStrategy.translate(beanProperty);
+                    beanProperty.annotate(SerdeConfig.class, (builder) ->
+                        builder.member(SerdeConfig.DESERIALIZE_PROPERTY_NAME, deserName)
                     );
                 }
             } else if (hasDirectionalNaming && !hasExplicitProperty) {
