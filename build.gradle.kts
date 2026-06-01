@@ -8,6 +8,24 @@ repositories {
     mavenCentral()
 }
 
+tasks.register("jakartaJsonpTck") {
+    group = "verification"
+    description = "Runs the standalone Jakarta JSON-P TCK module."
+    dependsOn(":micronaut-tests:micronaut-jsonp-tck:jakartaJsonpTck")
+}
+
+tasks.register("jakartaJsonbTck") {
+    group = "verification"
+    description = "Runs the standalone Jakarta JSON-B TCK module."
+    dependsOn(":micronaut-tests:micronaut-jsonb-tck:jakartaJsonbTck")
+}
+
+tasks.register("jakartaJsonTck") {
+    group = "verification"
+    description = "Runs the standalone Jakarta JSON-P and JSON-B TCK modules."
+    dependsOn("jakartaJsonpTck", "jakartaJsonbTck")
+}
+
 if (System.getenv("SONAR_TOKEN") != null) {
     configure<SonarExtension> {
         properties {

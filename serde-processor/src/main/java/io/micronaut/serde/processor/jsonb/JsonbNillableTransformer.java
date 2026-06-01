@@ -20,21 +20,21 @@ import java.util.Collections;
 import java.util.List;
 
 import io.micronaut.core.annotation.AnnotationValue;
-import io.micronaut.inject.annotation.NamedAnnotationTransformer;
+import io.micronaut.inject.annotation.NamedAnnotationMapper;
 import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 
 /**
  * Support JsonbNillable.
  */
-public class JsonbNillableTransformer implements NamedAnnotationTransformer {
+public class JsonbNillableTransformer implements NamedAnnotationMapper {
     @Override
     public String getName() {
         return "jakarta.json.bind.annotation.JsonbNillable";
     }
 
     @Override
-    public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
+    public List<AnnotationValue<?>> map(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
         final boolean includeNull = annotation.booleanValue().orElse(true);
         SerdeConfig.SerInclude include = includeNull ? SerdeConfig.SerInclude.ALWAYS : SerdeConfig.SerInclude.NON_ABSENT;
         return Collections.singletonList(

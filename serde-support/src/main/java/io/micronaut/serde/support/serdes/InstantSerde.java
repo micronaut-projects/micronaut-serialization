@@ -84,6 +84,9 @@ public final class InstantSerde extends NumericSupportTemporalSerde<Instant> imp
     }
 
     private static DateTimeFormatter stringFormatter(SerdeConfiguration configuration) {
+        if (configuration.isWriteDateTimesAsStrictIJson()) {
+            return StrictIJsonDateTimeFormat.FORMATTER;
+        }
         return createFormatter(configuration).orElse(DateTimeFormatter.ISO_INSTANT);
     }
 }

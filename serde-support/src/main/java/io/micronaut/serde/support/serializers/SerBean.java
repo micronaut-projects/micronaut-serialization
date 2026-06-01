@@ -217,7 +217,7 @@ final class SerBean<T> {
                 this.arrayWrapperProperty = arrayWrapperProperty;
             }
         }
-        sortPropertiesIfNeeded(serdeArgumentConf, serializationConfiguration, writeProperties);
+        sortPropertiesIfNeeded(serdeArgumentConf, introspection.getAnnotationMetadata(), serializationConfiguration, writeProperties);
 
         simpleBean = isSimpleBean();
         boolean isAbstractIntrospection = Modifier.isAbstract(introspection.getBeanType().getModifiers());
@@ -225,14 +225,22 @@ final class SerBean<T> {
     }
 
     private static <T> void sortPropertiesIfNeeded(@Nullable SerdeArgumentConf serdeArgumentConf,
+                                                   AnnotationMetadata annotationMetadata,
                                                    SerializationConfiguration serializationConfiguration,
                                                    List<SerProperty<T, Object>> writeProperties) {
         if (writeProperties.isEmpty()) {
             return;
         }
-        if (serdeArgumentConf != null && serdeArgumentConf.order() != null) {
+        String @Nullable [] explicitOrder = serdeArgumentConf == null ? null : serdeArgumentConf.order();
+        if (explicitOrder == null && annotationMetadata.isAnnotationPresent(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER)) {
+            explicitOrder = annotationMetadata.stringValues(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER);
+            if (explicitOrder.length == 0) {
+                explicitOrder = null;
+            }
+        }
+        if (explicitOrder != null) {
             List<SerProperty<T, Object>> orderProps = new ArrayList<>(writeProperties);
-            List<SerProperty<T, Object>> order = Arrays.stream(serdeArgumentConf.order())
+            List<SerProperty<T, Object>> order = Arrays.stream(explicitOrder)
                 .flatMap(propName -> {
                     Optional<SerProperty<T, Object>> prop = orderProps.stream()
                         .filter(p -> p.name.equals(propName) || p.originalName.equals(propName))
@@ -242,8 +250,11 @@ final class SerBean<T> {
                     return prop.stream();
                 })
                 .toList();
-            writeProperties.sort(Comparator.comparingInt(order::indexOf));
-        } else if (serializationConfiguration.sortPropertiesAlphabetically()) {
+            writeProperties.sort(Comparator.comparingInt(property -> {
+                int index = order.indexOf(property);
+                return index < 0 ? Integer.MAX_VALUE : index;
+            }));
+        } else if (annotationMetadata.booleanValue(SerdeConfig.META_ANNOTATION_PROPERTY_ORDER, "alphabetic").orElse(false) || serializationConfiguration.sortPropertiesAlphabetically()) {
             writeProperties.sort(Comparator.comparing(p -> p.name));
         }
     }

@@ -34,7 +34,13 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
@@ -115,6 +121,17 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
 
     private Serializer<Date> createSpecificWithoutFormat(EncoderContext encoderContext,
                                                          Argument<? extends Date> type) {
+        Optional<SerdeConfiguration> serdeConfiguration = encoderContext.getSerdeConfiguration();
+        Optional<SimpleDateFormat> configuredDateFormat = configuredDateFormat(serdeConfiguration);
+        if (configuredDateFormat.isPresent()) {
+            return new FormattedDateSerde<>(configuredDateFormat.get());
+        }
+        if (serdeConfiguration.map(SerdeConfiguration::isWriteDateTimesAsStrictIJson).orElse(false)) {
+            return new StrictIJsonDateSerde<>();
+        }
+        if (serdeConfiguration.map(SerdeConfiguration::isWriteJavaUtilDatesWithZoneId).orElse(false)) {
+            return new ZonedDateIdDateSerde<>(zoneId(serdeConfiguration));
+        }
         final Argument<Instant> argument = Argument.of(Instant.class, type.getAnnotationMetadata());
         final Serializer<Instant> specific = instantSerde.createSpecific(encoderContext, argument);
         return createSpecificSerializer(argument, specific);
@@ -122,9 +139,30 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
 
     private Deserializer<Date> createSpecificWithoutFormat(DecoderContext decoderContext,
                                                            Argument<? super Date> context) throws SerdeException {
+        Optional<SerdeConfiguration> serdeConfiguration = decoderContext.getSerdeConfiguration();
+        Optional<SimpleDateFormat> configuredDateFormat = configuredDateFormat(serdeConfiguration);
+        if (configuredDateFormat.isPresent()) {
+            return new FormattedDateSerde<>(configuredDateFormat.get());
+        }
+        if (serdeConfiguration.map(SerdeConfiguration::isWriteDateTimesAsStrictIJson).orElse(false)) {
+            return new StrictIJsonDateSerde<>();
+        }
+        if (serdeConfiguration.map(SerdeConfiguration::isWriteJavaUtilDatesWithZoneId).orElse(false)) {
+            return new ZonedDateIdDateSerde<>(zoneId(serdeConfiguration));
+        }
         final Argument<Instant> argument = Argument.of(Instant.class, context.getAnnotationMetadata());
         final Deserializer<Instant> specific = instantSerde.createSpecific(decoderContext, argument);
         return createSpecificDeserializer(argument, specific);
+    }
+
+    private static Optional<SimpleDateFormat> configuredDateFormat(Optional<SerdeConfiguration> serdeConfiguration) {
+        return serdeConfiguration.flatMap(configuration -> configuration.getDateFormat().map(pattern -> {
+            SimpleDateFormat dateFormat = configuration.getLocale()
+                .map(locale -> new SimpleDateFormat(pattern, locale))
+                .orElseGet(() -> new SimpleDateFormat(pattern));
+            configuration.getTimeZone().ifPresent(timeZone -> dateFormat.setTimeZone(timeZone));
+            return dateFormat;
+        }));
     }
 
     private Serializer<Date> createSpecificSerializer(Argument<Instant> argument,
@@ -289,6 +327,76 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
                     throw new SerdeException("Error decoding date of type " + type + " using pattern " + pattern + ": " + e.getMessage(), e);
                 }
             }
+        }
+    }
+
+    private static final class ZonedDateIdDateSerde<T extends Date> implements Serializer<T>, Deserializer<T> {
+        private final ZoneId zoneId;
+
+        private ZonedDateIdDateSerde(ZoneId zoneId) {
+            this.zoneId = zoneId;
+        }
+
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends T> type,
+                              T value) throws IOException {
+            encoder.encodeString(DateTimeFormatter.ISO_DATE_TIME.format(value.toInstant().atZone(zoneId)));
+        }
+
+        @Override
+        public T deserialize(Decoder decoder,
+                             DecoderContext decoderContext,
+                             Argument<? super T> type) throws IOException {
+            return (T) Date.from(instant(decoder.decodeString()));
+        }
+
+        @Override
+        public boolean isDefault(EncoderContext context, T value) {
+            return value.getTime() == 0L;
+        }
+    }
+
+    private static final class StrictIJsonDateSerde<T extends Date> implements Serializer<T>, Deserializer<T> {
+        @Override
+        public void serialize(Encoder encoder,
+                              EncoderContext context,
+                              Argument<? extends T> type,
+                              T value) throws IOException {
+            encoder.encodeString(StrictIJsonDateTimeFormat.format(value.toInstant()));
+        }
+
+        @Override
+        public T deserialize(Decoder decoder,
+                             DecoderContext decoderContext,
+                             Argument<? super T> type) throws IOException {
+            return (T) Date.from(StrictIJsonDateTimeFormat.parseInstant(decoder.decodeString()));
+        }
+
+        @Override
+        public boolean isDefault(EncoderContext context, T value) {
+            return value.getTime() == 0L;
+        }
+    }
+
+    private static ZoneId zoneId(Optional<SerdeConfiguration> serdeConfiguration) {
+        return serdeConfiguration.flatMap(SerdeConfiguration::getTimeZone)
+            .map(timeZone -> timeZone.toZoneId())
+            .orElse(ZoneId.of("UTC"));
+    }
+
+    private static Instant instant(String value) {
+        if (value.indexOf('T') < 0) {
+            return LocalDate.parse(value).atStartOfDay(ZoneId.of("UTC")).toInstant();
+        }
+        if (value.endsWith("]")) {
+            return ZonedDateTime.parse(value).toInstant();
+        }
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeException ignored) {
+            return LocalDateTime.parse(value).atZone(ZoneId.of("UTC")).toInstant();
         }
     }
 }

@@ -1,0 +1,85 @@
+/*
+ * Copyright 2017-2026 original authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.micronaut.serde.jsonb;
+
+import io.micronaut.context.BeanContext;
+import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Requires;
+import io.micronaut.core.annotation.Internal;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.serde.config.DeserializationConfiguration;
+import io.micronaut.serde.config.SerdeConfiguration;
+import io.micronaut.serde.config.SerializationConfiguration;
+import jakarta.inject.Singleton;
+import jakarta.json.bind.Jsonb;
+import jakarta.json.bind.JsonbConfig;
+
+/**
+ * JSON-B beans backed by the current Micronaut context.
+ */
+@Internal
+@Factory
+final class JsonbFactory {
+    /**
+     * Default JSON-B configuration.
+     *
+     * @return The configuration
+     */
+    @Singleton
+    @Requires(missingBeans = JsonbConfig.class)
+    JsonbConfig jsonbConfig() {
+        return new JsonbConfig();
+    }
+
+    /**
+     * JSON-B instance backed by the current Micronaut serialization mapper.
+     *
+     * @param config JSON-B configuration
+     * @param beanContext The current bean context
+     * @param objectMapper The current object mapper
+     * @param serdeConfiguration The current serde configuration
+     * @param serializationConfiguration The current serialization configuration
+     * @param deserializationConfiguration The current deserialization configuration
+     * @param jsonbConfiguration The JSON-B integration configuration
+     * @return The JSON-B instance
+     */
+    @Singleton
+    Jsonb jsonb(JsonbConfig config,
+                BeanContext beanContext,
+                ObjectMapper objectMapper,
+                SerdeConfiguration serdeConfiguration,
+                SerializationConfiguration serializationConfiguration,
+                DeserializationConfiguration deserializationConfiguration,
+                JsonbConfiguration jsonbConfiguration) {
+        if (jsonbConfiguration.isReflectionEnabled()) {
+            return MicronautJsonbReflectionProvider.create(
+                config,
+                beanContext,
+                objectMapper,
+                serdeConfiguration,
+                serializationConfiguration,
+                deserializationConfiguration
+            );
+        }
+        return new MicronautJsonbProvider.MicronautJsonb(
+            config,
+            objectMapper,
+            serdeConfiguration,
+            serializationConfiguration,
+            deserializationConfiguration
+        );
+    }
+}

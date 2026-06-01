@@ -48,6 +48,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.annotation.SerdeImport;
 import io.micronaut.serde.annotation.Serdeable;
 import io.micronaut.serde.annotation.SerdeableGenerated;
+import io.micronaut.serde.FormatConfiguration;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import io.micronaut.serde.config.naming.PropertyNamingStrategy;
 import io.micronaut.serde.processor.sourcegen.SerdeSourceGenClassNaming;
@@ -79,6 +80,7 @@ import java.util.stream.Stream;
 public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, SerdeConfig> {
 
     private static final String DEFAULT_REF_ALIAS_NAME = "defaultReference";
+    private static final String JSONB_NILLABLE = "jakarta.json.bind.annotation.JsonbNillable";
 
     private boolean failOnError = true;
     private @Nullable ClassElement currentClass;
@@ -784,6 +786,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 }
             }
 
+            inheritPackageFormat(element);
+            inheritPackageInclude(element);
             visitProperties(element, context);
 
             findTypeInfo(element, false)
@@ -795,6 +799,37 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         }
 
         applySourceGenDecision(element);
+    }
+
+    private void inheritPackageFormat(ClassElement element) {
+        AnnotationMetadata packageMetadata = element.getPackage().getAnnotationMetadata();
+        if (!packageMetadata.hasAnnotation(SerdeConfig.class) || FormatConfiguration.from(element.getAnnotationMetadata()) != null) {
+            return;
+        }
+        element.annotate(SerdeConfig.class, builder -> {
+            packageMetadata.stringValue(SerdeConfig.class, SerdeConfig.PATTERN)
+                .ifPresent(pattern -> builder.member(SerdeConfig.PATTERN, pattern));
+            packageMetadata.enumValue(SerdeConfig.class, SerdeConfig.SHAPE, FormatConfiguration.Shape.class)
+                .ifPresent(shape -> builder.member(SerdeConfig.SHAPE, shape));
+            packageMetadata.stringValue(SerdeConfig.class, SerdeConfig.LOCALE)
+                .ifPresent(locale -> builder.member(SerdeConfig.LOCALE, locale));
+            packageMetadata.stringValue(SerdeConfig.class, SerdeConfig.TIMEZONE)
+                .ifPresent(timezone -> builder.member(SerdeConfig.TIMEZONE, timezone));
+            packageMetadata.booleanValue(SerdeConfig.class, SerdeConfig.LENIENT)
+                .ifPresent(lenient -> builder.member(SerdeConfig.LENIENT, lenient));
+            packageMetadata.intValue(SerdeConfig.class, SerdeConfig.RADIX)
+                .ifPresent(radix -> builder.member(SerdeConfig.RADIX, radix));
+        });
+    }
+
+    private void inheritPackageInclude(ClassElement element) {
+        AnnotationMetadata packageMetadata = element.getPackage().getAnnotationMetadata();
+        if (!packageMetadata.hasAnnotation(SerdeConfig.class) ||
+            element.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class).isPresent()) {
+            return;
+        }
+        packageMetadata.enumValue(SerdeConfig.class, SerdeConfig.INCLUDE, SerdeConfig.SerInclude.class)
+            .ifPresent(include -> element.annotate(SerdeConfig.class, builder -> builder.member(SerdeConfig.INCLUDE, include)));
     }
 
     private void applySourceGenDecision(ClassElement element) {
@@ -896,6 +931,12 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         classValues.add(new AnnotationClassValue<>(type.getName()));
         final ClassElement mixinType = value.stringValue("mixin").flatMap(context::getClassElement)
                 .orElse(null);
+        if (!type.hasAnnotation(Introspected.class)) {
+            type.annotate(Introspected.class, i -> {
+                i.member("accessKind", Introspected.AccessKind.METHOD, Introspected.AccessKind.FIELD);
+                i.member("visibility", "PUBLIC");
+            });
+        }
         if (value.booleanValue("serializable").orElse(true)) {
             type.annotate(Serdeable.Serializable.class);
         }
@@ -1095,6 +1136,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         final List<String> order = new ArrayList<>(orderDef);
         for (TypedElement beanProperty : beanProperties) {
             checkForErrors(beanProperty, context);
+            applyJsonbNillablePrecedence(beanProperty);
 
             PropertyNamingStrategy propertyNamingStrategy = getPropertyNamingStrategy(beanProperty, namingStrategy);
 
@@ -1108,6 +1150,10 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             }
 
             final String propertyName = resolvePropertyName(beanProperty);
+            if (isStaticBackedProperty(beanProperty)) {
+                ignoreProperty(false, false, beanProperty);
+                continue;
+            }
             if (propertyNamingStrategy != null) {
                 beanProperty.annotate(SerdeConfig.class, (builder) ->
                     builder.member(SerdeConfig.PROPERTY, propertyNamingStrategy.translate(beanProperty))
@@ -1135,6 +1181,19 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
                 ignoreProperty(false, false, beanProperty);
             }
         }
+    }
+
+    private boolean isStaticBackedProperty(TypedElement beanProperty) {
+        return beanProperty instanceof PropertyElement propertyElement
+            && propertyElement.getField().map(FieldElement::isStatic).orElse(false);
+    }
+
+    private void applyJsonbNillablePrecedence(TypedElement beanProperty) {
+        beanProperty.booleanValue(JSONB_NILLABLE)
+            .filter(includeNull -> !includeNull)
+            .ifPresent(includeNull -> beanProperty.annotate(SerdeConfig.class, builder ->
+                builder.member(SerdeConfig.INCLUDE, SerdeConfig.SerInclude.NON_ABSENT)
+            ));
     }
 
     private void ignoreProperty(boolean ignoreOnlyDeserialization,

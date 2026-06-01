@@ -22,6 +22,7 @@ import io.micronaut.inject.visitor.VisitorContext;
 import io.micronaut.serde.config.annotation.SerdeConfig;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.List;
 
 /**
@@ -42,7 +43,11 @@ public class JsonbNumberFormatTransformer
             );
         } 
         annotation.stringValue("locale")
+            .filter(l -> !"##default".equals(l))
             .ifPresent(l -> builder.member("locale", l));
+        if (annotation.stringValue("locale").filter(l -> !"##default".equals(l)).isEmpty() && null != pattern && !pattern.isEmpty()) {
+            builder.member("locale", Locale.US.toLanguageTag());
+        }
         return Collections.singletonList(builder.build());
     }
 

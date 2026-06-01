@@ -19,6 +19,7 @@ import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.type.Argument;
 import io.micronaut.serde.Decoder;
 import io.micronaut.serde.Encoder;
+import io.micronaut.serde.config.SerdeConfiguration;
 import io.micronaut.serde.support.SerdeRegistrar;
 
 import java.io.IOException;
@@ -26,15 +27,36 @@ import java.time.Duration;
 
 @Internal
 final class DurationSerde implements SerdeRegistrar<Duration> {
+    private final boolean writeAsString;
+
+    DurationSerde() {
+        this(false);
+    }
+
+    DurationSerde(SerdeConfiguration configuration) {
+        this(configuration.isWriteDurationsAsStrings());
+    }
+
+    private DurationSerde(boolean writeAsString) {
+        this.writeAsString = writeAsString;
+    }
+
     @Override
     public void serialize(Encoder encoder, EncoderContext context, Argument<? extends Duration> type, Duration value)
         throws IOException {
-        encoder.encodeLong(value.toNanos());
+        if (writeAsString) {
+            encoder.encodeString(value.toString());
+        } else {
+            encoder.encodeLong(value.toNanos());
+        }
     }
 
     @Override
     public Duration deserialize(Decoder decoder, DecoderContext decoderContext, Argument<? super Duration> type)
         throws IOException {
+        if (writeAsString) {
+            return Duration.parse(decoder.decodeString());
+        }
         return Duration.ofNanos(decoder.decodeLong());
     }
 

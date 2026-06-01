@@ -79,6 +79,50 @@ public interface SerdeConfiguration {
     boolean isWriteBinaryAsArray();
 
     /**
+     * Control whether {@link java.time.Duration} values are written and read as ISO-8601 strings.
+     *
+     * @return Whether durations are represented as strings
+     * @since 3.0.1
+     */
+    @Bindable(defaultValue = "false")
+    default boolean isWriteDurationsAsStrings() {
+        return false;
+    }
+
+    /**
+     * Control whether {@link java.util.Date} values are written with the configured time zone id.
+     *
+     * @return Whether dates include a zone id
+     * @since 3.0.1
+     */
+    @Bindable(defaultValue = "false")
+    default boolean isWriteJavaUtilDatesWithZoneId() {
+        return false;
+    }
+
+    /**
+     * Control whether deprecated three-letter time zone IDs are rejected.
+     *
+     * @return Whether deprecated time zone IDs are rejected
+     * @since 3.0.1
+     */
+    @Bindable(defaultValue = "false")
+    default boolean isRejectDeprecatedThreeLetterTimeZoneIds() {
+        return false;
+    }
+
+    /**
+     * Control whether date/time values are written in JSON-B strict I-JSON temporal form.
+     *
+     * @return Whether date/time values use strict I-JSON temporal formatting
+     * @since 3.0.1
+     */
+    @Bindable(defaultValue = "false")
+    default boolean isWriteDateTimesAsStrictIJson() {
+        return false;
+    }
+
+    /**
      * @return The default locale to use.
      */
     Optional<Locale> getLocale();
