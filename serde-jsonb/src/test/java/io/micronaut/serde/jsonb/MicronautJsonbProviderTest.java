@@ -20,7 +20,6 @@ import example.jsonb.ExcludedStartupBean;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.json.Json;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;

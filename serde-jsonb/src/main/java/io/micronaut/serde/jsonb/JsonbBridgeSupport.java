@@ -139,6 +139,7 @@ final class JsonbBridgeSupport {
      * @param runtimeType The reflection type
      * @return The corresponding Serde argument
      */
+    @SuppressWarnings("java:S1452")
     static Argument<?> argument(Type runtimeType) {
         switch (runtimeType) {
             case TypeVariable<?> typeVariable -> {

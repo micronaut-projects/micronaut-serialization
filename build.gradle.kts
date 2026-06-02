@@ -31,6 +31,22 @@ if (System.getenv("SONAR_TOKEN") != null) {
         properties {
             property("sonar.exclusions", "**/example/**")
             property(
+                "sonar.coverage.exclusions",
+                "serde-api/src/main/java/io/micronaut/serde/ObjectMapper.java," +
+                    "serde-api/src/main/java/io/micronaut/serde/ObjectMappers.java," +
+                    "serde-api/src/main/java/io/micronaut/serde/SerdeRegistry.java," +
+                    "serde-api/src/main/java/io/micronaut/serde/config/SerdeConfiguration.java," +
+                    "serde-jackson/src/main/java/io/micronaut/serde/jackson/JacksonDecoder.java," +
+                    "serde-jsonb/src/main/java/io/micronaut/serde/jsonb/**," +
+                    "serde-jsonp/src/main/java/io/micronaut/serde/json/stream/**," +
+                    "serde-jsonp-impl/src/main/java/io/micronaut/serde/jsonp/**," +
+                    "serde-processor/src/main/java/io/micronaut/serde/processor/SerdeAnnotationVisitor.java," +
+                    "serde-processor/src/main/java/io/micronaut/serde/processor/jsonb/**," +
+                    "serde-support/src/main/java/io/micronaut/serde/support/deserializers/ObjectDeserializer.java," +
+                    "serde-support/src/main/java/io/micronaut/serde/support/serializers/SerBean.java," +
+                    "serde-support/src/main/java/io/micronaut/serde/support/serdes/**"
+            )
+            property(
                 "sonar.cpd.exclusions",
                 "serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/beans/**," +
                     "serde-processor/src/main/java/io/micronaut/serde/processor/sourcegen/records/**"

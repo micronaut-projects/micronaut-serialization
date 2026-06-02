@@ -332,6 +332,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         }
 
         @Override
+        @SuppressWarnings("java:S2583")
         public void toJson(Object object, OutputStream stream) throws JsonbException {
             validateStrictTopLevel(object);
             if (object == null) {
@@ -361,6 +362,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         }
 
         @Override
+        @SuppressWarnings("java:S2583")
         public void toJson(Object object, Type runtimeType, OutputStream stream) throws JsonbException {
             validateStrictTopLevel(object);
             if (object == null) {

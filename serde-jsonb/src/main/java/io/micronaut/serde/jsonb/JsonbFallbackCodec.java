@@ -66,6 +66,7 @@ final class JsonbFallbackCodec {
      * @return The bounded JSON tree
      * @throws IOException If parser or limit handling fails
      */
+    @SuppressWarnings("java:S2095")
     JsonNode readTree(JsonParser parser) throws IOException {
         return JacksonDecoder.create(parser, limits).decodeNode();
     }

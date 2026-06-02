@@ -179,6 +179,7 @@ final class JsonbJsonpBridge {
      * @param generator The JSON-P generator
      * @param node The tree to write
      */
+    @SuppressWarnings("java:S3776")
     static void writeJsonValue(JsonGenerator generator, JsonNode node) {
         if (node.isNull()) {
             generator.writeNull();
@@ -335,6 +336,7 @@ final class JsonbJsonpBridge {
         }
 
         @Override
+        @SuppressWarnings("java:S2583")
         public <T> void serialize(T object, JsonGenerator generator) {
             try {
                 @SuppressWarnings({"unchecked", "rawtypes"})

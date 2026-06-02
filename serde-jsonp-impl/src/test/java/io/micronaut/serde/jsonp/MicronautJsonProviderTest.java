@@ -182,7 +182,7 @@ class MicronautJsonProviderTest {
     }
 
     @Test
-    void exercisesObjectArrayBuilderAndValueContracts() {
+    void exercisesObjectBuilderContracts() {
         JsonObject original = Json.createObjectBuilder()
             .add("name", "Fred")
             .add("count", 2)
@@ -203,7 +203,10 @@ class MicronautJsonProviderTest {
         assertThrows(NullPointerException.class, () -> copied.getString("missing"));
         assertThrows(ClassCastException.class, () -> copied.getBoolean("name"));
         assertEquals(copied, Json.createReader(new StringReader(copied.toString())).readObject());
+    }
 
+    @Test
+    void exercisesArrayBuilderContracts() {
         JsonArray array = Json.createArrayBuilder(List.of("a", 1, false))
             .add(Json.createObjectBuilder(Map.of("nested", "value")))
             .add(Json.createArrayBuilder(List.of("x", "y")))
@@ -230,7 +233,10 @@ class MicronautJsonProviderTest {
         assertEquals(new BigDecimal("2.5"), array.getJsonNumber(5).bigDecimalValue());
         assertEquals("\"b\",2", array.getValuesAs(JsonValue.class).stream().limit(2).map(JsonValue::toString).collect(Collectors.joining(",")));
         assertTrue(array.isNull(array.size() - 1));
+    }
 
+    @Test
+    void exercisesScalarValueContracts() {
         JsonString string = Json.createValue("text");
         assertEquals("text", string.getChars().toString());
         assertEquals(Json.createValue("text"), string);
@@ -300,14 +306,20 @@ class MicronautJsonProviderTest {
         JsonObject generated = Json.createReader(new StringReader(writer.toString())).readObject();
         assertEquals(BigInteger.TEN, generated.getJsonNumber("bigInteger").bigIntegerValue());
         assertEquals(new BigDecimal("1.5"), generated.getJsonNumber("bigDecimal").bigDecimalValue());
-        assertTrue(generated.getJsonArray("array").getBoolean(0) == false);
+        assertFalse(generated.getJsonArray("array").getBoolean(0));
         assertTrue(generated.getJsonObject("object").getBoolean("nested"));
+    }
+
+    @Test
+    void rejectsDuplicateWriterAndInvalidGeneratorStates() {
+        jakarta.json.JsonWriter jsonWriter = Json.createWriter(new StringWriter());
+        jsonWriter.write(JsonValue.TRUE);
+
         assertThrows(IllegalStateException.class, () -> {
-            jakarta.json.JsonWriter jsonWriter = Json.createWriter(new StringWriter());
-            jsonWriter.write(JsonValue.TRUE);
             jsonWriter.write(JsonValue.FALSE);
         });
-        assertThrows(jakarta.json.stream.JsonGenerationException.class, () -> Json.createGenerator(new StringWriter()).writeNull());
+        JsonGenerator generator = Json.createGenerator(new StringWriter());
+        assertThrows(jakarta.json.stream.JsonGenerationException.class, generator::writeNull);
     }
 
     @Test
@@ -333,7 +345,8 @@ class MicronautJsonProviderTest {
         assertEquals("Fred", patched.getString("moved"));
         assertEquals("z", patched.getJsonArray("items").getString(0));
         assertFalse(patched.containsKey("removeMe"));
-        assertThrows(JsonException.class, () -> Json.createPatchBuilder().test("/copied", "wrong").build().apply(patched));
+        JsonPatch failingPatch = Json.createPatchBuilder().test("/copied", "wrong").build();
+        assertThrows(JsonException.class, () -> failingPatch.apply(patched));
 
         JsonMergePatch mergePatch = Json.createMergePatch(Json.createObjectBuilder()
             .add("copied", "changed")
