@@ -56,6 +56,7 @@ final class DefaultSerdeConfiguration implements SerdeConfiguration {
     private final boolean jsonViewEnabled;
 
     @ConfigurationInject
+    @SuppressWarnings("checkstyle:ParameterNumber")
     DefaultSerdeConfiguration(Optional<String> dateFormat,
                               @Bindable(defaultValue = "STRING") TimeShape timeWriteShape,
                               @Bindable(defaultValue = "SECONDS") NumericTimeUnit numericTimeUnit,

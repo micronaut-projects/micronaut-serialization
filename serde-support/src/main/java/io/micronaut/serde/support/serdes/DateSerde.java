@@ -251,6 +251,26 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         return Argument.of(Date.class);
     }
 
+    private static ZoneId zoneId(Optional<SerdeConfiguration> serdeConfiguration) {
+        return serdeConfiguration.flatMap(SerdeConfiguration::getTimeZone)
+            .map(timeZone -> timeZone.toZoneId())
+            .orElse(ZoneId.of("UTC"));
+    }
+
+    private static Instant instant(String value) {
+        if (value.indexOf('T') < 0) {
+            return LocalDate.parse(value).atStartOfDay(ZoneId.of("UTC")).toInstant();
+        }
+        if (value.endsWith("]")) {
+            return ZonedDateTime.parse(value).toInstant();
+        }
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeException ignored) {
+            return LocalDateTime.parse(value).atZone(ZoneId.of("UTC")).toInstant();
+        }
+    }
+
     private static final class TimestampMillisDateSerde<T extends Date> implements Serializer<T>, Deserializer<T> {
         @Override
         public void serialize(Encoder encoder,
@@ -377,26 +397,6 @@ final class DateSerde implements FormattedSerde<Date>, SerdeRegistrar<Date> {
         @Override
         public boolean isDefault(EncoderContext context, T value) {
             return value.getTime() == 0L;
-        }
-    }
-
-    private static ZoneId zoneId(Optional<SerdeConfiguration> serdeConfiguration) {
-        return serdeConfiguration.flatMap(SerdeConfiguration::getTimeZone)
-            .map(timeZone -> timeZone.toZoneId())
-            .orElse(ZoneId.of("UTC"));
-    }
-
-    private static Instant instant(String value) {
-        if (value.indexOf('T') < 0) {
-            return LocalDate.parse(value).atStartOfDay(ZoneId.of("UTC")).toInstant();
-        }
-        if (value.endsWith("]")) {
-            return ZonedDateTime.parse(value).toInstant();
-        }
-        try {
-            return Instant.parse(value);
-        } catch (DateTimeException ignored) {
-            return LocalDateTime.parse(value).atZone(ZoneId.of("UTC")).toInstant();
         }
     }
 }

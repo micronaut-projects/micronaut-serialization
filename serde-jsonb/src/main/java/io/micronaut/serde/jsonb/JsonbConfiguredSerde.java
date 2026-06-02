@@ -159,13 +159,9 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
 
             @Override
             public Object deserialize(Decoder decoder, DecoderContext context, Argument<? super Object> type) throws IOException {
-                JsonNode value = decoder.decodeNode();
-                if (Collection.class.isAssignableFrom(type.getType()) && type.getTypeParameters().length > 0) {
-                    return deserializeCollection(value, customizations, type, codec);
-                }
                 JsonbRuntimeCustomizations.ConfigDeserializer configuredDeserializer = customizations.deserializer(type.asType());
                 if (configuredDeserializer != null) {
-                    try (JsonParser parser = JsonbJsonpBridge.parserForDeserializer(value)) {
+                    try (JsonParser parser = JsonbJsonpBridge.parserForDeserializer(decoder)) {
                         return configuredDeserializer.deserializer().deserialize(parser, new JsonbDeserializationContext(codec), type.asType());
                     } catch (JsonbException e) {
                         throw e;
@@ -173,6 +169,10 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
                         throw new JsonbException("Cannot deserialize JSON-B value with configured deserializer", e);
                     }
                 }
+                if (Collection.class.isAssignableFrom(type.getType()) && type.getTypeParameters().length > 0) {
+                    return deserializeCollection(decoder, customizations, type, codec);
+                }
+                JsonNode value = decoder.decodeNode();
                 JsonbRuntimeCustomizations.ConfigAdapter adapter = customizations.adapter(type.asType());
                 if (adapter != null) {
                     Object adapted = codec.readValue(value, adapter.targetType());
@@ -187,23 +187,21 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
         };
     }
 
-    private static Collection<?> deserializeCollection(JsonNode value,
+    private static Collection<?> deserializeCollection(Decoder decoder,
                                                        JsonbRuntimeCustomizations customizations,
                                                        Argument<?> type,
                                                        JsonbFallbackCodec codec) throws IOException {
-        if (!value.isArray()) {
-            throw new JsonbException("Expected JSON array for configured JSON-B collection deserialization");
-        }
+        Decoder array = decoder.decodeArray(type);
         Argument<?> elementType = type.getTypeParameters()[0];
-        List<@Nullable Object> result = new ArrayList<>(value.size());
-        for (JsonNode item : value.values()) {
-            if (item.isNull()) {
+        List<@Nullable Object> result = new ArrayList<>();
+        while (array.hasNextArrayValue()) {
+            if (array.decodeNull()) {
                 result.add(null);
                 continue;
             }
             JsonbRuntimeCustomizations.ConfigDeserializer configuredDeserializer = customizations.deserializer(elementType.asType());
             if (configuredDeserializer != null) {
-                try (JsonParser parser = JsonbJsonpBridge.parserForDeserializer(item)) {
+                try (JsonParser parser = JsonbJsonpBridge.parserForDeserializer(array)) {
                     result.add(configuredDeserializer.deserializer().deserialize(parser, new JsonbDeserializationContext(codec), elementType.asType()));
                     continue;
                 } catch (JsonbException e) {
@@ -212,6 +210,7 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
                     throw new JsonbException("Cannot deserialize JSON-B collection element with configured deserializer", e);
                 }
             }
+            JsonNode item = array.decodeNode();
             JsonbRuntimeCustomizations.ConfigAdapter adapter = customizations.adapter(elementType.asType());
             if (adapter != null) {
                 Object adapted = codec.readValue(item, adapter.targetType());
@@ -224,6 +223,7 @@ public final class JsonbConfiguredSerde implements Serde<Object> {
             }
             result.add(codec.readValue(item, elementType));
         }
+        array.finishStructure();
         return result;
     }
 

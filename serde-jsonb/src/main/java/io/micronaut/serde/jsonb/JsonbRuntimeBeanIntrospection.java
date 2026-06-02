@@ -41,29 +41,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TimeZone;
 
 /**
  * Reflection-backed JSON-B {@link BeanIntrospection} implementation used only by
@@ -457,19 +444,7 @@ final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
     }
 
     private static boolean requiresJsonbScalarFallback(Class<?> type) {
-        return Date.class.isAssignableFrom(type)
-            || Calendar.class.isAssignableFrom(type)
-            || TimeZone.class.isAssignableFrom(type)
-            || Instant.class.isAssignableFrom(type)
-            || Duration.class.isAssignableFrom(type)
-            || Period.class.isAssignableFrom(type)
-            || LocalDate.class.isAssignableFrom(type)
-            || LocalTime.class.isAssignableFrom(type)
-            || LocalDateTime.class.isAssignableFrom(type)
-            || ZonedDateTime.class.isAssignableFrom(type)
-            || OffsetDateTime.class.isAssignableFrom(type)
-            || OffsetTime.class.isAssignableFrom(type)
-            || ZoneId.class.isAssignableFrom(type);
+        return JsonbScalarTypes.isJsonDateTimeScalar(type);
     }
 
     @Override

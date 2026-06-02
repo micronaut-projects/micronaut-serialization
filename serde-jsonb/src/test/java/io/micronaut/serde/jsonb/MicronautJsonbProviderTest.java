@@ -387,14 +387,14 @@ class MicronautJsonbProviderTest {
     void generatedProviderSourceDoesNotUseReflectionFallback() throws Exception {
         String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/MicronautJsonbProvider.java"));
 
-        for (String forbidden : List.of("Field", "Method", "Constructor", "ParameterizedType", "setAccessible", "getDeclared", "Class.forName", "ReflectionFallback")) {
+        for (String forbidden : List.of("Field", "Method", "Constructor", "ParameterizedType", "setAccessible", "getDeclared", "Class.forName", "JsonbReflectionUtil")) {
             assertFalse(source.contains(forbidden), () -> "MicronautJsonbProvider should not use " + forbidden);
         }
     }
 
     @Test
     void reflectionFallbackDoesNotKeepDuplicateRuntimePropertyModel() throws Exception {
-        String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/ReflectionFallback.java"));
+        String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/JsonbReflectionUtil.java"));
 
         assertFalse(source.contains("PropertyModel"));
         assertFalse(source.contains("propertyModels("));

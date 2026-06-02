@@ -44,11 +44,19 @@ import jakarta.json.stream.JsonParser;
 import jakarta.json.stream.JsonParserFactory;
 import jakarta.json.stream.JsonParsingException;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.core.*;
+import tools.jackson.core.FormatSchema;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonToken;
+import tools.jackson.core.ObjectReadContext;
+import tools.jackson.core.ObjectWriteContext;
+import tools.jackson.core.PrettyPrinter;
+import tools.jackson.core.TokenStreamFactory;
+import tools.jackson.core.TokenStreamLocation;
+import tools.jackson.core.TreeNode;
 import tools.jackson.core.exc.StreamReadException;
 import tools.jackson.core.json.JsonFactory;
-import tools.jackson.core.util.JsonpCharacterEscapes;
 import tools.jackson.core.util.DefaultPrettyPrinter;
+import tools.jackson.core.util.JsonpCharacterEscapes;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -351,6 +359,7 @@ public final class MicronautJsonProvider extends JsonProvider {
             case TRUE -> generator.writeBoolean(true);
             case FALSE -> generator.writeBoolean(false);
             case NULL -> generator.writeNull();
+            default -> throw new JsonException("Unsupported JSON value type: " + value.getValueType());
         }
     }
 
@@ -389,6 +398,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                     }
                     case LAST -> values.put(key, value);
                     case NONE -> throw new JsonException("Duplicate key '" + key + "'");
+                    default -> throw new JsonException("Unsupported key strategy: " + keyStrategy);
                 }
             } else {
                 values.put(key, value);
@@ -2036,6 +2046,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                             case ADD -> copy.add(index, value);
                             case REPLACE -> copy.set(index, value);
                             case REMOVE -> copy.remove(index);
+                            default -> throw new JsonException("Unsupported JSON pointer operation: " + operation);
                         }
                     } catch (IndexOutOfBoundsException e) {
                         throw new JsonException("JSON pointer array index is out of bounds: " + token, e);

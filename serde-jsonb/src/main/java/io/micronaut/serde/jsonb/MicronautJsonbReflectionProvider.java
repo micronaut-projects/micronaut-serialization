@@ -106,6 +106,8 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         private final JsonbBridgeSupport.@Nullable ComponentFactory componentFactory;
         private final ConcurrentMap<Class<? extends PropertyVisibilityStrategy>, PropertyVisibilityStrategy> visibilityStrategies = new ConcurrentHashMap<>();
         private final ConcurrentMap<Class<?>, JsonbRuntimeBeanIntrospection<?>> visibilityIntrospections = new ConcurrentHashMap<>();
+        private final ConcurrentMap<Argument<?>, Boolean> generatedReadDirectAvailability = generatedSerdeCache();
+        private final ConcurrentMap<GeneratedWriteKey, Boolean> generatedWriteDirectAvailability = generatedSerdeCache();
 
         /**
          * Creates a standalone reflection provider. Standalone instances build a
@@ -274,6 +276,10 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         }
 
         private boolean canReadGeneratedDirectly(Argument<?> argument) {
+            return generatedReadDirectAvailability.computeIfAbsent(argument, this::canReadGeneratedDirectlyUncached);
+        }
+
+        private boolean canReadGeneratedDirectlyUncached(Argument<?> argument) {
             Class<?> type = argument.getType();
             JsonbRuntimeBeanIntrospection<?> runtimeModel = runtimeModel(type);
             return type != Object.class
@@ -341,13 +347,13 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             @SuppressWarnings({"unchecked", "rawtypes"})
             Argument<Object> argument = (Argument) Argument.of(theClass);
             if (!canWriteGeneratedDirectly(argument, effectiveRuntimeModel, visibilityStrategy)) {
-                writeFallback(object, stream, null, visibilityStrategy);
-                return;
-            }
-            try {
-                writeGenerated(object, argument, stream);
-            } catch (IOException e) {
-                throw new JsonbException("Cannot write JSON-B value", e);
+                writeFallback(object, stream, visibilityStrategy);
+            } else {
+                try {
+                    writeGenerated(object, argument, stream);
+                } catch (IOException e) {
+                    throw new JsonbException("Cannot write JSON-B value", e);
+                }
             }
         }
 
@@ -372,13 +378,13 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             @SuppressWarnings({"rawtypes", "unchecked"})
             Argument<Object> argument = (Argument) argument(runtimeType);
             if (!canWriteGeneratedDirectly(argument, effectiveRuntimeModel, visibilityStrategy)) {
-                writeFallback(object, stream, null, visibilityStrategy);
-                return;
-            }
-            try {
-                writeGenerated(object, argument, stream);
-            } catch (IOException e) {
-                throw new JsonbException("Cannot write JSON-B value", e);
+                writeFallback(object, stream, visibilityStrategy);
+            } else {
+                try {
+                    writeGenerated(object, argument, stream);
+                } catch (IOException e) {
+                    throw new JsonbException("Cannot write JSON-B value", e);
+                }
             }
         }
 
@@ -511,6 +517,15 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         private boolean canWriteGeneratedDirectly(Argument<Object> argument,
                                                   @Nullable JsonbRuntimeBeanIntrospection<?> runtimeModel,
                                                   @Nullable PropertyVisibilityStrategy visibilityStrategy) {
+            return generatedWriteDirectAvailability.computeIfAbsent(
+                new GeneratedWriteKey(argument, runtimeModel == null ? null : runtimeModel.getBeanType(), visibilityStrategy != null),
+                _ -> canWriteGeneratedDirectlyUncached(argument, runtimeModel, visibilityStrategy)
+            );
+        }
+
+        private boolean canWriteGeneratedDirectlyUncached(Argument<Object> argument,
+                                                          @Nullable JsonbRuntimeBeanIntrospection<?> runtimeModel,
+                                                          @Nullable PropertyVisibilityStrategy visibilityStrategy) {
             return visibilityStrategy == null
                 && !customizations.hasSerializers()
                 && runtimeModel != null
@@ -538,7 +553,6 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
 
         private void writeFallback(@Nullable Object object,
                                    OutputStream stream,
-                                   @Nullable Exception failure,
                                    @Nullable PropertyVisibilityStrategy visibilityStrategy) {
             try {
                 if (visibilityStrategy == null && canUseRuntimeObjectMapping(object, customizations.hasSerializers())) {
@@ -551,13 +565,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                     writeFallbackValue(stream, argument, object);
                 }
             } catch (IOException | RuntimeException fallbackFailure) {
-                JsonbException exception = failure == null
-                    ? new JsonbException("Cannot write JSON-B value", fallbackFailure)
-                    : new JsonbException("Cannot write JSON-B value", failure);
-                if (failure != null) {
-                    exception.addSuppressed(fallbackFailure);
-                }
-                throw exception;
+                throw new JsonbException("Cannot write JSON-B value", fallbackFailure);
             }
         }
 
@@ -616,9 +624,6 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                 return value;
             }
             JsonbRuntimeBeanIntrospection<?> runtimeModel = fallbackRuntimeIntrospectionResolver.introspection(argument.getType());
-            if (runtimeModel == null) {
-                return value;
-            }
             for (JsonbRuntimeProperty<?> property : runtimeModel.runtimeProperties()) {
                 Type type = property.deserializationType();
                 if (type instanceof java.lang.reflect.TypeVariable<?> typeVariable) {
@@ -638,7 +643,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             @SuppressWarnings("unchecked")
             JsonbRuntimeProperty<T> typedProperty = (JsonbRuntimeProperty<T>) property;
             Object current = typedProperty.getUnsafe(bean);
-            if (current == null || target.getType().isInstance(current)) {
+            if (target.getType().isInstance(current)) {
                 return;
             }
             Object converted = convertTypeVariableValue(current, target.getType());
@@ -733,6 +738,11 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                                              Runnable closeAction,
                                              JsonbRuntimeIntrospectionResolver resolver,
                                              JsonbRuntimeIntrospectionResolver fallbackResolver) {
+        }
+
+        private record GeneratedWriteKey(Argument<?> argument,
+                                         @Nullable Class<?> beanType,
+                                         boolean hasVisibilityStrategy) {
         }
     }
 }

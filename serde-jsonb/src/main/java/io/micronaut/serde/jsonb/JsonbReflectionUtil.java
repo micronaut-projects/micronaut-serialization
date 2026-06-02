@@ -30,29 +30,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.net.URL;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimeZone;
 
 /**
  * Reflection metadata and validation helpers for JSON-B fallback discovery.
@@ -117,27 +102,7 @@ final class JsonbReflectionUtil {
      * @return Whether the type is scalar for JSON-B fallback purposes
      */
     static boolean isJsonScalar(Class<?> type) {
-        return type.isPrimitive()
-            || CharSequence.class.isAssignableFrom(type)
-            || Number.class.isAssignableFrom(type)
-            || Boolean.class == type
-            || Character.class == type
-            || Enum.class.isAssignableFrom(type)
-            || URI.class.isAssignableFrom(type)
-            || URL.class.isAssignableFrom(type)
-            || Date.class.isAssignableFrom(type)
-            || Calendar.class.isAssignableFrom(type)
-            || TimeZone.class.isAssignableFrom(type)
-            || Instant.class.isAssignableFrom(type)
-            || Duration.class.isAssignableFrom(type)
-            || Period.class.isAssignableFrom(type)
-            || LocalDate.class.isAssignableFrom(type)
-            || LocalTime.class.isAssignableFrom(type)
-            || LocalDateTime.class.isAssignableFrom(type)
-            || ZonedDateTime.class.isAssignableFrom(type)
-            || OffsetDateTime.class.isAssignableFrom(type)
-            || OffsetTime.class.isAssignableFrom(type)
-            || ZoneId.class.isAssignableFrom(type);
+        return JsonbScalarTypes.isJsonScalar(type);
     }
 
     /**

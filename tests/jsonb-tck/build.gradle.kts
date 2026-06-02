@@ -197,6 +197,8 @@ tasks.compileTestJava {
 
 tasks.test {
     useJUnitPlatform()
+    exclude("io/micronaut/serde/jsonb/tck/**")
+    failOnNoDiscoveredTests = false
 }
 
 tasks.register<Test>("jakartaJsonbTck") {

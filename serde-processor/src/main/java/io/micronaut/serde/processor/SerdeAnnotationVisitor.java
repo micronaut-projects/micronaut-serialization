@@ -1501,9 +1501,6 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
         return IntrospectedTypeElementVisitor.POSITION + 100;
     }
 
-    private record TypePropertyDescriptor(String propertyName, String propertyValue) {
-    }
-
     private boolean isJsonAnnotated(ClassElement element) {
         return Stream.of(
                         // jackson 3
@@ -1538,5 +1535,8 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
     @Override
     public VisitorKind getVisitorKind() {
         return VisitorKind.ISOLATING;
+    }
+
+    private record TypePropertyDescriptor(String propertyName, String propertyValue) {
     }
 }

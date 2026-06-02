@@ -165,6 +165,9 @@ final class JsonbJsonpBridge {
         if (decoder instanceof JsonbDecoder jsonbDecoder && jsonbDecoder.delegate() instanceof JacksonDecoder jacksonDecoder) {
             return new JacksonDecoderParser(jacksonDecoder);
         }
+        if (decoder instanceof JacksonDecoder jacksonDecoder) {
+            return new JacksonDecoderParser(jacksonDecoder);
+        }
         return parserForDeserializer(decoder.decodeNode());
     }
 
@@ -566,19 +569,20 @@ final class JsonbJsonpBridge {
         private final JacksonDecoder decoder;
         private final tools.jackson.core.JsonParser parser;
         private JsonParser.@Nullable Event currentEvent;
+        private boolean seenRoot;
+        private boolean finished;
+        private int depth;
 
         private JacksonDecoderParser(JacksonDecoder decoder) throws IOException {
             this.decoder = decoder;
             this.parser = decoder.parserForStreaming();
-            if (decoder.peekTokenForStreaming() == JsonToken.START_ARRAY) {
-                decoder.nextTokenForStreaming();
-            }
+            decoder.peekTokenForStreaming();
         }
 
         @Override
         public boolean hasNext() {
             try {
-                return decoder.peekTokenForStreaming() != null;
+                return !finished && decoder.peekTokenForStreaming() != null;
             } catch (IOException e) {
                 throw new JsonbException("Cannot read JSON-B parser token", e);
             }
@@ -587,7 +591,9 @@ final class JsonbJsonpBridge {
         @Override
         public JsonParser.Event next() {
             try {
-                currentEvent = event(decoder.nextTokenForStreaming());
+                JsonToken token = decoder.nextTokenForStreaming();
+                currentEvent = event(token);
+                updateRootBoundary(token);
                 return currentEvent;
             } catch (IOException e) {
                 throw new JsonbException("Cannot read JSON-B parser token", e);
@@ -634,6 +640,26 @@ final class JsonbJsonpBridge {
 
         @Override
         public void close() {
+        }
+
+        private void updateRootBoundary(JsonToken token) {
+            if (!seenRoot) {
+                seenRoot = true;
+                if (token == JsonToken.START_ARRAY || token == JsonToken.START_OBJECT) {
+                    depth = 1;
+                } else {
+                    finished = true;
+                }
+                return;
+            }
+            if (token == JsonToken.START_ARRAY || token == JsonToken.START_OBJECT) {
+                depth++;
+            } else if (token == JsonToken.END_ARRAY || token == JsonToken.END_OBJECT) {
+                depth--;
+                if (depth == 0) {
+                    finished = true;
+                }
+            }
         }
 
         private static JsonParser.Event event(@Nullable JsonToken token) {

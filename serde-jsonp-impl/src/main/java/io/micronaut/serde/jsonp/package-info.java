@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * JSON-P provider implementation backed by Micronaut Serialization JSON tree support.
+ */
 @NullMarked
 package io.micronaut.serde.jsonp;
 

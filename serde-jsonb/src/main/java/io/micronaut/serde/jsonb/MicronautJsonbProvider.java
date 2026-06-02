@@ -16,6 +16,7 @@
 package io.micronaut.serde.jsonb;
 
 import io.micronaut.core.type.Argument;
+import io.micronaut.core.util.clhm.ConcurrentLinkedHashMap;
 import io.micronaut.serde.Deserializer;
 import io.micronaut.serde.LimitingStream;
 import io.micronaut.serde.ObjectMapper;
@@ -52,22 +53,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URI;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Period;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,6 +64,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Micronaut Serialization backed JSON-B provider using generated serializers and deserializers.
@@ -127,6 +116,8 @@ public class MicronautJsonbProvider extends JsonbProvider {
     }
 
     protected static class MicronautJsonb implements Jsonb {
+        private static final int GENERATED_SERDE_CACHE_MAXIMUM_SIZE = 256;
+
         protected final ObjectMapper mapper;
         protected final SerdeRegistry registry;
         protected final JsonFactory jsonFactory;
@@ -135,6 +126,8 @@ public class MicronautJsonbProvider extends JsonbProvider {
         protected final boolean strictIJson;
         protected final String binaryDataStrategy;
         protected final @Nullable SerdeConfiguration serdeConfiguration;
+        private final ConcurrentMap<Argument<?>, Boolean> generatedDeserializerAvailability = generatedSerdeCache();
+        private final ConcurrentMap<Argument<?>, Boolean> generatedSerializerAvailability = generatedSerdeCache();
         private final boolean reflectionOnlyFeatures;
         private final Runnable closeAction;
 
@@ -174,6 +167,21 @@ public class MicronautJsonbProvider extends JsonbProvider {
             this.binaryDataStrategy = binaryDataStrategy(config);
             this.serdeConfiguration = serdeConfiguration;
             this.reflectionOnlyFeatures = hasReflectionOnlyFeatures(config);
+        }
+
+        /**
+         * Creates a bounded cache for per-mapper generated Serde capability checks.
+         * The cache is intentionally small because it protects hot reflection-provider
+         * routing paths, not application domain data.
+         *
+         * @param <K> The cache key type
+         * @param <V> The cache value type
+         * @return A concurrent bounded cache
+         */
+        protected static <K, V> ConcurrentMap<K, V> generatedSerdeCache() {
+            return new ConcurrentLinkedHashMap.Builder<K, V>()
+                .maximumWeightedCapacity(GENERATED_SERDE_CACHE_MAXIMUM_SIZE)
+                .build();
         }
 
         private static MapperAndClose standaloneMapper(JsonbConfig config, @Nullable JsonProvider jsonProvider) {
@@ -353,15 +361,25 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         /**
          * Checks whether a generated deserializer can be created for the argument.
+         * <p>
+         * Registry lookup is intentionally cached because negative checks can be
+         * exception-heavy when JSON-B reflection fallback probes whether a value
+         * may use the generated path directly.
          *
          * @param argument The target argument
          * @param <T> The target type
          * @return Whether the deserializer can be created
          */
         protected <T> boolean canCreateGeneratedDeserializer(Argument<T> argument) {
+            return generatedDeserializerAvailability.computeIfAbsent(argument, this::canCreateGeneratedDeserializerUncached);
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private boolean canCreateGeneratedDeserializerUncached(Argument<?> argument) {
             try {
+                Argument<Object> typedArgument = (Argument) argument;
                 Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
-                decoderContext.findDeserializer(argument).createSpecific(decoderContext, argument);
+                decoderContext.findDeserializer(typedArgument).createSpecific(decoderContext, typedArgument);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -370,15 +388,25 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         /**
          * Checks whether a generated serializer can be created for the argument.
+         * <p>
+         * Registry lookup is intentionally cached because negative checks can be
+         * exception-heavy when JSON-B reflection fallback probes whether a value
+         * may use the generated path directly.
          *
          * @param argument The target argument
          * @param <T> The target type
          * @return Whether the serializer can be created
          */
         protected <T> boolean canCreateGeneratedSerializer(Argument<T> argument) {
+            return generatedSerializerAvailability.computeIfAbsent(argument, this::canCreateGeneratedSerializerUncached);
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private boolean canCreateGeneratedSerializerUncached(Argument<?> argument) {
             try {
+                Argument<Object> typedArgument = (Argument) argument;
                 Serializer.EncoderContext encoderContext = registry.newEncoderContext(null);
-                encoderContext.findSerializer(argument).createSpecific(encoderContext, argument);
+                encoderContext.findSerializer(typedArgument).createSpecific(encoderContext, typedArgument);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -566,27 +594,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
 
         protected static boolean isJsonScalar(Class<?> type) {
-            return type.isPrimitive()
-                || CharSequence.class.isAssignableFrom(type)
-                || Number.class.isAssignableFrom(type)
-                || Boolean.class == type
-                || Character.class == type
-                || Enum.class.isAssignableFrom(type)
-                || URI.class.isAssignableFrom(type)
-                || URL.class.isAssignableFrom(type)
-                || java.util.Date.class.isAssignableFrom(type)
-                || Calendar.class.isAssignableFrom(type)
-                || TimeZone.class.isAssignableFrom(type)
-                || Instant.class.isAssignableFrom(type)
-                || Duration.class.isAssignableFrom(type)
-                || Period.class.isAssignableFrom(type)
-                || LocalDate.class.isAssignableFrom(type)
-                || LocalTime.class.isAssignableFrom(type)
-                || LocalDateTime.class.isAssignableFrom(type)
-                || ZonedDateTime.class.isAssignableFrom(type)
-                || OffsetDateTime.class.isAssignableFrom(type)
-                || OffsetTime.class.isAssignableFrom(type)
-                || ZoneId.class.isAssignableFrom(type);
+            return JsonbScalarTypes.isJsonScalar(type);
         }
 
         protected record MapperAndClose(ObjectMapper mapper, Runnable closeAction) {

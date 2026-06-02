@@ -12,6 +12,12 @@ dependencies {
     testRuntimeOnly(mnTest.junit.jupiter.engine)
 }
 
+micronautBuild {
+    binaryCompatibility {
+        enabledAfter("3.1.0")
+    }
+}
+
 tasks {
     test {
         useJUnitPlatform()
