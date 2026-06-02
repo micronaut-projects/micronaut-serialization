@@ -45,11 +45,7 @@ final class JsonbOptionalArraySerde implements Serializer<Optional[]>, Deseriali
         return (encoder, encoderContext, arrayType, value) -> {
             Encoder array = encoder.encodeArray(arrayType);
             for (Optional item : value) {
-                if (item == null) {
-                    array.encodeNull();
-                } else {
-                    componentSerializer.serialize(array, encoderContext, componentType, item);
-                }
+                componentSerializer.serialize(array, encoderContext, componentType, item);
             }
             array.finishStructure();
         };

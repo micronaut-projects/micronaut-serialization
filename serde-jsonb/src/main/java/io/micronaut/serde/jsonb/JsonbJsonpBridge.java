@@ -239,6 +239,7 @@ final class JsonbJsonpBridge {
         }
     }
 
+    @SuppressWarnings("java:S3776")
     private static JsonNode parse(JsonParser parser, JsonParser.Event event) {
         return switch (event) {
             case START_OBJECT -> {
@@ -514,10 +515,12 @@ final class JsonbJsonpBridge {
 
         @Override
         public void close() {
+            // Generator output is held in memory, so there is no backing resource to close.
         }
 
         @Override
         public void flush() {
+            // Generator output is held in memory, so there is no backing resource to flush.
         }
 
         private void addValue(JsonNode node) {
@@ -689,6 +692,7 @@ final class JsonbJsonpBridge {
 
         @Override
         public void close() {
+            // The owning JacksonDecoder controls the parser lifecycle.
         }
 
         private void updateRootBoundary(JsonToken token) {
@@ -829,6 +833,7 @@ final class JsonbJsonpBridge {
 
         @Override
         public void close() {
+            // JsonNodeParser iterates over in-memory events only.
         }
 
         private Number number() {

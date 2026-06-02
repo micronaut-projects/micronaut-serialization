@@ -68,6 +68,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 @Internal
+@SuppressWarnings("java:S3776")
 final class SerBean<T> {
     private static final Comparator<BeanReadProperty<?, Object>> BEAN_PROPERTY_COMPARATOR = (o1, o2) -> OrderUtil.COMPARATOR.compare(
             new Ordered() {

@@ -20,6 +20,8 @@ import example.jsonb.ExcludedStartupBean;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.serde.annotation.Serdeable;
 import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
@@ -69,6 +71,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -603,6 +607,48 @@ class MicronautJsonbProviderTest {
         }
     }
 
+    @Test
+    void supportsJsonpValuesOptionalArraysPriorityQueuesAndConfiguredCallbacks() throws Exception {
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            JsonpHolder holder = new JsonpHolder(
+                Json.createObjectBuilder().add("name", "Fred").build(),
+                Json.createArrayBuilder().add(1).add(false).build(),
+                JsonValue.TRUE
+            );
+
+            String json = jsonb.toJson(holder);
+            assertEquals("{\"array\":[1,false],\"object\":{\"name\":\"Fred\"},\"value\":true}", json);
+            JsonpHolder decoded = jsonb.fromJson(json, JsonpHolder.class);
+            assertEquals("Fred", decoded.object.asJsonObject().getString("name"));
+            assertEquals(1, decoded.array.asJsonArray().getInt(0));
+            assertEquals(JsonValue.TRUE, decoded.value);
+
+            Optional[] optionals = jsonb.fromJson("[\"a\",null,\"b\"]", Optional[].class);
+            assertEquals(Optional.of("a"), optionals[0]);
+            assertEquals(Optional.empty(), optionals[1]);
+            assertEquals("[\"a\",null,\"b\"]", jsonb.toJson(optionals));
+
+            PriorityQueue<Integer> queue = new PriorityQueue<>();
+            queue.add(3);
+            queue.add(1);
+            Type queueType = parameterizedType(PriorityQueue.class, Integer.class);
+            assertEquals("[1,3]", jsonb.toJson(queue, queueType));
+        }
+
+        JsonbConfig config = new JsonbConfig()
+            .withSerializers(new ConfiguredPointSerializer())
+            .withDeserializers(new ConfiguredPointDeserializer());
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            assertEquals("{\"value\":\"ser:a\",\"context\":\"a\",\"nested\":\"raw:a\"}", jsonb.toJson(new ConfiguredPoint("a")));
+
+            ConfiguredPoint point = jsonb.fromJson("{\"value\":\"b\"}", ConfiguredPoint.class);
+            assertEquals("deser:b", point.value);
+
+            ConfiguredPointContainer container = new ConfiguredPointContainer(List.of(new ConfiguredPoint("x"), new ConfiguredPoint("y")));
+            assertEquals("{\"points\":[{\"value\":\"ser:x\",\"context\":\"x\",\"nested\":\"raw:x\"},{\"value\":\"ser:y\",\"context\":\"y\",\"nested\":\"raw:y\"}]}", jsonb.toJson(container));
+        }
+    }
+
     private static Book book() {
         return new Book("The Stand", 10);
     }
@@ -877,6 +923,82 @@ class MicronautJsonbProviderTest {
     }
 
     static final class NestedSerialized {
+    }
+
+    @Serdeable
+    static final class JsonpHolder {
+        private final JsonValue object;
+        private final JsonValue array;
+        private final JsonValue value;
+
+        @JsonbCreator
+        JsonpHolder(@JsonbProperty("object") JsonValue object,
+                    @JsonbProperty("array") JsonValue array,
+                    @JsonbProperty("value") JsonValue value) {
+            this.object = object;
+            this.array = array;
+            this.value = value;
+        }
+
+        public JsonValue getObject() {
+            return object;
+        }
+
+        public JsonValue getArray() {
+            return array;
+        }
+
+        public JsonValue getValue() {
+            return value;
+        }
+    }
+
+    @Serdeable
+    static final class ConfiguredPointContainer {
+        private final List<ConfiguredPoint> points;
+
+        @JsonbCreator
+        ConfiguredPointContainer(@JsonbProperty("points") List<ConfiguredPoint> points) {
+            this.points = points;
+        }
+
+        public List<ConfiguredPoint> getPoints() {
+            return points;
+        }
+    }
+
+    static final class ConfiguredPoint {
+        private final String value;
+
+        ConfiguredPoint(String value) {
+            this.value = value;
+        }
+    }
+
+    static final class ConfiguredPointSerializer implements JsonbSerializer<ConfiguredPoint> {
+        @Override
+        public void serialize(ConfiguredPoint obj, JsonGenerator generator, jakarta.json.bind.serializer.SerializationContext ctx) {
+            generator.writeStartObject();
+            generator.write("value", "ser:" + obj.value);
+            ctx.serialize("context", obj.value, generator);
+            generator.write("nested", "raw:" + obj.value);
+            generator.writeEnd();
+        }
+    }
+
+    static final class ConfiguredPointDeserializer implements JsonbDeserializer<ConfiguredPoint> {
+        @Override
+        public ConfiguredPoint deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
+            String value = null;
+            while (parser.hasNext()) {
+                JsonParser.Event event = parser.next();
+                if (event == JsonParser.Event.KEY_NAME && "value".equals(parser.getString())) {
+                    parser.next();
+                    value = parser.getString();
+                }
+            }
+            return new ConfiguredPoint("deser:" + value);
+        }
     }
 
     static final class PrefixDeserializer implements JsonbDeserializer<String> {

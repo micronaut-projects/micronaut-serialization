@@ -89,7 +89,7 @@ final class JsonbRuntimeBeanConstructor<T> implements BeanConstructor<T> {
      * @param <T> The bean type
      * @return The runtime constructor adapter
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "java:S3776"})
     static <T> JsonbRuntimeBeanConstructor<T> of(Class<T> type) {
         Constructor<T> creatorConstructor = null;
         for (Constructor<?> constructor : type.getDeclaredConstructors()) {

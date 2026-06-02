@@ -60,6 +60,7 @@ final class JsonbPriorityQueueSerde implements SerdeRegistrar<PriorityQueue<Obje
         Deserializer<? extends Object> elementDeserializer = context.findDeserializer(elementType).createSpecific(context, elementType);
         return new Deserializer<>() {
             @Override
+            @SuppressWarnings("java:S2638")
             public @Nullable PriorityQueue<Object> deserializeNullable(Decoder decoder, DecoderContext context, Argument<? super PriorityQueue<Object>> type) throws IOException {
                 if (decoder.decodeNull()) {
                     return null;

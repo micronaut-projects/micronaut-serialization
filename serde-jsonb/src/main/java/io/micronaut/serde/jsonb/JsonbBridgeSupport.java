@@ -95,7 +95,7 @@ final class JsonbBridgeSupport {
      * @param adapterClass The adapter class
      * @return The adapted target type, or {@code Object.class} when unresolved
      */
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings({"rawtypes", "java:S1452"})
     static Type adaptedType(Class<? extends JsonbAdapter> adapterClass) {
         Type type = findAdapterType(adapterClass);
         if (type instanceof ParameterizedType parameterizedType && parameterizedType.getActualTypeArguments().length == 2) {

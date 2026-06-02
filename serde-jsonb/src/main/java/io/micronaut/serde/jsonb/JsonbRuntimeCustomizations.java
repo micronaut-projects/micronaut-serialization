@@ -196,6 +196,7 @@ final class JsonbRuntimeCustomizations {
      * @param codec The bounded Serde codec bridge
      * @return The customized JSON tree, or {@code null} when no customization matched
      */
+    @SuppressWarnings("java:S3776")
     @Nullable JsonNode serialize(@Nullable Object value, JsonbFallbackCodec codec) {
         if (value == null) {
             return null;

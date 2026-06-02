@@ -84,6 +84,7 @@ final class JsonbFallbackCodec {
      * @return The deserialized value
      * @throws IOException If deserialization fails
      */
+    @SuppressWarnings("java:S2095")
     <T> @Nullable T readValue(JsonNode node, Argument<T> argument) throws IOException {
         Deserializer.DecoderContext decoderContext = registry.newDecoderContext(null);
         Deserializer<? extends T> deserializer = findDeserializer(decoderContext, argument);
@@ -113,6 +114,7 @@ final class JsonbFallbackCodec {
      * @param <T> The source type
      * @throws IOException If serialization fails
      */
+    @SuppressWarnings("java:S2095")
     <T> void writeValue(JsonGenerator generator, Argument<T> argument, @Nullable T value) throws IOException {
         if (value == null) {
             generator.writeNull();
@@ -131,6 +133,7 @@ final class JsonbFallbackCodec {
      * @param generator The target JSON generator
      * @param node The tree to write
      */
+    @SuppressWarnings("java:S3776")
     void writeTree(JsonGenerator generator, JsonNode node) {
         if (node.isNull()) {
             generator.writeNull();
@@ -175,6 +178,7 @@ final class JsonbFallbackCodec {
      * @return The completed JSON tree
      * @throws IOException If serialization fails
      */
+    @SuppressWarnings("java:S2095")
     <T> JsonNode writeValueToTree(Argument<T> argument, @Nullable T value) throws IOException {
         if (value == null) {
             return JsonNode.nullNode();

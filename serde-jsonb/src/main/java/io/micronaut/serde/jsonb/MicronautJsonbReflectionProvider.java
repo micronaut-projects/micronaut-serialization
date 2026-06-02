@@ -242,6 +242,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
 
         @Override
         protected void ensureGeneratedOnlyFeatures() {
+            // Reflection provider supports the full JSON-B feature set.
         }
 
         @Override
@@ -390,6 +391,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             }
         }
 
+        @SuppressWarnings({"java:S2583", "java:S3776"})
         private @Nullable Object read(byte[] bytes, Argument<?> argument) {
 
             Class<?> theClass = argument.getType();
@@ -430,6 +432,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             }
         }
 
+        @SuppressWarnings({"java:S2583", "java:S3776"})
         private @Nullable Object read(Argument<?> argument, ParserSource parserSource) {
             Class<?> theClass = argument.getType();
             if (theClass == Object.class || isRawUntypedContainer(argument)) {
@@ -645,6 +648,9 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             @SuppressWarnings("unchecked")
             JsonbRuntimeProperty<T> typedProperty = (JsonbRuntimeProperty<T>) property;
             Object current = typedProperty.getUnsafe(bean);
+            if (current == null) {
+                return;
+            }
             if (target.getType().isInstance(current)) {
                 return;
             }
@@ -654,6 +660,7 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
             }
         }
 
+        @SuppressWarnings("java:S3776")
         private static Object convertTypeVariableValue(Object value, Class<?> targetType) {
             if (value instanceof Number number) {
                 if (targetType == Integer.class || targetType == int.class) {

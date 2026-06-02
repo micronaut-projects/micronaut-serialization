@@ -115,8 +115,11 @@ public class MicronautJsonbProvider extends JsonbProvider {
         }
     }
 
+    @SuppressWarnings({"java:S1452", "java:S1845", "java:S2583"})
     protected static class MicronautJsonb implements Jsonb {
         private static final int GENERATED_SERDE_CACHE_MAXIMUM_SIZE = 256;
+        private static final String DEFAULT_FORMAT = "##default";
+        private static final String TIME_IN_MILLIS_FORMAT = "##time-in-millis";
 
         protected final ObjectMapper mapper;
         protected final SerdeRegistry registry;
@@ -492,7 +495,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
             }
             config.getProperty(JsonbConfig.DATE_FORMAT)
                 .map(String::valueOf)
-                .filter(format -> !"##default".equals(format) && !"##time-in-millis".equals(format))
+                .filter(format -> !DEFAULT_FORMAT.equals(format) && !TIME_IN_MILLIS_FORMAT.equals(format))
                 .ifPresent(format -> {
                     properties.put("micronaut.serde.date-format", format);
                     properties.put("micronaut.serde.time-zone", "UTC");
@@ -607,7 +610,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
         public Optional<String> getDateFormat() {
             return jsonbConfig.getProperty(JsonbConfig.DATE_FORMAT)
                 .map(String::valueOf)
-                .filter(format -> !"##default".equals(format) && !"##time-in-millis".equals(format))
+                .filter(format -> !MicronautJsonb.DEFAULT_FORMAT.equals(format) && !MicronautJsonb.TIME_IN_MILLIS_FORMAT.equals(format))
                 .or(delegate::getDateFormat);
         }
 
@@ -623,8 +626,8 @@ public class MicronautJsonbProvider extends JsonbProvider {
 
         @Override
         public boolean isWriteBinaryAsArray() {
-            String binaryDataStrategy = MicronautJsonb.binaryDataStrategy(jsonbConfig);
-            if (BinaryDataStrategy.BASE_64.equals(binaryDataStrategy) || BinaryDataStrategy.BASE_64_URL.equals(binaryDataStrategy)) {
+            String configuredBinaryDataStrategy = MicronautJsonb.binaryDataStrategy(jsonbConfig);
+            if (BinaryDataStrategy.BASE_64.equals(configuredBinaryDataStrategy) || BinaryDataStrategy.BASE_64_URL.equals(configuredBinaryDataStrategy)) {
                 return false;
             }
             return delegate.isWriteBinaryAsArray();
@@ -662,7 +665,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
         public Optional<TimeZone> getTimeZone() {
             if (jsonbConfig.getProperty(JsonbConfig.DATE_FORMAT)
                 .map(String::valueOf)
-                .filter(format -> !"##default".equals(format) && !"##time-in-millis".equals(format))
+                .filter(format -> !MicronautJsonb.DEFAULT_FORMAT.equals(format) && !MicronautJsonb.TIME_IN_MILLIS_FORMAT.equals(format))
                 .isPresent()) {
                 return Optional.of(TimeZone.getTimeZone("UTC"));
             }

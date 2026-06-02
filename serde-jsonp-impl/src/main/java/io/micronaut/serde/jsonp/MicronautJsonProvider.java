@@ -83,8 +83,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static io.micronaut.serde.jsonp.MicronautJsonProvider.PatchBuilder.COPY;
-import static io.micronaut.serde.jsonp.MicronautJsonProvider.PatchBuilder.MOVE;
+import static io.micronaut.serde.jsonp.MicronautJsonProvider.PatchBuilder.OP_COPY;
+import static io.micronaut.serde.jsonp.MicronautJsonProvider.PatchBuilder.OP_MOVE;
 
 /**
  * Micronaut-native Jakarta JSON-P provider.
@@ -92,6 +92,10 @@ import static io.micronaut.serde.jsonp.MicronautJsonProvider.PatchBuilder.MOVE;
  * @since 3.1.0
  */
 public final class MicronautJsonProvider extends JsonProvider {
+    private static final String VALUE = "value";
+    private static final String CANNOT_READ_JSON_EVENT = "Cannot read JSON event";
+    private static final String CANNOT_READ_JSON_NUMBER = "Cannot read JSON number";
+    private static final String CANNOT_WRITE_NUMBER = "Cannot write number";
     private static final JsonFactory JSON_FACTORY = JsonFactory.builder()
         .characterEscapes(JsonpCharacterEscapes.instance())
         .build();
@@ -120,6 +124,7 @@ public final class MicronautJsonProvider extends JsonProvider {
     }
 
     @Override
+    @SuppressWarnings("java:S2095")
     public JsonGenerator createGenerator(Writer writer) {
         return createGeneratorFactory(Map.of()).createGenerator(writer);
     }
@@ -145,6 +150,7 @@ public final class MicronautJsonProvider extends JsonProvider {
     }
 
     @Override
+    @SuppressWarnings("java:S2095")
     public JsonWriter createWriter(Writer writer) {
         return createWriterFactory(Map.of()).createWriter(writer);
     }
@@ -767,7 +773,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 try {
                     nextToken = parser.nextToken();
                 } catch (JacksonException e) {
-                    throw parsing("Cannot read JSON event", e);
+                    throw parsing(CANNOT_READ_JSON_EVENT, e);
                 }
             }
         }
@@ -781,7 +787,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 nextToken = parser.nextToken();
                 return nextToken != null;
             } catch (JacksonException e) {
-                throw parsing("Cannot read JSON event", e);
+                throw parsing(CANNOT_READ_JSON_EVENT, e);
             }
         }
 
@@ -793,7 +799,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 try {
                     token = parser.nextToken();
                 } catch (JacksonException e) {
-                    throw parsing("Cannot read JSON event", e);
+                    throw parsing(CANNOT_READ_JSON_EVENT, e);
                 }
             }
             if (token == null) {
@@ -836,7 +842,7 @@ public final class MicronautJsonProvider extends JsonProvider {
             try {
                 return parser.getIntValue();
             } catch (JacksonException e) {
-                throw parsing("Cannot read JSON number", e);
+                throw parsing(CANNOT_READ_JSON_NUMBER, e);
             }
         }
 
@@ -848,7 +854,7 @@ public final class MicronautJsonProvider extends JsonProvider {
             try {
                 return parser.getLongValue();
             } catch (JacksonException e) {
-                throw parsing("Cannot read JSON number", e);
+                throw parsing(CANNOT_READ_JSON_NUMBER, e);
             }
         }
 
@@ -860,7 +866,7 @@ public final class MicronautJsonProvider extends JsonProvider {
             try {
                 return parser.getDecimalValue();
             } catch (JacksonException e) {
-                throw parsing("Cannot read JSON number", e);
+                throw parsing(CANNOT_READ_JSON_NUMBER, e);
             }
         }
 
@@ -976,7 +982,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 currentEvent = toEvent(token);
             } catch (JacksonException e) {
-                throw parsing("Cannot read JSON event", e);
+                throw parsing(CANNOT_READ_JSON_EVENT, e);
             }
         }
 
@@ -1162,7 +1168,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return this;
             } catch (JacksonException e) {
-                throw generation("Cannot write number", e);
+                throw generation(CANNOT_WRITE_NUMBER, e);
             }
         }
 
@@ -1177,7 +1183,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return this;
             } catch (JacksonException e) {
-                throw generation("Cannot write number", e);
+                throw generation(CANNOT_WRITE_NUMBER, e);
             }
         }
 
@@ -1192,7 +1198,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return this;
             } catch (JacksonException e) {
-                throw generation("Cannot write number", e);
+                throw generation(CANNOT_WRITE_NUMBER, e);
             }
         }
 
@@ -1207,7 +1213,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return this;
             } catch (JacksonException e) {
-                throw generation("Cannot write number", e);
+                throw generation(CANNOT_WRITE_NUMBER, e);
             }
         }
 
@@ -1225,7 +1231,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return this;
             } catch (JacksonException e) {
-                throw generation("Cannot write number", e);
+                throw generation(CANNOT_WRITE_NUMBER, e);
             }
         }
 
@@ -1302,13 +1308,13 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public JsonObjectBuilder add(String name, JsonValue value) {
-            values.put(Objects.requireNonNull(name, "name"), Objects.requireNonNull(value, "value"));
+            values.put(Objects.requireNonNull(name, "name"), Objects.requireNonNull(value, VALUE));
             return this;
         }
 
         @Override
         public JsonObjectBuilder add(String name, String value) {
-            return add(name, new JsonStringValue(Objects.requireNonNull(value, "value")));
+            return add(name, new JsonStringValue(Objects.requireNonNull(value, VALUE)));
         }
 
         @Override
@@ -1318,7 +1324,7 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public JsonObjectBuilder add(String name, BigDecimal value) {
-            return add(name, new JsonNumberValue(Objects.requireNonNull(value, "value")));
+            return add(name, new JsonNumberValue(Objects.requireNonNull(value, VALUE)));
         }
 
         @Override
@@ -1381,18 +1387,18 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public JsonArrayBuilder add(JsonValue value) {
-            values.add(Objects.requireNonNull(value, "value"));
+            values.add(Objects.requireNonNull(value, VALUE));
             return this;
         }
 
         @Override
         public JsonArrayBuilder add(String value) {
-            return add(new JsonStringValue(Objects.requireNonNull(value, "value")));
+            return add(new JsonStringValue(Objects.requireNonNull(value, VALUE)));
         }
 
         @Override
         public JsonArrayBuilder add(BigDecimal value) {
-            return add(new JsonNumberValue(Objects.requireNonNull(value, "value")));
+            return add(new JsonNumberValue(Objects.requireNonNull(value, VALUE)));
         }
 
         @Override
@@ -1568,45 +1574,45 @@ public final class MicronautJsonProvider extends JsonProvider {
     }
 
     private static final class JsonObjectValue extends AbstractMap<String, JsonValue> implements JsonObject {
-        private final Map<String, JsonValue> values;
+        private final Map<String, JsonValue> members;
 
         JsonObjectValue(Map<String, JsonValue> values) {
-            this.values = Collections.unmodifiableMap(new LinkedHashMap<>(values));
+            this.members = Collections.unmodifiableMap(new LinkedHashMap<>(values));
         }
 
         @Override
         public Set<Entry<String, JsonValue>> entrySet() {
-            return values.entrySet();
+            return members.entrySet();
         }
 
         @Override
         public @Nullable JsonValue get(Object key) {
-            return values.get(key);
+            return members.get(key);
         }
 
         @Override
         public boolean containsKey(Object key) {
-            return values.containsKey(key);
+            return members.containsKey(key);
         }
 
         @Override
         public @Nullable JsonArray getJsonArray(String name) {
-            return (JsonArray) values.get(name);
+            return (JsonArray) members.get(name);
         }
 
         @Override
         public @Nullable JsonObject getJsonObject(String name) {
-            return (JsonObject) values.get(name);
+            return (JsonObject) members.get(name);
         }
 
         @Override
         public @Nullable JsonNumber getJsonNumber(String name) {
-            return (JsonNumber) values.get(name);
+            return (JsonNumber) members.get(name);
         }
 
         @Override
         public @Nullable JsonString getJsonString(String name) {
-            return (JsonString) values.get(name);
+            return (JsonString) members.get(name);
         }
 
         @Override
@@ -1620,7 +1626,7 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public String getString(String name, String defaultValue) {
-            JsonValue value = values.get(name);
+            JsonValue value = members.get(name);
             return value instanceof JsonString string ? string.getString() : defaultValue;
         }
 
@@ -1635,13 +1641,13 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public int getInt(String name, int defaultValue) {
-            JsonValue value = values.get(name);
+            JsonValue value = members.get(name);
             return value instanceof JsonNumber number ? number.intValue() : defaultValue;
         }
 
         @Override
         public boolean getBoolean(String name) {
-            JsonValue value = values.get(name);
+            JsonValue value = members.get(name);
             if (value == null) {
                 throw new NullPointerException("No boolean value for name: " + name);
             }
@@ -1656,7 +1662,7 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public boolean getBoolean(String name, boolean defaultValue) {
-            JsonValue value = values.get(name);
+            JsonValue value = members.get(name);
             if (value == JsonValue.TRUE) {
                 return true;
             }
@@ -1668,10 +1674,10 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public boolean isNull(String name) {
-            if (!values.containsKey(name)) {
+            if (!members.containsKey(name)) {
                 throw new NullPointerException("No value for name: " + name);
             }
-            return values.get(name) == JsonValue.NULL;
+            return members.get(name) == JsonValue.NULL;
         }
 
         @Override
@@ -1944,14 +1950,14 @@ public final class MicronautJsonProvider extends JsonProvider {
     }
 
     private static final class Pointer implements JsonPointer {
-        private final String pointer;
+        private final String source;
         private final List<String> tokens;
 
         Pointer(String pointer) {
             if (!pointer.isEmpty() && !pointer.startsWith("/")) {
                 throw new JsonException("JSON pointer must be empty or start with '/'");
             }
-            this.pointer = pointer;
+            this.source = pointer;
             this.tokens = pointer.isEmpty() ? List.of() : Stream.of(pointer.substring(1).split("/", -1)).map(Pointer::unescape).toList();
         }
 
@@ -1990,7 +1996,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                     int index = parseIndex(token, array.size());
                     current = array.get(index);
                 } else {
-                    throw new JsonException("JSON pointer does not resolve: " + pointer);
+                    throw new JsonException("JSON pointer does not resolve: " + source);
                 }
             }
             return current;
@@ -1998,7 +2004,7 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public String toString() {
-            return pointer;
+            return source;
         }
 
         @SuppressWarnings("unchecked")
@@ -2018,7 +2024,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 String token = tokens.get(i);
                 if (current instanceof JsonObject object) {
                     if (!object.containsKey(token)) {
-                        throw new JsonException("JSON pointer does not resolve: " + pointer);
+                        throw new JsonException("JSON pointer does not resolve: " + source);
                     }
                     frames.add(new ObjectFrame(object, token));
                     current = object.get(token);
@@ -2027,7 +2033,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                     frames.add(new ArrayFrame(array, index));
                     current = array.get(index);
                 } else {
-                    throw new JsonException("JSON pointer does not resolve: " + pointer);
+                    throw new JsonException("JSON pointer does not resolve: " + source);
                 }
             }
 
@@ -2038,16 +2044,17 @@ public final class MicronautJsonProvider extends JsonProvider {
             return updated;
         }
 
+        @SuppressWarnings("java:S3776")
         private JsonValue updateLeaf(JsonValue current, String token, JsonValue value, Operation operation) {
             if (current instanceof JsonObject object) {
                 Map<String, JsonValue> copy = new LinkedHashMap<>(object);
                 if (operation == Operation.REMOVE) {
                     if (copy.remove(token) == null) {
-                        throw new JsonException("JSON pointer does not resolve: " + pointer);
+                        throw new JsonException("JSON pointer does not resolve: " + source);
                     }
                 } else {
                     if (operation == Operation.REPLACE && !copy.containsKey(token)) {
-                        throw new JsonException("JSON pointer does not resolve: " + pointer);
+                        throw new JsonException("JSON pointer does not resolve: " + source);
                     }
                     copy.put(token, value);
                 }
@@ -2068,7 +2075,7 @@ public final class MicronautJsonProvider extends JsonProvider {
                 }
                 return new JsonArrayValue(copy);
             }
-            throw new JsonException("JSON pointer does not resolve: " + pointer);
+            throw new JsonException("JSON pointer does not resolve: " + source);
         }
 
         private static JsonStructure requireStructure(JsonValue value) {
@@ -2128,15 +2135,15 @@ public final class MicronautJsonProvider extends JsonProvider {
     }
 
     static final class PatchBuilder implements JsonPatchBuilder {
-        public static final String MOVE = "move";
-        public static final String COPY = "copy";
-        public static final String TEST = "test";
+        public static final String OP_MOVE = "move";
+        public static final String OP_COPY = "copy";
+        public static final String OP_TEST = "test";
         public static final String FROM = "from";
         public static final String OP = "op";
         public static final String PATH = "path";
-        public static final String ADD = "add";
-        public static final String REMOVE = "remove";
-        public static final String REPLACE = "replace";
+        public static final String OP_ADD = "add";
+        public static final String OP_REMOVE = "remove";
+        public static final String OP_REPLACE = "replace";
         private final ArrayBuilder operations = new ArrayBuilder();
 
         PatchBuilder() {
@@ -2148,7 +2155,7 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public JsonPatchBuilder add(String path, JsonValue value) {
-            return operation(ADD, path, null, value);
+            return operation(OP_ADD, path, null, value);
         }
 
         @Override
@@ -2168,12 +2175,12 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public JsonPatchBuilder remove(String path) {
-            return operation(REMOVE, path, null, null);
+            return operation(OP_REMOVE, path, null, null);
         }
 
         @Override
         public JsonPatchBuilder replace(String path, JsonValue value) {
-            return operation(REPLACE, path, null, value);
+            return operation(OP_REPLACE, path, null, value);
         }
 
         @Override
@@ -2193,17 +2200,17 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         @Override
         public JsonPatchBuilder move(String path, String from) {
-            return operation(MOVE, path, from, null);
+            return operation(OP_MOVE, path, from, null);
         }
 
         @Override
         public JsonPatchBuilder copy(String path, String from) {
-            return operation(COPY, path, from, null);
+            return operation(OP_COPY, path, from, null);
         }
 
         @Override
         public JsonPatchBuilder test(String path, JsonValue value) {
-            return operation(TEST, path, null, value);
+            return operation(OP_TEST, path, null, value);
         }
 
         @Override
@@ -2242,10 +2249,10 @@ public final class MicronautJsonProvider extends JsonProvider {
 
     private record Patch(JsonArray operations) implements JsonPatch {
 
-        public static final String ADD = "add";
-        public static final String REMOVE = "remove";
-        public static final String REPLACE = "replace";
-        public static final String TEST = "test";
+        static final String ADD = "add";
+        static final String REMOVE = "remove";
+        static final String REPLACE = "replace";
+        static final String TEST = "test";
 
         @SuppressWarnings("unchecked")
             @Override
@@ -2260,8 +2267,8 @@ public final class MicronautJsonProvider extends JsonProvider {
                         case ADD -> pointer.add(current, required(operation));
                         case REMOVE -> pointer.remove(current);
                         case REPLACE -> pointer.replace(current, required(operation));
-                        case COPY -> pointer.add(current, new Pointer(operation.getString("from")).getValue(current));
-                        case MOVE -> {
+                        case OP_COPY -> pointer.add(current, new Pointer(operation.getString("from")).getValue(current));
+                        case OP_MOVE -> {
                             Pointer from = new Pointer(operation.getString("from"));
                             JsonValue value = from.getValue(current);
                             current = from.remove(current);

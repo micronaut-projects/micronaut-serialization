@@ -31,6 +31,8 @@ import java.util.List;
  */
 public class JsonbNumberFormatTransformer
     implements NamedAnnotationTransformer {
+    private static final String LOCALE = "locale";
+    private static final String DEFAULT = "##default";
 
     @Override
     public List<AnnotationValue<?>> transform(AnnotationValue<Annotation> annotation, VisitorContext visitorContext) {
@@ -42,11 +44,11 @@ public class JsonbNumberFormatTransformer
                 pattern   
             );
         } 
-        annotation.stringValue("locale")
-            .filter(l -> !"##default".equals(l))
-            .ifPresent(l -> builder.member("locale", l));
-        if (annotation.stringValue("locale").filter(l -> !"##default".equals(l)).isEmpty() && null != pattern && !pattern.isEmpty()) {
-            builder.member("locale", Locale.US.toLanguageTag());
+        annotation.stringValue(LOCALE)
+            .filter(l -> !DEFAULT.equals(l))
+            .ifPresent(l -> builder.member(LOCALE, l));
+        if (annotation.stringValue(LOCALE).filter(l -> !DEFAULT.equals(l)).isEmpty() && null != pattern && !pattern.isEmpty()) {
+            builder.member(LOCALE, Locale.US.toLanguageTag());
         }
         return Collections.singletonList(builder.build());
     }

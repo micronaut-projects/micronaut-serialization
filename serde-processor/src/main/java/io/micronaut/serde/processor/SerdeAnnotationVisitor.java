@@ -743,6 +743,7 @@ public class SerdeAnnotationVisitor implements TypeElementVisitor<SerdeConfig, S
             .anyMatch(typeInfoType -> typeInfoType.booleanValue(SerdeConfig.SerSubtyped.class, SerdeConfig.SerSubtyped.JSONB_TYPE_INFO).orElse(false));
     }
 
+    @SuppressWarnings("java:S3776")
     private List<String> resolveJsonbTypeInfoPropertyOrder(ClassElement subtype, List<TypePropertyDescriptor> typePropertyDescriptors) {
         List<String> order = new ArrayList<>();
         typePropertyDescriptors.stream()

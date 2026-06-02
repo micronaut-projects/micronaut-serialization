@@ -64,6 +64,7 @@ import java.util.Set;
  *
  * @param <T> The bean type
  */
+@SuppressWarnings("java:S3776")
 final class JsonbRuntimeBeanIntrospection<T> implements BeanIntrospection<T> {
     private final Class<T> type;
     private final AnnotationMetadata annotationMetadata;
