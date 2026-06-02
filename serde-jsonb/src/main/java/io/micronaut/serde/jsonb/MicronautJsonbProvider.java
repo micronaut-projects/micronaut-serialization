@@ -465,7 +465,7 @@ public class MicronautJsonbProvider extends JsonbProvider {
             }
         }
 
-        private static boolean hasReflectionOnlyFeatures(JsonbConfig config) {
+        static boolean hasReflectionOnlyFeatures(JsonbConfig config) {
             return config.getProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY).isPresent()
                 || config.getProperty(JsonbConfig.ADAPTERS).isPresent()
                 || config.getProperty(JsonbConfig.SERIALIZERS).isPresent()

@@ -11,7 +11,8 @@ micronaut {
 dependencies {
     annotationProcessor(projects.micronautSerdeProcessor)
 
-    implementation(projects.micronautSerdeJsonp)
+    implementation(projects.micronautSerdeApi)
+    implementation(projects.micronautSerdeJsonb)
     implementation(mn.micronaut.http.client)
     implementation(libs.managed.jakarta.json.bindApi)
 

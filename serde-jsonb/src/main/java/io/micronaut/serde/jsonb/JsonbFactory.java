@@ -27,6 +27,13 @@ import io.micronaut.serde.config.SerializationConfiguration;
 import jakarta.inject.Singleton;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbConfig;
+import jakarta.json.bind.adapter.JsonbAdapter;
+import jakarta.json.bind.config.PropertyVisibilityStrategy;
+import jakarta.json.bind.serializer.JsonbDeserializer;
+import jakarta.json.bind.serializer.JsonbSerializer;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * JSON-B beans backed by the current Micronaut context.
@@ -41,8 +48,22 @@ final class JsonbFactory {
      */
     @Singleton
     @Requires(missingBeans = JsonbConfig.class)
-    JsonbConfig jsonbConfig() {
-        return new JsonbConfig();
+    JsonbConfig jsonbConfig(List<JsonbAdapter<?, ?>> adapters,
+                            List<JsonbSerializer<?>> serializers,
+                            List<JsonbDeserializer<?>> deserializers,
+                            Optional<PropertyVisibilityStrategy> visibilityStrategy) {
+        JsonbConfig config = new JsonbConfig();
+        if (!adapters.isEmpty()) {
+            config.withAdapters(adapters.toArray(JsonbAdapter[]::new));
+        }
+        if (!serializers.isEmpty()) {
+            config.withSerializers(serializers.toArray(JsonbSerializer[]::new));
+        }
+        if (!deserializers.isEmpty()) {
+            config.withDeserializers(deserializers.toArray(JsonbDeserializer[]::new));
+        }
+        visibilityStrategy.ifPresent(strategy -> config.setProperty(JsonbConfig.PROPERTY_VISIBILITY_STRATEGY, strategy));
+        return config;
     }
 
     /**
@@ -67,7 +88,7 @@ final class JsonbFactory {
                 SerializationConfiguration serializationConfiguration,
                 DeserializationConfiguration deserializationConfiguration,
                 JsonbConfiguration jsonbConfiguration) {
-        if (jsonbConfiguration.isReflectionEnabled()) {
+        if (jsonbConfiguration.isReflectionEnabled() || MicronautJsonbProvider.MicronautJsonb.hasReflectionOnlyFeatures(config)) {
             return MicronautJsonbReflectionProvider.create(
                 config,
                 beanContext,

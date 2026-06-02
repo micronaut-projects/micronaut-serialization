@@ -1,0 +1,28 @@
+JSON-B extension types can be registered as Micronaut beans when the application uses the `Jsonb` bean from `micronaut-serde-jsonb`.
+
+The default `JsonbConfig` bean collects the following bean types:
+
+* `JsonbSerializer<T>`
+* `JsonbDeserializer<T>`
+* `JsonbAdapter<T, R>`
+* `PropertyVisibilityStrategy`
+
+Use `jakarta.annotation.Priority` to order multiple serializer, deserializer, or adapter beans. Lower priority values are selected first. If multiple JSON-B callbacks match the same type, the first matching callback in bean order is used.
+
+The following serializer is discovered as a bean:
+
+snippet::example.ColorSerializer[project-base="doc-examples/example-jsonb", source="main"]
+
+A lower-priority serializer for the same type can also exist:
+
+snippet::example.LowerPriorityColorSerializer[project-base="doc-examples/example-jsonb", source="main"]
+
+The lower `@Priority` value on `ColorSerializer` means it is registered first and wins for `Color`.
+
+Deserializers and adapters are registered the same way:
+
+snippet::example.ColorDeserializer[project-base="doc-examples/example-jsonb", source="main"]
+
+snippet::example.MilesAdapter[project-base="doc-examples/example-jsonb", source="main"]
+
+`PropertyVisibilityStrategy` is a single JSON-B configuration value. If you expose one as a bean, Micronaut's normal single-bean selection rules apply.
