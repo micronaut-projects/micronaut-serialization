@@ -145,7 +145,41 @@ class MicronautJsonProviderTest {
     }
 
     @Test
+    void deepJsonPointerUpdatesAreIterative() {
+        int depth = 5_000;
+        JsonObject source = nestedObject(depth, "old");
+        String parentPath = "/a".repeat(depth);
+        JsonPointer leaf = Json.createPointer(parentPath + "/leaf");
+
+        JsonObject replaced = leaf.replace(source, Json.createValue("new"));
+        assertEquals("new", ((JsonString) leaf.getValue(replaced)).getString());
+
+        JsonPointer added = Json.createPointer(parentPath + "/added");
+        JsonObject withAdded = added.add(replaced, Json.createValue("value"));
+        assertEquals("value", ((JsonString) added.getValue(withAdded)).getString());
+
+        JsonObject removed = added.remove(withAdded);
+        assertThrows(JsonException.class, () -> added.getValue(removed));
+    }
+
+    @Test
+    void hugeJsonPointerArrayIndexThrowsJsonException() {
+        JsonArray source = Json.createArrayBuilder().add("value").build();
+
+        assertThrows(JsonException.class, () -> Json.createPointer("/999999999999999999999999").getValue(source));
+        assertThrows(JsonException.class, () -> Json.createPointer("/999999999999999999999999").replace(source, JsonValue.TRUE));
+    }
+
+    @Test
     void escapesStrings() {
         assertEquals("\"a\\\"b\"", Json.createValue("a\"b").toString());
+    }
+
+    private static JsonObject nestedObject(int depth, String value) {
+        JsonValue current = Json.createObjectBuilder().add("leaf", value).build();
+        for (int i = 0; i < depth; i++) {
+            current = Json.createObjectBuilder().add("a", current).build();
+        }
+        return current.asJsonObject();
     }
 }

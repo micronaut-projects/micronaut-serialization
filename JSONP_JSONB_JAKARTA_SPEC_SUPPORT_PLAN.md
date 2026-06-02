@@ -145,3 +145,4 @@ Add first-class Jakarta JSON-P and JSON-B support to Micronaut Serialization wit
 - JSON-P implementation must be reflection-free.
 - JSON-B may use reflection only inside `serde-jsonb`, only after Micronaut Serialization generated serializer/introspection paths fail and only for types without processor-visible metadata where reflection is required to satisfy JSON-B API/TCK behavior.
 - Initial TCK targets should match the repo's current Jakarta API baselines: JSON-P 2.1 and JSON-B 3.0.
+- This change enforces the existing maximum nesting depth where JSON-B custom serializers emit JSON-P trees, but it does not add a new public byte, member-count, or array-length size-limit API. JSON-P object-model readers/builders and normal Serde collection deserialization can still allocate according to input breadth; hard breadth or byte limits should be designed as a separate configuration change.

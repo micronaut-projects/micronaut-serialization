@@ -18,6 +18,8 @@ package io.micronaut.serde.jsonb;
 import io.micronaut.core.type.Argument;
 import io.micronaut.json.tree.JsonNode;
 import io.micronaut.serde.Decoder;
+import io.micronaut.serde.LimitingStream;
+import io.micronaut.serde.exceptions.SerdeException;
 import io.micronaut.serde.jackson.JacksonDecoder;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
@@ -223,7 +225,7 @@ final class JsonbJsonpBridge {
     static JsonNode writeWithJsonbSerializer(JsonbSerializer<Object> serializer,
                                              Object value,
                                              JsonbFallbackCodec codec) throws IOException {
-        JsonNodeGenerator generator = new JsonNodeGenerator();
+        JsonNodeGenerator generator = new JsonNodeGenerator(codec.limits());
         serializer.serialize(value, generator, new JsonbSerializationContext(codec));
         return generator.completedValue();
     }
@@ -344,10 +346,14 @@ final class JsonbJsonpBridge {
     }
 
     @SuppressWarnings("resource")
-    private static final class JsonNodeGenerator implements JsonGenerator {
+    private static final class JsonNodeGenerator extends LimitingStream implements JsonGenerator {
         private final java.util.ArrayDeque<Container> containers = new java.util.ArrayDeque<>();
         private @Nullable JsonNode value;
         private @Nullable String currentKey;
+
+        JsonNodeGenerator(RemainingLimits remainingLimits) {
+            super(remainingLimits);
+        }
 
         JsonNode completedValue() {
             if (value == null) {
@@ -358,6 +364,7 @@ final class JsonbJsonpBridge {
 
         @Override
         public JsonGenerator writeStartObject() {
+            increaseDepthChecked();
             containers.push(new ObjectContainer());
             return this;
         }
@@ -376,6 +383,7 @@ final class JsonbJsonpBridge {
 
         @Override
         public JsonGenerator writeStartArray() {
+            increaseDepthChecked();
             containers.push(new ArrayContainer());
             return this;
         }
@@ -446,12 +454,13 @@ final class JsonbJsonpBridge {
                 throw new JsonbException("Cannot end JSON structure");
             }
             addValue(containers.pop().node());
+            decreaseDepth();
             return this;
         }
 
         @Override
         public JsonGenerator write(JsonValue value) {
-            addValue(toJsonNode(value));
+            writeJsonpValue(value);
             return this;
         }
 
@@ -521,6 +530,45 @@ final class JsonbJsonpBridge {
             }
             containers.peek().add(currentKey, node);
             currentKey = null;
+        }
+
+        private void writeJsonpValue(JsonValue jsonValue) {
+            switch (jsonValue.getValueType()) {
+                case ARRAY -> {
+                    writeStartArray();
+                    for (JsonValue item : jsonValue.asJsonArray()) {
+                        write(item);
+                    }
+                    writeEnd();
+                }
+                case OBJECT -> {
+                    writeStartObject();
+                    JsonObject object = jsonValue.asJsonObject();
+                    object.forEach((key, item) -> write(key, item));
+                    writeEnd();
+                }
+                case STRING -> write(((JsonString) jsonValue).getString());
+                case NUMBER -> {
+                    JsonNumber number = (JsonNumber) jsonValue;
+                    if (number.isIntegral()) {
+                        write(number.bigIntegerValue());
+                    } else {
+                        write(number.bigDecimalValue());
+                    }
+                }
+                case TRUE -> write(true);
+                case FALSE -> write(false);
+                case NULL -> writeNull();
+                default -> throw new JsonbException("Unsupported JSON value type: " + jsonValue.getValueType());
+            }
+        }
+
+        private void increaseDepthChecked() {
+            try {
+                increaseDepth();
+            } catch (SerdeException e) {
+                throw new JsonbException(e.getMessage(), e);
+            }
         }
     }
 

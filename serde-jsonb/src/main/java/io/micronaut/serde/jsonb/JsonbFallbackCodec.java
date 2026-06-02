@@ -70,6 +70,10 @@ final class JsonbFallbackCodec {
         return JacksonDecoder.create(parser, limits).decodeNode();
     }
 
+    LimitingStream.RemainingLimits limits() {
+        return limits;
+    }
+
     /**
      * Deserializes an already-buffered fallback tree through the normal Serde
      * registry. Use this instead of hand-converting JSON-B fallback values.

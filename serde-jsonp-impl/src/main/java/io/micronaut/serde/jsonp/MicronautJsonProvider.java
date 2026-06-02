@@ -2013,46 +2013,58 @@ public final class MicronautJsonProvider extends JsonProvider {
         }
 
         private JsonValue updateValue(JsonValue current, int tokenIndex, JsonValue value, Operation operation) {
-            String token = tokens.get(tokenIndex);
-            boolean leaf = tokenIndex == tokens.size() - 1;
-            if (current instanceof JsonObject object) {
-                Map<String, JsonValue> copy = new LinkedHashMap<>(object);
-                if (leaf) {
-                    if (operation == Operation.REMOVE) {
-                        if (copy.remove(token) == null) {
-                            throw new JsonException("JSON pointer does not resolve: " + pointer);
-                        }
-                    } else {
-                        if (operation == Operation.REPLACE && !copy.containsKey(token)) {
-                            throw new JsonException("JSON pointer does not resolve: " + pointer);
-                        }
-                        copy.put(token, value);
-                    }
-                } else {
-                    JsonValue child = copy.get(token);
-                    if (child == null) {
+            List<PathFrame> frames = new ArrayList<>(tokens.size() - tokenIndex - 1);
+            for (int i = tokenIndex; i < tokens.size() - 1; i++) {
+                String token = tokens.get(i);
+                if (current instanceof JsonObject object) {
+                    if (!object.containsKey(token)) {
                         throw new JsonException("JSON pointer does not resolve: " + pointer);
                     }
-                    copy.put(token, updateValue(child, tokenIndex + 1, value, operation));
+                    frames.add(new ObjectFrame(object, token));
+                    current = object.get(token);
+                } else if (current instanceof JsonArray array) {
+                    int index = parseIndex(token, array.size());
+                    frames.add(new ArrayFrame(array, index));
+                    current = array.get(index);
+                } else {
+                    throw new JsonException("JSON pointer does not resolve: " + pointer);
+                }
+            }
+
+            JsonValue updated = updateLeaf(current, tokens.get(tokens.size() - 1), value, operation);
+            for (int i = frames.size() - 1; i >= 0; i--) {
+                updated = frames.get(i).withUpdatedChild(updated);
+            }
+            return updated;
+        }
+
+        private JsonValue updateLeaf(JsonValue current, String token, JsonValue value, Operation operation) {
+            if (current instanceof JsonObject object) {
+                Map<String, JsonValue> copy = new LinkedHashMap<>(object);
+                if (operation == Operation.REMOVE) {
+                    if (copy.remove(token) == null) {
+                        throw new JsonException("JSON pointer does not resolve: " + pointer);
+                    }
+                } else {
+                    if (operation == Operation.REPLACE && !copy.containsKey(token)) {
+                        throw new JsonException("JSON pointer does not resolve: " + pointer);
+                    }
+                    copy.put(token, value);
                 }
                 return new JsonObjectValue(copy);
             }
             if (current instanceof JsonArray array) {
                 List<JsonValue> copy = new ArrayList<>(array);
-                int index = leaf && "-".equals(token) ? copy.size() : parseIndex(token, copy.size(), leaf && operation == Operation.ADD);
-                if (leaf) {
-                    try {
-                        switch (operation) {
-                            case ADD -> copy.add(index, value);
-                            case REPLACE -> copy.set(index, value);
-                            case REMOVE -> copy.remove(index);
-                            default -> throw new JsonException("Unsupported JSON pointer operation: " + operation);
-                        }
-                    } catch (IndexOutOfBoundsException e) {
-                        throw new JsonException("JSON pointer array index is out of bounds: " + token, e);
+                int index = "-".equals(token) ? copy.size() : parseIndex(token, copy.size(), operation == Operation.ADD);
+                try {
+                    switch (operation) {
+                        case ADD -> copy.add(index, value);
+                        case REPLACE -> copy.set(index, value);
+                        case REMOVE -> copy.remove(index);
+                        default -> throw new JsonException("Unsupported JSON pointer operation: " + operation);
                     }
-                } else {
-                    copy.set(index, updateValue(copy.get(index), tokenIndex + 1, value, operation));
+                } catch (IndexOutOfBoundsException e) {
+                    throw new JsonException("JSON pointer array index is out of bounds: " + token, e);
                 }
                 return new JsonArrayValue(copy);
             }
@@ -2084,6 +2096,28 @@ public final class MicronautJsonProvider extends JsonProvider {
 
         private static String unescape(String token) {
             return token.replace("~1", "/").replace("~0", "~");
+        }
+
+        private sealed interface PathFrame permits ObjectFrame, ArrayFrame {
+            JsonValue withUpdatedChild(JsonValue child);
+        }
+
+        private record ObjectFrame(JsonObject object, String token) implements PathFrame {
+            @Override
+            public JsonValue withUpdatedChild(JsonValue child) {
+                Map<String, JsonValue> copy = new LinkedHashMap<>(object);
+                copy.put(token, child);
+                return new JsonObjectValue(copy);
+            }
+        }
+
+        private record ArrayFrame(JsonArray array, int index) implements PathFrame {
+            @Override
+            public JsonValue withUpdatedChild(JsonValue child) {
+                List<JsonValue> copy = new ArrayList<>(array);
+                copy.set(index, child);
+                return new JsonArrayValue(copy);
+            }
         }
 
         private enum Operation {

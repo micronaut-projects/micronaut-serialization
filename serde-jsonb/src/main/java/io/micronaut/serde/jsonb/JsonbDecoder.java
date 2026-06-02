@@ -208,11 +208,42 @@ record JsonbDecoder(Decoder delegate, String binaryDataStrategy) implements Deco
         if (node.isArray()) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             for (JsonNode value : node.values()) {
-                buffer.write(value.isNull() ? 0 : value.getIntValue());
+                buffer.write(value.isNull() ? 0 : checkedByte(value));
             }
             return buffer.toByteArray();
         }
         throw createDeserializationException("Expected binary data as base64 string or byte array", node.getValue());
+    }
+
+    private int checkedByte(JsonNode node) throws IOException {
+        if (!node.isNumber()) {
+            throw createDeserializationException("Expected byte array entry to be a number", node.getValue());
+        }
+        BigInteger integer = integralValue(node.getNumberValue());
+        if (integer.compareTo(BigInteger.valueOf(Byte.MIN_VALUE)) < 0 || integer.compareTo(BigInteger.valueOf(Byte.MAX_VALUE)) > 0) {
+            throw createDeserializationException("Byte array entry is out of range: " + node.getNumberValue(), node.getValue());
+        }
+        return integer.intValue();
+    }
+
+    private BigInteger integralValue(Number number) throws IOException {
+        try {
+            if (number instanceof BigInteger integer) {
+                return integer;
+            }
+            if (number instanceof BigDecimal decimal) {
+                return decimal.toBigIntegerExact();
+            }
+            if (number instanceof Byte || number instanceof Short || number instanceof Integer || number instanceof Long) {
+                return BigInteger.valueOf(number.longValue());
+            }
+            if (number instanceof Float || number instanceof Double) {
+                return BigDecimal.valueOf(number.doubleValue()).toBigIntegerExact();
+            }
+            return new BigDecimal(number.toString()).toBigIntegerExact();
+        } catch (ArithmeticException | NumberFormatException e) {
+            throw createDeserializationException("Byte array entry is not an integral value: " + number, number);
+        }
     }
 
     @Override

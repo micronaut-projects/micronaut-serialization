@@ -19,6 +19,7 @@ import example.jsonb.AdditionalBook;
 import example.jsonb.ExcludedStartupBean;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.serde.annotation.Serdeable;
+import jakarta.json.Json;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.json.bind.JsonbConfig;
@@ -58,6 +59,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -439,6 +441,28 @@ class MicronautJsonbProviderTest {
     }
 
     @Test
+    void configuredMaximumNestingDepthIsEnforcedForCustomJsonbSerializerTrees() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty("micronaut.serde.maximum-nesting-depth", 1)
+            .withSerializers(new NestedObjectSerializer());
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            assertThrows(JsonbException.class, () -> jsonb.toJson(new NestedSerialized()));
+        }
+    }
+
+    @Test
+    void configuredMaximumNestingDepthIsEnforcedForCustomJsonbSerializerJsonValues() throws Exception {
+        JsonbConfig config = new JsonbConfig()
+            .setProperty("micronaut.serde.maximum-nesting-depth", 1)
+            .withSerializers(new NestedJsonValueSerializer());
+
+        try (Jsonb jsonb = JsonbBuilder.create(config)) {
+            assertThrows(JsonbException.class, () -> jsonb.toJson(new NestedSerialized()));
+        }
+    }
+
+    @Test
     void reflectionProviderHotPathsUseRuntimeModelPreflight() throws Exception {
         String source = Files.readString(Path.of("src/main/java/io/micronaut/serde/jsonb/MicronautJsonbReflectionProvider.java"));
 
@@ -514,6 +538,10 @@ class MicronautJsonbProviderTest {
     void supportsJsonbBinaryDataStrategiesWithSerdeGeneratedBeans() throws Exception {
         try (Jsonb jsonb = JsonbBuilder.create(new JsonbConfig().withBinaryDataStrategy(BinaryDataStrategy.BYTE))) {
             assertEquals("{\"value\":[84,101,115,116]}", jsonb.toJson(new BinaryHolder("Test".getBytes(StandardCharsets.UTF_8))));
+            assertArrayEquals(new byte[] {0, 127, -128}, jsonb.fromJson("{\"value\":[0,127,-128]}", BinaryHolder.class).getValue());
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":[128]}", BinaryHolder.class));
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":[1.5]}", BinaryHolder.class));
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":[\"1\"]}", BinaryHolder.class));
         }
 
         try (Jsonb jsonb = JsonbBuilder.create(new JsonbConfig().withBinaryDataStrategy(BinaryDataStrategy.BASE_64))) {
@@ -549,6 +577,32 @@ class MicronautJsonbProviderTest {
         }
     }
 
+    @Test
+    void genericNumberFallbackRejectsIntegerOverflowAndNonIntegralValues() throws Exception {
+        Type type = parameterizedType(RuntimeBox.class, Integer.class);
+
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeBox<Integer> box = jsonb.fromJson("{\"value\":42}", type);
+            assertEquals(42, box.getValue());
+
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":2147483648}", type));
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":1.5}", type));
+        }
+    }
+
+    @Test
+    void genericNumberFallbackRejectsByteOverflowAndNonIntegralValues() throws Exception {
+        Type type = parameterizedType(RuntimeBox.class, Byte.class);
+
+        try (Jsonb jsonb = JsonbBuilder.create()) {
+            RuntimeBox<Byte> box = jsonb.fromJson("{\"value\":127}", type);
+            assertEquals((byte) 127, box.getValue());
+
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":128}", type));
+            assertThrows(JsonbException.class, () -> jsonb.fromJson("{\"value\":1.5}", type));
+        }
+    }
+
     private static Book book() {
         return new Book("The Stand", 10);
     }
@@ -570,6 +624,25 @@ class MicronautJsonbProviderTest {
             }
         }
         throw new AssertionError("Cannot locate method body for " + methodName);
+    }
+
+    private static ParameterizedType parameterizedType(Class<?> rawType, Type... arguments) {
+        return new ParameterizedType() {
+            @Override
+            public Type[] getActualTypeArguments() {
+                return arguments;
+            }
+
+            @Override
+            public Type getRawType() {
+                return rawType;
+            }
+
+            @Override
+            public Type getOwnerType() {
+                return null;
+            }
+        };
     }
 
     private static final class NoReadAllBytesInputStream extends ByteArrayInputStream {
@@ -783,6 +856,29 @@ class MicronautJsonbProviderTest {
         }
     }
 
+    static final class NestedObjectSerializer implements JsonbSerializer<NestedSerialized> {
+        @Override
+        public void serialize(NestedSerialized obj, JsonGenerator generator, jakarta.json.bind.serializer.SerializationContext ctx) {
+            generator.writeStartObject();
+            generator.writeStartObject("nested");
+            generator.write("value", true);
+            generator.writeEnd();
+            generator.writeEnd();
+        }
+    }
+
+    static final class NestedJsonValueSerializer implements JsonbSerializer<NestedSerialized> {
+        @Override
+        public void serialize(NestedSerialized obj, JsonGenerator generator, jakarta.json.bind.serializer.SerializationContext ctx) {
+            generator.write(Json.createObjectBuilder()
+                .add("nested", Json.createObjectBuilder().add("value", true))
+                .build());
+        }
+    }
+
+    static final class NestedSerialized {
+    }
+
     static final class PrefixDeserializer implements JsonbDeserializer<String> {
         @Override
         public String deserialize(JsonParser parser, DeserializationContext ctx, Type rtType) {
@@ -835,6 +931,21 @@ class MicronautJsonbProviderTest {
         @Override
         public boolean isVisible(Method method) {
             return false;
+        }
+    }
+
+    static class RuntimeBox<T> {
+        private T value;
+
+        protected RuntimeBox() {
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        public void setValue(T value) {
+            this.value = value;
         }
     }
 

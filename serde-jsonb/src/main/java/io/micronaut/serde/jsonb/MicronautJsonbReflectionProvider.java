@@ -43,6 +43,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -655,10 +657,10 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
         private static Object convertTypeVariableValue(Object value, Class<?> targetType) {
             if (value instanceof Number number) {
                 if (targetType == Integer.class || targetType == int.class) {
-                    return number.intValue();
+                    return checkedInteger(number);
                 }
                 if (targetType == Long.class || targetType == long.class) {
-                    return number.longValue();
+                    return checkedLong(number);
                 }
                 if (targetType == Double.class || targetType == double.class) {
                     return number.doubleValue();
@@ -667,13 +669,69 @@ public final class MicronautJsonbReflectionProvider extends MicronautJsonbProvid
                     return number.floatValue();
                 }
                 if (targetType == Short.class || targetType == short.class) {
-                    return number.shortValue();
+                    return checkedShort(number);
                 }
                 if (targetType == Byte.class || targetType == byte.class) {
-                    return number.byteValue();
+                    return checkedByte(number);
                 }
             }
             return value;
+        }
+
+        private static int checkedInteger(Number number) {
+            BigInteger integer = integralValue(number);
+            if (integer.compareTo(BigInteger.valueOf(Integer.MIN_VALUE)) < 0
+                || integer.compareTo(BigInteger.valueOf(Integer.MAX_VALUE)) > 0) {
+                throw new JsonbException("JSON-B numeric value is out of range for Integer: " + number);
+            }
+            return integer.intValue();
+        }
+
+        private static long checkedLong(Number number) {
+            BigInteger integer = integralValue(number);
+            if (integer.compareTo(BigInteger.valueOf(Long.MIN_VALUE)) < 0
+                || integer.compareTo(BigInteger.valueOf(Long.MAX_VALUE)) > 0) {
+                throw new JsonbException("JSON-B numeric value is out of range for Long: " + number);
+            }
+            return integer.longValue();
+        }
+
+        private static short checkedShort(Number number) {
+            BigInteger integer = integralValue(number);
+            if (integer.compareTo(BigInteger.valueOf(Short.MIN_VALUE)) < 0
+                || integer.compareTo(BigInteger.valueOf(Short.MAX_VALUE)) > 0) {
+                throw new JsonbException("JSON-B numeric value is out of range for Short: " + number);
+            }
+            return integer.shortValue();
+        }
+
+        private static byte checkedByte(Number number) {
+            BigInteger integer = integralValue(number);
+            if (integer.compareTo(BigInteger.valueOf(Byte.MIN_VALUE)) < 0
+                || integer.compareTo(BigInteger.valueOf(Byte.MAX_VALUE)) > 0) {
+                throw new JsonbException("JSON-B numeric value is out of range for Byte: " + number);
+            }
+            return integer.byteValue();
+        }
+
+        private static BigInteger integralValue(Number number) {
+            try {
+                if (number instanceof BigInteger integer) {
+                    return integer;
+                }
+                if (number instanceof BigDecimal decimal) {
+                    return decimal.toBigIntegerExact();
+                }
+                if (number instanceof Byte || number instanceof Short || number instanceof Integer || number instanceof Long) {
+                    return BigInteger.valueOf(number.longValue());
+                }
+                if (number instanceof Float || number instanceof Double) {
+                    return BigDecimal.valueOf(number.doubleValue()).toBigIntegerExact();
+                }
+                return new BigDecimal(number.toString()).toBigIntegerExact();
+            } catch (ArithmeticException | NumberFormatException e) {
+                throw new JsonbException("JSON-B numeric value is not an integral value: " + number, e);
+            }
         }
 
         private JsonNode readTree(ParserSource parserSource) throws IOException {
