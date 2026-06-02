@@ -108,6 +108,7 @@ val unpackJakartaJsonpTck by tasks.registering(Sync::class) {
 }
 
 dependencies {
+    testImplementation(platform(mn.micronaut.core.bom))
     testImplementation(projects.micronautSerdeJsonpImpl)
     testImplementation(libs.managed.jakarta.json.api)
     testImplementation(mnTest.junit.jupiter.engine)
